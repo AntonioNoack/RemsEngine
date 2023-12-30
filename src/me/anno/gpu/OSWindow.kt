@@ -140,6 +140,11 @@ open class OSWindow(var title: String) {
                 GLFW.GLFW_DONT_CARE
             )
         }
+        val width = intArrayOf(0)
+        val height = intArrayOf(0)
+        GLFW.glfwGetWindowSize(pointer, width, height)
+        this.width = width[0]
+        this.height = height[0]
         // this information gets lost otherwise...
         forceUpdateVsync()
     }

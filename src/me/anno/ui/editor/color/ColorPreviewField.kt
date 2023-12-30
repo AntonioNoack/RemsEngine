@@ -3,7 +3,6 @@ package me.anno.ui.editor.color
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.shader.ShaderLib
-import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -11,6 +10,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.black
 import me.anno.utils.Color.g01
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r01
 import me.anno.utils.Color.white
 
@@ -35,18 +35,18 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val bgColor = if (ShaderLib.y.dot(color.r01(), color.g01(), color.b01(), 0f) > 0.5f) black else white
-        DrawRectangles.drawRect(x, y, width, height, bgColor)
-        var x2 = x + padding
-        var y2 = y + padding
-        var x3 = x + width - padding
-        var y3 = y + height - padding
+        val size = min(width, height)
+        DrawRectangles.drawRect(
+            x + padding - 1, y + padding - 1,
+            size - 2, size - 2,
+            mixARGB(backgroundColor, bgColor, 0.5f)
+        )
+        val xi = x + padding
+        val yi = y + padding
+        val si = size - 2 * padding
         if (color.a() != 255) {
-            drawTransparentBackground(x2, y2, x3 - x2, y3 - y2)
+            drawTransparentBackground(xi, yi, si, si)
         }
-        x2 = max(x0, x2)
-        y2 = max(y0, y2)
-        x3 = min(x1, x3)
-        y3 = min(y1, y3)
-        DrawRectangles.drawRect(x2, y2, x3 - x2, y3 - y2, color)
+        DrawRectangles.drawRect(xi, yi, si, si, color)
     }
 }
