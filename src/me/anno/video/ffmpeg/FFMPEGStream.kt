@@ -284,11 +284,17 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     }
 
     fun waitForRelease(process: Process) {
-        waitingQueue += {
-            if (process.waitFor(1, TimeUnit.MILLISECONDS)) {
-                processLimiter.release()
-            } else {
-                waitForRelease(process)
+        if (Engine.shutdown) {
+            LOGGER.warn("Shutting down before child process")
+            waitingQueue.stop()
+            process.destroyForcibly() // ^^
+        } else {
+            waitingQueue += {
+                if (process.waitFor(1, TimeUnit.MILLISECONDS)) {
+                    processLimiter.release()
+                } else {
+                    waitForRelease(process)
+                }
             }
         }
     }
