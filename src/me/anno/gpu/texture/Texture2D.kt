@@ -12,6 +12,7 @@ import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -22,6 +23,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
 import me.anno.image.raw.GPUImage
+import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
@@ -38,6 +40,7 @@ import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11.GL_R
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
 import org.lwjgl.opengl.GL45C.*
 import java.awt.image.BufferedImage
@@ -1221,6 +1224,19 @@ open class Texture2D(
 
             override val depthTexture = null
         }
+    }
+
+    override fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
+        val buffer = IntArray(width * height)
+        useFrame(this, 0) {
+            glFlush()
+            glFinish()
+            GL11C.glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        }
+        switchRGB2BGR(buffer)
+        val image = IntImage(width, height, buffer, channels > 3)
+        if (flipY) image.flipY()
+        return image
     }
 
     companion object {
