@@ -56,6 +56,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.FileExplorer.Companion.rightClickedFiles
 import me.anno.ui.editor.files.FileExplorerIcons.docsPath
 import me.anno.ui.editor.files.FileExplorerIcons.emptyFolderPath
 import me.anno.ui.editor.files.FileExplorerIcons.exePath
@@ -232,7 +233,7 @@ open class FileExplorerEntry(
         }
 
         backgroundColor = when {
-            isInFocus -> darkerBackgroundColor
+            isInFocus || ref1 in rightClickedFiles -> darkerBackgroundColor
             isHovered -> hoverBackgroundColor
             else -> originalBackgroundColor
         }

@@ -56,8 +56,6 @@ import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// todo bug: search is flickering, and having large gaps... why?
-
 // todo right click option for images: open large image viewer panel
 
 // done, kind of: zoom: keep mouse at item in question
@@ -119,11 +117,18 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
     open fun openOptions(files: List<FileReference>) {
-        openMenu(windowStack, getFileOptions().map {
+        rightClickedFiles = files.toHashSet()
+        val title = NameDesc(
+            if (files.size == 1) "For ${files.first().name}:"
+            else "For ${files.size} files:"
+        )
+        openMenu(windowStack, title, getFileOptions().map {
             MenuOption(it.nameDesc) {
                 it.onClick(this, files)
             }
-        })
+        })?.addClosingListener {
+            rightClickedFiles = emptySet()
+        }
     }
 
     open fun getFileOptions(): List<FileExplorerOption> {
@@ -198,8 +203,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     var isValid = 0f
 
     init {
-        searchBar.tooltip =
-            "While search is a little broken, you can still paste a path, press enter, and should be redirected there."
+        searchBar.tooltip = "Enter search terms, or paste a path, press enter to go there"
         searchBar.alignmentX = AxisAlignment.FILL
         searchBar.weight = 1f
         searchBar.addChangeListener { invalidate() }
@@ -732,6 +736,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     override val className: String get() = "FileExplorer"
 
     companion object {
+
+        var rightClickedFiles: Set<FileReference> = emptySet()
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorer::class)

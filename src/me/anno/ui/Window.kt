@@ -143,6 +143,12 @@ open class Window(
         acceptsClickAway = { boolean }
     }
 
+    val closingListeners = ArrayList<() -> Unit>()
+
+    fun addClosingListener(listener: () -> Unit) {
+        closingListeners.add(listener)
+    }
+
     /**
      * returns whether the window can be closed, when that button was clicked outside this window's domain;
      * can be used as a listener for this event
@@ -153,6 +159,9 @@ open class Window(
     open fun destroy() {
         buffer.destroy()
         panel.destroy()
+        for (listener in closingListeners) {
+            listener()
+        }
     }
 
     fun draw(
