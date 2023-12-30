@@ -476,7 +476,7 @@ object ComponentUI {
             }
             "Int", "Integer" -> {
                 if (title.endsWith("color", true)) {
-                    return ColorInput(style, title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true).apply {
+                    return ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
                         askForReset(property) { it as Int; setValue(it.toVecRGBA(), -1, false) }
@@ -781,7 +781,7 @@ object ComponentUI {
                     val power = maxPower.pow(l.w * 2f - 1f)
                     return Vector3f(l.x, l.y, l.z).mul(power)
                 }
-                return object : ColorInput(style, title, visibilityKey, b2l(value), type0 == "Color3HDR") {
+                return object : ColorInput(title, visibilityKey, b2l(value), type0 == "Color3HDR", style) {
                     override fun onCopyRequested(x: Float, y: Float): String? {
                         if (type0 == "Color3") return super.onCopyRequested(x, y)
                         val v = l2b(this.value)
@@ -803,7 +803,7 @@ object ComponentUI {
             "Color4", "Color4HDR" -> {
                 value as Vector4f
                 // todo hdr colors per color amplitude
-                return ColorInput(style, title, visibilityKey, value, true)
+                return ColorInput(title, visibilityKey, value, true, style)
                     .apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
@@ -1274,6 +1274,7 @@ object ComponentUI {
                         childWidth = entrySize.toInt()
                         childHeight = childWidth
                     }
+
                     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
                         if (Input.isControlDown) {
                             val newEntrySize = entrySize * Maths.pow(1.05f, dy - dx)

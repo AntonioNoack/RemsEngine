@@ -57,8 +57,9 @@ object GFXx2D {
         // RenderSettings.renderer.use(Renderer.colorRenderer) {
         // not perfect, but pretty good
         // antialiasing for the rough edges
-        // not very economical, could be improved
-        color.w /= 25f
+        // todo not very economical, could be improved
+        val originalW = color.w
+        color.w = originalW / 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
                 stack.pushMatrix()
@@ -67,6 +68,7 @@ object GFXx2D {
                 stack.popMatrix()
             }
         }
+        color.w = originalW
     }
 
     fun drawCircle(

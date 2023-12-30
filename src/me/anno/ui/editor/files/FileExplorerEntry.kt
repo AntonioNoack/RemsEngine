@@ -421,7 +421,7 @@ open class FileExplorerEntry(
             // countdown-circle, pseudo-loading
             // saves us some computations
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
-            drawLoadingCircle(relativeTime, x0, x1, y0, y1)
+            drawLoadingCircle(relativeTime, x0, y0, x1, y1)
         }
     }
 
@@ -931,7 +931,7 @@ open class FileExplorerEntry(
         }
 
         @JvmStatic
-        fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
+        fun drawLoadingCircle(relativeTime: Float, x0: Int, y0: Int, x1: Int, y1: Int) {
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
             val color = JomlPools.vec4f.borrow()

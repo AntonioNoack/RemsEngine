@@ -52,7 +52,7 @@ class ContentCreator(
                         } else {
                             when (shortName) {
                                 "background", "color", "textColor" -> {
-                                    ColorInput(style, "", "", (parseColor(value) ?: black).toVecRGBA(), true)
+                                    ColorInput("", "", (parseColor(value) ?: black).toVecRGBA(), true, style)
                                         .setChangeListener { r, g, b, a, _ ->
                                             map[fullName] = Vector4f(r, g, b, a).toHexColor()
                                         }
@@ -72,7 +72,7 @@ class ContentCreator(
                     is Int -> {
                         if (value.a() > 100 || "Color" in fullName || fullName.endsWith("background")) {
                             // a color
-                            ColorInput(style, "", "", value.toVecRGBA(), true)
+                            ColorInput("", "", value.toVecRGBA(), true, style)
                                 .setChangeListener { r, g, b, a, _ -> map[fullName] = rgba(r, g, b, a) }
                         } else {
                             IntInput("", "", value, style)

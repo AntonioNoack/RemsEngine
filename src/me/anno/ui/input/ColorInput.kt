@@ -37,16 +37,16 @@ import org.joml.Vector4f
 import kotlin.math.max
 
 open class ColorInput(
-    style: Style,
     val title: String,
     @Suppress("unused_parameter")
     visibilityKey: String,
     oldValue: Vector4f,
     val withAlpha: Boolean,
+    style: Style,
     val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
-    constructor(style: Style) : this(style, "", "", Vector4f(), true)
+    constructor(style: Style) : this("", "", Vector4f(), true, style)
 
     val titleView = TitlePanel(title, contentView, style)
     private val previewField = ColorPreviewField(titleView, 2, style)

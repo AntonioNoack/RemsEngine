@@ -19,7 +19,7 @@ fun main() {
     // let's count a few pieces :3
     HiddenOpenGLContext.createOpenGL()
     val source = downloads.getChild("cp_screenshot_bad.png")
-    val image = TextureCache[source, false]!!
+    val image = TextureCache[source, false] as Texture2D
     val groundTruth = AABBf(
         148f, 102f, 0f,
         148 + 23f, 102f + 20f, 0f

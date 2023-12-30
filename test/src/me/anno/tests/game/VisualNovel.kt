@@ -5,7 +5,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
 import me.anno.graph.types.NodeLibrary
@@ -18,19 +19,18 @@ import me.anno.graph.types.states.StateNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.graph.ui.GraphPanel.Companion.yellow
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.OS.downloads
@@ -251,10 +251,9 @@ object VisualNovel {
                 shownTextPanel.setPosSize(x + (width - w) / 2, y + height - h, w, h)
             }
 
-            fun drawChar(image: Texture2D, pos: Int, hasText: Boolean, w: Int) {
+            fun drawChar(image: ITexture2D, pos: Int, hasText: Boolean, w: Int) {
                 val h = image.height * w / image.width
-                image.bind(0)
-                image.ensureFilterAndClamping(Filtering.LINEAR, Clamping.CLAMP)
+                image.bind(0, Filtering.LINEAR, Clamping.CLAMP)
                 drawTexture(
                     x + width * pos / 100 - w / 2,
                     y + height * (if (hasText) 7 else 9) / 10 - h / 2, w, h, image

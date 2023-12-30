@@ -1,11 +1,11 @@
 package me.anno.tests.gfx
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
 import me.anno.ui.base.ImagePanel
 import me.anno.ui.debug.TestStudio
 
-fun testTexture(title: String, flipY: Boolean, draw: (p: ImagePanel) -> Texture2D) {
+fun testTexture(title: String, flipY: Boolean, draw: (p: ImagePanel) -> ITexture2D) {
     TestStudio.testUI3(title) {
         object : ImagePanel(DefaultConfig.style) {
             override fun getTexture() = draw(this)

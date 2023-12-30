@@ -11,6 +11,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
@@ -33,7 +34,7 @@ object BokehBlur {
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
-    fun draw(srcTexture: Texture2D, target: IFramebuffer, relativeToH: Float, fp: Boolean) {
+    fun draw(srcTexture: ITexture2D, target: IFramebuffer, relativeToH: Float, fp: Boolean) {
 
         val w = min(srcTexture.width, target.width)
         val h = min(srcTexture.height, target.height)
