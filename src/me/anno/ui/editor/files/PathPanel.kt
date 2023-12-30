@@ -1,9 +1,10 @@
 package me.anno.ui.editor.files
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileRootRef
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.Style
 
 class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
 
@@ -25,9 +26,8 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
         clear()
 
         invalidateLayout()
-
         val file = file
-        var name = file?.name ?: "This Computer"
+        var name = if (file == FileRootRef) "This Computer" else file?.name ?: ""
         if (name.isEmpty()) name = file.toString().replace("\\", "")
         if (name.isEmpty()) return
 
@@ -37,7 +37,5 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
         this += panel
 
         invalidateLayout()
-
     }
-
 }

@@ -180,14 +180,12 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(texture: GPUFrame, flipY: Boolean) {
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: GPUFrame, flipY: Boolean = false) {
         if (!texture.isCreated) throw IllegalArgumentException("Frame must be loaded to be rendered!")
         val shader = texture.get2DShader()
         shader.use()
-        shader.v4f(
-            "tiling", (texture.height * GFX.viewportWidth).toFloat() /
-                    (texture.width * GFX.viewportHeight).toFloat(), if (flipY) +1f else -1f, 0f, 0f
-        )
+        posSize(shader, x, y, w, h)
+        shader.v4f("tiling", 1f, if (flipY) 1f else -1f, 0f, 0f)
         shader.v4f("tint", white4)
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)

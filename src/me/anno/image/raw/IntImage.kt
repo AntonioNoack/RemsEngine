@@ -36,14 +36,14 @@ open class IntImage(
         }
     }
 
-    fun flipY(){
+    fun flipY() {
         val data = data
         val tmp = IntArray(width)
         for (y in 0 until height / 2) {
             val i0 = y * width
             val i1 = (height - 1 - y) * width
             data.copyInto(tmp, 0, i0, i0 + width) // tmp = a
-            data.copyInto(data, i0, i1, width) // a = b
+            data.copyInto(data, i0, i1, i1 + width) // a = b
             tmp.copyInto(data, i1) // b = tmp
         }
     }

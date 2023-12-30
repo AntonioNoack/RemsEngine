@@ -511,8 +511,8 @@ object Thumbs {
 
         waitForGFXThread(true) { src.isCreated }
 
-        renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
-            drawTexture(src, true)
+        renderToImage(srcFile, false, dstFile, false, colorRenderer, true, callback, w, h) {
+            drawTexture(0, 0, w, h, src, false)
         }
     }
 

@@ -33,7 +33,7 @@ fun main() {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
             GFX.addGPUTask("blank frame detection", 1) {
                 GFXState.useFrame(fb) {
-                    drawTexture(frame, false)
+                    drawTexture(0, 0, frame.width, frame.height, frame)
                 }
                 frameIndex++
                 callback()

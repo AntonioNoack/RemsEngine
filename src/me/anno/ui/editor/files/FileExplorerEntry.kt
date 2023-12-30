@@ -29,6 +29,7 @@ import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
+import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.Key
@@ -435,7 +436,9 @@ open class FileExplorerEntry(
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
-            drawTexture(image, false)
+            val size = width - 2 * padding
+            val (nw, nh) = ImageScale.scaleMin(image.width, image.height, size, size)
+            drawTexture((x0 + x1 - nw) / 2, (y0 + y1 - nh) / 2, nw, nh, image)
             drawCircle(x0, y0, x1, y1)
         } else drawDefaultIcon(x0, y0, x1, y1)
 

@@ -14,6 +14,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.Events.addEvent
@@ -36,6 +37,7 @@ import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
+import me.anno.utils.Color.hex32
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
@@ -53,6 +55,7 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -223,14 +226,32 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     val history = History(initialLocation ?: documents)
     val folder get() = history.value
+    private var lastFolder: FileReference = InvalidRef
+    private var fileToScrollTo: FileReference = InvalidRef
+    private var panelToScrollTo: FileExplorerEntry? = null
 
     var entrySize = 64f
     val minEntrySize = 32f
 
+    private fun checkForScrollingTo(panel: FileExplorerEntry) {
+        if (fileToScrollTo.absolutePath == panel.path) {
+            fileToScrollTo = InvalidRef
+            panelToScrollTo = panel
+        }
+    }
+
     val uContent = PanelListX(style)
-    val content2d = PanelList2D(isY, { p0, p1 ->
+    val content2d: PanelList2D = PanelList2D(isY, { p0, p1 ->
+
         p0 as FileExplorerEntry
         p1 as FileExplorerEntry
+
+        // if is first time, and p0 is the last file that was scrolled to, scroll to it
+        if (fileToScrollTo != InvalidRef) {
+            checkForScrollingTo(p0)
+            checkForScrollingTo(p1)
+        }
+
         when {
             p0 === p1 -> 0
             p0.isParent -> -1
@@ -425,16 +446,52 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         return loading != 0L
     }
 
+    private fun getClosestFileKey(file: FileReference): String {
+        return "ui.fileExplorer.last.${hex32(file.hashCode())}"
+    }
+
+    private fun getClosestPanel(): FileExplorerEntry? {
+        // save preferred file by lastFolder
+        val window = window!!
+        val x0 = window.mouseXi * 2
+        val y0 = window.mouseYi * 2
+        return content2d.children.minByOrNull {
+            abs(it.x * 2 + it.width - x0) + abs(it.y * 2 + it.height - y0)
+        } as? FileExplorerEntry
+    }
+
+    private fun saveClosestFile() {
+        // save preferred file by lastFolder
+        val closestEntry = getClosestPanel()
+        val preferredFile = closestEntry?.ref1s
+        if (preferredFile != null) {
+            DefaultConfig[getClosestFileKey(lastFolder)] = preferredFile.name
+        }
+    }
+
     override fun onUpdate() {
         super.onUpdate()
+        if (folder != lastFolder) {
+            saveClosestFile()
+            lastFolder = folder
+            val fileName = DefaultConfig[getClosestFileKey(folder), ""]
+            fileToScrollTo =
+                if (fileName.isEmpty()) folder.getParent() ?: InvalidRef
+                else folder.getChild(fileName)
+            panelToScrollTo = null // first must be created
+        }
         if (isValid <= 0f) {
             isValid = Float.POSITIVE_INFINITY
-            // todo "This Computer" isn't shown anymore :/
-            pathPanel.file = folder// ?.toString() ?: "This Computer"
+            pathPanel.file = folder
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults(this)
         } else isValid -= Time.deltaTime.toFloat()
         if (loading != 0L) invalidateDrawing()
+        val pts = panelToScrollTo
+        if (pts != null) {
+            pts.scrollTo()
+            panelToScrollTo = null
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -713,6 +770,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
+    private var lastScrollChangedPanel: FileExplorerEntry? = null
+    private var lastScrollChangeTime = 0L
     fun onUpdateEntrySize(newEntrySize: Float = entrySize) {
         listMode = newEntrySize < minEntrySize
         val esi = entrySize.toInt()
@@ -725,9 +784,19 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         val textSize = sampleFont.sizeInt
         content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
         else esi + (textSize * 2.5f).roundToInt()
-        // scroll to hoverItemIndex, hoverFractionY
-        // todo restore that (?)
-        // content2d.scrollTo(hoveredItemIndex, hoverFractionY)
+        val time = Time.nanoTime
+        if (lastScrollChangedPanel != null && abs(time - lastScrollChangeTime) < 700 * MILLIS_TO_NANOS) {
+            panelToScrollTo = lastScrollChangedPanel
+        } else {
+            panelToScrollTo = getClosestPanel()
+            lastScrollChangedPanel = panelToScrollTo
+        }
+        lastScrollChangeTime = time
+        addEvent(500) {
+            // delay a little, until layout is calculated
+            // could be shorter, but it's most satisfying this way :D
+            panelToScrollTo = lastScrollChangedPanel
+        }
     }
 
     // multiple elements can be selected

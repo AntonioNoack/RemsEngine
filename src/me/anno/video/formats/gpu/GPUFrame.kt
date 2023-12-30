@@ -70,8 +70,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         return shaderMap2d.getOrPut(key) {
             Shader(
                 "2d-$javaClass",
-                ShaderLib.coordsList,
-                ShaderLib.coordsUVVertexShader,
+                ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
                 ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
                     Variable(GLSLType.V4F, "tiling"),
                     Variable(GLSLType.V4F, "color", VariableMode.OUT),
