@@ -28,8 +28,8 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     override fun createBufferedImage() =
         texture.createImage(false, hasAlphaChannel).createBufferedImage()
 
-    override fun write(dst: FileReference) {
-        texture.createImage(false, hasAlphaChannel).write(dst)
+    override fun write(dst: FileReference, quality: Float) {
+        texture.createImage(false, hasAlphaChannel).write(dst, quality)
     }
 
     override fun createTexture(

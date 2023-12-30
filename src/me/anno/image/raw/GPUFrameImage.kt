@@ -34,8 +34,8 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
         return image
     }
 
-    override fun write(dst: FileReference) {
-        createIntImage().write(dst)
+    override fun write(dst: FileReference, quality: Float) {
+        createIntImage().write(dst, quality)
     }
 
     override fun createTexture(

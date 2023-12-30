@@ -40,7 +40,7 @@ object FileChooser {
     }
 
     fun createFileChooserUI(
-        allowFiles: Boolean, allowDirectories: Boolean,
+        allowFiles: Boolean, allowFolders: Boolean,
         allowMultiples: Boolean, toSave: Boolean,
         startDirectory: FileReference,
         filters: List<FileExtensionFilter>,
@@ -49,9 +49,9 @@ object FileChooser {
 
         fun filterFiles(selected: List<FileReference>): List<FileReference> {
             var selectedFiles = selected
-            if (!allowFiles || !allowDirectories) {
+            if (!allowFiles || !allowFolders) {
                 selectedFiles = selectedFiles.filter {
-                    if (it.isDirectory) allowDirectories else allowFiles
+                    if (it.isDirectory) allowFolders else allowFiles
                 }
             }
             if (selectedFiles.size > 1 && !allowMultiples) {
@@ -62,9 +62,9 @@ object FileChooser {
 
         val cancel = TextButton("Cancel", style)
         val submit = TextButton("Select", style)
-        submit.isInputAllowed = false
+        submit.isInputAllowed = allowFolders
 
-        var selected: List<FileReference> = emptyList()
+        var selected: List<FileReference> = if (allowFolders) listOf(startDirectory) else emptyList()
         val filesList = if (toSave) {
             // if toSave, add a bar to enter a new name
             val filesList = TextInput(style)
@@ -83,6 +83,24 @@ object FileChooser {
             TextPanel(style)
         }
 
+        fun updateFileListText() {
+            if (selected.isNotEmpty()) {
+                val text = if (selected.size == 1) {
+                    selected.first().toLocalPath()
+                } else {
+                    "${selected.first().getParent()?.toLocalPath()}: " +
+                            selected.joinToString("; ") { it.name }
+                }
+                when (filesList) {
+                    is TextInput -> filesList.setValue(text, false)
+                    is TextPanel -> filesList.text = text
+                }
+                submit.isInputAllowed = true
+            }
+        }
+
+        updateFileListText()
+
         var extensions: List<String> = emptyList()
         val files = object : FileExplorer(startDirectory, true, style) {
             override fun shouldShowFile(file: FileReference): Boolean {
@@ -96,16 +114,7 @@ object FileChooser {
                     .filter { it.isInFocus }.map { it.ref1s })
                 if (selectedList.isNotEmpty() && selectedList != selected) {
                     selected = selectedList
-                    val text = if (selectedList.size == 1) {
-                        selectedList.first().toLocalPath()
-                    } else {
-                        "${selectedList.first().getParent()?.toLocalPath()}: " +
-                                selectedList.joinToString("; ") { it.name }
-                    }
-                    when (filesList) {
-                        is TextInput -> filesList.setValue(text, false)
-                        is TextPanel -> filesList.text = text
-                    }
+                    updateFileListText()
                     submit.isInputAllowed = true
                 }
             }

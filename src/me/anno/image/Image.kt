@@ -20,10 +20,14 @@ import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.io.OutputStream
+import javax.imageio.IIOImage
 import javax.imageio.ImageIO
+import javax.imageio.ImageWriteParam
+import javax.imageio.stream.MemoryCacheImageOutputStream
 import kotlin.math.floor
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
+
 
 abstract class Image(
     open var width: Int,
@@ -392,13 +396,28 @@ abstract class Image(
         return img
     }
 
-    open fun write(dst: FileReference) {
+    open fun write(dst: FileReference, quality: Float = 0.9f) {
         val format = dst.lcExtension
-        dst.outputStream().use { out -> write(out, format) }
+        dst.outputStream().use { out -> write(out, format, quality) }
     }
 
-    fun write(dst: OutputStream, format: String) {
+    fun write(dst: OutputStream, format: String, quality: Float = 0.9f) {
         val image = createBufferedImage()
+        if (format.equals("jpg", true) || format.equals("jpeg", true)) {
+            val writers = ImageIO.getImageWritersByFormatName("jpg")
+            if (writers.hasNext()) {
+                val writer = writers.next()
+                val params = writer.defaultWriteParam
+                params.compressionMode = ImageWriteParam.MODE_EXPLICIT
+                params.compressionQuality = quality
+                writer.output = MemoryCacheImageOutputStream(dst)
+                val outputImage = IIOImage(image, null, null)
+                writer.write(null, outputImage, params)
+                writer.dispose()
+                return
+            }
+        }
+
         if (!ImageIO.write(image, format, dst)) {
             LOGGER.warn("Couldn't find writer for $format")
         }
