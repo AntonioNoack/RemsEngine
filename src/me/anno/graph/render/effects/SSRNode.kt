@@ -67,9 +67,7 @@ class SSRNode : ActionNode(
 
         val metallic = getInput(12) as? Texture
         val roughness = getInput(13) as? Texture
-
         val depthT = getInput(14) as? Texture ?: return
-        if (depthT.tex !is Texture2D) return
 
         val transform = RenderState.cameraMatrix
 

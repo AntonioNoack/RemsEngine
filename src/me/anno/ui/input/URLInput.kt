@@ -1,7 +1,6 @@
 package me.anno.ui.input
 
 import me.anno.input.Input
-import me.anno.input.Input.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -14,10 +13,10 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.FileExplorer.Companion.copyPathDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.pasteDesc
 import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.ui.editor.files.FileExplorerOptions.copyPath
+import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgram
+import me.anno.ui.editor.files.FileExplorerOptions.pasteDesc
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
@@ -85,16 +84,19 @@ open class URLInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when (button) {
-            Key.BUTTON_RIGHT -> openMenu(windowStack, listOf(
-                MenuOption(openInStandardProgramDesc) { value.openInStandardProgram() },
-                MenuOption(copyPathDesc) { setClipboardContent(value.absolutePath) },
-                MenuOption(pasteDesc) {
-                    val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
-                    setValue(newValue, true)
-                },
-            ) + extraRightClickOptions.map {
-                MenuOption(it.nameDesc) { it.onClick(this, listOf(value)) }
-            })
+            Key.BUTTON_RIGHT -> {
+                val files = listOf(value)
+                openMenu(windowStack, listOf(
+                    openInStandardProgram.toMenu(this, files),
+                    copyPath.toMenu(this, files),
+                    MenuOption(pasteDesc) {
+                        val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
+                        setValue(newValue, true)
+                    },
+                ) + extraRightClickOptions.map {
+                    MenuOption(it.nameDesc) { it.onClick(this, files) }
+                })
+            }
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

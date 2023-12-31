@@ -50,6 +50,7 @@ import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -69,6 +70,7 @@ import me.anno.ui.editor.files.FileExplorerIcons.videoPath
 import me.anno.ui.editor.files.FileExplorerIcons.zipPath
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
@@ -739,11 +741,11 @@ open class FileExplorerEntry(
                     } else return false
                 } else return false
             }
-            "Rename" -> rename(findInFocusReferences())
+            "Rename" -> rename(windowStack, explorer, findInFocusReferences())
             "OpenInExplorer" -> openInExplorer(findInFocusReferences())
             "OpenInStandardProgram" -> openInStandardProgram(findInFocusReferences())
             "EditInStandardProgram" -> editInStandardProgram(findInFocusReferences())
-            "Delete" -> deleteFileMaybe(this, findInFocusReferences())
+            "Delete" -> askToDeleteFiles(windowStack, explorer, findInFocusReferences())
             "OpenOptions" -> explorer?.openOptions(findInFocusReferences()) ?: return false
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
@@ -768,13 +770,6 @@ open class FileExplorerEntry(
         }
     }
 
-    fun rename(files: List<FileReference>) {
-        // todo name multiple files???
-        val file = files.firstOrNull() ?: return
-        val title = NameDesc("Rename To...", "", "ui.file.rename2")
-        askName(windowStack, title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
-    }
-
     fun findInFocusReferences(): List<FileReference> {
         val hits = ArrayList<FileReference>()
         hits.add(getReferenceOrTimeout(path))
@@ -784,23 +779,6 @@ open class FileExplorerEntry(
             }
         }
         return hits
-    }
-
-    fun renameTo(newName: String) {
-        val allowed = newName.toAllowedFilename()
-        if (allowed != null) {
-            val file = getReferenceOrTimeout(path)
-            val dst = file.getParent()!!.getChild(allowed)
-            if (dst.exists && !allowed.equals(file.name, true)) {
-                ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
-                    file.renameTo(dst)
-                    explorer?.invalidate()
-                }
-            } else {
-                file.renameTo(dst)
-                explorer?.invalidate()
-            }
-        }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
@@ -817,8 +795,7 @@ open class FileExplorerEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val files = findInFocusReferences()
-        deleteFiles(this, files, explorer)
+        askToDeleteFiles(windowStack, explorer, findInFocusReferences())
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
@@ -930,11 +907,6 @@ open class FileExplorerEntry(
             ) {}
 
         @JvmStatic
-        fun deleteFileMaybe(panel: Panel, files: List<FileReference>) {
-            deleteFiles(panel, files, null)
-        }
-
-        @JvmStatic
         fun drawLoadingCircle(relativeTime: Float, x0: Int, y0: Int, x1: Int, y1: Int) {
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
@@ -958,7 +930,38 @@ open class FileExplorerEntry(
             )
         }
 
-        fun deleteFiles(panel: Panel, files: List<FileReference>, explorer: FileExplorer?) {
+        fun rename(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
+            // todo name multiple files???
+            val file = files.firstOrNull() ?: return
+            val title = NameDesc("Rename To...", "", "ui.file.rename2")
+            askName(windowStack, title, file.name, NameDesc("Rename"), { newName ->
+                when (newName.toAllowedFilename()) {
+                    newName -> 0x77ff77
+                    null -> 0xff7777
+                    else -> 0xffff77
+                }.withAlpha(255)
+            }) { newName ->
+                renameTo(windowStack, explorer, file, newName)
+            }
+        }
+
+        fun renameTo(windowStack: WindowStack, explorer: FileExplorer?, file: FileReference, newName: String) {
+            val allowed = newName.toAllowedFilename()
+            if (allowed != null) {
+                val dst = file.getParent()!!.getChild(allowed)
+                if (dst.exists && !allowed.equals(file.name, true)) {
+                    ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
+                        file.renameTo(dst)
+                        explorer?.invalidate()
+                    }
+                } else {
+                    file.renameTo(dst)
+                    explorer?.invalidate()
+                }
+            }
+        }
+
+        fun askToDeleteFiles(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
             // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
             //  - same for renaming
             // ask, then delete all (or cancel)
@@ -994,7 +997,7 @@ open class FileExplorerEntry(
                 for (i in files.indices) files[i].deleteRecursively()
                 explorer?.invalidate()
             }
-            openMenu(panel.windowStack, title, listOf(deletePermanently, moveToTrash, dontDelete))
+            openMenu(windowStack, title, listOf(deletePermanently, moveToTrash, dontDelete))
         }
     }
 }

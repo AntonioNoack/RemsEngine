@@ -476,7 +476,7 @@ object DrawTexts {
 
         val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
 
-        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.wasCreated || tex0.isDestroyed) && text.length > 1
+        val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
         return if (charByChar) {
             drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
         } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
@@ -540,7 +540,7 @@ object DrawTexts {
             )
         } else {
             val tex0 = FontManager.getTexture(key)
-            val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.wasCreated
+            val charByChar = tex0 == null || !tex0.isCreated()
             if (charByChar) {
                 return drawTextCharByChar(
                     x, y, font, key.text,
@@ -577,7 +577,7 @@ object DrawTexts {
         }
 
         val tex0 = FontManager.getTexture(key)
-        val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.wasCreated
+        val charByChar = tex0 == null || !tex0.isCreated()
         if (charByChar) {
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,

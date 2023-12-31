@@ -25,12 +25,16 @@ object GFXx2D {
     // done implement a global matrix here, which can be used to draw GUI element inside the world
 
     fun tiling(shader: Shader, tiling: Vector4f?) {
-        if (tiling != null) shader.v4f("tiling", tiling)
+        if (tiling != null) tiling(shader, tiling.x, tiling.y, tiling.z, tiling.w)
         else noTiling(shader)
     }
 
+    fun tiling(shader: Shader, sx: Float, sy: Float, ox: Float, oy: Float) {
+        shader.v4f("tiling", sx, sy, ox, oy)
+    }
+
     fun noTiling(shader: Shader) {
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        tiling(shader, 1f, 1f, 0f, 0f)
     }
 
     fun getSizeX(value: Int) = value.and(0xffff)

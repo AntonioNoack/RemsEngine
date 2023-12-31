@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.image.*
 import me.anno.image.hdr.HDRReader
 import me.anno.image.jpg.findRotation
+import me.anno.image.raw.GPUImage
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
@@ -55,7 +56,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
         if (file is ImageReadable) {
             val texture = Texture2D("i2t/ir/${file.name}", 1024, 1024, 1)
             this.texture = texture
-            texture.create(file.toString(), file.readGPUImage(), true, ::callback)
+            texture.create(file.readGPUImage(), true, ::callback)
         } else {
             val cpuImage = ImageCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
@@ -80,19 +81,27 @@ class ImageToTexture(file: FileReference) : ICacheData {
                     val async = AsyncCacheData<Image?>()
                     ImageReader.readImage(file, async, true)
                     Sleep.waitForGFXThread(true) { async.hasValue }
-                    val image = async.value
-                    if (image != null) {
-                        val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
-                        texture.rotation = getRotation(file)
-                        this.texture = texture
-                        texture.create(file.toString(), image, true, ::callback)
-                    } else {
-                        when (val fileExtension = file.lcExtension) {
-                            // "hdr" -> loadHDR(file)
-                            "tga" -> loadTGA(file)
-                            // webp wasn't working once upon a time on ImageIO? seems fine now :)
-                            // tga was incomplete as well -> we're using our own solution
-                            else -> tryGetImage0(file, fileExtension)
+                    when (val image = async.value) {
+                        is GPUImage -> {
+                            val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
+                            texture.rotation = (image.texture as? Texture2D)?.rotation
+                            this.texture = texture
+                            texture.create(image, true, ::callback)
+                        }
+                        null -> {
+                            when (val fileExtension = file.lcExtension) {
+                                // "hdr" -> loadHDR(file)
+                                "tga" -> loadTGA(file)
+                                // webp wasn't working once upon a time on ImageIO? seems fine now :)
+                                // tga was incomplete as well -> we're using our own solution
+                                else -> tryGetImage0(file, fileExtension)
+                            }
+                        }
+                        else -> {
+                            val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
+                            texture.rotation = getRotation(file)
+                            this.texture = texture
+                            texture.create(image, true, ::callback)
                         }
                     }
                 }
@@ -145,7 +154,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
             val texture = Texture2D("i2t/bi/${file.name}", 1024, 1024, 1)
             texture.rotation = getRotation(file)
             this.texture = texture
-            texture.create(file.toString(), image, checkRedundancy = true, ::callback)
+            texture.create(image, checkRedundancy = true, ::callback)
         } else {
             useFFMPEG(file)
         }

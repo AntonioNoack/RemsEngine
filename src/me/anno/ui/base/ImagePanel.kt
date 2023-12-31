@@ -31,7 +31,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     var showAlpha = false
     var flipX = false
-    var flipY = true
+    var flipY = false
 
     var allowMovement = false
     var allowZoom = false
@@ -62,7 +62,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     var zoom = 1f
 
-    var minZoom = 1f
+    var minZoom = 0.1f
     var maxZoom = 1e3f
     var zoomSpeed = 0.05f
 

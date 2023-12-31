@@ -4,7 +4,8 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.drawing.GFXx2D.noTiling
+import me.anno.gpu.drawing.GFXx2D.posSize
+import me.anno.gpu.drawing.GFXx2D.tiling
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
@@ -72,11 +73,9 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
                 "2d-$javaClass",
                 ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
                 ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
-                    Variable(GLSLType.V4F, "tiling"),
                     Variable(GLSLType.V4F, "color", VariableMode.OUT),
                 ), "" +
                         "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
-                        "   uv = (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
                         "   return texture(tex,uv);\n" +
                         "}\n" +
                         "void main(){\n" +
@@ -173,8 +172,9 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
             GFXState.renderPurely {
                 val shader = get2DShader()
                 shader.use()
-                noTiling(shader)
-                bind(0, Filtering.LINEAR, Clamping.CLAMP)
+                posSize(shader, 0, 0, texture.width, texture.height)
+                tiling(shader, 1f, -1f, 0f, 0f)
+                bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)
                 SimpleBuffer.flat01.draw(shader)
                 GFX.check()

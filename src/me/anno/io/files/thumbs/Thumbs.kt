@@ -189,6 +189,11 @@ object Thumbs {
     }
 
     @JvmStatic
+    operator fun get(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
+        return getThumbnail(file, neededSize, async)
+    }
+
+    @JvmStatic
     fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
 
         if (file == InvalidRef) return null
@@ -258,7 +263,7 @@ object Thumbs {
             val key1 = ThumbnailKey(key0.file, key0.lastModified, size1)
             val gen = TextureCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
             val tex = gen?.texture
-            if (tex != null && (tex !is Texture2D || tex.wasCreated)) {
+            if (tex != null && tex.isCreated()) {
                 copyTexIfPossible(srcFile, size, tex, callback)
                 return
             }
@@ -533,7 +538,7 @@ object Thumbs {
         val transform = Matrix4fArrayList()
         transform.scale(buffer.maxY / buffer.maxX, 1f, 1f)
         renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
-            SVGxGFX.draw3DSVG(transform, buffer, whiteTexture, white4, Filtering.NEAREST, whiteTexture.clamping!!, null)
+            SVGxGFX.draw3DSVG(transform, buffer, whiteTexture, white4, Filtering.NEAREST, whiteTexture.clamping, null)
         }
     }
 
@@ -1020,6 +1025,7 @@ object Thumbs {
                 val ab = JomlPools.aabbd.borrow()
                 if (asset.fillSpace(gt, ab)) {
                     // todo render debug ui :)
+                    LOGGER.warn("UI rendering for components not yet implemented")
                 }
             }
             is Prefab -> {

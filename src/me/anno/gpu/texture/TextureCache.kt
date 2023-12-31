@@ -66,7 +66,7 @@ object TextureCache : CacheSection("Texture") {
             TextureCache::generateImageData
         ) as? ImageToTexture ?: return null
         if (!imageData.hasFailed &&
-            imageData.texture?.run { this !is Texture2D || wasCreated } != true &&
+            imageData.texture?.wasCreated != true &&
             !asyncGenerator && !OS.isWeb
         ) {
             // the texture was forced to be loaded -> wait for it

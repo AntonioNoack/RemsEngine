@@ -145,8 +145,9 @@ open class Window(
 
     val closingListeners = ArrayList<() -> Unit>()
 
-    fun addClosingListener(listener: () -> Unit) {
+    fun addClosingListener(listener: () -> Unit): Window {
         closingListeners.add(listener)
+        return this
     }
 
     /**

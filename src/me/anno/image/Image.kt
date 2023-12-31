@@ -153,9 +153,7 @@ abstract class Image(
     }
 
     open fun createTexture(
-        texture: Texture2D,
-        sync: Boolean,
-        checkRedundancy: Boolean,
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)

@@ -37,7 +37,6 @@ class BGRAImage(val base: Image) :
             // todo if source has float precision, use that
             val type = UByteTargets[base.numChannels - 1]
             TextureMapper.mapTexture(base.texture, texture, "bgra", type, callback)
-
         } else super.createTexture(texture, sync, checkRedundancy, callback)
     }
 }

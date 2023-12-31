@@ -43,7 +43,6 @@ class SSAONode : ActionNode(
         val normalZW = normal.mapping == "zw"
         val normalT = ((normal).tex as? Texture2D) ?: whiteTexture
         val depthT = (getInput(6) as? Texture) ?: return fail()
-        if (depthT.tex !is Texture2D) return fail()
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion

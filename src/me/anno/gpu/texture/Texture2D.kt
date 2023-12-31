@@ -323,7 +323,7 @@ open class Texture2D(
         afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
     }
 
-    fun create(name: String, image: Image, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
+    fun create(image: Image, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
         width = image.width
         height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")

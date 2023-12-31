@@ -89,7 +89,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
-                        if (value1 != null && (value1 !is Texture2D || value1.wasCreated)) {
+                        if (value1 != null && value1.isCreated()) {
                             value1.bind(location)
                         } else {
                             whiteTexture.bind(location)

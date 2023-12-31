@@ -2,7 +2,6 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
 import me.anno.input.Input
-import me.anno.input.Input.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -20,13 +19,13 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.FileExplorer.Companion.copyPathDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
-import me.anno.ui.editor.files.FileExplorer.Companion.pasteDesc
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.ui.editor.files.FileExplorerOptions.copyPath
+import me.anno.ui.editor.files.FileExplorerOptions.editInStandardProgram
+import me.anno.ui.editor.files.FileExplorerOptions.openInExplorer
+import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgram
+import me.anno.ui.editor.files.FileExplorerOptions.pasteDesc
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.FileChooser
@@ -179,18 +178,20 @@ open class FileInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when (button) {
-            Key.BUTTON_RIGHT -> openMenu(windowStack, listOf(
-                MenuOption(openInExplorerDesc) { value.openInExplorer() },
-                MenuOption(openInStandardProgramDesc) { value.openInStandardProgram() },
-                MenuOption(editInStandardProgramDesc) { value.editInStandardProgram() },
-                MenuOption(copyPathDesc) { setClipboardContent(value.absolutePath) },
-                MenuOption(pasteDesc) {
-                    val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
-                    setValue(newValue, true)
-                },
-            ) + extraRightClickOptions.map {
-                MenuOption(it.nameDesc) { it.onClick(this, listOf(value)) }
-            })
+            Key.BUTTON_RIGHT -> {
+                val files = listOf(value)
+                openMenu(windowStack, listOf(
+                    openInExplorer, openInStandardProgram,
+                    editInStandardProgram, copyPath,
+                ).map { it.toMenu(this, files) } + listOf(
+                    MenuOption(pasteDesc) {
+                        val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
+                        setValue(newValue, true)
+                    },
+                ) + extraRightClickOptions.map {
+                    it.toMenu(this, files)
+                })
+            }
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

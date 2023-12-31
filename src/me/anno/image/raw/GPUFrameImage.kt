@@ -51,6 +51,6 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
     }
 
     override fun toString(): String {
-        return "GPUImage { $frame, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"
+        return "GPUFrameImage { $frame, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"
     }
 }

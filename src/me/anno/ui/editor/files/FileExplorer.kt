@@ -12,7 +12,6 @@ import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
@@ -33,8 +32,22 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
+import me.anno.ui.editor.files.FileExplorerOptions.copyName
+import me.anno.ui.editor.files.FileExplorerOptions.copyNameDesc
+import me.anno.ui.editor.files.FileExplorerOptions.copyPath
+import me.anno.ui.editor.files.FileExplorerOptions.copyPathDesc
+import me.anno.ui.editor.files.FileExplorerOptions.delete
+import me.anno.ui.editor.files.FileExplorerOptions.editInStandardProgram
+import me.anno.ui.editor.files.FileExplorerOptions.editInStandardProgramDesc
+import me.anno.ui.editor.files.FileExplorerOptions.invalidateThumbnails
+import me.anno.ui.editor.files.FileExplorerOptions.openImageViewer
+import me.anno.ui.editor.files.FileExplorerOptions.openInExplorer
+import me.anno.ui.editor.files.FileExplorerOptions.openInExplorerDesc
+import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgram
+import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgramDesc
+import me.anno.ui.editor.files.FileExplorerOptions.pinToFavourites
+import me.anno.ui.editor.files.FileExplorerOptions.rename
 import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.hex32
@@ -117,6 +130,17 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             }
         }
 
+    var isY: Boolean = isY
+        set(value) {
+            if (field != value) {
+                field = value
+                // switch out content2d's parent
+                content2d.isY = value
+                content2d.uiParent!!.removeFromParent()
+                uContent.add(wrapInScrollPanel(value, content2d))
+            }
+        }
+
     open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
     open fun openOptions(files: List<FileReference>) {
@@ -126,9 +150,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             else "For ${files.size} files:"
         )
         openMenu(windowStack, title, getFileOptions().map {
-            MenuOption(it.nameDesc) {
-                it.onClick(this, files)
-            }
+            it.toMenu(this, files)
         })?.addClosingListener {
             rightClickedFiles = emptySet()
         }
@@ -136,67 +158,18 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     open fun getFileOptions(): List<FileExplorerOption> {
         // todo add option to open json in specialized json editor...
-        val rename = FileExplorerOption(renameDesc) { _, files ->
-            val sample = content2d.children.firstOrNull() as? FileExplorerEntry
-            sample?.rename(files)
-        }
-        val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, files ->
-            for (file in files) {
-                file.openInExplorer()
-            }
-        }
-        val openInStandard = FileExplorerOption(openInStandardProgramDesc) { _, files ->
-            for (file in files) {
-                file.openInStandardProgram()
-            }
-        }
-        val editInStandard = FileExplorerOption(editInStandardProgramDesc) { _, files ->
-            for (file in files) {
-                file.editInStandardProgram()
-            }
-        }
-        val copyPath = FileExplorerOption(copyPathDesc) { _, files ->
-            setClipboardContent(files.joinToString {
-                enquoteIfNecessary(it.absolutePath)
-            })
-        }
-        val copyName = FileExplorerOption(copyNameDesc) { _, files ->
-            setClipboardContent(files.joinToString {
-                enquoteIfNecessary(it.name)
-            })
-        }
-        val pinToFavourites = FileExplorerOption(addToFavouritesDesc) { _, files ->
-            Favourites.addFavouriteFiles(files)
-        }
-        val invalidateThumbnails = FileExplorerOption(
-            NameDesc(
-                "Invalidate Thumbnails",
-                "Regenerates them when needed",
-                "ui.file.invalidateThumbnails"
-            )
-        ) { _, files ->
-            for (file in files) {
-                Thumbs.invalidate(file)
-            }
-        }
-        val delete = FileExplorerOption(deleteDesc) { p, files -> deleteFileMaybe(p, files) }
         return listOf(
             rename,
             openInExplorer,
-            openInStandard,
-            editInStandard,
+            openInStandardProgram,
+            editInStandardProgram,
             pinToFavourites,
             invalidateThumbnails,
+            openImageViewer,
             copyPath,
             copyName,
-            delete
+            delete,
         )
-    }
-
-    fun enquoteIfNecessary(str: String): String {
-        return if (' ' in str || '"' in str) {
-            "\"${str.replace("\"", "\\\"")}\""
-        } else str
     }
 
     open fun onDoubleClick(file: FileReference) {}
@@ -397,9 +370,13 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             alignmentY = AxisAlignment.FILL
             alwaysShowShadowY = true
         }
+        uContent += wrapInScrollPanel(isY, content2d)
+    }
+
+    private fun wrapInScrollPanel(isY: Boolean, content2d: Panel): Panel {
         val scroll = if (isY) ScrollPanelY(content2d, Padding(1), style)
         else ScrollPanelX(content2d, Padding(1), style)
-        uContent += scroll.apply {
+        return scroll.apply {
             makeBackgroundTransparent()
             fill(0f)
             alwaysShowShadowY = true
@@ -663,10 +640,9 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                     MenuOption(NameDesc("Folders Last")) { folderSorting = FolderSorting.LAST }
                         .setEnabled(folderSorting != FolderSorting.LAST),
                 )
+                val folderFiles = listOf(folder)
                 val folder = getFolderOptions().map {
-                    MenuOption(it.nameDesc) {
-                        it.onClick(this, listOf(folder))
-                    }
+                    it.toMenu(this, folderFiles)
                 }
                 val list = if (folder.isEmpty()) base
                 else base + menuSeparator1 + folder
@@ -821,68 +797,5 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 }
             }
         }
-
-        @JvmField
-        val renameDesc = NameDesc(
-            "Rename",
-            "Change the name of this file",
-            "ui.file.rename"
-        )
-
-        @JvmField
-        val openInExplorerDesc = NameDesc(
-            "Open In Explorer",
-            "Show the file in your default file explorer",
-            "ui.file.openInExplorer"
-        )
-
-        @JvmField
-        val openInStandardProgramDesc = NameDesc(
-            "Show In Standard Program",
-            "Open the file using your default viewer",
-            "ui.file.openInStandardProgram"
-        )
-
-        @JvmField
-        val editInStandardProgramDesc = NameDesc(
-            "Edit In Standard Program",
-            "Edit the file using your default editor",
-            "ui.file.editInStandardProgram"
-        )
-
-        @JvmField
-        val copyPathDesc = NameDesc(
-            "Copy Path",
-            "Copy the path of the file to clipboard",
-            "ui.file.copyPath"
-        )
-
-        @JvmField
-        val copyNameDesc = NameDesc(
-            "Copy Name",
-            "Copy the name of the file to clipboard",
-            "ui.file.copyName"
-        )
-
-        @JvmField
-        val deleteDesc = NameDesc(
-            "Delete",
-            "Delete this file",
-            "ui.file.delete"
-        )
-
-        @JvmField
-        val pasteDesc = NameDesc(
-            "Paste",
-            "Paste your clipboard",
-            "ui.file.paste"
-        )
-
-        @JvmField
-        val addToFavouritesDesc = NameDesc(
-            "Pin to Favourites",
-            "Add file to quick access bar",
-            "ui.file.pinToFavourites"
-        )
     }
 }

@@ -30,7 +30,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
-import me.anno.ui.editor.files.FileExplorer
+import me.anno.ui.editor.files.FileExplorerOptions.openInExplorerDesc
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
@@ -188,7 +188,7 @@ interface WelcomeUI {
                             "Opens that project", "ui.recentProjects.open"
                         )
                     ) { open() },
-                    MenuOption(FileExplorer.openInExplorerDesc) { project.file.openInExplorer() },
+                    MenuOption(openInExplorerDesc) { project.file.openInExplorer() },
                     MenuOption(
                         NameDesc(
                             "Hide",
