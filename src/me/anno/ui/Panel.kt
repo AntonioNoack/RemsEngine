@@ -328,11 +328,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    open fun updateVisibility(mx: Int, my: Int) {
+    open fun updateVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
         isInFocus = false
         isAnyChildInFocus = false
         canBeSeen = (uiParent?.canBeSeen != false) && isVisible && lx1 > lx0 && ly1 > ly0
-        isHovered = canBeSeen && mx in lx0 until lx1 && my in ly0 until ly1
+        isHovered = canBeHovered && canBeSeen && mx in lx0 until lx1 && my in ly0 until ly1
     }
 
     fun findMissingParents(parent: PanelGroup? = null) {

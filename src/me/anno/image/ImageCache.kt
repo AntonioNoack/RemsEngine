@@ -10,6 +10,7 @@ import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.waitUntil
 import me.anno.image.qoi.QOIReader
+import me.anno.utils.Sleep.waitForGFXThread
 import net.sf.image4j.codec.ico.ICOReader
 import java.io.InputStream
 
@@ -77,7 +78,7 @@ object ImageCache : CacheSection("Image") {
             ImageReader.readImage(file, data, false)
             data
         } as? AsyncCacheData<*> ?: return null
-        if (!async) waitUntil(true) { data.hasValue }
+        if (!async) waitForGFXThread(true) { data.hasValue }
         return data.value as? Image
     }
 }

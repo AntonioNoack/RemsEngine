@@ -33,7 +33,7 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         }
     }
 
-    override fun updateChildrenVisibility(mx: Int, my: Int) {
+    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
 
         val vi0 = visibleIndex0
         val vi1 = visibleIndex1
@@ -44,7 +44,7 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
 
         val children = children
         for (i in idx0 until idx1) {
-            children[i].updateVisibility(mx, my)
+            children[i].updateVisibility(mx, my, canBeHovered)
         }
     }
 

@@ -115,6 +115,8 @@ open class Window(
      * */
     var drawDirectly = false
 
+    var alwaysUpdated = false
+
     init {
         panel.window = this
     }
@@ -176,7 +178,56 @@ open class Window(
         var didSomething = didSomething0
         val panel = panel
 
-        panel.updateVisibility(mouseX.toInt(), mouseY.toInt())
+        update(dx, dy, windowW, windowH)
+
+        if (panel.width > 0 && panel.height > 0) {
+            when {
+                drawDirectly -> {
+                    fullRedraw(dx, dy, windowW, windowH, panel)
+                    didSomething = true
+                }
+                sparseRedraw -> {
+                    didSomething = sparseRedraw(panel, didSomething, forceRedraw)
+                }
+                didSomething || forceRedraw -> {
+                    fullRedraw(dx, dy, windowW, windowH, panel)
+                    didSomething = true
+                }
+                // else no buffer needs to be updated
+            }
+            if (didSomething && !isFullscreen && !isTransparent) {
+                drawWindowShadow()
+                didSomething = true
+            }
+        }
+        return didSomething
+    }
+
+    fun otherWindowIsOverUs(): Boolean {
+        val idx = max(0, windowStack.indexOf(this))
+        return (idx + 1 until windowStack.size).any {
+            val otherWindow = windowStack[it]
+            mouseXi - otherWindow.x in 0 until otherWindow.width &&
+                    mouseYi - otherWindow.y in 0 until otherWindow.height &&
+                    otherWindow.panel.contains(mouseXi, mouseYi)
+        }
+    }
+
+    fun otherWindowIsFocused(): Boolean {
+        val focusedWindow = GFX.focusedWindow
+        val ownWindow = windowStack.osWindow ?: GFX.activeWindow
+        return focusedWindow != null && focusedWindow != ownWindow
+    }
+
+    fun update(
+        dx: Int, dy: Int,
+        windowW: Int, windowH: Int
+    ) {
+
+        val panel = panel
+
+        val canBeHovered = !otherWindowIsFocused() && !otherWindowIsOverUs()
+        panel.updateVisibility(mouseXi, mouseYi, canBeHovered)
 
         fun markInFocus(p: Panel) {
             p.isInFocus = true
@@ -210,28 +261,6 @@ open class Window(
         panel.forAllVisiblePanels { p -> p.tick() }
 
         validateLayouts(dx, dy, windowW, windowH, panel)
-
-        if (panel.width > 0 && panel.height > 0) {
-            when {
-                drawDirectly -> {
-                    fullRedraw(dx, dy, windowW, windowH, panel)
-                    didSomething = true
-                }
-                sparseRedraw -> {
-                    didSomething = sparseRedraw(panel, didSomething, forceRedraw)
-                }
-                didSomething || forceRedraw -> {
-                    fullRedraw(dx, dy, windowW, windowH, panel)
-                    didSomething = true
-                }
-                // else no buffer needs to be updated
-            }
-            if (didSomething && !isFullscreen && !isTransparent) {
-                drawWindowShadow()
-                didSomething = true
-            }
-        }
-        return didSomething
     }
 
     fun drawWindowShadow() {
