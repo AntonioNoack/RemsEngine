@@ -245,6 +245,7 @@ open class FileExplorerEntry(
         if (isHovered) invalidateDrawing()
     }
 
+    var supportsPlayback = true
     private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
@@ -256,7 +257,7 @@ open class FileExplorerEntry(
                     previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
-                    frameIndex = if (isHovered) {
+                    frameIndex = if (isHovered && supportsPlayback) {
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = Time.nanoTime
@@ -491,7 +492,7 @@ open class FileExplorerEntry(
                 val meta = meta
                 if (meta != null) {
                     if (meta.videoWidth > 0) {
-                        if (time == 0.0) { // not playing
+                        if (time == 0.0 || !supportsPlayback) { // not playing
                             drawImageOrThumb(x0, y0, x1, y1)
                         } else {
                             drawVideo(x0, y0, x1, y1)

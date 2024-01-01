@@ -83,13 +83,21 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
 
     override fun onUpdate() {
         super.onUpdate()
-        isPressed = isInputAllowed && ((isHovered && Input.isLeftDown) ||
-                (isInFocus && keysDown.any { it.key.isClickKey() }))
         backgroundColor = if (isHovered && !isPressed && isInputAllowed) hoveredBackground else normalBackground
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         draw(x0, y0, x1, y1, isHovered && isInputAllowed, isPressed && isInputAllowed)
+    }
+
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key.isClickKey(true)) isPressed = true
+        else super.onKeyDown(x, y, key)
+    }
+
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key.isClickKey(true)) isPressed = false
+        else super.onKeyUp(x, y, key)
     }
 
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int, isHovered: Boolean, mouseDown: Boolean) {
@@ -150,7 +158,7 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        if (isInputAllowed && key.isClickKey()) click()
+        if (isInputAllowed && key.isClickKey(false)) click()
         else uiParent?.onKeyTyped(x, y, key)
     }
 
@@ -159,7 +167,7 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
         else uiParent?.onMouseClicked(x, y, button, long)
     }
 
-    override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
+    override fun acceptsChar(char: Int) = Key.byId(char).isClickKey(true) // not ideal...
     override fun isKeyInput() = true
 
     override fun getCursor(): Cursor? {

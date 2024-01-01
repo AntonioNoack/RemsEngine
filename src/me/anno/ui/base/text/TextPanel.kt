@@ -297,7 +297,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        if (key.isClickKey()) {
+        if (key.isClickKey(false)) {
             for (listener in onClickListeners) {
                 if (listener(this, x, y, Key.BUTTON_LEFT, false)) {
                     return

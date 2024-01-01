@@ -109,7 +109,9 @@ abstract class NumberInput<BaseType>(
             add(titleView)
             titleView.enableHoverColor = true
             titleView.disableFocusColors()
-            titleView.addLeftClickListener { InputVisibility.toggle(visibilityKey, this) }
+            titleView.addLeftClickListener {
+                InputVisibility.toggle(visibilityKey, this)
+            }
         }
         add(inputPanel)
         inputPanel.setCursorToEnd()

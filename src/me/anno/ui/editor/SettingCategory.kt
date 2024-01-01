@@ -1,7 +1,6 @@
 package me.anno.ui.editor
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
@@ -20,38 +19,29 @@ open class SettingCategory(
     val title: String,
     val visibilityKey: String,
     withScrollbar: Boolean,
-    val canCopyTitleText: Boolean,
     style: Style
 ) : PanelGroup(style) {
 
     constructor(title: String, style: Style) :
-            this(title, title, false, false, style)
+            this(title, title, false, style)
 
     constructor(title: String, description: String, dictPath: String, style: Style) :
             this(title, description, dictPath, false, style)
 
     constructor(title: String, description: String, dictPath: String, withScrollbar: Boolean, style: Style) :
-            this(Dict[title, dictPath], title, withScrollbar, false, style) {
+            this(Dict[title, dictPath], title, withScrollbar, style) {
         tooltip = Dict[description, "$dictPath.desc"]
     }
 
-    val titlePanel = object : TextPanel(title, style.getChild("group")) {
-        override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-            if (button == Key.BUTTON_LEFT && !long) toggle()
-            else super.onMouseClicked(x, y, button, long)
-        }
-
-        override fun onCopyRequested(x: Float, y: Float): Any? {
-            return if (canCopyTitleText) text
-            else uiParent?.onCopyRequested(x, y)
-        }
-    }
-
+    val titlePanel = TextPanel(title, style.getChild("group"))
     val content = PanelListY(style)
     val child = if (withScrollbar) ScrollPanelY(content, Padding.Zero, style) else content
     val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
+        titlePanel.addLeftClickListener {
+            InputVisibility.toggle(visibilityKey, this)
+        }
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
         titlePanel.focusTextColor = -1
@@ -65,25 +55,12 @@ open class SettingCategory(
         InputVisibility.show(visibilityKey, null)
     }
 
-    fun toggle() {
-        InputVisibility.toggle(visibilityKey, this)
-    }
-
     override fun onUpdate() {
         val visible = InputVisibility[visibilityKey]
         child.isVisible = visible
         content.isVisible = visible
         super.onUpdate()
     }
-
-    override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        if (key.isClickKey() && (isInFocus || titlePanel.isInFocus)) {
-            toggle()
-        } else super.onKeyTyped(x, y, key)
-    }
-
-    override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
-    override fun isKeyInput() = true
 
     override val children: List<Panel> = listOf(titlePanel, child)
     override fun remove(child: Panel) {

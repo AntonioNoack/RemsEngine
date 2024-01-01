@@ -36,6 +36,9 @@ object Installer {
     // all files need to be checked every time
     @JvmStatic
     fun checkInstall() {
+        // todo we need faster mirrors for this; 500kB/s isn't enough
+        // todo it would be also nice, if it always was the newest version
+        // todo and autoupdating would be nice, too
         if (!FFMPEG.isInstalled && OS.isWindows) {
             downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
             downloadMaybe("ffmpeg/bin/ffprobe.exe", ffprobePath)

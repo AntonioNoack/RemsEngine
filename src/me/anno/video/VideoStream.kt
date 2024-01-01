@@ -1,6 +1,5 @@
 package me.anno.video
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
@@ -42,11 +41,16 @@ class VideoStream(
     private var lastRequestedFrame = 0
     private var workerId = 0
 
-    fun togglePlaying(time: Double = getTime()) {
+    fun togglePlaying() {
+        val time = getTime()
         if (isPlaying) {
             stop()
             skipTo(time)
-        } else start(time)
+        } else {
+            stop()
+            val isAtEnd = time >= meta.videoDuration * 0.999
+            start(if (isAtEnd) 0.0 else time)
+        }
     }
 
     fun start(time: Double = getTime()) {
@@ -204,7 +208,7 @@ class VideoStream(
 
     fun hasCurrentFrame(): Boolean {
         val frameIndex = getFrameIndex()
-      return synchronized(sortedFrames) {
+        return synchronized(sortedFrames) {
             sortedFrames.any { it.first == frameIndex && !it.second.isDestroyed }
         }
     }
@@ -224,11 +228,16 @@ class VideoStream(
 
     fun getFrame(): GPUFrame? {
         val index = getFrameIndex()
-        if (isPlaying && index < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
-            stop()
-            start() // todo don't discard audio?
-            lastRequestedFrame = 0
-            return getFrame()
+        if (isPlaying) {
+            if (index == meta.videoFrameCount - 1 && looping == LoopingState.PLAY_ONCE) {
+                stop()
+            }
+            if (index < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
+                stop()
+                start() // todo don't discard audio?
+                lastRequestedFrame = 0
+                return getFrame()
+            }
         }
         lastRequestedFrame = index
         return synchronized(sortedFrames) {

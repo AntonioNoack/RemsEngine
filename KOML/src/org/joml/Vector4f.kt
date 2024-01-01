@@ -18,7 +18,7 @@ open class Vector4f(
     constructor(v: Vector2f, z: Float, w: Float) : this(v.x, v.y, z, w)
     constructor(v: Vector2i, z: Float, w: Float) : this(v.x.toFloat(), v.y.toFloat(), z, w)
     constructor(d: Float) : this(d, d, d, d)
-    constructor(xyzw: FloatArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+    constructor(v: FloatArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
 
     fun set(v: Vector4f) = set(v.x, v.y, v.z, v.w)
     fun set(v: Vector4i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
@@ -31,7 +31,7 @@ open class Vector4f(
     fun set(x: Float, y: Float, z: Float) = set(x, y, z, this.w)
     fun set(d: Double) = set(d.toFloat())
     fun set(x: Double, y: Double, z: Double, w: Double) = set(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
-    fun set(xyzw: FloatArray) = set(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+    fun set(v: FloatArray, i: Int = 0) = set(v[i], v[i + 1], v[i + 2], v[i + 3])
     fun set(x: Float, y: Float, z: Float, w: Float): Vector4f {
         this.x = x
         this.y = y

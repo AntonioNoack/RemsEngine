@@ -28,5 +28,4 @@ object InputVisibility {
         panel?.invalidateLayout()
         LOGGER.info("Hiding {}", visibilityKey)
     }
-
 }

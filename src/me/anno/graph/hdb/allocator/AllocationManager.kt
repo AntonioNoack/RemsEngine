@@ -1,6 +1,12 @@
 package me.anno.graph.hdb.allocator
 
+import org.apache.logging.log4j.LogManager
+
 interface AllocationManager<Key, Data : Any> {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(AllocationManager::class)
+    }
 
     // todo metadata to remember dense areas...
 
@@ -80,11 +86,22 @@ interface AllocationManager<Key, Data : Any> {
                 val newRange = start until start + newSize
                 copy(newKey, newDataStart, newData, newRange, oldData)
                 val idx = sortedElements.binarySearch {
-                    ( getRange(it).last + 1).compareTo(start)
+                    (getRange(it).last + 1).compareTo(start)
                 }
                 if (idx !in sortedElements.indices) {
-                    throw IllegalStateException("BinarySearch went wrong or data is corrupted, " +
-                            "${sortedElements.map { getRange(it) }} vs $newRange vs $idx in ${sortedElements.indices}")
+                    // this really shouldn't happen, but it did for me...
+                    // so maybe a bug?, maybe something indeed corrupted?
+                    LOGGER.warn("BinarySearch went wrong or data is corrupted, " +
+                            "${sortedElements.map { getRange(it) }} vs $newRange vs $idx in ${sortedElements.indices}"
+                    )
+                    // maybe sorting fixes it
+                    sortedElements.sortBy { getRange(it).first }
+                    // let's save ourselves by getting out of here
+                    return ReplaceType.Append to append(
+                        sortedElements, sortedRanges,
+                        newKey, newData, newDataRange,
+                        newSize, available, oldData
+                    )
                 }
                 sortedElements.add(idx + 1, newKey) // correct???
                 if (start + newSize == rj.first) {

@@ -22,11 +22,8 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
         if (titleView != null) {
             this.add(titleView)
             titleView.alignmentX = AxisAlignment.FILL
-            titleView.addOnClickListener { _, x, y, button, long ->
-                if (button == Key.BUTTON_LEFT && !long) {
-                    InputVisibility.toggle(visibilityKey, this)
-                } else this@TitledListY.onMouseClicked(x, y, button, long)
-                true
+            titleView.addLeftClickListener {
+                InputVisibility.toggle(visibilityKey, this)
             }
         }
         disableConstantSpaceForWeightedChildren = true
