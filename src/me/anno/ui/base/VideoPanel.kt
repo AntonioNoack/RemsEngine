@@ -3,17 +3,15 @@ package me.anno.ui.base
 import me.anno.animation.LoopingState
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
-import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.StretchModes
 import me.anno.video.VideoStream
 import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 
 // todo only request a resolution that we need
-open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boolean, style: Style) : Panel(style) {
+open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boolean, style: Style) :
+    ImagePanelBase(style) {
 
     val meta = getMeta(source, false)!!
 
@@ -57,25 +55,20 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         stream = VideoStream(source, getMeta(source, false)!!, playAudio, looping)
     }
 
-    var stretchMode = StretchModes.PADDING
-
-    override val canDrawOverBorders: Boolean
-        get() = stretchMode == StretchModes.OVERFLOW
-
     override fun onUpdate() {
         super.onUpdate()
-        invalidateDrawing()
+        if (stream.isPlaying) {
+            invalidateDrawing()
+        }
     }
-
-    var filtering = Filtering.TRULY_LINEAR
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val texture = stream.getFrame() ?: return
-        val (w, h) = stretchMode.stretch(texture.width, texture.height, width, height)
+        calculateSizes(texture.width, texture.height)
         DrawTextures.drawTexture(
-            x + (width - w) / 2, y + (height - h) / 2, w, h, texture,
-            filtering, Clamping.CLAMP
+            lix, liy, liw, lih, texture,
+            filtering, Clamping.CLAMP, flipY
         )
     }
 }

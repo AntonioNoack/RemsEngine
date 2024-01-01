@@ -1,5 +1,6 @@
 package me.anno.video
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
@@ -195,13 +196,16 @@ class VideoStream(
         } else {
             standTime = (time * 1e9).toLong()
             // only start worker, if current frame cannot be found
-            val frameIndex = getFrameIndex()
-            val hasCurrentFrame = synchronized(sortedFrames) {
-                sortedFrames.any { it.first == frameIndex && !it.second.isDestroyed }
-            }
-            if (!hasCurrentFrame) {
+            if (!hasCurrentFrame()) {
                 startWorker(getFrameIndex(), 1)
             }
+        }
+    }
+
+    fun hasCurrentFrame(): Boolean {
+        val frameIndex = getFrameIndex()
+      return synchronized(sortedFrames) {
+            sortedFrames.any { it.first == frameIndex && !it.second.isDestroyed }
         }
     }
 
