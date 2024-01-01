@@ -15,7 +15,10 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
@@ -91,6 +94,8 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
     abstract fun getTextures(): List<Texture2D>
 
     abstract fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping)
+
+    abstract fun getByteSize(): Long
 
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
         for ((index, texture) in tex.withIndex().reversed()) {

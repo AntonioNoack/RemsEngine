@@ -1,9 +1,7 @@
 package me.anno.video.formats
 
-import me.anno.Time
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
-import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
@@ -12,8 +10,6 @@ import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
-import kotlin.concurrent.thread
-import kotlin.math.abs
 
 abstract class FrameReader<FrameType>(
     file: FileReference,
@@ -27,22 +23,10 @@ abstract class FrameReader<FrameType>(
     val parser = FFMPEGMetaParser()
 
     override fun process(process: Process, vararg arguments: String) {
-        thread(name = "${file?.name}:error-stream") {
-            val out = process.errorStream.bufferedReader()
-            try {
-                while (true) {
-                    val line = out.readLine() ?: break
-                    // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
-                    parser.parseLine(line, this)
-                }
-            } catch (e: ShutdownException) {
-                // ...
-            }
-        }
-
+        parseAsync(parser, process.errorStream)
         try {
             val frameCount = bufferLength
-            waitForMetadata()
+            waitForMetadata(parser)
             if (codec.isNotEmpty() && codec != invalidCodec) {
                 val input = process.inputStream
                 input.use { input1: InputStream ->
@@ -63,24 +47,6 @@ abstract class FrameReader<FrameType>(
             e.printStackTrace()
         }
         finishedCallback(frames)
-    }
-
-    fun waitForMetadata() {
-        var lt = Time.nanoTime
-        waitUntil(true) {
-            // if the last line is too long ago, e.g., because the source is not readable as an image, return
-            val timeLimit = 30e9
-            if (codec == invalidCodec) true
-            else if (parser.lastLineTime != 0L && Time.nanoTime - parser.lastLineTime > timeLimit) true
-            else {
-                val t = Time.nanoTime
-                if (abs(t - lt) > 1e9) {
-                    LOGGER.debug("Waiting for metadata on {}, {} x {}, {}", file, width, height, codec)
-                    lt = t
-                }
-                width != 0 && height != 0 && codec.isNotEmpty()
-            }
-        }
     }
 
     // todo what do we do, if we run out of memory?

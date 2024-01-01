@@ -15,11 +15,6 @@ import me.anno.utils.types.InputStreams.readNBytes2
 object JPGThumbnails {
 
     fun extractThumbnail(file: FileReference, callback: (ByteArray?) -> Unit) {
-        // a small file -> reading the thumbnail is probably not worth it
-        if (file.length() < 65536) {
-            callback(null)
-            return
-        }
         // 65k is the max size for an exif section; plus 4k, where we hopefully find the marker
         val maxSize = 65536 + 4096
         file.inputStream(maxSize.toLong()) { it, _ ->

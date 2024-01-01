@@ -13,6 +13,10 @@ class Y4Frame(w: Int, h: Int) : RGBFrame(w, h) {
         private val LOGGER = LogManager.getLogger(Y4Frame::class)
     }
 
+    override fun getByteSize(): Long {
+        return width * height.toLong()
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

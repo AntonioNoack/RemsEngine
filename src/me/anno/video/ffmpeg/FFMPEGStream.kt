@@ -1,6 +1,7 @@
 package me.anno.video.ffmpeg
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
@@ -264,6 +265,39 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     abstract fun process(process: Process, vararg arguments: String)
 
     abstract fun destroy()
+
+    fun waitForMetadata(parser: FFMPEGMetaParser) {
+        var lt = Time.nanoTime
+        waitUntil(true) {
+            // if the last line is too long ago, e.g., because the source is not readable as an image, return
+            val timeLimit = 30e9
+            if (codec == FFMPEGMetaParser.invalidCodec) true
+            else if (parser.lastLineTime != 0L && Time.nanoTime - parser.lastLineTime > timeLimit) true
+            else {
+                val t = Time.nanoTime
+                if (abs(t - lt) > 1e9) {
+                    LOGGER.debug("Waiting for metadata on {}, {} x {}, {}", file, width, height, codec)
+                    lt = t
+                }
+                width != 0 && height != 0 && codec.isNotEmpty()
+            }
+        }
+    }
+
+    fun parseAsync(parser: FFMPEGMetaParser, stream: InputStream) {
+        thread(name = "${file?.name}:error-stream") {
+            val out = stream.bufferedReader()
+            try {
+                while (true) {
+                    val line = out.readLine() ?: break
+                    // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
+                    parser.parseLine(line, this)
+                }
+            } catch (e: ShutdownException) {
+                // ...
+            }
+        }
+    }
 
     fun run(vararg arguments: String): FFMPEGStream {
 

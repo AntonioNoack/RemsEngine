@@ -12,6 +12,10 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         private val LOGGER = LogManager.getLogger(RGBAFrame::class)
     }
 
+    override fun getByteSize(): Long {
+        return width * height * 4L
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

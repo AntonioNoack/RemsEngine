@@ -19,6 +19,7 @@ import me.anno.video.VideoCache
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager
+import java.awt.image.BufferedImage
 import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
@@ -176,13 +177,15 @@ class ImageToTexture(file: FileReference) : ICacheData {
         } ?: try {
             Imaging.getBufferedImage(stream)
         } catch (e: ImagingException) {
-            LOGGER.warn("Cannot read image from input $file", e)
-            return null
+            onError(file, e)
         } catch (e: IOException) {
-            LOGGER.warn("Cannot read image from input $file", e)
-            return null
-        }
-        return image.toImage()
+            onError(file, e)
+        } as? BufferedImage
+        return image?.toImage()
+    }
+
+    private fun onError(file: FileReference, e: Throwable) {
+        LOGGER.warn("Cannot read image from input $file, $e")
     }
 
     override fun destroy() {

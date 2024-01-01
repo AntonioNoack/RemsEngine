@@ -15,6 +15,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.WebRef
 import me.anno.io.json.generic.JsonReader
 import me.anno.utils.OS
+import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.shorten
@@ -314,14 +315,21 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
         @JvmStatic
         fun getMeta(file: FileReference, async: Boolean): MediaMetadata? {
-            return metadataCache.getFileEntry(file, false, 300_000, async, Companion::createMetadata) as? MediaMetadata
+            val meta = metadataCache.getFileEntry(
+                file, false, 300_000,
+                async, Companion::createMetadata
+            ) as? MediaMetadata ?: return null
+            if (!async) waitForGFXThread(true) { meta.ready }
+            return meta
         }
 
         @JvmStatic
         fun getMeta(file: FileReference, signature: String?, async: Boolean): MediaMetadata? {
-            return metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
+            val meta = metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
                 createMetadata(f, signature)
-            } as? MediaMetadata
+            } as? MediaMetadata ?: return null
+            if (!async) waitForGFXThread(true) { meta.ready }
+            return meta
         }
 
         init {

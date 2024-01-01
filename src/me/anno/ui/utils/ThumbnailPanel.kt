@@ -6,6 +6,7 @@ import me.anno.io.files.thumbs.Thumbs
 import me.anno.maths.Maths
 import me.anno.ui.Style
 import me.anno.ui.base.ImagePanel
+import me.anno.ui.base.components.StretchModes
 
 @Suppress("unused")
 open class ThumbnailPanel(var source: FileReference, style: Style) : ImagePanel(style) {

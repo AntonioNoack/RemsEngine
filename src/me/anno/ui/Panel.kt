@@ -16,8 +16,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
@@ -96,11 +96,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
 
-    fun fill(weight: Float) {
+    fun fill(weight: Float): Panel {
         this.weight = weight
         this.weight2 = weight2
         alignmentX = AxisAlignment.FILL
         alignmentY = AxisAlignment.FILL
+        return this
     }
 
     open var isVisible = true

@@ -17,6 +17,10 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
 
     val rgb = Texture2D("rgb-frame", w, h, 1)
 
+    override fun getByteSize(): Long {
+        return width * height * 3L
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

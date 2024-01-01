@@ -26,7 +26,9 @@ object TextureCache : CacheSection("Texture") {
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = try {
-            getEntry(file, timeout, asyncGenerator, TextureCache::generateImageData)
+            getDualEntry(file, file.lastModified, timeout, asyncGenerator) { it, _ ->
+                generateImageData(it)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             return true
@@ -61,10 +63,9 @@ object TextureCache : CacheSection("Texture") {
             LOGGER.warn("Image missing: $file")
             return null
         }
-        val imageData = getEntry(
-            file, timeout, asyncGenerator,
-            TextureCache::generateImageData
-        ) as? ImageToTexture ?: return null
+        val imageData = getDualEntry(
+            file, file.lastModified, timeout, asyncGenerator
+        ) { it, _ -> generateImageData(it) } as? ImageToTexture ?: return null
         if (!imageData.hasFailed &&
             imageData.texture?.wasCreated != true &&
             !asyncGenerator && !OS.isWeb

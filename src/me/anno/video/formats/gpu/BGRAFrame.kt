@@ -17,6 +17,10 @@ class BGRAFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 1) {
 
     private val bgra = Texture2D("bgra-frame", w, h, 1)
 
+    override fun getByteSize(): Long {
+        return width * height * 4L
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

@@ -147,6 +147,23 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         invalidateLayout()
     }
 
+    fun moveMapTo(position: Vector2d) {
+        target.set(position)
+        invalidateLayout()
+    }
+
+    fun teleportMapTo(position: Vector2d) {
+        center.set(position)
+        target.set(position)
+        invalidateLayout()
+    }
+
+    fun teleportScaleTo(newScale: Double) {
+        scale = newScale
+        targetScale = newScale
+        invalidateLayout()
+    }
+
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         // zoom in on the mouse pointer
         val oldInv = 1.0 / targetScale

@@ -3,14 +3,13 @@ package me.anno.ui.base
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.ITexture2D
-import me.anno.image.ImageScale
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.utils.structures.tuples.IntPair
+import me.anno.ui.base.components.StretchModes
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -20,12 +19,6 @@ import kotlin.math.roundToInt
  * */
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class ImagePanel(style: Style) : Panel(style) {
-
-    enum class StretchModes {
-        OVERFLOW,
-        PADDING,
-        STRETCH
-    }
 
     var stretchMode = StretchModes.PADDING
 
@@ -66,16 +59,8 @@ abstract class ImagePanel(style: Style) : Panel(style) {
     var maxZoom = 1e3f
     var zoomSpeed = 0.05f
 
-    private fun stretch(texture: ITexture2D): IntPair {
-        return when (stretchMode) {
-            StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.width, texture.height, width, height)
-            StretchModes.PADDING -> ImageScale.scaleMax(texture.width, texture.height, width, height)
-            else -> IntPair(width, height)
-        }
-    }
-
     private fun calculateSizes(texture: ITexture2D) {
-        var (liw, lih) = stretch(texture)
+        var (liw, lih) = stretchMode.stretch(texture.width, texture.height, width, height)
         liw = (liw * zoom).toInt()
         lih = (lih * zoom).toInt()
         if (flipX) liw = -liw
@@ -113,7 +98,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         val texture = getTexture()
         if (allowZoom && texture != null) {
-            val (w, h) = stretch(texture)
+            val (w, h) = stretchMode.stretch(texture.width, texture.height, width, height)
             // calculate where the mouse is
             val mouseX0 = (x - lix) / liw * w
             val mouseY0 = (y - liy) / lih * h

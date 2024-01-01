@@ -60,6 +60,7 @@ object FileChooser {
             return selectedFiles
         }
 
+        // todo these buttons don't have a padding... weird...
         val cancel = TextButton("Cancel", style)
         val submit = TextButton("Select", style)
         submit.isInputAllowed = allowFolders

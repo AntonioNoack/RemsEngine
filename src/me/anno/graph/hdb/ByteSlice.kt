@@ -10,4 +10,8 @@ class ByteSlice(val bytes: ByteArray, val range: IntRange) {
     fun stream(): ByteArrayInputStream {
         return ByteArrayInputStream(bytes, range.first, range.size)
     }
+
+    fun getAsString(): String {
+        return String(bytes, range.first, range.size)
+    }
 }

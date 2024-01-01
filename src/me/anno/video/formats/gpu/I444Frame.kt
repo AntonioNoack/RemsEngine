@@ -39,6 +39,10 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
     private val y = Texture2D("i444-y-frame", width, height, 1)
     private val uv = Texture2D("i444-uv-frame", width, height, 1)
 
+    override fun getByteSize(): Long {
+        return 3L * (width * height)
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

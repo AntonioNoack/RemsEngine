@@ -24,6 +24,10 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
     private val y = Texture2D("i420-y-frame", width, height, 1)
     private val uv = Texture2D("i420-uv-frame", w2, h2, 1)
 
+    override fun getByteSize(): Long {
+        return (width * height) + 2L * (w2 * h2)
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 

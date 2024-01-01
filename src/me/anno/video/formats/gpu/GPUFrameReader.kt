@@ -18,21 +18,7 @@ class GPUFrameReader(
     override fun readFrame(w: Int, h: Int, input: InputStream): GPUFrame? {
         var frame: GPUFrame? = null
         try {
-            frame = when (codec) {
-                // yuv
-                "I420" -> I420Frame(w, h)
-                "444P" -> I444Frame(w, h)
-                // rgb
-                "ARGB" -> ARGBFrame(w, h)
-                "BGRA" -> BGRAFrame(w, h)
-                "RGBA" -> RGBAFrame(w, h)
-                "RGB" -> RGBFrame(w, h)
-                "BGR", "BGR[24]" -> BGRFrame(w, h)
-                // bw
-                "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
-                // to do PAL: to do decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
-                else -> throw RuntimeException("Unsupported Codec $codec for $file")
-            }
+            frame = createGPUFrame(w, h, codec, file)
             frame.load(input)
             return frame
         } catch (e: EOFException) {
@@ -63,4 +49,23 @@ class GPUFrameReader(
         }
     }
 
+    companion object {
+        fun createGPUFrame(w: Int, h: Int, codec: String, file: FileReference?): GPUFrame {
+            return when (codec) {
+                // yuv
+                "I420" -> I420Frame(w, h)
+                "444P" -> I444Frame(w, h)
+                // rgb
+                "ARGB" -> ARGBFrame(w, h)
+                "BGRA" -> BGRAFrame(w, h)
+                "RGBA" -> RGBAFrame(w, h)
+                "RGB" -> RGBFrame(w, h)
+                "BGR", "BGR[24]" -> BGRFrame(w, h)
+                // bw
+                "Y4", "Y800" -> Y4Frame(w, h) // seems correct, awkward, that it has the same name
+                // to do PAL: to do decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
+                else -> throw RuntimeException("Unsupported Codec $codec for $file")
+            }
+        }
+    }
 }

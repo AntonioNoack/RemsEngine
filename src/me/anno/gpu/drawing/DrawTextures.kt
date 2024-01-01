@@ -185,7 +185,7 @@ object DrawTextures {
         val shader = texture.get2DShader()
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4f("tiling", 1f, if (flipY) 1f else -1f, 0f, 0f)
+        shader.v4f("tiling", 1f, if (flipY) -1f else 1f, 0f, 0f)
         shader.v4f("tint", white4)
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)

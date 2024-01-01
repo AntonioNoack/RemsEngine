@@ -13,11 +13,14 @@ class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
         private val LOGGER = LogManager.getLogger(BGRFrame::class)
     }
 
+    override fun getByteSize(): Long {
+        return width * height * 3L
+    }
+
     override fun load(input: InputStream) {
         if (isDestroyed) return
 
-        val s0 = width * height
-        val data = input.readNBytes2(s0 * 3, Texture2D.bufferPool)
+        val data = input.readNBytes2(width * height * 3, Texture2D.bufferPool)
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("BGR", width, height) {
             if (!isDestroyed && !rgb.isDestroyed) {
