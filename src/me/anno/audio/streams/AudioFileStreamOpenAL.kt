@@ -3,7 +3,9 @@ package me.anno.audio.streams
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.ALBase
+import me.anno.audio.openal.ALBase.isALThread
 import me.anno.audio.openal.AudioTasks
+import me.anno.audio.openal.AudioTasks.addAudioTask
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.openal.SoundSource
 import me.anno.io.files.FileReference
@@ -51,22 +53,33 @@ class AudioFileStreamOpenAL(
     }
 
     fun start() {
-        if (!isPlaying) {
+        if (isPlaying) return
+        if (isALThread()) {
             isPlaying = true
             startTimeNanos = Time.nanoTime
             realStartTimeNanos = startTimeNanos
             waitForRequiredBuffers()
-        } else throw RuntimeException()
+        } else {
+            addAudioTask(file.name, 1) {
+                start()
+            }
+        }
     }
 
     fun stop() {
         if (!isPlaying) return
-        isPlaying = false
-        alSource.stop()
-        alSource.destroy()
-        ALBase.check()
-        for (buffer in buffers) {
-            buffer.destroy()
+        if (isALThread()) {
+            isPlaying = false
+            alSource.stop()
+            alSource.destroy()
+            ALBase.check()
+            for (buffer in buffers) {
+                buffer.destroy()
+            }
+        } else {
+            addAudioTask(file.name, 1) {
+                stop()
+            }
         }
     }
 
@@ -101,7 +114,7 @@ class AudioFileStreamOpenAL(
             requestNextBuffer(index, alSource.session)
         }
         if (isPlaying) {
-            AudioTasks.addNextTask("wait", 1) {
+            AudioTasks.addNextAudioTask("wait", 1) {
                 waitForRequiredBuffers()
                 ALBase.check()
             }
@@ -114,7 +127,7 @@ class AudioFileStreamOpenAL(
 
         if (!isPlaying) return true
 
-        AudioTasks.addTask("buffer filling", 10) {
+        AudioTasks.addAudioTask("buffer filling", 10) {
             if (isPlaying) {
 
                 checkSession()
@@ -140,14 +153,12 @@ class AudioFileStreamOpenAL(
 
                         LOGGER.info("Skipping ${dt}s, $targetIndex/$capacity")
                         stereoBuffer.position(targetIndex.toInt())
-
                     } else {
                         // else delayed, but we have no alternative
                         LOGGER.warn("Skipping first ${dt}s = first buffer completely")
                     }
 
                     hadFirstBuffer = true
-
                 }
 
                 ALBase.check()
@@ -170,12 +181,9 @@ class AudioFileStreamOpenAL(
 
                 isWaitingForBuffer = false
                 ALBase.check()
-
             }
         }
 
         return false
-
     }
-
 }

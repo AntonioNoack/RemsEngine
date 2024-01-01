@@ -2,7 +2,6 @@ package me.anno.ui.editor.files
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
@@ -855,15 +854,14 @@ open class FileExplorerEntry(
 
         fun startPlayback(file: FileReference, meta: MediaMetadata) {
             stopAnyPlayback()
-            audio = AudioFileStreamOpenAL(
+            val audio = AudioFileStreamOpenAL(
                 file, LoopingState.PLAY_LOOP,
                 -hoverPlaybackDelay, true, meta, 1.0,
                 left = true, center = false, right = true
             )
+            this.audio = audio
             audioRef = file
-            AudioTasks.addTask("start", 5) {
-                audio?.start()
-            }
+            audio.start()
         }
 
         fun stopPlayback(file: FileReference) {
@@ -872,11 +870,8 @@ open class FileExplorerEntry(
         }
 
         fun stopAnyPlayback() {
-            val audio = audio
-            if (audio != null) {
-                AudioTasks.addTask("stop", 1) { audio.stop() }
-                this.audio = null
-            }
+            audio?.stop()
+            audio = null
             audioRef = null
         }
 

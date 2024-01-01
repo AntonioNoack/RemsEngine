@@ -2,7 +2,7 @@ package me.anno.ecs.components.audio
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.audio.openal.AudioTasks.addTask
+import me.anno.audio.openal.AudioTasks.addAudioTask
 import me.anno.audio.openal.SoundListener
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Component
@@ -39,7 +39,7 @@ abstract class AudioComponentBase : Component() {
             set(value) {
                 if (field != value) {
                     field = value
-                    addTask("dm", 1) {
+                    addAudioTask("dm", 1) {
                         updateGlobalDistanceModel()
                     }
                 }
@@ -84,7 +84,7 @@ abstract class AudioComponentBase : Component() {
             val v = max(0f, value)
             if (field != v) {
                 field = v
-                if (stream0 != null) addTask("volume", 1) {
+                if (stream0 != null) addAudioTask("volume", 1) {
                     stream0?.alSource?.setGain(volume)
                     stream1?.alSource?.setGain(volume)
                 }
@@ -96,7 +96,7 @@ abstract class AudioComponentBase : Component() {
             val v = max(0f, value)
             if (field != v) {
                 field = v
-                if (stream0 != null) addTask("speed", 1) {
+                if (stream0 != null) addAudioTask("speed", 1) {
                     stream0?.alSource?.setSpeed(speed)
                     stream1?.alSource?.setSpeed(speed)
                 }
@@ -121,7 +121,7 @@ abstract class AudioComponentBase : Component() {
     }
 
     open fun start(startTime0: Double) {
-        addTask("start", 1) {
+        addAudioTask("start", 1) {
             stream0?.stop()
             stream1?.stop()
             startTime = Time.nanoTime - (startTime0 * 1e9).toLong()
@@ -185,7 +185,7 @@ abstract class AudioComponentBase : Component() {
         set(value) {
             if (field != value) {
                 field = value
-                if (stream0 != null) addTask("distance", 1) { updateDistanceModel() }
+                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
             }
         }
     var referenceDistance = 1f
@@ -193,14 +193,14 @@ abstract class AudioComponentBase : Component() {
             val f = max(value, 0f)
             if (field != f) {
                 field = f
-                if (stream0 != null) addTask("distance", 1) { updateDistanceModel() }
+                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
             }
         }
     var maxDistance = 32f
         set(value) {
             if (field != value) {
                 field = value
-                if (stream0 != null) addTask("distance", 1) { updateDistanceModel() }
+                if (stream0 != null) addAudioTask("distance", 1) { updateDistanceModel() }
             }
         }
 
@@ -230,7 +230,7 @@ abstract class AudioComponentBase : Component() {
     @DebugAction
     open fun pause() {
         if (stream0 == null) return
-        addTask("pause", 1) {
+        addAudioTask("pause", 1) {
             stream0?.alSource?.pause()
             stream1?.alSource?.pause()
         }
@@ -240,7 +240,7 @@ abstract class AudioComponentBase : Component() {
     open fun stop() {
         if (stream0 == null) return
         stopTime = (Time.nanoTime - startTime) * 1e-9
-        addTask("stop", 1) {
+        addAudioTask("stop", 1) {
             stream0?.stop()
             stream1?.stop()
             stream0 = null
@@ -288,7 +288,7 @@ abstract class AudioComponentBase : Component() {
             currCamDirY.set(RenderState.cameraDirectionUp)
             currCamDirZ.set(RenderState.cameraDirection)
 
-            addTask("Update", 1) {
+            addAudioTask("Update", 1) {
 
                 // once per frame, also set the camera :3
                 val time = Time.gameTimeN

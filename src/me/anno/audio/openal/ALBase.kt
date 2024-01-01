@@ -7,18 +7,16 @@ object ALBase {
 
     var alThread: Thread? = null
 
+    fun isALThread(): Boolean {
+        return alThread == Thread.currentThread()
+    }
+
     fun check() {
         // check thread safety
         // can be disabled for final build
         if (isDebug) {
-            val currentThread = Thread.currentThread()
-            if (alThread !== currentThread) {
-                if (alThread == null) {
-                    alThread = currentThread
-                    currentThread.name = "OpenAL"
-                } else {
-                    throw RuntimeException("Called from wrong thread! This is not the audio thread!")
-                }
+            if (!isALThread()) {
+                throw RuntimeException("Called from wrong thread! This is not the audio thread!")
             }
             val errorMessage = when (val error = alGetError()) {
                 AL_NO_ERROR -> return

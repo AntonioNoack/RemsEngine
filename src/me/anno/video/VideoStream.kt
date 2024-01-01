@@ -1,10 +1,11 @@
 package me.anno.video
 
 import me.anno.Time
+import me.anno.animation.LoopingState
+import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import me.anno.maths.Maths
 import me.anno.utils.ShutdownException
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.InputStreams.skipN
@@ -18,8 +19,10 @@ import java.io.EOFException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
-// todo play audio
-class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudio: Boolean) : ICacheData {
+class VideoStream(
+    val file: FileReference, val meta: MediaMetadata,
+    var playAudio: Boolean, var looping: LoopingState // todo loop video
+) : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(VideoStream::class)
@@ -27,6 +30,8 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
 
     var isPlaying = false
         private set
+
+    var audio: AudioFileStreamOpenAL? = null
 
     private var startTime = 0L
     private var standTime = 0L
@@ -36,6 +41,13 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
     private var lastRequestedFrame = 0
     private var workerId = 0
 
+    fun togglePlaying(time: Double = getTime()) {
+        if (isPlaying) {
+            stop()
+            skipTo(time)
+        } else start(time)
+    }
+
     fun start(time: Double = getTime()) {
         if (isPlaying) return
         isPlaying = true
@@ -43,6 +55,9 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
         val frameIndex0 = getFrameIndex()
         lastRequestedFrame = frameIndex0
         startWorker(frameIndex0, meta.videoFrameCount - frameIndex0)
+        if (playAudio) {
+            startAudio()
+        }
     }
 
     fun startWorker(frameIndex0: Int, maxNumFrames: Int) {
@@ -62,16 +77,14 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
                             input.use {
                                 readFrame(it)
                                 while (id == workerId) {
-                                    waitForNextFrame(it)
+                                    loadNextFrameMaybe(it)
                                 }
                             }
                         } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
                     } catch (e: OutOfMemoryError) {
                         LOGGER.warn("Engine has run out of memory!!")
-                    } catch (e: EOFException) {
-                        if (id == workerId) stop()
-                    } catch (e: ShutdownException) {
-                        // ...
+                    } catch (ignored: EOFException) {
+                    } catch (ignored: ShutdownException) {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -87,9 +100,16 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
                     val currentIndex = nextReadIndex++
                     val w = width
                     val h = height
-                    val frame = oldFrames.removeLastOrNull() ?: GPUFrameReader.createGPUFrame(w, h, codec, file)
+                    val frame = oldFrames.removeLastOrNull() ?: run {
+                        GPUFrameReader.createGPUFrame(w, h, codec, file)
+                    }
                     frameSize = frame.getByteSize()
-                    frame.load(input)
+                    try {
+                        frame.load(input)
+                    } catch (e: Exception) {
+                        oldFrames.add(frame)
+                        throw e
+                    }
                     synchronized(sortedFrames) {
                         if (id == workerId) {
                             // remove everything that is too new
@@ -99,7 +119,7 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
                             oldFrames.clear()
                             // then append the new frame
                             sortedFrames.add(currentIndex to frame)
-                        }
+                        } else oldFrames.add(frame)
                     }
                 }
 
@@ -109,14 +129,16 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
                 }
 
                 override fun destroy() {}
-                fun waitForNextFrame(input: InputStream) {
+                fun loadNextFrameMaybe(input: InputStream) {
                     // pop old frames
                     synchronized(sortedFrames) {
                         // throw away everything that is too old
                         val goodFrames = sortedFrames.count { it.first <= lastRequestedFrame }
                         val oldFrames = goodFrames - 1
                         if (oldFrames > 0) {
-                            sortedFrames.subList(0, oldFrames).clear()
+                            val toRemove = sortedFrames.subList(0, oldFrames)
+                            for (frame in toRemove) this.oldFrames.add(frame.second)
+                            toRemove.clear()
                         }
                     }
                     // if we're too slow, trash a few frames
@@ -148,6 +170,22 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
         ++workerId
         standTime = (getTime() * 1e9).toLong()
         isPlaying = false
+        stopAudio()
+    }
+
+    fun startAudio() {
+        val audio = AudioFileStreamOpenAL(
+            file, looping, getTime(), false, meta, 1.0,
+            left = true, center = false, right = true
+        )
+        this.audio?.stop()
+        this.audio = audio
+        audio.start()
+    }
+
+    fun stopAudio() {
+        audio?.stop()
+        audio = null
     }
 
     fun skipTo(time: Double) {
@@ -156,24 +194,38 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
             start(time)
         } else {
             standTime = (time * 1e9).toLong()
-            startWorker(getFrameIndex(), 1)
+            // only start worker, if current frame cannot be found
+            val frameIndex = getFrameIndex()
+            val hasCurrentFrame = synchronized(sortedFrames) {
+                sortedFrames.any { it.first == frameIndex && !it.second.isDestroyed }
+            }
+            if (!hasCurrentFrame) {
+                startWorker(getFrameIndex(), 1)
+            }
         }
     }
 
     fun getTime(): Double {
-        return if (isPlaying) {
+        val time0 = if (isPlaying) {
             (Time.nanoTime - startTime)
         } else {
             standTime
         } * 1e-9
+        return looping[time0, meta.videoDuration]
     }
 
     private fun getFrameIndex(): Int {
-        return Maths.clamp((getTime() * meta.videoFPS).toInt(), 0, meta.videoFrameCount - 1)
+        return looping[(getTime() * meta.videoFPS).toInt(), meta.videoFrameCount - 1]
     }
 
     fun getFrame(): GPUFrame? {
         val index = getFrameIndex()
+        if (isPlaying && index < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
+            stop()
+            start() // todo don't discard audio?
+            lastRequestedFrame = 0
+            return getFrame()
+        }
         lastRequestedFrame = index
         return synchronized(sortedFrames) {
             val goodFrames = sortedFrames
@@ -189,5 +241,11 @@ class VideoStream(val file: FileReference, val meta: MediaMetadata, val playAudi
 
     override fun destroy() {
         workerId++
+        synchronized(sortedFrames) {
+            for (frame in sortedFrames) {
+                frame.second.destroy()
+            }
+            sortedFrames.clear()
+        }
     }
 }

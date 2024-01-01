@@ -180,14 +180,24 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: GPUFrame, flipY: Boolean = false) {
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int, texture: GPUFrame,
+        flipY: Boolean = false
+    ) {
+        drawTexture(x, y, w, h, texture, Filtering.LINEAR, Clamping.CLAMP, flipY)
+    }
+
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int, texture: GPUFrame,
+        filtering: Filtering, clamping: Clamping, flipY: Boolean = false
+    ) {
         if (!texture.isCreated) throw IllegalArgumentException("Frame must be loaded to be rendered!")
         val shader = texture.get2DShader()
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("tiling", 1f, if (flipY) -1f else 1f, 0f, 0f)
         shader.v4f("tint", white4)
-        texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
+        texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
