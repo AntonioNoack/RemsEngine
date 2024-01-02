@@ -7,6 +7,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.length
@@ -89,7 +90,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         } else super.onKeyDown(x, y, key)
     }
 
-   private fun mouseDown(x: Float, y: Float) {
+    private fun mouseDown(x: Float, y: Float) {
         val rx = (x - this.x) / this.width
         val ry = (y - this.y) / this.height
         when (chooser.visualisation) {

@@ -312,4 +312,26 @@ object GFXState {
             render(tmp)
         }
     }
+
+    /**
+     * render onto that texture
+     * */
+    fun useFrame(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: Texture2D, level: Int, render: (IFramebuffer) -> Unit
+    ) {
+        assertNotEquals(0, texture.pointer)
+        tmp.width = texture.width
+        tmp.height = texture.height
+        if (tmp.pointer == 0 || tmp.session != session) {
+            tmp.pointer = glGenFramebuffers()
+            tmp.session = session
+        }
+        useFrame(x, y, w, h, tmp) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.target, texture.pointer, level)
+            Framebuffer.drawBuffers1(0)
+            tmp.checkIsComplete()
+            render(tmp)
+        }
+    }
 }

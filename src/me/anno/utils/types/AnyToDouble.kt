@@ -124,7 +124,9 @@ object AnyToDouble {
                 3 -> w.toDouble()
                 else -> defaultValue
             }
-            is CharSequence -> toString().toDoubleOrNull() ?: defaultValue
+            is CharSequence -> toString()
+                .replace(',', '.')
+                .toDoubleOrNull() ?: defaultValue
             else -> {
                 LOGGER.info("Unknown ${this::class.simpleName}[$index] to Double")
                 defaultValue

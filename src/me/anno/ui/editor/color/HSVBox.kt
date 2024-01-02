@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color
 
+import me.anno.input.Input
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -27,16 +28,12 @@ open class HSVBox(
         chooser.drawColorBox(this, v0, du, dv, dh, false)
     }
 
-    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when (action) {
-            "SelectColor" -> {
-                if (dragged == null) {
-                    onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
-                    return true
-                }
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if (Input.isLeftDown) {
+            if (dragged == null) {
+                onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
             }
-        }
-        return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     override val className: String get() = "HSVBox"

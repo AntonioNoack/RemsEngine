@@ -5,7 +5,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble
@@ -64,7 +63,7 @@ open class FloatInput(
 
     fun parseValue(text: String): Double? {
         if (text.isBlank2()) return 0.0
-        val trimmed = text.trim()
+        val trimmed = text.trim().replace(',', '.')
         val newValue = trimmed.toDoubleOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)
         if (newValue == null || !((allowInfinity && !newValue.isNaN()) || newValue.isFinite())) return null
         return newValue
