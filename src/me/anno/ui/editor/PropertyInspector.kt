@@ -9,6 +9,8 @@ import me.anno.maths.Maths.min
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
+import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
@@ -19,8 +21,6 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
-import me.anno.ui.WindowStack
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -208,7 +208,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     val win = GFX.activeWindow
                     sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
                         if (parent != null && x + width >= window.width - FrameTimings.width) {
-                            if (StudioBase.instance?.showFPS == true) {
+                            if (StudioBase.showFPS) {
                                 max(
                                     1,
                                     window.y + min(

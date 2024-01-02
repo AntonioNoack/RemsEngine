@@ -10,6 +10,9 @@ interface ScrollableX {
     val relativeSizeX get() = width.toDouble() / childSizeX
     var scrollHardnessX: Double
     val targetScrollPositionX: Double
+    /**
+     * returns the remaining scroll amount
+     * */
     fun scrollX(delta: Double): Double
     fun scrollX(delta: Int) = scrollX(delta.toDouble())
 }

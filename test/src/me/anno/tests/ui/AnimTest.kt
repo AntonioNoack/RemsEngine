@@ -1,9 +1,9 @@
 package me.anno.tests.ui
 
 import me.anno.animation.Interpolation
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.studio.StudioBase.Companion.showRedraws
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.EventType
 import me.anno.ui.anim.MoveAnimation
@@ -21,8 +21,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 fun main() {
     disableRenderDoc()
     testUI("AnimTest") {
-        DefaultConfig["debug.renderdoc.enabled"] = false
-        DefaultConfig["debug.ui.showRedraws"] = false
+        showRedraws = false
         val list = PanelListY(style)
         for (i in Interpolation.entries) {
             val animContainer = AnimContainer(TextButton(i.displayName, false, style), Padding(10, 0), style)

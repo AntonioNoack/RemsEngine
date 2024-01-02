@@ -99,7 +99,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         class RuntimeInfoPlaceholder(style: Style) : Panel(style) {
             override fun calculateSize(w: Int, h: Int) {
                 val window = window
-                val showFPS = StudioBase.instance?.showFPS == true
+                val showFPS = StudioBase.showFPS
                 val ws = window?.windowStack
                 minW = if (ws != null && showFPS) {
                     // todo respect height for this calculation, too: we don't need to move out the way,
@@ -107,7 +107,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                     val gap = ws.width - (window.panel.x + window.panel.width)
                     max(FrameTimings.width - gap, 0)
                 } else {
-                    if (StudioBase.instance?.showFPS == true) FrameTimings.width else 0
+                    if (StudioBase.showFPS) FrameTimings.width else 0
                 }
                 minH = 1
             }

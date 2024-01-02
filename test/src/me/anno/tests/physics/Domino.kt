@@ -2,7 +2,6 @@ package me.anno.tests.physics
 
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
@@ -13,6 +12,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
+import me.anno.studio.StudioBase.Companion.showRedraws
 import me.anno.utils.OS.music
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Floats.toRadians
@@ -145,7 +145,7 @@ fun main() {
 
     disableRenderDoc()
     testSceneWithUI("Dominos", scene) {
-        DefaultConfig["debug.ui.showRedraws"] = false
+        showRedraws = false
         it.renderer.renderMode = RenderMode.PHYSICS
     }
 }

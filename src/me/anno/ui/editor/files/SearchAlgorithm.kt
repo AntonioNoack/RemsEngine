@@ -175,12 +175,17 @@ object SearchAlgorithm {
                 resultSet.finish()
             } else {
                 val entries = self.content2d.children
+                var changedLayout = false
                 for (i in entries.indices) {
                     val entry = entries[i] as? FileExplorerEntry ?: continue
+                    val wasVisible = entry.isVisible
                     entry.isVisible = entry.isParent ||
                             newSearch.matches(FileReference.getReferenceOrTimeout(entry.path).name)
+                    changedLayout = changedLayout || wasVisible != entry.isVisible
                 }
-                self.invalidateLayout()
+                if (changedLayout) {
+                    self.invalidateLayout()
+                }
             }
 
             // reset query time

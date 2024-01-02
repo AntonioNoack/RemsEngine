@@ -122,6 +122,6 @@ fun main() {
         scene.add(boid)
     }
     testSceneWithUI("Boids", scene) {
-        StudioBase.instance?.showFPS = true
+        StudioBase.showFPS = true
     }
 }

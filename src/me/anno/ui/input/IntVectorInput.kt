@@ -102,8 +102,9 @@ open class IntVectorInput(
             titleView?.isItalic = value
         }
 
-    fun setResetListener(listener: (() -> Any?)?) {
+    fun setResetListener(listener: (() -> Any?)?): IntVectorInput {
         resetListener = listener
+        return this
     }
 
     private fun addComponent(title: String, index: Int): IntInput {

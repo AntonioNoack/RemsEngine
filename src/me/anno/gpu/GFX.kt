@@ -5,6 +5,7 @@ import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.streams.AudioStream
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
@@ -90,11 +91,7 @@ object GFX {
         get() = focusedWindow ?: windows.firstOrNull() // we also could choose the one closest to the mouse :)
 
     @JvmStatic
-    var idleFPS
-        get() = DefaultConfig["ui.window.idleFPS", 10]
-        set(value) {
-            DefaultConfig["ui.window.idleFPS"] = value
-        }
+    var idleFPS by ConfigRef("ui.window.idleFPS", 10)
 
     @JvmField
     var supportsAnisotropicFiltering = false

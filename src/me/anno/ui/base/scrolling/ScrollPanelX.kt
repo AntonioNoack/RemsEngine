@@ -9,6 +9,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
+import me.anno.parser.modAny
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -67,11 +68,11 @@ open class ScrollPanelX(
         }
 
     override fun scrollX(delta: Double): Double {
-        if (delta == 0.0) return 0.0
-        val old = targetScrollPositionX
-        val new = clamp(old + delta, 0.0, maxScrollPositionX.toDouble())
-        targetScrollPositionX = new
-        return new - (old + delta) // remaining scroll amount
+        val prev = targetScrollPositionX
+        targetScrollPositionX += delta
+        clampScrollPosition()
+        val moved = targetScrollPositionX - prev
+        return moved - delta
     }
 
     override fun onUpdate() {

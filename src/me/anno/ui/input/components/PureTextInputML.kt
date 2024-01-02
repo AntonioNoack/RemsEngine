@@ -75,16 +75,19 @@ open class PureTextInputML(style: Style) :
     private var enterListener: ((text: String) -> Unit)? = null
     private var resetListener: (() -> String?)? = null
 
-    fun setEnterListener(listener: (text: String) -> Unit) {
+    fun setEnterListener(listener: (text: String) -> Unit): PureTextInputML {
         enterListener = listener
+        return this
     }
 
-    fun setResetListener(listener: () -> String?) {
+    fun setResetListener(listener: () -> String?): PureTextInputML {
         resetListener = listener
+        return this
     }
 
-    fun addChangeListener(listener: (text: String) -> Unit) {
+    fun addChangeListener(listener: (text: String) -> Unit): PureTextInputML {
         changeListeners += listener
+        return this
     }
 
     override var textColor

@@ -21,6 +21,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.showFPS
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelX
@@ -54,11 +55,7 @@ fun main() {
 
         ECSRegistry.init()
 
-        val instance = StudioBase.instance
-        if (instance != null) {
-            instance.showFPS = false
-            instance.enableVSync = true
-        }
+        StudioBase.instance?.enableVSync = true
 
         val list = PanelListY(style)
 

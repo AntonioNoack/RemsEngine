@@ -1,6 +1,7 @@
 package me.anno.input
 
 import me.anno.Time
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
 import me.anno.io.ISaveable
@@ -19,18 +20,10 @@ object ActionManager {
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
     @JvmStatic
-    var keyDragDelay
-        get() = DefaultConfig["ui.keyDragDelay", 0.5f]
-        set(value) {
-            DefaultConfig["ui.keyDragDelay"] = value
-        }
+    var keyDragDelay by ConfigRef("ui.keyDragDelay", 0.5f)
 
     @JvmStatic
-    var enableQuickDragging
-        get() = DefaultConfig["ui.mouse.enableQuickDragging", true]
-        set(value) {
-            DefaultConfig["ui.mouse.enableQuickDragging"] = value
-        }
+    var enableQuickDragging by ConfigRef("ui.mouse.enableQuickDragging", true)
 
     @JvmStatic
     private val localActions = KeyPairMap<String, KeyCombination, List<String>>(512)

@@ -153,13 +153,15 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
     }
 
     private var changeListener: (v: Type) -> Unit = {}
-    fun setChangeListener(changeListener: (v: Type) -> Unit) {
+    fun setChangeListener(changeListener: (v: Type) -> Unit): SameSceneRefInput<Type> {
         this.changeListener = changeListener
+        return this
     }
 
     private var resetListener: () -> Type = { value0 }
-    fun setResetListener(resetListener: () -> Type) {
+    fun setResetListener(resetListener: () -> Type): SameSceneRefInput<Type> {
         this.resetListener = resetListener
+        return this
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

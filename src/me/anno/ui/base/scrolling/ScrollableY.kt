@@ -10,6 +10,9 @@ interface ScrollableY {
     val relativeSizeY get() = height.toDouble() / childSizeY
     var scrollHardnessY: Double
     val targetScrollPositionY: Double
+    /**
+     * returns the remaining scroll amount
+     * */
     fun scrollY(delta: Double): Double
     fun scrollY(delta: Int) = scrollY(delta.toDouble())
 }

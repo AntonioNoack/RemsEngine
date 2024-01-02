@@ -16,6 +16,7 @@ import me.anno.studio.GFXSettings
 import me.anno.studio.ProjectHeader
 import me.anno.studio.Projects
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.showFPS
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -104,7 +105,7 @@ interface WelcomeUI {
                 "Recommended; false for debugging", "ui.settings.vSync",
                 studio.enableVSync, true, style
             ).setChangeListener {
-                DefaultConfig["debug.ui.enableVsync"] = it
+                studio.enableVSync = it
                 window.setVsyncEnabled(it)
             }
         } // else we cannot set vsync
@@ -112,8 +113,8 @@ interface WelcomeUI {
         quickSettings += BooleanInput(
             "Show FPS",
             "Shows how many frames were rendered per second, for monitoring stutters", "ui.settings.showFPS",
-            studio.showFPS, false, style
-        ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
+            showFPS, false, style
+        ).setChangeListener { showFPS = it }
 
         val fontSize = style.getSize("fontSize", 15)
         val cop = ConsoleOutputPanel.createConsoleWithStats(true, style)

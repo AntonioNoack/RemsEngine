@@ -1,7 +1,6 @@
 package me.anno.tests.network
 
 import me.anno.Engine
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -9,6 +8,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.network.*
 import me.anno.network.packets.PingPacket
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.showRedraws
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList2D
@@ -39,7 +39,7 @@ fun main() {
     disableRenderDoc()
     testUI3("ServerClientWorld") {
         StudioBase.instance?.enableVSync = true
-        DefaultConfig["debug.ui.showRedraws"] = true
+        showRedraws = true
         val list = PanelList2D(style)
         val master = PanelListY(style)
         master.add(TextButton("Join All", style)

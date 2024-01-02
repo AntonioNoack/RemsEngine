@@ -18,7 +18,7 @@ fun main() {
             AxisAlignment.CENTER,
             AxisAlignment.MAX,
         )
-        StudioBase.instance?.showFPS = false
+        StudioBase.showFPS = false
         NineTilePanel(style).apply {
             addLeftClickListener {
                 val window = window!!

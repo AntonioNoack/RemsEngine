@@ -181,8 +181,9 @@ open class FloatVectorInput(
         return component
     }
 
-    fun setResetListener(listener: (() -> Any?)?) {
+    fun setResetListener(listener: (() -> Any?)?): FloatVectorInput {
         resetListener = listener
+        return this
     }
 
     override fun onCopyRequested(x: Float, y: Float) = "[$vxd, $vyd, $vzd, $vwd]"

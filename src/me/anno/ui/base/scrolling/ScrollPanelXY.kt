@@ -107,17 +107,19 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
 
     override fun scrollX(delta: Double): Double {
+        val prev = targetScrollPositionX
         targetScrollPositionX += delta
         clampScrollPosition()
-        window?.addNeedsLayout(this)
-        return 0.0
+        val moved = targetScrollPositionX - prev
+        return delta - moved
     }
 
     override fun scrollY(delta: Double): Double {
+        val prev = targetScrollPositionY
         targetScrollPositionY += delta
         clampScrollPosition()
-        window?.addNeedsLayout(this)
-        return 0.0
+        val moved = targetScrollPositionY - prev
+        return delta - moved
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -172,7 +174,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if (alwaysShowShadowX) {
             drawShadowX(x0, y0, x1, y1, shadowRadius)
         }
-        if(alwaysShowShadowY){
+        if (alwaysShowShadowY) {
             drawShadowY(x0, y0, x1, y1, shadowRadius)
         }
         if (hasScrollbarX) {

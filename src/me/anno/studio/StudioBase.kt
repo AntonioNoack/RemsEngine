@@ -6,6 +6,7 @@ import me.anno.Engine.projectName
 import me.anno.Time
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
@@ -101,18 +102,6 @@ abstract class StudioBase(
     fun tick(name: String) {
         startClock.stop(name)
     }
-
-    var showTutorialKeys
-        get() = DefaultConfig["ui.tutorial.showKeys", true]
-        set(value) {
-            DefaultConfig["ui.tutorial.showKeys"] = value
-        }
-
-    var showFPS
-        get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
-        set(value) {
-            DefaultConfig["debug.ui.showFPS"] = value
-        }
 
     var gfxSettings = GFXSettings.LOW
         set(value) {
@@ -244,7 +233,7 @@ abstract class StudioBase(
     }
 
     fun updateVSync(window: OSWindow) {
-        val vsync = DefaultConfig["debug.ui.enableVsync", !Build.isDebug]
+        val vsync = enableVSync
         if (vsync != window.enableVsync) {
             window.setVsyncEnabled(vsync)
         }
@@ -253,14 +242,10 @@ abstract class StudioBase(
     /**
      * prevents tearing, but also increase input-latency
      * */
-    var enableVSync
-        get() = DefaultConfig["debug.ui.enableVsync", !Build.isDebug]
-        set(value) {
-            DefaultConfig["debug.ui.enableVsync"] = value
-        }
+    var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
 
     fun toggleVsync() {
-        DefaultConfig["debug.ui.enableVsync"] = !DefaultConfig["debug.ui.enableVsync", true]
+        enableVSync = !enableVSync
     }
 
     fun processMouseMovement(window: OSWindow) {
@@ -359,6 +344,10 @@ abstract class StudioBase(
     companion object {
 
         var instance: StudioBase? = null
+
+        var showRedraws by ConfigRef("debug.ui.showRedraws", false)
+        var showFPS by ConfigRef("debug.ui.showFPS", false)
+        var showTutorialKeys by ConfigRef("ui.tutorial.showKeys", true)
 
         var workspace = OS.documents
 

@@ -69,11 +69,11 @@ open class ScrollPanelY(
         }
 
     override fun scrollY(delta: Double): Double {
-        if (delta == 0.0) return 0.0
-        val old = targetScrollPositionY
-        val new = clamp(old + delta, 0.0, maxScrollPositionY.toDouble())
-        targetScrollPositionY = new
-        return new - (old + delta) // remaining scroll amount
+        val prev = targetScrollPositionY
+        targetScrollPositionY += delta
+        clampScrollPosition()
+        val moved = targetScrollPositionY - prev
+        return moved - delta
     }
 
     override fun onUpdate() {

@@ -12,10 +12,8 @@ import org.joml.Vector4f
 
 fun main() {
     testUI3("Batch Test") {
-        StudioBase.instance?.apply {
-            enableVSync = false
-            showFPS = true
-        }
+        StudioBase.instance?.enableVSync = false
+        StudioBase.showFPS = true
         object : Panel(style) {
 
             var batch = false

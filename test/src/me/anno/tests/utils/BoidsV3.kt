@@ -187,6 +187,6 @@ fun main() {
     }
 
     testSceneWithUI("Boids V3", boid) {
-        StudioBase.instance?.showFPS = true
+        StudioBase.showFPS = true
     }
 }

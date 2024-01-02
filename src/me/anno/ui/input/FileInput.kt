@@ -162,8 +162,9 @@ open class FileInput(
         return this
     }
 
-    fun setText(text: String, notify: Boolean) {
+    fun setText(text: String, notify: Boolean): FileInput {
         base.setValue(text.replace('\\', '/'), notify)
+        return this
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

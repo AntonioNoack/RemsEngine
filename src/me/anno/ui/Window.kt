@@ -1,6 +1,7 @@
 package me.anno.ui
 
 import me.anno.Time
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -25,6 +26,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.studio.StudioBase
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -32,6 +34,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
+import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -353,6 +356,11 @@ open class Window(
         if (drawDirectly) {
             useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
                 panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
+                if (StudioBase.showRedraws) {
+                    renderDefault {
+                        showRedraws(listOf(panel0))
+                    }
+                }
             }
         } else {
             useFrame(panel0.x, panel0.y, w2, h2, buffer, Renderer.colorRenderer) {
@@ -471,7 +479,7 @@ open class Window(
         if (isTransparent) {
             renderDefault {
                 drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
-                if (showRedraws) {
+                if (StudioBase.showRedraws) {
                     showRedraws(wasRedrawn)
                 }
             }
@@ -479,7 +487,7 @@ open class Window(
             renderPurely {
                 drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
             }
-            if (showRedraws) {
+            if (StudioBase.showRedraws) {
                 renderDefault {
                     showRedraws(wasRedrawn)
                 }
@@ -517,7 +525,6 @@ open class Window(
     companion object {
         private const val redrawColor = 0x33ff0000
         private val LOGGER = LogManager.getLogger(Window::class)
-        private val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
         private val shadowShader = Shader(
             "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "color"),
