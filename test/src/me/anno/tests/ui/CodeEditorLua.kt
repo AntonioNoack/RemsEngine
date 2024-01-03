@@ -24,10 +24,8 @@ fun themeInput(editor: CodeEditor): Panel {
 
 fun wrapScrolling(editor: CodeEditor): Panel {
     editor.weight = 1f
-    editor.alignmentX = AxisAlignment.FILL
     return ScrollPanelY(editor, style).apply {
         weight = 1f
-        alignmentX = AxisAlignment.FILL
     }
 }
 

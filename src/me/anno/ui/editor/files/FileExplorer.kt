@@ -180,7 +180,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     init {
         searchBar.tooltip = "Enter search terms, or paste a path, press enter to go there"
-        searchBar.alignmentX = AxisAlignment.FILL
         searchBar.weight = 1f
         searchBar.addChangeListener { invalidate() }
         searchBar.setEnterListener {
@@ -337,7 +336,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         // I prefer: scaleChildren > scaleSpaces > nothing
         content2d.scaleChildren = true
         val topBar = PanelListX(style)
-        topBar.alignmentX = AxisAlignment.FILL
         this += topBar
         topBar += pathPanel
 
@@ -356,9 +354,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         topBar += searchBar
         this += uContent
 
-        uContent.alignmentY = AxisAlignment.FILL
         uContent.weight = 1f
-        alignmentY = AxisAlignment.FILL
 
         pathPanel.onChangeListener = {
             switchTo(it)
@@ -367,20 +363,22 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         uContent += ScrollPanelY(favourites, Padding(1), style).apply {
             makeBackgroundTransparent()
-            alignmentY = AxisAlignment.FILL
             alwaysShowShadowY = true
         }
         uContent += wrapInScrollPanel(isY, content2d)
+
+        content2d.weight = 1f // expand to the right
+        uContent.weight = 1f // expand to the right
+        content2d.uiParent!!.weight = 1f
     }
 
     private fun wrapInScrollPanel(isY: Boolean, content2d: Panel): Panel {
         val scroll = if (isY) ScrollPanelY(content2d, Padding(1), style)
         else ScrollPanelX(content2d, Padding(1), style)
-        return scroll.apply {
-            makeBackgroundTransparent()
-            fill(0f)
-            alwaysShowShadowY = true
-        }
+        scroll.makeBackgroundTransparent()
+        scroll.fill(1f)
+        scroll.alwaysShowShadowY = true
+        return scroll
     }
 
     fun invalidate(force: Boolean = false) {

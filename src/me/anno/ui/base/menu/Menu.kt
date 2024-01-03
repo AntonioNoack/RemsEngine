@@ -93,7 +93,6 @@ object Menu {
         val style = DefaultConfig.style.getChild("menu")
 
         val textInput = PureTextInput(style)
-        textInput.alignmentX = AxisAlignment.FILL
         textInput.setText(value0, false)
         textInput.placeholder = title.name
         textInput.tooltip = title.desc
@@ -107,7 +106,6 @@ object Menu {
 
         val submit = TextButton(actionName.name, style)
         submit.weight = 1f
-        submit.alignmentX = AxisAlignment.FILL
         submit.tooltip = actionName.desc
         submit.addLeftClickListener {
             callback(textInput.value)
@@ -116,11 +114,9 @@ object Menu {
 
         val cancel = TextButton("Cancel", style)
         cancel.weight = 1f
-        cancel.alignmentX = AxisAlignment.FILL
         cancel.addLeftClickListener { close(textInput) }
 
         val buttons = PanelListX(style)
-        buttons.alignmentX = AxisAlignment.FILL
         buttons += cancel
         buttons += submit
 
@@ -213,7 +209,6 @@ object Menu {
                         } else false
                     }
                     styleComplexEntry(button, option, padding, true)
-                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
                 option.isEnabled && option is ComplexMenuGroup -> {
@@ -228,7 +223,6 @@ object Menu {
                         }
                     }
                     styleComplexEntry(button, option, padding, true)
-                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
                 else -> {
@@ -239,7 +233,6 @@ object Menu {
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
                     button.focusTextColor = button.textColor
                     styleComplexEntry(button, option, padding, false)
-                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
             }
@@ -290,6 +283,8 @@ object Menu {
                 } else super.onCharTyped(x, y, codepoint)
             }
         }
+        container.alignmentX = AxisAlignment.MIN
+        container.alignmentY = AxisAlignment.MIN
 
         val window = Window(container, isTransparent = false, isFullscreen = false, windowStack, 1, 1)
 
@@ -317,7 +312,6 @@ object Menu {
             titlePanel.tooltip = title.desc
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
-            titlePanel.alignmentX = AxisAlignment.FILL
             list += titlePanel
             list += SpacerPanel(0, 1, style)
         }
@@ -332,7 +326,6 @@ object Menu {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
             searchPanel = TextInput(Dict["Search", "ui.general.search"], "", suggestions, style)
-            searchPanel.alignmentX = AxisAlignment.FILL
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children

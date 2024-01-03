@@ -1,8 +1,8 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import kotlin.math.max
@@ -151,7 +151,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             var sum = 0f
             for (x in 0 until sizeX) {
                 sum += wxs[x]
-                xs[x] +=  (total * sum).toInt()
+                xs[x] += (total * sum).toInt()
             }
             minW = w
         }
@@ -175,7 +175,6 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
 
         minW = sumW
         minH = sumH
-
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -189,8 +188,13 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
                 if (child === nothing) continue
                 val x0 = xs.getOrNull(xi - 1) ?: 0
                 val x1 = xs.getOrNull(xi) ?: width
-                child.calculatePlacement(x + x0, y + y0, x1 - x0, y1 - y0)
-                child.setPosSize(child.minX, child.minY, child.minW, child.minH)
+                val w = x1 - x0
+                val h = y1 - y0
+                val cw = child.alignmentX.getSize(w, child.minW)
+                val ch = child.alignmentY.getSize(h, child.minH)
+                val cx = child.alignmentX.getOffset(w, child.minW)
+                val cy = child.alignmentY.getOffset(h, child.minH)
+                child.setPosSize(cx, cy, cw, ch)
             }
         }
     }
@@ -207,5 +211,4 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     override fun invalidateLayout() {
         window?.addNeedsLayout(this)
     }
-
 }

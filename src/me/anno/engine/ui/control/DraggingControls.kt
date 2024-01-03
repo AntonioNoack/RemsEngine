@@ -32,6 +32,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -96,10 +97,14 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val topLeft = PanelListX(style)
         topLeft.add(drawModeInput)
         topLeft.add(TextButton("Play", "Start the game", false, style)
-            .addLeftClickListener { ECSSceneTabs.currentTab?.play() })
+            .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
+            .apply { alignmentY = AxisAlignment.MIN })
         topLeft.add(TextButton("⚙", 1f, style)
             .setTooltip("Settings")
-            .addLeftClickListener { EditorState.select(settings) })
+            .addLeftClickListener { EditorState.select(settings) }
+            .apply { alignmentY = AxisAlignment.MIN })
+        topLeft.alignmentX = AxisAlignment.MIN
+        topLeft.alignmentY = AxisAlignment.MIN
         add(topLeft)
     }
 

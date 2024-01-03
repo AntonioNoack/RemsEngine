@@ -119,7 +119,6 @@ open class ColorChooser(
         this += colorSpaceInput
         this += styleInput
         this += pickButton
-        pickButton.alignmentX = AxisAlignment.FILL
         this += SpacerPanel(0, 2, style)
         this += hslBox
         this += hueChooserSpace

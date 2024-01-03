@@ -43,10 +43,8 @@ class BooleanInput(
             titleView.enableHoverColor = true
             titleView.padding.right = 5
             titleView.disableFocusColors()
-            titleView.alignmentY = AxisAlignment.FILL
         }
         this += checkView
-        checkView.alignmentY = AxisAlignment.FILL
     }
 
     override var value: Boolean

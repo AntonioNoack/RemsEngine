@@ -178,8 +178,6 @@ fun createUI(): Panel {
     val renderView = sceneView.renderer
     renderView.renderMode = RenderMode.PHYSICS
     renderView.localPlayer = player
-    sceneView.alignmentX = AxisAlignment.FILL
-    sceneView.alignmentY = AxisAlignment.FILL
     sceneView.weight = 1f
     list.add(sceneView)
 

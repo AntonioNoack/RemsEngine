@@ -45,22 +45,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var height = 259
 
     /**
-     * Wished size and placement
+     * Wished minimum size, calculated in calculateSize();
      * */
-    var minX = 0
-    var minY = 0
     var minW = 1
     var minH = 1
 
-    var alignmentX = AxisAlignment.MIN
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
-        }
-
-    var alignmentY = AxisAlignment.MIN
+    /**
+     * which space the element will take up horizontally after size calculation:
+     * min = left, max = right, center = centered, fill = all
+     * */
+    var alignmentX = AxisAlignment.FILL
         set(value) {
             if (field != value) {
                 field = value
@@ -69,10 +63,23 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
 
     /**
-     * this weight is used inside some layouts
-     * it allows layout by percentages and such
+     * which space the element will take up horizontally after size calculation:
+     * min = top, max = bottom, center = centered, fill = all
+     * */
+    var alignmentY = AxisAlignment.FILL
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
+    /**
+     * this weight is used inside some layouts:
+     * if there is enough space, weighted panels will use up that space proportionally to their weight,
+     * and with disregard for the minimum size (because equally sized text panels would be tough to implement otherwise);
      *
-     * alignment should be "fill"
+     * like on Android
      * */
     var weight = 0f
         set(value) {
@@ -85,8 +92,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     /**
      * this weight is used inside some 2d layouts
      * it allows layout by percentages and such
-     *
-     * alignment should be "fill"
      * */
     var weight2 = 0f
         set(value) {
@@ -124,17 +129,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
-    fun toggleVisibility() {
+    fun toggleVisibility(): Panel {
         isVisible = !isVisible
         invalidateLayout()
+        return this
     }
 
-    fun makeBackgroundTransparent() {
+    fun makeBackgroundTransparent(): Panel {
         backgroundColor = backgroundColor and 0xffffff
+        return this
     }
 
-    fun makeBackgroundOpaque() {
+    fun makeBackgroundOpaque(): Panel {
         backgroundColor = backgroundColor or black
+        return this
     }
 
     fun hide() {
@@ -394,30 +402,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun calculateSize(w: Int, h: Int) {
         minW = 1
         minH = 1
-    }
-
-    /**
-     * calculates the placement, given the available space
-     * */
-    open fun calculatePlacement(x: Int, y: Int, w: Int, h: Int) {
-        when (alignmentX) {
-            AxisAlignment.FILL -> {
-                minX = 0
-                minW = w
-            }
-            else -> {
-                minX = x + alignmentX.getOffset(w, this.minW)
-            }
-        }
-        when (alignmentY) {
-            AxisAlignment.FILL -> {
-                minY = 0
-                minH = h
-            }
-            else -> {
-                minY = y + alignmentY.getOffset(h, this.minH)
-            }
-        }
     }
 
     override fun removeFromParent() {
@@ -821,8 +805,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Panel
-        dst.minX = minX
-        dst.minY = minY
         dst.x = x
         dst.y = y
         dst.width = width

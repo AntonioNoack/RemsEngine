@@ -26,7 +26,6 @@ fun main() {
         val list = PanelListY(style)
         val source = videos.getChild("treemiddle.mp4")
         val controls = PanelListX(style)
-        controls.fill(0f)
         val movie = VideoPanel(source, getMeta(source, false)!!, true, style)
         movie.looping = LoopingState.PLAY_LOOP
         controls.add(TextButton(">", 1.5f, style)

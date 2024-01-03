@@ -325,7 +325,6 @@ class PrefabInspector(val reference: FileReference) {
                     }
                     invalidateUI(true) // typically sth would have changed -> show that automatically
                 }
-            button.alignmentX = AxisAlignment.FILL
             list.add(button)
         }
 

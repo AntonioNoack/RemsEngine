@@ -36,9 +36,9 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
             val minW = min(w, child.minW)
             val minH = min(h, child.minH)
             val dx = ax.getOffset(w, minW)
-            val cw = ax.getWidth(w, minW)
+            val cw = ax.getSize(w, minW)
             val dy = ay.getOffset(h, minH)
-            val ch = ay.getWidth(h, minH)
+            val ch = ay.getSize(h, minH)
             child.setPosSize(x + dx, y + dy, cw, ch)
         }
     }

@@ -109,12 +109,9 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
                     it.window?.close()
                 }
             val buttonList = PanelListX(style)
-            buttonList.alignmentX = AxisAlignment.FILL
             buttonList.add(acceptButton)
-            acceptButton.alignmentX = AxisAlignment.FILL
             acceptButton.weight = 1f
             buttonList.add(cancelButton)
-            cancelButton.alignmentX = AxisAlignment.FILL
             cancelButton.weight = 1f
             val title1 = NameDesc("Select Value", "This is the current scene, so all available instances are here", "")
             val window = Menu.openMenuByPanels(windowStack, title1, listOf(panel, buttonList))

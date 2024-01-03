@@ -141,7 +141,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
                     val aw = x1 - x0
                     val cw = if (sch) aw else min(max(childWidth, child.minW), aw)
                     val cx = x0 + child.alignmentX.getOffset(aw, cw)
-                    val cw1 = child.alignmentX.getWidth(aw, cw)
+                    val cw1 = child.alignmentX.getSize(aw, cw)
                     child.setPosSize(cx, cy, cw1, calcChildHeight)
                     x0 = x1
                 }
@@ -162,7 +162,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
                     val ah = y1 - y0
                     val ch = if (sch) ah else min(max(childHeight, child.minH), ah)
                     val cy = y0 + child.alignmentY.getOffset(ah, ch)
-                    val ch1 = child.alignmentY.getWidth(ah, ch)
+                    val ch1 = child.alignmentY.getSize(ah, ch)
                     child.setPosSize(cx, cy, calcChildWidth, ch1)
                     y0 = y1
                 }

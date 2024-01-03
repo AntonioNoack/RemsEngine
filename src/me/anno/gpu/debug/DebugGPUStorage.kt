@@ -304,7 +304,6 @@ object DebugGPUStorage {
 
     private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {
         val list = PanelList2D(style)
-        list.alignmentX = AxisAlignment.FILL
         list.childWidth *= 2
         list.childHeight *= 2
         fillList(list)

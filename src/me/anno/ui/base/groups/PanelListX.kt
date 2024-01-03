@@ -160,7 +160,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         val alignment = child.alignmentY
                         val minH = min(availableH, child.minH)
                         val offset = alignment.getOffset(availableH, minH)
-                        val childH = alignment.getWidth(availableH, minH)
+                        val childH = alignment.getSize(availableH, minH)
                         child.setPosSize(currentX, childY + offset, childW, childH)
                         //}
                         currentX += childW + spacing

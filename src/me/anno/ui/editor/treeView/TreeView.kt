@@ -334,7 +334,6 @@ abstract class TreeView<V : Any>(
             list.children[index] as TreeViewEntryPanel<*>
         } else {
             val panel = createChildPanel(index)
-            panel.alignmentX = AxisAlignment.FILL
             list += panel
             panel
         }

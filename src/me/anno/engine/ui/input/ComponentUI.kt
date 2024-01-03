@@ -821,20 +821,16 @@ object ComponentUI {
                 value as Matrix4f
                 default as Matrix4f
                 val panel = TitledListY(title, visibilityKey, style)
-                panel.alignmentX = AxisAlignment.FILL
                 property.init(panel)
                 // todo special types
                 // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
                     panel.add(
                         FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
-                            .apply {
-                                // todo correct change listener
-                                alignmentX = AxisAlignment.FILL
-                                addChangeListener { x, y, z, w, _ ->
+                            .addChangeListener { x, y, z, w, _ ->// todo correct change listener
                                     value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                                 }
-                            }
+
                     )
                 }
                 // todo reset listener
@@ -854,9 +850,7 @@ object ComponentUI {
                 default as AABBf
                 val typeMin = Type.VEC3.withDefault(default.getMin())
                 val panel = TitledListY(title, visibilityKey, style)
-                panel.alignmentX = AxisAlignment.FILL
                 panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
-                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMin(), false) }
@@ -883,9 +877,7 @@ object ComponentUI {
                 default as AABBd
                 val typeMin = Type.VEC3D.withDefault(default.getMin())
                 val panel = TitledListY(title, visibilityKey, style)
-                panel.alignmentX = AxisAlignment.FILL
                 panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
-                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMin(), false) }
@@ -1288,7 +1280,6 @@ object ComponentUI {
                 }
                 optionList.childWidth = entrySize.toInt()
                 optionList.childHeight = optionList.childHeight
-                optionList.alignmentX = AxisAlignment.FILL
                 // title needs to be bold, or sth like that
                 panelList.add(TextPanel(title, style).apply {
                     isBold = true
@@ -1333,7 +1324,6 @@ object ComponentUI {
                 callback(value1, true)
                 it.window?.close()
             }
-        buttons.alignmentX = AxisAlignment.FILL
         buttons.weight = 1f
         val mainList = SizeLimitingContainer(
             panelList,

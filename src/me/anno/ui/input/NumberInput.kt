@@ -23,10 +23,6 @@ abstract class NumberInput<BaseType>(
 
     val inputPanel = inputPanel0 ?: NumberInputComponent(visibilityKey, style)
 
-    init {
-        inputPanel.alignmentX = AxisAlignment.FILL
-    }
-
     var titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
 
@@ -99,8 +95,9 @@ abstract class NumberInput<BaseType>(
         }
     }
 
-    fun setPlaceholder(placeholder: String) {
+    fun setPlaceholder(placeholder: String): NumberInput<BaseType> {
         inputPanel.placeholder = placeholder
+        return this
     }
 
     init {

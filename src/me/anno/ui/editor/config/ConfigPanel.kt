@@ -20,6 +20,9 @@ import java.util.*
 import kotlin.math.max
 
 // todo allow fields to be added
+/**
+ * UI for editing the base configuration and style
+ * */
 class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : PanelListY(style) {
 
     val deep = style.getChild("deep")

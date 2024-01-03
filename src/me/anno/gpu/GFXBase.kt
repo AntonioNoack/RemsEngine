@@ -460,7 +460,6 @@ object GFXBase {
 
     @JvmStatic
     fun updateWindows() {
-
         for (index in 0 until windows.size) {
             val window = windows[index]
             if (!window.shouldClose) {

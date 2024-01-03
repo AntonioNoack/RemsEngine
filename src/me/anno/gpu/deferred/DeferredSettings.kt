@@ -263,15 +263,15 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     }
 
     companion object {
-        val singleToVector = mapOf(
-            "r" to Vector4f(1f, 0f, 0f, 0f),
-            "g" to Vector4f(0f, 1f, 0f, 0f),
-            "b" to Vector4f(0f, 0f, 1f, 0f),
-            "a" to Vector4f(0f, 0f, 0f, 1f),
-            "x" to Vector4f(1f, 0f, 0f, 0f),
-            "y" to Vector4f(0f, 1f, 0f, 0f),
-            "z" to Vector4f(0f, 0f, 1f, 0f),
-            "w" to Vector4f(0f, 0f, 0f, 1f)
-        )
+        val singleToVector = run {
+            val x = Vector4f(1f, 0f, 0f, 0f)
+            val y = Vector4f(0f, 1f, 0f, 0f)
+            val z = Vector4f(0f, 0f, 1f, 0f)
+            val w = Vector4f(0f, 0f, 0f, 1f)
+            mapOf(
+                "r" to x, "g" to y, "b" to z, "a" to w,
+                "x" to x, "y" to y, "z" to z, "w" to w
+            )
+        }
     }
 }

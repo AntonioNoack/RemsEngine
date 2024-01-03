@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.FontListMenu.createFontInput
@@ -61,6 +62,7 @@ class ContentCreator(
                                     TextInput("", "", false, style)
                                         .setValue(value, -1, false)
                                         .addChangeListener { map[fullName] = it }
+                                        .setPlaceholder("Value")
                                 }
                             }
                         }
@@ -68,6 +70,7 @@ class ContentCreator(
                     is FileReference -> {
                         FileInput("", style, value, emptyList())
                             .setChangeListener { map[fullName] = it }
+                        // todo placeholder (?)
                     }
                     is Int -> {
                         if (value.a() > 100 || "Color" in fullName || fullName.endsWith("background")) {
@@ -77,20 +80,26 @@ class ContentCreator(
                         } else {
                             IntInput("", "", value, style)
                                 .setChangeListener { map[fullName] = it.toInt() }
+                                .setPlaceholder("Value")
                         }
                     }
                     is Long -> IntInput("", "", value, style)
                         .setChangeListener { map[fullName] = it }
+                        .setPlaceholder("Value")
                     is Float -> FloatInput("", "", value, Type.FLOAT, style)
                         .setChangeListener { map[fullName] = it.toFloat() }
+                        .setPlaceholder("Value")
                     is Double -> FloatInput("", "", value, Type.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
+                        .setPlaceholder("Value")
                     else -> {
                         LOGGER.warn("Missing type implementation ${value::class}")
                         // ComponentUI.vi(null, shortTitle, fullName, null, value, style) { map[fullName] = value }
                         return
                     }
                 }
+                // else takes up comically lot space
+                body.forAllPanels { it.alignmentX = AxisAlignment.MIN }
                 list += body.withPadding(pad * 2, 0, 0, 0)
             }
         }

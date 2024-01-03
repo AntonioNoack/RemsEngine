@@ -51,16 +51,10 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
     var graphEditor: GraphEditor = GraphEditor(null, style)
 
     init {
-        fill(renderer)
-        fill(editControls)
-        fill(playControls)
-        fill(graphEditor)
-    }
-
-    fun fill(ui: Panel) {
-        add(ui)
-        ui.alignmentX = AxisAlignment.FILL
-        ui.alignmentY = AxisAlignment.FILL
+        add(renderer)
+        add(editControls)
+        add(playControls)
+        add(graphEditor)
     }
 
     override fun onUpdate() {

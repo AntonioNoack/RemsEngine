@@ -18,7 +18,6 @@ fun main() {
     graph.groups.add(group)
     val editor = GraphEditor(graph, DefaultConfig.style)
     editor.weight = 1f
-    editor.alignmentX = AxisAlignment.FILL
     val spy = SpyPanel {
         // performance test for generating lots of text
         val testTextPerformance = false

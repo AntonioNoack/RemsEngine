@@ -185,7 +185,6 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
             list.children.getOrNull(index) as? TreeViewEntryPanel<*>
                 ?: createChildPanel(index)
         }
-        panel.alignmentX = AxisAlignment.FILL
 
         if (index < list.children.size) {
             list.children[index].parent = null

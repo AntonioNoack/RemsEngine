@@ -26,10 +26,7 @@ fun createX(id: Long, depth: Int): Panel {
 }
 
 fun finish(panel: Panel): Panel {
-    panel.alignmentX = AxisAlignment.FILL
-    panel.alignmentY = AxisAlignment.FILL
-    panel.weight = 1f
-    return panel
+    return panel.fill(1f)
 }
 
 fun createY(id: Long, depth: Int): Panel {

@@ -45,9 +45,6 @@ open class SettingCategory(
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
         titlePanel.focusTextColor = -1
-        content.alignmentX = AxisAlignment.FILL
-        child.alignmentX = AxisAlignment.FILL
-        alignmentX = AxisAlignment.FILL
         child.parent = this
     }
 

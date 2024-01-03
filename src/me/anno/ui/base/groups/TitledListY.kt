@@ -21,7 +21,6 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
     init {
         if (titleView != null) {
             this.add(titleView)
-            titleView.alignmentX = AxisAlignment.FILL
             titleView.addLeftClickListener {
                 InputVisibility.toggle(visibilityKey, this)
             }
