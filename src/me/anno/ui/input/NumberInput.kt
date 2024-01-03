@@ -134,6 +134,8 @@ abstract class NumberInput<BaseType>(
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
+    override fun wantsMouseTeleport(): Boolean = true
+
     abstract fun changeValue(dx: Float, dy: Float)
 
     fun setText(newText: String, notify: Boolean) {

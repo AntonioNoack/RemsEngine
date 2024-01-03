@@ -502,7 +502,7 @@ object GFXBase {
                 val margin = 10f
                 if (window.mouseX !in margin..window.width - margin || window.mouseY !in margin..window.height - margin) {
                     val inFocus = window.windowStack.inFocus
-                    if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> } }) {
+                    if (inFocus.any2 { p -> p.anyInHierarchy { h -> h is InputPanel<*> && h.wantsMouseTeleport() } }) {
                         val centerX = window.width * 0.5
                         val centerY = window.height * 0.5
                         synchronized(window) {

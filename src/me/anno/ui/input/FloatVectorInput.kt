@@ -433,6 +433,8 @@ open class FloatVectorInput(
         }
     }
 
+    override fun wantsMouseTeleport(): Boolean = true
+
     override fun onEmpty(x: Float, y: Float) {
         val resetListener = resetListener
         if (resetListener == null) {
