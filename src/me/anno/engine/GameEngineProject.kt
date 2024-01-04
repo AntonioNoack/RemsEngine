@@ -6,6 +6,8 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
+import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

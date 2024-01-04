@@ -10,8 +10,8 @@ import me.anno.io.files.Signature
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.FileExplorer
-import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.files.Files
 import org.apache.logging.log4j.LogManager

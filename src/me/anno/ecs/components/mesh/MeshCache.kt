@@ -9,6 +9,7 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
@@ -83,7 +84,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         if (mesh is Mesh && mesh.proceduralLength <= 0) {
             val meshMaterials = mesh.materials
             val materials = (0 until mesh.numMaterials).map {
-                compMaterials?.getOrNull(it)?.nullIfUndefined() ?: meshMaterials.getOrNull(it) ?: InvalidRef
+                Pipeline.getMaterialRef(compMaterials, meshMaterials, it)
             }
             meshes.add(Triple(mesh, transform, materials))
         }
@@ -98,7 +99,9 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         val meshes = ArrayList<Triple<Mesh, Transform?, List<FileReference>>>()
         for (comp in list) {
             when (comp) {
-                is MeshComponentBase -> addMesh(meshes, comp.getMesh(), comp.transform, comp.materials)
+                is MeshComponentBase -> {
+                    addMesh(meshes, comp.getMesh(), comp.transform, comp.materials)
+                }
                 is MeshSpawner -> {
                     comp.forEachMesh { mesh, material, transform ->
                         val materialList = if (material == null) emptyList()
@@ -131,6 +134,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     clone.positions = transform(matrix, clone.positions)
                     clone.normals = rotate(matrix, clone.normals, 3)
                     clone.tangents = rotate(matrix, clone.tangents, 4)
+                    clone.materials = materials
                     clone.invalidateGeometry()
                     clone.buffer = null
                     clone.triBuffer = null

@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
 import me.anno.maths.Maths
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf

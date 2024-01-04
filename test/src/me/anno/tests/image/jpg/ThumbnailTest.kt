@@ -1,7 +1,7 @@
 package me.anno.tests.image.jpg
 
 import me.anno.image.jpg.JPGThumbnails.extractThumbnail
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 

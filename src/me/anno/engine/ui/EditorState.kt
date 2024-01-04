@@ -13,7 +13,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
-import me.anno.ui.custom.Type
+import me.anno.ui.custom.CustomPanelType
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 
@@ -44,13 +44,13 @@ object EditorState {
     val typeList = arrayListOf(
         // todo not all stuff here makes sense
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
-        Type(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(PlayMode.EDITING, DefaultConfig.style) },
-        Type(Dict["Tree View", "ui.customize.treeView"]) { ECSTreeView(DefaultConfig.style) },
-        Type(Dict["Properties", "ui.customize.inspector"]) { PropertyInspector({ selection }, DefaultConfig.style) },
+        CustomPanelType(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(PlayMode.EDITING, DefaultConfig.style) },
+        CustomPanelType(Dict["Tree View", "ui.customize.treeView"]) { ECSTreeView(DefaultConfig.style) },
+        CustomPanelType(Dict["Properties", "ui.customize.inspector"]) { PropertyInspector({ selection }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
-        Type(Dict["Files", "ui.customize.fileExplorer"]) { ECSFileExplorer(projectFile, DefaultConfig.style) }
+        CustomPanelType(Dict["Files", "ui.customize.fileExplorer"]) { ECSFileExplorer(projectFile, DefaultConfig.style) }
     )
 
     val uiLibrary = UITypeLibrary(typeList)

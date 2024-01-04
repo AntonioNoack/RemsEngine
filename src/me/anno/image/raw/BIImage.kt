@@ -2,11 +2,13 @@ package me.anno.image.raw
 
 import me.anno.image.Image
 import me.anno.io.files.FileReference
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_BYTE_GRAY
 import java.io.OutputStream
 import javax.imageio.ImageIO
+
+private val LOGGER = LogManager.getLogger("BufferedImage")
 
 fun BufferedImage.toImage(): Image {
     // if image is grayscale, produce grayscale image

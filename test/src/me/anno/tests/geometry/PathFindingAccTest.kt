@@ -21,7 +21,7 @@ import me.anno.maths.paths.PathFindingAccelerator
 import me.anno.mesh.Shapes
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.abs

@@ -5,7 +5,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 
 fun main() {
 

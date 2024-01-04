@@ -1,7 +1,7 @@
 package me.anno.tests.rtrt.other
 
 import me.anno.config.DefaultConfig.style
-import me.anno.graph.ui.GraphPanel.Companion.greenish
+import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.maths.Maths.pow
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.utils.Function1d
@@ -47,7 +47,7 @@ fun main() {
     testUI3("FresnelConductor") {
         FunctionPanel(listOf(
             Function1d { fresnelConductorApprox(it.toFloat()).toDouble() } to white,
-            Function1d { fresnelConductorExact(it.toFloat(), 1.5f, 0f).toDouble() } to greenish
+            Function1d { fresnelConductorExact(it.toFloat(), 1.5f, 0f).toDouble() } to mediumAquamarine
         ), style)
     }
 }

@@ -14,7 +14,7 @@ import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Clock
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.tuples.get

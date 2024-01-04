@@ -20,14 +20,15 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.random
 import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.showFPS
-import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.scrolling.ScrollPanelX
+import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorerEntry
-import me.anno.utils.types.Vectors.normalToQuaternion2
+import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -36,9 +37,11 @@ import kotlin.math.PI
 //  - placing objects
 //  - rotating objects
 //  - object library to choose from
-// todo:
 //  - deleting objects
+// todo:
 //  - align objects by normal
+//  - save world
+//  - load world
 
 fun createTestTerrain(): MeshComponent {
     val terrainMesh = Mesh()
@@ -57,7 +60,7 @@ fun main() {
 
         StudioBase.instance?.enableVSync = true
 
-        val list = PanelListY(style)
+        val list = CustomList(true, style)
 
         val world = Entity()
         val player = LocalPlayer()
@@ -77,8 +80,10 @@ fun main() {
             mainFolder.getChild("Props"),
         ).map { it.listChildren()!! }.flatten()
 
-        val buildMenu = PanelListX(style)
+        val buildMenu = PanelList2D(false, null, style)
+        buildMenu.scaleChildren = true
         val bmWrapper = ScrollPanelX(buildMenu, style)
+        bmWrapper.alwaysScroll = true
 
         val sceneView = SceneView(PlayMode.PLAYING, style)
         val renderView = sceneView.renderer
@@ -116,6 +121,7 @@ fun main() {
             val nor = Vector3f()
             var dynamicAngle = true
             override fun onUpdate(): Int {
+                super.onUpdate()
 
                 // create sample instance
                 val newFile = selected
@@ -132,6 +138,9 @@ fun main() {
                             -bounds.minY.toDouble(),
                             -bounds.centerZ.toDouble()
                         )
+                        // todo <optionally>, after something has been placed, rotate around y randomly
+                        //  -> we need settings
+                        placingRotation = TAU * random()
                         val proxy = Entity() // to center the mesh
                         proxy.add(entity)
                         world.add(proxy)
@@ -152,7 +161,7 @@ fun main() {
                         // if ray hits something, place pseudo object there
                         sample.position = result.positionWS
                         // rotation based on normal :3
-                        if (dynamicAngle) nor.set(result.geometryNormalWS).normalToQuaternion2(rot)
+                        if (dynamicAngle) nor.set(result.geometryNormalWS).normalToQuaternionY2(rot)
                         else rot.identity()
                         sample.rotation = sample.rotation.set(rot).rotateY(placingRotation)
                         sample.setScale(placingScale)
@@ -168,7 +177,6 @@ fun main() {
                     }
                 }
 
-                super.onUpdate()
                 return 1
             }
 
@@ -201,7 +209,7 @@ fun main() {
             }
         }
         controls.camera = camera
-        controls.movementSpeed = 3f
+        controls.movementSpeed = 100f
         controls.needsClickToRotate = true
         controls.rotateRight = true
         controls.position.add(0f, 10f, 0f)
@@ -215,8 +223,8 @@ fun main() {
         EditorState.prefabSource = world.ref
         sceneView.weight = 1f
 
-        list.add(sceneView)
-        list.add(bmWrapper)
+        list.add(sceneView, 5f)
+        list.add(bmWrapper, 1f)
 
         list
     }

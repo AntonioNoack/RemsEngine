@@ -2,6 +2,8 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.GameEngineProject
+import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
@@ -13,6 +15,7 @@ object Projects {
 
     private var recentProjectCount = 10
     fun getRecentProjects(): ArrayList<ProjectHeader> {
+        registerCustomClass(GameEngineProject::class)
         val projects = ArrayList<ProjectHeader>()
         val usedFiles = HashSet<FileReference>()
         for (i in 0 until recentProjectCount) {

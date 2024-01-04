@@ -12,7 +12,7 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.vecmath.Quat4f
@@ -122,7 +122,7 @@ class HexagonSpherePhysics(
 
     fun defineLocalTransform(pos: Vector3f, transform: Transform) {
         // define a local transform for the shape :)
-        pos.normalToQuaternion(tmpQ1)
+        pos.normalToQuaternionY(tmpQ1)
         tmpQ2.set(-tmpQ1.x, -tmpQ1.y, -tmpQ1.z, tmpQ1.w)
         transform.basis.set(tmpQ2)
         transform.origin.set(pos.x * scale, pos.y * scale, pos.z * scale)

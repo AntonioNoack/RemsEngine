@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 
 @Suppress("unused")
 object Vectors {
-    
+
     // todo move some functions to KOML
 
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
@@ -90,7 +90,6 @@ object Vectors {
         dir0.mulAdd(mua * factor0, pos0, dst0)
         dir1.mulAdd(mub * factor1, pos1, dst1)
         return true
-
     }
 
     fun Vector3f.addScaled(other: Vector3f, scale: Float): Vector3f {
@@ -102,30 +101,30 @@ object Vectors {
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
-    fun Vector3f.normalToQuaternion(dst: Quaternionf): Quaternionf {
+    fun Vector3f.normalToQuaternionY(dst: Quaternionf): Quaternionf {
+        return normalToQuaternionY(x, y, z, dst)
+    }
+
+    fun normalToQuaternionY(x: Float, y: Float, z: Float, dst: Quaternionf): Quaternionf {
         // todo this works perfectly, but the y-angle shouldn't change :/
         // uses ~ 28 ns/e on R5 2600
-        val x = x
-        val y = y
-        val z = z
         if (x * x + z * z > 0.001f) {
             val v3 = JomlPools.vec3f
             val v0 = v3.create()
             val v2 = v3.create()
             v0.set(z, 0f, -x).normalize()
-            v0.cross(this, v2)
+            v0.cross(x, y, z, v2)
             val v00 = v0.x
-            val v11 = y
             val v22 = v2.z
-            val diag = v00 + v11 + v22
+            val diag = v00 + y + v22
             if (diag >= 0f) {
                 dst.set(z - v2.y, v2.x - v0.z, v0.y - x, diag + 1f)
-            } else if (v00 >= v11 && v00 >= v22) {
-                dst.set(v00 - (v11 + v22) + 1f, x + v0.y, v0.z + v2.x, z - v2.y)
-            } else if (v11 > v22) {
-                dst.set(x + v0.y, v11 - (v22 + v00) + 1f, v2.y + z, v2.x - v0.z)
+            } else if (v00 >= y && v00 >= v22) {
+                dst.set(v00 - (y + v22) + 1f, x + v0.y, v0.z + v2.x, z - v2.y)
+            } else if (y > v22) {
+                dst.set(x + v0.y, y - (v22 + v00) + 1f, v2.y + z, v2.x - v0.z)
             } else {
-                dst.set(v0.z + v2.x, v2.y + z, v22 - (v00 + v11) + 1f, v0.y - x)
+                dst.set(v0.z + v2.x, v2.y + z, v22 - (v00 + y) + 1f, v0.y - x)
             }
             v3.sub(2)
             return dst.normalize()
@@ -140,11 +139,11 @@ object Vectors {
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
-    fun Vector3f.normalToQuaternion2(dst: Quaternionf): Quaternionf {
-        normalToQuaternion(dst)
+    fun Vector3f.normalToQuaternionY2(dst: Quaternionf): Quaternionf {
+        normalToQuaternionY(dst)
         // todo better formula?
         val test = JomlPools.vec3f.borrow()
-        for(i in 0 until 4){
+        for (i in 0 until 4) {
             dst.transform(test.set(1f, 0f, 0f))
             rotateY(atan2(test.z, test.x))
         }
@@ -194,5 +193,4 @@ object Vectors {
             HSLuvColorSpace.fromLinear(z)
         )
     }
-
 }

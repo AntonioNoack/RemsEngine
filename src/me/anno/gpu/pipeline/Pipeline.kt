@@ -41,6 +41,7 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
@@ -556,9 +557,17 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             materials: List<FileReference>,
             index: Int
         ): Material {
+            val ref = getMaterialRef(materialOverrides, materials, index)
+            return MaterialCache[ref, defaultMaterial]
+        }
+
+        fun getMaterialRef(
+            materialOverrides: List<FileReference>?,
+            materials: List<FileReference>,
+            index: Int
+        ): FileReference {
             val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
-            val m1 = m0 ?: materials.getOrNull(index) ?: return defaultMaterial
-            return MaterialCache[m1, defaultMaterial]
+            return m0 ?: materials.getOrNull(index)?.nullIfUndefined() ?: InvalidRef
         }
     }
 }

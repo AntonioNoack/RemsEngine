@@ -54,6 +54,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.UIColors.darkOrange
+import me.anno.ui.UIColors.paleGoldenRod
+import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Clock
@@ -213,8 +216,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         currentInstance = this
 
-        clock.start()
-
         // to see ghosting, if there is any
         val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
@@ -247,13 +248,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val aspectRatio = findAspectRatio()
 
-        clock.stop("initialization", 0.05)
-
+        val t1 = Time.nanoTime
         prepareDrawScene(width, height, aspectRatio, camera0, camera1, blending, true)
+        val t2 = Time.nanoTime
+        FrameTimings.add(t2 - t1, darkOrange)
+
         setRenderState()
         updatePipelineStage0(renderMode)
-
-        clock.stop("preparing", 0.05)
 
         val renderGraph = renderMode.renderGraph
         if (renderGraph != null) {
@@ -266,6 +267,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             updateSkybox(renderer)
             drawScene(x0, y0, x1, y1, renderer, buffer)
         }
+
+        val t3 = Time.nanoTime
+        FrameTimings.add(t3 - t1, cornFlowerBlue)
 
         if (world == null) {
             drawTextCenter("Scene Not Found!")
@@ -285,7 +289,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         updatePrevState()
-        // clock.total("drawing the scene", 0.1)
+
+        val t4 = Time.nanoTime
+        FrameTimings.add(t4 - t1, paleGoldenRod)
+
     }
 
     fun updatePipelineStage0(renderMode: RenderMode) {

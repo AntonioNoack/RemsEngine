@@ -8,11 +8,11 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.graph.ui.GraphPanel
 import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
+import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.toRadians
@@ -55,7 +55,7 @@ fun main() {
     }
 
     val mesh = Shapes.flatCube.front.clone() as Mesh
-    mesh.material = Material.diffuse(GraphPanel.greenish or Color.black).ref
+    mesh.material = Material.diffuse(mediumAquamarine or Color.black).ref
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 10, true, dst)
     val vbt = object : VideoBackgroundTask(vc, samples) {
         override fun getMotionBlurSteps(time: Double): Int = 5

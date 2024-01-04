@@ -1,8 +1,11 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.GameEngineProject
 import me.anno.gpu.GFX
 import me.anno.input.Key
+import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
@@ -32,7 +35,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.files.FileExplorerOptions.openInExplorerDesc
-import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -158,6 +161,7 @@ interface WelcomeUI {
         )
         recentProjects.show2()
 
+        registerCustomClass(GameEngineProject::class)
         for (project in recent) {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
@@ -222,11 +226,11 @@ interface WelcomeUI {
         return recentProjects
     }
 
-    abstract fun loadProject(name: String, folder: FileReference): Pair<String, FileReference>
+    fun loadProject(name: String, folder: FileReference): Pair<String, FileReference>
 
-    abstract fun createProjectUI()
+    fun createProjectUI()
 
-    open fun openProject(studio: StudioBase, name: String, folder: FileReference) {
+    fun openProject(studio: StudioBase, name: String, folder: FileReference) {
         if (OS.isWeb) { // threading not yet supported in web
             openProject2(name, folder)
         } else {

@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.Streams.readText
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 

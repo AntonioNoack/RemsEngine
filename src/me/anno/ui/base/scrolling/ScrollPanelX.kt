@@ -9,7 +9,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.parser.modAny
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -45,6 +44,8 @@ open class ScrollPanelX(
 
     override var scrollPositionX = 0.0
     override var targetScrollPositionX = 0.0
+
+    var alwaysScroll = false
 
     val scrollbar = ScrollbarX(this, style)
     val scrollbarHeight = style.getSize("scrollbarHeight", 8)
@@ -154,15 +155,11 @@ open class ScrollPanelX(
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        val delta = dx * scrollSpeed
-        if ((delta > 0f && scrollPositionX >= maxScrollPositionX) ||
-            (delta < 0f && scrollPositionX <= 0f)
-        ) {// if done scrolling go up the hierarchy one
-            super.onMouseWheel(x, y, dx, dy, byMouse)
-        } else {
-            scrollX(delta.toDouble())
-            super.onMouseWheel(x, y, 0f, dy, byMouse)
-        }
+        val dxi = scrollX((dx * scrollSpeed).toDouble()).toFloat() / scrollSpeed
+        val dyi = if (alwaysScroll) {
+            -scrollX((-dy * scrollSpeed).toDouble()).toFloat() / scrollSpeed
+        } else dy
+        super.onMouseWheel(x, y, dxi, dyi, byMouse)
     }
 
     fun clampScrollPosition() {

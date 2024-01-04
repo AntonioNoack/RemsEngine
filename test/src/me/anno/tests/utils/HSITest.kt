@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.ui.editor.color.spaces.LinearHSI
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import org.joml.Vector3f
 import java.util.*
 

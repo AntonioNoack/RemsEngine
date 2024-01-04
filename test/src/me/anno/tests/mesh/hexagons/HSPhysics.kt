@@ -17,7 +17,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFX
-import me.anno.graph.ui.GraphPanel.Companion.yellow
+import me.anno.ui.UIColors.gold
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -256,7 +256,7 @@ fun main() {
     val physics = HexagonSpherePhysics(sphere, shape, triQ)
 
     physics.debugMeshInactiveColor = 0x777777 or black
-    physics.debugMeshActiveColor = yellow or black
+    physics.debugMeshActiveColor = gold or black
 
     // add visuals
     val chunks = HashMap<HexagonSphere.Chunk, Mesh>()

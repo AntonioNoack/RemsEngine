@@ -3,6 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
@@ -10,7 +11,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
 import me.anno.studio.StudioBase
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -25,6 +26,19 @@ val mr2 = maxRadius1 * maxRadius1
 val mr3 = maxRadius2 * maxRadius2
 
 val noiseFlowField = PerlinNoise(1234L, 5, 0.5f, -1f, +1f, Vector4f(0.01f))
+
+val birdMesh = run {
+    val birdMesh = Mesh()
+    val newPos = flatCube.front.positions!!.copyOf()
+    for (i in newPos.indices step 3) {
+        val scale = if (newPos[i + 1] > 0f) 0f else 0.5f
+        newPos[i + 0] *= scale
+        newPos[i + 2] *= scale
+    }
+    birdMesh.positions = newPos
+    birdMesh.indices = flatCube.front.indices
+    birdMesh
+}
 
 // https://en.wikipedia.org/wiki/Boids
 // boid = bird-like object
@@ -96,7 +110,7 @@ class Boid(
         val entity = entity!!
         val transform = entity.transform
         transform.localPosition = transform.localPosition.set(posA)
-        transform.localRotation = transform.localRotation.set(dirA.normalToQuaternion(tmpQ))
+        transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
         entity.invalidateAABBsCompletely()
         return 1
     }
@@ -113,7 +127,7 @@ fun main() {
     val s = 1000f
     for (i in 0 until n) {
         val boid = Entity()
-        val mesh = MeshComponent(flatCube.front)
+        val mesh = MeshComponent(birdMesh)
         mesh.isInstanced = true
         boid.add(mesh)
         boid.add(Boid(i, n, positions, directions))

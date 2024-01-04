@@ -1,6 +1,7 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Key
@@ -292,7 +293,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     companion object {
 
-        val scrollSpeed get() = DefaultConfig["ui.scroll.speed", 30f]
+        val scrollSpeed by ConfigRef("ui.scroll.speed", 30f)
 
         @Suppress("unused_parameter")
         fun drawsOverX(

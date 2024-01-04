@@ -384,7 +384,9 @@ object GFXBase {
                             GLFW.glfwSwapBuffers(window.pointer)
                             // works in reducing input latency by 1 frame 😊
                             // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
-                            if (OS.isWindows) glFinish()
+                            if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
+                                glFinish()
+                            }
                             window.updateVsync()
                         }
                     }

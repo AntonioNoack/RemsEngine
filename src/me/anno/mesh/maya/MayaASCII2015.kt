@@ -9,7 +9,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -17,6 +16,7 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
 import me.anno.utils.types.Strings.toFloat
 import me.anno.utils.types.Strings.toInt
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.test.assertEquals
 
@@ -25,6 +25,8 @@ import kotlin.test.assertEquals
  * I just reversed engineered and used what I could find.
  * */
 object MayaASCII2015 {
+
+    private val LOGGER = LogManager.getLogger(MayaASCII2015::class)
 
     private fun split(data: String, list: ArrayList<CharSequence>) {
         var i = 0

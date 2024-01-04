@@ -18,7 +18,7 @@ import me.anno.graph.types.states.StateMachine
 import me.anno.graph.types.states.StateNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
-import me.anno.graph.ui.GraphPanel.Companion.yellow
+import me.anno.ui.UIColors.gold
 import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -68,7 +68,7 @@ object VisualNovel {
         }
 
         override fun onEnterState(oldState: StateNode?) {
-            color = yellow
+            color = gold
             setText(getInput(1).toString(), 0, this)
         }
 
@@ -97,7 +97,7 @@ object VisualNovel {
         }
 
         override fun onEnterState(oldState: StateNode?) {
-            color = yellow
+            color = gold
             val options = (2 until inputs!!.size).map { (getInput(it) ?: "").toString() }.filter { it.isNotBlank() }
             val shownText = (getInput(1) ?: "").toString() + "\n" +
                     options.withIndex().joinToString("") { (idx, it) -> "  [${idx + 1}] $it\n" }

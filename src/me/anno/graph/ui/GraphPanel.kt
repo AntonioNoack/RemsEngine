@@ -23,6 +23,16 @@ import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.UIColors.dodgerBlue
+import me.anno.ui.UIColors.blueishGray
+import me.anno.ui.UIColors.mediumAquamarine
+import me.anno.ui.UIColors.cornFlowerBlue
+import me.anno.ui.UIColors.darkOrange
+import me.anno.ui.UIColors.deepPink
+import me.anno.ui.UIColors.fireBrick
+import me.anno.ui.UIColors.paleGoldenRod
+import me.anno.ui.UIColors.gold
+import me.anno.ui.UIColors.greenYellow
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.input.*
@@ -599,7 +609,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun getTypeColor(con: NodeConnector): Int {
-        return typeColors.getOrDefault(con.type, blue)
+        return typeColors.getOrDefault(con.type, dodgerBlue)
     }
 
     fun onChange(isNodePositionChange: Boolean) {
@@ -625,39 +635,28 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
         private val LOGGER = LogManager.getLogger(GraphPanel::class)
 
-        val greenish = 0x1cdeaa or black
-        val yellowGreenish = 0x9cf841 or black
-        val red = 0xa90505 or black
-        val yellow = 0xf8c522 or black
-        val blueish = 0x707fb0 or black
-        val orange = 0xfc7100 or black
-        val pink = 0xdf199a or black
-        val softYellow = 0xebe496 or black
-        val lightBlueish = 0x819ef3 or black
-        val blue = 0x00a7f2 or black
-
         val typeColors = hashMapOf(
-            "Int" to greenish,
-            "Long" to greenish,
-            "Float" to yellowGreenish,
-            "Double" to yellowGreenish,
+            "Int" to mediumAquamarine,
+            "Long" to mediumAquamarine,
+            "Float" to greenYellow,
+            "Double" to greenYellow,
             "Flow" to white,
-            "Bool" to red,
-            "Boolean" to red,
-            "Vector2f" to yellow,
-            "Vector3f" to yellow,
-            "Vector4f" to yellow,
-            "Vector2d" to yellow,
-            "Vector3d" to yellow,
-            "Vector4d" to yellow,
-            "Quaternion4f" to blueish,
-            "Quaternion4d" to blueish,
-            "Transform" to orange,
-            "Matrix4x3f" to orange,
-            "Matrix4x3d" to orange,
-            "String" to pink,
-            "Texture" to softYellow,
-            "?" to lightBlueish,
+            "Bool" to fireBrick,
+            "Boolean" to fireBrick,
+            "Vector2f" to gold,
+            "Vector3f" to gold,
+            "Vector4f" to gold,
+            "Vector2d" to gold,
+            "Vector3d" to gold,
+            "Vector4d" to gold,
+            "Quaternion4f" to blueishGray,
+            "Quaternion4d" to blueishGray,
+            "Transform" to darkOrange,
+            "Matrix4x3f" to darkOrange,
+            "Matrix4x3d" to darkOrange,
+            "String" to deepPink,
+            "Texture" to paleGoldenRod,
+            "?" to cornFlowerBlue,
         )
     }
 }

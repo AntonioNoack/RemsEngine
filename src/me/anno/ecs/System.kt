@@ -8,6 +8,19 @@ import me.anno.ecs.prefab.PrefabSaveable
 //  - gets notified about new/deleted/changed Components,
 //  - keeps a list/set/whatever of them around for fast iteration
 //  - gets called once per frame onUpdate
-class System : PrefabSaveable() {
+/**
+ * systems are currently in planning/experimenting stage
+ * */
+abstract class System : PrefabSaveable() {
 
+    open fun onEnable(entity: Entity) {}
+    open fun onEnable(component: Component) {}
+
+    open fun onDisable(entity: Entity) {}
+    open fun onDisable(component: Component) {}
+
+    open fun onUpdate() {}
+
+    abstract fun onEnable(childSystem: System)
+    abstract fun onDisable(childSystem: System)
 }

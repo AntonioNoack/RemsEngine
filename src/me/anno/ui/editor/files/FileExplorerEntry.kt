@@ -17,6 +17,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -67,6 +68,7 @@ import me.anno.ui.editor.files.FileExplorerIcons.musicPath
 import me.anno.ui.editor.files.FileExplorerIcons.textPath
 import me.anno.ui.editor.files.FileExplorerIcons.videoPath
 import me.anno.ui.editor.files.FileExplorerIcons.zipPath
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
@@ -86,6 +88,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import java.awt.Font
 import kotlin.concurrent.thread
 import kotlin.math.*
 
@@ -176,7 +179,6 @@ open class FileExplorerEntry(
         titlePanel.breaksIntoMultiline = true
         titlePanel.parent = this
         titlePanel.instantTextLoading = false
-        // todo monospace looks trash -> incorrect font or spacing?
     }
 
     override fun calculateSize(w: Int, h: Int) {

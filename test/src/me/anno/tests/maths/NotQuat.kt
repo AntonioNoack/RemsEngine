@@ -1,6 +1,6 @@
 package me.anno.tests.maths
 
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -13,7 +13,7 @@ fun main() {
     val normal = Vector3f()
     for (i in 0 until 100) {
         normal.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).normalize()
-            .normalToQuaternion(quat)
+            .normalToQuaternionY(quat)
             .transform(test.set(1f, 0f, 0f))
         for (j in 0 until 10) {
             val angle = atan2(test.z, test.x)

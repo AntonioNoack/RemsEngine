@@ -9,7 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.graph.ui.GraphPanel.Companion.greenish
+import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths.PIf
@@ -59,7 +59,7 @@ fun main() {
     }
 
     val mesh = flatCube.front.clone() as Mesh
-    mesh.material = Material.diffuse(greenish or black).ref
+    mesh.material = Material.diffuse(mediumAquamarine or black).ref
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 10, true, dst)
     val vbt = object : VideoBackgroundTask(vc, samples) {
         override fun getMotionBlurSteps(time: Double): Int = 5

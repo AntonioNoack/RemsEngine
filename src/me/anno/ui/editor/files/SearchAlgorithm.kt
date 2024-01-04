@@ -159,17 +159,17 @@ object SearchAlgorithm {
                 val searchDepth = self.searchDepth
 
                 val resultSet = ResultSet(self, calcIndex, newFiles, newSearch)
-                if (newSearch.isNotEmpty()) {
+                if (newSearch.matchesEverything()) {
+                    for (file in directChildren) {
+                        resultSet.add(file)
+                    }
+                } else {
                     for (file in directChildren) {
                         if (newSearch.matches(file.name)) {
                             resultSet.add(file)
                         }
                     }
                     indexRecursively(directChildren, searchDepth, newSearch, resultSet)
-                } else {
-                    for (file in directChildren) {
-                        resultSet.add(file)
-                    }
                 }
 
                 resultSet.finish()

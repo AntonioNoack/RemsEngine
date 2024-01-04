@@ -10,7 +10,7 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
-import me.anno.graph.ui.GraphPanel.Companion.lightBlueish
+import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
@@ -200,7 +200,7 @@ fun main() {
                     if (font.sizeInt in 5..(height / 3)) {
                         drawText(
                             x.toInt(), y.toInt(), font, pck.name,
-                            if (pck == hoveredPck) lightBlueish or black else textColor, backgroundColor.withAlpha(0),
+                            if (pck == hoveredPck) cornFlowerBlue or black else textColor, backgroundColor.withAlpha(0),
                             -1, -1, AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
                     }

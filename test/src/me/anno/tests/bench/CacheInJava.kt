@@ -1,7 +1,7 @@
 package me.anno.tests.bench
 
 import me.anno.Time
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger

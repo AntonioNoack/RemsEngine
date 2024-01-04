@@ -25,7 +25,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.ecs.components.anim.Bone
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.tests.ui.UITests
-import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
 import org.junit.jupiter.api.Test
 

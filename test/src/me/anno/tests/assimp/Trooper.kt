@@ -2,7 +2,7 @@ package me.anno.tests.assimp
 
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS
 
 fun main() {

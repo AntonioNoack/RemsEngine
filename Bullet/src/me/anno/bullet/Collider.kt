@@ -9,11 +9,13 @@ import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.CustomBulletCollider
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+
+private val LOGGER = LogManager.getLogger("Collider")
 
 fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 

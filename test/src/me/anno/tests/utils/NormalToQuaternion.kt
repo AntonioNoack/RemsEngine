@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.maths.Maths.length
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -56,7 +56,7 @@ fun main() {
             if (j + 3 > random.size) j = 0
             dir1.set(random[j++], random[j++], random[j++])
         }
-        dir1.normalToQuaternion(rot)
+        dir1.normalToQuaternionY(rot)
         if (testCorrectness) {
             dir2.set(0f, 1f, 0f).rotate(rot)
             if (dir2.dot(dir1) < 0.99f) {

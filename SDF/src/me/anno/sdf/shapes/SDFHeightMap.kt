@@ -11,8 +11,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.ui.GraphPanel.Companion.greenish
-import me.anno.graph.ui.GraphPanel.Companion.red
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -23,7 +21,8 @@ import me.anno.sdf.SDFCombiningFunctions.sdMax
 import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
-import me.anno.utils.Color.black
+import me.anno.ui.UIColors.mediumAquamarine
+import me.anno.ui.UIColors.fireBrick
 import org.joml.AABBf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -198,10 +197,10 @@ class SDFHeightMap : SDFShape() {
             if (h0 * hi < 0f) {
                 val fract = step * h0 / (h0 - hi)
                 pos.sub(fract * dir.x, fract * dir.y, fract * dir.z)
-                next(pos, greenish or black)
+                next(pos, mediumAquamarine)
                 break
             }
-            next(pos, if (hi > 0f) -1 else red or black)
+            next(pos, if (hi > 0f) -1 else fireBrick)
             h0 = hi
         }
 

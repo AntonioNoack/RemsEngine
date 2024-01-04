@@ -3,7 +3,7 @@ package me.anno.tests.assimp
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
 
 fun main() {

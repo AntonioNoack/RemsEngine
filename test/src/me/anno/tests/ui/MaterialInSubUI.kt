@@ -7,8 +7,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.GameEngineProject
 import me.anno.engine.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
-import me.anno.graph.ui.GraphPanel.Companion.greenish
-import me.anno.graph.ui.GraphPanel.Companion.red
+import me.anno.ui.UIColors.mediumAquamarine
+import me.anno.ui.UIColors.fireBrick
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
@@ -25,8 +25,8 @@ fun main() {
     project.init()
 
     // a few temporary files; cannot be GCed, because scope isn't left at runtime
-    val green = Material.diffuse(greenish).ref
-    val red = Material.diffuse(red).ref
+    val green = Material.diffuse(mediumAquamarine).ref
+    val darkRed = Material.diffuse(fireBrick).ref
     val tested = MeshComponent(flatCube.front, Material())
     EditorState.select(tested)
     testUI3("Easy Material Editing", PropertyInspector({ EditorState.selection }, style))

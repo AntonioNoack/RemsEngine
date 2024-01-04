@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread

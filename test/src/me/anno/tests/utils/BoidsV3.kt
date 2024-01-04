@@ -4,7 +4,6 @@ import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
@@ -13,12 +12,11 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.mesh.Shapes.flatCube
 import me.anno.studio.StudioBase
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -123,7 +121,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
             dirA.mulAdd(dt * speed, velocity, velocity)
             velocity.mulAdd(dt, posA, posA)
             velocity.mul(1f - dtTo01(0.1f * dt))
-            velocity.normalize(center).normalToQuaternion(rotations[i])
+            velocity.normalize(center).normalToQuaternionY(rotations[i])
         }
         accPool.sub(accPool.index)
 
@@ -132,7 +130,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
     }
 
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
-        val mesh = flatCube.front
+        val mesh = birdMesh
         for (i in 0 until n) {
             val transform = getTransform(i)
             transform.localPosition = transform.localPosition.set(positions[i])
@@ -142,7 +140,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
     }
 
     override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray): Boolean {
-        val list = run(flatCube.front, null)
+        val list = run(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {
             val pos = positions[i]

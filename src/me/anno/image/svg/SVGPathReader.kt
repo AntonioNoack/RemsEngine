@@ -1,6 +1,8 @@
 package me.anno.image.svg
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
+
+private val LOGGER = LogManager.getLogger("SVGPathReader")
 
 fun interface Action1 {
     fun run(symbol: Char, v: Float)
@@ -125,5 +127,4 @@ fun readSVGPath(
             }
         }
     }
-
 }

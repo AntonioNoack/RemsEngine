@@ -21,7 +21,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager

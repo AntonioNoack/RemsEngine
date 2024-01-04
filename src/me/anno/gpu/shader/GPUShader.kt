@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
-import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
@@ -19,7 +19,6 @@ import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.GL_SHADER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.FloatBuffer
-import java.nio.IntBuffer
 
 /**
  * base class for shaders, e.g. for ComputeShader or Shader

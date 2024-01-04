@@ -18,7 +18,7 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.ui.debug.TestStudio
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize

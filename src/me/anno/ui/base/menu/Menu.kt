@@ -329,7 +329,7 @@ object Menu {
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children
-                if (search.isEmpty()) {
+                if (search.matchesEverything()) {
                     // make everything visible
                     for (i in startIndex until children.size) {
                         children[i].isVisible = true

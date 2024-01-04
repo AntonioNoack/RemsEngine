@@ -28,7 +28,7 @@ import me.anno.maths.bvh.RayTracing2.glslBLASIntersection2
 import me.anno.maths.bvh.RayTracing2.glslTLASIntersection2
 import me.anno.maths.bvh.TLASNode
 import me.anno.sdf.shapes.SDFBoundingBox
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.structures.tuples.Quad
 import org.joml.Vector2i
 

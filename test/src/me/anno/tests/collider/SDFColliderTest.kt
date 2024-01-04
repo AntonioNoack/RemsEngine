@@ -10,7 +10,7 @@ import me.anno.image.ImageWriter
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
 import me.anno.utils.Color.rgba
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f

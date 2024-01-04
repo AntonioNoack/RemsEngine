@@ -4,7 +4,6 @@ import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.Lists.any2
 import kotlin.math.max
 
-@Suppress("unused")
 class Search(val terms: String) {
 
     override fun equals(other: Any?): Boolean {
@@ -138,9 +137,7 @@ class Search(val terms: String) {
         }
     }
 
-    fun isNotEmpty() = expression.isNotEmpty()
-    fun isEmpty() = expression.isEmpty()
-    fun matchesAll() = isEmpty()
+    fun matchesEverything(): Boolean = expression.isEmpty()
 
     private fun CharSequence.containsPieces(part: CharSequence, ignoreCase: Boolean): Boolean {
         @Suppress("SpellCheckingInspection")

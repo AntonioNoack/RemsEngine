@@ -251,7 +251,7 @@ object ColorParsing {
         map["darkblue"] = 0x00008b
         map["darkcyan"] = 0x008b8b
         map["darkgoldenrod"] = 0xb8860b
-        map["darkgray"] = 0xa9a9a9
+        map["darkgray"] = 0x404040
         map["darkgreen"] = 0x006400
         map["darkgrey"] = 0xa9a9a9
         map["darkkhaki"] = 0xbdb76b

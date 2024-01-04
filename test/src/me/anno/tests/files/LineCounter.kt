@@ -2,7 +2,7 @@ package me.anno.tests.files
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 import me.anno.utils.structures.Iterators.count
 import me.anno.utils.types.Strings.isBlank2
 

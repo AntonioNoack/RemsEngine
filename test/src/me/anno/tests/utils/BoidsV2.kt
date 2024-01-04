@@ -7,9 +7,8 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.mesh.Shapes.flatCube
 import me.anno.studio.StudioBase
-import me.anno.utils.types.Vectors.normalToQuaternion
+import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -87,7 +86,7 @@ class BoidV2(
         val entity = entity!!
         val transform = entity.transform
         transform.localPosition = transform.localPosition.set(posA)
-        transform.localRotation = transform.localRotation.set(dirA.normalToQuaternion(tmpQ))
+        transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
         entity.invalidateAABBsCompletely()
         return 1
     }
@@ -118,9 +117,10 @@ fun main() {
             return 1
         }
     })
+
     for (i in 0 until n) {
         val boid = Entity()
-        val mesh = MeshComponent(flatCube.front)
+        val mesh = MeshComponent(birdMesh)
         mesh.isInstanced = true
         boid.add(mesh)
         val boid1 = BoidV2(i, n, accelerator)

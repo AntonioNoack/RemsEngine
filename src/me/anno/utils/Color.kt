@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 object Color {
 
     const val black = 0xff000000.toInt()
-    const val white = -1
+    const val white = 0xffffff or black
 
     @JvmField
     val black4 = Vector4f(0f)

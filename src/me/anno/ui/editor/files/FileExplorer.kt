@@ -48,6 +48,7 @@ import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgram
 import me.anno.ui.editor.files.FileExplorerOptions.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorerOptions.pinToFavourites
 import me.anno.ui.editor.files.FileExplorerOptions.rename
+import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.hex32

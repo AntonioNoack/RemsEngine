@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.LOGGER
+import me.anno.tests.LOGGER
 
 fun main() {
     @Suppress("SpellCheckingInspection")

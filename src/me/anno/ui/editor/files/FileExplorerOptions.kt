@@ -1,5 +1,6 @@
 package me.anno.ui.editor.files
 
+import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -13,7 +14,11 @@ import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.ImagePanel
-import me.anno.ui.base.menu.Menu.openMenuByPanels
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.groups.PanelStack
+import me.anno.ui.base.menu.Menu
+import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 
 object FileExplorerOptions {
@@ -144,7 +149,7 @@ object FileExplorerOptions {
     }
 
     fun openImageViewerImpl(windowStack: WindowStack, files: List<FileReference>, style: Style) {
-        val panel = object : ImagePanel(style) {
+        val imagePanel = object : ImagePanel(style) {
 
             var index = 0
             val file get() = files[index]
@@ -155,6 +160,16 @@ object FileExplorerOptions {
                 return tex
             }
 
+            val font = style.getFont("text")
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                super.onDraw(x0, y0, x1, y1)
+                drawText( // draw file name at bottom center
+                    x + width / 2, y + height, font, file.name,
+                    -1, backgroundColor, width, -1,
+                    AxisAlignment.CENTER, AxisAlignment.MAX
+                )
+            }
+
             fun step(di: Int) {
                 index = (index + di) % files.size
                 invalidateDrawing()
@@ -162,6 +177,11 @@ object FileExplorerOptions {
 
             fun prev() = step(files.size - 1)
             fun next() = step(1)
+            fun reset() {
+                zoom = 1f
+                offsetX = 0f
+                offsetY = 0f
+            }
 
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (button == Key.BUTTON_LEFT && !long) next()
@@ -172,12 +192,22 @@ object FileExplorerOptions {
                 when (key) {
                     Key.KEY_ARROW_LEFT, Key.KEY_ARROW_UP, Key.KEY_PAGE_UP -> prev()
                     Key.KEY_ARROW_RIGHT, Key.KEY_ARROW_DOWN, Key.KEY_PAGE_DOWN -> next()
+                    Key.KEY_0, Key.KEY_KP_0 -> reset()
                     else -> super.onKeyTyped(x, y, key)
                 }
             }
         }.enableControls()
-        panel.fill(1f)
-        // todo cancel button?
-        windowStack.push(Window(panel, false, windowStack))
+
+        val stack = PanelStack(style)
+        stack.add(imagePanel)
+        stack.add(TextButton("Close", style)
+            .addLeftClickListener(Menu::close)
+            .apply {
+                alignmentX = AxisAlignment.MIN
+                alignmentY = AxisAlignment.MAX
+            })
+
+        windowStack.push(Window(stack, false, windowStack))
+        imagePanel.requestFocus()
     }
 }

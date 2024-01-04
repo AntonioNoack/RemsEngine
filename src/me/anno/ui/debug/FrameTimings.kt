@@ -23,6 +23,7 @@ import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.float32ToFloat16
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -34,29 +35,23 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     class TimeContainer(val width: Int, val color: Int) : Comparable<TimeContainer> {
 
         var maxValue = 0f
+        var average = 0f
         val values = FloatArray(width)
         var nextIndex = 0
+        var fillLevel = 0
 
         fun putValue(value: Float) {
             values[nextIndex] = value
             nextIndex = (nextIndex + 1) % width
+            fillLevel = min(fillLevel + 1, width1)
             val max = values.max()
             maxValue = max(maxValue * Maths.clamp((1f - 3f * value), 0f, 1f), max)
+            average = values.sum() / fillLevel
         }
 
         override fun compareTo(other: TimeContainer): Int {
-            return maxValue.compareTo(other.maxValue)
+            return average.compareTo(other.average)
         }
-
-        fun FloatArray.max(): Float {
-            var max = this[0]
-            for (i in 1 until size) {
-                val v = this[i]
-                if (v > max) max = v
-            }
-            return max
-        }
-
     }
 
     val width1 = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
@@ -158,7 +153,6 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
                 drawLine(lastX, x1, lastBarHeight, barColor)
                 DrawRectangles.finishBatch(b)
-
             } else {
 
                 // it might be faster to draw this with batching 😄
@@ -187,7 +181,6 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 GFX.check()
 
                 background = background.withAlpha(0)
-
             }
         }
     }
@@ -224,7 +217,6 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             textColor, backgroundColor.withAlpha(180)
         )
         popBetterBlending(x)
-
     }
 
     fun getChar(digit: Int) = ((digit % 10) + '0'.code).toChar()
@@ -271,7 +263,6 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
         // can print it :)
         printNumber(chars, index, space, number)
-
     }
 
     fun printNumber(chars: CharArray, index: Int, space: Int, number: Int) {
@@ -286,5 +277,4 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             }
         }
     }
-
 }
