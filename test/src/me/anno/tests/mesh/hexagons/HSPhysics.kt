@@ -3,20 +3,26 @@ package me.anno.tests.mesh.hexagons
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.Time
 import me.anno.bullet.HexagonSpherePhysics
+import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.GFX
 import me.anno.graph.ui.GraphPanel.Companion.yellow
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.maths.Maths.dtTo01
+import me.anno.io.files.FileReference
+import me.anno.maths.Maths
+import me.anno.ui.debug.TestStudio
 import me.anno.utils.Color.black
 import me.anno.utils.OS.documents
 import me.anno.utils.files.Files.formatFileSize
@@ -126,6 +132,104 @@ class MCTriangleQuery(val world: HexagonSphereMCWorld) : HexagonTriangleQuery {
     }
 }
 
+class HSPhysicsControls(
+    val scene: Entity,
+    val sphere: HexagonSphere,
+    val chunks: Map<HexagonSphere.Chunk, Mesh>,
+    val it: SceneView,
+    val triQ: MCTriangleQuery,
+    val physics: HexagonSpherePhysics,
+    val file: FileReference,
+    val save: HexMCWorldSave,
+    val world: HexagonSphereMCWorld,
+    val len: Float,
+) : ControllerOnSphere(it.renderer, null) {
+
+    override fun onUpdate() {
+        // super.onUpdate()
+        // jumping
+        if (triQ.touchesFloor && Input.wasKeyPressed(' ')) {
+            physics.addForce(up.x.toFloat(), up.y.toFloat(), up.z.toFloat(), 3f * len)
+        }
+        // friction
+        val dtx = Time.deltaTime.toFloat() * (if (triQ.touchesFloor) 5f else 1f)
+        physics.velocity.mul(1f - Maths.dtTo01(dtx))
+        // reset floor touching state
+        triQ.touchesFloor = false
+        // execute physics
+        physics.update(Time.deltaTime.toFloat())
+        // update visuals & control transform
+        position.set(physics.currPosition)//.mul(1.0 + len * shape.halfHeight) // eye height
+        onChangePosition()
+        updateViewRotation()
+
+        if (Input.wasKeyPressed('s') && Input.isControlDown) {
+            println("Saving")
+            file.getParent()?.mkdirs()
+            save.write(world, file)
+            println("Saved, ${file.length().formatFileSize()}")
+        }
+    }
+
+    // todo show inventory
+    // todo serialization
+    var inventory = grass
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        // resolve click
+        val start = it.renderer.cameraPosition
+        val dir = it.renderer.getMouseRayDirection()
+        val query = RayQuery(start, dir, 10.0)
+        val hit = Raycast.raycastClosestHit(scene, query)
+        if (hit) {
+            val result = query.result
+            val setBlock = button == Key.BUTTON_RIGHT
+            val testBlock = button == Key.BUTTON_MIDDLE
+            if (setBlock) {
+                // move hit back slightly
+                dir.mulAdd(-sphere.len * 0.05, result.positionWS, result.positionWS)
+            } else {
+                // move hit more into the block
+                result.geometryNormalWS.mulAdd(-sphere.len * 0.25, result.positionWS, result.positionWS)
+            }
+            val hexagon = sphere.findClosestHexagon(Vector3f(result.positionWS))
+            val h = result.positionWS.length().toFloat()
+            val yj = world.yi(h).toInt()
+            if (yj !in 0 until world.sy) return
+            if (testBlock) {
+                inventory = triQ.getWorld(hexagon)[yj]
+            } else {
+                // set block
+                world.setBlock(hexagon, yj, if (setBlock) inventory else air)
+                // physics need to be updated as well
+                triQ.worldCache.remove(hexagon)
+                // invalidate chunk
+                val invalidChunks = HashSet<HexagonSphere.Chunk>()
+                invalidChunks.add(sphere.findChunk(hexagon))
+                // invalidate neighbor chunks
+                sphere.ensureNeighbors(hexagon)
+                for (neighbor in hexagon.neighbors) {
+                    invalidChunks.add(sphere.findChunk(neighbor!!))
+                }
+                for (key in invalidChunks) {
+                    val mesh = chunks[key]!!
+                    val (_, tri, si, sj) = key
+                    createMesh(sphere.queryChunk(tri, si, sj), world, mesh)
+                }
+            }
+        }
+    }
+
+    override fun moveCamera(dx: Double, dy: Double, dz: Double) {
+        val dy2 = dy * 5f
+        physics.addForce(
+            (dx * right.x + dy2 * up.x - dz * forward.x).toFloat(),
+            (dx * right.y + dy2 * up.y - dz * forward.y).toFloat(),
+            (dx * right.z + dy2 * up.z - dz * forward.z).toFloat(),
+            2f * Time.deltaTime.toFloat()
+        )
+    }
+}
+
 // test player physics on a hexagon sphere
 fun main() {
 
@@ -157,6 +261,9 @@ fun main() {
     // add visuals
     val chunks = HashMap<HexagonSphere.Chunk, Mesh>()
     val scene = Entity()
+    scene.add(Skybox().apply {
+        spherical = true
+    })
     for (tri in 0 until sphere.triangles.size) {
         val triEntity = Entity()
         scene.add(triEntity)
@@ -175,100 +282,24 @@ fun main() {
 
     physics.gravity /= sphere.n
 
-    testSceneWithUI("HexagonSphere Physics", scene) {
+    TestStudio.testUI3("HexagonSphere Physics") {
+        GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
+        val renderView = object : RenderView(PlayMode.PLAYING, DefaultConfig.style) {
+            override fun getWorld() = scene
+            override fun updateWorldScale() {
+                worldScale = 0.01
+                near = 1e-6
+            }
+        }
+        val sv = SceneView(renderView, DefaultConfig.style)
         // override controller
-        it.renderer.playMode = PlayMode.PLAYING // remove grid
-        it.renderer.enableOrbiting = false
-        it.renderer.radius = 0.1
+        sv.renderer.enableOrbiting = false
+        sv.renderer.near = 1e-7
         val hex0 = sphere.findClosestHexagon(Vector3f(0f, 1f, 0f))
         var yi = triQ.getWorld(hex0).indexOfFirst { block -> block == air }
         if (yi < 0) yi = world.sy
         physics.init(Vector3f(0f, world.h(yi + 1), 0f))
-        it.playControls = object : ControllerOnSphere(it.renderer, null) {
-
-            override fun onUpdate() {
-                // super.onUpdate()
-                // jumping
-                if (triQ.touchesFloor && Input.wasKeyPressed(' ')) {
-                    physics.addForce(up.x.toFloat(), up.y.toFloat(), up.z.toFloat(), 3f * len)
-                }
-                // friction
-                val dtx = Time.deltaTime.toFloat() * (if (triQ.touchesFloor) 5f else 1f)
-                physics.velocity.mul(1f - dtTo01(dtx))
-                // reset floor touching state
-                triQ.touchesFloor = false
-                // execute physics
-                physics.update(Time.deltaTime.toFloat())
-                // update visuals & control transform
-                position.set(physics.currPosition)//.mul(1.0 + len * shape.halfHeight) // eye height
-                onChangePosition()
-                updateViewRotation()
-
-                if (Input.wasKeyPressed('s') && Input.isControlDown) {
-                    println("Saving")
-                    file.getParent()?.mkdirs()
-                    save.write(world, file)
-                    println("Saved, ${file.length().formatFileSize()}")
-                }
-            }
-
-            // todo show inventory
-            // todo serialization
-            var inventory = grass
-            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-                // resolve click
-                val start = it.renderer.cameraPosition
-                val dir = it.renderer.getMouseRayDirection()
-                val query = RayQuery(start, dir, 10.0)
-                val hit = Raycast.raycastClosestHit(scene, query)
-                if (hit) {
-                    val result = query.result
-                    val setBlock = button == Key.BUTTON_RIGHT
-                    val testBlock = button == Key.BUTTON_MIDDLE
-                    if (setBlock) {
-                        // move hit back slightly
-                        dir.mulAdd(-sphere.len * 0.05, result.positionWS, result.positionWS)
-                    } else {
-                        // move hit more into the block
-                        result.geometryNormalWS.mulAdd(-sphere.len * 0.25, result.positionWS, result.positionWS)
-                    }
-                    val hexagon = sphere.findClosestHexagon(Vector3f(result.positionWS))
-                    val h = result.positionWS.length().toFloat()
-                    val yj = world.yi(h).toInt()
-                    if (yj !in 0 until world.sy) return
-                    if (testBlock) {
-                        inventory = triQ.getWorld(hexagon)[yj]
-                    } else {
-                        // set block
-                        world.setBlock(hexagon, yj, if (setBlock) inventory else air)
-                        // physics need to be updated as well
-                        triQ.worldCache.remove(hexagon)
-                        // invalidate chunk
-                        val invalidChunks = HashSet<HexagonSphere.Chunk>()
-                        invalidChunks.add(sphere.findChunk(hexagon))
-                        // invalidate neighbor chunks
-                        sphere.ensureNeighbors(hexagon)
-                        for (neighbor in hexagon.neighbors) {
-                            invalidChunks.add(sphere.findChunk(neighbor!!))
-                        }
-                        for (key in invalidChunks) {
-                            val mesh = chunks[key]!!
-                            val (_, tri, si, sj) = key
-                            createMesh(sphere.queryChunk(tri, si, sj), world, mesh)
-                        }
-                    }
-                }
-            }
-
-            override fun moveCamera(dx: Double, dy: Double, dz: Double) {
-                val dy2 = dy * 5f
-                physics.addForce(
-                    (dx * right.x + dy2 * up.x - dz * forward.x).toFloat(),
-                    (dx * right.y + dy2 * up.y - dz * forward.y).toFloat(),
-                    (dx * right.z + dy2 * up.z - dz * forward.z).toFloat(),
-                    200f * Time.deltaTime.toFloat()
-                )
-            }
-        }
+        sv.playControls = HSPhysicsControls(scene, sphere, chunks, sv, triQ, physics, file, save, world, len)
+        sv
     }
 }

@@ -661,9 +661,9 @@ open class PureTextInputML(style: Style) :
         return clamp(index, 0, lines.lastIndex)
     }
 
-    fun onMouseMoved(x: Float, indexY: Int) {
-
-        if (dragged != null) return
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if (!isHovered || y >= scrollbarStartY || dragged != null) return super.onMouseMoved(x, y, dx, dy)
+        val indexY = getLineIndex(y)
 
         invalidateDrawing()
 
@@ -673,12 +673,8 @@ open class PureTextInputML(style: Style) :
             val indexX = getIndexFromText(line, localX, styleSample)
             cursor2.set(indexX, indexY)
             ensureCursorBounds()
-        }
-    }
-
-    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (!isHovered || y >= scrollbarStartY) return super.onMouseMoved(x, y, dx, dy)
-        onMouseMoved(x, getLineIndex(y))
+            super.onMouseMoved(x, y, 0f, dy) // dx was consumed, kinda
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     fun getCursor(x: Float, indexY: Int, withOffset: Boolean): CursorPosition {

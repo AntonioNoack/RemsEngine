@@ -38,7 +38,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         }
     }
 
-    fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+    open fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         val x02 = max(child.x, x0)
         val y02 = max(child.y, y0)
         val x12 = min(child.x + child.width, x1)

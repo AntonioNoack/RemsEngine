@@ -1,10 +1,12 @@
 package me.anno.ui.base.groups
 
 import me.anno.Time
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.input.Input
-import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
@@ -22,7 +24,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         INSTANT(true, true),
         SWIPE_HORIZONTAL(true, false),
         SWIPE_VERTICAL(false, true),
-        ROTATE_HORIZONTAL(true, false), // todo requires perspective/skewed drawing of UI, needs to be implemented
+        ROTATE_HORIZONTAL(true, false),
         ROTATE_VERTICAL(false, true)
         // we could add a few more animations
         // todo implement them all
@@ -34,15 +36,18 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     var useRightMouseButton = true
     var useMouseWheel = false
 
-    // allows the user to turn farther than possible for a spring like effect, [0,1]
-    @Range(0.0, 1.0)
+    @Docs("allows the user to turn farther than possible for a spring like effect, [0,1]")
+    @Range(0.0, 0.499)
     var leftBounce = 0f
 
-    @Range(0.0, 1.0)
+    @Docs("allows the user to turn farther than possible for a spring like effect, [0,1]")
+    @Range(0.0, 0.499)
     var rightBounce = 0f
 
     var position = 0f
     var targetPosition = 0f
+
+    var swipeSpeed = 1f
 
     @Range(0.0, Double.POSITIVE_INFINITY)
     var smoothingPerSeconds = 3f
@@ -61,7 +66,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     fun updatePosition() {
         val oldPosition = position
         val dt = Time.deltaTime.toFloat()
-        position = mix(position, targetPosition, Maths.dtTo01(dt * smoothingPerSeconds))
+        position = constantLerpTo(position, targetPosition, dt * smoothingPerSeconds)
         if (abs(position - oldPosition) > 1e-4) {
             invalidateDrawing()
         }
@@ -71,15 +76,20 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             else if (useMouseWheel) (abs(Time.nanoTime - lastMouseWheel) * 1e-9f) else 1f
         if (correction > 0f) {
             val int = round(targetPosition)
-            targetPosition = mix(targetPosition, int, dt * smoothingPerSeconds)
+            targetPosition = constantLerpTo(targetPosition, int, dt * smoothingPerSeconds)
         }
     }
 
-    private fun swipe(dt: Float) {
-        if (dt == 0f) return
-        val oldPosition = targetPosition.roundToInt()
+    fun constantLerpTo(a: Float, b: Float, dt: Float): Float {
+        val diff = max(abs(b - a), 1e-9f)
+        return mix(a, b, min(dt / diff, 1f))
+    }
 
+    private fun swipe(deltaPos: Float) {
+        if (deltaPos == 0f) return
+        val oldPosition = targetPosition.roundToInt()
         invalidateDrawing()
+        targetPosition = clamp(targetPosition - deltaPos * swipeSpeed, -leftBounce, (children.size - 1) + rightBounce)
         val newPosition = targetPosition.roundToInt()
         if (oldPosition != newPosition) {
             invalidateLayout()
@@ -93,7 +103,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 val posIndex = position.roundToInt()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
-                        child.setPosSize(x, y, width, height)
+                        placeChild(child, x, y, width, height)
                     } else {
                         child.setPosSize(x, y, 0, 0)
                     }
@@ -101,17 +111,59 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             }
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (width * (position - index)).roundToInt()
-                    child.setPosSize(x + offset, y, width, height)
+                    val offset = (width * (index - position)).roundToInt()
+                    placeChild(child, x + offset, y, width, height)
+                    child.weight2 = index - position // unused field abused ^^
+                    // todo rotation factor, e.g. 0.5, for angle kindof
+                    // todo for rotated children, set their approximate position properly
                 }
             }
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (height * (position - index)).roundToInt()
-                    child.setPosSize(x, y + offset, width, height)
+                    val offset = (height * (index - position)).roundToInt()
+                    placeChild(child, x, y + offset, width, height)
+                    child.weight2 = index - position // unused field abused ^^
                 }
             }
         }
+    }
+
+    private fun placeChild(child: Panel, x: Int, y: Int, width: Int, height: Int) {
+        child.setPosSize(
+            x + child.alignmentX.getOffset(width, child.minW),
+            y + child.alignmentY.getOffset(height, child.minH),
+            child.alignmentX.getSize(width, child.minW),
+            child.alignmentX.getSize(height, child.minH)
+        )
+    }
+
+    override fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        val rotateChildren = transitionType == TransitionType.ROTATE_HORIZONTAL ||
+                transitionType == TransitionType.ROTATE_VERTICAL
+        return if (rotateChildren) {
+            val x02 = max(child.x, x0)
+            val y02 = max(child.y, y0)
+            val x12 = min(child.x + child.width, x1)
+            val y12 = min(child.y + child.height, y1)
+            if (x12 > x02 && y12 > y02) {
+                // rotate child
+                // todo define rotation center properly, currently is somehow at the top center, right center
+                val aspect = child.width.toFloat() / child.height
+                transform.pushMatrix()
+                transform.scale(1f, aspect, 1f)
+                transform.rotateZ(child.weight2)
+                transform.scale(1f, 1f / aspect, 1f)
+                child.draw(x02, y02, x12, y12)
+                transform.popMatrix()
+                true
+            } else {
+                child.lx0 = x02
+                child.ly0 = y02
+                child.lx1 = x12
+                child.ly1 = y12
+                false
+            }
+        } else super.drawChild(child, x0, y0, x1, y1)
     }
 
     // if they are overlapping, we need to redraw the others as well
@@ -170,5 +222,4 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     }
 
     override val className: String get() = "PanelFlipper"
-
 }

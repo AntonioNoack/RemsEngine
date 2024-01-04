@@ -21,7 +21,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
     private val LOGGER = LogManager.getLogger(HSMCShader::class)
 
     val texture by lazy {
-        val source = pictures.getChild("atlas.webp")
+        val source = pictures.getChild("textures/atlas.webp")
         val image = ImageCache[source, false]
         if (image == null) {
             LOGGER.warn("Missing $source")
@@ -107,7 +107,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     "   color = (texture(diffuseMapStack,vec3(uv,uvW)) + texture(diffuseMapStack,vec3(uv+vec2(0.5,0.0),uvW))) * 0.5;\n" +
                     "} else {\n" +
                     "   color = texture(diffuseMapStack,vec3(uv,uvW));\n" +
-                    "}\n" +
+                   "}\n" +
                     "if(dither2x2(color.a)) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = 1.0;//color.a;\n" +
