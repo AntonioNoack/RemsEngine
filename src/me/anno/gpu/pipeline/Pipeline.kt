@@ -297,13 +297,15 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         GFXState.depthMode.use(defaultStage.depthMode) {
             GFXState.depthMask.use(false) {
                 GFXState.blendMode.use(null) {
-                    drawSky0(defaultStage)
+                    GFXState.cullMode.use(CullMode.BACK) {
+                        drawSky0()
+                    }
                 }
             }
         }
     }
 
-    fun drawSky0(stage: PipelineStage) {
+    fun drawSky0() {
         val sky = skybox
         val mesh = sky.getMesh()
         val allAABB = JomlPools.aabbd.create()

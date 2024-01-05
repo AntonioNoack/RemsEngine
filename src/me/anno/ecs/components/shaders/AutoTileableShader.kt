@@ -106,7 +106,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         // step by step define all material properties
                         "vec3 colorPos = finalPosition - tileOffset;\n" +
                         "vec2 uv = vec2(dot(colorPos, tilingU), sign(finalNormal.y) * dot(colorPos, tilingV));\n" +
-                        "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, invLUT, uv);\n" +
+                        "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, invLUTTex, uv);\n" +
                         "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                         "if(color.a < ${1f / 255f}) discard;\n" +
                         "finalColor = color.rgb;\n" +
@@ -114,15 +114,15 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         normalTanBitanCalculation +
                         "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                         "if(abs(normalStrength.x) > 0.0){\n" +
-                        "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, invLUT, uv).rgb * 2.0 - 1.0;\n" +
+                        "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, invLUTTex, uv).rgb * 2.0 - 1.0;\n" +
                         "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                         // normalize?
                         "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
                         "}\n" +
-                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, invLUT, uv).rgb * emissiveBase;\n" +
-                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, invLUT, uv).r) * occlusionStrength;\n" +
-                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUT, uv).r), 0.0, 1.0);\n" +
-                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUT, uv).r), 0.0, 1.0);\n" +
+                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, invLUTTex, uv).rgb * emissiveBase;\n" +
+                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, invLUTTex, uv).r) * occlusionStrength;\n" +
+                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
+                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
                         // todo sample other properties well, too
                         reflectionCalculation +
                         v0 + sheenCalculation +

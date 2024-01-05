@@ -15,7 +15,7 @@ import me.anno.utils.Color.toVecRGB
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3d
 
-private fun createMesh(color: Int): Mesh {
+fun createMesh(color: Int): Mesh {
     val mesh = Mesh()
     val material = Material()
     material.diffuseBase.set(0f, 0f, 0f, 1f)

@@ -4,6 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.components.chunks.PlayerLocation
+import me.anno.mesh.vox.meshing.BlockSide
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
 import kotlin.math.max
@@ -238,37 +239,34 @@ abstract class ChunkSystem<Chunk, Element>(
             val sx2 = sizeX * 0.5
             val sy2 = sizeY * 0.5
             val sz2 = sizeZ * 0.5
+            val unloadingSq = unloadingDistance * unloadingDistance
+            val loadingSq = loadingDistance * loadingDistance
             removeIf { pos, chunk ->
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
                 val shallRemove = players.all {
                     val dist = lengthSquared(px - it.x, py - it.y, pz - it.z)
-                    dist * it.unloadMultiplier > unloadingDistance
+                    dist * it.unloadMultiplier > unloadingSq
                 }
                 if (shallRemove) onDestroyChunk(chunk, pos.x, pos.y, pos.z)
                 shallRemove
             }
-            val sides = listOf(
-                Vector3i(-1, 0, 0),
-                Vector3i(+1, 0, 0),
-                Vector3i(0, -1, 0),
-                Vector3i(0, +1, 0),
-                Vector3i(0, 0, -1),
-                Vector3i(0, 0, +1),
-            )
-            for ((pos, _) in chunks.cache) {
+            for (pos in chunks.cache.keys.toList()) { // toList() to copy the entries, so we don't get ConcurrentModificationExceptions
                 pos as Vector3i
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
-                for ((dx, dy, dz) in sides) {
+                for (side in BlockSide.entries) {
+                    val dx = side.x
+                    val dy = side.y
+                    val dz = side.z
                     val cx = px + dx * sizeX
                     val cy = py + dy * sizeY
                     val cz = pz + dz * sizeZ
                     if (players.any { p ->
                             val dist = lengthSquared(cx - p.x, cy - p.y, cz - p.z)
-                            dist * p.loadMultiplier < loadingDistance
+                            dist * p.loadMultiplier < loadingSq
                         }) {
                         getChunk(pos.x + dx, pos.y + dy, pos.z + dz, true)
                     }

@@ -138,6 +138,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
             val rb = RigidBody(rbInfo)
             rb.deactivationTime = rigidBody.sleepingTimeThreshold
+            rb.ccdMotionThreshold = 1e-7
+            val sp = Vector3d()
+            val r = DoubleArray(1)
+            collider.getBoundingSphere(sp, r)
+            rb.ccdSweptSphereRadius = r[0]
 
             BodyWithScale(rb, scale)
         } else null

@@ -7,6 +7,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
+import me.anno.ecs.components.chunks.PlayerLocation
 import me.anno.ecs.components.chunks.cartesian.SingleChunkSystem
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
@@ -18,16 +19,22 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.RenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -37,12 +44,18 @@ import kotlin.math.abs
 // inspired by Vazgriz, https://www.youtube.com/watch?v=7vAHo2B1zLc
 fun main() {
 
+    RenderDoc.forceLoadRenderDoc()
+    ECSRegistry.init()
+
     val scene = Entity("Scene")
 
     val player = LocalPlayer()
 
-    scene.add(createPlane(player))
-    scene.add(createTerrain())
+    for (e in createPlane(player)) {
+        scene.add(e)
+    }
+
+    scene.add(createTerrain(player))
 
     val physics = BulletPhysics()
     physics.updateInEditMode = true
@@ -50,12 +63,15 @@ fun main() {
     scene.add(Skybox())
 
     testSceneWithUI("FlightSim", scene) {
-        // it.renderer.localPlayer = player
+        it.renderer.localPlayer = player
         // it.renderer.playMode = PlayMode.PLAY_TESTING
+        it.renderer.renderMode = RenderMode.MOTION_VECTORS
+        // todo motion vectors/blur are incorrect
+        //  - terrain is zero (moving in frame), moving plane (static in frame) is non-zero
     }
 }
 
-fun createTerrain(): Entity {
+fun createTerrain(player: LocalPlayer): Entity {
 
     val terrain = Entity("Terrain")
 
@@ -63,22 +79,23 @@ fun createTerrain(): Entity {
     grassMaterial.diffuseMap = OS.pictures.getChild("textures/grass.jpg")
     val grassMatList = listOf(grassMaterial.ref)
 
+    val cellsPerChunkP1 = 64
+    val cellsPerChunk = cellsPerChunkP1 - 1
+    val cellSize = 10f
+    val chunkSize = (cellSize * cellsPerChunk).toDouble()
+
     val terrainSystem = object : SingleChunkSystem<Entity>() {
 
-        val nPerChunk = 64
-        val nPerChunkM1 = nPerChunk - 1
-        val sPerUnit = 50f
-        val sPerChunk = (sPerUnit * nPerChunkM1).toDouble()
-
         val noise = PerlinNoise(1234L, 7, 0.5f, -500f, 500f, Vector4f(0.025f))
+        val empty = Entity()
 
         override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): Entity {
-            if (chunkY != 0) throw IllegalArgumentException()
+            if (chunkY != 0) return empty
             val mesh = Mesh()
-            val dx = chunkX * nPerChunkM1
-            val dz = chunkZ * nPerChunkM1
+            val dx = chunkX * cellsPerChunk
+            val dz = chunkZ * cellsPerChunk
             TerrainUtils.generateRegularQuadHeightMesh(
-                nPerChunk, nPerChunk, false, sPerUnit, mesh,
+                cellsPerChunkP1, cellsPerChunkP1, false, cellSize, mesh,
                 { xi, zi ->
                     val x = (xi + dx - 32).toFloat()
                     val z = (zi + dz - 32).toFloat()
@@ -88,24 +105,36 @@ fun createTerrain(): Entity {
             mesh.materials = grassMatList
             val wrapper = Entity()
             wrapper.add(MeshComponent(mesh))
-            wrapper.add(MeshCollider(mesh).apply { isConvex = false; margin = 0.0 })
+            wrapper.add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5 })
             wrapper.add(Rigidbody())
-            wrapper.setPosition(chunkX * sPerChunk, 0.0, chunkZ * sPerChunk)
+            wrapper.setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
+            terrain.add(wrapper)
             return wrapper
+        }
+
+        override fun onDestroyChunk(chunk: Entity, chunkX: Int, chunkY: Int, chunkZ: Int) {
+            chunk.removeFromParent()
+            chunk.destroy()
         }
     }
 
-    // todo dynamic spawning/despawning based on plane/camera position
-    for (z in -5..5) {
-        for (x in -5..5) {
-            terrain.add(terrainSystem.getChunk(x, 0, z, true)!!)
+    // dynamic chunk loading based on plane/camera position
+    terrain.add(object : Component() {
+        override fun onUpdate(): Int {
+            val pos = player.cameraState.currentCamera!!.transform!!.globalPosition
+            terrainSystem.updateVisibility(
+                1.5, 2.0, listOf(
+                    PlayerLocation(pos.x / chunkSize, 0.0, pos.z / chunkSize)
+                )
+            )
+            return 1
         }
-    }
+    })
 
     return terrain
 }
 
-fun createPlane(player: LocalPlayer): Entity {
+fun createPlane(player: LocalPlayer): List<Entity> {
 
     val folder = "E:/Assets/Sources/POLYGON_War_Pack_Source_Files.zip"
     val meshFile = getReference("$folder/FBX/SM_Veh_Plane_American_01.fbx")
@@ -137,7 +166,7 @@ fun createPlane(player: LocalPlayer): Entity {
             transform.localRotation = transform.localRotation
                 .identity().rotateZ(position)
             // impulse is global, torque probably, too
-            val rot = body.transform!!.globalRotation
+            val l2g = body.transform!!.globalRotation
             // add lift based on velocity on Z axis
             // add opposing force against localVelocityZ
             val rudder = Input.isKeyDown(Key.KEY_ARROW_UP).toInt() - Input.isKeyDown(Key.KEY_ARROW_DOWN).toInt() // tilt
@@ -145,7 +174,7 @@ fun createPlane(player: LocalPlayer): Entity {
             val airFriction = 20.0 * dt
             val engineForce = 1000.0 * dt * (speed - 0.3 * lv.z)
             body.applyImpulse(
-                rot.transform(
+                l2g.transform(
                     tmp.set(
                         -airFriction * lv.x * abs(lv.x),
                         -airFriction * lv.y * abs(lv.y) + lift * (1f - 0.5f * abs(rudder)),
@@ -153,16 +182,20 @@ fun createPlane(player: LocalPlayer): Entity {
                     )
                 )
             )
+            body.angularDamping = 0.9
             // rotation depends on speed along local z axis
-            // todo rotate plane into straightness
             val steering = Input.isKeyDown(Key.KEY_ARROW_LEFT).toInt() - Input.isKeyDown(Key.KEY_ARROW_RIGHT).toInt()
-            body.applyTorqueImpulse(
-                rot.transform(
+            body.applyTorque(
+                l2g.transform(
                     tmp.set(
-                        -body.localVelocityX * dt * 10.0 + 20000.0 * rudder * dt,
-                        steering * body.localVelocityZ * dt * 1000.0,
+                        -body.localVelocityX * 10.0 + 20000.0 * rudder,
+                        steering * lv.z * 1000.0,
                         0.0
-                    )
+                    )/*.add(
+                        // rotate plane into straightness
+                        lv.cross(0.0, 0.0, -50000.0, Vector3d()) *
+                                (1.0 - exp(-lv.length() * 0.01))
+                    )*/
                 )
             )
             return 1
@@ -197,20 +230,33 @@ fun createPlane(player: LocalPlayer): Entity {
     plane.add(body)
 
     // camera in the cockpit / around the plane
-    // todo make controller work
     val controller = OrbitControls()
+    controller.needsClickToRotate = true
+    controller.rotateRight = true
     val base1 = Entity()
     val camera = Camera()
     base1.add(camera)
+    controller.camera = camera
     base1.setPosition(0.0, 2.0, -10.0)
     base1.setRotation(0.0, PI, 0.0)
     val base0 = Entity()
+    base0.add(object : Component() {
+        override fun onUpdate(): Int {
+            base0.transform.localPosition = base0.transform.localPosition
+                .lerp(plane.transform.localPosition, dtTo01(10f * Time.deltaTime))
+            base0.transform.localRotation = base0.transform.localRotation
+                .slerp(
+                    Quaterniond().rotateY(plane.transform.localRotation.getEulerAnglesYXZ(Vector3d()).y),
+                    dtTo01(2f * Time.deltaTime)
+                )
+            return 1
+        }
+    })
     base0.add(base1)
     base0.add(controller)
-    plane.add(base0)
     camera.use(player)
     // EditorState.control = controller
     LocalPlayer.currentLocalPlayer = player
 
-    return plane
+    return listOf(plane, base0)
 }

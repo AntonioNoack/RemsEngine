@@ -4,7 +4,7 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.pentagonCount
+import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.PENTAGON_COUNT
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -80,9 +80,9 @@ fun createNiceMesh0(
     var li = 0
     var ci = 0
 
-    val numPositions = 2 * (6 * hexagons.size - pentagonCount)
+    val numPositions = 2 * (6 * hexagons.size - PENTAGON_COUNT)
     val positions = mesh.positions.resize(3 * numPositions)
-    val baseIndices = 3 * (4 * hexagons.size - pentagonCount)
+    val baseIndices = 3 * (4 * hexagons.size - PENTAGON_COUNT)
     val heightIndices = 6 * 6 * hexagons.size
     val indices = mesh.indices.resize(baseIndices + heightIndices)
     val colors = mesh.color0.resize(numPositions)
@@ -157,9 +157,9 @@ fun createNiceMesh1(
     var li = 0
     var ci = 0
 
-    val numPositions = 3 * (6 * hexagons.size - pentagonCount)
+    val numPositions = 3 * (6 * hexagons.size - PENTAGON_COUNT)
     val positions = mesh.positions.resize(3 * numPositions)
-    val baseIndices = 3 * (4 * hexagons.size - pentagonCount)
+    val baseIndices = 3 * (4 * hexagons.size - PENTAGON_COUNT)
     val heightIndices = 2 * 6 * 6 * hexagons.size
     val indices = mesh.indices.resize(baseIndices + heightIndices)
     val colors = mesh.color0.resize(numPositions)

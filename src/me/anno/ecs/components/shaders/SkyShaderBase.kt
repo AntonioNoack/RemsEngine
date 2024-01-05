@@ -49,7 +49,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                         "#endif\n" +
                         "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         motionVectorCode2 +
-                        "if(isPerspective) gl_Position.z = (reversedDepth ? 0.0 : 1.0) * gl_Position.w;\n" +
+                        "gl_Position.z = (reversedDepth ? 0.0 : 1.0) * gl_Position.w;\n" +
                         // uvs are used in CubemapSkybox
                         "#ifdef COLORS\n" +
                         "   uv = uvs;\n" +

@@ -52,12 +52,24 @@ open class PanelContainer(
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
-        child.setPosition(x + padding.left, y + padding.top)
+        val wi = width - padding.width
+        val hi = height - padding.height
+        child.setPosSize(
+            x + padding.left + child.alignmentX.getOffset(wi, child.minW),
+            y + padding.top + child.alignmentY.getOffset(hi, child.minH),
+            child.alignmentX.getSize(wi, child.minW),
+            child.alignmentY.getSize(hi, child.minH)
+        )
     }
 
     override fun setSize(w: Int, h: Int) {
         super.setSize(w, h)
-        child.setSize(w - padding.width, h - padding.height)
+        val wi = width - padding.width
+        val hi = height - padding.height
+        child.setSize(
+            child.alignmentX.getSize(wi, child.minW),
+            child.alignmentY.getSize(hi, child.minH)
+        )
     }
 
     override fun clone() = PanelContainer(this)

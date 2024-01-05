@@ -29,14 +29,14 @@ class HexMCWorldSave {
     operator fun get(sphere: HexagonSphere, key: Hexagon): ByteArray? {
         val sc = sphere.findChunk(key)
         val tri = triangles[sc.tri]
-        val sci = sc.si + sc.sj.toLong() * sphere.s
+        val sci = sc.si + sc.sj.toLong() * sphere.chunkCount
         return tri[sci]?.get(key.index)
     }
 
     operator fun set(sphere: HexagonSphere, key: Hexagon, value: ByteArray?) {
         val sc = sphere.findChunk(key)
         val tri = triangles[sc.tri]
-        val sci = sc.si + sc.sj.toLong() * sphere.s
+        val sci = sc.si + sc.sj.toLong() * sphere.chunkCount
         if (value != null) {
             tri.getOrPut(sci) { ChunkS() }[key.index] = value
         } else {

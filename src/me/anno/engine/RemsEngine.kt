@@ -21,13 +21,11 @@ import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.studio.Events.addEvent
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -70,6 +68,9 @@ import org.joml.Matrix4f
 // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
 // todo spellchecking could then become a mod :)
+//  - UI could become one, too,
+//  - and ECS, but I'm not sure where to place their intersections
+//  -> this is a build-stage optimization, so we could just annotate classes to be removed :)
 
 // games, which we want to develop:
 //  - city builder

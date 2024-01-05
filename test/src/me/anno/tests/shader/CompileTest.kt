@@ -4,26 +4,24 @@ import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimMeshComponent
-import me.anno.ecs.components.anim.AnimationState
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.shaders.AutoTileableShader
+import me.anno.ecs.components.shaders.PlanarShader
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
-import me.anno.ecs.components.anim.Bone
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.tests.ui.UITests
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS.desktop
@@ -91,6 +89,16 @@ fun createTestScene(): Entity {
         this.skeleton = skeleton.ref
         this.animations = listOf(animState)
         this.isInstanced = true
+    })
+    scene.add(MeshComponent(flatCube.front).apply {
+        materials = listOf(Material().apply {
+            shader = AutoTileableShader
+        }.ref)
+    })
+    scene.add(MeshComponent(flatCube.front).apply {
+        materials = listOf(Material().apply {
+            shader = PlanarShader
+        }.ref)
     })
     scene.add(MeshComponent(flatCube.front).apply {
         materials = listOf(Material().apply {

@@ -35,7 +35,7 @@ class GameEngineProject() : NamedSaveable() {
             if (location == InvalidRef) return null
             return if (location.exists) {
                 if (location.isDirectory) {
-                    val configFile = location.getChild("config.json")
+                    val configFile = location.getChild("Project.json")
                     if (configFile.exists) {
                         val instance = JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, location)
                         instance?.location = location
@@ -62,7 +62,7 @@ class GameEngineProject() : NamedSaveable() {
     var lastScene: String = ""
     val openTabs = HashSet<String>()
 
-    val configFile get() = location.getChild("config.json")
+    val configFile get() = location.getChild("Project.json")
 
     val assetIndex = HashMap<String, HashSet<FileReference>>()
     var maxIndexDepth = 5

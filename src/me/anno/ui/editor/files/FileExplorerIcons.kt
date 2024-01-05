@@ -10,6 +10,12 @@ object FileExplorerIcons {
     val folderPath = folder.getChild("folder.png")
 
     @JvmField
+    val metadataPath = folder.getChild("metadata.png")
+
+    @JvmField
+    val linkPath = folder.getChild("link.png")
+
+    @JvmField
     val musicPath = folder.getChild("music.png")
 
     @JvmField

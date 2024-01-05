@@ -371,7 +371,7 @@ open class Rigidbody : Component() {
     }
 
     /**
-     * applies an impulse, like a hit
+     * applies an impulse in global space, like a hit
      * must be called onPhysicsUpdate()
      * */
     fun applyImpulse(impulse: Vector3d) = applyImpulse(impulse.x, impulse.y, impulse.z)
@@ -407,7 +407,7 @@ open class Rigidbody : Component() {
     }
 
     /**
-     * applies an impulse of torque, e.g., rotating something with a hit
+     * applies an impulse of torque in global space, e.g., rotating something with a hit
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(impulse: Vector3d) = applyTorqueImpulse(impulse.x, impulse.y, impulse.z)

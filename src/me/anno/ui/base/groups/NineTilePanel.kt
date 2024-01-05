@@ -95,7 +95,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
             val child = children[i]
             val cx = x + child.alignmentX.getOffset(width, child.width)
             val cy = y + child.alignmentY.getOffset(height, child.height)
-            child.setPosition(cx, cy)
+            child.setPosSize(cx, cy, child.width, child.height)
         }
     }
 

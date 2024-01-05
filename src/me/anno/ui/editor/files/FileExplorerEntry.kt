@@ -64,6 +64,8 @@ import me.anno.ui.editor.files.FileExplorerIcons.emptyFolderPath
 import me.anno.ui.editor.files.FileExplorerIcons.exePath
 import me.anno.ui.editor.files.FileExplorerIcons.folderPath
 import me.anno.ui.editor.files.FileExplorerIcons.imagePath
+import me.anno.ui.editor.files.FileExplorerIcons.linkPath
+import me.anno.ui.editor.files.FileExplorerIcons.metadataPath
 import me.anno.ui.editor.files.FileExplorerIcons.musicPath
 import me.anno.ui.editor.files.FileExplorerIcons.textPath
 import me.anno.ui.editor.files.FileExplorerIcons.videoPath
@@ -156,7 +158,8 @@ open class FileExplorerEntry(
             "Audio" -> musicPath
             "Video" -> videoPath
             "Executable" -> exePath
-            // todo link icon for .lnk and .url, and maybe .desktop
+            "Metadata" -> metadataPath
+            "Link" -> linkPath
             else -> docsPath
         }
     }

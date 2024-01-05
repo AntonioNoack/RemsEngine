@@ -17,7 +17,6 @@ import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Vector3f
 
 object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
@@ -131,11 +130,8 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     // transform required
                     // only needed for position, normal and tangents
                     val clone = mesh.clone() as Mesh
-                    clone.positions = transform(matrix, clone.positions)
-                    clone.normals = rotate(matrix, clone.normals, 3)
-                    clone.tangents = rotate(matrix, clone.tangents, 4)
+                    transformMesh(clone, matrix)
                     clone.materials = materials
-                    clone.invalidateGeometry()
                     clone.buffer = null
                     clone.triBuffer = null
                     clone.lineBuffer = null
@@ -164,6 +160,14 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 }.join(Mesh(), meshes)
             }
         }
+    }
+
+    fun transformMesh(mesh: Mesh, matrix: Matrix4x3d): Mesh {
+        mesh.positions = transform(matrix, mesh.positions)
+        mesh.normals = rotate(matrix, mesh.normals, 3)
+        mesh.tangents = rotate(matrix, mesh.tangents, 4)
+        mesh.invalidateGeometry()
+        return mesh
     }
 
     private fun transform(matrix: Matrix4x3d, src: FloatArray?): FloatArray? {

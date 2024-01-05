@@ -2,7 +2,6 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.GameEngineProject
-import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
@@ -32,11 +31,12 @@ object Projects {
                 for (folder in StudioBase.workspace.listChildren() ?: emptyList()) {
                     if (folder !in usedFiles) {
                         if (folder.isDirectory) {
-                            val configFile = FileReference.getReference(folder, "config.json")
+                            val configFile = FileReference.getReference(folder, "Project.json")
                             if (configFile.exists) {
                                 try {
                                     LOGGER.debug("Reading {}", configFile)
-                                    val config = JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
+                                    val config =
+                                        JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
                                     if (config != null) {
                                         projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
                                         usedFiles += folder
@@ -88,5 +88,4 @@ object Projects {
     fun addToRecentProjects(name: String, file: FileReference) {
         addToRecentProjects(ProjectHeader(name, file))
     }
-
 }

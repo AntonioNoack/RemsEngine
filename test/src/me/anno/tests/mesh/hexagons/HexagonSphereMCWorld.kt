@@ -20,7 +20,7 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
     val waterY = -minHeight
 
     val rnd = FullNoise(2345L)
-    val perlin = PerlinNoise(1234L, 8, 0.5f, -63f, 56f, Vector4f(sphere.n / 100f))
+    val perlin = PerlinNoise(1234L, 8, 0.5f, -63f, 56f, Vector4f(sphere.hexagonsPerSide / 100f))
 
     var depth = 3
     val base = 1f + 0.866f * sphere.len

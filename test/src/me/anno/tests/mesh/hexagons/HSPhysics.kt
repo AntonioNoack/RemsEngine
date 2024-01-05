@@ -267,8 +267,8 @@ fun main() {
     for (tri in 0 until sphere.triangles.size) {
         val triEntity = Entity()
         scene.add(triEntity)
-        for (si in 0 until sphere.s) {
-            for (sj in 0 until sphere.s - si) {
+        for (si in 0 until sphere.chunkCount) {
+            for (sj in 0 until sphere.chunkCount - si) {
                 val hexagons = sphere.queryChunk(tri, si, sj)
                 val mesh = createMesh(hexagons, world)
                 val comp = MeshComponent(mesh.ref)
@@ -280,7 +280,7 @@ fun main() {
         }
     }
 
-    physics.gravity /= sphere.n
+    physics.gravity /= sphere.hexagonsPerSide
 
     TestStudio.testUI3("HexagonSphere Physics") {
         GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false

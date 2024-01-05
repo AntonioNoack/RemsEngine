@@ -17,7 +17,7 @@ import kotlin.math.ln
 import kotlin.math.sqrt
 
 class HexagonSphere(
-    val n: Int, val s: Int,
+    val hexagonsPerSide: Int, val chunkCount: Int,
     val creator: HexagonCreator = HexagonCreator.DefaultHexagonCreator
 ) {
 
@@ -25,8 +25,9 @@ class HexagonSphere(
 
         private val LOGGER = LogManager.getLogger(HexagonSphere::class)
 
-        const val lineCount = 30
-        const val pentagonCount = 12
+        const val LINE_COUNT = 30
+        const val PENTAGON_COUNT = 12
+        const val TRIANGLE_COUNT = 20
 
         fun findLength(n: Int): Float {
             // todo find this value mathematically
@@ -103,22 +104,24 @@ class HexagonSphere(
         )
     }
 
-    val t = n / s
+    val hexagonsPerChunk = hexagonsPerSide / chunkCount
 
-    val special0 = lineCount * (n + 1L)
-    val special = special0 + pentagonCount
-    val perSide = (n * (n + 1L)) shr 1
+    val special0 = LINE_COUNT * (hexagonsPerSide + 1L)
+    val special = special0 + PENTAGON_COUNT
+    val perSide = (hexagonsPerSide * (hexagonsPerSide + 1L)) shr 1
     val total = special + perSide * 20
 
-    val i0 = (n - 1) / 3f
-    val j0 = (n - 1.5f) * 0.5f - n / 6f + 0.4f // why 0.4???
+    val i0 = (hexagonsPerSide - 1) / 3f
+    val j0 = (hexagonsPerSide - 1.5f) * 0.5f - hexagonsPerSide / 6f + 0.4f // why 0.4???
 
-    val len = findLength(n)
+    val len = findLength(hexagonsPerSide)
     val lenX3 = len / 3f
 
     init {
-        if (t * s != n) throw IllegalArgumentException()
-        LOGGER.debug("HexSphere-Cell-Length: {}", len * (n + 1))
+        if (hexagonsPerChunk * chunkCount != hexagonsPerSide) {
+            throw IllegalArgumentException("hex/chunk * chunk must be equal to hex")
+        }
+        LOGGER.debug("HexSphere-Cell-Length: {}", len * (hexagonsPerSide + 1))
     }
 
     private fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int): Vector3f {
@@ -158,9 +161,9 @@ class HexagonSphere(
         }
 
         fun getChunkCenter(si: Int, sj: Int, dst: Vector3f = Vector3f()): Vector3f {
-            if (si !in 0 until self.s || sj !in 0 until self.s - si) throw IndexOutOfBoundsException("$si,$sj !in ${self.s}")
+            if (si !in 0 until self.chunkCount || sj !in 0 until self.chunkCount - si) throw IndexOutOfBoundsException("$si,$sj !in ${self.chunkCount}")
 
-            val t = self.t
+            val t = self.hexagonsPerChunk
             val j0 = t * sj
             val tj = t * 0.5f
 
@@ -194,7 +197,7 @@ class HexagonSphere(
         return when {
             id !in 0 until total -> throw IllegalArgumentException("Id out of bounds: $id !in 0 until $total")
             id < special0 -> {
-                val n1 = (n + 1L)
+                val n1 = (hexagonsPerSide + 1L)
                 val line = lines[(id / n1).toInt() * 2]
                 val li = (id % n1).toInt()
                 val hex = line[li]
@@ -216,7 +219,7 @@ class HexagonSphere(
         }
     }
 
-    val pHalf = -(0.5 + n)
+    val pHalf = -(0.5 + hexagonsPerSide)
     fun triFindI(li: Long): Int {
         val q = (2 * li).toDouble()
         return (-pHalf - sqrt(pHalf * pHalf - q)).toInt()
@@ -227,12 +230,12 @@ class HexagonSphere(
     }
 
     fun connectLine(line: Line, hex: Hexagon, li: Int) {
-        if (li >= n) return // theoretically would be defined, but I rotated them for ease of implementation,
+        if (li >= hexagonsPerSide) return // theoretically would be defined, but I rotated them for ease of implementation,
         // so they would be a special case; but I don't want to handle it, so I inited them in reverse at the start :)
         val nei = hex.neighborIds
         val l = line.left
         val r = line.right
-        val lj = n - li
+        val lj = hexagonsPerSide - li
         if (li > 0) {
             nei[2] = line.getIndex(li - 1)
             nei[1] = triIdx(l.tri.idx0, l.mapI(li - 1, 0), l.mapJ(li - 1, 0))
@@ -262,7 +265,7 @@ class HexagonSphere(
             nei[3] = line.getIndex(i)
             nei[4] = line.getIndex(i + 1)
         }
-        if (i + j + 1 < n) {
+        if (i + j + 1 < hexagonsPerSide) {
             nei[5] = triIdx(idx0, i + 1, j) // right
             nei[0] = triIdx(idx0, i, j + 1) // top right
         } else {
@@ -279,22 +282,22 @@ class HexagonSphere(
         when (val id = hex.index) {
             in 0L until special0 -> {
                 // find triangle with respective line
-                val lineIndex = (id / (n + 1)).toInt()
+                val lineIndex = (id / (hexagonsPerSide + 1)).toInt()
                 val tri = triangleLines.indexOf(lineIndex).shr(1)
                 // then find chunk, which contains this line
-                val li = (id % (n + 1)).toInt()
+                val li = (id % (hexagonsPerSide + 1)).toInt()
                 val l0 = lineIndices[lineIndex * 2]
                 val l1 = lineIndices[lineIndex * 2 + 1]
                 val a = indices[tri * 3]
                 val b = indices[tri * 3 + 1]
                 val c = indices[tri * 3 + 2]
-                val lj = n - li
-                val sm1 = s - 1
+                val lj = hexagonsPerSide - li
+                val sm1 = chunkCount - 1
                 return when {
-                    l0 == a && l1 == b -> chunk(tri, min(li / t, sm1), 0)
-                    l0 == b && l1 == a -> chunk(tri, min(lj / t, sm1), 0)
-                    l0 == a && l1 == c -> chunk(tri, 0, min(li / t, sm1))
-                    l0 == c && l1 == a -> chunk(tri, 0, min(lj / t, sm1))
+                    l0 == a && l1 == b -> chunk(tri, min(li / hexagonsPerChunk, sm1), 0)
+                    l0 == b && l1 == a -> chunk(tri, min(lj / hexagonsPerChunk, sm1), 0)
+                    l0 == a && l1 == c -> chunk(tri, 0, min(li / hexagonsPerChunk, sm1))
+                    l0 == c && l1 == a -> chunk(tri, 0, min(lj / hexagonsPerChunk, sm1))
                     else -> throw IllegalStateException()
                 }
             }
@@ -307,15 +310,15 @@ class HexagonSphere(
             in special until total -> {
                 val id1 = id - special
                 val tri = (id1 / perSide).toInt()
-                if (s == 1) return chunk(tri, 0, 0)
+                if (chunkCount == 1) return chunk(tri, 0, 0)
                 val li = id1 % perSide
                 val i = triFindI(li)
                 val j = triFindJ(li, i)
-                val sj = j / t // easy
+                val sj = j / hexagonsPerChunk // easy
                 // si is a bit more complicated; use the end of the left block for comparison
                 // works for the tip as well :)
-                val i0 = ((j % t) + 1).shr(1)
-                val si = (i + i0) / t
+                val i0 = ((j % hexagonsPerChunk) + 1).shr(1)
+                val si = (i + i0) / hexagonsPerChunk
                 return chunk(tri, si, sj)
             }
             else -> throw IndexOutOfBoundsException()
@@ -333,7 +336,7 @@ class HexagonSphere(
     }
 
     fun findChunk(tri: Triangle, dir: Vector3f): Chunk {
-        if (n == 0 || s <= 1)
+        if (hexagonsPerSide == 0 || chunkCount <= 1)
             return Chunk(tri.center, tri.index, 0, 0)
         val i3 = tri.index * 3
         val a = vertices[indices[i3]]
@@ -343,12 +346,12 @@ class HexagonSphere(
         dir.div(dir.dot(tri.center), tmp)
         val uvw = barycentric(a, b, c, tmp, tmp)
         // todo find the proper formula without magic numbers
-        val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * n - 0.667 * t
-        val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * n - 0.667 * t
+        val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+        val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
         val ii = i.toInt()
         val ji = j.toInt()
-        val sj = clamp((ji) / t, 0, s - 1)
-        val si = clamp((ii + (ji % t) / 2) / t, 0, s - 1 - sj)
+        val sj = clamp((ji) / hexagonsPerChunk, 0, chunkCount - 1)
+        val si = clamp((ii + (ji % hexagonsPerChunk) / 2) / hexagonsPerChunk, 0, chunkCount - 1 - sj)
         val pos = tri.getChunkCenter(si, sj)
         return Chunk(pos, tri.index, si, sj)
     }
@@ -368,7 +371,7 @@ class HexagonSphere(
     }
 
     fun findClosestHexagon(tri: Triangle, dir: Vector3f): Hexagon {
-        val hex0 = if (n == 0) {
+        val hex0 = if (hexagonsPerSide == 0) {
             pentagons.minByOrNull { it.center.distanceSquared(dir) }
         } else {
             val i3 = tri.index * 3
@@ -379,10 +382,10 @@ class HexagonSphere(
             dir.div(dir.dot(tri.center), tmp)
             val uvw = barycentric(a, b, c, tmp, tmp)
             // todo find the proper formula without magic numbers
-            val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * n - 0.667 * t
-            val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * n - 0.667 * t
-            val ii = clamp(i.toInt(), 0, n - 1)
-            val ji = clamp(j.toInt(), 0, n - 1 - ii)
+            val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+            val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+            val ii = clamp(i.toInt(), 0, hexagonsPerSide - 1)
+            val ji = clamp(j.toInt(), 0, hexagonsPerSide - 1 - ii)
             val hex = tri[ii, ji]
             connectTriHex(tri, hex, ii, ji)
             hex
@@ -454,11 +457,11 @@ class HexagonSphere(
     fun queryChunks(dir: Vector3f, angleRadiusRadians: Float, callback: (Chunk) -> Boolean): Boolean {
         if (!dir.isFinite || dir.lengthSquared() < 1e-19f) throw IllegalArgumentException(dir.toString())
         val triangleSelfRadius = triangles.first().run { vertices[indices[0]].angle(center) } // ~37.4°
-        val chunkRadius = triangleSelfRadius * 1.4f / max(s, 1)
+        val chunkRadius = triangleSelfRadius * 1.4f / max(chunkCount, 1)
         val maxAngleCos0 = cos(min(angleRadiusRadians + triangleSelfRadius, PIf))
         val maxAngleCos1 = cos(min(angleRadiusRadians + chunkRadius, PIf))
         val checked = HashSet<Long>()
-        val checker = Checker(triangles.first(), s, dir, checked, maxAngleCos1, callback)
+        val checker = Checker(triangles.first(), chunkCount, dir, checked, maxAngleCos1, callback)
         for (tri in triangles) {
             if (tri.center.angleCos(dir) >= maxAngleCos0) {
                 checker.tri = tri
@@ -535,7 +538,7 @@ class HexagonSphere(
     }
 
     private val lines = ArrayList<Line>(lineIndices.size)
-    private val pentagons = Array(pentagonCount) {
+    private val pentagons = Array(PENTAGON_COUNT) {
         val v = vertices[it]
         creator.create(special0 + it, v, Array(5) { v })
     }
@@ -564,7 +567,7 @@ class HexagonSphere(
 
     private fun createLineHexagon(ab: TRef, ba: TRef, i0: Int, index: Long): Hexagon {
 
-        val i0Inv = n - i0
+        val i0Inv = hexagonsPerSide - i0
 
         val j = -1
         val ps00 = calcHexPos(ab.tri.center, ab.tri.ab, ab.tri.ac, ab.mapI(i0, j) - this.i0, ab.mapJ(i0, j) - j0)
@@ -642,8 +645,8 @@ class HexagonSphere(
         val tri = triangles[a % 20]
         return when (a / 20) {
             0 -> TRef(tri)
-            1 -> RRef(n, TRef(tri))
-            else -> RRef(n, RRef(n, TRef(tri)))
+            1 -> RRef(hexagonsPerSide, TRef(tri))
+            else -> RRef(hexagonsPerSide, RRef(hexagonsPerSide, TRef(tri)))
         }
     }
 
@@ -671,8 +674,8 @@ class HexagonSphere(
             val ta = decodeTriangle(lineToTriangle[i].toInt())
             val tb = decodeTriangle(lineToTriangle[i + 1].toInt())
 
-            val i0 = (i.shr(1)) * (n + 1L)
-            val i1 = i0 + n
+            val i0 = (i.shr(1)) * (hexagonsPerSide + 1L)
+            val i1 = i0 + hexagonsPerSide
 
             val abLine = Line(this, ta, tb, i0, i1, +1)
             val baLine = Line(this, tb, ta, i1, i0, -1)
@@ -680,7 +683,7 @@ class HexagonSphere(
             lines.add(baLine)
 
             val hex0 = abLine[0]
-            val hex1 = if (n > 0) baLine[0] else hex0
+            val hex1 = if (hexagonsPerSide > 0) baLine[0] else hex0
 
             abLine.firstH = hex0
             abLine.lastH = hex1
@@ -698,7 +701,7 @@ class HexagonSphere(
             val baLine = lines[i + 1]
 
             val hex0 = abLine[0]
-            val hex1 = if (n > 0) baLine[0] else hex0
+            val hex1 = if (hexagonsPerSide > 0) baLine[0] else hex0
 
             connectLine(abLine, hex0, 0)
             connectLine(baLine, hex1, 0)
@@ -715,7 +718,7 @@ class HexagonSphere(
         }
 
         // create all pentagons
-        for (i in 0 until pentagonCount) {
+        for (i in 0 until PENTAGON_COUNT) {
 
             // build coordinate system
             val hexagons1 = pointsToLines[i]
@@ -727,7 +730,7 @@ class HexagonSphere(
             val pentagon = pentagons[i]
             for (j in 0 until 5) {
                 val hj = hexagons1[sortOrder.shr(3 * j).and(7)]
-                pentagon.corners[j] = if (n == 0) {
+                pentagon.corners[j] = if (hexagonsPerSide == 0) {
                     val target = Vector3f(vertices[i]).lerp(hj.center, -0.5f).normalize()
                     val hk = hexagons1[sortOrder.shr(3 * ((j + 2) % 5)).and(7)]
                     hk.corners.minByOrNull { it.distanceSquared(target) }!!
@@ -760,7 +763,7 @@ class HexagonSphere(
 
         }
 
-        if (n == 0) {
+        if (hexagonsPerSide == 0) {
             for (hexList in pointsToLines) {
                 for (hex in hexList) {
                     sortNeighbors(hex)
@@ -792,9 +795,9 @@ class HexagonSphere(
             }
         }
 
-        if (n == 0) {
+        if (hexagonsPerSide == 0) {
             // every second needs to be reordered
-            for (i in 0 until pentagonCount step 2) {
+            for (i in 0 until PENTAGON_COUNT step 2) {
                 val pentagon = pentagons[i]
                 pentagon.neighborIds.rotateRight(2)
                 pentagon.neighbors.rotateRight(2)
@@ -826,9 +829,9 @@ class HexagonSphere(
     }
 
     fun triIdx(idx0: Long, i: Int, j: Int): Long {
-        if (i !in 0 until n || j !in 0 until n - i)
-            throw IndexOutOfBoundsException("$i,$j is out of bounds for $n")
-        return idx0 + j + n.toLong() * i - (i * (i - 1L)).shr(1)
+        if (i !in 0 until hexagonsPerSide || j !in 0 until hexagonsPerSide - i)
+            throw IndexOutOfBoundsException("$i,$j is out of bounds for $hexagonsPerSide")
+        return idx0 + j + hexagonsPerSide.toLong() * i - (i * (i - 1L)).shr(1)
     }
 
     fun queryChunk(sc: Chunk): ArrayList<Hexagon> =
@@ -839,26 +842,28 @@ class HexagonSphere(
      * then split each triangle face into s*(s+1)/2 sub-triangles
      * */
     fun queryChunk(
-        triIndex: Int,
-        si: Int,
-        sj: Int,
+        triangleIndex: Int,
+        chunkS: Int,
+        chunkT: Int,
     ): ArrayList<Hexagon> {
 
-        if (si + sj >= s || si < 0 || sj < 0) throw IllegalArgumentException("$si,$sj is out of bounds for $s")
+        if (chunkS + chunkT >= chunkCount || chunkS < 0 || chunkT < 0) {
+            throw IllegalArgumentException("$chunkS,$chunkT is out of bounds for $chunkCount")
+        }
 
         // size could be estimated better
-        val group = ArrayList<Hexagon>((t + 1) * t)
+        val group = ArrayList<Hexagon>((hexagonsPerChunk + 1) * hexagonsPerChunk)
 
-        val tri = triangles[triIndex]
+        val tri = triangles[triangleIndex]
 
         var ab: Line? = null
         var ac: Line? = null
-        val ti3 = triIndex * 3
+        val ti3 = triangleIndex * 3
         val a = indices[ti3]
         val b = indices[ti3 + 1]
         val lenSq = len * len
         for (i in 0 until 2) {
-            val li = triangleLines[triIndex * 2 + i]
+            val li = triangleLines[triangleIndex * 2 + i]
             if (li < 0) continue
             val l0 = lineIndices[li * 2]
             val l1 = lineIndices[li * 2 + 1]
@@ -870,50 +875,50 @@ class HexagonSphere(
         }
 
         // add a pentagon to the left corner
-        if (si == 0 && sj == 0 && pentagonTris[a] == triIndex) {
+        if (chunkS == 0 && chunkT == 0 && pentagonTris[a] == triangleIndex) {
             group.add(pentagons[a])
         }
 
-        if (sj == 0 && ab != null) {
+        if (chunkT == 0 && ab != null) {
             // add all bottom ones
-            for (i in si * t until (si + 1) * t) {
+            for (i in chunkS * hexagonsPerChunk until (chunkS + 1) * hexagonsPerChunk) {
                 val hex = ab[i]
                 group.add(hex)
                 if (i > 0) connectLine(ab, hex, i)
             }
-            if (si == s - 1) { // last one
-                val hex = ab[n]
+            if (chunkS == chunkCount - 1) { // last one
+                val hex = ab[hexagonsPerSide]
                 group.add(hex)
-                connectLine(ab, hex, n)
+                connectLine(ab, hex, hexagonsPerSide)
             }
         }
 
-        if (si == 0 && sj == s - 1) {
+        if (chunkS == 0 && chunkT == chunkCount - 1) {
             // add top region
-            val j0 = n - t
+            val j0 = hexagonsPerSide - hexagonsPerChunk
             if (ac != null) {
                 // add left part
                 // one extra for tip
-                for (tj in j0..n) {
+                for (tj in j0..hexagonsPerSide) {
                     val hex = ac[tj]
                     group.add(hex)
                     if (tj > 0) connectLine(ac, hex, tj)
                 }
             }
-            for (ti in 0 until t) {
-                for (tj in j0 until n - ti) {
+            for (ti in 0 until hexagonsPerChunk) {
+                for (tj in j0 until hexagonsPerSide - ti) {
                     val hex = tri[ti, tj]
                     group.add(hex)
                     connectTriHex(tri, hex, ti, tj)
                 }
             }
         } else {
-            when (si) {
+            when (chunkS) {
                 0 -> {
                     // left
-                    val j0 = t * sj
-                    for (tj in 0 until t) {
-                        val tl = t - (tj + 1).shr(1)
+                    val j0 = hexagonsPerChunk * chunkT
+                    for (tj in 0 until hexagonsPerChunk) {
+                        val tl = hexagonsPerChunk - (tj + 1).shr(1)
                         for (ti in 0 until tl) {
                             val jj = tj + j0
                             val hex = tri[ti, jj]
@@ -923,20 +928,20 @@ class HexagonSphere(
                     }
                     if (ac != null) {
                         // add left part
-                        for (j in j0 until j0 + t) {
+                        for (j in j0 until j0 + hexagonsPerChunk) {
                             val hex = ac[j]
                             group.add(hex)
                             if (j > 0) connectLine(ac, hex, j)
                         }
                     }
                 }
-                s - sj - 1 -> {
+                chunkCount - chunkT - 1 -> {
                     // right
-                    val j0 = t * sj
-                    for (tj in 0 until t) {
-                        val tl = t - tj.shr(1)
+                    val j0 = hexagonsPerChunk * chunkT
+                    for (tj in 0 until hexagonsPerChunk) {
+                        val tl = hexagonsPerChunk - tj.shr(1)
                         val jj = tj + j0
-                        for (ti in n - jj - tl until n - jj) {
+                        for (ti in hexagonsPerSide - jj - tl until hexagonsPerSide - jj) {
                             val hex = tri[ti, jj]
                             group.add(hex)
                             connectTriHex(tri, hex, ti, jj)
@@ -945,11 +950,11 @@ class HexagonSphere(
                 }
                 else -> {
                     // center
-                    val j0 = t * sj
-                    for (tj in 0 until t) {
-                        val i0 = si * t - (tj + 1).shr(1)
+                    val j0 = hexagonsPerChunk * chunkT
+                    for (tj in 0 until hexagonsPerChunk) {
+                        val i0 = chunkS * hexagonsPerChunk - (tj + 1).shr(1)
                         val jj = tj + j0
-                        for (ti in i0 until i0 + t) {
+                        for (ti in i0 until i0 + hexagonsPerChunk) {
                             val hex = tri[ti, jj]
                             group.add(hex)
                             connectTriHex(tri, hex, ti, jj)

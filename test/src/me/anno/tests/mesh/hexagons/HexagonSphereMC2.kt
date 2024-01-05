@@ -44,8 +44,8 @@ fun testFindingChunks(sphere: HexagonSphere) {
     var w1 = 0L
     var w2 = 0L
     for (triIndex in 0 until 20) {
-        for (si in 0 until sphere.s) {
-            for (sj in 0 until sphere.s - si) {
+        for (si in 0 until sphere.chunkCount) {
+            for (sj in 0 until sphere.chunkCount - si) {
                 val hexagons = sphere.queryChunk(triIndex, si, sj)
                 val color0 = sijToColor.getOrPut(Triple(triIndex, si, sj)) { rand.nextInt() }
                 for (hex in hexagons) {
@@ -89,7 +89,7 @@ fun testFindingChunks2(sphere: HexagonSphere) {
 
     // visualize how the engine decides chunks, and how we do the inverse transform
 
-    val maxDistance = sphere.n / 2 * sphere.len
+    val maxDistance = sphere.hexagonsPerSide / 2 * sphere.len
 
     val size = 2048
     val hs = size / 2f
@@ -103,8 +103,8 @@ fun testFindingChunks2(sphere: HexagonSphere) {
 
     val rand = Random(1234L)
     for (tri in 0 until 20) {
-        for (si in 0 until sphere.s) {
-            for (sj in 0 until sphere.s - si) {
+        for (si in 0 until sphere.chunkCount) {
+            for (sj in 0 until sphere.chunkCount - si) {
                 val hexagons = sphere.queryChunk(tri, si, sj)
                 val color0 = rand.nextInt().and(0x777777) or (if (Triple(tri, si, sj) in queried) 0x808080 else 0)
                 for (hex in hexagons) {
@@ -205,7 +205,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
             worker += {
                 // check if the request is still valid
                 val mesh = createMesh(sphere.queryChunk(key), world)
-                GFX.addGPUTask("chunk", sphere.s) {
+                GFX.addGPUTask("chunk", sphere.chunkCount) {
                     mesh.ensureBuffer()
                     addEvent {
                         val comp = MeshComponent(mesh.ref)

@@ -42,7 +42,7 @@ import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-class ECSTreeView(style: Style) : TreeView<ISaveable>(
+open class ECSTreeView(style: Style) : TreeView<ISaveable>(
     ECSFileImporter as FileContentImporter<ISaveable>,
     showSymbols = true, style
 ) {

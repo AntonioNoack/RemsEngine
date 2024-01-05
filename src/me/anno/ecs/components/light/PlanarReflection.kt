@@ -259,7 +259,7 @@ class PlanarReflection : LightComponentBase() {
 
         fun clearSky(pipeline: Pipeline) {
             GFXState.depthMode.use(DepthMode.ALWAYS) {
-                pipeline.drawSky0(pipeline.defaultStage)
+                pipeline.drawSky0()
                 GFXState.currentBuffer.clearDepth()
             }
         }

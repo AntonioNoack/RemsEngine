@@ -12,6 +12,8 @@ import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black
 import java.util.*
@@ -42,6 +44,11 @@ class Snake : Panel(style) {
     val food = -1
 
     val random = Random()
+
+    init {
+        alignmentX = AxisAlignment.CENTER
+        alignmentY = AxisAlignment.CENTER
+    }
 
     fun isSnake(v: Int): Boolean {
         return v != food && v != 0 && v - snakeStep + snakeLength > 0
@@ -122,7 +129,7 @@ class Snake : Panel(style) {
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val wi = min(w,h * sx / sy)
+        val wi = min(w, h * sx / sy)
         minW = wi
         minH = wi * sy / sx
     }
@@ -221,5 +228,8 @@ class Snake : Panel(style) {
 
 fun main() {
     disableRenderDoc()
-    testUI3("Snake") { Snake() }
+    testUI3("Snake") {
+        // container for layout
+        PanelContainer(Snake(), Padding.Zero, style)
+    }
 }

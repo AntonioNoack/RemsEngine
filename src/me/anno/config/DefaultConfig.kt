@@ -90,15 +90,10 @@ object DefaultConfig : StringMap() {
             "npz" // numpy archive
         )
         addImportMappings("Asset", *UnityReader.unityExtensions.toTypedArray())
-        addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
+        addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar", "desktop")
+        addImportMappings("Metadata", "json", "xml")
+        addImportMappings("Link", "url", "lnk")
     }
-
-    /*fun save() {
-        this.wasChanged = false
-        baseTheme.values.wasChanged = false
-        ConfigBasics.save("main.config", this.toString())
-        ConfigBasics.save("style.config", baseTheme.values.toString())
-    }*/
 
     fun addImportMappings(result: String, vararg extensions: String) {
         for (extension in extensions) {
