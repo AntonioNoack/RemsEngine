@@ -20,13 +20,12 @@ import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderMode
-import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
@@ -38,7 +37,6 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.PI
 import kotlin.math.abs
 
 // inspired by Vazgriz, https://www.youtube.com/watch?v=7vAHo2B1zLc
@@ -64,8 +62,8 @@ fun main() {
 
     testSceneWithUI("FlightSim", scene) {
         it.renderer.localPlayer = player
-        // it.renderer.playMode = PlayMode.PLAY_TESTING
-        it.renderer.renderMode = RenderMode.MOTION_VECTORS
+        // it.renderer.playMode = PlayMode.PLAY_TESTING // to start playing, press the "Play" button
+        // it.renderer.renderMode = RenderMode.MOTION_VECTORS
         // todo motion vectors/blur are incorrect
         //  - terrain is zero (moving in frame), moving plane (static in frame) is non-zero
     }
@@ -81,7 +79,7 @@ fun createTerrain(player: LocalPlayer): Entity {
 
     val cellsPerChunkP1 = 64
     val cellsPerChunk = cellsPerChunkP1 - 1
-    val cellSize = 10f
+    val cellSize = 50f
     val chunkSize = (cellSize * cellsPerChunk).toDouble()
 
     val terrainSystem = object : SingleChunkSystem<Entity>() {
@@ -103,12 +101,13 @@ fun createTerrain(player: LocalPlayer): Entity {
                     noise.getSmooth(x, z) * amplitude
                 })
             mesh.materials = grassMatList
-            val wrapper = Entity()
-            wrapper.add(MeshComponent(mesh))
-            wrapper.add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5 })
-            wrapper.add(Rigidbody())
-            wrapper.setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
+            val wrapper = Entity("E$chunkX/$chunkZ")
+                .setPosition(chunkX * chunkSize, 0.0, chunkZ * chunkSize)
+                .add(MeshComponent(mesh))
+                .add(MeshCollider(mesh).apply { isConvex = false; margin = 0.5 })
+                .add(Rigidbody())
             terrain.add(wrapper)
+            terrain.invalidateAABBsCompletely()
             return wrapper
         }
 
@@ -123,7 +122,7 @@ fun createTerrain(player: LocalPlayer): Entity {
         override fun onUpdate(): Int {
             val pos = player.cameraState.currentCamera!!.transform!!.globalPosition
             terrainSystem.updateVisibility(
-                1.5, 2.0, listOf(
+                5.0, 10.0, listOf(
                     PlayerLocation(pos.x / chunkSize, 0.0, pos.z / chunkSize)
                 )
             )
@@ -161,7 +160,8 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             val dt = Time.deltaTime
             val transform = transform!!
             val lv = body.localVelocity
-            speed = mix(speed, if (Input.isShiftDown) 50.0 else 0.0, dt)
+            val dir = (Input.isShiftDown || Input.isKeyDown(Key.KEY_W)).toInt() - (Input.isKeyDown(Key.KEY_S)).toInt()
+            speed = mix(speed, dir * 50.0, dt)
             position += dt * speed
             transform.localRotation = transform.localRotation
                 .identity().rotateZ(position)
@@ -185,14 +185,15 @@ fun createPlane(player: LocalPlayer): List<Entity> {
             body.angularDamping = 0.9
             // rotation depends on speed along local z axis
             val steering = Input.isKeyDown(Key.KEY_ARROW_LEFT).toInt() - Input.isKeyDown(Key.KEY_ARROW_RIGHT).toInt()
+            val rolling = Input.isKeyDown(Key.KEY_D).toInt() - Input.isKeyDown(Key.KEY_A).toInt()
             body.applyTorque(
                 l2g.transform(
                     tmp.set(
                         -body.localVelocityX * 10.0 + 20000.0 * rudder,
                         steering * lv.z * 1000.0,
-                        0.0
+                        rolling * lv.z * 1000.0
                     )/*.add(
-                        // rotate plane into straightness
+                        // rotate plane into straightness -> not working well
                         lv.cross(0.0, 0.0, -50000.0, Vector3d()) *
                                 (1.0 - exp(-lv.length() * 0.01))
                     )*/
@@ -233,27 +234,31 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     val controller = OrbitControls()
     controller.needsClickToRotate = true
     controller.rotateRight = true
-    val base1 = Entity()
+    controller.rotation.set(0f, PIf, 0f)
+    controller.movementSpeed = 0f
+    val base2 = Entity()
     val camera = Camera()
-    base1.add(camera)
+    base2.add(camera)
     controller.camera = camera
-    base1.setPosition(0.0, 2.0, -10.0)
-    base1.setRotation(0.0, PI, 0.0)
     val base0 = Entity()
-    base0.add(object : Component() {
+    val base1 = Entity()
+    base1.add(object : Component() {
         override fun onUpdate(): Int {
-            base0.transform.localPosition = base0.transform.localPosition
-                .lerp(plane.transform.localPosition, dtTo01(10f * Time.deltaTime))
-            base0.transform.localRotation = base0.transform.localRotation
+            val dst = base0.transform
+            val src = plane.transform
+            dst.localPosition = dst.localPosition
+                .lerp(src.localPosition, dtTo01(10f * Time.deltaTime))
+            dst.localRotation = dst.localRotation
                 .slerp(
-                    Quaterniond().rotateY(plane.transform.localRotation.getEulerAnglesYXZ(Vector3d()).y),
+                    Quaterniond().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3d()).y),
                     dtTo01(2f * Time.deltaTime)
                 )
             return 1
         }
     })
+    base1.add(base2)
+    base1.add(controller)
     base0.add(base1)
-    base0.add(controller)
     camera.use(player)
     // EditorState.control = controller
     LocalPlayer.currentLocalPlayer = player

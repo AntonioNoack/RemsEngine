@@ -32,8 +32,8 @@ class MultiFramebuffer(
         depthBufferType: DepthBufferType
     ) : this(
         name, w, h, samples, if (fpTargets)
-            Array(targetCount) { TargetType.FloatTarget4 } else
-            Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
+            Array(targetCount) { TargetType.Float32x4 } else
+            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
     )
 
     val targetsI: Array<Framebuffer>

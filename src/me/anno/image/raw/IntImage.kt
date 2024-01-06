@@ -133,8 +133,8 @@ open class IntImage(
             // for testing, convert the data into a byte buffer
             // -> 33% faster, partially because of wrong alignment and using 25% less data effectively
             texture.createTiled(
-                TargetType.UByteTarget4,
-                TargetType.UByteTarget4,
+                TargetType.UInt8x4,
+                TargetType.UInt8x4,
                 dataI, data1, numChannels,
                 callback
             )

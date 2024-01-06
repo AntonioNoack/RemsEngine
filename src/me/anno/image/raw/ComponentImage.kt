@@ -1,16 +1,24 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.TargetType.Companion.Float16x4
+import me.anno.gpu.framebuffer.TargetType.Companion.Float32x4
+import me.anno.gpu.framebuffer.TargetType.Companion.UInt8x4
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
+import me.anno.gpu.texture.Texture2D.Companion.getNumberType
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL11C.GL_FLOAT
+import org.lwjgl.opengl.GL30C.GL_HALF_FLOAT
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 
+/**
+ * maps a component like R/G/B/A onto RGB1 (opaque, grayscale)
+ * */
 class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     Image(src.width, src.height, 1, false) {
 
@@ -64,10 +72,17 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     ) {
         if (src is GPUImage) {
             val m = if (inverse) channel.uppercaseChar() else channel
+            val tex = src.texture
+            val type = if (tex is Texture2D) {
+                when (getNumberType(tex.internalFormat)) {
+                    GL_FLOAT -> Float32x4
+                    GL_HALF_FLOAT -> Float16x4
+                    else -> UInt8x4
+                }
+            } else UInt8x4
             TextureMapper.mapTexture(
                 src.texture, texture, "$m$m${m}1",
-                // todo if source has float precision, use that
-                TargetType.UByteTarget4, callback
+                type, callback
             )
         } else {
             val size = width * height

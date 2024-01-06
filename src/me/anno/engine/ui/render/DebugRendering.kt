@@ -209,7 +209,7 @@ object DebugRendering {
         val sy = -view.height * 0.5f
         val x0 = +sx
         val y0 = -sy
-        val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UByteTarget4 &&
+        val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UInt8x4 &&
                 GFXState.currentBuffer.samples == 1 && DrawTexts.canUseComputeShader()
         if (betterBlending) {
             val pbb = DrawTexts.pushBetterBlending(true)

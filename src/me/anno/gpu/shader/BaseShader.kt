@@ -105,11 +105,7 @@ open class BaseShader(
     val value: Shader
         get() {
             GFX.check()
-            val renderer = GFXState.currentRenderer
-            val instanceData = GFXState.instanceData.currentValue
-            val vertexData = GFXState.vertexData.currentValue
-            val flags = getFlags()
-            val key = ShaderKey(renderer, vertexData, instanceData, flags)
+            val key = getKey()
             val shader = shaders.getOrPut(key) {
                 val r = key.renderer
                 val d = r.deferredSettings
@@ -118,6 +114,8 @@ open class BaseShader(
             }
             GFX.check()
             if (shader.use()) {
+                val renderer = GFXState.currentRenderer
+                val instanceData = GFXState.instanceData.currentValue
                 val instanced = instanceData !== MeshInstanceData.DEFAULT
                 bind(shader, renderer, instanced)
                 GFX.check()

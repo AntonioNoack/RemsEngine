@@ -345,17 +345,9 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
                     true
                 } else false
             }
-            registerHandler(200) { file, dst ->
-                if (file is ImageReadable && file.hasInstantGPUImage()) {
-                    val image = file.readGPUImage()
-                    dst.setImage(image.width, image.height)
-                    true
-                } else false
-            }
-            registerHandler(300) { file, dst ->
+            registerHandler(150) { file, dst ->
                 if (file is ImageReadable) {
-                    val image = file.readCPUImage()
-                    dst.setImage(image.width, image.height)
+                    dst.setImage(file.readSize())
                     true
                 } else false
             }

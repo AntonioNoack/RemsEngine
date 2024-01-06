@@ -3,7 +3,6 @@ package me.anno.graph.render.effects
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
@@ -35,9 +34,9 @@ class DepthToNormalNode : ActionNode(
     override fun executeAction() {
         val depth = getInput(1) as? Texture ?: return
         val target = when (getInput(2) as Int) {
-            1 -> TargetType.FP16Target2
-            2 -> TargetType.FloatTarget2
-            else -> TargetType.UByteTarget2
+            1 -> TargetType.Float16x2
+            2 -> TargetType.Float32x2
+            else -> TargetType.UInt8x2
         }
         val depthTex = depth.tex
         val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]

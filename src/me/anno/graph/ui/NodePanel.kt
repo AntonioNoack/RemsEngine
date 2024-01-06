@@ -234,7 +234,7 @@ class NodePanel(
             var cachedTexture = cachedTexture
             if (cachedTexture == null) {
                 // generate texture
-                cachedTexture = Framebuffer("NodePanel", width, height, TargetType.UByteTarget4, DepthBufferType.NONE)
+                cachedTexture = Framebuffer("NodePanel", width, height, TargetType.UInt8x4, DepthBufferType.NONE)
                 useFrame(cachedTexture, ::doDrawAtZero)
                 this.cachedTexture = cachedTexture
             } else if (cachedTexture.width * 2 + 3 < width) {// improve resolution

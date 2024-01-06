@@ -65,7 +65,7 @@ class MainStage {
                 if (variable.isInput && !variable.isAttribute) {
                     if (variable !in defined) {
                         if (variable in definedByPrevious &&
-                            !variable.type.glslName.startsWith("sampler") &&
+                            !variable.type.isSampler &&
                             variable !in previousUniforms
                         ) {
                             // we need this variable
@@ -312,7 +312,7 @@ class MainStage {
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
-            if (uniform.arraySize >= 0 && uniform.type.glslName.startsWith("sampler")) {
+            if (uniform.arraySize >= 0 && uniform.type.isSampler) {
                 defineUniformSamplerArrayFunctions(code, uniform)
             }
         }

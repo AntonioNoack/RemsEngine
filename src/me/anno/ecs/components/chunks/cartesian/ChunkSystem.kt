@@ -5,6 +5,8 @@ import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.components.chunks.PlayerLocation
 import me.anno.mesh.vox.meshing.BlockSide
+import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.any2
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
 import kotlin.math.max
@@ -245,7 +247,7 @@ abstract class ChunkSystem<Chunk, Element>(
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
-                val shallRemove = players.all {
+                val shallRemove = players.all2 {
                     val dist = lengthSquared(px - it.x, py - it.y, pz - it.z)
                     dist * it.unloadMultiplier > unloadingSq
                 }
@@ -264,7 +266,7 @@ abstract class ChunkSystem<Chunk, Element>(
                     val cx = px + dx * sizeX
                     val cy = py + dy * sizeY
                     val cz = pz + dz * sizeZ
-                    if (players.any { p ->
+                    if (players.any2 { p ->
                             val dist = lengthSquared(cx - p.x, cy - p.y, cz - p.z)
                             dist * p.loadMultiplier < loadingSq
                         }) {

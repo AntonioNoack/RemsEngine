@@ -17,7 +17,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -90,7 +89,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import java.awt.Font
 import kotlin.concurrent.thread
 import kotlin.math.*
 
@@ -585,16 +583,9 @@ open class FileExplorerEntry(
                                 (if (name != null) "\"$name\"\n" else "") +
                                 "${prefab.clazzName}, ${prefab.countTotalChanges(true)} Changes"
                     }
-                    file is ImageReadable && file.hasInstantGPUImage() -> {
-                        val image = file.readGPUImage()
-                        file.name + "\n" +
-                                "${image.width} x ${image.height}"
-                    }
-
-                    file is ImageReadable && file.hasInstantCPUImage() -> {
-                        val image = file.readCPUImage()
-                        file.name + "\n" +
-                                "${image.width} x ${image.height}"
+                    file is ImageReadable -> {
+                        val (width, height) = file.readSize()
+                        file.name + "\n$width x $height"
                     }
                     else -> {
                         val ttt = StringBuilder()

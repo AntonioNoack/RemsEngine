@@ -14,7 +14,7 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.numChannels
+import me.anno.gpu.texture.Texture2D.Companion.getNumChannels
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.gpu.texture.callbacks.I3B
@@ -96,7 +96,7 @@ open class Texture3D(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        if (numChannels(internalFormat) == 1) {
+        if (getNumChannels(internalFormat) == 1) {
             swizzleMonochrome()
         }
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)

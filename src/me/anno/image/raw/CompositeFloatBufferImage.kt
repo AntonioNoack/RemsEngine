@@ -66,11 +66,11 @@ class CompositeFloatBufferImage(
             }
         }
         if (sync) {
-            texture.create(TargetType.FloatTargets[numChannels - 1], data)
+            texture.create(TargetType.Float32xI[numChannels - 1], data)
             callback(texture, null)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
-                texture.create(TargetType.FloatTargets[numChannels - 1], data)
+                texture.create(TargetType.Float32xI[numChannels - 1], data)
                 callback(texture, null)
             }
         }

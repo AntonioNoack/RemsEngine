@@ -169,7 +169,7 @@ class RenderLightsNode : RenderSceneNode0(
 
         val useDepth = depthT != null
         val framebuffer = FBStack[
-            name, width, height, TargetType.FP16Target3, samples,
+            name, width, height, TargetType.Float16x3, samples,
             if (useDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
         ]
 

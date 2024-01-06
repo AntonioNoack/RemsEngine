@@ -117,7 +117,7 @@ object Reduction {
             val w = ceilDiv(srcTexture.width, reduction)
             val h = ceilDiv(srcTexture.height, reduction)
 
-            val dstFramebuffer = FBStack["reduction", w, h, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
+            val dstFramebuffer = FBStack["reduction", w, h, TargetType.Float32x4, 1, DepthBufferType.NONE]
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {
                     srcTexture.bindTrulyNearest(0)
@@ -217,7 +217,7 @@ object Reduction {
             val dstFramebuffer = if (w == 1 && h == 1) {
                 if (op.normalize) scale = 1f / (texture.width * texture.height)
                 dst
-            } else FBStack["reduction", w, h, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
+            } else FBStack["reduction", w, h, TargetType.Float32x4, 1, DepthBufferType.NONE]
 
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {

@@ -169,7 +169,7 @@ fun main() {
                 drawMode = DrawMode.POINTS
             }
 
-            val accu = Framebuffer("accu", 1, 1, TargetType.FloatTarget4, DepthBufferType.INTERNAL)
+            val accu = Framebuffer("accu", 1, 1, TargetType.Float32x4, DepthBufferType.INTERNAL)
 
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown || Input.isRightDown) {

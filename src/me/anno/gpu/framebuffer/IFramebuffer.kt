@@ -198,7 +198,7 @@ interface IFramebuffer {
     companion object {
         private val tmp4f = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
         fun createTargets(targetCount: Int, fpTargets: Boolean): Array<TargetType> {
-            val target = if (fpTargets) TargetType.FloatTarget4 else TargetType.UByteTarget4
+            val target = if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4
             return Array(targetCount) { target }
         }
     }

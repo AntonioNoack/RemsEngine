@@ -6,6 +6,7 @@ import me.anno.image.bmp.BMPWriter
 import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.utils.structures.tuples.IntPair
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -35,6 +36,7 @@ class InnerImageFile(
 
     override fun readCPUImage(): Image = content
     override fun readGPUImage(): Image = content
+    override fun readSize(): IntPair = IntPair(content.width, content.height)
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
         callback(bytes, null)

@@ -171,7 +171,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
      * */
     fun toTexture(texture: Texture2D): Texture2D {
         GFX.checkIsGFXThread()
-        texture.create(TargetType.UByteTargets[numChannels - 1])
+        texture.create(TargetType.UInt8xI[numChannels - 1])
         texture.channels = numChannels
         GFXState.useFrame(texture, 0) {
             GFXState.renderPurely {

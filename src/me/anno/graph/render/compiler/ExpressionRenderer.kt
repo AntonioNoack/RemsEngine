@@ -74,13 +74,7 @@ interface ExpressionRenderer {
                                 "   result = $expr;\n" +
                                 "}\n"
                     )
-                    shader.setTextureIndices(variables.filter {
-                        when (it.type) {
-                            GLSLType.S2D, GLSLType.S2DI, GLSLType.S2DU, GLSLType.S2DA, GLSLType.S3D, GLSLType.S2DMS,
-                            GLSLType.SCube -> true
-                            else -> false
-                        }
-                    }.map { it.name })
+                    shader.setTextureIndices(variables.filter { it.type.isSampler }.map { it.name })
                     shader.ignoreNameWarnings("d_camRot")
                 }
 

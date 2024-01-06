@@ -54,8 +54,8 @@ open class Shader(
     var fragmentSource = fragmentShader
 
     init {
-        val candidates = (vertexVariables.filter { it.type.glslName.startsWith("sampler") } +
-                fragmentVariables.filter { it.type.glslName.startsWith("sampler") }).map { it.name }
+        val candidates = (vertexVariables.filter { it.type.isSampler } +
+                fragmentVariables.filter { it.type.isSampler }).map { it.name }
         setTextureIndices(ArrayList(LinkedHashSet(candidates))) // removing duplicates, while keeping the order
     }
 
@@ -71,7 +71,7 @@ open class Shader(
         for (variable in variables) {
             var type = variable.type
             if (!GFX.supportsDepthTextures) type = type.withoutShadow()
-            if (types.add(type) && type.glslName.startsWith("sampler")) {
+            if (types.add(type) && type.isSampler) {
                 builder.append("precision highp ").append(type.glslName).append(";\n")
             }
         }

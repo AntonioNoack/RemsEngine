@@ -53,7 +53,7 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
     } * max(1, arraySize)
 
     fun declare(code: StringBuilder, prefix: String?, assign: Boolean) {
-        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
+        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.isSampler) {
             // define sampler array
             val type = if (!GFX.supportsDepthTextures) type.withoutShadow() else type
             for (index in 0 until arraySize) {
@@ -87,7 +87,7 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
     }
 
     fun declare0(code: StringBuilder, prefix: String? = null) {
-        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
+        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.isSampler) {
             throw IllegalStateException("Cannot assign to uniform array")
         } else {
             // define normal variable

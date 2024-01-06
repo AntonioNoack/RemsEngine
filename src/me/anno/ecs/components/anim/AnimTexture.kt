@@ -91,7 +91,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private fun updateAnimation(animation: Animation, start: Int): Int {
         val numFrames = animation.numFrames + 1
         ensureCapacity(start + numFrames)
-        val textureType = TargetType.FloatTarget4
+        val textureType = TargetType.Float32x4
         if (internalTexture.wasCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba

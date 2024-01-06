@@ -1,6 +1,6 @@
 package me.anno.image.raw
 
-import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
+import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
@@ -42,7 +42,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
             3 -> "rgb1"
             else -> "rgba"
         }
-        val type = UByteTargets[numChannels - 1]
+        val type = UInt8xI[numChannels - 1]
         TextureMapper.mapTexture(this.texture, texture, mapping, type, callback)
     }
 

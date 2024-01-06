@@ -33,14 +33,15 @@ import org.joml.Vector3f
 import java.util.*
 import kotlin.math.ceil
 
-// todo implement the ideas of FSR2, but just in principle and much easier
+// implement the ideas of FSR2, but just in principle and much easier
+// todo this is currently broken :/
 class FSR2v2 : ICacheData {
 
-    val dataTargetTypes = arrayOf(TargetType.FP16Target4, TargetType.FloatTarget4)
+    val dataTargetTypes = arrayOf(TargetType.Float16x4, TargetType.Float32x4)
     var data0 = Framebuffer("data", 1, 1, dataTargetTypes)
     var data1 = Framebuffer("data", 1, 1, dataTargetTypes)
 
-    var previousDepth = Framebuffer("depth", 1, 1, TargetType.FloatTarget1)
+    var previousDepth = Framebuffer("depth", 1, 1, TargetType.Float32x1)
 
     override fun destroy() {
         data0.destroy()
@@ -114,8 +115,6 @@ class FSR2v2 : ICacheData {
                     // todo by color difference (?)
                     "                           colorNWeight += prevColorNWeight * w;\n" +
                     "                           weightedDepth += depthData * w;\n" +
-                    // "                           colorNWeight = vec4(vec2(fract(depth1)), fract(prevDepth), 1.0);\n" +
-                    // "                           weightedDepth.x = prevDepth0;\n" +
                     "                       }\n" +
                     "                   }\n" +
                     "               }\n" +
@@ -171,8 +170,8 @@ class FSR2v2 : ICacheData {
                     "   vec4 colorNWeight = texelFetch(colorNWeights,uvi,0);\n" +
                     "   vec4 depth = texelFetch(depths,uvi,0)/colorNWeight.w;\n" +
                     "   result = vec4(colorNWeight.rgb/colorNWeight.w, 1.0);\n" +
-                    "   if(uv.x > 0.5) result = vec4(depth.yzw, 1.0);\n" +
-                    "   gl_FragDepth = pow(2.0,depth.x);\n" +
+                    // todo depth seems to be completely wrong... how???
+                    // "   gl_FragDepth = pow(2.0,depth.x);\n" +
                     "}\n"
         ).apply { setTextureIndices("colorNWeights", "depths") }
     }
@@ -253,15 +252,14 @@ class FSR2v2 : ICacheData {
             shader.v2f("currJitter", jx, jy)
             shader.v2i("renderSizeI", rw, rh)
             shader.v2f("renderSizeF", rw.toFloat(), rh.toFloat())
-            color.bindTrulyNearest(0)
-            depth.bindTrulyNearest(1)
-            normal.bindTrulyNearest(2)
-            motion.bindTrulyNearest(3)
+            color.bindTrulyNearest(shader, "colorTex")
+            depth.bindTrulyNearest(shader, "depthTex")
+            normal.bindTrulyNearest(shader, "normalTex")
+            motion.bindTrulyNearest(shader, "motionTex")
             data1.bindTextures(4, Filtering.TRULY_NEAREST, Clamping.CLAMP)
             shader.v2i("displaySizeI", data1.width, data1.height)
             shader.v2f("displaySizeF", data1.width.toFloat(), data1.height.toFloat())
             shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
-            // todo use these two
             shader.v1b("normalZW", normalZW)
             shader.v4f("depthMask", singleToVector[depthMask]!!)
             shader.v1f("maxWeight", 5f)
@@ -285,13 +283,16 @@ class FSR2v2 : ICacheData {
         lightNBuffer1: IFramebuffer,
         baseSameDepth1: IFramebuffer
     ) {
+
+        Texture2D.unbindAllTextures()
+
         view.drawScene(
             w, h, renderer, buffer,
             changeSize = true, hdr = true
         )
         val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, DepthBufferType.INTERNAL]
-        val motion1 = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
-        view.drawScene(w, h, motion1, motion, changeSize = false, hdr = true)
+        val motionRenderer = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
+        view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
         view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightNBuffer1)

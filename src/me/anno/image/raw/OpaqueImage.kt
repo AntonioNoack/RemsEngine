@@ -47,7 +47,7 @@ open class OpaqueImage(val src: Image) :
                     }
                 }
                 is GPUImage -> {
-                    TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UByteTarget4, callback)
+                    TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UInt8x4, callback)
                 }
                 is ByteImage -> {
                     val data = src.data
@@ -79,11 +79,11 @@ open class OpaqueImage(val src: Image) :
                     if (checkRedundancy) texture.checkRedundancy(buffer)
                     // to do check whether this is correct; should be correct :)
                     if (sync && GFX.isGFXThread()) {
-                        texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, buffer)
+                        texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
                         callback(texture, null)
                     } else GFX.addGPUTask("OpaqueImage", width, height) {
-                        texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, buffer)
+                        texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
                         callback(texture, null)
                     }

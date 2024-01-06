@@ -462,7 +462,7 @@ object Thumbs {
             if (GFX.maxSamples > 1) {
                 val newBuffer = Framebuffer(
                     srcFile.name, w, h, 1,
-                    arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE
+                    arrayOf(TargetType.UInt8x4), DepthBufferType.NONE
                 )
                 renderTarget.needsBlit = true
                 renderTarget.copyIfNeeded(newBuffer)
@@ -1548,7 +1548,7 @@ object Thumbs {
                             val transform = GFXx2D.transform
                             transform.identity().scale(1f, -1f, 1f)
                             val tex = Texture2D("textThumbs", w, h, 1)
-                            tex.create(TargetType.UByteTarget3)
+                            tex.create(TargetType.UInt8x3)
                             useFrame(tex, 0) {
                                 val tc = black
                                 val bg = -1

@@ -828,8 +828,8 @@ object ComponentUI {
                     panel.add(
                         FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                             .addChangeListener { x, y, z, w, _ ->// todo correct change listener
-                                    value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
-                                }
+                                value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                            }
 
                     )
                 }
@@ -1071,9 +1071,9 @@ object ComponentUI {
                             setChangeListener { property.set(this, it) }
                         }
 
-                        val ci = TextButton("\uD83D\uDCDA", true, style)
-                        ci.setTooltip("Open File from Project")
-                        ci.addLeftClickListener { button ->
+                        val openFromProjectButton = TextButton("\uD83D\uDCDA", true, style)
+                        openFromProjectButton.setTooltip("Open File from Project")
+                        openFromProjectButton.addLeftClickListener { button ->
                             val value1 = property.get() as? FileReference ?: InvalidRef
                             chooseFileFromProject(type1, value1, button, style) { option, _ ->
                                 fi.setValue(option, true)
@@ -1086,9 +1086,14 @@ object ComponentUI {
                         }
                         list.add(fi)
 
-                        val qi = TextButton("\uD83C\uDFA8", style)
-                        qi.setTooltip("Quick-Edit")
-                        qi.addLeftClickListener {
+                        val quickEditButton = object : TextButton("\uD83C\uDFA8", style) {
+                            override fun onUpdate() {
+                                super.onUpdate()
+                                isInputAllowed = true // hack, to make this always available
+                            }
+                        }
+                        quickEditButton.setTooltip("Quick-Edit")
+                        quickEditButton.addLeftClickListener {
                             val source = (property.get() as? FileReference)?.nullIfUndefined()
                             val prefab = PrefabCache[source]
                             if (prefab != null) {
@@ -1097,8 +1102,8 @@ object ComponentUI {
                             } else LOGGER.warn("Prefab couldn't be loaded from $source")
                         }
 
-                        fi.addButton(ci)
-                        fi.addButton(qi)
+                        fi.addButton(openFromProjectButton)
+                        fi.addButton(quickEditButton)
                         return list
                     }
 

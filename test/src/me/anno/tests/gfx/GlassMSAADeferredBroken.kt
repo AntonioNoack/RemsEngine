@@ -28,7 +28,7 @@ fun testSimple() {
     )
     val derived = base.attachFramebufferToDepth(
         "derived",
-        arrayOf(TargetType.UByteTarget4)
+        arrayOf(TargetType.UInt8x4)
     )
     useFrame(derived) {}
 }

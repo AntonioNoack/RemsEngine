@@ -5,9 +5,9 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.BufferQuality
-import me.anno.gpu.framebuffer.TargetType.Companion.FP16Targets
-import me.anno.gpu.framebuffer.TargetType.Companion.FloatTargets
-import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
+import me.anno.gpu.framebuffer.TargetType.Companion.Float16xI
+import me.anno.gpu.framebuffer.TargetType.Companion.Float32xI
+import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
@@ -31,7 +31,7 @@ object FBStack : CacheSection("FBStack") {
         val data = ArrayList<IFramebuffer>()
 
         val targetTypes = if (readDepth && !GFX.supportsDepthTextures) {
-            targetTypes + TargetType.FP16Target1
+            targetTypes + TargetType.Float16x1
         } else targetTypes
 
         override fun destroy() {
@@ -239,9 +239,9 @@ object FBStack : CacheSection("FBStack") {
 
     fun getTargetType(channels: Int, quality: BufferQuality): TargetType {
         return when (quality) {
-            BufferQuality.LOW_8 -> UByteTargets
-            BufferQuality.MEDIUM_12, BufferQuality.HIGH_16 -> FP16Targets
-            BufferQuality.HIGH_32 -> FloatTargets
+            BufferQuality.LOW_8 -> UInt8xI
+            BufferQuality.MEDIUM_12, BufferQuality.HIGH_16 -> Float16xI
+            BufferQuality.HIGH_32 -> Float32xI
         }[channels - 1]
     }
 

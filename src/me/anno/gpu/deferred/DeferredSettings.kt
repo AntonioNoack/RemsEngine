@@ -122,10 +122,10 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         for (layerIndex in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
                 "defLayer$layerIndex", when (needsHighPrecision[layerIndex]) {
-                    BufferQuality.LOW_8 -> TargetType.UByteTarget4
+                    BufferQuality.LOW_8 -> TargetType.UInt8x4
                     BufferQuality.MEDIUM_12 -> TargetType.Normal12Target4
-                    BufferQuality.HIGH_16 -> TargetType.FP16Target4
-                    else -> TargetType.FloatTarget4
+                    BufferQuality.HIGH_16 -> TargetType.Float16x4
+                    else -> TargetType.Float32x4
                 }
             )
             layers2.add(layer2)

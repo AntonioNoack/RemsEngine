@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.SignatureFile
+import me.anno.utils.structures.tuples.IntPair
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -40,6 +41,11 @@ open class InnerLazyImageFile(
 
     override fun readGPUImage(): Image {
         return gpuImage()
+    }
+
+    override fun readSize(): IntPair {
+        val image = cpuImage.value
+        return IntPair(image.width, image.height)
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {

@@ -51,7 +51,7 @@ fun main() {
     val workW = image.width - groundTruth.deltaX.toInt()
     val workH = image.height - groundTruth.deltaY.toInt()
     val dst = Texture2D("dst", workW, workH, 1)
-    dst.create(TargetType.FloatTarget1)
+    dst.create(TargetType.Float32x1)
     shader.use()
     shader.v1i("x0", groundTruth.minX.toInt())
     shader.v1i("x1", groundTruth.maxX.toInt())

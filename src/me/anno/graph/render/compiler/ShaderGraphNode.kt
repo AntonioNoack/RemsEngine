@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
+import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -185,7 +185,7 @@ class ShaderGraphNode : ActionNode(
         var buffer = buffer
         if (buffer == null || buffer.width != w || buffer.height != h) {
             buffer?.destroy()
-            val target = UByteTargets[channels - 1]
+            val target = UInt8xI[channels - 1]
             buffer = Framebuffer(
                 name, w, h, samples,
                 arrayOf(target), DepthBufferType.NONE

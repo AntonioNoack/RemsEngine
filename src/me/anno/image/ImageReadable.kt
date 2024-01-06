@@ -1,6 +1,7 @@
 package me.anno.image
 
 import me.anno.image.raw.GPUImage
+import me.anno.utils.structures.tuples.IntPair
 
 /**
  * class, where reading an image is cheap
@@ -33,6 +34,9 @@ interface ImageReadable {
      * */
     fun readGPUImage(): Image
 
-    // todo we could add functions for the metadata...
+    /**
+     * gets image size
+     * */
+    fun readSize(): IntPair
 
 }

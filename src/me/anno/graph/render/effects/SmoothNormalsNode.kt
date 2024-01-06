@@ -37,7 +37,7 @@ class SmoothNormalsNode : ActionNode(
         val normalTex = getInput(2) as? Texture ?: return
         val normal = normalTex.tex
         val depth = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: return
-        val target = TargetType.FP16Target2 // depends a bit on quality..., could be RG8 for Android
+        val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
         val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
         if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
             setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
@@ -122,7 +122,7 @@ class SmoothNormalsNode : ActionNode(
         ): Boolean {
             if (radius <= 0.5f) return false
             // input = output, so copy normal to avoid data races
-            val tmp = FBStack["tmpNormal", dst.width, dst.height, TargetType.FP16Target3, 1, DepthBufferType.NONE]
+            val tmp = FBStack["tmpNormal", dst.width, dst.height, TargetType.Float16x3, 1, DepthBufferType.NONE]
             GFXState.depthMode.use(DepthMode.ALWAYS) {
                 GFXState.useFrame(tmp) {
                     val shader = unpackShader

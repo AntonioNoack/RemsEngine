@@ -32,7 +32,7 @@ object NullFramebuffer : IFramebuffer {
 
     override fun destroy() {} // cannot really be destroyed
 
-    override fun getTargetType(slot: Int) = TargetType.UByteTarget4 // really?
+    override fun getTargetType(slot: Int) = TargetType.UInt8x4 // really?
 
     override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         throw UnsupportedOperationException()

@@ -20,52 +20,58 @@ class TargetType(
                 "fillType=${getName(fillType)}, bytesPerPixel=$bytesPerPixel, channels=$channels, isHDR=$isHDR)"
     }
 
+    /**
+     * The following constants are types as they are available on the target platform.
+     * If a format is not available, it should be replaced (by the engine) with a matching replacement,
+     * so you can use these without worrying about support.
+     * */
     @Suppress("unused")
     companion object {
 
         // luminance counts as a compressed format, so it can't be used
         // luminance_alpha neither
-        val UByteTarget1 = TargetType("u1", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, false)
-        val UByteTarget2 = TargetType("u2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
-        val UByteTarget4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
-        val UByteTarget3 = UByteTarget4 // 3 isn't supported well
-        val UByteTargets = arrayOf(UByteTarget1, UByteTarget2, UByteTarget3, UByteTarget4)
+        val UInt8x1 = TargetType("u1", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, false)
+        val UInt8x2 = TargetType("u2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
+        val UInt8x4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
+        val UInt8x3 = UInt8x4 // 3 isn't supported well
+        val UInt8xI = arrayOf(UInt8x1, UInt8x2, UInt8x3, UInt8x4)
 
-        val FloatTarget1 = if (!supportsF32Targets) UByteTarget1
+        val Float32x1 = if (!supportsF32Targets) UInt8x1
         else TargetType("f1", GL_R32F, GL_RED, GL_FLOAT, 1 * 4, 1, true)
-        val FloatTarget2 = if (!supportsF32Targets) UByteTarget2
+        val Float32x2 = if (!supportsF32Targets) UInt8x2
         else TargetType("f2", GL_RG32F, GL_RG, GL_FLOAT, 2 * 4, 2, true)
-        val FloatTarget3 = if (!supportsF32Targets) UByteTarget3
+        val Float32x3 = if (!supportsF32Targets) UInt8x3
         else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
-        val FloatTarget4 = if (!supportsF32Targets) UByteTarget4
+        val Float32x4 = if (!supportsF32Targets) UInt8x4
         else TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
-        val FloatTargets = arrayOf(FloatTarget1, FloatTarget2, FloatTarget3, FloatTarget4)
+        val Float32xI = arrayOf(Float32x1, Float32x2, Float32x3, Float32x4)
 
-        val FP16Target1 = if (!supportsF16Targets) FloatTarget1
+        val Float16x1 = if (!supportsF16Targets) Float32x1
         else TargetType("h1", GL_R16F, GL_RED, GL_HALF_FLOAT, 2, 1, true)
-        val FP16Target2 = if (!supportsF16Targets) FloatTarget2
+        val Float16x2 = if (!supportsF16Targets) Float32x2
         else TargetType("h2", GL_RG16F, GL_RG, GL_HALF_FLOAT, 2 * 2, 2, true)
-        val FP16Target3 = if (!supportsF16Targets) FloatTarget3
+        val Float16x3 = if (!supportsF16Targets) Float32x3
         else TargetType("h3", GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 2 * 3, 3, true)
-        val FP16Target4 = if (!supportsF16Targets) FloatTarget4
+        val Float16x4 = if (!supportsF16Targets) Float32x4
         else TargetType("h4", GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, 2 * 4, 4, true)
-        val FP16Targets = arrayOf(FP16Target1, FP16Target2, FP16Target3, FP16Target4)
+        val Float16xI = arrayOf(Float16x1, Float16x2, Float16x3, Float16x4)
 
         val Normal12Target4 = // not working, because compressed formats are not color-renderable :/, why ever...
-            FP16Target4 // TargetType(GL_UNSIGNED_INT_10_10_10_2, GL_RGBA, GL_UNSIGNED_BYTE, 4, true)
+            Float16x4 // TargetType(GL_UNSIGNED_INT_10_10_10_2, GL_RGBA, GL_UNSIGNED_BYTE, 4, true)
 
+        // the following formats are only available, where depth textures are supported
         val DEPTH16 = TargetType("depth16", GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 2, 1, false)
         val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 4, 1, false)
         val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 4, 1, false)
 
-        val U32Nx1 = TargetType("u32norm1", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
-        val U16Nx1 = TargetType("u16norm1", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
-        val U16Nx2 = TargetType("u16norm2", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
+        val UInt32Nx1 = TargetType("u32norm1", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
+        val UInt16Nx1 = TargetType("u16norm1", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
+        val UInt16Nx2 = TargetType("u16norm2", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
 
-        val U32x1 = TargetType("u32x1", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, 1, false)
-        val U32x2 = TargetType("u32x2", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 8, 2, false)
-        val U32x3 = TargetType("u32x3", GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT, 12, 3, false)
-        val U32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, 4, false)
+        val UInt32x1 = TargetType("u32x1", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, 1, false)
+        val UInt32x2 = TargetType("u32x2", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 8, 2, false)
+        val UInt32x3 = TargetType("u32x3", GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT, 12, 3, false)
+        val UInt32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, 4, false)
 
     }
 

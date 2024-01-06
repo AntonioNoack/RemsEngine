@@ -132,7 +132,7 @@ class WeightedBlended : TransparentPass() {
         }
 
         private val clear0 = intArrayOf(0, -1)
-        private val targets = arrayOf(TargetType.FP16Target4, TargetType.FP16Target1)
+        private val targets = arrayOf(TargetType.Float16x4, TargetType.Float16x1)
         private val blend0s = arrayOf(BlendMode.PURE_ADD, blend0)
     }
 

@@ -60,7 +60,7 @@ object MipmapCalculator {
             GFX.check()
             glTexImage2D(
                 texture.target, level, format, width, height, 0,
-                when (Texture2D.numChannels(format)) {
+                when (Texture2D.getNumChannels(format)) {
                     1 -> GL_RED
                     2 -> GL_RG
                     3 -> GL_RGB
@@ -80,7 +80,7 @@ object MipmapCalculator {
         var width = texture.width
         var height = texture.height
         if (width <= 1 && height <= 1) return
-        if (Texture2D.numChannels(texture.internalFormat) == 3) {
+        if (Texture2D.getNumChannels(texture.internalFormat) == 3) {
             // LOGGER.warn("RGB textures aren't supported!")
             glGenerateMipmap(texture.target)
         } else {

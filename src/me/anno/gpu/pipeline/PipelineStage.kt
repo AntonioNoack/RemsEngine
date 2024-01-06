@@ -223,7 +223,7 @@ class PipelineStage(
                     val layer = layers[index]
                     val m: Float // (1+m)*x+n
                     val n: Float
-                    when (Texture2D.fileType(layer.type.internalFormat)) {
+                    when (Texture2D.getNumberType(layer.type.internalFormat)) {
                         GL_UNSIGNED_BYTE.inv() -> {
                             m = 0f
                             n = 1f / ((1L shl 8) - 1f)

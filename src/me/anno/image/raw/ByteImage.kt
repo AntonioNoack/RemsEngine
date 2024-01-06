@@ -88,7 +88,7 @@ open class ByteImage(
                 }
                 Format.RGBA -> {
                     if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
-                    else texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data)
+                    else texture.create(TargetType.UInt8x3, TargetType.UInt8x4, data)
                 }
                 Format.BGRA -> {
                     texture.createBGRA(data, checkRedundancy)

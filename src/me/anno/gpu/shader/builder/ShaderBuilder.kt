@@ -46,18 +46,23 @@ class ShaderBuilder(val name: String) {
         for (stage in stages) fragment.add(stage)
     }
 
+    private fun sortedAdd(textureIndices: MutableList<String>, name: String) {
+        val idx = textureIndices.binarySearch(name)
+        if (idx < 0) textureIndices.add(-idx - 1, name)
+    }
+
     private fun collectTextureIndices(textureIndices: MutableList<String>, uniforms: Collection<Variable>) {
         for (uniform in uniforms) {
-            if (uniform.type.glslName.startsWith("sampler")) {
+            if (uniform.type.isSampler) {
                 if (uniform.arraySize >= 0) {
                     if ("${uniform.name}0" !in textureIndices) {
                         for (i in 0 until uniform.arraySize) {
                             // todo with brackets or without?
-                            textureIndices.add(uniform.name + i)
+                            sortedAdd(textureIndices, uniform.name + i)
                         }
                     }
                 } else if (uniform.name !in textureIndices) {
-                    textureIndices.add(uniform.name)
+                    sortedAdd(textureIndices, uniform.name)
                 }
             }
         }
@@ -125,7 +130,7 @@ class ShaderBuilder(val name: String) {
 
         val shader = object : Shader(
             if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
-            varying, fragment.uniforms.toList(), fragCode
+            varying, fragment.uniforms.sortedBy { it.name }, fragCode
         ) {
             override fun compile() {
                 super.compile()
@@ -144,7 +149,7 @@ class ShaderBuilder(val name: String) {
 
     fun ignore(shader: Shader, stage: ShaderStage) {
         for (param in stage.variables.filter { !it.isAttribute }) {
-            if (param.arraySize >= 0 && param.type.glslName.startsWith("sampler")) {
+            if (param.arraySize >= 0 && param.type.isSampler) {
                 for (i in 0 until param.arraySize) {
                     shader.ignoreNameWarnings(param.name + i)
                 }

@@ -90,7 +90,7 @@ fun main() {
         // random.nextFloat()
     }
     randomTex.createRGBA(randomData, false)
-    val target = FBStack["test", size, size, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
+    val target = FBStack["test", size, size, TargetType.Float32x4, 1, DepthBufferType.NONE]
     useFrame(target) {
         val shader = testShader
         shader.use()

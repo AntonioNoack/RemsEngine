@@ -38,7 +38,7 @@ fun testVideo(image: FileReference) {
     val meta = getMeta(image, false)!!
     val w = meta.videoWidth
     val h = meta.videoHeight
-    val dst1 = Framebuffer("dst", w, h, TargetType.UByteTarget4, DepthBufferType.NONE)
+    val dst1 = Framebuffer("dst", w, h, TargetType.UInt8x4, DepthBufferType.NONE)
     var ctr = 0
     fun process(src: FileReference, dst: FileReference) {
         TextureCache.clear()

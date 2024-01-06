@@ -8,6 +8,6 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 fun main() {
     // fixed sample locations wasn't set, which caused a crash
     HiddenOpenGLContext.createOpenGL()
-    Framebuffer("", 256, 256, 8, arrayOf(TargetType.UByteTarget4), DepthBufferType.INTERNAL)
+    Framebuffer("", 256, 256, 8, arrayOf(TargetType.UInt8x4), DepthBufferType.INTERNAL)
         .create()
 }

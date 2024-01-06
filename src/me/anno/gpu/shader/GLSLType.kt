@@ -32,6 +32,8 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int, val 
     // S3DA("sampler3DArray", 26, 1000, false),// not necessarily supported
     ;
 
+    val isSampler = glslName.startsWith("sampler")
+
     override fun toString(): String = glslName
 
     fun withoutShadow(): GLSLType {

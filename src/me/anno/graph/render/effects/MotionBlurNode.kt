@@ -34,7 +34,7 @@ class MotionBlurNode : ActionNode(
         setInput(2, 0.5f)
     }
 
-    private val framebuffer = Framebuffer(name, 1, 1, arrayOf(TargetType.FP16Target3))
+    private val framebuffer = Framebuffer(name, 1, 1, arrayOf(TargetType.Float16x3))
 
     override fun onDestroy() {
         super.onDestroy()

@@ -49,7 +49,7 @@ fun main() {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
 
-                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UByteTarget4, 8, DepthBufferType.NONE]
+                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UInt8x4, 8, DepthBufferType.NONE]
                 msaaBuffer.clearColor(-1, false)
 
                 val transform = Matrix4fArrayList()

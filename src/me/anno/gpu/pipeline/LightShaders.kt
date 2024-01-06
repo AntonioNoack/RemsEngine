@@ -84,13 +84,13 @@ object LightShaders {
     ) {
         val shader = getCombineLightShader(deferred)
         shader.use()
-        scene.bindTrulyNearestMS(3)
+        scene.bindTrulyNearestMS(shader.getTextureIndex("defLayer0"))
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
         (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(3)
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
-        skybox.bind(2, Filtering.LINEAR)
-        ssao.bindTrulyNearest(1)
-        light.bindTrulyNearestMS(0)
+        skybox.bind(shader.getTextureIndex("skybox"), Filtering.LINEAR)
+        ssao.bindTrulyNearest(shader, "occlusionTex")
+        light.bindTrulyNearestMS(shader.getTextureIndex("lightTex"))
         combineLighting1(shader, applyToneMapping)
     }
 
@@ -202,13 +202,11 @@ object LightShaders {
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
-            val textures = listOf("lightTex", "occlusionTex", "metallicTex") + settingsV2.layers2.map { it.name }
             shader.ignoreNameWarnings(
                 "tint", "invLocalTransform", "d_camRot", "d_fovFactor",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3",
                 "defLayer4", "defLayer5", "defLayer6", "defLayer7"
             )
-            shader.setTextureIndices(textures)
             shader
         }
     }
@@ -476,12 +474,6 @@ object LightShaders {
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
             val shader = builder.create("lht${type.ordinal}")
-            // find all textures
-            // first the ones for the deferred data
-            // then the ones for the shadows
-            val textures = settingsV2.layers2.map { it.name } +
-                    listOf("shadowMapCubic0", "depthTex") +
-                    Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
             shader.ignoreNameWarnings(
                 "tint", "invLocalTransform", "colors",
                 "tangents", "uvs", "normals", "isDirectional",
@@ -489,7 +481,6 @@ object LightShaders {
                 "receiveShadows", "countPerPixel", "worldScale", "cameraPosition", "invScreenSize",
                 "fullscreen", "prevLocalTransform", "data1", "cameraRotation"
             )
-            shader.setTextureIndices(textures)
             shader
         }
     }

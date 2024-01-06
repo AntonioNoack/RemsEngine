@@ -52,7 +52,7 @@ open class FileInput(
         button.textColor = textColor.withAlpha(0.5f)
         button.disableFocusColors()
         buttons.add(button)
-        add(base.indexInParent, button)
+        add(children.lastIndex, button)
     }
 
     init {
@@ -90,14 +90,13 @@ open class FileInput(
             textColor = textColor.withAlpha(0.5f)
             disableFocusColors()
         }
-        this += button
-        buttons.add(button)
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
         base.weight = 1f
         base2.weight = 1f
         this += base
+        addButton(button)
     }
 
     override var textSize: Float

@@ -32,8 +32,8 @@ class FramebufferArray(
         depthBufferType: DepthBufferType
     ) : this(
         name, width, height, layers, samples, if (fpTargets)
-            Array(targetCount) { TargetType.FloatTarget4 } else
-            Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
+            Array(targetCount) { TargetType.Float32x4 } else
+            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
     )
 
     // multiple targets, layout=x require shader version 330+

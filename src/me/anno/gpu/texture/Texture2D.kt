@@ -86,7 +86,7 @@ open class Texture2D(
     var ref: FileReference = InvalidRef
         private set
         get() {
-            val numChannels = numChannels(internalFormat)
+            val numChannels = getNumChannels(internalFormat)
             val hasAlphaChannel = numChannels == 4
             if (field == InvalidRef) field = GPUImage(this, numChannels, hasAlphaChannel).ref
             return field
@@ -263,7 +263,7 @@ open class Texture2D(
             }
             this.internalFormat = internalFormat
             // todo do we keep this, or do we strive for consistency?
-            if (numChannels(internalFormat) == 1) {
+            if (getNumChannels(internalFormat) == 1) {
                 swizzleMonochrome()
             }
             createdW = w
@@ -303,9 +303,9 @@ open class Texture2D(
         upload(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
-    fun createRGB() = create(TargetType.UByteTarget3)
-    fun createRGBA() = create(TargetType.UByteTarget4)
-    fun createFP32() = create(TargetType.FloatTarget4)
+    fun createRGB() = create(TargetType.UInt8x3)
+    fun createRGBA() = create(TargetType.UInt8x4)
+    fun createFP32() = create(TargetType.Float32x4)
 
     fun create(type: TargetType) {
         beforeUpload(0, 0)
@@ -875,7 +875,7 @@ open class Texture2D(
     fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        upload(TargetType.UByteTarget1, data)
+        upload(TargetType.UInt8x1, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 1, 1)
     }
@@ -979,7 +979,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        upload(TargetType.UByteTarget1, buffer)
+        upload(TargetType.UInt8x1, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 1, 1)
     }
@@ -990,7 +990,7 @@ open class Texture2D(
         val byteBuffer = bufferPool[data2.size * 4, false, false]
         byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        upload(TargetType.FloatTarget4, byteBuffer)
+        upload(TargetType.Float32x4, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(true, 16, 4)
     }
@@ -999,7 +999,7 @@ open class Texture2D(
         beforeUpload(4, data.capacity())
         if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        upload(TargetType.FloatTarget4, buffer)
+        upload(TargetType.Float32x4, buffer)
         afterUpload(true, 16, 4)
     }
 
@@ -1050,7 +1050,7 @@ open class Texture2D(
     fun createRGBA(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(4, data.remaining())
         if (checkRedundancy) checkRedundancy(data, false)
-        upload(TargetType.UByteTarget4, data)
+        upload(TargetType.UInt8x4, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 4, 4)
     }
@@ -1456,7 +1456,7 @@ open class Texture2D(
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }
 
-        fun numChannels(format: Int): Int {
+        fun getNumChannels(format: Int): Int {
             return when (format) {
                 0 -> 0
                 GL_R8, GL_R8I, GL_R8UI, GL_R16F, GL_R16I, GL_R16UI, GL_R32F, GL_R32I, GL_R32UI -> 1
@@ -1466,7 +1466,7 @@ open class Texture2D(
             }
         }
 
-        fun fileType(format: Int): Int {
+        fun getNumberType(format: Int): Int {
             return when (format) {
                 GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> GL_UNSIGNED_BYTE.inv()
                 GL_R8UI, GL_RG8UI, GL_RGB8UI, GL_RGBA8UI -> GL_UNSIGNED_BYTE

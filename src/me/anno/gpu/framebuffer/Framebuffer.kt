@@ -11,7 +11,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
-import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL43C.*
 
@@ -29,8 +28,8 @@ class Framebuffer(
         depthBufferType: DepthBufferType
     ) : this(
         name, w, h, samples, if (fpTargets)
-            Array(targetCount) { TargetType.FloatTarget4 } else
-            Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
+            Array(targetCount) { TargetType.Float32x4 } else
+            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
     )
 
     constructor(
