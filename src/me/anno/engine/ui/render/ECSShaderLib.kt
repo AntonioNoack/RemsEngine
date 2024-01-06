@@ -7,6 +7,16 @@ import me.anno.gpu.shader.builder.VariableMode
 
 object ECSShaderLib {
 
+    val defaultIgnored = listOf(
+        "finalSheen", "finalTranslucency", "metallicMinMax",
+        "emissiveBase", "normalStrength",
+        "occlusionStrength", "invLocalTransform",
+        "numberOfLights", "roughnessMinMax", "finalClearCoat",
+        "worldScale", "drawMode", "applyToneMapping",
+        "colors", "cameraPosition", "cameraRotation",
+        "prevWorldScale", "tint"
+    )
+
     val simpleShader = BaseShader(
         "SimpleECS", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
@@ -22,25 +32,9 @@ object ECSShaderLib {
                 "   finalColor = diffuseBase.rgb;\n" +
                 "   finalAlpha = diffuseBase.a;\n" +
                 "}\n"
-    ).apply {
-        ignoreNameWarnings(
-            "normalStrength", "emissiveBase", "roughnessMinMax",
-            "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalSheen",
-            "sheen", "finalClearCoat"
-        )
-    }
+    ).ignoreNameWarnings(defaultIgnored)
 
-    // todo create standard list of names to ignore LOL
     val pbrModelShader = ECSMeshShader("ECSMeshShader").apply {
-        ignoreNameWarnings(
-            "finalSheen", "finalTranslucency", "metallicMinMax",
-            "emissiveBase", "normalStrength",
-            "occlusionStrength", "invLocalTransform",
-            "numberOfLights", "roughnessMinMax", "finalClearCoat",
-            "worldScale", "drawMode", "applyToneMapping",
-            "colors", "cameraPosition", "cameraRotation",
-            "prevWorldScale", "tint"
-        )
+        ignoreNameWarnings(defaultIgnored)
     }
-
 }

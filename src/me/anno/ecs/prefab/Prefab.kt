@@ -114,14 +114,14 @@ class Prefab : Saveable {
         var sum = adds.size + sets.size
         if (depth > 0) {
             if (prefab != InvalidRef) {
-                val prefab = PrefabCache[prefab, maxPrefabDepth, async]
+                val prefab = PrefabCache[prefab, async]
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for ((_, addI) in adds) {
                 for (change in addI) {
                     val childPrefab = change.prefab
                     if (childPrefab != InvalidRef) {
-                        val prefab = PrefabCache[childPrefab, maxPrefabDepth, async]
+                        val prefab = PrefabCache[childPrefab, async]
                         if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
                     }
                 }

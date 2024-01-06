@@ -24,6 +24,8 @@ import org.joml.Matrix4d
 /**
  * Easy way to draw outlines: scale the object up, make it white, only draw back faces;
  * For better visual quality, use OutlineEffectNode in your post-processing pipeline.
+ *
+ * This currently isn't used in the engine anymore, because post-processing outlines look better.
  * */
 @Suppress("unused")
 object Outlines {

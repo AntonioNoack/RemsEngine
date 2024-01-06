@@ -1,9 +1,11 @@
 package me.anno.ui.debug
 
+import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -13,7 +15,10 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
@@ -51,13 +56,14 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
         if (button == Key.BUTTON_LEFT) {
             // open console in large with scrollbar
+            val wrapper = PanelListY(style)
+            wrapper += TextButton(Dict["Close", "ui.general.close"], false, style)
+                .addLeftClickListener(Menu::close)
             val listPanel = ConsoleLogFullscreen(style)
+            wrapper.add(listPanel.fill(1f))
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.content as PanelList
-            list += TextButton(Dict["Close", "ui.general.close"], false, style).addLeftClickListener {
-                windowStack.pop().destroy()
-            }
             val lcl = lastConsoleLines.toList()
             for (i in lcl.indices) {
                 val msg = lcl.getOrNull(i) ?: continue
@@ -69,7 +75,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
             }
-            windowStack.add(Window(listPanel, isTransparent = false, windowStack))
+            windowStack.add(Window(wrapper, isTransparent = false, windowStack))
         }
     }
 
@@ -123,7 +129,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val info = RuntimeInfoPanel(style)
             info.alignmentX = AxisAlignment.MAX
             info.tooltip = "Click to invoke garbage collector"
-            info.addLeftClickListener {
+            fun runGC() {
                 val runtime = Runtime.getRuntime()
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
                 Texture2D.gc()
@@ -138,6 +144,22 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                                 "  freed: ${max(0L, oldMemory - newMemory).formatFileSize()}"
                     )
                 }
+            }
+            info.addLeftClickListener {
+                runGC()
+            }
+            info.addRightClickListener {
+                Menu.openMenu(it.windowStack, listOf(
+                    MenuOption(NameDesc("Edit Config")) {
+                        RemsEngine.openConfigWindow(it.windowStack)
+                    },
+                    MenuOption(NameDesc("Edit Style")) {
+                        RemsEngine.openStylingWindow(it.windowStack)
+                    },
+                    MenuOption(NameDesc("Run GC")) {
+                        runGC()
+                    }
+                ))
             }
 
             if (bottom) {

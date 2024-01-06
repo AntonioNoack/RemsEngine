@@ -30,6 +30,7 @@ import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.WindowStack
 import me.anno.ui.WindowStack.Companion.createReloadWindow
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
@@ -199,17 +200,11 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
         val options = OptionBar(style)
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
-            val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
-            panel.create()
-            windowStack.push(window)
+            openConfigWindow(windowStack)
         }
 
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
-            val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
-            panel.create()
-            windowStack.push(window)
+            openStylingWindow(windowStack)
         }
 
         list.add(options)
@@ -256,6 +251,20 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
     }
 
     companion object {
+
+        fun openConfigWindow(windowStack: WindowStack) {
+            val panel = ConfigPanel(DefaultConfig, false, style)
+            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { instance?.createUI() }
+            panel.create()
+            windowStack.push(window)
+        }
+
+        fun openStylingWindow(windowStack: WindowStack) {
+            val panel = ConfigPanel(style.values, true, style)
+            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { instance?.createUI() }
+            panel.create()
+            windowStack.push(window)
+        }
 
         fun collectSelected(): Any {
             val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }

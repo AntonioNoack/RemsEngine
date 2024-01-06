@@ -6,7 +6,6 @@ import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.editor.code.CodeEditor
@@ -23,10 +22,7 @@ fun themeInput(editor: CodeEditor): Panel {
 }
 
 fun wrapScrolling(editor: CodeEditor): Panel {
-    editor.weight = 1f
-    return ScrollPanelY(editor, style).apply {
-        weight = 1f
-    }
+    return ScrollPanelY(editor.fill(1f), style).fill(1f)
 }
 
 fun testCodeEditor(title: String, editor: CodeEditor) {

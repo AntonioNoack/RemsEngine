@@ -78,14 +78,7 @@ open class ByteImage(
                 Format.RG -> texture.createRG(data, checkRedundancy)
                 Format.RGB -> texture.createRGB(data, checkRedundancy)
                 Format.BGR -> texture.createBGR(data, checkRedundancy)
-                Format.ARGB -> {
-                    if (hasAlphaChannel && hasAlpha(data)) {
-                        texture.createARGB(data, checkRedundancy)
-                    } else {
-                        // todo we don't need alpha here
-                        texture.createARGB(data, checkRedundancy)
-                    }
-                }
+                Format.ARGB -> texture.createARGB(data, checkRedundancy)
                 Format.RGBA -> {
                     if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
                     else texture.create(TargetType.UInt8x3, TargetType.UInt8x4, data)

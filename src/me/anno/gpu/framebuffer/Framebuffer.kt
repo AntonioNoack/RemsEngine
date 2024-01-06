@@ -177,7 +177,7 @@ class Framebuffer(
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
 
-        // todo is this fine? might cost a lof ot performance...
+        // todo is this fine? might cost a lot ot performance...
         val textures = textures
         if (textures != null) {
             for (texture in textures) {

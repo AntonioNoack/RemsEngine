@@ -297,8 +297,6 @@ object DebugRendering {
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
 
-        // todo add another for depth
-
         val layers = deferred.settingsV1
         val size = layers.size + 2 /* 1 for light, 1 for depth */
         val (rows, cols) = view.findRowsCols(size)

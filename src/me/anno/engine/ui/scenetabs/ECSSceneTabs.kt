@@ -21,8 +21,6 @@ import org.apache.logging.log4j.LogManager
 
 object ECSSceneTabs : ScrollPanelX(style) {
 
-    // todo if a name is already in use, try a different one
-
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)
 
     val content = child as PanelList
@@ -70,6 +68,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         for (tab in children3) {
             if (tab.file != file) {
                 var file1 = file
+                // if a name is already in use, try a different one
                 while (tab.text.equals(name, true)) {
                     val parent = file1.getParent() ?: break
                     name = parent.nameWithoutExtension

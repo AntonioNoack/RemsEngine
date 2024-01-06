@@ -39,10 +39,10 @@ object PrefabCache : CacheSection("Prefab") {
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
     operator fun get(resource: FileReference?, async: Boolean) =
-        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, async))
+        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async))
 
-    operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false) =
-        pairToPrefab(getPrefabPair(resource, depth, async))
+    operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, timeout: Long = prefabTimeout, async: Boolean = false) =
+        pairToPrefab(getPrefabPair(resource, depth, timeout, async))
 
     private fun pairToPrefab(pair: FileReadPrefabData?): Prefab? {
         pair ?: return null
@@ -58,7 +58,7 @@ object PrefabCache : CacheSection("Prefab") {
     fun getPrefabInstance(resource: FileReference?, async: Boolean) = getPrefabInstance(resource, maxPrefabDepth, async)
 
     fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): ISaveable? {
-        val pair = getPrefabPair(resource, depth, async) ?: return null
+        val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
         } catch (e: UnknownClassException) {
@@ -228,20 +228,21 @@ object PrefabCache : CacheSection("Prefab") {
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
+        timeout: Long = prefabTimeout,
         async: Boolean = false
     ): FileReadPrefabData? {
         return when {
             resource == null || resource == InvalidRef -> null
             resource is InnerLinkFile -> {
                 LOGGER.debug("[link] {} -> {}", resource, resource.link)
-                getPrefabPair(resource.link, depth, async)
+                getPrefabPair(resource.link, depth, timeout, async)
             }
             resource is PrefabReadable -> {
                 val prefab = resource.readPrefab()
                 FileReadPrefabData(resource).apply { value = prefab }
             }
             resource.exists && !resource.isDirectory -> {
-                val entry = getFileEntry(resource, false, prefabTimeout, async, ::loadPrefabPair)
+                val entry = getFileEntry(resource, false, timeout, async, ::loadPrefabPair)
                 if (entry is FileReadPrefabData && entry.hasValue && entry.value == null) {
                     LOGGER.warn("Could not load $resource as prefab")
                     return null

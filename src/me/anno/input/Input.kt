@@ -297,11 +297,7 @@ object Input {
                 for (it in inFocus) it.onDeleteKey(mouseX, mouseY)
                 inFocus.removeAll(inFocusTreeViews.toSet())
             }
-            Key.KEY_BACKSPACE -> {
-                // todo secondary windows are not reacting... why?
-                // GFX.createWindow("Test", TextPanel("this is a test", style))
-                inFocus0?.onBackSpaceKey(mouseX, mouseY)
-            }
+            Key.KEY_BACKSPACE -> inFocus0?.onBackSpaceKey(mouseX, mouseY)
             Key.KEY_TAB -> {
                 if (inFocus0 != null) {
                     if (isShiftDown || isControlDown

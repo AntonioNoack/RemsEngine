@@ -462,6 +462,14 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
             "Redo" -> history.redo()
             "Undo" -> history.undo()
+            "Search" -> {
+                // todo search things
+                // todo option to search in all known (code) files?
+            }
+            "Replace" -> {
+                // todo open UI for replacing things
+
+            }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -722,6 +730,8 @@ open class CodeEditor(style: Style) : Panel(style) {
             ActionManager.register("CodeEditor.z.t.cs", "Redo")
             ActionManager.register("CodeEditor.y.t.c", "Undo")
             ActionManager.register("CodeEditor.y.t.cs", "Redo")
+            ActionManager.register("CodeEditor.r.t.c", "Replace")
+            ActionManager.register("CodeEditor.f.t.c", "Search")
         }
     }
 }

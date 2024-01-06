@@ -86,26 +86,5 @@ object Accumulation {
         GFX.check()
         return src
     }
-
     // todo graphics-only implementation for web
-
-    // I just re-invented geometry shaders... stupid!
-    // todo how well do/would they work compared to normal geometry buffers?
-    //class ConditionalDynamicShader {
-
-    // to do components:
-    // to do (compute-)generation shader
-
-    // to do update() -> ensures buffers, generates geometry on gpu side
-    // to do -> accumulate number of triangles
-    // to do -> then write the triangles at their correct place
-
-    // to do then later, use the mesh for rendering :)
-
-    // sample: max(sin(x+y*0.1), 0), only generate triangle, if at least one entry is > 0
-
-    // to do invoke drawing based on last element of accumulation table
-
-    // }
-
 }

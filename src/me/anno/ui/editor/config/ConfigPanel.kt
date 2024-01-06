@@ -1,32 +1,32 @@
 package me.anno.ui.editor.config
 
+import me.anno.config.DefaultStyle
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
-import java.util.*
 import kotlin.math.max
 
-// todo allow fields to be added
 /**
  * UI for editing the base configuration and style
  * */
 class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : PanelListY(style) {
 
     val deep = style.getChild("deep")
-    val searchBar = PanelListX(deep)
+    val bottomPanel = PanelListX(deep)
 
     val mainBox = CustomList(false, style)
     val topicTree = PanelListY(style)
@@ -46,14 +46,13 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
         add(topicTree, 1f)
         add(contentListUI, 3f)
-        searchBar += TextButton(Dict["Close", "ui.general.close"], deep)
+        bottomPanel += TextButton(Dict["Close", "ui.general.close"], deep)
             .addLeftClickListener { windowStack.pop().destroy() }
-        searchBar += TextButton(Dict["Add Field", "ui.general.addField"], deep)
+        bottomPanel += TextButton(Dict["Add Field", "ui.general.addField"], deep)
             .addLeftClickListener {
                 val keyPanel = TextInput("Key", "", lastTopic, style)
                 val valuePanel = TextInput("Value", "", "", style)
                 val submit = TextButton("Set", style)
-                // todo we also need a way to delete fields
                 submit.addLeftClickListener {
                     if (keyPanel.value.isNotBlank()) {
                         config[keyPanel.value.trim()] = valuePanel.value
@@ -71,19 +70,33 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                     listOf(keyPanel, valuePanel, buttons)
                 )
             }
-        if (isStyle) {
-            searchBar += TextButton(Dict["Apply", "ui.general.apply"], deep).addLeftClickListener {
-                createTopics()
-                lastTopic = "-"
-                applySearch(searchInput.value)
-            }
+        fun apply() {
+            createTopics()
+            lastTopic = "-"
+            applySearch(searchInput.value)
         }
-        searchBar += searchInput.apply {
+        if (isStyle) {
+            bottomPanel += TextButton(Dict["Apply", "ui.general.apply"], deep)
+                .addLeftClickListener {
+                    apply()
+                }
+        }
+        bottomPanel += TextButton("Clear All", deep)
+            .addLeftClickListener {
+                ask(it.windowStack, NameDesc("This will reset all custom settings. Are you sure?")) {
+                    config.clear()
+                    if (isStyle) {
+                        DefaultStyle.initDefaults()
+                        apply()
+                    }
+                }
+            }
+        bottomPanel += searchInput.apply {
             addChangeListener { query -> applySearch(query) }
             weight = 1f
         }
         this += mainBox
-        this += searchBar
+        this += bottomPanel
     }
 
     private fun applySearch(query: String) {

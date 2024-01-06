@@ -115,7 +115,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
     init {
         text = getDebugText()
-        textColor = textColor.withAlpha(0x7f)
+        textColor = textColor.withAlpha(127)
     }
 
     companion object {

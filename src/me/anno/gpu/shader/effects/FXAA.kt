@@ -27,8 +27,6 @@ object FXAA {
 
     // not ideal, but still ok most times
     // todo curves are still an issue
-    // if we are lucky, FSR 2.0 tells us how to implement this without bugs :)
-    // only issue: axis aligned boxes...
 
     val shader = lazy {
         Shader(

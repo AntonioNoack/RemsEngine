@@ -38,18 +38,12 @@ object EditorState {
             if (value != null) control = null
         }
 
-    // todo we should be able to edit multiple values of the same type at the same time
     var selection: List<Inspectable> = emptyList()
 
     val typeList = arrayListOf(
-        // todo not all stuff here makes sense
-        // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
         CustomPanelType(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(PlayMode.EDITING, DefaultConfig.style) },
         CustomPanelType(Dict["Tree View", "ui.customize.treeView"]) { ECSTreeView(DefaultConfig.style) },
         CustomPanelType(Dict["Properties", "ui.customize.inspector"]) { PropertyInspector({ selection }, DefaultConfig.style) },
-        // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
-        // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
-        // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
         CustomPanelType(Dict["Files", "ui.customize.fileExplorer"]) { ECSFileExplorer(projectFile, DefaultConfig.style) }
     )
 

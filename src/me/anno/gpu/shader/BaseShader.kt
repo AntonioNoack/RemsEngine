@@ -127,8 +127,9 @@ open class BaseShader(
         renderer.uploadDefaultUniforms(shader)
     }
 
-    fun ignoreNameWarnings(names: Collection<String>) {
+    fun ignoreNameWarnings(names: Collection<String>): BaseShader {
         ignoredNameWarnings += names
+        return this
     }
 
     fun ignoreNameWarnings(vararg names: String): BaseShader {

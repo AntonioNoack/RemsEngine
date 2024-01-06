@@ -37,7 +37,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
-            // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
+            // to do most meshes don't need such high precision, maybe use u8 or u16 or fp16
             GFX.checkIsGFXThread()
             val buffers = blasList.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
@@ -110,7 +110,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
-            // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
+            // to do most meshes don't need such high precision, maybe use u8 or u16 or fp16
             val buffers = roots.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }

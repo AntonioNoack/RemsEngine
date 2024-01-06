@@ -4,9 +4,11 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.FontListMenu.createFontInput
 import me.anno.ui.input.*
@@ -34,6 +36,12 @@ class ContentCreator(
     fun createPanels(list: PanelList) {
         val shortTitle = shortName.camelCaseToTitle()
         val title = TextPanel(shortTitle, style)
+        title.addRightClickListener {
+            Menu.ask(list.windowStack, NameDesc("Delete/Reset Value?")) {
+                map.remove(fullName)
+                title.text = "// $shortTitle"
+            }
+        }
         val pad = title.font.sizeInt
         when (val value = map[fullName]!!) {
             is Boolean -> {
@@ -69,8 +77,8 @@ class ContentCreator(
                     }
                     is FileReference -> {
                         FileInput("", style, value, emptyList())
+                            .apply { base.setPlaceholder(shortTitle) }
                             .setChangeListener { map[fullName] = it }
-                        // todo placeholder (?)
                     }
                     is Int -> {
                         if (value.a() > 100 || "Color" in fullName || fullName.endsWith("background")) {

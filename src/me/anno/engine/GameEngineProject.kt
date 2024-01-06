@@ -2,12 +2,11 @@ package me.anno.engine
 
 import me.anno.Engine
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
-import me.anno.io.ISaveable
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -203,8 +202,8 @@ class GameEngineProject() : NamedSaveable() {
                 "pdf" -> addToIndex(file, "PDF")
                 "ttf", "woff1", "woff2" -> addToIndex(file, "Font")
                 else -> {
-                    // todo specify timeout as 0ms
-                    val prefab = PrefabCache[file, false]
+                    val timeout = 0L // because we don't really need it
+                    val prefab = PrefabCache[file, maxPrefabDepth, timeout, false]
                     if (prefab != null) {
                         addToIndex(file, prefab.clazzName)
                     }

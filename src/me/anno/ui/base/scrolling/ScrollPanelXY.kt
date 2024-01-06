@@ -2,7 +2,6 @@ package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
 import me.anno.config.ConfigRef
-import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
@@ -137,10 +136,11 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return hasScrollbarY && drawsOverY(this.lx0, this.ly0, this.lx1, this.ly1, sbWidth, lx0, ly0, lx1, ly1)
     }
 
+    var maxSize = 100 // good size?
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(maxLength - padding.width, maxLength - padding.height)
-        minW = child.minW + padding.width + hasScrollbarY.toInt(scrollbarWidth)
-        minH = child.minH + padding.height + hasScrollbarX.toInt(scrollbarHeight)
+        minW = min(maxSize, child.minW) + padding.width + hasScrollbarY.toInt(scrollbarWidth)
+        minH = min(maxSize, child.minH) + padding.height + hasScrollbarX.toInt(scrollbarHeight)
     }
 
     override fun setSize(w: Int, h: Int) {

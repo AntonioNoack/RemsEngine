@@ -1,14 +1,15 @@
 package me.anno.ui.debug.console
 
 import me.anno.input.Key
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.Style
 
 class ConsoleLogFullscreen(style: Style) : ScrollPanelXY(Padding(5), style) {
     override fun onBackSpaceKey(x: Float, y: Float) {
-        windowStack.pop().destroy()
+        Menu.close(this)
     }
 
     override fun onSelectAll(x: Float, y: Float) {

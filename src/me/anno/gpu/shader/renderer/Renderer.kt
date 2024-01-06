@@ -94,7 +94,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             )
         )
 
-        // todo randomness based on object position?
+        // randomness based on object position? -> we don't have that in the shader though :/
         val randomIdRenderer = SimpleRenderer(
             "randomId", ShaderStage(
                 "randomId", listOf(

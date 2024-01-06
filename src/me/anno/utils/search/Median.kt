@@ -5,6 +5,11 @@ import me.anno.utils.structures.lists.Lists.partition1
 
 object Median {
 
+    // to do (low priority until sb really needs this to perform well):
+    // implement median of medians
+    //  - split into sqrt(len) sections,
+    //  - calculate median each
+    //  - calculate the median of medians -> final median
     fun <V> MutableList<V>.median(comparator: Comparator<V>): V {
         return median(0, size, comparator)
     }

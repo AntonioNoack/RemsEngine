@@ -557,7 +557,7 @@ object Thumbs {
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val data = waitUntilDefined(true) {
-            PrefabCache[srcFile, maxPrefabDepth, true]
+            PrefabCache[srcFile, true]
         }.getSampleInstance() as Entity
         generateEntityFrame(srcFile, dstFile, size, data, callback)
     }

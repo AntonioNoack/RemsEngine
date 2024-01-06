@@ -57,11 +57,10 @@ class ShaderBuilder(val name: String) {
                 if (uniform.arraySize >= 0) {
                     if ("${uniform.name}0" !in textureIndices) {
                         for (i in 0 until uniform.arraySize) {
-                            // todo with brackets or without?
                             sortedAdd(textureIndices, uniform.name + i)
                         }
                     }
-                } else if (uniform.name !in textureIndices) {
+                } else {
                     sortedAdd(textureIndices, uniform.name)
                 }
             }
