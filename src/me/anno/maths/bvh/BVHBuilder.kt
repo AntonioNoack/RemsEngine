@@ -9,6 +9,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.log2i
 import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.search.Median.median
 import me.anno.utils.structures.lists.Lists.partition1
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -88,6 +89,7 @@ object BVHBuilder {
         splitMethod: SplitMethod,
     ) = buildTLAS(objects, splitMethod, 0, objects.size)
 
+    @Suppress("DEPRECATION")
     fun <V : TLASLeaf0> buildTLAS(
         objects: ArrayList<V>, splitMethod: SplitMethod,
         start: Int, end: Int, // array indices
@@ -122,16 +124,14 @@ object BVHBuilder {
                             t.centroid[dim] < midF
                         }
                         if (mid == start || mid >= end - 1) {// middle didn't work -> use more elaborate scheme
-                            // mid = (start + end) / 2
-                            mid = objects.median(start, end) { t0, t1 ->
-                                t0.centroid[dim].compareTo(t1.centroid[dim])
-                            }
+                            mid = medianApprox(objects, start, end, dim)
                         }
                     }
                     SplitMethod.MEDIAN -> {
-                        mid = objects.median(start, end) { t0, t1 ->
+                        objects.median(start, end) { t0, t1 ->
                             t0.centroid[dim].compareTo(t1.centroid[dim])
                         }
+                        mid = (start + end) ushr 1
                     }
                     SplitMethod.MEDIAN_APPROX -> {
                         mid = medianApprox(objects, start, end, dim)
@@ -191,6 +191,7 @@ object BVHBuilder {
         return mid
     }
 
+    @Suppress("DEPRECATION")
     private fun recursiveBuildBLAS(
         positions: FloatArray,
         indices: IntArray,
@@ -326,15 +327,6 @@ object BVHBuilder {
         return mid
     }
 
-    fun <V> ArrayList<V>.median(
-        start: Int, end: Int,
-        condition: (t0: V, t1: V) -> Int
-    ): Int {
-        // not optimal performance, but at least it will 100% work
-        subList(start, end).sortWith(condition)
-        return (start + end) ushr 1
-    }
-
     fun median(
         positions: FloatArray, indices: IntArray, start: Int, end: Int,
         condition: (
@@ -342,11 +334,14 @@ object BVHBuilder {
             Vector3f, Vector3f, Vector3f
         ) -> Int
     ) {
-        // todo fix performance of this
+        // to do fix performance of this
         // not optimal performance, but at least it will 100% work
         val count = end - start
-        val solution = Array(count) { start + it }
-        solution.sortWith { a, b ->
+        val solution = ArrayList<Int>(count)
+        for (it in 0 until count) {
+            solution.add(start + it)
+        }
+        solution.median(0, count) { a, b ->
             comp(positions, indices, a, b, condition)
         }
         val c3 = count * 3

@@ -23,7 +23,7 @@ object RendererLib {
 
     val sampleSkyboxForAmbient = "" +
             // depends on metallic & roughness
-            // todo why does the LOD look to be well chosen, although I have done nothing?
+            // todo why does the LOD look to be well-chosen, although I have done nothing?
             "vec3 sampleSkyboxForAmbient(vec3 dir, float metallic, float roughness) {\n" +
             "   float reflectivity = max(metallic * (1.0 - roughness), 0.0);\n" + // why can sqrt be skipped here?
             "   return (1.0 - reflectivity) * texture(skybox, -${cubemapsAreLeftHanded} * dir).rgb;\n" +

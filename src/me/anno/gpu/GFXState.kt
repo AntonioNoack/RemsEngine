@@ -31,7 +31,14 @@ object GFXState {
     var session = 0
         private set
 
-    private var lastBlendMode: Any? = BlendMode.INHERIT
+    fun invalidateState() {
+        lastBlendMode = Unit
+        lastDepthMode = null
+        lastDepthMask = null
+        lastCullMode = null
+    }
+
+    private var lastBlendMode: Any? = Unit
     private var lastDepthMode: DepthMode? = null
     private var lastDepthMask: Boolean? = null
     private var lastCullMode: CullMode? = null
@@ -50,13 +57,13 @@ object GFXState {
                 return bindBlendMode(self)
             }
             is BlendMode -> {
-                if (lastBlendMode == null) {
+                if (lastBlendMode == Unit || lastBlendMode == null) {
                     glEnable(GL_BLEND)
                 }
                 newValue.forceApply()
             }
             is Array<*> -> {
-                if (lastBlendMode == null) {
+                if (lastBlendMode == Unit || lastBlendMode == null) {
                     glEnable(GL_BLEND)
                 }
                 for (i in newValue.indices) {
@@ -127,10 +134,7 @@ object GFXState {
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
-        lastBlendMode = BlendMode.INHERIT
-        lastDepthMode = null
-        lastDepthMask = null
-        lastCullMode = null
+        invalidateState()
         // clear all caches, which contain gpu data
         FBStack.clear()
         TextCache.clear()

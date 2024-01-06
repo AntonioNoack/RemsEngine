@@ -53,6 +53,7 @@
       <element id="module-output" name="Bullet" />
       <element id="module-output" name="Tests" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar" path-in-jar="/" />
+      <element id="module-output" name="SDF" />
     </root>
   </artifact>
 </component>

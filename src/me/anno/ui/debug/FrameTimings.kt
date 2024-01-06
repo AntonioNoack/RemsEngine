@@ -44,7 +44,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             values[nextIndex] = value
             nextIndex = (nextIndex + 1) % width
             fillLevel = min(fillLevel + 1, width1)
-            val max = values.max()
+            val max = values.maxOrNull() ?: 0f // max() causes issues with some Java versions
             maxValue = max(maxValue * Maths.clamp((1f - 3f * value), 0f, 1f), max)
             average = values.sum() / fillLevel
         }

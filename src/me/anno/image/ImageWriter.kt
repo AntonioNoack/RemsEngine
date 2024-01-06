@@ -12,12 +12,12 @@ import me.anno.image.raw.write
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.unmix
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
@@ -34,6 +34,9 @@ import java.awt.image.BufferedImage
 import java.util.*
 import kotlin.math.*
 
+/**
+ * utility function to write data / images to files using advanced color mappings
+ * */
 @Suppress("unused")
 object ImageWriter {
 
@@ -43,7 +46,7 @@ object ImageWriter {
     const val tileSize = 8
 
     @JvmStatic
-    fun getFile(name: String): FileReference {
+    private fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
         val file = desktop.getChild(name2)
         file.getParent()?.tryMkdirs()

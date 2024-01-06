@@ -61,7 +61,6 @@ object RayTracing {
             "   float distance = dot(p0-pos, N) / dnn;\n" +
             "   vec3 px = pos + dir * distance;\n" +
             // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-            // todo use this way in the cpu implementations as well
             "   vec3 v0 = p1-p0, v1 = p2-p0, v2 = px-p0;\n" +
             "   float d00=dot(v0,v0),d01=dot(v0,v1),d11=dot(v1,v1),d20=dot(v2,v0),d21=dot(v2,v1);\n" +
             "   float d = 1.0/(d00*d11-d01*d01);\n" +

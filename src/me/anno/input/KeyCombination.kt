@@ -19,7 +19,6 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
         /** once when down; "down", "d" */
         DOWN(0),
 
-        // todo or when moving (for dragging)
         /** while pressing, but only after a delay of 0.5s, or when moving around (not a click); "dragging" */
         DRAGGING(1),
 

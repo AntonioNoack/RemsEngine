@@ -3,12 +3,13 @@ package me.anno.utils.types
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.utils.types.Floats.f3s
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 
 @Suppress("unused")
 object Matrices {
-
-    // todo move this stuff into KOML
 
     /**
      * replace missing setter/constructor
@@ -52,5 +53,4 @@ object Matrices {
     fun Matrix4x3d.f3() = "${m00.f3s()} ${m10.f3s()} ${m20.f3s()} ${m30.f3s()}\n" +
             "${m01.f3s()} ${m11.f3s()} ${m21.f3s()} ${m31.f3s()}\n" +
             "${m02.f3s()} ${m12.f3s()} ${m22.f3s()} ${m32.f3s()}\n"
-
 }

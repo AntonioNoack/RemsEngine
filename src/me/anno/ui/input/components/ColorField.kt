@@ -70,7 +70,6 @@ class ColorField(
     override fun onCopyRequested(x: Float, y: Float) = color.toHexColor()
 
     fun setARGB(color: Int, notify: Boolean) {
-        // todo allow undo?
         this.color = color
         if (notify) changeListener(this, color)
     }
@@ -84,15 +83,6 @@ class ColorField(
             palette.onColorSelected(color)
         }
     }
-
-    /*override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        when {
-            button == Key.BUTTON_RIGHT -> {
-                // open context menu for clearing?
-            }
-            else -> super.onMouseClicked(x, y, button, long)
-        }
-    }*/
 
     override fun onEmpty(x: Float, y: Float) {
         setARGB(0, true)

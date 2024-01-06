@@ -1,7 +1,7 @@
 package me.anno.tests.engine.light
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
@@ -20,12 +20,15 @@ import kotlin.math.PI
  * except for EnvironmentMap, which is kind of a light
  * */
 fun main() {
-
     forceLoadRenderDoc()
+    spotLightTest()
+}
+
+fun spotLightTest() {
+
     ECSRegistry.init()
 
     val scene = Entity("Scene")
-    // scene.add(SkyboxBase().apply { skyColor.set(0f) })
 
     val metallic = Material()
     metallic.metallicMinMax.set(0.9f)
@@ -33,7 +36,7 @@ fun main() {
 
     // if your eyes hurt too much, reduce this number
     val numStripes = 150
-    val floorHalfSize = Vector3d(8.0, 0.1, 3.0)
+    val floorHalfSize = Vector3d(2.0, 0.1, 3.0)
     val floor = Entity("Floor", scene)
     fun placeFloor(z: Double, r: Float) {
         val stripe = Entity("Floor", floor)
@@ -59,52 +62,21 @@ fun main() {
         truck.setPosition(e.transform.localPosition.x, 0.0, 0.0)
         truck.setScale(1.0 / 64.0)
         // add an SDF sphere to test shadows there, too
+        // todo shadow-detection of spot light and directional light isn't really correct yet:
+        //  there is artifacts from incorrect depth values
         val sphere = SDFSphere()
         sphere.position.set(e.transform.localPosition.x.toFloat() - 0.35f, 0.1f, -0.2f)
         sphere.scale = 0.08f
         scene.add(sphere)
     }
 
-    // sunlight
-    val sun = Entity("Directional")
-    sun.add(DirectionalLight().apply { shadowMapCascades = 2; cutoff = 1e-3f })
-    sun.setPosition(-5.0, 0.0, 0.0)
-    sun.setRotation(-PI * 0.5, 0.0, 0.0)
-    scene.add(sun)
-    placeTruck(sun)
-
-    // local lights
-    val point = Entity("Point")
-    point.add(PointLight().apply { color.set(10f); shadowMapCascades = 1 })
-    point.setPosition(-3.0, 0.5, 0.0)
-    scene.add(point)
-    placeTruck(point)
-
     val spot = Entity("Spot")
     spot.add(SpotLight().apply { color.set(10f); shadowMapCascades = 1 })
-    spot.setPosition(-1.0, 0.5, 0.5)
+    spot.setPosition(0.0, 0.5, 0.5)
     spot.setRotation(-PI * 0.3, 0.0, 0.0)
     spot.setScale(5.0)
     scene.add(spot)
     placeTruck(spot)
-
-    val tube = Entity("Tube")
-    tube.add(RectangleLight().apply { color.set(10f); height = 0f })
-    tube.setPosition(1.0, 0.005, 0.0)
-    tube.setRotation(PI * 0.5, 0.0, 0.0)
-    scene.add(tube)
-
-    val circle = Entity("Circle")
-    circle.add(CircleLight().apply { color.set(10f) })
-    circle.setPosition(3.0, 0.005, 0.0)
-    circle.setRotation(PI * 0.5, 0.0, 0.0)
-    scene.add(circle)
-
-    val rect = Entity("Rectangle")
-    rect.add(RectangleLight().apply { color.set(10f) })
-    rect.setPosition(5.0, 0.005, 0.0)
-    rect.setRotation(PI * 0.5, 0.0, 0.0)
-    scene.add(rect)
 
     testSceneWithUI("Light Types", scene)
 }

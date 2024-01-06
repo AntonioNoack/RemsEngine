@@ -114,6 +114,9 @@ class ShaderBuilder(val name: String) {
                     if (stage.variables.any { it.isInput && name == it.name }) {
                         bridgeVariablesI2F[variable] =
                             Variable(variable.type, "bridge_${bridgeIndex++}", variable.arraySize)
+                                .apply {
+                                    isFlat = variable.isFlat
+                                }
                     }
                 }
             }

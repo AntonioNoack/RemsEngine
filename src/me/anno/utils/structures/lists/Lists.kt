@@ -204,28 +204,30 @@ object Lists {
      }*/
 
     @JvmStatic
-    fun <V> ArrayList<V>.partition1(
+    fun <V> MutableList<V>.swap(i: Int, j: Int) {
+        val t = this[i]
+        this[i] = this[j]
+        this[j] = t
+    }
+
+    @JvmStatic
+    fun <V> MutableList<V>.partition1(
         start: Int, end: Int, condition: (V) -> Boolean
     ): Int {
 
         var i = start
         var j = end - 1
 
-        while (i < j) {
+        if (i == j) return i
+        while (true) {
             // while front is fine, progress front
             while (i < j && condition(this[i])) i++
             // while back is fine, progress back
             while (i < j && !condition(this[j])) j--
             // if nothing works, swap i and j
-            if (i < j) {
-                val t = this[i]
-                this[i] = this[j]
-                this[j] = t
-            }
+            if (i < j) swap(i, j)
+            else return i
         }
-
-        return i
-
     }
 
     @JvmStatic
@@ -591,5 +593,4 @@ object Lists {
     fun BitSet.fill(value: Boolean) {
         for (i in 0 until size()) set(i, value)
     }
-
 }

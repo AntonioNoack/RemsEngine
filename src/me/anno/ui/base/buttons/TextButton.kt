@@ -2,11 +2,8 @@ package me.anno.ui.base.buttons
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.input.Input
-import me.anno.input.Input.keysDown
 import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.ui.Panel
@@ -118,7 +115,7 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
             alignmentX, alignmentY
         )
 
-        val bi = DrawRectangles.startBatch()
+        // val bi = DrawRectangles.startBatch() // todo batch is broken... doesn't work in secondary window (FileChooser)...
         var leftColor = leftColor
         var rightColor = rightColor
         var topColor = topColor
@@ -145,12 +142,12 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
         ) // bottom
         drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
         drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
-        DrawRectangles.finishBatch(bi)
+        // DrawRectangles.finishBatch(bi)
     }
 
     fun getColor(isHovered: Boolean, mouseDown: Boolean, base: Int, alternative: Int): Int {
-        val alpha = if (isHovered && !mouseDown) 0xaa000000.toInt() else black
-        return alpha or ((if (mouseDown) alternative else base) and 0xffffff)
+        val alpha = if (isHovered && !mouseDown) 170 else 255
+        return (if (mouseDown) alternative else base).withAlpha(alpha)
     }
 
     fun click() {

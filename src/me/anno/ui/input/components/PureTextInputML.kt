@@ -236,7 +236,7 @@ open class PureTextInputML(style: Style) :
     private var lastClick = 0L
     override fun onUpdate() {
         super.onUpdate()
-        val blinkVisible = (((Time.gameTimeN - lastClick) / 500_000_000L) % 2L == 0L)
+        val blinkVisible = (((Time.nanoTime - lastClick) / 500_000_000L) % 2L == 0L)
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
@@ -507,8 +507,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteAfter() {
-        if (lastDelete != Time.gameTimeN) {
-            lastDelete = Time.gameTimeN
+        if (lastDelete != Time.nanoTime) {
+            lastDelete = Time.nanoTime
             if (cursor1 != cursor2) {
                 deleteSelection()
                 update(true)
@@ -686,7 +686,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        lastClick = Time.gameTimeN
+        lastClick = Time.nanoTime
         if ((!isHovered || y >= scrollbarStartY) || key != Key.BUTTON_LEFT) {
             super.onKeyDown(x, y, key)
         } else {
@@ -769,8 +769,8 @@ open class PureTextInputML(style: Style) :
 
     private var lastDelete = 0L
     private fun likeBackspaceKey() {
-        if (lastDelete != Time.gameTimeN) {
-            lastDelete = Time.gameTimeN
+        if (lastDelete != Time.nanoTime) {
+            lastDelete = Time.nanoTime
             deleteBefore()
         }
     }

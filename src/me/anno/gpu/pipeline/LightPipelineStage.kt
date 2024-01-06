@@ -45,7 +45,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
     var depthMode = DepthMode.ALWAYS
     var blendMode = BlendMode.ADD
     var writeDepth = false
-    var cullMode = CullMode.FRONT
+    var cullMode = CullMode.BACK
 
     // not yet optimized
     val environmentMaps = ArrayList<EnvironmentMap>()
@@ -91,6 +91,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
+        shader.v1b("isSpotLight", type == LightType.SPOT)
         shader.v1b("receiveShadows", true)
         shader.v1f("countPerPixel", countPerPixel)
         depthTexture.bindTrulyNearest(shader, "depthTex")

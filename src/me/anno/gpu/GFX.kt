@@ -509,8 +509,8 @@ object GFX {
 
         GPUShader.invalidateBinding()
         Texture2D.destroyTextures()
-        Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
+        GFXState.invalidateState()
 
         Texture2D.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
@@ -538,8 +538,6 @@ object GFX {
         check()
 
         whiteTexture.bind(0)
-
-        // BlendDepth.reset()
 
         glDisable(GL_CULL_FACE)
 

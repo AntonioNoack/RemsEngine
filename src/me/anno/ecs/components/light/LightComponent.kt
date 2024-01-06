@@ -92,7 +92,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     }
 
     override fun onDrawGUI(all: Boolean) {
-        if (all) drawShape()
+        drawShape()
     }
 
     abstract fun drawShape()

@@ -6,9 +6,9 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -53,7 +53,6 @@ class VOXReader {
         // LOGGER.info("Used ${(t1-t0)*1e-9}s to read vox file")
 
         return this
-
     }
 
     private fun createDefaultNode() {
@@ -204,6 +203,7 @@ class VOXReader {
                 val material = (materials[matIndex] as PrefabReadable).readPrefab()
                 material[Path.ROOT_PATH, "roughnessMinMax"] = Vector2f(0f, roughness)
                 if (type == 1) material[Path.ROOT_PATH, "metallicMinMax"] = Vector2f(0f, weight)
+                if (hasIOR) material["indexOfRefraction"] = ior
                 // todo set all relevant properties
                 // todo we should set the correct shader here as well :)
             }
@@ -447,8 +447,6 @@ class VOXReader {
             }
 
             defaultPalette = defaultPalette0
-
         }
     }
-
 }

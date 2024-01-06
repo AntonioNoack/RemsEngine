@@ -12,8 +12,6 @@ import kotlin.math.sqrt
 @Suppress("unused")
 object Vectors {
 
-    // todo move some functions to KOML
-
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
     fun avg(a: Vector3f, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)

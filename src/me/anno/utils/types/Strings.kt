@@ -395,7 +395,10 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.toDouble(i0: Int = 0, i1: Int = length): Double {
-        // todo support NaN, +/-Infinity
+        // support NaN, +/-Infinity
+        if (startsWith("NaN", i0)) return Double.NaN
+        if (startsWith("Inf", i0) || startsWith("+Inf", i0)) return Double.POSITIVE_INFINITY
+        if (startsWith("-Inf", i0)) return Double.NEGATIVE_INFINITY
         var sign = 1.0
         var number = 0L
         when (val char = this[i0]) {

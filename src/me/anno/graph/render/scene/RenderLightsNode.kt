@@ -139,6 +139,7 @@ class RenderLightsNode : RenderSceneNode0(
                     )
                 )
                 shader = builder.create("${type.ordinal}-${isInstanced.toInt()}")
+                shader.printCode()
             }
 
             override val currentShader: Shader get() = shader

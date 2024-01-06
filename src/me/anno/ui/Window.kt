@@ -428,7 +428,6 @@ open class Window(
                     buffer.height = y1 - y0
                     buffer.destroy()
                 }
-                // todo while the window is being rescaled, reuse the old fb
                 useFrame(
                     x0, y0, x1 - x0, y1 - y0,
                     buffer, Renderer.colorRenderer
@@ -508,7 +507,6 @@ open class Window(
     }
 
     fun close(closeAllAbove: Boolean = true) {
-        // todo use this in more places
         val windowStack = windowStack
         val idx = windowStack.indexOf(this)
         if (idx >= 0) {

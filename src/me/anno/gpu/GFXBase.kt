@@ -167,7 +167,13 @@ object GFXBase {
     }
 
     @JvmStatic
+    fun supportsExtraWindows(): Boolean {
+        return !(OS.isAndroid || OS.isWeb)
+    }
+
+    @JvmStatic
     fun createWindow(title: String, panel: Panel): OSWindow {
+        if (!supportsExtraWindows()) return windows.first()
         val window = OSWindow(title)
         createWindow(window, null)
         window.windowStack.push(panel)
@@ -176,6 +182,7 @@ object GFXBase {
 
     @JvmStatic
     fun createWindow(title: String, panel: Panel, width: Int, height: Int): OSWindow {
+        if (!supportsExtraWindows()) return windows.first()
         val window = OSWindow(title)
         window.width = width
         window.height = height

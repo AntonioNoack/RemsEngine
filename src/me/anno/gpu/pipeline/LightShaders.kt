@@ -227,6 +227,7 @@ object LightShaders {
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
+            Variable(GLSLType.V1B, "isSpotLight"),
             Variable(GLSLType.V4F, "invInsTrans0v", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "invInsTrans1v", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "invInsTrans2v", VariableMode.OUT).flat(),
@@ -235,7 +236,6 @@ object LightShaders {
             Variable(GLSLType.V4F, "data2", VariableMode.OUT).flat(),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
-                // todo if is spot light, we need to extend/shrink the cone
                 "data0 = vec4(lightData0.rgb,0.0);\n" +
                 "data1 = lightData1;\n" +
                 "data2 = shadowData;\n" +
@@ -244,8 +244,13 @@ object LightShaders {
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
                 "   mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
-                "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
+                "   vec3 localPosition = coords;\n" +
+                "   if(isSpotLight){\n" +
+                "       float coneAngle = lightData1;\n" +
+                "       localPosition.xy *= coneAngle;\n" +
+                "   }\n" +
+                "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "}\n" +
                 "invInsTrans0v = invInsTrans0;\n" +
                 "invInsTrans1v = invInsTrans1;\n" +
@@ -259,15 +264,21 @@ object LightShaders {
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
             Variable(GLSLType.V1F, "cutoff"),
+            Variable(GLSLType.V1F, "data1").flat(),
+            Variable(GLSLType.V1B, "isSpotLight"),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
         ), "" +
-                // todo if is spot light, we need to extend/shrink the cone
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(cutoff <= 0.0){\n" +
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
-                "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
-                "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
+                "   vec3 localPosition = coords;\n" +
+                "   if(isSpotLight){\n" +
+                "       float coneAngle = data1;\n" +
+                "       localPosition.xy *= coneAngle;\n" +
+                "   }\n" +
+                "   vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "}\n" +
                 "uvw = gl_Position.xyw;\n"
     )
@@ -281,7 +292,7 @@ object LightShaders {
         val fragment = ShaderStage(
             "ls-f", listOf(
                 Variable(GLSLType.V4F, "data0"),
-                Variable(GLSLType.V1F, "data1"),
+                Variable(GLSLType.V1F, "data1").flat(),
                 Variable(GLSLType.V4F, "data2"), // only if with shadows
                 // light maps for shadows
                 // - spotlights, directional lights
@@ -348,6 +359,8 @@ object LightShaders {
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
+            Variable(GLSLType.V1B, "isSpotLight"),
+            Variable(GLSLType.V1F, "data1").flat(),
             Variable(GLSLType.V1B, "fullscreen"),
         ), "" +
                 "void main(){\n" +
@@ -355,7 +368,13 @@ object LightShaders {
                 "   if(fullscreen){\n" +
                 "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
-                "      gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
+                "       vec3 localPosition = coords;\n" +
+                "       if(isSpotLight){\n" +
+                "           float coneAngle = data1;\n" +
+                "           localPosition.xy *= coneAngle;\n" +
+                "       }\n" +
+                "       vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
+                "      gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "   }\n" +
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
@@ -375,9 +394,11 @@ object LightShaders {
             Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
+            Variable(GLSLType.V1F, "lightData1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
+            Variable(GLSLType.V1B, "isSpotLight"),
         ), "" +
                 loadMat4x3 +
                 "void main(){\n" +
@@ -386,13 +407,18 @@ object LightShaders {
                 "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
                 "       mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                "      gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
+                "       vec3 localPosition = coords;\n" +
+                "       if(isSpotLight){\n" +
+                "           float coneAngle = lightData1;\n" +
+                "           localPosition.xy *= coneAngle;\n" +
+                "       }\n" +
+                "       vec3 finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
+                "       gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "   }\n" +
-                "}", emptyList(), listOf(
+                "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "" +
-                "void main(){ result = vec4(countPerPixel); }"
+        ), "void main(){ result = vec4(countPerPixel); }"
     ).apply {
         ignoreNameWarnings(
             "normals", "uvs", "tangents", "colors", "receiveShadows",

@@ -41,6 +41,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -436,7 +437,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 CollisionObject.DISABLE_DEACTIVATION -> 0xff0000
                 CollisionObject.DISABLE_SIMULATION -> 0xffff00
                 else -> 0xff0000
-            } or black
+            }.withAlpha(255)
 
             // todo draw the local coordinate arrows
             // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)

@@ -19,6 +19,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
 import me.anno.utils.structures.tuples.IntPair
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.io.ByteArrayOutputStream
@@ -40,6 +41,10 @@ class GLTFWriter(
     val packedDepsToBinary: Boolean = true,
     val maxNumBackPaths: Int = 0,
 ) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(GLTFWriter::class)
+    }
 
     private class BufferView(
         val offset: Int,
@@ -265,7 +270,7 @@ class GLTFWriter(
                     if (mesh != null) Pair(mesh, it.materials) else null
                 }
             if (mesh != null) {
-                writer.attr("meshes")
+                writer.attr("mesh")
                 writer.write(meshes.getOrPut(mesh) { meshes.size })
             }
         }
@@ -606,8 +611,8 @@ class GLTFWriter(
     private fun writeNodes() {
         writer.attr("nodes")
         writer.beginArray()
-        for ((i, node) in nodes.withIndex()) {
-            writeNode(i, node)
+        for (i in nodes.indices) {
+            writeNode(i, nodes[i])
         }
         writer.endArray()
     }
@@ -621,7 +626,7 @@ class GLTFWriter(
 
         val mesh = node.getMesh()
         if (mesh != null) {
-            writer.attr("meshes")
+            writer.attr("mesh")
             writer.write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })
         }
     }
@@ -632,6 +637,7 @@ class GLTFWriter(
         when (node) {
             is Entity -> writeEntityAttributes(node)
             is MeshComponent -> writeMeshCompAttributes(node)
+            else -> LOGGER.warn("Unknown node type $node")
         }
 
         val childrenI = children.getOrNull(i)

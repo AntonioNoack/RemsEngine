@@ -15,10 +15,12 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
@@ -26,12 +28,10 @@ import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Strings.iff
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashSet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.math.max
@@ -164,7 +164,7 @@ object SDFComposer {
 
                             // compute
                             "vec2 uv0 = gl_FragCoord.xy;\n" +
-                            (if(tree.highQualityMSAA) "uv0 += gl_SamplePosition - 0.5;\n" else "") +
+                            (if (tree.highQualityMSAA) "uv0 += gl_SamplePosition - 0.5;\n" else "") +
                             "uv0 /= renderSize;\n" +
 
                             "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +
@@ -180,7 +180,13 @@ object SDFComposer {
                             "if(ray.x >= 0.0){\n" + // outside objects
                             "ray = raycast(localPos, localDir, steps);\n" +
                             (when (renderer) {
-                                Renderer.nothingRenderer -> "if(ray.y < 0.0) { discard; }\n"
+                                Renderer.nothingRenderer -> "" +
+                                        "if(ray.y < 0.0) { discard; } else {\n" +
+                                        "   vec3 localHit = localPos + ray.x * localDir;\n" +
+                                        "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
+                                        "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                        "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                                        "}\n"
                                 SDFRegistry.NumStepsRenderer -> showNumberOfSteps
                                 else -> {
                                     "" +
@@ -217,11 +223,12 @@ object SDFComposer {
                             v0 +
                             // sheenCalculation +
                             // clearCoatCalculation +
-                            reflectionCalculation +
+                            reflectionCalculation.iff(key.flags.hasFlag(NEEDS_COLORS)) +
 
                             partClickIds
                 )
                 functions.add(sdBox)
+                functions.add(quatRot)
                 functions.add(rawToDepth)
                 functions.add(depthToPosition)
                 stage.add(build(functions, shapeDependentShader))

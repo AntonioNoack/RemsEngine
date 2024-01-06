@@ -156,7 +156,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             positions: FloatArray,
             boneIndices: ByteArray?
         ) {
-            // todo when we have the data, use the rotation data to rotate the bone... somehow...
+            // to do when we have the data, use the rotation data to rotate the bone... somehow...
             var j = 0
             var k = 0
             boneIndices?.fill(0)

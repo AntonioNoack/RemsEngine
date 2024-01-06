@@ -55,9 +55,9 @@ object Time {
      * time of current frame; integrated by time speed; in nanoseconds
      * use gameTime for a float value
      *
-     * This is used for Transform.lastDrawn, Transform.getDrawMatrix()
-     *
-     * todo this shouldn't be used by UI, use nanoTime instead
+     * This is used for Transform.lastDrawn, Transform.getDrawMatrix().
+     * It should not be used for UI, because UI should never freeze, not even when the game is frozen XD.
+     * Use nanoTime there instead.
      * */
     @JvmStatic
     var gameTimeN: Long = 0L

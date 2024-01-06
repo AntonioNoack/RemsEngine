@@ -4,9 +4,10 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.smoothCube
+import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -41,11 +42,11 @@ class RectangleLight() : LightComponent(LightType.RECTANGLE) {
     }
 
     override fun drawShape() {
-        // todo show rectangle instead
-        val dx = width * 0.5
-        drawLine(entity, -dx, 0.0, 0.0, dx, 0.0, 0.0)
-        val dy = height * 0.5
-        drawLine(entity, 0.0, -dy, 0.0, 0.0, dy, 0.0)
+        LineShapes.drawBox(
+            entity, JomlPools.vec3d.borrow().set(
+                width.toDouble(), height.toDouble(), 0.0
+            )
+        )
     }
 
     override fun getLightPrimitive(): Mesh = smoothCube.front

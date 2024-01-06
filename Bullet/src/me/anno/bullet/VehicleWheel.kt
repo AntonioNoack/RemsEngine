@@ -50,16 +50,14 @@ class VehicleWheel : Component() {
     var suspensionCompression = 0.83
         set(value) {
             field = value
-            // todo setter in bullet instance does not exist
-            // bulletInstance?.sus
+            bulletInstance?.wheelDampingCompression = value
         }
 
     @SerializedProperty
     var suspensionDamping = 0.88
         set(value) {
             field = value
-            // todo setter in bullet instance does not exist
-            // bulletInstance?.sus
+            bulletInstance?.wheelDampingRelaxation = value
         }
 
     @SerializedProperty
@@ -176,5 +174,4 @@ class VehicleWheel : Component() {
     }
 
     override val className: String get() = "VehicleWheel"
-
 }

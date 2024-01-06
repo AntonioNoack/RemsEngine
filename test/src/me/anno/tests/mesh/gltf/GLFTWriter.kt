@@ -15,7 +15,7 @@ fun main() {
         val name = "sponza"
         val sceneMain = main.getChild("$name/$name-gpt.xml/Scene.json")
         GLTFWriter().write(PrefabCache[sceneMain]!!, desktop.getChild("$name.glb"))
-    } else if(false) {
+    } else if (false) {
         // test for non-packed references
         GLTFWriter().write(PrefabCache[documents.getChild("cube bricks.fbx")]!!, desktop.getChild("bricks.glb"))
     } else {

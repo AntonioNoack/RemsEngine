@@ -96,10 +96,6 @@ class SpotLight() : LightComponent(LightType.SPOT) {
             )
         }
 
-        // todo this mesh is only correct for a specific angle;
-        //  we need to adjust it to the correct angle
-
-
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
                     (if (cutoffContinue != null) "if(lightPos.z >= 0.0) $cutoffContinue;\n" else "") + // backside
