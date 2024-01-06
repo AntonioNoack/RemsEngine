@@ -491,24 +491,17 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
     }
 
-    fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {
+    fun findDrawnSubject(searchedId: Int, instance: PrefabSaveable): Any? {
         // LOGGER.debug("[E] ${entity.clickId.toString(16)} vs ${searchedId.toString(16)}")
-        if (entity.clickId == searchedId) return entity
-        val components = entity.components
-        for (i in components.indices) {
-            val c = components[i]
-            if (c.isEnabled && c is Renderable) {
-                if (c.clickId == searchedId) return c
-                val found = c.findDrawnSubject(searchedId)
-                if (found != null) return found
-            }
+        if (instance is Component && instance.clickId == searchedId) {
+            return instance
         }
-        val children = entity.children
-        for (i in children.indices) {
-            val c = children[i]
-            if (c.isEnabled && frustum.isVisible(c.aabb)) {
-                val found = findDrawnSubject(searchedId, c)
-                if (found != null) return found
+        for (childType in instance.listChildTypes()) {
+            for (child in instance.getChildListByType(childType)) {
+                if (child !is Entity || frustum.isVisible(child.aabb)) {
+                    val found = findDrawnSubject(searchedId, child)
+                    if (found != null) return found
+                }
             }
         }
         return null

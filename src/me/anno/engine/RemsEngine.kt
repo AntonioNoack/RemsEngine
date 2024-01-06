@@ -126,7 +126,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
             ECSSceneTabs.currentTab?.save()
         } catch (e: Exception) {
             e.printStackTrace()
-            Menu.msg((GFX.someWindow ?: return).windowStack, NameDesc(e.toString()))
+            Menu.msg(NameDesc(e.toString()))
         }
     }
 

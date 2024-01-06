@@ -1,6 +1,7 @@
 package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Key
@@ -24,6 +25,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.strings.StringHelper.levenshtein
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -32,6 +34,8 @@ import kotlin.math.roundToInt
  * Utility for opening menus, like asking the user questions, or him selecting values for an enum from a dropdown.
  * */
 object Menu {
+
+    private val LOGGER = LogManager.getLogger(Menu::class)
 
     var paddingX = 10
     var paddingY = 10
@@ -42,8 +46,18 @@ object Menu {
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
     fun msg(windowStack: WindowStack, title: NameDesc) {
-        val window = openMenu(windowStack, listOf(MenuOption(title) {}))
+        // todo this should be at the bottom center like an Android toast
+        val panel = TextPanel(title.name, style).setTooltip(title.desc)
+        val window = openMenuByPanels(windowStack, NameDesc(), listOf(panel))
         window?.drawDirectly = true
+    }
+
+    fun msg(title: NameDesc) {
+        val window = GFX.focusedWindow ?: GFX.someWindow
+        if(window != null) {
+            val windowStack = window.windowStack
+            msg(windowStack, title)
+        } else LOGGER.info("${title.name} (${title.desc})")
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {
@@ -374,8 +388,6 @@ object Menu {
             }
             list += searchPanel
         }
-
-        // todo in the future, we also could create/allow groups for faster access
 
         for (panel in panels) {
             list += panel

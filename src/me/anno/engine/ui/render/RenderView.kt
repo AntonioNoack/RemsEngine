@@ -5,13 +5,13 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
-import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.FSR2v2
 import me.anno.ecs.components.ui.CanvasComponent
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
@@ -54,9 +54,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.UIColors.paleGoldenRod
-import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Clock
@@ -292,7 +292,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val t4 = Time.nanoTime
         FrameTimings.add(t4 - t1, paleGoldenRod)
-
     }
 
     fun updatePipelineStage0(renderMode: RenderMode) {
@@ -478,6 +477,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val world = getWorld()
 
         val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
+            buffer.clearColor(0, true)
             drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false)
             drawGizmos(drawGridLines = false, drawDebug)
         }
@@ -486,18 +486,22 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             ids[idx] = ids[idx] and 0xffffff
         }
 
+        // todo some clicks work on SDFSphere, others don't... why???
         val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
+            buffer.clearDepth()
             drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false)
             drawGizmos(drawGridLines = false, drawDebug)
         }
 
         val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
         val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
-        val clicked = if (clickedId == 0 || world !is Entity) null
+        val clicked = if (clickedId == 0 || world == null) null
         else pipeline.findDrawnSubject(clickedId, world)
         if (false) {
             LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
-            val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponentBase::class)
+            val ids2 = world?.listOfAll
+                ?.filterIsInstance<Component>()
+                ?.filter { it is Renderable }
                 ?.joinToString { it.clickId.toString(16) }
             LOGGER.info("Available: $ids2")
         }

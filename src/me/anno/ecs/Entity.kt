@@ -116,11 +116,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     val transform: Transform = Transform(this)
 
-    // assigned and tested for click checks
-    @HideInInspector
-    @NotSerializedProperty
-    var clickId: Int = 0
-
     @NotSerializedProperty
     private val internalComponents: ArrayList<Component> = ArrayList(4)
 

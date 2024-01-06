@@ -267,7 +267,7 @@ interface WelcomeUI {
             openProject(studio, nameInput.value, file)
         } else {
             Menu.msg(
-                GFX.someWindow!!.windowStack, NameDesc(
+                NameDesc(
                     "Please choose a ${dirNameEn}!",
                     "", "ui.newProject.pleaseChooseDir"
                 )

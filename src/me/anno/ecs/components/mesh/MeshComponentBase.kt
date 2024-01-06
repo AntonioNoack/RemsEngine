@@ -16,11 +16,13 @@ import me.anno.engine.raycast.RaycastMesh
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
+import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
-import org.apache.logging.log4j.Level
+import me.anno.ui.base.menu.Menu
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -177,18 +179,20 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @DebugAction
     fun printMesh() {
         val mesh = getMesh() as? Mesh
-        if (mesh != null) {
-            val pos = mesh.positions ?: return
-            if (!LOGGER.isDebugEnabled) {
-                LogManager.define(LOGGER.prefix, Level.DEBUG)
+        val pos = mesh?.positions
+        if (mesh != null && pos != null) {
+            val vertices = (0 until pos.size / 3).map {
+                Vector3f().set(pos, it * 3)
             }
-            LOGGER.debug("Positions: {}", Array(pos.size / 3) {
-                val i = it * 3
-                Vector3f(pos[i], pos[i + 1], pos[i + 2])
-            }.toList())
-            LOGGER.debug("Indices: {}", mesh.indices?.joinToString())
+            val data = "Positions: $vertices\n" +
+                    "Indices: ${mesh.indices?.toList()}"
+            LOGGER.info(data)
+            Input.setClipboardContent(data)
+            Menu.msg(NameDesc("Pasted mesh to console and clipboard"))
+        } else if (mesh != null) {
+            Menu.msg(NameDesc("Missing positions"))
         } else {
-            LOGGER.warn("Mesh is null")
+            Menu.msg(NameDesc("Mesh is null"))
         }
     }
 

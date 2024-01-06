@@ -23,6 +23,7 @@ import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
@@ -34,6 +35,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.sdf.arrays.SDFGroupArray
 import me.anno.sdf.modifiers.DistanceMapper
 import me.anno.sdf.modifiers.PositionMapper
+import me.anno.ui.base.menu.Menu
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
@@ -244,6 +246,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
     @DebugAction
     fun createShaderToyScript() {
         setClipboardContent(ShaderToyExport.createScript(this))
+        Menu.msg(NameDesc("Pasted code to clipboard"))
     }
 
     override fun fill(
@@ -335,7 +338,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         } else {
             // raycast
             val result = query.result
-            val globalTransform = transform!!.globalTransform // local -> global
+            val globalTransform = transform?.globalTransform ?: Matrix4x3d() // local -> global
             val globalInv = result.tmpMat4x3d.set(globalTransform).invert()
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
