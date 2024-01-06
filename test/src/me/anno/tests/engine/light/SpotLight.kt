@@ -61,9 +61,6 @@ fun spotLightTest() {
         truck.add(mesh)
         truck.setPosition(e.transform.localPosition.x, 0.0, 0.0)
         truck.setScale(1.0 / 64.0)
-        // add an SDF sphere to test shadows there, too
-        // todo shadow-detection of spot light and directional light isn't really correct yet:
-        //  there is artifacts from incorrect depth values
         val sphere = SDFSphere()
         sphere.position.set(e.transform.localPosition.x.toFloat() - 0.35f, 0.1f, -0.2f)
         sphere.scale = 0.08f
@@ -78,5 +75,5 @@ fun spotLightTest() {
     scene.add(spot)
     placeTruck(spot)
 
-    testSceneWithUI("Light Types", scene)
+    testSceneWithUI("Spot Light", scene)
 }

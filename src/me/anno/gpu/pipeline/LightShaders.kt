@@ -291,9 +291,9 @@ object LightShaders {
         val coreFragment = LightType.getShaderCode(type, co, ws)
         val fragment = ShaderStage(
             "ls-f", listOf(
-                Variable(GLSLType.V4F, "data0"),
+                Variable(GLSLType.V4F, "data0").flat(),
                 Variable(GLSLType.V1F, "data1").flat(),
-                Variable(GLSLType.V4F, "data2"), // only if with shadows
+                Variable(GLSLType.V4F, "data2").flat(), // only if with shadows
                 // light maps for shadows
                 // - spotlights, directional lights
                 Variable(GLSLType.S2DAShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),

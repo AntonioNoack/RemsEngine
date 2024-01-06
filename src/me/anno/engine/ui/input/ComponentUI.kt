@@ -793,7 +793,9 @@ object ComponentUI {
                     // todo reset listener for color inputs
                     // todo brightness should have different background than alpha
                     // setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(b2l(it as Vector3f), -1, false) }
+                    askForReset(property) {
+                        setValue(b2l(it as Vector3f), -1, false)
+                    }
                     setChangeListener { r, g, b, a, mask ->
                         val rgbMask = mask.and(7) or mask.hasFlag(8).toInt(7)
                         property.set(this, l2b(Vector4f(r, g, b, a)), rgbMask)

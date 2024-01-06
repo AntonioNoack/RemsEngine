@@ -29,7 +29,7 @@ open class HSVBox(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (Input.isLeftDown) {
+        if (Input.isLeftDown && isInFocus && contains(x, y)) {
             if (dragged == null) {
                 onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
             }
