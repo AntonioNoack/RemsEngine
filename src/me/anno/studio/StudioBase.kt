@@ -288,10 +288,6 @@ abstract class StudioBase(
             }
         }
 
-        if (Tooltips.draw(window)) {
-            didSomething = true
-        }
-
         val progressBars = window.progressBars
         if (progressBars.isNotEmpty()) {
             val ph = window.progressbarHeight
@@ -308,6 +304,10 @@ abstract class StudioBase(
             }
             val changed = progressBars.removeIf { it.canBeRemoved(time) }
             if (changed) window.invalidateLayout()
+        }
+
+        if (Tooltips.draw(window)) {
+            didSomething = true
         }
 
         // dragging can be a nice way to work, but dragging values to change them,

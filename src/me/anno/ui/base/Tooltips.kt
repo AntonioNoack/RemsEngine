@@ -34,7 +34,7 @@ object Tooltips {
 
     var lastPanel: Panel? = null
 
-    fun draw(window: OSWindow, sourcePanel: Panel, panel: Panel) {
+    fun draw(window: OSWindow, sourcePanelY: Int, panel: Panel) {
         val w = window.width
         val h = window.height
         val fontSize = textPanel.font.sizeInt
@@ -45,7 +45,7 @@ object Tooltips {
         val mouseY = window1?.mouseY ?: window.mouseY
         // container.applyConstraints()
         val x = min(mouseX.toInt() + fontSize, w - panel.minW)
-        val y = if (sourcePanel.y < fontSize) {
+        val y = if (sourcePanelY < fontSize) {
             // if panel is at the top, draw ttt below it, not above,
             // because it would cover the panel itself
             min(mouseY.toInt() + fontSize / 2, h - panel.minH)
@@ -80,6 +80,13 @@ object Tooltips {
         val delta = abs(time - lastMovementTime)
         val tooltipReactionTimeNanos = tooltipReactionTime * MILLIS_TO_NANOS
         if (delta >= tooltipReactionTimeNanos || lastPanel?.onMovementHideTooltip == false) {
+            val pbi = mouseY.toInt() / window.progressbarHeight
+            val pb = window.progressBars.getOrNull(pbi)
+            if (pb != null && pb.name.isNotBlank()) {
+                textPanel.text = pb.name
+                draw(window, pbi * window.progressbarHeight, container)
+                return true
+            }
             val hovered = StudioBase.instance?.hoveredPanel
             if (hovered != null) {
 
@@ -88,16 +95,15 @@ object Tooltips {
 
                 if (tooltip is Panel) {
                     tooltip.window = hovered.window
-                    draw(window, hovered, tooltip)
+                    draw(window, hovered.y, tooltip)
                     return true
                 } else if (tooltip is String && !tooltip.isBlank2()) {
                     textPanel.text = tooltip
-                    draw(window, hovered, container)
+                    draw(window, hovered.y, container)
                     return true
                 }
             }
         } else lastPanel = null
         return false
     }
-
 }

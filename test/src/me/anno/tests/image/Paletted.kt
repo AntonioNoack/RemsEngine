@@ -3,9 +3,8 @@ package me.anno.tests.image
 import me.anno.config.DefaultConfig.style
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.IntImage
-import me.anno.ui.base.groups.ZoomableImagePanel
+import me.anno.ui.base.IconPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
@@ -209,8 +208,7 @@ fun applyPalette(palette: IntArray, image: IntImage) {
 fun preview(image: Image) {
     // to do show palette, too?
     testUI3("CCTweaked") {
-        object : ZoomableImagePanel(style) {
-            override fun getTexture() = TextureCache[image.ref, true]
-        }
+        IconPanel(image.ref, style)
+            .enableControls()
     }
 }
