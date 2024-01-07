@@ -4,6 +4,7 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.hdr.HDRReader
 import me.anno.image.jpg.findRotation
@@ -16,6 +17,7 @@ import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager
@@ -112,12 +114,18 @@ class ImageToTexture(file: FileReference) : ICacheData {
 
     fun useFFMPEG(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val frame = Sleep.waitForGFXThreadUntilDefined(true) {
-            VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
-        }
-        frame.waitToLoad()
-        GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-            texture = frame.toTexture()
+        val meta = getMeta(file, false)
+        if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
+            LOGGER.warn("Cannot load $file using FFMPEG")
+            hasFailed = true
+        } else {
+            val frame = Sleep.waitForGFXThreadUntilDefined(true) {
+                VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
+            }
+            frame.waitToLoad()
+            GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
+                texture = frame.toTexture()
+            }
         }
     }
 

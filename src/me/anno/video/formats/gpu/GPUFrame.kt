@@ -140,7 +140,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
 
     abstract fun load(input: InputStream)
     fun waitToLoad() {
-        waitForGFXThread(true) { isCreated }
+        waitForGFXThread(true) { isCreated || isDestroyed }
     }
 
     open fun bindUVCorrection(shader: Shader) {

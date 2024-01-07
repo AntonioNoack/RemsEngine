@@ -126,6 +126,11 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return drawsOverX(lx0, ly0, lx1, ly1) || drawsOverY(lx0, ly0, lx1, ly1)
     }
 
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return (hasScrollbarX && ly1 >= y + height - scrollbarHeight) ||
+                (hasScrollbarY && lx1 >= x + width - scrollbarWidth)
+    }
+
     private fun drawsOverX(lx0: Int, ly0: Int, lx1: Int = lx0 + 1, ly1: Int = ly0 + 1): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbarX && drawsOverX(this.lx0, this.ly0, this.lx1, this.ly1, sbHeight, lx0, ly0, lx1, ly1)
@@ -271,11 +276,9 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         var rx = dx
         var ry = dy
         if (isDownOnScrollbarX != 0 && rx != 0f && StudioBase.dragged == null) {
-            // todo test this remainder using scroll panels inside scroll panels
             rx = scrollX(if (isDownOnScrollbarX > 0) rx / relativeSizeX else -rx.toDouble()).toFloat()
         }
         if (isDownOnScrollbarY != 0 && ry != 0f && StudioBase.dragged == null) {
-            // todo test this remainder using scroll panels inside scroll panels
             ry = scrollY(if (isDownOnScrollbarY > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
         }
         if (rx != 0f || ry != 0f) {

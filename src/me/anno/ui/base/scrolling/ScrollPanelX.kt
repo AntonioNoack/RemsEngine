@@ -167,6 +167,10 @@ open class ScrollPanelX(
         targetScrollPositionX = clamp(targetScrollPositionX, 0.0, maxScrollPositionX.toDouble())
     }
 
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return hasScrollbar && ly1 >= y + height - scrollbarHeight
+    }
+
     @NotSerializedProperty
     private var isDownOnScrollbar = 0
 
@@ -182,7 +186,6 @@ open class ScrollPanelX(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (isDownOnScrollbar != 0 && Input.isLeftDown && StudioBase.dragged == null) {
-            // todo test this remainder using scroll panels inside scroll panels
             val dx2 = scrollX(if (isDownOnScrollbar > 0) dx / relativeSizeX else -dx.toDouble()).toFloat()
             if (dx2 != 0f || dy != 0f) super.onMouseMoved(x, y, dx2, dy)
         } else super.onMouseMoved(x, y, dx, dy)

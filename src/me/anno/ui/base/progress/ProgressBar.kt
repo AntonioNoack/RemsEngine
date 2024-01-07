@@ -22,7 +22,7 @@ import kotlin.math.cos
 import kotlin.math.min
 
 open class ProgressBar(
-    var name: String, // todo name isn't shown as ttt
+    var name: String,
     var unit: String,
     var total: Double
 ) {

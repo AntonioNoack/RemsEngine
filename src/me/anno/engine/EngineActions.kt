@@ -205,6 +205,9 @@ object EngineActions {
         register["FileExplorer.right.down", "OpenOptions"]
         register["FileExplorer.mouseBackward.down", "Back"]
         register["FileExplorer.mouseForward.down", "Forward"]
+        // todo why is inheritance broken?, also we sometimes need to press twice :(
+        // register["ECSFileExplorer.mouseBackward.down", "Back"]
+        // register["ECSFileExplorer.mouseForward.down", "Forward"]
         register["TreeViewEntryPanel.left.drag", "DragStart"]
         register["TreeViewEntryPanel.f2.down", "Rename"]
         register["StackPanel.left.drag", "DragStart"]

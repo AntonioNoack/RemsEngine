@@ -11,6 +11,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.DrawTexts.getTextSizeCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -19,13 +20,13 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
-import me.anno.ui.base.Font
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.Font
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
@@ -220,8 +221,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun calculateSize(w: Int, text: String) {
-        val inst = instantTextLoading
-        if (inst) loadTexturesSync.push(true)
         val widthLimit = max(1, if (breaksIntoMultiline) w - padding.width else GFX.maxTextureSize)
         val heightLimit = max(1, GFX.maxTextureSize)
         if (widthLimit != textCacheKey.widthLimit ||
@@ -234,11 +233,18 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         ) {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit, false)
         }
-        // todo if useMonospaceCharacters, calculate size based on them
-        val size = getTextSize(textCacheKey)
-        minW = max(1, getSizeX(size) + padding.width)
-        minH = max(1, getSizeY(size) + padding.height)
-        if (inst) loadTexturesSync.pop()
+        if (useMonospaceCharacters) {
+            val size = getTextSizeCharByChar(font, text, true)
+            minW = max(1, getSizeX(size) + padding.width)
+            minH = max(1, getSizeY(size) + padding.height)
+        } else {
+            val inst = instantTextLoading
+            if (inst) loadTexturesSync.push(true)
+            val size = getTextSize(textCacheKey)
+            minW = max(1, getSizeX(size) + padding.width)
+            minH = max(1, getSizeY(size) + padding.height)
+            if (inst) loadTexturesSync.pop()
+        }
     }
 
     fun underline(i0: Int, i1: Int) {

@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.maths.Maths.max
 import me.anno.utils.Color.convertABGR2ARGB
 import org.lwjgl.opengl.GL11C.GL_FLOAT
 import org.lwjgl.opengl.GL30C.GL_HALF_FLOAT
@@ -47,7 +48,7 @@ class BGRAImage(val base: Image) :
                     else -> UInt8xI
                 }
             } else UInt8xI
-            val type = useFP[base.numChannels - 1]
+            val type = useFP[max(base.numChannels - 1, 0)]
             TextureMapper.mapTexture(base.texture, texture, "bgra", type, callback)
         } else super.createTexture(texture, sync, checkRedundancy, callback)
     }

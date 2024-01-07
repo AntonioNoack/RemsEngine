@@ -19,5 +19,6 @@ object UIColors {
     const val paleGoldenRod = 0xebe496 or black // pale golden rod is close
     const val cornFlowerBlue = 0x819ef3 or black // ~ corn flower blue
     const val dodgerBlue = 0x00a7f2 or black // ~ dodger blue / dark sky blue
+    const val magenta = 0xff00ff or black
 
 }

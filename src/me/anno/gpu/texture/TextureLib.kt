@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.ui.UIColors.magenta
 import me.anno.utils.Color.black
 
 /**
@@ -170,8 +171,8 @@ object TextureLib {
     val gradientXTex = IndestructibleTexture2D("gradientX", 5, 1, byteArrayOf(0, 63, 127, -64, -1))
     val blackTexture = IndestructibleTexture2D("black", 1, 1, byteArrayOf(0, 0, 0, -1))
     val blackCube = IndestructibleCubemap("blackCube", 1, byteArrayOf(0, 0, 0, -1))
-    val missingTexture = IndestructibleTexture2D("missing", 2, 2,
-        IntArray(4) { (if (it in 1..2) 0 else 0xff00ff) or black })
+    val missingColors = intArrayOf(magenta, black, black, magenta)
+    val missingTexture = IndestructibleTexture2D("missing", 2, 2, missingColors)
 
     fun bindWhite(index: Int): Boolean {
         return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping)

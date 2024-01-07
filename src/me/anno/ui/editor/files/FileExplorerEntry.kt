@@ -108,9 +108,6 @@ open class FileExplorerEntry(
     val ref1 get() = getReferenceAsync(path)
     val ref1s get() = getReference(path)
 
-    // todo when entering a json file, and leaving it, the icon should not be a folder!
-    // todo open link of URL files
-
     private var startTime = 0L
 
     var time = 0.0

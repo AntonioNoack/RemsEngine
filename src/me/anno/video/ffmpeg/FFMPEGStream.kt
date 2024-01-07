@@ -15,6 +15,7 @@ import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -93,6 +94,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                         ).toTypedArray()
                     )
                 } catch (_: ShutdownException) {
+                } catch (e: IOException) {
+                    finishedCallback(emptyList())
+                    e.printStackTrace()
                 }
             }
         }
@@ -118,6 +122,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                         ).toTypedArray()
                     )
                 } catch (_: ShutdownException) {
+                } catch (e: IOException) {
+                    finishedCallback(emptyList())
+                    e.printStackTrace()
                 }
             }
         }

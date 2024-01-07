@@ -3,6 +3,8 @@ package me.anno.image
 import me.anno.cache.AsyncCacheData
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.missingColors
+import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
 import me.anno.io.files.BundledRef
@@ -28,6 +30,7 @@ import javax.imageio.ImageIO
 object ImageReader {
 
     private val LOGGER = LogManager.getLogger(ImageReader::class)
+    private val missingImage = IntImage(2, 2, missingColors, false)
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
@@ -95,10 +98,10 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = ImageCache[file, false] ?: throw IOException("Missing image of $file")
+            val src = ImageCache[file, false] ?: missingImage
             createImage(src)
         }, {
-            val src = TextureCache[file, false] ?: throw IOException("Missing image of $file")
+            val src = TextureCache[file, false] ?: missingTexture
             createImage(GPUImage(src))
         })
     }
@@ -144,7 +147,10 @@ object ImageReader {
                 exc?.printStackTrace()
                 if (bytes != null) {
                     readImage(file, data, bytes, forGPU)
-                } else data.value = null
+                } else {
+                    data.value = null
+                    data.hasValue = true
+                }
             }
         } else Signature.findName(file) { signature ->
             readImage(file, data, signature, forGPU)
@@ -192,8 +198,10 @@ object ImageReader {
 
     private fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) {
         if (file is FileFileRef) {
-            val meta = MediaMetadata.getMeta(file, false)!!
-            if (forGPU) {
+            val meta = MediaMetadata.getMeta(file, false)
+            if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
+                callback(null, IOException("Meta for $file is missing video"))
+            } else if (forGPU) {
                 FFMPEGStream.getImageSequenceGPU(
                     file, signature, meta.videoWidth, meta.videoHeight,
                     frameIndex(meta), 1, meta.videoFPS,

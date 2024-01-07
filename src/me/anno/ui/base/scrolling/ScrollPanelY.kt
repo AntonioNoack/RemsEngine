@@ -174,7 +174,7 @@ open class ScrollPanelY(
     }
 
     override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return true // todo calculate when we do that...
+        return hasScrollbar && lx1 >= x + width - scrollbarWidth
     }
 
     @NotSerializedProperty
@@ -191,9 +191,7 @@ open class ScrollPanelY(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        // todo bug!!!: this is no longer working for file explorer
         if (isDownOnScrollbar != 0 && Input.isLeftDown && StudioBase.dragged == null) {
-            // todo test this remainder using scroll panels inside scroll panels
             val dy2 = scrollY(if (isDownOnScrollbar > 0) dy / relativeSizeY else -dy.toDouble()).toFloat()
             if (dx != 0f || dy2 != 0f) super.onMouseMoved(x, y, dx, dy2)
         } else super.onMouseMoved(x, y, dx, dy)

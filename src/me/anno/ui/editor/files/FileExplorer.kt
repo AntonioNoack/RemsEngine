@@ -73,21 +73,13 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// todo right click option for images: open large image viewer panel
+// todo forward/back is broken
+// todo double clicking audio freezes the engine
 
-// done, kind of: zoom: keep mouse at item in question
-// done change side ratio based on: border + 1:1 frame + 2 lines of text
 // todo dynamically change aspect ratio based on content for better coverage?
-// issue: then the size is no longer constant
-// solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
 
-// done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
-// done make file path clickable to quickly move to a grandparent folder :)
 
-// done drag n drop; links or copy?
-// done search options
-// done search results below
 // todo search in text files
 // todo search in meta data for audio and video
 
@@ -131,6 +123,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             }
         }
 
+    @Suppress("unused")
     var isY: Boolean = isY
         set(value) {
             if (field != value) {

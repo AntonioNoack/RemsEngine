@@ -202,6 +202,36 @@ object DrawTexts {
         return transform.isIdentity()
     }
 
+    fun getTextSizeCharByChar(font: Font, text: CharSequence, equalSpaced: Boolean): Int {
+
+        if ('\n' in text) {
+            var sizeX = 0
+            val split = text.split('\n')
+            val lineOffset = font.sizeInt * 3 / 2
+            for (index in split.indices) {
+                val size = getTextSizeCharByChar(font, split[index], equalSpaced)
+                sizeX = Maths.max(GFXx2D.getSizeX(size), sizeX)
+            }
+            return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
+        }
+
+        if (text.isEmpty())
+            return GFXx2D.getSize(0, font.sizeInt)
+
+        return if (equalSpaced) {
+            val charWidth = font.sampleWidth
+            val textWidth = charWidth * text.length
+            val size = FontManager.getSize(font, text, -1, -1)
+            GFXx2D.getSize(textWidth, GFXx2D.getSizeY(size))
+        } else {
+            val font2 = FontManager.getFont(font)
+            val group = TextGroup(font2, text, 0.0)
+            val textWidth = group.offsets.last().toFloat()
+            val size = FontManager.getSize(font, text, -1, -1)
+            GFXx2D.getSize(textWidth.roundToInt(), GFXx2D.getSizeY(size))
+        }
+    }
+
     fun drawTextCharByChar(
         x: Int, y: Int,
         font: Font,
