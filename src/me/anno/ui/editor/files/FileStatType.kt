@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.SignatureCache
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.files.Files.formatFileSize
 import java.text.SimpleDateFormat
@@ -25,8 +26,7 @@ enum class FileStatType(val alignment: AxisAlignment) {
     },
     SIGNATURE(AxisAlignment.CENTER) {
         override fun getValue(file: FileReference): String {
-            // todo cache this
-            return "<todo>"
+            return SignatureCache[file, true]?.name ?: ""
         }
     },
     CREATED(AxisAlignment.MIN) {

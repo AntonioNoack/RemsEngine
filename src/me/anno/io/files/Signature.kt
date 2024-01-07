@@ -240,6 +240,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("qoi", 0, "qoif"),
             Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
             Signature("webp", 8, "WEBP"), // after RIFF header
+            // tga has header at the end of the file, and only sometimes...
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             Signature("svg", 0, "<svg"),
@@ -267,6 +268,9 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("fbx", 0, "; FBX "), // text fbx, is followed by a version
             Signature("obj", -1, "\nmtllib "),
             Signature("obj", -1, "OBJ File"),
+            Signature("obj", 0, "o "), // ^^, stripped, very compact obj
+            Signature("mtl", -1, "newmtl "),
+            Signature("mtl", 0, "# Blender MTL"), // ^^
             Signature("blend", 0, "BLENDER"),
             Signature("gltf", 0, "glTF"),
             Signature("mesh-draco", 0, "DRACO"),

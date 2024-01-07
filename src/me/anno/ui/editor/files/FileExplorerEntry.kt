@@ -185,8 +185,7 @@ open class FileExplorerEntry(
     override fun calculateSize(w: Int, h: Int) {
         val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
         if (listMode) {
-            val size = titleSize * 5
-            minW = size
+            minW = titleSize * 5 // idk
             minH = titleSize
         } else {
             val size = min(minW, minH - titleSize)
@@ -660,17 +659,20 @@ open class FileExplorerEntry(
 
                 // todo draw lines for separation?
                 val spacing = padding
-                val available = w - imgSize - spacing * (fileStatColumns.size + 2)
+                val available = w - imgSize - spacing * (fileStatColumns.size + 3)
                 val weightSum = fileStatColumns.sumOf { it.weight.toDouble() }
-                val invW = available / weightSum
-                var xi = x + imgSize + 2 * spacing
+                val invW = available / weightSum + spacing
+                val xi = x + imgSize + 3 * spacing
                 val ref1s = ref1s
-                for (column in fileStatColumns) {
-                    val wi = (column.weight * invW).toInt()
+                var sumW = 0f
+                for (i in fileStatColumns.indices) {
+                    val column = fileStatColumns[i]
+                    val xi0 = xi + (sumW * invW).toInt()
+                    val xi1 = xi + ((sumW + column.weight) * invW).toInt()
                     val text = column.type.getValue(ref1s)
                     val alignment = column.type.alignment
                     drawTextCharByChar(
-                        xi + alignment.getOffset(wi, 0),
+                        xi0 + alignment.getOffset(xi1 - xi0, 0),
                         y + h, monospaceFont, text,
                         titlePanel.textColor,
                         titlePanel.backgroundColor,
@@ -678,7 +680,7 @@ open class FileExplorerEntry(
                         alignment, AxisAlignment.MAX,
                         true
                     )
-                    xi += wi + spacing
+                    sumW += column.weight
                 }
             }
         } else {
@@ -914,7 +916,8 @@ open class FileExplorerEntry(
         var fileStatColumns = arrayListOf(
             FileStatColumn(FileStatType.FILE_NAME, 3f),
             FileStatColumn(FileStatType.EXTENSION, 1f),
-            FileStatColumn(FileStatType.FILE_SIZE, 2f),
+            FileStatColumn(FileStatType.FILE_SIZE, 1f),
+            // FileStatColumn(FileStatType.SIGNATURE, 1f),
             FileStatColumn(FileStatType.CREATED, 2f),
             FileStatColumn(FileStatType.MODIFIED, 2f),
         )

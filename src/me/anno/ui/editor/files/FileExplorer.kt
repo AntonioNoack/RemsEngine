@@ -72,9 +72,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// todo forward/back is broken
-// todo double clicking audio freezes the engine
-
 // todo dynamically change aspect ratio based on content for better coverage?
 
 // todo double click is not working in touch mode?

@@ -130,7 +130,7 @@ ui.newComponent.askName: Name
 ui.newComponent.askName.desc: Wie soll die Komponente heißen?
 
 ui.file.openInExplorer: Im Explorer öffnen
-ui.file.openInExplorer: Öffnet die Datei im Standard-Dateiexplorer
+ui.file.openInExplorer.desc: Öffnet die Datei im Standard-Dateiexplorer
 obj.text.askLargeImport: Der Text hat %1 Zeichen, trotzdem importieren?
 ui.inspectHistory: Verlauf inspizieren
 ui.history.clickToUndo: Zum Wiederherstellen anklicken
