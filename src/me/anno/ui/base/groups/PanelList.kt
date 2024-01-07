@@ -3,10 +3,8 @@ package me.anno.ui.base.groups
 import me.anno.Time
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.scrolling.ScrollableX
-import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.Style
+import me.anno.ui.base.components.Padding
 
 abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
 
@@ -84,11 +82,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
                 .lastOrNull { it.isVisible }
         } else null
         if (newChild != null) {
-            // todo call click event?
-            children[childIndex].invalidateDrawing()
-            newChild.requestFocus()
-            newChild.invalidateDrawing()
-            onSelectNext(children[childIndex], newChild)
+            selectNext(newChild, childIndex)
         }
         return newChild != null
     }
@@ -100,19 +94,16 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             children.subList(childIndex + 1, children.size).firstOrNull { it.isVisible }
         } else null
         if (newChild != null) {
-            // todo call click event?
-            children[childIndex].invalidateDrawing()
-            newChild.requestFocus()
-            newChild.invalidateDrawing()
-            onSelectNext(children[childIndex], newChild)
+            selectNext(newChild, childIndex)
         }
         return newChild != null
     }
 
-    fun onSelectNext(prev: Panel, next: Panel) {
-        // todo test this, correct sign?
-        (firstInHierarchy { it is ScrollableX } as? ScrollableX)?.scrollX((next.x + next.width / 2) - (prev.x + prev.width / 2))
-        (firstInHierarchy { it is ScrollableY } as? ScrollableY)?.scrollY((next.y + next.height / 2) - (prev.y + prev.height / 2))
+    private fun selectNext(newChild: Panel, prevChildIndex: Int) {
+        children[prevChildIndex].invalidateDrawing()
+        newChild.requestFocus()
+        newChild.invalidateDrawing()
+        newChild.scrollTo()
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -123,5 +114,4 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         dst.children.clear()
         dst.children.addAll(children.map { it.clone() })
     }
-
 }

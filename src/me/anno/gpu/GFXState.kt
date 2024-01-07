@@ -135,11 +135,13 @@ object GFXState {
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
         invalidateState()
-        // clear all caches, which contain gpu data
-        FBStack.clear()
-        TextCache.clear()
-        VideoCache.clear()
-        TextureCache.clear()
+        if (session != 1) {
+            // clear all caches, which contain gpu data
+            FBStack.clear()
+            TextCache.clear()
+            VideoCache.clear()
+            TextureCache.clear()
+        }
     }
 
     // the renderer is set per framebuffer; makes the most sense

@@ -195,7 +195,7 @@ object ECSRegistry {
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
-        registerIfAvailable("me.anno.ecs.components.navigation.NavMesh", "Recast")
+        registerIfAvailable("me.anno.recast.NavMesh", "Recast")
 
         initIfAvailable("me.anno.sdf.SDFRegistry", "SDF")
 

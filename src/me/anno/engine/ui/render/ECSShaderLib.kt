@@ -14,7 +14,8 @@ object ECSShaderLib {
         "numberOfLights", "roughnessMinMax", "finalClearCoat",
         "worldScale", "drawMode", "applyToneMapping",
         "colors", "cameraPosition", "cameraRotation",
-        "prevWorldScale", "tint"
+        "prevWorldScale", "prevTransform", "tint",
+        "hasAnimation", "sheen", "clearCoat", "IOR"
     )
 
     val simpleShader = BaseShader(

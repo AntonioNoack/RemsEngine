@@ -120,7 +120,7 @@ object PlaneShapes {
         val material = defaultMaterial
         // init shader
         val cameraMatrix = RenderState.cameraMatrix
-        shader.v4f("tint", -1)
+        shader.v4f("tint", 1f)
         shader.m4x4("transform", cameraMatrix)
         shader.v1i("hasVertexColors", mesh.hasVertexColors)
         shader.v1b("hasAnimation", false)

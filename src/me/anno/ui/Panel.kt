@@ -15,6 +15,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
@@ -610,7 +611,14 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun scrollTo() {
         val window = window ?: return
-        scrollTo(window.mouseXi, window.mouseYi)
+        // if panel is larger than window, ignore mouse position, and just center it
+        // clamp mouse position to window bounds
+        scrollTo(
+            if (width >= window.width) window.x + window.width / 2 else
+                clamp(window.mouseXi, window.x, window.x + window.width),
+            if (height >= window.height) window.y + window.height / 2 else
+                clamp(window.mouseYi, window.y, window.y + window.height)
+        )
     }
 
     fun listOfPanelHierarchy(callback: (Panel) -> Unit) {

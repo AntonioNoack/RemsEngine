@@ -72,6 +72,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToFloat
+import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -417,7 +418,8 @@ object ComponentUI {
             // todo char
             "Byte" -> {
                 val type = Type(default as Byte,
-                    { Maths.clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
+                    { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
+                    { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -431,7 +433,7 @@ object ComponentUI {
             }
             "UByte" -> {
                 val type = Type(default as UByte,
-                    { Maths.clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
+                    { clamp(AnyToLong.getLong(it, 0), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -446,7 +448,7 @@ object ComponentUI {
             }
             "Short" -> {
                 val type = Type(default as Short,
-                    { Maths.clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
+                    { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -461,7 +463,13 @@ object ComponentUI {
             }
             "UShort" -> {
                 val type = Type(default as UShort,
-                    { Maths.clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
+                    {
+                        clamp(
+                            AnyToLong.getLong(it, 0),
+                            range.minUShort().toLong(),
+                            range.maxUShort().toLong()
+                        ).toUShort()
+                    },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -487,7 +495,7 @@ object ComponentUI {
                     }
                 } else {
                     val type = Type(default as? Int ?: 0,
-                        { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
+                        { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
                     return IntInput(title, visibilityKey, type, style).apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
@@ -502,7 +510,8 @@ object ComponentUI {
             }
             "UInt" -> {
                 val type = Type(default as? UInt ?: 0u,
-                    { Maths.clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
+                    { clamp(AnyToLong.getLong(it, 0), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() },
+                    { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -516,7 +525,7 @@ object ComponentUI {
             }
             "Long" -> {
                 val type = Type(default as? Long ?: 0L,
-                    { Maths.clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
+                    { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -530,7 +539,7 @@ object ComponentUI {
             }
             "ULong" -> {// not fully supported
                 val type = Type(default as? ULong ?: 0uL,
-                    { Maths.clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
+                    { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -545,7 +554,7 @@ object ComponentUI {
             // todo slider type, which returns a float in 01 range
             "Float" -> {
                 val type = Type(AnyToFloat.getFloat(default, 0f),
-                    { Maths.clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
+                    { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -559,7 +568,7 @@ object ComponentUI {
             }
             "Double" -> {
                 val type = Type(default as? Double ?: 0.0,
-                    { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
+                    { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -1276,7 +1285,7 @@ object ComponentUI {
 
                     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
                         if (Input.isControlDown) {
-                            val newEntrySize = entrySize * Maths.pow(1.05f, dy - dx)
+                            val newEntrySize = entrySize * (1.05f).pow(dy - dx)
                             entrySize = clamp(
                                 newEntrySize,
                                 minEntrySize,
@@ -1343,33 +1352,12 @@ object ComponentUI {
         )
     }
 
-    fun Any?.toLong(): Long {
-        return when (this) {
-            is Byte -> toLong()
-            is UByte -> toLong()
-            is Short -> toLong()
-            is UShort -> toLong()
-            is Int -> toLong()
-            is UInt -> toLong()
-            is Long -> this
-            is ULong -> toLong()
-            is String -> toLong(10)
-            else -> throw RuntimeException()
-        }
-    }
-
     fun Any?.toULong2(): ULong {
         return when (this) {
-            is Byte -> toULong()
-            is UByte -> toULong()
-            is Short -> toULong()
-            is UShort -> toULong()
-            is Int -> toULong()
-            is UInt -> toULong()
             is Long -> toULong()
             is ULong -> this
             is String -> toULong(10)
-            else -> throw RuntimeException()
+            else -> AnyToLong.getLong(this, 0).toULong()
         }
     }
 

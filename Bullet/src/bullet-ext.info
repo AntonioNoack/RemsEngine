@@ -1,4 +1,4 @@
 mod-name: Bullet Integration
-author: Antonio Noack
+authors: Antonio Noack, Erwin Coumans
 description: 3d physics simulation
 main-class: me.anno.bullet.BulletMod

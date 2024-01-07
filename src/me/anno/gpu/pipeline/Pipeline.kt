@@ -321,7 +321,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             setupLights(this, shader, allAABB, false)
             setupLocalTransform(shader, sky.transform, Time.gameTimeN)
             shader.v1b("hasAnimation", false)
-            shader.v4f("tint", -1)
+            shader.v4f("tint", 1f)
             shader.v1f("finalAlpha", 1f)
             shader.v1i("hasVertexColors", 0)
             shader.v2i("randomIdData", 6, 123456)

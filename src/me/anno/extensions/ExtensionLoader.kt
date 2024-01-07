@@ -124,7 +124,6 @@ object ExtensionLoader {
             it.join()
         }
         for (internal in internally) {
-            LOGGER.info("Removing $internal")
             result.removeIf { it.uuid == internal.uuid }
             result.add(internal)
         }

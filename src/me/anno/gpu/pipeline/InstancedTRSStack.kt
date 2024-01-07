@@ -88,7 +88,7 @@ class InstancedTRSStack(capacity: Int = 64) :
         }
 
         material.bind(shader)
-        shader.v4f("tint", -1)
+        shader.v4f("tint", 1f)
         shader.v1b("hasAnimation", false)
         shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)

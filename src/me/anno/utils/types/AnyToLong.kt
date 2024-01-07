@@ -20,7 +20,15 @@ object AnyToLong {
                 0 -> this.toLong()
                 else -> defaultValue
             }
+            is UByte -> when (index) {
+                0 -> this.toLong()
+                else -> defaultValue
+            }
             is Short -> when (index) {
+                0 -> this.toLong()
+                else -> defaultValue
+            }
+            is UShort -> when (index) {
                 0 -> this.toLong()
                 else -> defaultValue
             }
@@ -28,8 +36,16 @@ object AnyToLong {
                 0 -> this.toLong()
                 else -> defaultValue
             }
+            is UInt -> when (index) {
+                0 -> this.toLong()
+                else -> defaultValue
+            }
             is Long -> when (index) {
                 0 -> this
+                else -> defaultValue
+            }
+            is ULong -> when (index) {
+                0 -> this.toLong()
                 else -> defaultValue
             }
             is Float -> when (index) {

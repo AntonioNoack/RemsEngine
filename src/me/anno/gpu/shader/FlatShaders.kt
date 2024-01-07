@@ -73,6 +73,7 @@ object FlatShaders {
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")
+            ignoreNameWarnings("targetSamples")
         }
     }
 

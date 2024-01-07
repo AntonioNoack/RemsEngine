@@ -174,7 +174,8 @@ open class Skybox : SkyboxBase() {
                     "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
                     "skyColor", "renderSize", "tint", "reflectionCullingPlane", "cameraPosition", "cameraRotation",
                     "hasReflectionPlane", "numberOfLights", "prevLocalTransform", "finalSheen", "sheen",
-                    "applyToneMapping", "tint", "hasVertexColors", "reflectionPlane", "camScale"
+                    "applyToneMapping", "tint", "hasVertexColors", "reflectionPlane", "camScale", "reverseDepth",
+                    "clearCoat", "IOR", "isPerspective"
                 )
             }
 

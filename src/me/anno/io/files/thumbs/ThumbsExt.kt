@@ -102,7 +102,7 @@ object ThumbsExt {
 
     fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f) {
         shader.use()
-        shader.v4f("tint", -1)
+        shader.v4f("tint", 1f)
         shader.v1b("hasAnimation", false)
         shader.m4x3("localTransform", modelMatrix)
         if (shader["invLocalTransform"] >= 0) {

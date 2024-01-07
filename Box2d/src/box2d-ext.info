@@ -1,4 +1,4 @@
-mod-name: Bullet Integration
-author: Antonio Noack
+mod-name: Box2d Integration
+authors: Antonio Noack, Erin Catto
 description: 2d physics simulation
 main-class: me.anno.box2d.Box2dMod

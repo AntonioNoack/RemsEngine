@@ -732,7 +732,7 @@ class PipelineStage(
                     lastComp = renderer
                 }
 
-                shader.v4f("tint", -1)
+                shader.v4f("tint", 1f)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                 shader.v4f("finalId", renderer.gfxId)
                 shader.v2i(

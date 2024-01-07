@@ -13,8 +13,6 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import kotlin.math.*
 
-// todo test it
-
 // like ViewFlipper in Android
 open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
 
@@ -27,7 +25,6 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         ROTATE_HORIZONTAL(true, false),
         ROTATE_VERTICAL(false, true)
         // we could add a few more animations
-        // todo implement them all
     }
 
     var transitionType = TransitionType.SWIPE_HORIZONTAL
@@ -170,7 +167,6 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return false // not really, I think...
         // todo ok so?
-        // return children.count { it.visibility == Visibility.VISIBLE } > 1
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

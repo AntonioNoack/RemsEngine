@@ -163,7 +163,7 @@ object TriangleBuffer {
     fun finish(camTransform: Matrix4f) {
         val shader = shader.value
         shader.use()
-        shader.v4f("tint", -1)
+        shader.v4f("tint", 1f)
         finish(camTransform, shader)
     }
 

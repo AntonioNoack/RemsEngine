@@ -795,6 +795,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun check() = GFX.check()
 
     operator fun get(name: String) = getUniformLocation(name)
+    fun hasUniform(name: String) = getUniformLocation(name, false) >= 0
 
     override fun destroy() {
         if (program != 0) {
