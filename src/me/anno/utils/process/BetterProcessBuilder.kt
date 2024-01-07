@@ -15,6 +15,11 @@ class BetterProcessBuilder(
     isLowPriority: Boolean
 ) {
 
+    constructor(arguments: List<String>) :
+            this(arguments[0], arguments.size, false) {
+        addAll(arguments.subList(1, arguments.size))
+    }
+
     constructor(
         program: FileReference, ownArgumentCount: Int,
         isLowPriority: Boolean
@@ -104,21 +109,21 @@ class BetterProcessBuilder(
         return process
     }
 
-    fun readLines(input: InputStream, error: Boolean) {
-        val reader = input.bufferedReader()
-        while (!Engine.shutdown) {
-            val line = reader.readLine() ?: break
-            if (line.isNotEmpty()) {
-                if (error) LOGGER.warn(line)
-                else LOGGER.info(line)
-            }
-        }
-        reader.close()
-    }
-
     companion object {
+
+        fun readLines(input: InputStream, error: Boolean) {
+            val reader = input.bufferedReader()
+            while (!Engine.shutdown) {
+                val line = reader.readLine() ?: break
+                if (line.isNotEmpty()) {
+                    if (error) LOGGER.warn(line)
+                    else LOGGER.info(line)
+                }
+            }
+            reader.close()
+        }
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(BetterProcessBuilder::class)
     }
-
 }

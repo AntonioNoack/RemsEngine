@@ -21,7 +21,7 @@ import kotlin.concurrent.thread
 
 class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
-    var playAudio: Boolean, var looping: LoopingState // todo loop video
+    var playAudio: Boolean, var looping: LoopingState
 ) : ICacheData {
 
     companion object {

@@ -47,16 +47,16 @@ class BlankFrameDetector {
         return if (f2 in min..max) 0 else 1
     }
 
-    private fun isBlankFrameRGBA(f0: Int, f2: Int, f4: Int): Int {
-        val m0 = 0xff
-        val m1 = 0xff00
-        val m2 = 0xff0000
+    private fun isBlankFrameRGBA(c0: Int, c2: Int, c4: Int): Int {
+        val b = 0xff
+        val g = 0xff00
+        val r = 0xff0000
         val s3 = 24
         var sum = 0
-        sum += isBlankFrameR(f0.and(m0), f2.and(m0), f4.and(m0))
-        sum += isBlankFrameR(f0.and(m1), f2.and(m1), f4.and(m1))
-        sum += isBlankFrameR(f0.and(m2), f2.and(m2), f4.and(m2))
-        sum += isBlankFrameR(f0.ushr(s3), f2.ushr(s3), f4.ushr(s3))
+        sum += isBlankFrameR(c0.and(b), c2.and(b), c4.and(b))
+        sum += isBlankFrameR(c0.and(g), c2.and(g), c4.and(g))
+        sum += isBlankFrameR(c0.and(r), c2.and(r), c4.and(r))
+        sum += isBlankFrameR(c0.ushr(s3), c2.ushr(s3), c4.ushr(s3))
         return sum
     }
 

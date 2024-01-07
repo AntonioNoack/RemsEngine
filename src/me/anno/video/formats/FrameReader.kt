@@ -49,7 +49,11 @@ abstract class FrameReader<FrameType>(
         finishedCallback(frames)
     }
 
-    // todo what do we do, if we run out of memory?
+    // what do we do, if we run out of memory?
+    // - from the start, we reuse memory as well as possible,
+    // - if we're just streaming, use a class like VideoPanel
+    // - if we're out of memory anyway, we'll just be unlucky... memory is cheap today
+
     private fun readFrame(input: InputStream) {
         synchronized(foundCodecs) {
             if (foundCodecs.add(codec)) {

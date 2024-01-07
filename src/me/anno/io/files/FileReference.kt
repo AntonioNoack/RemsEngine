@@ -632,6 +632,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
+    fun copyTo(dst: FileReference, callback: (Exception?) -> Unit) {
+        dst.writeFile(this, callback)
+    }
+
     abstract val isDirectory: Boolean
 
     open fun isSerializedFolder(): Boolean {
