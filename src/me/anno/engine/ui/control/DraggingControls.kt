@@ -276,14 +276,17 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val pos = JomlPools.vec3d.create()
         for (selected0 in EditorState.selection) {
             var selected: PrefabSaveable? = selected0 as? PrefabSaveable
-            while (selected != null && selected !is Entity) {
+            while (selected != null && (selected !is Entity && selected !is DCMovable)) {
                 selected = selected.parent
             }
-            // todo gizmos for sdf components
-            // todo like Unity allow more gizmos than that?
-            if (selected is Entity) {
+            val transform = when (selected) {
+                is Entity -> selected.transform.globalTransform
+                is DCMovable -> selected.getGlobalTransform(Matrix4x3d())
+                else -> null
+            }
+            if (transform != null) {
+                // todo like Unity allow more gizmos than that?
                 val scale = renderView.radius * 0.15
-                val transform = selected.transform.globalTransform
                 transform.getTranslation(pos)
                 val cam = renderView.cameraMatrix
                 val mask = when (mode) {

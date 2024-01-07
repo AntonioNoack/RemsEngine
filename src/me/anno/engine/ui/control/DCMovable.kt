@@ -8,4 +8,6 @@ interface DCMovable {
         self: DraggingControls, camTransform: Matrix4x3d, offset: Vector3d, dir: Vector3d,
         rotationAngle: Double, dx: Float, dy: Float
     )
+
+    fun getGlobalTransform(dst: Matrix4x3d): Matrix4x3d
 }

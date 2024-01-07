@@ -913,6 +913,18 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         JomlPools.mat4x3f.sub(1)
     }
 
+    override fun getGlobalTransform(dst: Matrix4x3d): Matrix4x3d {
+        when (val parent = parent) {
+            is Entity -> dst.set(parent.transform.globalTransform)
+            is DCMovable -> parent.getGlobalTransform(dst)
+            else -> dst.identity()
+        }
+        return dst
+            .translate(position)
+            .rotate(rotation)
+            .scale(scale.toDouble())
+    }
+
     override fun drop(
         self: DraggingControls,
         prefab: Prefab,

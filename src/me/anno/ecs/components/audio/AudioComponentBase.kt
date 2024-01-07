@@ -2,13 +2,14 @@ package me.anno.ecs.components.audio
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioReadable
 import me.anno.audio.openal.AudioTasks.addAudioTask
 import me.anno.audio.openal.SoundListener
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.video.ffmpeg.MediaMetadata
@@ -20,8 +21,6 @@ import org.lwjgl.openal.AL11.AL_LINEAR_DISTANCE_CLAMPED
 import kotlin.math.max
 
 // todo some kind of event system for when music changed
-
-// todo there need to be multiple types: procedural & loaded
 
 // todo what's the best way to combine audio for local multiplayer? we could use stereo a little for that :)
 // (should be disable-able)
@@ -80,6 +79,8 @@ abstract class AudioComponentBase : Component() {
 
     var startTime = 0L
 
+    @Docs("How loud the audio is")
+    @Range(0.0, Double.POSITIVE_INFINITY)
     var volume = 1f
         set(value) {
             val v = max(0f, value)
@@ -92,9 +93,11 @@ abstract class AudioComponentBase : Component() {
             }
         }
 
+    @Docs("How fast the audio is played; equivalent to 'pitch'")
+    @Range(0.0, Double.POSITIVE_INFINITY)
     var speed = 1f
         set(value) {
-            val v = max(0f, value)
+            val v = max(0f, value) // less than 0 is not supported
             if (field != v) {
                 field = v
                 if (stream0 != null) addAudioTask("speed", 1) {
@@ -329,5 +332,4 @@ abstract class AudioComponentBase : Component() {
         dst.referenceDistance = referenceDistance
         dst.maxDistance = maxDistance
     }
-
 }
