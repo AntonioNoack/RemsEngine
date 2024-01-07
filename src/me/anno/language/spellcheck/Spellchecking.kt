@@ -30,7 +30,7 @@ import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
 
-    private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib\\spellchecking")]
+    private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib/spellchecking")]
 
     var defaultLanguage = Language.AmericanEnglish
     private val language get() = StudioBase.instance?.language ?: defaultLanguage
@@ -45,7 +45,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val data = getEntry(Pair(sentence2, language), timeout, async) { (seq, lang) ->
+        val data = getDualEntry(sentence2, language, timeout, async) { seq, lang ->
             val answer = CacheData<List<Suggestion>?>(null)
             getValue(seq, lang) { rawSuggestions ->
                 answer.value = rawSuggestions

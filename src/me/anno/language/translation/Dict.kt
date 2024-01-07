@@ -4,10 +4,8 @@ import me.anno.config.DefaultConfig
 import me.anno.io.Streams.readText
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.language.Language
-import me.anno.studio.StudioBase
-import me.anno.ui.input.EnumInput
 import me.anno.ui.Style
+import me.anno.ui.input.EnumInput
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -16,11 +14,6 @@ import java.util.*
 object Dict {
 
     private var values = HashMap<String, String>()
-
-    fun load(input: InputStream, clear: Boolean) {
-        val text = input.readText()
-        load(text, clear)
-    }
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
@@ -130,7 +123,6 @@ object Dict {
             // load all translations
             load(option.data, true)
             // update spellchecking language
-            StudioBase.instance?.language = Language.get(Dict["en-US", "lang.spellcheck"])
             changeListener(option)
         }
         return input
@@ -140,5 +132,4 @@ object Dict {
     operator fun get(default: String, key: String) = values[key] ?: default
 
     private val LOGGER = LogManager.getLogger(Dict::class)
-
 }

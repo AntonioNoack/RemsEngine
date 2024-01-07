@@ -53,6 +53,8 @@ import org.joml.Matrix4f
 
 // pick random x: grep 'x' -r . | shuf -n 1 | head -n 1
 
+// todo: translate everything (again xD)
+
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials
 

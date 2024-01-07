@@ -1,5 +1,5 @@
 lang.name: Italiano
-controllo ortografico: it
+lang.spellcheck: it
 obj.particles.spawnRate: Nuovi oggetti / s
 obj.particles.spawnRate.desc: Quanti nuovi oggetti appaiono al secondo
 obj.particles: Sistema di particelle

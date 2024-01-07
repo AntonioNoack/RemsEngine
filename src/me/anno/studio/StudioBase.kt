@@ -339,7 +339,7 @@ abstract class StudioBase(
 
     open fun isSelected(obj: Any?) = false
 
-    open var language = Language.get(Dict["en-US", "lang.spellcheck"])
+    open val language get() = Language.get(Dict["en-US", "lang.spellcheck"])
 
     companion object {
 
@@ -356,6 +356,5 @@ abstract class StudioBase(
         var dragged: IDraggable? = null
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
-
     }
 }

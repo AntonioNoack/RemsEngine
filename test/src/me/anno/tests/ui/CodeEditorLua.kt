@@ -30,7 +30,6 @@ fun testCodeEditor(title: String, editor: CodeEditor) {
     testUI2(title) {
 
         StudioBase.instance?.enableVSync = true
-        StudioBase.instance?.language = Language.AmericanEnglish
 
         CodeEditor.registerActions()
 
