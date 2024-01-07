@@ -140,6 +140,7 @@ class InnerRarFile(
             }
             file.lastModified = header.mTime?.time ?: 0L
             file.lastAccessed = header.aTime?.time ?: 0L
+            file.creationTime = header.cTime?.time ?: 0L
             file.compressedSize = header.fullPackSize
             file.size = header.fullUnpackSize
             file.isEncrypted = header.isEncrypted

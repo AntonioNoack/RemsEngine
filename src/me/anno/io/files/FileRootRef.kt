@@ -40,17 +40,11 @@ object FileRootRef : FileReference("root") {
         return false
     }
 
-    override val isDirectory: Boolean
-        get() = true
-
-    override val exists: Boolean
-        get() = true
-
-    override val lastModified: Long
-        get() = 0L
-
-    override val lastAccessed: Long
-        get() = 0L
+    override val isDirectory: Boolean get() = true
+    override val exists: Boolean get() = true
+    override val lastModified: Long get() = 0L
+    override val lastAccessed: Long get() = 0L
+    override val creationTime: Long get() = 0L
 
     override fun toUri(): URI {
         return URI("file:/")

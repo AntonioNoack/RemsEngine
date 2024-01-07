@@ -17,6 +17,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -50,6 +52,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -638,33 +641,46 @@ open class FileExplorerEntry(
 
         if (listMode) {
 
-            // todo multiple columns
-            // todo -> file size, file type, signature, last changed, ...
+            // todo customize weights
+            // todo add/remove columns
 
-            lines = 1
+            val imgSize = min(width, height) - 2 * padding
+            if (imgSize > 1) {
 
-            val wi = min(width, height) - 2 * padding
-            if (wi > 1) {
+                lines = 1
+
                 clip2Dual(
                     x0, y0, x1, y1,
                     x + padding,
                     y + padding,
-                    x + padding + wi,
-                    y + padding + wi,
+                    x + padding + imgSize,
+                    y + padding + imgSize,
                     ::drawThumb
                 )
-            }
 
-            titlePanel.width = w
-            titlePanel.minW = w
-            titlePanel.calculateSize(w, h)
-            titlePanel.backgroundColor = backgroundColor and 0xffffff
-            titlePanel.setPosSize(
-                x + padding + titlePanel.minH,
-                max(y0, (h - titlePanel.minH) / 2),
-                w, height
-            )
-            titlePanel.drawText()
+                // todo draw lines for separation?
+                val spacing = padding
+                val available = w - imgSize - spacing * (fileStatColumns.size + 2)
+                val weightSum = fileStatColumns.sumOf { it.weight.toDouble() }
+                val invW = available / weightSum
+                var xi = x + imgSize + 2 * spacing
+                val ref1s = ref1s
+                for (column in fileStatColumns) {
+                    val wi = (column.weight * invW).toInt()
+                    val text = column.type.getValue(ref1s)
+                    val alignment = column.type.alignment
+                    drawTextCharByChar(
+                        xi + alignment.getOffset(wi, 0),
+                        y + h, monospaceFont, text,
+                        titlePanel.textColor,
+                        titlePanel.backgroundColor,
+                        -1, -1,
+                        alignment, AxisAlignment.MAX,
+                        true
+                    )
+                    xi += wi + spacing
+                }
+            }
         } else {
 
             val extraHeight = h - w
@@ -894,6 +910,14 @@ open class FileExplorerEntry(
         @JvmStatic
         private val charMMSS = ComparableStringBuilder("mm:ss/mm:ss")
 
+        @JvmStatic
+        var fileStatColumns = arrayListOf(
+            FileStatColumn(FileStatType.FILE_NAME, 3f),
+            FileStatColumn(FileStatType.EXTENSION, 1f),
+            FileStatColumn(FileStatType.FILE_SIZE, 2f),
+            FileStatColumn(FileStatType.CREATED, 2f),
+            FileStatColumn(FileStatType.MODIFIED, 2f),
+        )
 
         @JvmStatic
         val dontDelete

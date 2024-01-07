@@ -26,15 +26,21 @@ object LastModifiedCache {
 
         constructor(file: File) : this(file, file.exists())
 
-        val lastAccessed = if (exists) {
-            Files.readAttributes(
-                file.toPath(),
-                BasicFileAttributes::class.java
-            )?.lastAccessTime()?.toMillis() ?: 0L
-        } else 0L
+        val lastAccessed: Long
+        val creationTime: Long
+
+        init {
+            if (exists) {
+                val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+                lastAccessed = attr.lastAccessTime()?.toMillis() ?: 0L
+                creationTime = attr.creationTime()?.toMillis() ?: 0L
+            } else {
+                lastAccessed = 0L
+                creationTime = 0L
+            }
+        }
 
         val length = if (isDirectory) 0L else file.length()
-
     }
 
     val values: MutableMap<String, Result> = ConcurrentHashMap()

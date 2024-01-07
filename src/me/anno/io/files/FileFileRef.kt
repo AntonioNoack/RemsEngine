@@ -193,6 +193,9 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override val lastAccessed: Long
         get() = LastModifiedCache[file, absolutePath].lastAccessed
 
+    override val creationTime: Long
+        get() = LastModifiedCache[file, absolutePath].creationTime
+
     override fun toUri(): URI {
         return URI("file:/${absolutePath.replace(" ", "%20")}")
     }

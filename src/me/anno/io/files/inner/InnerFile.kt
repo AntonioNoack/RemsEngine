@@ -42,9 +42,10 @@ abstract class InnerFile(
         }
     }
 
-    // assigned typically anyway
-    override var lastModified = 0L // _parent.lastModified
-    override var lastAccessed = 0L // _parent.lastAccessed
+    // assigned typically anyway; millisecond timestamps like usual for Java
+    override var lastModified = 0L
+    override var lastAccessed = 0L
+    override var creationTime = 0L
 
     var compressedSize = 0L
     var size = 65536L // we don't know in this class

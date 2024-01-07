@@ -66,7 +66,8 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                 }
             }
 
-    override val lastAccessed: Long = 0L
+    override val lastAccessed: Long get() = 0L
+    override val creationTime: Long get() = 0L
 
     fun toURL() = URL(absolutePath)
     override fun toLocalPath(workspace: FileReference) = absolutePath

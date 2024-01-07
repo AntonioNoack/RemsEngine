@@ -680,6 +680,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract val exists: Boolean
     abstract val lastModified: Long
     abstract val lastAccessed: Long
+    abstract val creationTime: Long
 
     abstract fun toUri(): URI
 

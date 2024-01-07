@@ -75,6 +75,7 @@ class InnerZipFile(
                 else InnerZipFile(absolutePath, zipFile, getStream, path, parent2)
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L
+            file.creationTime = entry.creationTime?.toMillis() ?: 0L
             file.size = entry.size
             setDataAndSignature(file) { zis.getInputStream(entry) }
             return file

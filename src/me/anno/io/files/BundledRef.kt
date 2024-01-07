@@ -97,6 +97,7 @@ class BundledRef(
 
     override val lastModified get(): Long = 0L
     override val lastAccessed get(): Long = 0L
+    override val creationTime get(): Long = 0L
 
     override fun toUri(): URI {// mmh...
         return URI(absolutePath)

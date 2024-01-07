@@ -23,6 +23,7 @@ class InnerLinkFile(
             data = link.data
             lastModified = link.lastModified
             lastAccessed = link.lastAccessed
+            creationTime = link.creationTime
             size = link.size
             compressedSize = link.compressedSize
         }

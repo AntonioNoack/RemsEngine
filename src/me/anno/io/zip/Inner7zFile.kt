@@ -2,7 +2,6 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.*
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
@@ -106,8 +105,9 @@ class Inner7zFile(
                     Inner7zFile("$zipFileLocation/$path", zipFile, getStream, path, registry[parent]!!)
                 }
             }
-            file.lastModified = entry.lastModifiedDate?.time ?: 0L
+            file.lastModified = if (entry.hasLastModifiedDate) entry.lastModifiedDate!!.time else 0L
             file.lastAccessed = if (entry.hasAccessDate) entry.accessDate!!.time else 0L
+            file.creationTime = if (entry.hasCreationDate) entry.creationDate!!.time else 0L
             file.size = entry.size
             setDataAndSignature(file) { zis.getInputStream(entry) }
             return file

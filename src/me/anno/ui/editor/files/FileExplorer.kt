@@ -65,7 +65,6 @@ import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
-import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -85,17 +84,6 @@ import kotlin.math.roundToInt
 
 open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: Style) :
     PanelListY(style.getChild("fileExplorer")) {
-
-    enum class FolderSorting(val weight: Int) {
-        FIRST(-2), MIXED(0), LAST(2)
-    }
-
-    enum class FileSorting {
-        NAME,
-        SIZE,
-        LAST_MODIFIED,
-        EXTENSION,
-    }
 
     // todo group files by stuff?
 
@@ -225,15 +213,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             else -> {
                 val a = p0.ref1s
                 val b = p1.ref1s
-                val base = clamp(
-                    when (fileSorting) {
-                        FileSorting.NAME -> a.name.compareTo(b.name, true)
-                        FileSorting.SIZE -> a.length().compareTo(b.length())
-                        FileSorting.LAST_MODIFIED -> b.lastModified.compareTo(a.lastModified)
-                        FileSorting.EXTENSION -> a.lcExtension.compareTo(b.lcExtension)
-                            .ifSame { a.name.compareTo(b.name, true) }
-                    }, -1, +1
-                ) * (if (ascendingSorting) +1 else -1)
+                val base = clamp(fileSorting.compare(a, b), -1, +1) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
                 else base + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
             }
@@ -617,6 +597,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                         .setEnabled(fileSorting != FileSorting.SIZE),
                     MenuOption(NameDesc("Sort by Last-Modified")) { fileSorting = FileSorting.LAST_MODIFIED }
                         .setEnabled(fileSorting != FileSorting.LAST_MODIFIED),
+                    MenuOption(NameDesc("Sort by Creation-Time")) { fileSorting = FileSorting.CREATION_TIME }
+                        .setEnabled(fileSorting != FileSorting.CREATION_TIME),
                     MenuOption(NameDesc("Sort by Extension")) { fileSorting = FileSorting.EXTENSION }
                         .setEnabled(fileSorting != FileSorting.EXTENSION),
                     menuSeparator1,

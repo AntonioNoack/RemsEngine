@@ -71,6 +71,7 @@ object UnityPackage {
         file as InnerTarFile
         file.lastModified = original.lastModified
         file.lastAccessed = original.lastAccessed
+        file.creationTime = original.creationTime
         file.size = original.size
         file.compressedSize = original.compressedSize
         file.data = original.data
