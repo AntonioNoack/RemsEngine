@@ -50,6 +50,20 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
         window?.addNeedsLayout(this)
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        val dxi = if (isY) 1 else rows
+        val dyi = if (isY) columns else 1
+        return when (action) {
+            "Left" -> selectNext(-dxi)
+            "Right" -> selectNext(+dxi)
+            "Up" -> selectNext(-dyi)
+            "Down" -> selectNext(+dyi)
+            "Previous" -> selectNext(-1)
+            "Next" -> selectNext(+1)
+            else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+    }
+
     var rows = 1
     var columns = 1
     var calcChildWidth = 0
@@ -126,7 +140,7 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
         super.setPosition(x, y)
         val sch = scaleChildren
         val ssp = scaleSpaces && !sch
-        if(isY){
+        if (isY) {
             var iy = 0
             var i = 0
             children@ while (true) {

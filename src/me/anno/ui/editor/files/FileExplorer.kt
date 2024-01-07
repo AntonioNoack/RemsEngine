@@ -653,6 +653,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             }
             "Back", "Backward" -> back()
             "Forward" -> forward()
+            "OpenSearchBar" -> searchBar.requestFocus()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -729,6 +730,10 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             hoveredItemIndex = content2d.getItemIndexAt(x.toInt(), y.toInt())
             hoverFractionY = clamp(content2d.getItemFractionY(y), 0.25f, 0.75f)
         }
+    }
+
+    override fun onEscapeKey(x: Float, y: Float) {
+        switchTo(folder.getParent())
     }
 
     var listMode = false

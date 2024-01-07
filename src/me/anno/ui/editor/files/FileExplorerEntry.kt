@@ -777,16 +777,26 @@ open class FileExplorerEntry(
         return hits
     }
 
+    private fun tryEntering(explorer: FileExplorer) {
+        val file = getReferenceOrTimeout(path)
+        if (explorer.canSensiblyEnter(file)) {
+            LOGGER.info("Can enter ${file.name}? Yes!")
+            explorer.switchTo(file)
+        } else {
+            LOGGER.info("Can enter ${file.name}? No :/")
+            explorer.onDoubleClick(file)
+        }
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        if (explorer != null) {
+            tryEntering(explorer)
+        } else super.onEnterKey(x, y)
+    }
+
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
         if (button == Key.BUTTON_LEFT && explorer != null) {
-            val file = getReferenceOrTimeout(path)
-            if (explorer.canSensiblyEnter(file)) {
-                LOGGER.info("Can enter ${file.name}? Yes!")
-                explorer.switchTo(file)
-            } else {
-                LOGGER.info("Can enter ${file.name}? No :/")
-                explorer.onDoubleClick(file)
-            }
+            tryEntering(explorer)
         } else super.onDoubleClick(x, y, button)
     }
 

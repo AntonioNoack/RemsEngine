@@ -251,12 +251,18 @@ object EngineActions {
         register["PanelListY.upArrow.typed", "Previous"]
         register["PanelListY.downArrow.typed", "Next"]
 
+        register["PanelList2D.leftArrow.typed", "Left"]
+        register["PanelList2D.rightArrow.typed", "Right"]
+        register["PanelList2D.upArrow.typed", "Up"]
+        register["PanelList2D.downArrow.typed", "Down"]
+
         register["FileExplorer.f5.typed", "Refresh"]
+        register["FileExplorer.f.typed.c", "OpenSearchBar"]
 
         register["TreeView.delete.typed", "Delete"]
-        register["SceneView.r.typed"] = "SetMode(MOVE)"
-        register["SceneView.t.typed"] = "SetMode(ROTATE)"
-        register["SceneView.y.typed"] = "SetMode(SCALE)"
-        register["SceneView.z.typed"] = "SetMode(SCALE)"
+        register["SceneView.r.typed", "SetMode(MOVE)"]
+        register["SceneView.t.typed", "SetMode(ROTATE)"]
+        register["SceneView.y.typed", "SetMode(SCALE)"]
+        register["SceneView.z.typed", "SetMode(SCALE)"]
     }
 }

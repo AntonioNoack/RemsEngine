@@ -74,35 +74,23 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         super.calculateSize(w, h)
     }
 
-    fun selectPrevious(): Boolean {
+    fun selectNext(di: Int = 1): Boolean {
         if (!isAnyChildInFocus) return false
-        val childIndex = children.indexOfFirst { it.isVisible && it.isInFocus }
-        val newChild = if (childIndex >= 0) {
-            children.subList(0, childIndex)
-                .lastOrNull { it.isVisible }
-        } else null
-        if (newChild != null) {
-            selectNext(newChild, childIndex)
+        val children = children.filter { it.isVisible }
+        val childIndex = children.indexOfFirst { it.isAnyChildInFocus }
+        val newChild = when {
+            childIndex >= 0 -> children.getOrNull(childIndex + di)
+            di < 0 -> children.firstOrNull()
+            else -> children.lastOrNull()
         }
-        return newChild != null
+        if (newChild != null) {
+            selectNext(newChild)
+        }
+        return true
     }
 
-    fun selectNext(): Boolean {
-        if (!isAnyChildInFocus) return false
-        val childIndex = children.indexOfFirst { it.isVisible && it.isAnyChildInFocus }
-        val newChild = if (childIndex >= 0) {
-            children.subList(childIndex + 1, children.size).firstOrNull { it.isVisible }
-        } else null
-        if (newChild != null) {
-            selectNext(newChild, childIndex)
-        }
-        return newChild != null
-    }
-
-    private fun selectNext(newChild: Panel, prevChildIndex: Int) {
-        children[prevChildIndex].invalidateDrawing()
+    private fun selectNext(newChild: Panel) {
         newChild.requestFocus()
-        newChild.invalidateDrawing()
         newChild.scrollTo()
     }
 

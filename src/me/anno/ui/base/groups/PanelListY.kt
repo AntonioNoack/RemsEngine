@@ -175,8 +175,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
-            "Previous", "Up" -> selectPrevious()
-            "Next", "Down" -> selectNext()
+            "Previous", "Up" -> selectNext(-1)
+            "Next", "Down" -> selectNext(+1)
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
     }
