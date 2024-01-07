@@ -110,7 +110,6 @@ class AudioStreamRaw(
                     val sliceSampleCount = ((time1 - time0) * sampleRate).toInt()
                     val index0i = (time0 * sampleRate).toLong()
                     val soundBuffer = if (lastSoundBuffer == null) {
-                        val file = file
                         val soundBuffer = file.getBuffer(time0, time1, sampleRate)
                         lastSoundBuffer = soundBuffer
                         soundBuffer

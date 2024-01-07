@@ -25,6 +25,10 @@ object Build {
     @JvmStatic
     var assetsFolder: FileReference = InvalidRef
 
+    /**
+     * locks the properties "isDebug", "isShipped" and "isLocked", so they no longer can be changed (e.g., by mods);
+     * probably not save because of Java reflections, but whatever, user-code is always unsafe
+     * */
     @JvmStatic
     @Suppress("unused")
     fun lock() {

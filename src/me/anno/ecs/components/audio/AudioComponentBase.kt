@@ -2,6 +2,7 @@ package me.anno.ecs.components.audio
 
 import me.anno.Time
 import me.anno.animation.LoopingState
+import me.anno.audio.AudioReadable
 import me.anno.audio.openal.AudioTasks.addAudioTask
 import me.anno.audio.openal.SoundListener
 import me.anno.audio.streams.AudioFileStreamOpenAL
@@ -239,6 +240,7 @@ abstract class AudioComponentBase : Component() {
     @DebugAction
     open fun stop() {
         if (stream0 == null) return
+        (this as? AudioComponent)?.autoStart = false // else kind of pointless
         stopTime = (Time.nanoTime - startTime) * 1e-9
         addAudioTask("stop", 1) {
             stream0?.stop()

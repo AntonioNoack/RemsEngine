@@ -11,7 +11,7 @@ import kotlin.math.sin
  * where you can define your logic to create sound
  * */
 fun main() {
-    // todo UI gets stuck???
+    // todo how is it soo loud at the start, and then nearly silent??
     val scene = AudioComponent()
     scene.source = object : InnerTmpAudioFile() {
 
@@ -19,9 +19,9 @@ fun main() {
         val modulator = TAUf * 10f
 
         override fun sample(time: Double, channel: Int): Short {
+            if(Math.random() < 0.01) println(time)
             val sound = sin(time * mainFrequency) * sin(time * modulator)
             return (sound * 32767).toInt().toShort()
-            // return (time * 320 * 65000).toLong().toShort()
         }
     }
     scene.autoStart = true

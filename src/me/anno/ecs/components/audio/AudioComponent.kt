@@ -3,6 +3,7 @@ package me.anno.ecs.components.audio
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
+import me.anno.audio.AudioReadable
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
@@ -68,7 +69,7 @@ class AudioComponent : AudioComponentBase() {
 
     override fun onUpdate(): Int {
         super.onUpdate()
-        if (keepInMemory) {
+        if (keepInMemory && source !is AudioReadable) {
             keepInMemory()
         }
         if (autoStart && !isPlaying && abs(startTime - Time.nanoTime) > 1e9) {

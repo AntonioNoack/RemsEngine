@@ -17,6 +17,8 @@ interface AudioReadable {
     // actual audio generation function
     fun getBuffer(start: Double, duration: Double, sampleRate: Int): SoundBuffer {
 
+        println("getting buffer $start, $duration, $sampleRate")
+
         // generate buffer :)
         val buffer = SoundBuffer()
         val bufferLength = (duration * sampleRate).toInt()
