@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -11,7 +12,7 @@ object Base64 {
 
     private const val invalidCode: Byte = -1
     private val base64ToCode = ByteArray(256)
-    private val codeToBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toByteArray()
+    private val codeToBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".encodeToByteArray()
 
     init {
 
@@ -42,8 +43,8 @@ object Base64 {
 
     fun encodeBase64(bytes: ByteArray, writePadding: Boolean = false): String {
         val output = ByteArrayOutputStream((bytes.size * 4 + 2) / 3)
-        encodeBase64(bytes.inputStream(), output, writePadding)
-        return String(output.toByteArray())
+        encodeBase64(ByteArrayInputStream(bytes), output, writePadding)
+        return output.toString()
     }
 
     fun encodeBase64(input: InputStream, output: OutputStream, writePadding: Boolean) {
@@ -106,16 +107,16 @@ object Base64 {
     }
 
     fun encodeBase64(str: String, writePadding: Boolean): String {
-        val input = str.toByteArray()
+        val input = str.encodeToByteArray()
         val result = ByteArrayOutputStream(ceilDiv(input.size * 4, 3))
-        encodeBase64(input.inputStream(), result, writePadding)
+        encodeBase64(ByteArrayInputStream(input), result, writePadding)
         return result.toString()
     }
 
     fun decodeBase64(str: String, throwIfUnknown: Boolean): String {
-        val input = str.toByteArray()
+        val input = str.encodeToByteArray()
         val result = ByteArrayOutputStream(ceilDiv(input.size * 3, 4))
-        decodeBase64(input.inputStream(), result, throwIfUnknown)
+        decodeBase64(ByteArrayInputStream(input), result, throwIfUnknown)
         return result.toString()
     }
 

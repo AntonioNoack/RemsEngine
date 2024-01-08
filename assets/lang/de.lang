@@ -54,6 +54,9 @@ ui.general.search: Suche
 ui.general.apply: Anwenden
 ui.general.removeComponent: Komponente entfernen
 ui.general.removeComponent.desc: Die Komponente wird gelöscht
+ui.general.searchTerm: Suchbegriff
+ui.fileExplorer.searchTerm.desc: Gib Suchbegriffe oder Pfade ein und drück dann Enter
+ui.fileExplorer.removeFromFavourites: Entferne Pfad aus Favouriten
 
 ui.timePanel.setEndHere: Setze Ende
 ui.timePanel.setEndHere.desc: Setzt das Ende dieses Projektes hierhin

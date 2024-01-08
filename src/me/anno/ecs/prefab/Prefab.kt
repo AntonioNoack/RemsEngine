@@ -371,8 +371,8 @@ class Prefab : Saveable {
     }
 
     fun getSampleInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
-        synchronized(this) {
-            return if (!isValid) {
+        return synchronized(this) {
+            if (!isValid) {
                 val instance = createNewInstance(depth)
                 _sampleInstance = instance
                 instance

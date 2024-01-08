@@ -1,7 +1,6 @@
 package me.anno.ecs
 
 import me.anno.ecs.EntityPhysics.invalidateRigidbody
-import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -165,10 +164,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     companion object {
         fun create(type: String): Component {
-            return (ISaveable.createOrNull(type) ?: throw TypeNotPresentException(
-                type,
-                NullPointerException()
-            )) as Component
+            return (ISaveable.createOrNull(type) ?: throw IllegalStateException("Missing $type")) as Component
         }
     }
 

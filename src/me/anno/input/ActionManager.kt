@@ -10,7 +10,6 @@ import me.anno.ui.Panel
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
-import java.util.function.BiConsumer
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
@@ -149,8 +148,7 @@ object ActionManager {
 
     @JvmStatic
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
-        if (Input.keysDown.isEmpty()) return
-        val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
+        for ((key, downTime) in Input.keysDown) {
             onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
             val deltaTime = (Time.nanoTime - downTime) * 1e-9f
             val wasWaiting = deltaTime >= keyDragDelay
@@ -164,7 +162,6 @@ object ActionManager {
                 onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.DRAGGING)
             }
         }
-        Input.keysDown.forEach(mouseMoveConsumer)
     }
 
     /**

@@ -135,7 +135,7 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         ensureBuffer()
         toBuffer.ensureBuffer()
 
-        if (LOGGER.isDebugEnabled) {
+        if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Copying from $name to ${toBuffer.name}: from $from to $to, x$size")
         }
 

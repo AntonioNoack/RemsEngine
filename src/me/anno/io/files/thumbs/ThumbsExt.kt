@@ -158,8 +158,8 @@ object ThumbsExt {
         Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
             textures += listTextures(material)
         }
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
+        textures.removeAll { it == InvalidRef }
+        textures.removeAll {
             if (!it.exists) {
                 LOGGER.warn("Missing texture $it by $srcFile")
                 true
@@ -174,8 +174,8 @@ object ThumbsExt {
         for (material in mesh.materials) {
             textures += listTextures(material)
         }
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
+        textures.removeAll { it == InvalidRef }
+        textures.removeAll {
             if (!it.exists) {
                 LOGGER.warn("Missing texture $it by $file")
                 true
@@ -188,8 +188,8 @@ object ThumbsExt {
         // wait for all textures
         val textures = HashSet<FileReference>()
         collectTextures(entity, textures)
-        textures.removeIf { it == InvalidRef }
-        textures.removeIf {
+        textures.removeAll { it == InvalidRef }
+        textures.removeAll {
             if (!it.exists) {
                 LOGGER.warn("Missing texture $it by $srcFile")
                 true

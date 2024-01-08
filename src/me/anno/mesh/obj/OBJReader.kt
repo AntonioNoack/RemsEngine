@@ -97,7 +97,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             facePositions.addAll(positions, vertex, 3)
             faceNormals.add(0f, 0f, 0f)
             faceUVs.add(0f, 0f)
-        } catch (e: ArrayIndexOutOfBoundsException) {
+        } catch (e: IndexOutOfBoundsException) {
             e.printStackTrace()
         }
     }

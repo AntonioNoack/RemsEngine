@@ -19,7 +19,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.OS.desktop
-import java.util.*
+import kotlin.random.Random
 
 // the BRDF model is sometimes awkward -> implementation test
 // fixed it :)

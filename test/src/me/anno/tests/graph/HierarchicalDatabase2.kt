@@ -2,6 +2,7 @@ package me.anno.tests.graph
 
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
+import me.anno.maths.Maths
 import me.anno.utils.OS.desktop
 
 fun main() {
@@ -15,11 +16,11 @@ fun main() {
     val db = HierarchicalDatabase("test", file, runs * 20, 1000, 0)
 
     fun add(key: HDBKey) {
-        db.put(key, ByteArray(20) { (Math.random() * 255).toInt().toByte() })
+        db.put(key, ByteArray(20) { (Maths.random() * 255).toInt().toByte() })
     }
 
     fun deleteRun() {
-        val count = (Math.random() * 10).toInt()
+        val count = (Maths.random() * 10).toInt()
         for (i in 0 until count) {
             if (added.isEmpty()) break
             db.remove(added.random())
@@ -27,16 +28,16 @@ fun main() {
     }
 
     fun addRun() {
-        val count = (Math.random() * 20).toInt()
+        val count = (Maths.random() * 20).toInt()
         for (i in 0 until count) {
-            if (Math.random() < 0.3 || added.isEmpty()) {
+            if (Maths.random() < 0.3 || added.isEmpty()) {
                 // add a new folder
-                val folder = (added.randomOrNull()?.path ?: emptyList()) + "${Math.random()}"
-                add(HDBKey(folder, (Math.random() * 1e16).toLong()))
+                val folder = (added.randomOrNull()?.path ?: emptyList()) + "${Maths.random()}"
+                add(HDBKey(folder, (Maths.random() * 1e16).toLong()))
             } else {
                 // use an existing folder
                 val folder = added.random().path
-                add(HDBKey(folder, (Math.random() * 1e16).toLong()))
+                add(HDBKey(folder, (Maths.random() * 1e16).toLong()))
             }
         }
     }

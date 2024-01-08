@@ -23,6 +23,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import org.joml.AABBd
 import org.joml.Vector2d
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -107,7 +108,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
                 con.outputStream.write("data=${encodeURIComponent(query)}")
                 if (con.responseCode == 200) {
                     val bytes = con.inputStream.use { it.readBytes() }
-                    result = readOSM1(bytes.inputStream())
+                    result = readOSM1(ByteArrayInputStream(bytes))
                     hdb.put(path, hash, ByteSlice(bytes))
                     println("made successful request, ${bytes.size} bytes")
                     Thread.sleep(apiLimitMillis)

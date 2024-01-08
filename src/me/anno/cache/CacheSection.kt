@@ -12,8 +12,7 @@ import me.anno.io.files.LastModifiedCache
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.structures.maps.Maps
-import me.anno.utils.structures.maps.Maps.removeIf2
+import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -43,7 +42,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     inline fun remove(crossinline filter: (Any?, CacheEntry) -> Boolean): Int {
         return synchronized(cache) {
-            cache.removeIf2 { k, v ->
+            cache.removeIf { (k, v) ->
                 if (filter(k, v)) {
                     v.destroy()
                     true
@@ -542,7 +541,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun update() {
         synchronized(cache) {
             // avoiding allocations for clean memory debugging XD
-            cache.removeIf2(remover)
+            cache.removeIf { (_, value) ->
+                if (nanoTime > value.timeoutNanoTime) {
+                    value.destroy()
+                    true
+                } else false
+            }
         }
         synchronized(dualCache) {
             dualCache.removeIf { _, _, v ->
@@ -559,16 +563,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     companion object {
-
-        @JvmStatic
-        private val remover = object : Maps.Remover<Any?, CacheEntry>() {
-            override fun filter(key: Any?, value: CacheEntry): Boolean {
-                return if (nanoTime > value.timeoutNanoTime) {
-                    value.destroy()
-                    true
-                } else false
-            }
-        }
 
         @JvmStatic
         private val caches = ConcurrentSkipListSet<CacheSection>()

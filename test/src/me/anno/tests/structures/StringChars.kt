@@ -1,7 +1,7 @@
 package me.anno.tests.structures
 
 import me.anno.utils.Clock.Companion.measure
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
 

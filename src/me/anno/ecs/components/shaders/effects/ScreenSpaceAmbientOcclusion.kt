@@ -30,9 +30,9 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4f
-import java.util.*
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 // todo this is too dark on some regions on curved region on flat angles
 //  - maybe the normals are close to being backwards?

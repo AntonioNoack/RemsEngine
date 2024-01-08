@@ -30,7 +30,7 @@ object Strings {
 
     @JvmStatic
     fun Int.joinChars(): CharSequence {
-        return String(joinChars0())
+        return joinChars0().concatToString()
     }
 
     @JvmStatic

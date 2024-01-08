@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolderCache
+import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
@@ -153,12 +154,13 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     open fun onDoubleClick(file: FileReference) {}
 
-    val searchBar = TextInput("Search Term", "", false, style)
+    val searchBar = TextInput(Dict["Search Term", "ui.general.searchTerm"], "", false, style)
     var searchDepth = 3
     var isValid = 0f
 
     init {
-        searchBar.tooltip = "Enter search terms, or paste a path, press enter to go there"
+        searchBar.tooltip =
+            Dict["Enter search terms, or paste a path, press enter to go there", "ui.fileExplorer.searchTerm.desc"]
         searchBar.weight = 1f
         searchBar.addChangeListener { invalidate() }
         searchBar.setEnterListener {
@@ -238,7 +240,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             ): Boolean {
                 return if (action == "OpenOptions") {
                     openMenu(windowStack, listOf(
-                        MenuOption(NameDesc("Remove from list")) {
+                        MenuOption(NameDesc(Dict["Remove from favourites", "ui.fileExplorer.removeFromFavourites"])) {
                             Favourites.removeFavouriteFiles(listOf(folder))
                         }
                     ))
@@ -312,14 +314,15 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
         pathPanel.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
-            openMenu(windowStack, NameDesc("Switch To"), listOf(
-                MenuOption(NameDesc("Add Current To This List")) {
-                    DefaultConfig["files.shortcuts"] = (getShortcutFolders() + folder)
-                        .joinToString("|") { it.toLocalPath() }
-                }
-            ) + shortCutFolders.map { file ->
-                MenuOption(NameDesc(file.name)) { switchTo(file) }
-            })
+            openMenu(windowStack, NameDesc("Options"),
+                listOf(
+                    MenuOption(NameDesc("Add Current To Favourites")) {
+                        DefaultConfig["files.shortcuts"] = (getShortcutFolders() + folder)
+                            .joinToString("|") { it.toLocalPath() }
+                    }
+                ) + shortCutFolders.map { file ->
+                    MenuOption(NameDesc(file.name)) { switchTo(file) }
+                })
         }
 
         topBar += searchBar

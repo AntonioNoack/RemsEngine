@@ -18,7 +18,7 @@ import kotlin.math.sin
 object LineShapes {
 
     private val tmpVec3f = Array(16) { Vector3f() }
-    private val tmpVec3d = Array(16) { Vector3d() }
+    val tmpVec3d = Array(16) { Vector3d() }
 
     fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
         return entity?.transform?.getDrawMatrix(time)
@@ -305,24 +305,6 @@ object LineShapes {
             putRelativeLine(pi, pj, color)
             pi.set(pj)
         }
-    }
-
-    fun drawLine(
-        entity: Entity?,
-        p0: javax.vecmath.Vector3d,
-        p1: javax.vecmath.Vector3d,
-        color: Int = Collider.guiLineColor
-    ) {
-        val transform = getDrawMatrix(entity)
-        val positions = tmpVec3d
-        positions[0].set(p0.x, p0.y, p0.z)
-        positions[1].set(p1.x, p1.y, p1.z)
-        if (transform != null) {
-            for (i in 0 until 2) {
-                transform.transformPosition(positions[i])
-            }
-        }
-        putRelativeLine(positions[0], positions[1], color)
     }
 
     fun drawLine(

@@ -359,14 +359,12 @@ open class Server : Closeable {
                 isAllowed(i, 8) &&
                 isAllowed(i, 0)
             ) {
-                String(
-                    charArrayOf(
-                        ((i shr 24) and 255).toChar(),
-                        ((i shr 16) and 255).toChar(),
-                        ((i shr 8) and 255).toChar(),
-                        (i and 255).toChar(),
-                    )
-                )
+                charArrayOf(
+                    ((i shr 24) and 255).toChar(),
+                    ((i shr 16) and 255).toChar(),
+                    ((i shr 8) and 255).toChar(),
+                    (i and 255).toChar(),
+                ).concatToString()
             } else hex32(i)
         }
     }

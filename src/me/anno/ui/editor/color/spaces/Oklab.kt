@@ -4,14 +4,13 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.DrawMode
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.cbrt
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.toRGB
 import me.anno.utils.types.Vectors.fromLinear
 import me.anno.utils.types.Vectors.toLinear
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_POINTS
 import java.util.*
+import kotlin.math.cbrt
 
 /**
  * https://bottosson.github.io/posts/oklab/

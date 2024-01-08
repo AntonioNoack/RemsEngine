@@ -1,6 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
@@ -20,7 +21,7 @@ fun create(x: Boolean, depth: Int): Panel {
                 minH = 20
             }
         }.apply {
-            backgroundColor = (Math.random() * 1e9).toInt() or black
+            backgroundColor = (Maths.random() * 1e9).toInt() or black
         }
     } else {
         val p = if (x) {

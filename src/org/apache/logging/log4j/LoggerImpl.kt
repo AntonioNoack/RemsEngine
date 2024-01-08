@@ -64,13 +64,13 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun info(msg: String) {
-        if (isInfoEnabled) {
+        if (isInfoEnabled()) {
             print("INFO", msg)
         }
     }
 
     override fun info(msg: String, vararg obj: Any?) {
-        if (isInfoEnabled) {
+        if (isInfoEnabled()) {
             info(interleave(msg, obj))
         }
     }
@@ -80,122 +80,122 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun info(msg: String, thrown: Throwable) {
-        if (isInfoEnabled) {
+        if (isInfoEnabled()) {
             info(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun debug(msg: String) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             print("DEBUG", msg)
         }
     }
 
     override fun debug(msg: String, e: Throwable) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             print("DEBUG", msg)
             e.printStackTrace()
         }
     }
 
     override fun debug(o: Any?) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             debug(o.toString())
         }
     }
 
     override fun debug(o: Any?, throwable: Throwable?) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             if (throwable == null) debug(o)
             else debug(o.toString(), throwable)
         }
     }
 
     open fun debug(msg: String, obj: Any?) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             debug(interleave(msg, obj))
         }
     }
 
     override fun debug(msg: String, vararg obj: Any?) {
-        if (isDebugEnabled) {
+        if (isDebugEnabled()) {
             debug(interleave(msg, obj))
         }
     }
 
     override fun error(msg: String) {
-        if (isErrorEnabled) {
+        if (isErrorEnabled()) {
             print("ERR!", msg)
         }
     }
 
     override fun error(msg: String, vararg obj: Any?) {
-        if (isErrorEnabled) {
+        if (isErrorEnabled()) {
             error(interleave(msg, obj))
         }
     }
 
     override fun error(msg: String, thrown: Throwable) {
-        if (isErrorEnabled) {
+        if (isErrorEnabled()) {
             error(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun error(o: Any?) {
-        if (isErrorEnabled) {
+        if (isErrorEnabled()) {
             error(o.toString())
         }
     }
 
     override fun error(o: Any?, throwable: Throwable?) {
-        if (isErrorEnabled) {
+        if (isErrorEnabled()) {
             if (throwable == null) error(o)
             else error(o.toString(), throwable)
         }
     }
 
     override fun severe(msg: String) {
-        if (isSevereEnabled) {
+        if (isSevereEnabled()) {
             print("SEVERE", msg)
         }
     }
 
     override fun severe(msg: String, vararg obj: Any?) {
-        if (isSevereEnabled) {
+        if (isSevereEnabled()) {
             error(interleave(msg, obj))
         }
     }
 
     override fun severe(msg: String, thrown: Throwable) {
-        if (isSevereEnabled) {
+        if (isSevereEnabled()) {
             error(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun fatal(msg: String) {
-        if (isFatalEnabled) {
+        if (isFatalEnabled()) {
             print("FATAL", msg)
         }
     }
 
     override fun fatal(msg: String, vararg obj: Any?) {
-        if (isFatalEnabled) {
+        if (isFatalEnabled()) {
             fatal(interleave(msg, obj))
         }
     }
 
     override fun fatal(msg: String, thrown: Throwable) {
-        if (isFatalEnabled) {
+        if (isFatalEnabled()) {
             fatal(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun warn(msg: String) {
-        if (isWarnEnabled) {
+        if (isWarnEnabled()) {
             synchronized(lastWarned) {
                 val time = Time.nanoTime
                 if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
@@ -207,20 +207,20 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun warn(msg: String, vararg obj: Any?) {
-        if (isWarnEnabled) {
+        if (isWarnEnabled()) {
             warn(interleave(msg, obj))
         }
     }
 
     override fun warn(msg: String, thrown: Throwable) {
-        if (isWarnEnabled) {
+        if (isWarnEnabled()) {
             warn(msg)
             thrown.printStackTrace()
         }
     }
 
     override fun warn(o: Any?) {
-        if (isWarnEnabled) {
+        if (isWarnEnabled()) {
             if (o is Throwable) {
                 @Suppress("KotlinPlaceholderCountMatchesArgumentCount")
                 warn("", o)
@@ -231,33 +231,33 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun warn(o: Any?, throwable: Throwable?) {
-        if (isWarnEnabled) {
+        if (isWarnEnabled()) {
             if (throwable == null) warn(o.toString())
             else warn(o.toString(), throwable)
         }
     }
 
     override fun fatal(o: Any?) {
-        if (isFatalEnabled) {
+        if (isFatalEnabled()) {
             fatal(o.toString())
         }
     }
 
     override fun fatal(o: Any?, throwable: Throwable?) {
-        if (isFatalEnabled) {
+        if (isFatalEnabled()) {
             if (throwable == null) fatal(o.toString())
             else fatal(o.toString(), throwable)
         }
     }
 
     override fun info(msg: Any?) {
-        if (isInfoEnabled) {
+        if (isInfoEnabled()) {
             info(msg.toString())
         }
     }
 
     override fun info(o: Any?, throwable: Throwable?) {
-        if (isInfoEnabled) {
+        if (isInfoEnabled()) {
             if (throwable == null) info(o)
             else info(o.toString(), throwable)
         }
@@ -299,10 +299,9 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         return LogManager.isEnabled(this, org.apache.logging.log4j.Level.ERROR)
     }
 
-    val isSevereEnabled
-        get(): Boolean {
-            return LogManager.isEnabled(this, org.apache.logging.log4j.Level.SEVERE)
-        }
+    fun isSevereEnabled(): Boolean {
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.SEVERE)
+    }
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
     companion object {

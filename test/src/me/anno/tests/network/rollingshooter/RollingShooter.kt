@@ -28,6 +28,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
@@ -184,7 +185,7 @@ fun main() {
     instance.start()
 
     // choose random color for player
-    val selfColor = HSV.toRGB(Vector3f(Math.random().toFloat(), 1f, 1f)).toRGB()
+    val selfColor = HSV.toRGB(Vector3f(Maths.random().toFloat(), 1f, 1f)).toRGB()
     val selfPlayerEntity = createPlayerBase(selfColor)
 
     val radius = 1.0

@@ -243,7 +243,7 @@ fun main2() {
             val src = sparseConvolve(kernels, false)
             // eval error
             val error = error(src, dst)
-            if (first || Math.random() < 1e-3) {
+            if (first || Maths.random() < 1e-3) {
                 println(error)
                 first = false
             }
@@ -254,7 +254,7 @@ fun main2() {
             val src = sparseConvolve(kernels, false)
             // eval error
             val error = error(src, dst)
-            if (first || Math.random() < 1e-3) {
+            if (first || Maths.random() < 1e-3) {
                 println(error)
                 first = false
             }

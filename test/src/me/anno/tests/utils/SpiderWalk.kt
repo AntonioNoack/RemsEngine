@@ -152,7 +152,7 @@ fun main() {
     val futureTransform = Matrix4x3d()
     val predictionDeltaTime = 0.5 / stepFrequency
 
-    val agent = object : NavMeshAgent(meshData, navMesh, query, filter, Random(), navMesh1, crowd, 1, 10f, 300f) {
+    val agent = object : NavMeshAgent(meshData, navMesh, query, filter, Random(1234), navMesh1, crowd, 1, 10f, 300f) {
 
         val velocity = Vector3d(1.0, 0.0, 0.0)
         val lastPos = Vector3d()

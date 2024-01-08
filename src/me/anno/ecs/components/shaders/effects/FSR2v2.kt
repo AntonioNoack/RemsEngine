@@ -30,8 +30,8 @@ import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3f
-import java.util.*
 import kotlin.math.ceil
+import kotlin.random.Random
 
 // implement the ideas of FSR2, but just in principle and much easier
 // todo this is currently broken :/

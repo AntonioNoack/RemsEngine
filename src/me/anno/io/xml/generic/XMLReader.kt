@@ -119,7 +119,7 @@ open class XMLReader {
 
                 // yes, it was
                 val bytes = result.toByteArray()
-                return String(bytes, 0, bytes.size - size)
+                return bytes.decodeToString(0, bytes.size - size)
             }
         }
     }

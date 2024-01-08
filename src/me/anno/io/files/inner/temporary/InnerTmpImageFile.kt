@@ -4,6 +4,7 @@ import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.tuples.IntPair
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -26,10 +27,10 @@ class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ex
     override fun listChildren(): List<FileReference>? = null
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(bytes.value.inputStream(), null)
+        callback(inputStreamSync(), null)
     }
 
-    override fun inputStreamSync() = bytes.value.inputStream()
+    override fun inputStreamSync() = ByteArrayInputStream(readBytesSync())
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
         callback(bytes.value, null)
     }

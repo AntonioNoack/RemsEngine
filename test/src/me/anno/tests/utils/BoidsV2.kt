@@ -11,7 +11,7 @@ import me.anno.studio.StudioBase
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.*
+import kotlin.random.Random
 
 // improved, 70 fps -> 90-120 fps
 class BoidV2(
@@ -96,7 +96,7 @@ fun main() {
 
     val n = 1000
     val scene = Entity("Scene")
-    val rnd = Random()
+    val rnd = Random(1234)
 
     class Accelerator : OctTreeF<BoidV2>(64) {
         override fun createChild() = Accelerator()

@@ -86,7 +86,7 @@ abstract class StackPanel(
     }
 
     fun removeComponent(component: Inspectable) {
-        content.children.removeIf { it is OptionPanel && it.value === component }
+        content.children.removeAll { it is OptionPanel && it.value === component }
         onRemoveComponent(component)
         invalidateLayout()
     }

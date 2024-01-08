@@ -21,6 +21,7 @@ import me.anno.video.ffmpeg.MediaMetadata
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import javax.imageio.ImageIO
 
@@ -124,12 +125,12 @@ object ImageReader {
         }
     }
 
-    fun shouldUseFFMPEG(signature: String?, file: FileReference): Boolean {
+    private fun shouldUseFFMPEG(signature: String?, file: FileReference): Boolean {
         if (OS.isWeb) return false // uncomment, when we support FFMPEG in the browser XD
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }
 
-    fun shouldIgnore(signature: String?): Boolean {
+    private fun shouldIgnore(signature: String?): Boolean {
         return when (signature) {
             "rar", "bz2", "zip", "tar", "gzip", "xz", "lz4", "7z", "xar", "oar", "java", "text",
             "wasm", "ttf", "woff1", "woff2", "shell", "xml", "svg", "exe",
@@ -157,7 +158,7 @@ object ImageReader {
         }
     }
 
-    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray, forGPU: Boolean) {
+    private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
         if (shouldIgnore(signature)) {
             data.value = null
@@ -172,7 +173,7 @@ object ImageReader {
         }
     }
 
-    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?, forGPU: Boolean) {
+    private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?, forGPU: Boolean) {
         if (shouldIgnore(signature)) {
             data.value = null
         } else if (shouldUseFFMPEG(signature, file)) {
@@ -264,7 +265,7 @@ object ImageReader {
 
     private fun tryGeneric(file: FileReference, bytes: ByteArray): Image? {
         var image = try {
-            ImageIO.read(bytes.inputStream())
+            ImageIO.read(ByteArrayInputStream(bytes))
         } catch (e: Exception) {
             e.printStackTrace()
             null

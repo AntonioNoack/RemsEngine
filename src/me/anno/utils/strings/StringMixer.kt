@@ -5,6 +5,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.types.Strings.joinChars0
 import kotlin.math.roundToInt
+import kotlin.random.Random
 import kotlin.streams.toList
 
 object StringMixer {
@@ -90,7 +91,6 @@ object StringMixer {
                 }
             }
         }
-
     }
 
     private fun mixAscii(a: String, b: String, f: Double, g: Double): String {
@@ -99,14 +99,14 @@ object StringMixer {
         return if (aLength == bLength) {
             // totally different -> mix randomly for hacking-like effect (??...)
             val chars = CharArray(a.length)
-            val random = java.util.Random(1234)
+            val random = Random(1234)
             val shuffled = (0 until aLength).shuffled(random)
             val shuffleEnd = (g * aLength).roundToInt()
             for (i in 0 until aLength) {
                 val code = if (shuffled[i] < shuffleEnd) a[i] else b[i]
                 chars[i] = code
             }
-            String(chars)
+            chars.concatToString()
         } else {
             val aLength2 = (aLength * g).roundToInt()
             val bLength2 = (bLength * f).roundToInt()
@@ -124,7 +124,7 @@ object StringMixer {
         if (aChars.size == bChars.size) {
             // totally different -> mix randomly for hacking-like effect (??...)
             val str = StringBuilder(max(aLength, bLength))
-            val random = java.util.Random(1234)
+            val random = Random(1234)
             val shuffled = aChars.indices.shuffled(random)
             val shuffleEnd = (g * aChars.size).roundToInt()
             for (i in aChars.indices) {
@@ -140,5 +140,4 @@ object StringMixer {
             return a.substring(0, aEndIndex) + b.substring(bStartIndex, b.length)
         }
     }
-
 }

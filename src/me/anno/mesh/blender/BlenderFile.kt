@@ -115,7 +115,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     val structByName = structs.associateBy { it.type.name }
 
     init {
-        if (LOGGER.isDebugEnabled) {
+        if (LOGGER.isDebugEnabled()) {
             for (name in structByName.keys.sorted()) {
                 val struct = structByName[name]!!
                 LOGGER.debug("Struct {}({}): { {} }", name, struct.type.size,

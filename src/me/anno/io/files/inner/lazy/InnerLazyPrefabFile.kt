@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.saveable.JsonStringWriter
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 open class InnerLazyPrefabFile(
@@ -26,7 +27,7 @@ open class InnerLazyPrefabFile(
     }
 
     val text by lazy { JsonStringWriter.toText(prefab2.value, InvalidRef) }
-    val bytes by lazy { text.toByteArray() }
+    val bytes by lazy { text.encodeToByteArray() }
 
     // it's a prefab, not a zip; never ever
     override fun isSerializedFolder(): Boolean = false
@@ -44,7 +45,7 @@ open class InnerLazyPrefabFile(
     }
 
     override fun inputStreamSync(): InputStream {
-        return text.byteInputStream()
+        return ByteArrayInputStream(bytes)
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {

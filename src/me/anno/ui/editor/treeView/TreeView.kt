@@ -6,10 +6,10 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -30,7 +30,7 @@ abstract class TreeView<V : Any>(
 
     val list = child as PanelListY
     val sample get() = list.children.getOrNull(1) as TreeViewEntryPanel<*>
-    val searchPanel = TextInput("Search Term", "", false, style)
+    val searchPanel = TextInput(Dict["Search Term", "ui.general.searchTerm"], "", false, style)
 
     init {
         alwaysShowShadowY = true

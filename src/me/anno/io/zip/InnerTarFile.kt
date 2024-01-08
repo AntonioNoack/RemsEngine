@@ -10,6 +10,7 @@ import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,7 +46,7 @@ class InnerTarFile(
                 index: Int, total: Int
             ): ByteArray {
                 val bytes = previous ?: stream.file.readBytes()
-                callback(bytes.inputStream(), null)
+                callback(ByteArrayInputStream(bytes), null)
                 return bytes
             }
         })

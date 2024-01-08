@@ -1,7 +1,6 @@
 package me.anno.io.files
 
 import me.anno.io.BufferedIO.useBuffered
-import me.anno.io.Streams.copy
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -14,13 +13,13 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     companion object {
 
         // <= 0 = disabled, > 0 -> tracks all open files for debugging
-        var trackOpenStreamsMillis = 0L
+        private var trackOpenStreamsMillis = 0L
 
         fun createTempFile(name: String, extension: String): FileReference {
             return getReference(File.createTempFile(name, extension))
         }
 
-        fun beautifyPath(path: String): String {
+        private fun beautifyPath(path: String): String {
             var p = path.replace('\\', '/')
             while (p.endsWith('/')) p = p.substring(0, p.length - 1)
             return p
@@ -28,7 +27,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
         fun copyHierarchy(
             src: FileReference,
-            dst: File,
+            dst: FileReference,
             started: (FileReference) -> Unit,
             finished: (FileReference) -> Unit
         ) {
@@ -36,14 +35,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
                 dst.mkdirs()
                 started(src)
                 for (child in src.listChildren() ?: emptyList()) {
-                    copyHierarchy(child, File(dst, child.name), started, finished)
+                    copyHierarchy(child, dst.getChild(child.name), started, finished)
                 }
                 finished(src)
             } else {
                 started(src)
-                src.inputStream { it, exc ->
-                    it?.copy(dst.outputStream())
-                    exc?.printStackTrace()
+                src.copyTo(dst) {
                     finished(src)
                 }
             }

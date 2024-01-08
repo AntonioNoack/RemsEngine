@@ -1,6 +1,7 @@
 package me.anno.utils.structures.maps
 
 import me.anno.utils.structures.lists.PairArrayList
+import me.anno.utils.structures.maps.Maps.removeIf
 
 open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     Iterable<PairArrayList<KFewOnly, Value>> {
@@ -113,7 +114,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     }
 
     fun removeMajorIf(test: (k1: KManifold) -> Boolean): Boolean {
-        return if (values.keys.removeIf(test)) {
+        return if (values.removeIf { test(it.key) } > 0) {
             recalculateSize()
             true
         } else false

@@ -396,7 +396,7 @@ object BlenderReader {
 
                         prefab[c, "meshFile"] = meshFile2
                         prefab[c, "skeleton"] = skeletonRef
-                        if (false && LOGGER.isDebugEnabled) {
+                        if (false && LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Armature Pose: {}", armatureObject.pose)
                             LOGGER.debug("Armature Action: {}", armatureObject.action)
                             LOGGER.debug("Object Action: {}", obj.action)

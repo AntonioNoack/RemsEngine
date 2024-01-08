@@ -26,6 +26,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
@@ -262,8 +263,8 @@ fun createCPUPanel(
         val h = it.height / scale
 
         val parent = it.uiParent!!
-        val cx = Math.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
-        val cy = Math.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale
+        val cx = Maths.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
+        val cy = Maths.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale
         val fovZ = -parent.height * fovZFactor / scale
 
         // if camera was moved, set frameIndex back to zero
@@ -425,8 +426,8 @@ fun createGPUPanel(
         }
 
         val parent = it.uiParent!!
-        val cx = Math.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
-        val cy = Math.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale - 1 // why ever -1 is needed...
+        val cx = Maths.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
+        val cy = Maths.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale - 1 // why ever -1 is needed...
         val fovZ = -parent.height * fovZFactor / scale
 
         shader.use()

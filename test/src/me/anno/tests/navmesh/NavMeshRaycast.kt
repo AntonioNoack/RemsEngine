@@ -14,6 +14,7 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
+import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
@@ -53,7 +54,7 @@ class AgentController1a(
     private var upDownAngle = 0.0
     private val raycastDir = Vector3d(0.0, -1.0, 0.0)
 
-    private var ctr = (Math.random() * 16).toInt()
+    private var ctr = (Maths.random() * 16).toInt()
 
     override fun onUpdate(): Int {
 

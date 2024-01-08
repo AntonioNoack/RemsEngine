@@ -15,7 +15,7 @@ import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.util.*
+import kotlin.random.Random
 
 val maxRadius1 = 30f
 val maxRadius2 = 150f
@@ -123,7 +123,7 @@ fun main() {
     val scene = Entity("Scene")
     val positions = Array(n) { Vector3f() }
     val directions = Array(n) { Vector3f() }
-    val rnd = Random()
+    val rnd = Random(1234)
     val s = 1000f
     for (i in 0 until n) {
         val boid = Entity()

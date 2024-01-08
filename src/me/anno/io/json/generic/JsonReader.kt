@@ -1,6 +1,7 @@
 package me.anno.io.json.generic
 
 import me.anno.io.xml.ComparableStringBuilder
+import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -11,8 +12,8 @@ import java.io.InputStream
  * */
 open class JsonReader(val data: InputStream) {
 
-    constructor(data: ByteArray) : this(data.inputStream())
-    constructor(data: String) : this(data.toByteArray())
+    constructor(data: ByteArray) : this(ByteArrayInputStream(data))
+    constructor(data: String) : this(data.encodeToByteArray())
 
     var index = 0
     var tmpChar = 0.toChar()

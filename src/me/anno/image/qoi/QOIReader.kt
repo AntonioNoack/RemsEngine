@@ -1,6 +1,7 @@
 package me.anno.image.qoi
 
 import me.anno.io.Streams.readBE32
+import me.anno.maths.Maths
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
 import java.io.InputStream
@@ -43,7 +44,7 @@ object QOIReader {
             else -> throw IOException("Invalid color space value $value")
         }
 
-        val numPixels = Math.multiplyExact(width, height)
+        val numPixels = Maths.multiplyExact(width, height)
         val data = IntArray(numPixels)
         val index = IntArray(64)
         val maskA = 255 shl 24

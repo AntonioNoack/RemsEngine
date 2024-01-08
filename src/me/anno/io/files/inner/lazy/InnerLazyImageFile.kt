@@ -57,11 +57,11 @@ open class InnerLazyImageFile(
     }
 
     override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(String(bytes), null)
+        callback(readTextSync(), null)
     }
 
     override fun readTextSync(): String {
-        return String(bytes) // what are you doing? ;)
+        return bytes.decodeToString() // what are you doing? ;)
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {

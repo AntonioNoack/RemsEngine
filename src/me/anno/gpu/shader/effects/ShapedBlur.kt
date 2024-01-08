@@ -13,7 +13,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Streams.read0String
-import me.anno.io.Streams.readFloatLE
+import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.TAUf
@@ -131,12 +131,12 @@ object ShapedBlur {
             stageLengths[i] = src.read().toByte()
         }
         return decompress(stages, false, { i ->
-            val dx = src.readFloatLE()
-            val sx = 1f / src.readFloatLE()
-            val dy = src.readFloatLE()
-            val sy = 1f / src.readFloatLE()
-            val dz = src.readFloatLE()
-            val sz = 1f / src.readFloatLE()
+            val dx = src.readLE32F()
+            val sx = 1f / src.readLE32F()
+            val dy = src.readLE32F()
+            val sy = 1f / src.readLE32F()
+            val dz = src.readLE32F()
+            val sz = 1f / src.readLE32F()
             stageLengths[i].toInt() to floatArrayOf(sx, dx, sy, dy, sz, dz)
         }, { _, d, dst ->
             val px = src.read() * d[0] + d[1]
@@ -149,8 +149,8 @@ object ShapedBlur {
     fun decompressGaussian(src: InputStream): Pair<Shader, Int> {
         val stages = src.read()
         return decompress(stages, true, {
-            val da = src.readFloatLE()
-            val r = src.readFloatLE()
+            val da = src.readLE32F()
+            val r = src.readLE32F()
             val length = src.read()
             val weight = 1f / length
             length to Vector4f(da, TAUf / length, r, weight)

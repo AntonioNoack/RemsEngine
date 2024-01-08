@@ -302,7 +302,7 @@ abstract class StudioBase(
                     time
                 )
             }
-            val changed = progressBars.removeIf { it.canBeRemoved(time) }
+            val changed = progressBars.removeAll { it.canBeRemoved(time) }
             if (changed) window.invalidateLayout()
         }
 

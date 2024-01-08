@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.maths.Maths
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
@@ -48,9 +49,9 @@ class BoneByBoneAnimation() : Animation() {
     override val numFrames get() = frameCount
 
     fun prepareBuffers() {
-        val space = Math.multiplyExact(boneCount, frameCount)
-        val s3 = Math.multiplyExact(3, space)
-        val s4 = Math.multiplyExact(4, space)
+        val space = Maths.multiplyExact(boneCount, frameCount)
+        val s3 = Maths.multiplyExact(3, space)
+        val s4 = Maths.multiplyExact(4, space)
         val translations = translations.resize(s3)
         val rotations = rotations.resize(s4)
         val scale = scales.resize(s3)

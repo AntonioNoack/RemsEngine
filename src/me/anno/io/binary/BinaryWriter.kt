@@ -150,7 +150,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             if (known >= 0) {
                 output.writeInt(known)
             } else {
-                val bytes = string.toByteArray()
+                val bytes = string.encodeToByteArray()
                 output.writeInt(-2 - bytes.size)
                 output.write(bytes)
                 knownStrings[string] = knownStrings.size

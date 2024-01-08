@@ -12,6 +12,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.image.qoi.QOIReader
 import me.anno.utils.Sleep.waitForGFXThread
 import net.sf.image4j.codec.ico.ICOReader
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 object ImageCache : CacheSection("Image") {
@@ -36,7 +37,7 @@ object ImageCache : CacheSection("Image") {
         streamReader: (InputStream) -> Image?
     ) {
         registerReader(signature, { bytes ->
-            bytes.inputStream().use(streamReader)
+            ByteArrayInputStream(bytes).use(streamReader)
         }, { fileRef, c ->
             fileRef.inputStream { input, e ->
                 c(input?.use { input1 ->

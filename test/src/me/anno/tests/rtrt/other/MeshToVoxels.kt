@@ -23,7 +23,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture3D
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.cbrt
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
@@ -36,6 +35,7 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
+import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.pow
 

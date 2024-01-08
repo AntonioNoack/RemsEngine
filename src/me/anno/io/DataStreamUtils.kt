@@ -1,56 +1,33 @@
 package me.anno.io
 
+import me.anno.io.Streams.readBE32F
+import me.anno.io.Streams.writeBE32F
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.EOFException
+import java.io.InputStream
+import java.io.OutputStream
 
 @Suppress("unused")
 object DataStreamUtils {
 
-    fun DataInputStream.readNValues(array: ByteArray) {
-        var i = 0
-        val l = array.size
-        while (i < l) {
-            val dl = read(array, i, l - i)
-            if (dl < 0) throw EOFException()
-            i += dl
-        }
+    fun OutputStream.writeVec3(value: Vector3f) {
+        writeBE32F(value.x)
+        writeBE32F(value.y)
+        writeBE32F(value.z)
     }
 
-    fun DataInputStream.readNValues(array: FloatArray) {
-        for (i in array.indices) {
-            array[i] = readFloat()
-        }
+    fun OutputStream.writeQuat(value: Quaternionf) {
+        writeBE32F(value.x)
+        writeBE32F(value.y)
+        writeBE32F(value.z)
+        writeBE32F(value.w)
     }
 
-    fun DataOutputStream.writeNValues(array: ByteArray) {
-        write(array)
+    fun InputStream.readVec3(dst: Vector3f): Vector3f {
+        return dst.set(readBE32F(), readBE32F(), readBE32F())
     }
 
-    fun DataOutputStream.writeNValues(array: FloatArray) {
-        for (f in array) writeFloat(f)
-    }
-
-    fun DataOutputStream.writeVec3(value: Vector3f) {
-        writeFloat(value.x)
-        writeFloat(value.y)
-        writeFloat(value.z)
-    }
-
-    fun DataOutputStream.writeQuat(value: Quaternionf) {
-        writeFloat(value.x)
-        writeFloat(value.y)
-        writeFloat(value.z)
-        writeFloat(value.w)
-    }
-
-    fun DataInputStream.readVec3(dst: Vector3f): Vector3f {
-        return dst.set(readFloat(), readFloat(), readFloat())
-    }
-
-    fun DataInputStream.readQuat(dst: Quaternionf): Quaternionf {
-        return dst.set(readFloat(), readFloat(), readFloat(), readFloat())
+    fun InputStream.readQuat(dst: Quaternionf): Quaternionf {
+        return dst.set(readBE32F(), readBE32F(), readBE32F(), readBE32F())
     }
 }

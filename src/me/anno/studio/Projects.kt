@@ -57,7 +57,7 @@ object Projects {
 
     fun removeFromRecentProjects(file: FileReference) {
         val recent = getRecentProjects()
-        recent.removeIf { it.file == file }
+        recent.removeAll { it.file == file }
         updateRecentProjects(recent)
     }
 

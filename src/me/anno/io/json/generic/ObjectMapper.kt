@@ -80,11 +80,11 @@ object ObjectMapper {
     }
 
     fun OutputStream.write(str: String) {
-        write(str.toByteArray())
+        write(str.encodeToByteArray())
     }
 
-    fun OutputStream.writeStr(v: Any) {
-        write(v.toString().toByteArray())
+    fun OutputStream.writeString(v: Any) {
+        write(v.toString().encodeToByteArray())
     }
 
     fun <V> writeValue(output: OutputStream, instance: V) {
@@ -111,10 +111,10 @@ object ObjectMapper {
                 (instance as? BooleanArray)
                     ?.joinToString(",", "[", "]") ?: "null"
             )
-            "java.lang.Integer" -> output.writeStr((instance as Int?) ?: "null")
-            "java.lang.Long" -> output.writeStr((instance as Long?) ?: "null")
-            "java.lang.Float" -> output.writeStr((instance as Float?) ?: "null")
-            "java.lang.Double" -> output.writeStr((instance as Double?) ?: "null")
+            "java.lang.Integer" -> output.writeString((instance as Int?) ?: "null")
+            "java.lang.Long" -> output.writeString((instance as Long?) ?: "null")
+            "java.lang.Float" -> output.writeString((instance as Float?) ?: "null")
+            "java.lang.Double" -> output.writeString((instance as Double?) ?: "null")
             else -> {
                 output.write('{'.code)
                 var isFirstProperty = true
@@ -137,15 +137,15 @@ object ObjectMapper {
                         output.write(':')
                         when (field.genericType.typeName) {
                             // native types
-                            "int" -> output.writeStr(field.getInt(instance))
-                            "long" -> output.writeStr(field.getLong(instance))
-                            "float" -> output.writeStr(field.getFloat(instance))
-                            "double" -> output.writeStr(field.getDouble(instance))
-                            "boolean" -> output.writeStr(field.getBoolean(instance))
-                            "java.lang.Integer" -> output.writeStr((field.get(instance) as Int?) ?: "null")
-                            "java.lang.Long" -> output.writeStr((field.get(instance) as Long?) ?: "null")
-                            "java.lang.Float" -> output.writeStr((field.get(instance) as Float?) ?: "null")
-                            "java.lang.Double" -> output.writeStr((field.get(instance) as Double?) ?: "null")
+                            "int" -> output.writeString(field.getInt(instance))
+                            "long" -> output.writeString(field.getLong(instance))
+                            "float" -> output.writeString(field.getFloat(instance))
+                            "double" -> output.writeString(field.getDouble(instance))
+                            "boolean" -> output.writeString(field.getBoolean(instance))
+                            "java.lang.Integer" -> output.writeString((field.get(instance) as Int?) ?: "null")
+                            "java.lang.Long" -> output.writeString((field.get(instance) as Long?) ?: "null")
+                            "java.lang.Float" -> output.writeString((field.get(instance) as Float?) ?: "null")
+                            "java.lang.Double" -> output.writeString((field.get(instance) as Double?) ?: "null")
                             "int[]" -> output.write(
                                 (field.get(instance) as? IntArray)
                                     ?.joinToString(",", "[", "]") ?: "null"
@@ -169,7 +169,7 @@ object ObjectMapper {
                             // other types, including lists, arrays and maps
                             else -> {
                                 when (val value = field.get(instance)) {
-                                    null -> output.write("null".toByteArray())
+                                    null -> output.writeString("null")
                                     is String -> {
                                         output.write('"')
                                         writeJsonString(output, value)

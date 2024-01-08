@@ -20,7 +20,7 @@ import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.*
+import kotlin.random.Random
 
 class Accelerator(val boids: BoidV3) : OctTreeF<Int>(32) {
     override fun getPoint(data: Int) = boids.positions[data]
@@ -178,7 +178,7 @@ fun main() {
     val boid = BoidV3(n)
 
     val s = 1000f
-    val rnd = Random()
+    val rnd = Random(1234)
     for (i in 0 until n) {
         boid.positions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s)
         boid.directions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize()

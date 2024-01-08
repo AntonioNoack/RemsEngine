@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
+import me.anno.maths.Maths
 import me.anno.mesh.Shapes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -48,9 +49,9 @@ class AutoRefTest {
             for (j in 0 until 3) {
                 val mesh = Entity("Mesh $i.$j", group)
                 mesh.add(MeshComponent(Shapes.flatCube.front))
-                mesh.setPosition(Math.random(), Math.random(), Math.random())
-                mesh.setRotation(Math.random(), Math.random(), Math.random())
-                mesh.setScale(Math.random(), Math.random(), Math.random())
+                mesh.setPosition(Maths.random(), Maths.random(), Maths.random())
+                mesh.setRotation(Maths.random(), Maths.random(), Maths.random())
+                mesh.setScale(Maths.random(), Maths.random(), Maths.random())
             }
         }
         return scene

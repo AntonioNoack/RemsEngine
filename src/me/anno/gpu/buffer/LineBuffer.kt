@@ -18,7 +18,6 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL15C.*
 import java.nio.ByteBuffer
-import javax.vecmath.Vector3d
 import kotlin.math.max
 
 /**
@@ -260,37 +259,6 @@ object LineBuffer {
     }
 
     fun putRelativeLine(
-        v0: Vector3d, v1: Vector3d,
-        cam: org.joml.Vector3d,
-        worldScale: Double,
-        r: Byte, g: Byte, b: Byte, a: Byte = -1
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            cam, worldScale,
-            r, g, b, a
-        )
-    }
-
-    fun putRelativeLine(
-        v0: Vector3d, v1: Vector3d,
-        cam: org.joml.Vector3d,
-        worldScale: Double,
-        r: Double, g: Double, b: Double, a: Double = 1.0
-    ) {
-        putRelativeLine(
-            v0.x, v0.y, v0.z,
-            v1.x, v1.y, v1.z,
-            cam, worldScale,
-            vToByte(r),
-            vToByte(g),
-            vToByte(b),
-            vToByte(a)
-        )
-    }
-
-    fun putRelativeLine(
         x0: Double, y0: Double, z0: Double,
         x1: Double, y1: Double, z1: Double,
         cam: org.joml.Vector3d,
@@ -400,23 +368,6 @@ object LineBuffer {
         putRelativeLine(
             x0, y0, z0,
             x1, y1, z1,
-            cam, worldScale,
-            color.r().toByte(),
-            color.g().toByte(),
-            color.b().toByte(),
-            color.a().toByte()
-        )
-    }
-
-    @Suppress("unused")
-    fun putRelativeLine(
-        v0: Vector3d, v1: Vector3d,
-        cam: org.joml.Vector3d,
-        worldScale: Double,
-        color: Int
-    ) {
-        putRelativeLine(
-            v0, v1,
             cam, worldScale,
             color.r().toByte(),
             color.g().toByte(),

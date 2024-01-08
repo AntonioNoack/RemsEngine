@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.Streams.writeBE16
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
@@ -12,9 +13,8 @@ import me.anno.video.Codecs.audioCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
-import java.io.DataOutputStream
 import java.io.IOException
-import java.util.*
+import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -89,7 +89,7 @@ abstract class AudioCreator(
 
         LOGGER.debug("Starting audio encoding with ${(durationSeconds * sampleRate).toLong()} samples")
 
-        val audioOutput = DataOutputStream(process.outputStream.useBuffered())
+        val audioOutput = process.outputStream.useBuffered()
         createAudio(audioOutput)
 
         LOGGER.info(if (videoCreatorOutput != InvalidRef) "Saved video with audio to $output" else "Saved audio to $output")
@@ -112,7 +112,7 @@ abstract class AudioCreator(
     val bufferSize = (sliceDuration * sampleRate).roundToInt() * 2
     val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
-    fun createAudio(audioOutput: DataOutputStream) {
+    fun createAudio(audioOutput: OutputStream) {
 
         // todo automatically fade-in/fade-out the audio at the start and end?
 
@@ -139,7 +139,7 @@ abstract class AudioCreator(
                     // write the data to ffmpeg
                     val buffer = streams[0].getNextBuffer()
                     for (i in 0 until buffer.capacity()) {
-                        audioOutput.writeShort(buffer[i].toInt())
+                        audioOutput.writeBE16(buffer[i].toInt())
                     }
                 } else {
                     for (j in streams.indices) {
@@ -161,12 +161,12 @@ abstract class AudioCreator(
                         val min = Short.MIN_VALUE.toInt()
                         val max = Short.MAX_VALUE.toInt()
                         for (i in 0 until bufferSize) {
-                            audioOutput.writeShort(clamp(intBuffer[i], min, max))
+                            audioOutput.writeBE16(clamp(intBuffer[i], min, max))
                         }
                     } else {
                         // no stream was available
                         for (i in 0 until bufferSize) {
-                            audioOutput.writeShort(0)
+                            audioOutput.writeBE16(0)
                         }
                     }
                 }

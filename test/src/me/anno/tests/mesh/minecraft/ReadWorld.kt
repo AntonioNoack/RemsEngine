@@ -316,7 +316,7 @@ fun main() {
                             }
                             addModel(colors)
                         }
-                    } catch (e: ArrayIndexOutOfBoundsException) {
+                    } catch (e: IndexOutOfBoundsException) {
                         if (!crash.getAndSet(true)) e.printStackTrace()
                         continue
                     }

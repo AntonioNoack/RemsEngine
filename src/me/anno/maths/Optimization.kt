@@ -1,8 +1,9 @@
 package me.anno.maths
 
-import java.util.*
+import me.anno.Time
 import kotlin.math.abs
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 object Optimization {
 
@@ -113,7 +114,7 @@ object Optimization {
         var bestError = err(bestValue)
         val dv = DoubleArray(dims)
         var testValue = DoubleArray(dims)
-        val rnd = Random()
+        val rnd = Random(Time.nanoTime)
         var radius = firstStepSize
         var trials = maxTrials
         for (i in 0 until maxSteps) {

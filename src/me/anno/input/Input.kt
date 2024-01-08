@@ -877,7 +877,7 @@ object Input {
                 val ctr = AtomicInteger()
                 if (tmp0 != null) tmp0 else {
                     val tmp = File(tmpFolder.value, it.name)
-                    copyHierarchy(it, tmp, { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
+                    copyHierarchy(it, getReference(tmp), { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
                     Sleep.waitUntil(true) { ctr.get() == 0 } // wait for all copying to complete
                     copiedInternalFiles[tmp] = it
                     tmp

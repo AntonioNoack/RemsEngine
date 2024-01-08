@@ -2,6 +2,7 @@ package me.anno.gpu.query
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.maths.Maths
 import org.lwjgl.opengl.GL15C.*
 import org.lwjgl.opengl.GL33C.glGetQueryObjecti64
 import kotlin.math.max
@@ -30,7 +31,7 @@ open class GPUQuery(
         if (ids == null) {
             ids = IntArray(cap)
             glGenQueries(ids)
-            frameCounter = -(Math.random() * everyNthFrame).toInt() // randomness to spread out the load
+            frameCounter = -(Maths.random() * everyNthFrame).toInt() // randomness to spread out the load
             this.ids = ids
         }
         glBeginQuery(target, ids[writeSlot.and(capM1)])

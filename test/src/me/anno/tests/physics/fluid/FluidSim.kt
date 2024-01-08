@@ -36,8 +36,8 @@ import me.anno.ui.Panel
 import me.anno.utils.OS.downloads
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import java.util.*
 import kotlin.math.pow
+import kotlin.random.Random
 
 var mx = 0f
 var my = 0f
@@ -163,7 +163,7 @@ fun main() {
         val wi = particleData.width
         val hi = particleData.height
         val positions = FloatArray(wi * hi * 3)
-        val random = Random()
+        val random = Random(1234)
         for (i in 0 until p) {
             positions[i * 3 + 0] = mix(0.01f, 0.99f, random.nextFloat())
             positions[i * 3 + 2] = mix(0.01f, 0.99f, random.nextFloat())

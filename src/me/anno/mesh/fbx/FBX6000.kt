@@ -2,7 +2,7 @@ package me.anno.mesh.fbx
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.Streams.consumeMagic
-import me.anno.io.Streams.readDoubleLE
+import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
@@ -39,7 +39,7 @@ object FBX6000 {
         fun str(len: Int): String {
             val bytes = ByteArray(len)
             stream.readNBytes2(len, bytes, true)
-            return String(bytes)
+            return bytes.decodeToString()
         }
 
         fun str() = str(stream.read())
@@ -54,7 +54,7 @@ object FBX6000 {
         fun v(): Any {
             return when (val code = stream.read()) {
                 'I'.code -> stream.readLE32()
-                'D'.code -> stream.readDoubleLE()
+                'D'.code -> stream.readLE64F()
                 'S'.code -> str(stream.readLE32())
                 'R'.code -> stream.readNBytes2(stream.readLE32(), true)
                 'C'.code -> stream.read().toChar()

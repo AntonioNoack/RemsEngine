@@ -5,7 +5,6 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.IOException
 import java.io.InputStream
-import java.nio.charset.StandardCharsets
 import java.text.ParseException
 
 /**
@@ -139,7 +138,7 @@ class WindowsShortcut(data: ByteArray) {
                 iconPath = readUTF16LE(data, nextStringStart + 2, stringLen)
                 nextStringStart += stringLen + 2
             }
-        } catch (e: ArrayIndexOutOfBoundsException) {
+        } catch (e: IndexOutOfBoundsException) {
             throw ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
         }
     }
@@ -191,16 +190,19 @@ class WindowsShortcut(data: ByteArray) {
         @JvmStatic
         private fun getNullDelimitedString(bytes: ByteArray, start: Int): String {
             // count bytes until the null character (0)
-            var index = start
-            while (index < bytes.size && bytes[index] != 0.toByte()) {
-                index++
+            var end = start
+            while (end < bytes.size && bytes[end] != 0.toByte()) {
+                end++
             }
-            return String(bytes, start, index - start)
+            return bytes.decodeToString(start, end)
         }
 
         @JvmStatic
-        private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int) =
-            String(bytes, off, len, StandardCharsets.UTF_16LE)
+        private fun readUTF16LE(bytes: ByteArray, off: Int, byteLen: Int): String {
+            return CharArray(byteLen / 2) {
+                readLE16(bytes, off + it * 2).toChar()
+            }.concatToString()
+        }
 
         /**
          * convert two bytes into a short note, this is little endian because it's for an Intel only OS.

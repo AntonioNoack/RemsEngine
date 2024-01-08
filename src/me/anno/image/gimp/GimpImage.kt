@@ -50,7 +50,7 @@ class GimpImage {
                     throw IOException("Magic doesn't match")
             }
             // could be made more efficient, but probably doesn't matter
-            val fileThing = String(ByteArray(5) { data.read().toByte() })
+            val fileThing = ByteArray(5) { data.read().toByte() }.decodeToString()
             if (!fileThing.startsWith("textures/fileExplorer") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
                 throw IOException("Expected 'file' or 'v'-version")
             }
@@ -205,7 +205,7 @@ class GimpImage {
 
     fun readContent(data: ByteBuffer) {
 
-        val fileThing = String(ByteArray(5) { data.get() })
+        val fileThing = ByteArray(5) { data.get() }.decodeToString()
         fileVersion = if (fileThing.startsWith("textures/fileExplorer")) {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
@@ -311,7 +311,7 @@ class GimpImage {
     private fun readString(data: ByteBuffer): String {
         val size = data.int - 1
         if (size == 0) return ""
-        val str = String(ByteArray(size) { data.get() })
+        val str = ByteArray(size) { data.get() }.decodeToString()
         data.get() // \0
         return str
     }
@@ -513,7 +513,7 @@ class GimpImage {
                     }
                 }
             }
-        } catch (e: ArrayIndexOutOfBoundsException) {
+        } catch (e: IndexOutOfBoundsException) {
             LOGGER.warn("", e)
         } catch (e: BufferUnderflowException) {
             LOGGER.warn("", e)

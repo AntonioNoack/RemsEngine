@@ -136,7 +136,7 @@ object JsonFormatter {
             is Byte, is Short, is Int, is Long, is Float, is Double ->
                 builder.append(value.toString())
             is ByteArray -> builder.append('[').append(value.joinToString(",")).append(']')
-            is CharArray -> append(String(value), builder)
+            is CharArray -> append(value.concatToString(), builder)
             is ShortArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is IntArray -> builder.append('[').append(value.joinToString(",")).append(']')
             is LongArray -> builder.append('[').append(value.joinToString(",")).append(']')

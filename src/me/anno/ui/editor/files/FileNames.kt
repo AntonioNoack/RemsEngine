@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig
 object FileNames {
 
     private val forbiddenConfig =
-        DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
+        DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + CharArray(32) { it.toChar() }.concatToString()
 
     private val forbiddenCharacters = forbiddenConfig.toHashSet()
 

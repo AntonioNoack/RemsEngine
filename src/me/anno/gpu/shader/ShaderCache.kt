@@ -52,7 +52,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         }
     }
 
-    private val magicStr = "SHADERv0".toByteArray()
+    private val magicStr = "SHADERv0".encodeToByteArray()
 
     private var wkSession = -1
     private val weakCache = WeakHashMap<Pair<String, String?>, Int>()
@@ -217,7 +217,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
 
     override fun getUniqueFilename(key: Pair<String, String?>): String {
         val messageDigest = MessageDigest.getInstance("SHA-256")
-        messageDigest.update(key.toString().toByteArray())
+        messageDigest.update(key.toString().encodeToByteArray())
         return Base64.encodeBase64(messageDigest.digest())
             .replace('/', '-') + ".bin"
     }

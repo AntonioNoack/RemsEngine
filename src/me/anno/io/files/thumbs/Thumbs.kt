@@ -112,6 +112,7 @@ import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import javax.imageio.ImageIO
@@ -306,7 +307,7 @@ object Thumbs {
                 if (reader != null) {
                     val bytes = reader.readNBytes2(hashReadLimit, false)
                     reader.close()
-                    callback(baseHash xor CRC64.fromInputStream(bytes.inputStream()))
+                    callback(baseHash xor CRC64.fromInputStream(ByteArrayInputStream(bytes)))
                 } else callback(baseHash)
             }
         } else callback(baseHash)
@@ -1225,7 +1226,7 @@ object Thumbs {
             JPGThumbnails.extractThumbnail(srcFile) { bytes ->
                 if (bytes != null) {
                     try {
-                        val image = ImageIO.read(bytes.inputStream())
+                        val image = ImageIO.read(ByteArrayInputStream(bytes))
                         transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
                     } catch (e: Exception) {
                         generateImage(srcFile, dstFile, size, callback)

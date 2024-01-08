@@ -126,7 +126,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
                         LOGGER.info("srcPrefab added original, oldRoot: '$oldRoot'")
                         val adds = ArrayList<CAdd>()
                         for ((_, v) in srcPrefab.adds) {
-                            v.removeIf {
+                            v.removeAll {
                                 val isSelf = it.matches(oldRoot)
                                 val isUnderSelf = oldRoot.getRestIfStartsWith(it.path, 0)
                                 if (isSelf || isUnderSelf != null) {

@@ -36,8 +36,7 @@ class InnerLazyByteFile(
     }
 
     override fun readTextSync(): String {
-        val bytes = content.value
-        return String(bytes)
+        return content.value.decodeToString()
     }
 
     override fun readText(callback: (String?, Exception?) -> Unit) {

@@ -110,7 +110,8 @@ object PrefabCache : CacheSection("Prefab") {
         return "${
             connections.entries
                 .associate { nameMap[it.key]!! to it.value.mapNotNull { v -> nameMap[v] }.sorted() }
-                .toSortedMap()
+                .entries.sortedBy { it.key } // toSortedMap() doesn't exist in Kotlin/JS
+                .joinToString { "${it.key}: ${it.value}" }
         }, ${nameList.map { "${get(it.key)?.get(Path.ROOT_PATH, "name")}" }}, $nameMap"
     }
 

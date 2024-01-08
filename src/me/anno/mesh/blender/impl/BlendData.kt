@@ -140,7 +140,7 @@ open class BlendData(
     }
 
     private fun getRawString(position: Int, length: Int): String {
-        return String(raw(position, length))
+        return raw(position, length).decodeToString()
     }
 
     fun charPointer(name: String): String? = charPointer(getOffset(name))

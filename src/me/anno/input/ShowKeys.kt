@@ -13,7 +13,6 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Strings.joinChars
-import java.util.function.BiConsumer
 
 /**
  * displays pressed keys for tutorials & debugging
@@ -93,22 +92,6 @@ object ShowKeys {
         DrawTexts.popBetterBlending(pbb)
 
         return x0 + w0 + 16
-
-    }
-
-    @JvmStatic
-    private val addKeyConsumer = BiConsumer<Key, Long> { keyCode, _ ->
-        when (keyCode) {
-            Key.KEY_LEFT_CONTROL,
-            Key.KEY_RIGHT_CONTROL -> addKey(Key.KEY_LEFT_CONTROL, true)
-            Key.KEY_LEFT_SHIFT,
-            Key.KEY_RIGHT_SHIFT -> addKey(Key.KEY_LEFT_SHIFT, true)
-            Key.KEY_LEFT_ALT,
-            Key.KEY_RIGHT_ALT -> addKey(Key.KEY_LEFT_ALT, true)
-            Key.KEY_LEFT_SUPER,
-            Key.KEY_RIGHT_SUPER -> addKey(Key.KEY_LEFT_SUPER, true)
-            else -> addKey(keyCode, false)
-        }
     }
 
     @JvmStatic
@@ -120,7 +103,19 @@ object ShowKeys {
 
         // full strength at start is 1
 
-        Input.keysDown.forEach(addKeyConsumer)
+        for ((key, _) in Input.keysDown) {
+            when (key) {
+                Key.KEY_LEFT_CONTROL,
+                Key.KEY_RIGHT_CONTROL -> addKey(Key.KEY_LEFT_CONTROL, true)
+                Key.KEY_LEFT_SHIFT,
+                Key.KEY_RIGHT_SHIFT -> addKey(Key.KEY_LEFT_SHIFT, true)
+                Key.KEY_LEFT_ALT,
+                Key.KEY_RIGHT_ALT -> addKey(Key.KEY_LEFT_ALT, true)
+                Key.KEY_LEFT_SUPER,
+                Key.KEY_RIGHT_SUPER -> addKey(Key.KEY_LEFT_SUPER, true)
+                else -> addKey(key, false)
+            }
+        }
 
         return if (activeKeys.isNotEmpty()) {
             val dt = deltaTime.toFloat() * decaySpeed

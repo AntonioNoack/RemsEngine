@@ -3,8 +3,10 @@ package me.anno.parser
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
-import java.util.*
+import me.anno.utils.types.Floats.toDegrees
+import me.anno.utils.types.Floats.toRadians
 import kotlin.math.*
+import kotlin.random.Random
 
 object Functions {
 
@@ -186,8 +188,8 @@ object Functions {
     init {
 
         constants["pi"] = PI
-        constants["e"] = Math.E
-        constants["°"] = Math.toRadians(1.0)
+        constants["e"] = E
+        constants["°"] = 1.0.toRadians()
 
         functions0["rand"] = { Maths.random() }
 
@@ -239,21 +241,21 @@ object Functions {
 
 
         // sin,cos,tan, with degrees
-        functions1["sin"] = { sin(Math.toRadians(it)) }
+        functions1["sin"] = { sin(it.toRadians()) }
         functions1["sine"] = functions1["sin"]!!
-        functions1["asin"] = { Math.toDegrees(asin(it)) }
+        functions1["asin"] = { asin(it).toDegrees() }
         functions1["arcsine"] = functions1["asin"]!!
         functions1["sinh"] = { sinh(it) }
         functions1["asinh"] = { asinh(it) }
 
-        functions1["cos"] = { cos(Math.toRadians(it)) }
+        functions1["cos"] = { cos(it.toRadians()) }
         functions1["cosine"] = functions1["cos"]!!
-        functions1["acos"] = { Math.toDegrees(acos(it)) }
+        functions1["acos"] = { acos(it).toDegrees() }
         functions1["arccosine"] = functions1["acos"]!!
         functions1["cosh"] = { cosh(it) }
         functions1["acosh"] = { acosh(it) }
 
-        functions1["tan"] = { tan(Math.toRadians(it)) }
+        functions1["tan"] = { tan(it.toRadians()) }
         functions1["tangent"] = functions1["tan"]!!
         functions2["atan"] = { x, y -> atan2(x, y) }
         functions2["arctan"] = functions2["atan"]!!

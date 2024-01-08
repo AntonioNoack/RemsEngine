@@ -355,7 +355,7 @@ class VOXReader {
 
     private fun readDictString(bytes: ByteBuffer): String {
         val size = bytes.int
-        return String(ByteArray(size) { bytes.get() })
+        return ByteArray(size) { bytes.get() }.decodeToString()
     }
 
     companion object {

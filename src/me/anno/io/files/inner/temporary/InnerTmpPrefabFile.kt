@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.lang.ref.WeakReference
 
@@ -26,7 +27,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     }
 
     val text by lazy { JsonStringWriter.toText(prefab, InvalidRef) }
-    val bytes by lazy { text.toByteArray() }
+    val bytes by lazy { text.encodeToByteArray() }
 
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference>? = null
@@ -41,9 +42,10 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
 
     override fun readTextSync() = text
     override fun readBytesSync() = bytes
+    override fun inputStreamSync() = ByteArrayInputStream(bytes)
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(text.byteInputStream(), null)
+        callback(inputStreamSync(), null)
     }
 
     override fun readPrefab(): Prefab {

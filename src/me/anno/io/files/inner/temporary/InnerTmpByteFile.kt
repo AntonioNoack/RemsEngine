@@ -1,5 +1,6 @@
 package me.anno.io.files.inner.temporary
 
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 @Suppress("unused")
@@ -14,7 +15,7 @@ class InnerTmpByteFile(bytes: ByteArray, ext: String = "bin") : InnerTmpFile(ext
         }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(bytes.inputStream(), null)
+        callback(ByteArrayInputStream(bytes), null)
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {

@@ -7,19 +7,19 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.CullMode
 import me.anno.io.Streams.read0String
-import me.anno.io.Streams.readDoubleLE
-import me.anno.io.Streams.readFloatLE
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE64
+import me.anno.io.Streams.readLE64F
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.xml.generic.XMLNode
-import me.anno.io.xml.generic.XMLReader
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
+import me.anno.io.files.thumbs.Thumbs
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.assimp.StaticMeshesLoader.shininessToRoughness
 import me.anno.utils.Color.rgba
@@ -45,7 +45,7 @@ object MitsubaReader {
 
     private val LOGGER = LogManager.getLogger(MitsubaReader::class)
 
-    fun readHeader(file: InputStream, length: Long): Pair<Int, LongArray> {
+    private fun readHeader(file: InputStream, length: Long): Pair<Int, LongArray> {
 
         file.mark(length.toInt())
 
@@ -78,7 +78,6 @@ object MitsubaReader {
         }
 
         return version to offsets
-
     }
 
     fun readMeshesAsFolder(file: FileReference, callback: InnerFolderCallback) {
@@ -102,7 +101,6 @@ object MitsubaReader {
                     val prefab = (mesh.ref as PrefabReadable).readPrefab()
 
                     InnerPrefabFile("$absolutePath/$name", relativePath, folder, prefab)
-
                 }
                 stream.close()
                 callback(folder, null)
@@ -126,13 +124,13 @@ object MitsubaReader {
         val numVertices = input.readLE64()
         val numTriangles = input.readLE64()
 
-        fun readDouble() = input.readDoubleLE().toFloat()
+        fun readDouble() = input.readLE64F().toFloat()
 
         fun readNumbers(size: Int): FloatArray {
             val data = FloatArray(size)
             if (singlePrecision) {
                 for (i in 0 until size) {
-                    data[i] = input.readFloatLE()
+                    data[i] = input.readLE32F()
                 }
             } else {
                 for (i in 0 until size) {
@@ -156,9 +154,9 @@ object MitsubaReader {
         val vertexColors = if (hasVertexColors) {
             if (singlePrecision) {
                 IntArray(numVertices.toInt()) {
-                    val r = input.readFloatLE()
-                    val g = input.readFloatLE()
-                    val b = input.readFloatLE()
+                    val r = input.readLE32F()
+                    val g = input.readLE32F()
+                    val b = input.readLE32F()
                     rgba(r, g, b, 1f)
                 }
             } else {
@@ -390,7 +388,6 @@ object MitsubaReader {
                 material.prefab = prefab2
 
                 materials[id] = prefab2.source
-
             }
             for (child in node.children) {
                 if (child is XMLNode) regMaterials(child)
@@ -507,7 +504,6 @@ object MitsubaReader {
                                 }
                             }
                         }
-
                     }
                     "shape" -> {
 
@@ -623,7 +619,6 @@ object MitsubaReader {
                         if (material != null) {
                             prefab[mesh, "materials"] = listOf(materials[material["id"]!!])
                         }
-
                     }
                     "integrator" -> {
                         // some general settings...
@@ -633,7 +628,6 @@ object MitsubaReader {
         }
 
         return innerFolder
-
     }
 
     fun readSceneAsFolder(file: FileReference, callback: InnerFolderCallback) {
@@ -643,5 +637,4 @@ object MitsubaReader {
             } else callback(null, exc)
         }
     }
-
 }

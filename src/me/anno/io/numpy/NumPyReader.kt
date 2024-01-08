@@ -3,10 +3,10 @@ package me.anno.io.numpy
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readBE32
 import me.anno.io.Streams.readBE64
-import me.anno.io.Streams.readDoubleBE
-import me.anno.io.Streams.readDoubleLE
-import me.anno.io.Streams.readFloatBE
-import me.anno.io.Streams.readFloatLE
+import me.anno.io.Streams.readBE64F
+import me.anno.io.Streams.readLE64F
+import me.anno.io.Streams.readBE32F
+import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
@@ -15,7 +15,6 @@ import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.DataInputStream
 import java.io.IOException
-import java.io.Serializable
 import java.nio.ByteOrder
 import kotlin.math.min
 
@@ -49,7 +48,7 @@ object NumPyReader {
         val major = data.read()
         /*val minor =*/ data.read()
         val headerLen = if (major >= 2) data.readLE32() else data.readLE16()
-        val header = String(data.readNBytes2(headerLen, true)).trim()
+        val header = data.readNBytes2(headerLen, true).decodeToString().trim()
         if (!header.startsWith("{") || !header.endsWith("}"))
             throw IllegalArgumentException("Header broken $header")
         val i0 = header.indexOf("descr") + "descr".length + 1
@@ -78,15 +77,15 @@ object NumPyReader {
         val doubleSize = totalSize * 2
         val data1 = when (val sub = descriptor.substring(1)) {
             // floats
-            "f4" -> if (littleEndian) FloatArray(totalSize) { data.readFloatLE() }
-            else FloatArray(totalSize) { data.readFloatBE() }
-            "f8" -> if (littleEndian) DoubleArray(totalSize) { data.readDoubleLE() }
-            else DoubleArray(totalSize) { data.readDoubleBE() }
+            "f4" -> if (littleEndian) FloatArray(totalSize) { data.readLE32F() }
+            else FloatArray(totalSize) { data.readBE32F() }
+            "f8" -> if (littleEndian) DoubleArray(totalSize) { data.readLE64F() }
+            else DoubleArray(totalSize) { data.readBE64F() }
             // complex numbers
-            "c8" -> if (littleEndian) FloatArray(doubleSize) { data.readFloatLE() }
-            else FloatArray(doubleSize) { data.readFloatBE() }
-            "c16" -> if (littleEndian) DoubleArray(doubleSize) { data.readDoubleLE() }
-            else DoubleArray(doubleSize) { data.readDoubleBE() }
+            "c8" -> if (littleEndian) FloatArray(doubleSize) { data.readLE32F() }
+            else FloatArray(doubleSize) { data.readBE32F() }
+            "c16" -> if (littleEndian) DoubleArray(doubleSize) { data.readLE64F() }
+            else DoubleArray(doubleSize) { data.readBE64F() }
             // integers
             "i1", "u1" -> data.readNBytes2(totalSize, true)
             "i2", "u2" -> if (littleEndian) ShortArray(totalSize) { data.readLE16().toShort() }
@@ -95,13 +94,13 @@ object NumPyReader {
             else IntArray(totalSize) { data.readBE32() }
             "i8", "u8" -> LongArray(totalSize) { if (littleEndian) data.readLE64() else data.readBE64() }
             // strings
-            "S1" -> String(data.readNBytes2(totalSize, true))
+            "S1" -> data.readNBytes2(totalSize, true).decodeToString()
             else -> {
                 if (sub.startsWith("S")) {
                     val individualLength = sub.substring(1).toIntOrNull()
                         ?: throw IllegalArgumentException("Unsupported string descriptor $descriptor")
                     Array(totalSize) {
-                        String(data.readNBytes2(individualLength, true))
+                        data.readNBytes2(individualLength, true).decodeToString()
                     }
                 } else throw IllegalArgumentException("Unknown descriptor type $descriptor")
             }

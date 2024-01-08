@@ -27,7 +27,7 @@ object Tabs {
             for (i in suffix.indices) {
                 data[i + repLength] = suffix[i]
             }
-            return String(data)
+            return data.concatToString()
         }
 
         operator fun plus(other: CharSequence): CharSequence {

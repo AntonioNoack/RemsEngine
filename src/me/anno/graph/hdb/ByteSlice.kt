@@ -12,6 +12,6 @@ class ByteSlice(val bytes: ByteArray, val range: IntRange) {
     }
 
     fun getAsString(): String {
-        return String(bytes, range.first, range.size)
+        return bytes.decodeToString(range.first, range.last + 1)
     }
 }

@@ -48,7 +48,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         val key = getShaderStage()
         return shaderMap3d.getOrPut(key) {
             ShaderLib.createShader(
-                "3d-$javaClass", ShaderLib.v3Dl, ShaderLib.v3D, ShaderLib.y3D,
+                "3d-${this::class.simpleName}", ShaderLib.v3Dl, ShaderLib.v3D, ShaderLib.y3D,
                 key.variables.filter { !it.isOutput } + listOf(
                     Variable(GLSLType.V4F, "tiling"),
                     Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -73,7 +73,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         val key = getShaderStage()
         return shaderMap2d.getOrPut(key) {
             Shader(
-                "2d-$javaClass",
+                "2d-${this::class.simpleName}",
                 ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
                 ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
                     Variable(GLSLType.V4F, "color", VariableMode.OUT),

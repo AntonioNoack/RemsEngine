@@ -59,8 +59,7 @@ object Streams {
 
     @JvmStatic
     fun InputStream.readText(): String {
-        val bytes = readBytes()
-        return String(bytes)
+        return readBytes().decodeToString()
     }
 
     @JvmStatic
@@ -124,16 +123,16 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.readFloatLE() = Float.fromBits(readLE32())
+    fun InputStream.readLE32F() = Float.fromBits(readLE32())
 
     @JvmStatic
-    fun InputStream.readDoubleLE() = Double.fromBits(readLE64())
+    fun InputStream.readLE64F() = Double.fromBits(readLE64())
 
     @JvmStatic
-    fun InputStream.readFloatBE() = Float.fromBits(readBE32())
+    fun InputStream.readBE32F() = Float.fromBits(readBE32())
 
     @JvmStatic
-    fun InputStream.readDoubleBE() = Double.fromBits(readBE64())
+    fun InputStream.readBE64F() = Double.fromBits(readBE64())
 
     @JvmStatic
     fun OutputStream.writeBE16(a: Int) {
@@ -193,12 +192,12 @@ object Streams {
     }
 
     @JvmStatic
-    fun OutputStream.writeBE32(a: Float) {
+    fun OutputStream.writeBE32F(a: Float) {
         writeBE32(a.toRawBits())
     }
 
     @JvmStatic
-    fun OutputStream.writeBE64(a: Double) {
+    fun OutputStream.writeBE64F(a: Double) {
         writeBE64(a.toRawBits())
     }
 
@@ -218,12 +217,17 @@ object Streams {
     }
 
     /**
-     * read a zero-terminated string, as they are commonly used in C
+     * write a zero-terminated string, as they are commonly used in C
      * */
     @JvmStatic
     fun OutputStream.write0String(str: String) {
-        write(str.toByteArray())
+        writeString(str)
         write(0)
+    }
+
+    @JvmStatic
+    fun OutputStream.writeString(str: String) {
+        write(str.encodeToByteArray())
     }
 
     @JvmStatic

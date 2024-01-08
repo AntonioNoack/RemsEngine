@@ -1,5 +1,6 @@
 package me.anno.io.json.generic
 
+import me.anno.io.Streams.writeString
 import me.anno.utils.types.Strings
 import org.joml.*
 import java.io.OutputStream
@@ -13,17 +14,17 @@ open class JsonWriter(val output: OutputStream) {
     private var first = true
     private var isKeyValue = false
 
-    private fun writeString(value: String) {
+    private fun writeEscapedString(value: String) {
         output.write('"'.code)
         val sb = StringBuilder()
         Strings.writeEscaped(value, sb)
-        output.write(sb.toString().toByteArray())
+        output.writeString(sb.toString())
         output.write('"'.code)
     }
 
     fun attr(key: String) {
         next()
-        writeString(key)
+        writeEscapedString(key)
         isKeyValue = true
     }
 
@@ -38,35 +39,35 @@ open class JsonWriter(val output: OutputStream) {
     fun write(b: Boolean) {
         next()
         if (b) {
-            output.write("true".toByteArray())
+            output.writeString("true")
         } else {
-            output.write("false".toByteArray())
+            output.writeString("false")
         }
     }
 
     fun write(i: Int) {
         next()
-        output.write(i.toString().toByteArray())
+        output.writeString(i.toString())
     }
 
     fun write(l: Long) {
         next()
-        output.write(l.toString().toByteArray())
+        output.writeString(l.toString())
     }
 
     fun write(f: Float) {
         next()
-        output.write(f.toString().toByteArray())
+        output.writeString(f.toString())
     }
 
     fun write(d: Double) {
         next()
-        output.write(d.toString().toByteArray())
+        output.writeString(d.toString())
     }
 
     fun write(value: String) {
         next()
-        writeString(value)
+        writeEscapedString(value)
     }
 
     fun beginArray() {

@@ -4,10 +4,10 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL31C.*
+import org.lwjgl.opengl.GL31C
 import java.nio.ByteOrder
 
-open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
+open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL31C.GL_STATIC_DRAW) :
     Buffer(name, attributes, usage) {
 
     constructor(name: String, points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) :
@@ -100,7 +100,7 @@ open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCou
                 val baseLength = mode.minLength
                 bind(shader)
                 GFXState.bind()
-                glDrawArraysInstanced(mode.id, 0, baseLength, length)
+                GL31C.glDrawArraysInstanced(mode.id, 0, baseLength, length)
                 unbind(shader)
             }
         }

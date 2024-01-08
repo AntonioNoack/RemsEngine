@@ -32,13 +32,13 @@ fun createHeightMesh() {
         for (i in 0 until w) {
             val rgb = image.getRGB(i, j)
             val y = (rgb.r() * 256 + rgb.g()) * 0.1
-            out.write("v $i $y $j\n".toByteArray())
+            out.write("v $i $y $j\n".encodeToByteArray())
         }
     }
     for (y in 1 until h) {
         for (x in 1 until w) {
             val i = x + y * w - w
-            out.write("f $i ${i + 1} ${i + w + 1} ${i + w}\n".toByteArray())
+            out.write("f $i ${i + 1} ${i + w + 1} ${i + w}\n".encodeToByteArray())
         }
     }
     out.close()

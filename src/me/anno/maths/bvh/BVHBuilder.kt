@@ -154,7 +154,7 @@ object BVHBuilder {
     private fun <V : TLASLeaf0> medianApprox(objects: ArrayList<V>, start: Int, end: Int, dim: Int): Int {
         // don't sort, use statistical median
         fun sampleRandomly(): Float {
-            val inst = objects[start + ((end - start) * Math.random()).toInt()]
+            val inst = objects[start + ((end - start) * Maths.random()).toInt()]
             return inst.centroid[dim]
         }
 
@@ -281,7 +281,7 @@ object BVHBuilder {
         }
 
         fun sample(): Float {
-            val idx = (start + ((end - start) * Math.random()).toInt())
+            val idx = (start + ((end - start) * Maths.random()).toInt())
             return sample(idx * 3)
         }
 

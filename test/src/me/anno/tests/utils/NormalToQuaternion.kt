@@ -6,13 +6,13 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
     // half the time is being used for correctness checks and random number generation ->
     // correctness and performance shouldn't be tested at the same time
     val testCorrectness = false
-    val rand = Random()
+    val rand = Random(1234L)
     val dir1 = Vector3f()
     val dir2 = Vector3f()
     val rot = Quaternionf()

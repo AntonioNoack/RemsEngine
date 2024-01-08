@@ -11,6 +11,7 @@ import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
+import me.anno.maths.Maths
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3d
@@ -25,13 +26,13 @@ fun createMesh(color: Int): Mesh {
     return mesh
 }
 
-fun chunkToMesh(chunk: List<Hexagon>, color: Int = (Math.random() * 1e9).toInt()): Mesh {
+fun chunkToMesh(chunk: List<Hexagon>, color: Int = (Maths.random() * 1e9).toInt()): Mesh {
     val mesh = createMesh(color)
     createFaceMesh(mesh, chunk)
     return mesh
 }
 
-fun chunkToMesh2(chunk: List<Hexagon>, len: Float, color: Int = (Math.random() * 1e9).toInt()): Mesh {
+fun chunkToMesh2(chunk: List<Hexagon>, len: Float, color: Int = (Maths.random() * 1e9).toInt()): Mesh {
     val mesh = createMesh(color)
     createConnectionMesh(mesh, chunk, len)
     return mesh

@@ -11,9 +11,9 @@ object Engine {
     var shutdown: Boolean = false
         private set
 
-    private val onShutdown = ArrayList<Runnable>()
-    fun registerForShutdown(callable: Runnable) {
-        if (shutdown) callable.run()
+    private val onShutdown = ArrayList<() -> Unit>()
+    fun registerForShutdown(callable: () -> Unit) {
+        if (shutdown) callable()
         synchronized(onShutdown) {
             onShutdown.add(callable)
         }
@@ -25,7 +25,7 @@ object Engine {
         synchronized(onShutdown) {
             for (runnable in onShutdown) {
                 try {
-                    runnable.run()
+                    runnable()
                 } catch (e: Throwable) {
                     e.printStackTrace()
                 }

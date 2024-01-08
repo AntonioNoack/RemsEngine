@@ -15,7 +15,7 @@ import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.*
-import java.util.*
+import kotlin.random.Random
 
 // only a little faster,
 // which means we did good, I think, with Entity optimizations and such :)
@@ -120,7 +120,7 @@ fun main() {
 
     val n = 10000
     val m = 2
-    val rnd = Random()
+    val rnd = Random(1234)
     val boid = BoidVTest(m, n)
 
     val s = 1000f

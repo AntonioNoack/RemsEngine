@@ -38,9 +38,9 @@ class InputStreamCharSequence(val input: InputStream, length: Int) : CharSequenc
 
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
         ensureIndex(endIndex - 1)
-        return String(CharArray(endIndex - startIndex) {
+        return CharArray(endIndex - startIndex) {
             memory[startIndex + it].toChar()
-        })
+        }.concatToString()
     }
 
     override fun toString(): String {

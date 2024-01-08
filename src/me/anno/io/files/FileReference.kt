@@ -284,15 +284,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     private var isValid = true
 
-    /*constructor() : this("")
-    constructor(parent: File, name: String) : this(File(parent, name))
-    constructor(parent: FileReference, name: String) : this(File(parent.file, name))
-
-    constructor(str: String) : this(File(str))*/
-
-    // val nameWithoutExtension = file.nameWithoutExtension
-    // val extension = file.extension
-
     val name: String
     val nameWithoutExtension: String
     val extension: String
@@ -322,8 +313,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     private val _hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = _hasValidName
 
-    var isHidden =
-        name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath) // hidden file in Linux, or file in unity package
+    var isHidden = // hidden file in Linux, or file in unity package
+        name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath)
 
     fun hide() {
         isHidden = true
@@ -627,8 +618,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return getParent()?.getChild("$nameWithoutExtension.$ext") ?: InvalidRef
     }
 
-    fun renameTo(newName: File) = renameTo(getReference(newName))
-
     @Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
@@ -768,7 +757,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    private fun printTree(depth: Int = 0) {
+    fun printTree(depth: Int = 0) {
         LOGGER.info("${Tabs.spaces(depth * 2)}$name")
         if (isDirectory) {
             for (child in listChildren() ?: return) {

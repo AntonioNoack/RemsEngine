@@ -1,5 +1,6 @@
 package me.anno.io.files.inner.temporary
 
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 @Suppress("unused")
@@ -19,8 +20,8 @@ class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
     }
 
     override fun readTextSync() = text
-    override fun readBytesSync() = text.toByteArray()
-    override fun inputStreamSync() = text.byteInputStream()
+    override fun readBytesSync() = text.encodeToByteArray()
+    override fun inputStreamSync() = ByteArrayInputStream(readBytesSync())
 
     override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(readTextSync(), null)

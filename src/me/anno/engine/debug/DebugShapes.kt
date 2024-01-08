@@ -28,7 +28,7 @@ object DebugShapes {
     fun removeExpired() {
         val time = Time.nanoTime
         for (i in collections.indices) {
-            collections[i].removeIf { it.timeOfDeath < time }
+            collections[i].removeAll { it.timeOfDeath < time }
         }
     }
 }

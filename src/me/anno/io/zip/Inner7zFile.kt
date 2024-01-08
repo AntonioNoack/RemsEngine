@@ -9,6 +9,7 @@ import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipException
@@ -41,7 +42,7 @@ class Inner7zFile(
                 total: Int
             ): ByteArray {
                 val bytes = previous ?: stream.file.getInputStream(item).readBytes()
-                callback(bytes.inputStream(), null)
+                callback(ByteArrayInputStream(bytes), null)
                 return bytes
             }
 

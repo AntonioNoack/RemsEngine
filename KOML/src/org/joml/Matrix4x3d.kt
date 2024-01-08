@@ -24,13 +24,13 @@ open class Matrix4x3d {
     var m31 = 0.0
     var m32 = 0.0
 
-    var properties = 0
+    var flags = 0
 
     constructor() {
         m00 = 1.0
         m11 = 1.0
         m22 = 1.0
-        properties = 28
+        flags = 28
     }
 
     constructor(mat: Matrix4x3d) {
@@ -71,28 +71,28 @@ open class Matrix4x3d {
     }
 
     fun assume(properties: Int): Matrix4x3d {
-        this.properties = properties
+        this.flags = properties
         return this
     }
 
     fun determineProperties(): Matrix4x3d {
-        var properties = 0
+        var flags = 0
         if (m00 == 1.0 && m01 == 0.0 && m02 == 0.0 && m10 == 0.0 && m11 == 1.0 && m12 == 0.0 && m20 == 0.0 && m21 == 0.0 && m22 == 1.0) {
-            properties = properties or 24
+            flags = flags or 24
             if (m30 == 0.0 && m31 == 0.0 && m32 == 0.0) {
-                properties = properties or 4
+                flags = flags or 4
             }
         }
-        this.properties = properties
+        this.flags = flags
         return this
     }
 
     fun properties(): Int {
-        return properties
+        return flags
     }
 
     fun _properties(properties: Int): Matrix4x3d {
-        this.properties = properties
+        this.flags = properties
         return this
     }
 
@@ -158,81 +158,81 @@ open class Matrix4x3d {
 
     fun m00(m00: Double): Matrix4x3d {
         this.m00 = m00
-        properties = properties and -17
+        flags = flags and -17
         if (m00 != 1.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m01(m01: Double): Matrix4x3d {
         this.m01 = m01
-        properties = properties and -17
+        flags = flags and -17
         if (m01 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m02(m02: Double): Matrix4x3d {
         this.m02 = m02
-        properties = properties and -17
+        flags = flags and -17
         if (m02 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m10(m10: Double): Matrix4x3d {
         this.m10 = m10
-        properties = properties and -17
+        flags = flags and -17
         if (m10 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m11(m11: Double): Matrix4x3d {
         this.m11 = m11
-        properties = properties and -17
+        flags = flags and -17
         if (m11 != 1.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m12(m12: Double): Matrix4x3d {
         this.m12 = m12
-        properties = properties and -17
+        flags = flags and -17
         if (m12 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m20(m20: Double): Matrix4x3d {
         this.m20 = m20
-        properties = properties and -17
+        flags = flags and -17
         if (m20 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m21(m21: Double): Matrix4x3d {
         this.m21 = m21
-        properties = properties and -17
+        flags = flags and -17
         if (m21 != 0.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
 
     fun m22(m22: Double): Matrix4x3d {
         this.m22 = m22
-        properties = properties and -17
+        flags = flags and -17
         if (m22 != 1.0) {
-            properties = properties and -13
+            flags = flags and -13
         }
         return this
     }
@@ -240,7 +240,7 @@ open class Matrix4x3d {
     fun m30(m30: Double): Matrix4x3d {
         this.m30 = m30
         if (m30 != 0.0) {
-            properties = properties and -5
+            flags = flags and -5
         }
         return this
     }
@@ -248,7 +248,7 @@ open class Matrix4x3d {
     fun m31(m31: Double): Matrix4x3d {
         this.m31 = m31
         if (m31 != 0.0) {
-            properties = properties and -5
+            flags = flags and -5
         }
         return this
     }
@@ -256,13 +256,13 @@ open class Matrix4x3d {
     fun m32(m32: Double): Matrix4x3d {
         this.m32 = m32
         if (m32 != 0.0) {
-            properties = properties and -5
+            flags = flags and -5
         }
         return this
     }
 
     fun identity(): Matrix4x3d {
-        if (properties and 4 == 0) {
+        if (flags and 4 == 0) {
             m00 = 1.0
             m01 = 0.0
             m02 = 0.0
@@ -275,7 +275,7 @@ open class Matrix4x3d {
             m30 = 0.0
             m31 = 0.0
             m32 = 0.0
-            properties = 28
+            flags = 28
         }
         return this
     }
@@ -293,7 +293,7 @@ open class Matrix4x3d {
         m30 = m.m30
         m31 = m.m31
         m32 = m.m32
-        properties = m.properties()
+        flags = m.properties()
         return this
     }
 
@@ -310,7 +310,7 @@ open class Matrix4x3d {
         m30 = m.m30.toDouble()
         m31 = m.m31.toDouble()
         m32 = m.m32.toDouble()
-        properties = m.properties()
+        flags = m.properties()
         return this
     }
 
@@ -327,7 +327,7 @@ open class Matrix4x3d {
         m30 = m.m30
         m31 = m.m31
         m32 = m.m32
-        properties = m.properties and 28
+        flags = m.flags and 28
         return this
     }
 
@@ -393,7 +393,7 @@ open class Matrix4x3d {
         m20 = mat.m20
         m21 = mat.m21
         m22 = mat.m22
-        properties = properties and mat.properties()
+        flags = flags and mat.properties()
         return this
     }
 
@@ -427,7 +427,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -461,7 +461,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -475,12 +475,12 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun mul(right: Matrix4x3d, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.set(right)
         } else if (right.properties() and 4 != 0) {
             dst.set(this)
         } else {
-            if (properties and 8 != 0) this.mulTranslation(right, dst) else this.mulGeneric(right, dst)
+            if (flags and 8 != 0) this.mulTranslation(right, dst) else this.mulGeneric(right, dst)
         }
     }
 
@@ -519,17 +519,17 @@ open class Matrix4x3d {
             ._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
             ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
             ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
-            ._properties(properties and right.properties() and 16)
+            ._properties(flags and right.properties() and 16)
     }
 
     @JvmOverloads
     fun mul(right: Matrix4x3f, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.set(right)
         } else if (right.properties() and 4 != 0) {
             dst.set(this)
         } else {
-            if (properties and 8 != 0) this.mulTranslation(right, dst) else this.mulGeneric(right, dst)
+            if (flags and 8 != 0) this.mulTranslation(right, dst) else this.mulGeneric(right, dst)
         }
     }
 
@@ -568,7 +568,7 @@ open class Matrix4x3d {
             ._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)
             ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)
             ._m32(m02 * rm30 + m12 * rm31 + m22 * rm32 + m32)
-            ._properties(properties and right.properties() and 16)
+            ._properties(flags and right.properties() and 16)
     }
 
     fun mulTranslation(right: Matrix4x3d, dst: Matrix4x3d): Matrix4x3d {
@@ -612,7 +612,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = properties and view.properties() and 16
+        dst.flags = flags and view.properties() and 16
         return dst
     }
 
@@ -679,7 +679,7 @@ open class Matrix4x3d {
         dst.m30 = m30 + other.m30
         dst.m31 = m31 + other.m31
         dst.m32 = m32 + other.m32
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -697,7 +697,7 @@ open class Matrix4x3d {
         dst.m30 = m30 + other.m30.toDouble()
         dst.m31 = m31 + other.m31.toDouble()
         dst.m32 = m32 + other.m32.toDouble()
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -715,7 +715,7 @@ open class Matrix4x3d {
         dst.m30 = m30 - subtrahend.m30
         dst.m31 = m31 - subtrahend.m31
         dst.m32 = m32 - subtrahend.m32
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -733,7 +733,7 @@ open class Matrix4x3d {
         dst.m30 = m30 - subtrahend.m30.toDouble()
         dst.m31 = m31 - subtrahend.m31.toDouble()
         dst.m32 = m32 - subtrahend.m32.toDouble()
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -751,7 +751,7 @@ open class Matrix4x3d {
         dst.m30 = m30 * other.m30
         dst.m31 = m31 * other.m31
         dst.m32 = m32 * other.m32
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -824,10 +824,10 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun invert(dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.identity()
         } else {
-            if (properties and 16 != 0) invertOrthonormal(dst) else invertGeneric(dst)
+            if (flags and 16 != 0) invertOrthonormal(dst) else invertGeneric(dst)
         }
     }
 
@@ -875,7 +875,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -898,7 +898,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = 16
+        dst.flags = 16
         return dst
     }
 
@@ -913,7 +913,7 @@ open class Matrix4x3d {
             0.0, 0.0, invM22,
             -m30 * invM00, -m31 * invM11, -m32 * invM22
         )
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -937,7 +937,7 @@ open class Matrix4x3d {
         dst.m20 = nm20
         dst.m21 = nm21
         dst.m22 = nm22
-        dst.properties = properties
+        dst.flags = flags
         return dst
     }
 
@@ -955,13 +955,13 @@ open class Matrix4x3d {
     }
 
     fun translation(x: Double, y: Double, z: Double): Matrix4x3d {
-        if (properties and 4 == 0) {
+        if (flags and 4 == 0) {
             identity()
         }
         m30 = x
         m31 = y
         m32 = z
-        properties = 24
+        flags = 24
         return this
     }
 
@@ -977,7 +977,7 @@ open class Matrix4x3d {
         m30 = x
         m31 = y
         m32 = z
-        properties = properties and -5
+        flags = flags and -5
         return this
     }
 
@@ -1120,7 +1120,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -1129,14 +1129,14 @@ open class Matrix4x3d {
     }
 
     fun scaling(x: Double, y: Double, z: Double): Matrix4x3d {
-        if (properties and 4 == 0) {
+        if (flags and 4 == 0) {
             identity()
         }
         m00 = x
         m11 = y
         m22 = z
         val one = JomlMath.absEqualsOne(x) && JomlMath.absEqualsOne(y) && JomlMath.absEqualsOne(z)
-        properties = if (one) 16 else 0
+        flags = if (one) 16 else 0
         return this
     }
 
@@ -1178,7 +1178,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1197,7 +1197,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1216,7 +1216,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1235,7 +1235,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1263,7 +1263,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1291,7 +1291,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1319,7 +1319,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1344,7 +1344,7 @@ open class Matrix4x3d {
         m10 = cosY * m_sinZ
         m11 = nm01 * m_sinZ + cosX * cosZ
         m12 = nm02 * m_sinZ + sinX * cosZ
-        properties = properties and -13
+        flags = flags and -13
         return this
     }
 
@@ -1369,7 +1369,7 @@ open class Matrix4x3d {
         m20 = m_sinZ * m_sinX + nm20 * cosX
         m21 = cosZ * m_sinX + nm21 * cosX
         m22 = cosY * cosX
-        properties = properties and -13
+        flags = flags and -13
         return this
     }
 
@@ -1394,7 +1394,7 @@ open class Matrix4x3d {
         m10 = cosY * m_sinZ + nm10 * cosZ
         m11 = cosX * cosZ
         m12 = m_sinY * m_sinZ + nm12 * cosZ
-        properties = properties and -13
+        flags = flags and -13
         return this
     }
 
@@ -1468,7 +1468,7 @@ open class Matrix4x3d {
         m20 = mat.m20
         m21 = mat.m21
         m22 = mat.m22
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -1482,7 +1482,7 @@ open class Matrix4x3d {
         m20 = mat.m20.toDouble()
         m21 = mat.m21.toDouble()
         m22 = mat.m22.toDouble()
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -1496,7 +1496,7 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun scale(x: Double, y: Double, z: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) dst.scaling(x, y, z) else scaleGeneric(x, y, z, dst)
+        return if (flags and 4 != 0) dst.scaling(x, y, z) else scaleGeneric(x, y, z, dst)
     }
 
     private fun scaleGeneric(x: Double, y: Double, z: Double, dst: Matrix4x3d): Matrix4x3d {
@@ -1512,7 +1512,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -1553,7 +1553,7 @@ open class Matrix4x3d {
                 -dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30
             )._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)._m32(
                 -dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32
-            )._properties(properties and (12 or if (one) 0 else 16).inv())
+            )._properties(flags and (12 or if (one) 0 else 16).inv())
     }
 
     fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double): Matrix4x3d {
@@ -1566,7 +1566,7 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun scaleLocal(x: Double, y: Double, z: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.scaling(x, y, z)
         } else {
             val nm00 = x * m00
@@ -1593,17 +1593,17 @@ open class Matrix4x3d {
             dst.m30 = nm30
             dst.m31 = nm31
             dst.m32 = nm32
-            dst.properties = properties and -29
+            dst.flags = flags and -29
             dst
         }
     }
 
     @JvmOverloads
     fun rotate(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotation(ang, x, y, z)
         } else {
-            if (properties and 8 != 0) this.rotateTranslation(ang, x, y, z, dst) else this.rotateGeneric(
+            if (flags and 8 != 0) this.rotateTranslation(ang, x, y, z, dst) else this.rotateGeneric(
                 ang,
                 x,
                 y,
@@ -1663,7 +1663,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1712,7 +1712,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1763,14 +1763,14 @@ open class Matrix4x3d {
             ._m30(-nm00 * ox - nm10 * oy - m20 * oz + tm30)._m31(
                 -nm01 * ox - nm11 * oy - m21 * oz + tm31
             )._m32(-nm02 * ox - nm12 * oy - m22 * oz + tm32)._properties(
-                properties and -13
+                flags and -13
             )
         return dst
     }
 
     @JvmOverloads
     fun rotateAround(quat: Quaterniond, ox: Double, oy: Double, oz: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) rotationAround(quat, ox, oy, oz) else rotateAroundAffine(
+        return if (flags and 4 != 0) rotationAround(quat, ox, oy, oz) else rotateAroundAffine(
             quat,
             ox,
             oy,
@@ -1808,7 +1808,7 @@ open class Matrix4x3d {
         _m30(-m00 * ox - m10 * oy - m20 * oz + ox)
         _m31(-m01 * ox - m11 * oy - m21 * oz + oy)
         _m32(-m02 * ox - m12 * oy - m22 * oz + oz)
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -1869,7 +1869,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1897,7 +1897,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1925,7 +1925,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = m31
         dst.m32 = nm32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1953,7 +1953,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -1974,7 +1974,7 @@ open class Matrix4x3d {
     }
 
     fun translate(x: Double, y: Double, z: Double, dst: Matrix4x3d): Matrix4x3d {
-        return if (properties and 4 != 0) dst.translation(x, y, z) else translateGeneric(x, y, z, dst)
+        return if (flags and 4 != 0) dst.translation(x, y, z) else translateGeneric(x, y, z, dst)
     }
 
     private fun translateGeneric(x: Double, y: Double, z: Double, dst: Matrix4x3d): Matrix4x3d {
@@ -1990,18 +1990,18 @@ open class Matrix4x3d {
         dst.m30 = m00 * x + m10 * y + m20 * z + m30
         dst.m31 = m01 * x + m11 * y + m21 * z + m31
         dst.m32 = m02 * x + m12 * y + m22 * z + m32
-        dst.properties = properties and -5
+        dst.flags = flags and -5
         return dst
     }
 
     fun translate(x: Double, y: Double, z: Double): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             this.translation(x, y, z)
         } else {
             m30 += m00 * x + m10 * y + m20 * z
             m31 += m01 * x + m11 * y + m21 * z
             m32 += m02 * x + m12 * y + m22 * z
-            properties = properties and -5
+            flags = flags and -5
             this
         }
     }
@@ -2036,15 +2036,15 @@ open class Matrix4x3d {
         dst.m30 = m30 + x
         dst.m31 = m31 + y
         dst.m32 = m32 + z
-        dst.properties = properties and -5
+        dst.flags = flags and -5
         return dst
     }
 
     @JvmOverloads
     fun rotateX(ang: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationX(ang)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
@@ -2073,15 +2073,15 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
     @JvmOverloads
     fun rotateY(ang: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationY(ang)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
@@ -2110,15 +2110,15 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
     @JvmOverloads
     fun rotateZ(ang: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationZ(ang)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
@@ -2147,7 +2147,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2157,9 +2157,9 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationXYZ(angleX, angleY, angleZ)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
@@ -2200,7 +2200,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2210,9 +2210,9 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun rotateZYX(angleZ: Double, angleY: Double, angleX: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationZYX(angleZ, angleY, angleX)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
@@ -2253,7 +2253,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2263,9 +2263,9 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun rotateYXZ(angleY: Double, angleX: Double, angleZ: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotationYXZ(angleY, angleX, angleZ)
-        } else if (properties and 8 != 0) {
+        } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
@@ -2306,7 +2306,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2352,7 +2352,7 @@ open class Matrix4x3d {
         _m30(0.0)
         _m31(0.0)
         _m32(0.0)
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -2385,7 +2385,7 @@ open class Matrix4x3d {
         _m30(0.0)
         _m31(0.0)
         _m32(0.0)
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -2425,7 +2425,7 @@ open class Matrix4x3d {
         m30 = tx
         m31 = ty
         m32 = tz
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -2513,7 +2513,7 @@ open class Matrix4x3d {
         m32 = nm02 * m.m30 + nm12 * m.m31 + nm22 * m.m32 + tz
         this.m30 = m30
         this.m31 = m31
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -2563,7 +2563,7 @@ open class Matrix4x3d {
         m30 = tx
         m31 = ty
         m32 = tz
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -2598,7 +2598,7 @@ open class Matrix4x3d {
         m30 = tx
         m31 = ty
         m32 = tz
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -2660,7 +2660,7 @@ open class Matrix4x3d {
         m30 = nm00 * mat.m30 + nm10 * mat.m31 + nm20 * mat.m32 + tx
         m31 = nm01 * mat.m30 + nm11 * mat.m31 + nm21 * mat.m32 + ty
         m32 = nm02 * mat.m30 + nm12 * mat.m31 + nm22 * mat.m32 + tz
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -2700,10 +2700,10 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun rotate(quat: Quaterniond, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotation(quat)
         } else {
-            if (properties and 8 != 0) this.rotateTranslation(quat, dst) else this.rotateGeneric(quat, dst)
+            if (flags and 8 != 0) this.rotateTranslation(quat, dst) else this.rotateGeneric(quat, dst)
         }
     }
 
@@ -2751,16 +2751,16 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
     @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.rotation(quat)
         } else {
-            if (properties and 8 != 0) this.rotateTranslation(quat, dst) else this.rotateGeneric(quat, dst)
+            if (flags and 8 != 0) this.rotateTranslation(quat, dst) else this.rotateGeneric(quat, dst)
         }
     }
 
@@ -2802,7 +2802,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2844,7 +2844,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2880,7 +2880,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2935,7 +2935,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -2990,7 +2990,7 @@ open class Matrix4x3d {
         dst.m30 = nm30
         dst.m31 = nm31
         dst.m32 = nm32
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -3084,7 +3084,7 @@ open class Matrix4x3d {
             }
             else -> throw IndexOutOfBoundsException()
         }
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3139,16 +3139,16 @@ open class Matrix4x3d {
             }
             else -> throw IndexOutOfBoundsException()
         }
-        properties = 0
+        flags = 0
         return this
     }
 
     @JvmOverloads
     fun normal(dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.identity()
         } else {
-            if (properties and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
+            if (flags and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
         }
     }
 
@@ -3189,12 +3189,12 @@ open class Matrix4x3d {
         dst.m30 = 0.0
         dst.m31 = 0.0
         dst.m32 = 0.0
-        dst.properties = properties and -9
+        dst.flags = flags and -9
         return dst
     }
 
     fun normal(dst: Matrix3d): Matrix3d {
-        return if (properties and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
+        return if (flags and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
     }
 
     private fun normalOrthonormal(dst: Matrix3d): Matrix3d {
@@ -3258,7 +3258,7 @@ open class Matrix4x3d {
         dst.m30 = 0.0
         dst.m31 = 0.0
         dst.m32 = 0.0
-        dst.properties = properties and -9
+        dst.flags = flags and -9
         return dst
     }
 
@@ -3297,7 +3297,7 @@ open class Matrix4x3d {
 
     @JvmOverloads
     fun reflect(a: Double, b: Double, c: Double, d: Double, dst: Matrix4x3d = this): Matrix4x3d {
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             dst.reflection(a, b, c, d)
         } else {
             val da = a + a
@@ -3334,7 +3334,7 @@ open class Matrix4x3d {
             dst.m10 = nm10
             dst.m11 = nm11
             dst.m12 = nm12
-            dst.properties = properties and -13
+            dst.flags = flags and -13
             dst
         }
     }
@@ -3392,7 +3392,7 @@ open class Matrix4x3d {
         m30 = -dd * a
         m31 = -dd * b
         m32 = -dd * c
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -3447,7 +3447,7 @@ open class Matrix4x3d {
         dst.m20 = m20 * rm22
         dst.m21 = m21 * rm22
         dst.m22 = m22 * rm22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3492,7 +3492,7 @@ open class Matrix4x3d {
         dst.m20 = m20 * rm22
         dst.m21 = m21 * rm22
         dst.m22 = m22 * rm22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3529,7 +3529,7 @@ open class Matrix4x3d {
         m30 = (right + left) / (left - right)
         m31 = (top + bottom) / (bottom - top)
         m32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3558,7 +3558,7 @@ open class Matrix4x3d {
         m30 = (right + left) / (left - right)
         m31 = (top + bottom) / (bottom - top)
         m32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3591,7 +3591,7 @@ open class Matrix4x3d {
         dst.m20 = m20 * rm22
         dst.m21 = m21 * rm22
         dst.m22 = m22 * rm22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3624,7 +3624,7 @@ open class Matrix4x3d {
         dst.m20 = m20 * rm22
         dst.m21 = m21 * rm22
         dst.m22 = m22 * rm22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3645,7 +3645,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3672,7 +3672,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3698,7 +3698,7 @@ open class Matrix4x3d {
         dst.m20 = -m20
         dst.m21 = -m21
         dst.m22 = -m22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3720,7 +3720,7 @@ open class Matrix4x3d {
         dst.m20 = m20
         dst.m21 = m21
         dst.m22 = m22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -3737,7 +3737,7 @@ open class Matrix4x3d {
         m30 = -(right + left) / (right - left)
         m31 = -(top + bottom) / (top - bottom)
         m32 = 0.0
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3754,7 +3754,7 @@ open class Matrix4x3d {
         m30 = -(right + left) / (right - left)
         m31 = -(top + bottom) / (top - bottom)
         m32 = 0.0
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -3779,7 +3779,7 @@ open class Matrix4x3d {
         var dirX0 = dirX
         var dirY0 = dirY
         var dirZ0 = dirZ
-        return if (properties and 4 != 0) {
+        return if (flags and 4 != 0) {
             this.setLookAlong(dirX0, dirY0, dirZ0, upX, upY, upZ)
         } else {
             val invDirLength = JomlMath.invsqrt(dirX0 * dirX0 + dirY0 * dirY0 + dirZ0 * dirZ0)
@@ -3814,7 +3814,7 @@ open class Matrix4x3d {
             dst.m30 = m30
             dst.m31 = m31
             dst.m32 = m32
-            dst.properties = properties and -13
+            dst.flags = flags and -13
             dst
         }
     }
@@ -3853,7 +3853,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -3901,7 +3901,7 @@ open class Matrix4x3d {
         m30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
         m31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
         m32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -3926,7 +3926,7 @@ open class Matrix4x3d {
         upZ: Double,
         dst: Matrix4x3d = this
     ): Matrix4x3d {
-        return if (properties and 4 != 0) dst.setLookAt(
+        return if (flags and 4 != 0) dst.setLookAt(
             eyeX,
             eyeY,
             eyeZ,
@@ -3989,7 +3989,7 @@ open class Matrix4x3d {
         dst.m10 = nm10
         dst.m11 = nm11
         dst.m12 = nm12
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -4037,7 +4037,7 @@ open class Matrix4x3d {
         m30 = -(leftX * eyeX + leftY * eyeY + leftZ * eyeZ)
         m31 = -(upnX * eyeX + upnY * eyeY + upnZ * eyeZ)
         m32 = -(dirX * eyeX + dirY * eyeY + dirZ * eyeZ)
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4062,7 +4062,7 @@ open class Matrix4x3d {
         upZ: Double,
         dst: Matrix4x3d = this
     ): Matrix4x3d {
-        return if (properties and 4 != 0) dst.setLookAtLH(
+        return if (flags and 4 != 0) dst.setLookAtLH(
             eyeX,
             eyeY,
             eyeZ,
@@ -4125,7 +4125,7 @@ open class Matrix4x3d {
         dst.m10 = nm10
         dst.m11 = nm11
         dst.m12 = nm12
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -4260,7 +4260,7 @@ open class Matrix4x3d {
         dst.m20 = nm20
         dst.m21 = nm21
         dst.m22 = nm22
-        dst.properties = properties and -29
+        dst.flags = flags and -29
         return dst
     }
 
@@ -4319,7 +4319,7 @@ open class Matrix4x3d {
         m30 = objPos.x
         m31 = objPos.y
         m32 = objPos.z
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4353,7 +4353,7 @@ open class Matrix4x3d {
         m30 = objPos.x
         m31 = objPos.y
         m32 = objPos.z
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4384,7 +4384,7 @@ open class Matrix4x3d {
         m30 = objPos.x
         m31 = objPos.y
         m32 = objPos.z
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4507,7 +4507,7 @@ open class Matrix4x3d {
         dst.m10 = m10 * sy
         dst.m11 = m11 * sy
         dst.m12 = m12 * sy
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -4548,9 +4548,9 @@ open class Matrix4x3d {
         tmp = m32
         m32 = other.m32
         other.m32 = tmp
-        val props = properties
-        properties = other.properties
-        other.properties = props
+        val props = flags
+        flags = other.flags
+        other.flags = props
         return this
     }
 
@@ -4595,7 +4595,7 @@ open class Matrix4x3d {
         dst.m00 = nm00
         dst.m01 = nm01
         dst.m02 = nm02
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -4743,7 +4743,7 @@ open class Matrix4x3d {
         dst.m30 = (other.m30 - m30) * t + m30
         dst.m31 = (other.m31 - m31) * t + m31
         dst.m32 = (other.m32 - m32) * t + m32
-        dst.properties = properties and other.properties()
+        dst.flags = flags and other.properties()
         return dst
     }
 
@@ -4797,7 +4797,7 @@ open class Matrix4x3d {
         dst.m10 = nm10
         dst.m11 = nm11
         dst.m12 = nm12
-        dst.properties = properties and -13
+        dst.flags = flags and -13
         return dst
     }
 
@@ -4832,7 +4832,7 @@ open class Matrix4x3d {
         m30 = 0.0
         m31 = 0.0
         m32 = 0.0
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4877,7 +4877,7 @@ open class Matrix4x3d {
         m30 = posX
         m31 = posY
         m32 = posZ
-        properties = 16
+        flags = 16
         return this
     }
 
@@ -4899,7 +4899,7 @@ open class Matrix4x3d {
         m20 += m00 * a + m10 * b
         m21 += m01 * a + m11 * b
         m22 += m02 * a + m12 * b
-        properties = 0
+        flags = 0
         return this
     }
 
@@ -4916,7 +4916,7 @@ open class Matrix4x3d {
         dst.m30 = m30
         dst.m31 = m31
         dst.m32 = m32
-        dst.properties = 0
+        dst.flags = 0
         return dst
     }
 
@@ -4928,7 +4928,7 @@ open class Matrix4x3d {
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(m20)._m11(m21)._m12(m22)._m20(m10)._m21(m11)._m22(m12)._m30(m30)
             ._m31(
                 m31
-            )._m32(m32)._properties(properties and 16)
+            )._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4938,7 +4938,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(m20)._m11(m21)._m12(m22)._m20(-m10)._m21(-m11)._m22(-m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4946,7 +4946,7 @@ open class Matrix4x3d {
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4956,7 +4956,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m10)._m21(m11)._m22(m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4967,7 +4967,7 @@ open class Matrix4x3d {
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4978,7 +4978,7 @@ open class Matrix4x3d {
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(m00)._m11(m01)._m12(m02)._m20(m20)._m21(m21)._m22(m22)._m30(m30)
             ._m31(
                 m31
-            )._m32(m32)._properties(properties and 16)
+            )._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4988,7 +4988,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(m00)._m11(m01)._m12(m02)._m20(-m20)._m21(-m21)._m22(-m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -4999,7 +4999,7 @@ open class Matrix4x3d {
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(m20)._m11(m21)._m12(m22)._m20(m00)._m21(m01)._m22(m02)._m30(m30)
             ._m31(
                 m31
-            )._m32(m32)._properties(properties and 16)
+            )._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5009,7 +5009,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(m20)._m11(m21)._m12(m22)._m20(-m00)._m21(-m01)._m22(-m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5019,7 +5019,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m20)._m21(m21)._m22(m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5030,7 +5030,7 @@ open class Matrix4x3d {
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5040,7 +5040,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m00)._m21(m01)._m22(m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5051,7 +5051,7 @@ open class Matrix4x3d {
         return dst._m00(m10)._m01(m11)._m02(m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5065,7 +5065,7 @@ open class Matrix4x3d {
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(m00)._m11(m01)._m12(m02)._m20(m10)._m21(m11)._m22(m12)._m30(m30)
             ._m31(
                 m31
-            )._m32(m32)._properties(properties and 16)
+            )._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5078,7 +5078,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(m00)._m11(m01)._m12(m02)._m20(-m10)._m21(-m11)._m22(-m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5089,7 +5089,7 @@ open class Matrix4x3d {
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(m10)._m11(m11)._m12(m12)._m20(m00)._m21(m01)._m22(m02)._m30(m30)
             ._m31(
                 m31
-            )._m32(m32)._properties(properties and 16)
+            )._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5099,7 +5099,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(m10)._m11(m11)._m12(m12)._m20(-m00)._m21(-m01)._m22(-m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5112,7 +5112,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m10)._m21(m11)._m22(m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5126,7 +5126,7 @@ open class Matrix4x3d {
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5136,7 +5136,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m00)._m21(m01)._m22(m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5147,7 +5147,7 @@ open class Matrix4x3d {
         return dst._m00(m20)._m01(m21)._m02(m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5155,7 +5155,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m10)._m11(m11)._m12(m12)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5165,7 +5165,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m20)._m11(m21)._m12(m22)._m20(m10)._m21(m11)._m22(m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5176,7 +5176,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m20)._m11(m21)._m12(m22)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5184,7 +5184,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m20)._m21(m21)._m22(m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5192,7 +5192,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5203,7 +5203,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m10)._m21(m11)._m22(m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5214,7 +5214,7 @@ open class Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5224,7 +5224,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m00)._m11(m01)._m12(m02)._m20(m20)._m21(m21)._m22(m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5235,7 +5235,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m00)._m11(m01)._m12(m02)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5245,7 +5245,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m20)._m11(m21)._m12(m22)._m20(m00)._m21(m01)._m22(m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5256,7 +5256,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(m20)._m11(m21)._m12(m22)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5267,7 +5267,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m20)._m21(m21)._m22(m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5278,7 +5278,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m20)._m21(-m21)._m22(-m22)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5289,7 +5289,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(m00)._m21(m01)._m22(m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5300,7 +5300,7 @@ open class Matrix4x3d {
         return dst._m00(-m10)._m01(-m11)._m02(-m12)._m10(-m20)._m11(-m21)._m12(-m22)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5313,7 +5313,7 @@ open class Matrix4x3d {
         val m12 = m12
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m00)._m11(m01)._m12(m02)._m20(m10)._m21(m11)._m22(m12)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5327,7 +5327,7 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m00)._m11(m01)._m12(m02)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5337,7 +5337,7 @@ open class Matrix4x3d {
         val m02 = m02
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(m00)._m21(m01)._m22(m02)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5348,7 +5348,7 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(m10)._m11(m11)._m12(m12)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5362,7 +5362,7 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(m10)._m21(m11)._m22(m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5376,7 +5376,7 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m00)._m11(-m01)._m12(-m02)._m20(-m10)._m21(-m11)._m22(-m12)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5387,7 +5387,7 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m00)._m21(m01)._m22(m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     @JvmOverloads
@@ -5398,37 +5398,37 @@ open class Matrix4x3d {
         return dst._m00(-m20)._m01(-m21)._m02(-m22)._m10(-m10)._m11(-m11)._m12(-m12)._m20(-m00)._m21(-m01)._m22(-m02)
             ._m30(
                 m30
-            )._m31(m31)._m32(m32)._properties(properties and 16)
+            )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     fun negateX(): Matrix4x3d {
-        return _m00(-m00)._m01(-m01)._m02(-m02)._properties(properties and 16)
+        return _m00(-m00)._m01(-m01)._m02(-m02)._properties(flags and 16)
     }
 
     fun negateX(dst: Matrix4x3d): Matrix4x3d {
         return dst._m00(-m00)._m01(-m01)._m02(-m02)._m10(m10)._m11(m11)._m12(m12)._m20(m20)._m21(m21)._m22(m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     fun negateY(): Matrix4x3d {
-        return _m10(-m10)._m11(-m11)._m12(-m12)._properties(properties and 16)
+        return _m10(-m10)._m11(-m11)._m12(-m12)._properties(flags and 16)
     }
 
     fun negateY(dst: Matrix4x3d): Matrix4x3d {
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(-m10)._m11(-m11)._m12(-m12)._m20(m20)._m21(m21)._m22(m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     fun negateZ(): Matrix4x3d {
-        return _m20(-m20)._m21(-m21)._m22(-m22)._properties(properties and 16)
+        return _m20(-m20)._m21(-m21)._m22(-m22)._properties(flags and 16)
     }
 
     fun negateZ(dst: Matrix4x3d): Matrix4x3d {
         return dst._m00(m00)._m01(m01)._m02(m02)._m10(m10)._m11(m11)._m12(m12)._m20(-m20)._m21(-m21)._m22(-m22)._m30(
             m30
-        )._m31(m31)._m32(m32)._properties(properties and 16)
+        )._m31(m31)._m32(m32)._properties(flags and 16)
     }
 
     val isFinite: Boolean
@@ -5457,7 +5457,7 @@ open class Matrix4x3d {
     }
 
     fun isIdentity(): Boolean {
-        return (properties and 4) != 0
+        return (flags and 4) != 0
     }
 
 }

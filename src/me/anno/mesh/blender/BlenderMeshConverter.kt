@@ -78,7 +78,7 @@ object BlenderMeshConverter {
             }
         }
 
-        if (LOGGER.isDebugEnabled) {
+        if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(src.fData.layers)
             LOGGER.debug(src.eData.layers)
             LOGGER.debug(src.vData.layers)

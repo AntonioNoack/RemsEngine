@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.ui.editor.color.spaces.LinearHSI
 import me.anno.tests.LOGGER
 import org.joml.Vector3f
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
     // todo HSI is just broken...

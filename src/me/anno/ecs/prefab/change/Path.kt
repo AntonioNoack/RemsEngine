@@ -256,7 +256,7 @@ class Path(
                 result[i] = randomIdChars[(value and 63).toInt()]
                 value = value ushr 6
             }
-            return String(result)
+            return result.concatToString()
         }
 
         fun parseInt(str: String, startIndex: Int, endIndex: Int): Int {

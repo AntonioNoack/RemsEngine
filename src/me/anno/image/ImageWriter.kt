@@ -31,8 +31,8 @@ import java.awt.Graphics2D
 import java.awt.Polygon
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
-import java.util.*
 import kotlin.math.*
+import kotlin.random.Random
 
 /**
  * utility function to write data / images to files using advanced color mappings

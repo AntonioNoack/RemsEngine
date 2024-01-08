@@ -13,7 +13,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.a
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.LazyMap
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
     // load a set of images

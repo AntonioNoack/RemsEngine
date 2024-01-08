@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -12,7 +13,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
 
     val nothing = Panel(style)
 
-    final override val children = ArrayList<Panel>(Math.multiplyExact(sizeX, sizeY))
+    final override val children = ArrayList<Panel>(Maths.multiplyExact(sizeX, sizeY))
 
     init {
         for (i in 0 until sizeX * sizeY) {
@@ -48,7 +49,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
                 field = value
             } else if (field < value) {
                 // size up
-                val size = Math.multiplyExact(value, sizeY)
+                val size = Maths.multiplyExact(value, sizeY)
                 children.ensureCapacity(size)
                 for (i in children.size until size) children.add(nothing)
                 // move children from old positions into new ones
@@ -67,7 +68,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     var sizeY: Int = sizeY
         set(value) {
             field = value
-            val size = Math.multiplyExact(sizeX, sizeY)
+            val size = Maths.multiplyExact(sizeX, sizeY)
             children.ensureCapacity(size)
             for (i in children.size until size) {
                 children.add(nothing)

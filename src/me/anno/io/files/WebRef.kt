@@ -47,24 +47,22 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
     // we can answer that, when we got a response code, e.g., 404
     override val exists: Boolean
-        get() = getHeaders(toURL(), valueTimeout, false) != null
+        get() = headers != null
 
     // todo parse date
     override val lastModified: Long
-        get() = getHeaders(toURL(), valueTimeout, false)
-            ?.get("Last-Modified")
+        get() = headers?.get("Last-Modified")
             ?.first().toLongOrDefault(0L)
 
     val responseCode: Int // HTTP/1.1 200 OK
-        get() = getHeaders(toURL(), valueTimeout, false)
-            ?.get(null)?.first().run {
-                if (this == null) 404
-                else {
-                    val i0 = indexOf(' ') + 1
-                    val i1 = indexOf(' ', i0 + 1)
-                    substring(i0, i1).toIntOrDefault(400)
-                }
+        get() = headers?.get(null)?.first().run {
+            if (this == null) 404
+            else {
+                val i0 = indexOf(' ') + 1
+                val i1 = indexOf(' ', i0 + 1)
+                substring(i0, i1).toIntOrDefault(400)
             }
+        }
 
     override val lastAccessed: Long get() = 0L
     override val creationTime: Long get() = 0L
@@ -104,8 +102,10 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         return http.outputStream
     }
 
+    val headers get() = getHeaders(toURL(), valueTimeout, false)
+
     override fun length(): Long {
-        val headers = getHeaders(toURL(), valueTimeout, false) ?: return -1
+        val headers = headers ?: return -1
         return headers["content-length"]?.first().toLongOrDefault(-1L)
     }
 
@@ -134,7 +134,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
         val webCache = CacheSection("Web")
 
-        fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
+        private fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
             val data = webCache.getEntry(url, timeout, async) {
                 var conn: URLConnection? = null
                 val data = try {
@@ -156,7 +156,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             return data?.value as? Map<String?, List<String>>
         }
 
-        fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {
+        private fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {
             if (args.isEmpty()) return url
             val hi = url.indexOf('#')
             return if (hi >= 0) "${formatAccessURL(url.substring(0, hi), args)}#${url.substring(hi + 1)}"
@@ -168,7 +168,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             }
         }
 
-        fun parse(url: String): Triple<String, Map<String, String>, String?> {
+        private fun parse(url: String): Triple<String, Map<String, String>, String?> {
             val qi = url.indexOf2('?')
             val hi = url.indexOf2('#')
             if (qi == hi) return Triple(url, emptyMap(), null)

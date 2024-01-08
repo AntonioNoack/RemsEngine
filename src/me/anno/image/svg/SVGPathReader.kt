@@ -25,7 +25,7 @@ fun interface ArcAction {
 }
 
 fun readSVGPath(
-    data: String, action0: Runnable, action1: Action1, action2: Action2,
+    data: String, action0: () -> Unit, action1: Action1, action2: Action2,
     action4: Action4, action6: Action6, action7: ArcAction,
 ) {
 
@@ -102,7 +102,7 @@ fun readSVGPath(
                 'C', 'c' -> action6.run(s, float(), float(), float(), float(), float(), float())
                 'S', 's', 'Q', 'q' -> action4.run(s, float(), float(), float(), float())
                 'A', 'a' -> action7.run(s, float(), float(), float(), float() != 0f, float() != 0f, float(), float())
-                'Z', 'z' -> action0.run()
+                'Z', 'z' -> action0()
                 else -> {
                     i--
                     parseAction(lastAction)

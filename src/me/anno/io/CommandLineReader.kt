@@ -28,7 +28,7 @@ open class CommandLineReader {
                         '\r'.code -> continue // skip it
                         '\n'.code -> {// return line
                             return if (str.size > 0) {
-                                val value = String(str.array!!, 0, str.size)
+                                val value = str.array!!.decodeToString( 0, str.size)
                                 str.clear()
                                 value
                             } else ""

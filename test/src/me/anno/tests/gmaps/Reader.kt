@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.IntImage
-import me.anno.io.Streams.readFloatLE
+import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.files.FileReference
@@ -168,12 +168,12 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
     val type = input.readLE32() // should always be u16
     val texWidth = input.readLE32()
     val texHeight = input.readLE32()
-    val px = input.readFloatLE()
-    val py = input.readFloatLE()
-    val pz = input.readFloatLE()
-    val sx = input.readFloatLE()
-    val sy = input.readFloatLE()
-    val sz = input.readFloatLE()
+    val px = input.readLE32F()
+    val py = input.readLE32F()
+    val pz = input.readLE32F()
+    val sx = input.readLE32F()
+    val sy = input.readLE32F()
+    val sz = input.readLE32F()
     if (mode != GL_TRIANGLE_STRIP) throw NotImplementedError("mode: $mode, type: $type, wxh: ${texWidth}x${texHeight}, $px,$py,$pz,$sx,$sy,$sz")
     if (type != GL_UNSIGNED_SHORT) throw NotImplementedError("type: $type")
     val numElements = input.readLE32() / 2

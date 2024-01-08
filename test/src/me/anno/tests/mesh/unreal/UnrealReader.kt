@@ -122,7 +122,7 @@ object UnrealReader {
         val names = Array(numNames) {
             val length = buffer.int // including null
             println("length $it/$numNames: $length")
-            val name = String(ByteArray(length - 1) { buffer.get() })
+            val name = ByteArray(length - 1) { buffer.get() }.decodeToString()
             println("name: $name")
             assert(buffer.get(), 0.toByte()) // \0
             val flags = buffer.int

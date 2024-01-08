@@ -17,21 +17,21 @@ import kotlin.math.min
  * */
 class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
 
-    constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.toByteArray())
+    constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.encodeToByteArray())
 
     constructor(name: String, offset: Int, signature: String, vararg extraBytes: Int) : this(
         name, offset,
-        signature.toByteArray() + ByteArray(extraBytes.size) { extraBytes[it].toByte() }
+        signature.encodeToByteArray() + ByteArray(extraBytes.size) { extraBytes[it].toByte() }
     )
 
     constructor(name: String, offset: Int, prefix: ByteArray, signature: String, extraBytes: ByteArray) : this(
         name, offset,
-        prefix + signature.toByteArray() + extraBytes
+        prefix + signature.encodeToByteArray() + extraBytes
     )
 
     constructor(name: String, offset: Int, prefix: ByteArray, signature: String) : this(
         name, offset,
-        prefix + signature.toByteArray()
+        prefix + signature.encodeToByteArray()
     )
 
     constructor(name: String, offset: Int, vararg bytes: Int) : this(

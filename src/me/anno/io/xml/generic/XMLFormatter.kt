@@ -4,12 +4,13 @@ import me.anno.io.ISaveable
 import me.anno.io.xml.saveable.XMLStringWriter
 import me.anno.studio.StudioBase
 import me.anno.utils.types.Strings
+import java.io.ByteArrayInputStream
 
 object XMLFormatter {
 
     fun format(v: Any?, indentation: String = "  ", lineBreakLength: Int = 50): String {
         return when (v) {
-            is String -> format(XMLReader().read(v.byteInputStream()))
+            is String -> format(XMLReader().read(ByteArrayInputStream(v.encodeToByteArray())))
             is XMLNode -> format(v, indentation, lineBreakLength)
             is ISaveable -> format(XMLStringWriter.toText(v, StudioBase.workspace))
             else -> throw IllegalArgumentException()

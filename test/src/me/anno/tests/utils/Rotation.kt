@@ -1,8 +1,10 @@
+package me.anno.tests.utils
+
 import me.anno.maths.Maths.mix
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
     val workQuat = Quaterniond()

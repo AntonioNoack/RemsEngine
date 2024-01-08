@@ -380,7 +380,7 @@ object Hierarchy {
             }
             adds1!!
             // remove all following things
-            adds1.removeIf(findInstance)
+            adds1.removeAll(findInstance)
             adds.removeIf { it.key.startsWith(path) }
             // todo renumber stuff
             // val t = HashSet<IntArray>()

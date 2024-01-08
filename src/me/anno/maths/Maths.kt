@@ -94,12 +94,6 @@ object Maths {
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
     @JvmStatic
-    fun cbrt(x: Float) = Math.cbrt(x.toDouble()).toFloat()
-
-    @JvmStatic
-    fun cbrt(x: Double) = Math.cbrt(x)
-
-    @JvmStatic
     private val randomInst = Random(Time.nanoTime)
 
     @JvmStatic
@@ -663,6 +657,15 @@ object Maths {
     fun floorMod(value: Double, divisor: Double): Double {
         val rem = value % divisor
         return if (rem < 0f) rem + divisor else divisor
+    }
+
+    @JvmStatic
+    fun multiplyExact(a: Int, b: Int): Int {
+        val prod = a.toLong() * b.toLong()
+        if (prod.toInt().toLong() != prod) {
+            throw IllegalArgumentException()
+        }
+        return prod.toInt()
     }
 
     @JvmStatic

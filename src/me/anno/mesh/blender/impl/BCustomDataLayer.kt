@@ -16,6 +16,9 @@ class BCustomDataLayer(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, p
     val data = getInstantList<BlendData>("*data") ?: BInstantList.emptyList()
 
     override fun toString(): String {
-        return "BCustomDataLayer { '$name', type: ${data.instance?.javaClass?.name}, data: ${data.size}x, sample: ${data.firstOrNull()} }"
+        return "BCustomDataLayer { '$name', type: ${
+            if (data.instance == null) null
+            else data.instance::class.simpleName
+        }, data: ${data.size}x, sample: ${data.firstOrNull()} }"
     }
 }

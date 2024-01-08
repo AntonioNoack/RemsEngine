@@ -8,6 +8,7 @@ import me.anno.image.gimp.GimpImage
 import me.anno.image.qoi.QOIReader
 import me.anno.image.tar.TGAReader
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.Streams.readText
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -237,8 +238,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
         // get and parse the data :)
         devNull(file.absolutePath, process.errorStream)
-        val bytes = process.inputStream.readBytes()
-        val data = String(bytes)
+        val data = process.inputStream.readText()
         if (data.isEmpty()) return 0.0
         else LOGGER.info("Duration, because missing: $data")
         val time = data.split("time=")[1].split(" ")[0]

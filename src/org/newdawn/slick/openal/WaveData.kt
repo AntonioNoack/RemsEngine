@@ -23,6 +23,7 @@ class WaveData private constructor(var data: ByteBuffer?, val format: Int, val s
     companion object {
         @JvmStatic
         private val LOGGER: Logger = getLogger(WaveData::class)
+
         @JvmStatic
         fun create(input: InputStream): WaveData? {
             return try {
@@ -43,8 +44,7 @@ class WaveData private constructor(var data: ByteBuffer?, val format: Int, val s
                 if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN || audioFormat.sampleRate.toInt() == 8) {
                     ais.readNBytes2(byteLength, buffer, false)
                 } else {// flip byte order
-                    val byteArray = ais.readNBytes2(byteLength, false)
-                    val src = ByteBuffer.wrap(byteArray)
+                    val src = ais.readNBytes2(byteLength, ByteBuffer.allocateDirect(byteLength), false)
                     src.order(ByteOrder.LITTLE_ENDIAN)
                     val dstShort = buffer.asShortBuffer()
                     dstShort.put(src.asShortBuffer())
