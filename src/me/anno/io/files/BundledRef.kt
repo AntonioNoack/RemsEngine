@@ -55,7 +55,6 @@ class BundledRef(
                         // https://stackoverflow.com/questions/34360826/get-the-size-of-a-resource might work, when we find the correct jar
                         var test = 1L shl 16 // 65k .. as large as needed
                         while (test > 0L) {
-                            println(test)
                             val skipped = it.skip(test)
                             if (skipped <= 0) break
                             length += skipped
@@ -157,7 +156,7 @@ class BundledRef(
         const val prefix = "res://"
 
         // todo when we ship the game, we can just pack this data into some kind of txt file
-        // todo required data: HashSet<FileNameLowerCase>
+        //  - required data: HashSet<FileNameLowerCase>
         private val jarAsZip3 by lazy {
             try {
                 val uri = Companion::class.java

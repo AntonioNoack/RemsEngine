@@ -12,6 +12,7 @@ import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.a
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import kotlin.random.Random
 
@@ -88,4 +89,28 @@ fun main() {
             }
         }
     }
+}
+
+fun collapse(wfc: WaveFunctionCollapse, sizeX: Int, sizeY: Int, random: Random, tileW: Int, tileH: Int) {
+    val grid = wfc.collapseAll(sizeX, sizeY, random)
+    val resultW = sizeX * tileW
+    val resultH = sizeY * tileH
+    val result = IntArray(resultW * resultH)
+    var i = 0
+    for (y in 0 until sizeY) {
+        for (x in 0 until sizeX) {
+            // draw tile onto result
+            val cell = (grid[i++].result as? WaveFunctionCollapse.ImageCellType) ?: continue
+            val tile = cell.image
+            for (yi in 0 until tileH) {
+                var ri = x * tileW + (y * tileH + yi) * resultW
+                for (xi in 0 until tileW) {
+                    result[ri++] = tile.getRGB(xi, yi)
+                }
+            }
+        }
+    }
+    val hasAlphaChannel = wfc.types.any2 { it is WaveFunctionCollapse.ImageCellType && it.image.hasAlphaChannel }
+    val resultImage = IntImage(resultW, resultH, result, hasAlphaChannel)
+    resultImage.write(OS.desktop.getChild("WaveFunctionCollapse.png"))
 }

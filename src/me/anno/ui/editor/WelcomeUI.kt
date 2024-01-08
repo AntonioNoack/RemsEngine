@@ -129,10 +129,6 @@ interface WelcomeUI {
         scroll.alignmentX = AxisAlignment.CENTER
         scroll.alignmentY = AxisAlignment.CENTER
 
-        // todo where is the obstructing block coming from?
-        /*scroll.backgroundRadius = 20f
-        welcome.backgroundRadius = scroll.backgroundRadius*/
-
         val bgPanel = createBackground(style)
         val bgWindow = windowStack.push(bgPanel)
         bgWindow.drawDirectly = true

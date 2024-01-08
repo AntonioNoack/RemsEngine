@@ -584,31 +584,28 @@ object Thumbs {
             val rv = rv
             val cam = rv.editorCamera
             if (!bounds.isEmpty() && bounds.volume.isFinite()) {
-                // todo why 500?
-                rv.radius = 500.0 * max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ))
+                rv.radius = 100.0 * max(bounds.centerX, max(bounds.centerY, bounds.centerZ))
                 rv.orbitCenter.set(bounds.centerX, bounds.centerY, bounds.centerZ)
                 rv.updateEditorCameraTransform()
+                rv.setRenderState()
                 // calculate ideal transform like previously
                 // for that, calculate bounds on screen, then rescale/recenter
                 val visualBounds = AABBf()
                 val tmp = Matrix4x3d()
-                val totalMatrix = Matrix4x3f()
+                val totalMatrix = Matrix4f()
                 val vec0 = Vector3f()
-                val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform).invert()
+                val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform)
 
-                // todo why are some meshes still too small???
-                // camera transform incorrect?
                 fun addMesh(mesh: IMesh?, transform: Transform) {
                     if (mesh !is Mesh) return
                     // calculate transform
                     val pos = mesh.positions ?: return
                     val modelMatrix = transform.globalTransform
                     totalMatrix.set(cameraMatrix.mul(modelMatrix, tmp))
-                    // todo first check if bounds would be increasing the size
+                    // to do for performance first check if bounds would be increasing the size
                     for (i in pos.indices step 3) {
-                        totalMatrix.transformPosition(vec0.set(pos, i))
-                        val invZ = 1f / vec0.z
-                        visualBounds.union(vec0.x * invZ, vec0.y * invZ, invZ)
+                        vec0.set(pos, i).mulProject(totalMatrix)
+                        visualBounds.union(vec0)
                     }
                 }
                 scene.forAll {
@@ -619,7 +616,7 @@ object Thumbs {
                         }
                     }
                 }
-                rv.radius /= 500.0 * max(visualBounds.deltaX, visualBounds.deltaY)
+                rv.radius = 400.0 * max(visualBounds.deltaX, visualBounds.deltaY).toDouble()
             } else {
                 rv.radius = 1.0
                 rv.orbitCenter.set(0.0)
@@ -627,6 +624,7 @@ object Thumbs {
             rv.near = rv.radius * 0.01
             rv.far = rv.radius * 2.0
             rv.updateEditorCameraTransform()
+            rv.setRenderState()
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
             // don't use EditorState
             rv.pipeline.clear()
@@ -645,8 +643,6 @@ object Thumbs {
             .rotateX((-15.0).toRadians())
         rv.pipeline.defaultStage.cullMode = CullMode.BOTH
         val sky = SkyboxBase()
-        // todo why is this not working???
-        sky.material.shaderOverrides["finalAlpha"] = TypeValue(GLSLType.V1F, 0f)
         rv.pipeline.skybox = sky
         rv
     }

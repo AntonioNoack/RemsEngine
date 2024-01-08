@@ -11,6 +11,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.utils.types.Floats.toRadians
 import kotlin.math.*
 
 // like ViewFlipper in Android
@@ -93,6 +94,8 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         }
     }
 
+    var rotationStrengthRadians = 90f.toRadians()
+
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
         when (transitionType) {
@@ -110,8 +113,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 for ((index, child) in children.withIndex()) {
                     val offset = (width * (index - position)).roundToInt()
                     placeChild(child, x + offset, y, width, height)
-                    child.weight2 = index - position // unused field abused ^^
-                    // todo rotation factor, e.g. 0.5, for angle kindof
+                    child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                     // todo for rotated children, set their approximate position properly
                 }
             }
@@ -119,7 +121,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 for ((index, child) in children.withIndex()) {
                     val offset = (height * (index - position)).roundToInt()
                     placeChild(child, x, y + offset, width, height)
-                    child.weight2 = index - position // unused field abused ^^
+                    child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                 }
             }
         }

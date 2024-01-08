@@ -190,7 +190,11 @@ abstract class GraphCompiler(val g: FlowGraph) {
                         val currValue = input.currValue
                         val useMS = currValue is Texture2D && currValue.samples > 1
                         // todo different color repeat modes in GLSL
-                        Triple("tex2I${textures2.size}", if (useMS) GLSLType.S2DMS else GLSLType.S2D, linear)
+                        Triple(
+                            "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}",
+                            if (useMS) GLSLType.S2DMS else GLSLType.S2D,
+                            linear
+                        )
                     }
                     if (texName.second == GLSLType.S2DMS) {
                         "texelFetch(${texName.first},ivec2($uv*textureSize(${texName.first})),gl_SampleID)"
@@ -228,7 +232,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             val currValue1 = currValue?.texMS
                             val useMS = currValue1 != null && currValue1.samples > 1
                             val texName = textures2.getOrPut(input) {
-                                val name = "tex2I${textures2.size}"
+                                val name =
+                                    "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}"
                                 val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
                                 Triple(name, type, true)
                             }

@@ -48,10 +48,8 @@ object FontListMenu {
             .filter { it != oldValue }
             .map { NameDesc(it) }
 
-        // todo Consolas is not correctly centered?
-
-        // todo general favourites for all enum types?
-        // todo at least a generalized form to make it simpler?
+        // Consolas is not correctly centered?
+        // todo -> Consolas' width is incorrect...
 
         return object : EnumInput(
             "Font Name",

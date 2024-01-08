@@ -22,6 +22,7 @@ import kotlin.math.min
 /**
  * http/https resource
  * todo get/put/post
+ * todo define request headers like user-agent
  *
  * todo if is redirect, automatically redirect?
  * todo watch dogs? we only can ask for changes every x seconds

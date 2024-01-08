@@ -17,7 +17,7 @@ class WebRefTest {
         assertTrue(file.exists)
         LOGGER.info(file.lastModified)
         LOGGER.info(file.length())
-        LOGGER.info(WebRef.getHeaders(file.toUri().toURL(), 1000L, false))
+        // LOGGER.info(WebRef.getHeaders(file.toUri().toURL(), 1000L, false))
         assertEquals(200, file.responseCode)
     }
 

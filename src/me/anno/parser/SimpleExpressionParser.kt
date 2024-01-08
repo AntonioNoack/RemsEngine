@@ -97,7 +97,7 @@ object SimpleExpressionParser {
                                 if (hadComma) throw NumberFormatException("Cannot have two commas in a number")
                                 hadComma = true
                             }
-                            // todo binary exponent (?)
+                            // to do binary exponent (?), would be written with p, number before is hex, number after is decimal; power is 2
                             'e', 'E' -> {
                                 j = findExponent(j)
                                 break@searchDigits
