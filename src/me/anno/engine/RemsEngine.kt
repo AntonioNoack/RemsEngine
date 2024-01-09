@@ -45,6 +45,8 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
+// todo float input is broken again!!!, deleting two characters at the same time
+
 // todo implement exporting process:
 //  - pack libraries and Universal into folder
 //  - checkboxes for libraries/modules like Mesh to save space/complexity

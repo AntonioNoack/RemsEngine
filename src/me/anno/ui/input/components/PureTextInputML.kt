@@ -767,8 +767,8 @@ open class PureTextInputML(style: Style) :
 
     private var lastDelete = 0L
     private fun likeBackspaceKey() {
-        if (lastDelete != Time.nanoTime) {
-            lastDelete = Time.nanoTime
+        if (lastDelete != Time.lastTimeNanos) {
+            lastDelete = Time.lastTimeNanos
             deleteBefore()
         }
     }
