@@ -35,7 +35,6 @@ object ShaderFuncLib {
             // Math: https://www.desmos.com/calculator/gslcdxvipg
             // Source: https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
             // source^2: https://github.com/dmnsgn/glsl-tone-map/blob/master/uchimura.glsl
-            // todo could be simplified a lot...
             "#ifndef UCHIMURA\n" +
             "#define UCHIMURA\n" +
             "vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b) {\n" +

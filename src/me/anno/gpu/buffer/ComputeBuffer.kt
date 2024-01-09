@@ -2,8 +2,8 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.opengl.GL15C.glGetBufferSubData
-import org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER
+import org.lwjgl.opengl.GL46C.glGetBufferSubData
+import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BUFFER
 
 class ComputeBuffer(name: String, attr: List<Attribute>, elementCount: Int) :
     OpenGLBuffer(name, GL_SHADER_STORAGE_BUFFER, attr) {

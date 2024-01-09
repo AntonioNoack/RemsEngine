@@ -1,6 +1,7 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -41,7 +42,7 @@ object PlanarShader : ECSMeshShader("planar") {
                         clearCoatCalculation +
                         reflectionCalculation +
                         finalMotionCalculation
-            )
+            ).add(RendererLib.getReflectivity)
         )
     }
 }

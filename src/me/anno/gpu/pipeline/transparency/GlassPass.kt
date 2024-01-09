@@ -3,6 +3,8 @@ package me.anno.gpu.pipeline.transparency
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib
+import me.anno.engine.ui.render.RendererLib.fresnelSchlick
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
@@ -66,14 +68,10 @@ class GlassPass : TransparentPass() {
                                 "finalEmissive = finalColor * finalAlpha;\n" + // reflections
                                 "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
                                 "finalAlpha = 1.0;\n"
-                    ).add(
-                        "" +
-                                "float fresnelSchlick(float cosine, float ior) {\n" +
-                                "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
-                                "   r0 = r0 * r0;\n" +
-                                "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
-                                "}\n"
-                    ).add(sampleSkyboxForAmbient)
+                    )
+                        .add(fresnelSchlick)
+                        .add(getReflectivity)
+                        .add(sampleSkyboxForAmbient)
                 )
             }
         }

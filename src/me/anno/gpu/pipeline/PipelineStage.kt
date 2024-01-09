@@ -23,6 +23,7 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
@@ -42,7 +43,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -80,7 +81,7 @@ class PipelineStage(
                 Attribute("instanceTrans1", 4),
                 Attribute("instanceTrans2", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
-            ), instancedBatchSize, GL_DYNAMIC_DRAW
+            ), instancedBatchSize, BufferUsage.DYNAMIC
         )
 
         val instancedBufferA = StaticBuffer(
@@ -91,7 +92,7 @@ class PipelineStage(
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
-            ), instancedBatchSize, GL_DYNAMIC_DRAW
+            ), instancedBatchSize, BufferUsage.DYNAMIC
         )
 
         val instancedBufferM = StaticBuffer(
@@ -103,7 +104,7 @@ class PipelineStage(
                 Attribute("instancePrevTrans1", 4),
                 Attribute("instancePrevTrans2", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
-            ), instancedBatchSize, GL_DYNAMIC_DRAW
+            ), instancedBatchSize, BufferUsage.DYNAMIC
         )
 
         val instancedBufferMA = StaticBuffer(
@@ -120,7 +121,7 @@ class PipelineStage(
                 Attribute("prevAnimWeights", 4),
                 Attribute("prevAnimIndices", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
-            ), instancedBatchSize, GL_DYNAMIC_DRAW
+            ), instancedBatchSize, BufferUsage.DYNAMIC
         )
 
         val instancedBufferSlim = StaticBuffer(
@@ -128,13 +129,13 @@ class PipelineStage(
                 Attribute("instancePosSize", 4),
                 Attribute("instanceRot", 4),
             ),
-            instancedBatchSize * 2, GL_DYNAMIC_DRAW
+            instancedBatchSize * 2, BufferUsage.DYNAMIC
         )
 
         val instancedBufferI32 = StaticBuffer(
             "instancedI32", listOf(
                 Attribute("instanceI32", AttributeType.SINT32, 1, true)
-            ), instancedBatchSize * 16, GL_DYNAMIC_DRAW
+            ), instancedBatchSize * 16, BufferUsage.DYNAMIC
         )
 
         val tmpAABBd = AABBd()

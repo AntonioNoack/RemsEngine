@@ -27,7 +27,7 @@ import me.anno.video.ffmpeg.FFMPEGEncodingType
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer

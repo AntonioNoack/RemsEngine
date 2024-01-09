@@ -8,7 +8,12 @@ import me.anno.utils.types.Triangles
 import kotlin.math.abs
 
 object RaycastCollider {
-    fun raycastGlobalColliderClosestHit(query: RayQuery, entity: Entity, collider: Collider): Boolean {
+    private fun raycastGlobalCollider(
+        query: RayQuery,
+        entity: Entity,
+        collider: Collider,
+        closestHit: Boolean
+    ): Boolean {
 
         val localToGlobal = entity.transform.globalTransform
         val globalToLocal = localToGlobal.invert(JomlPools.mat4x3d.create())
@@ -50,7 +55,9 @@ object RaycastCollider {
         local.maxDistance = maxDistance
 
         val localNormal = tmp3f[2]
-        val localDistance = collider.raycastClosestHit(local, localNormal)
+        val localDistance = if (closestHit) collider.raycastClosestHit(local, localNormal)
+        else collider.raycastAnyHit(local, localNormal)
+
         // println("ld: $localDistance, md: $maxDistance, [$start,$direction] -> [$localStart,$localDir]")
         if (localDistance >= 0f && localDistance < maxDistance) {
             query.result.setFromLocal(localToGlobal, localStart, localDir, abs(localDistance), localNormal, query)
@@ -59,8 +66,11 @@ object RaycastCollider {
         return false
     }
 
+    fun raycastGlobalColliderClosestHit(query: RayQuery, entity: Entity, collider: Collider): Boolean {
+        return raycastGlobalCollider(query, entity, collider, true)
+    }
+
     fun raycastGlobalColliderAnyHit(query: RayQuery, entity: Entity, collider: Collider): Boolean {
-        // todo once above is tested to work well, implement this
-        return raycastGlobalColliderClosestHit(query, entity, collider)
+        return raycastGlobalCollider(query, entity, collider, false)
     }
 }

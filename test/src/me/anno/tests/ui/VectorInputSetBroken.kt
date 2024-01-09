@@ -1,6 +1,6 @@
 package me.anno.tests.ui
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -24,7 +24,7 @@ fun main() {
             style: Style,
             getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
         ) {
-            val vi = FloatVectorInput("Value", "", Vector4f(), Type.VEC4, DefaultConfig.style)
+            val vi = FloatVectorInput("Value", "", Vector4f(), NumberType.VEC4, DefaultConfig.style)
             list.add(vi)
             list.add(TextButton("Set 1,2,3,4", style).addLeftClickListener {
                 vi.setValue(Vector4f(1f, 2f, 3f, 4f), true)

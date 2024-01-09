@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.dither2x2
@@ -121,6 +122,6 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     // clearCoatCalculation +
                     reflectionCalculation +
                     finalMotionCalculation
-        ).add(dither2x2))
+        ).add(dither2x2).add(RendererLib.getReflectivity))
     }
 }

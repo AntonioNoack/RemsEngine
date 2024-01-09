@@ -29,9 +29,8 @@ import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
-import org.lwjgl.opengl.GL42C.glMemoryBarrier
-import org.lwjgl.opengl.GL45C
+import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -531,7 +530,7 @@ object DrawTexts {
             val shader = chooseShader(textColor, backgroundColor)
             if (shader is ComputeShader) {
                 posSizeDraw(shader, x2, y2, w, h, 1)
-                GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             } else {
                 shader as Shader
                 posSize(shader, x2, y2, w, h)

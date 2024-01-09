@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.pow
 
 /**
  * Converts a node tree of the "Shading" section in Blender to a Rem's Engine Material as far as possible.
@@ -97,7 +98,7 @@ object BlenderMaterialConverter {
                     "ShaderNodeTexImage" -> {
                         // UVs: "Vector",
                         // Output: "Color"/"Alpha" -> use the correct slot (given by socket)
-                        val imageName = when(val nid = node.id){
+                        val imageName = when (val nid = node.id) {
                             is BID -> nid.realName
                             is BImage -> nid.id.realName
                             else -> return null
@@ -144,7 +145,13 @@ object BlenderMaterialConverter {
                             val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
                             LOGGER.info("ShaderNodeBsdfPrincipled.diffuse: $diffuse")
                             if (diffuse != null) {
-                                prefab["diffuseBase"] = diffuse.first
+                                val base = diffuse.first
+                                val gamma = 1f / 2.2f
+                                prefab["diffuseBase"] = Vector4f(
+                                    base.x.pow(gamma),
+                                    base.y.pow(gamma),
+                                    base.z.pow(gamma), base.w
+                                )
                                 prefab["diffuseMap"] = diffuse.second
                             }
                             // todo can we find out mappings? are they used at all?

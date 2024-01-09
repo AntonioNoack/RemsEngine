@@ -44,6 +44,13 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
+// todo implement exporting process:
+//  - pack libraries and Universal into folder
+//  - checkboxes for libraries/modules like Mesh to save space/complexity
+//  - list of packed files/dynamically loaded files
+//  - load main class?
+//  - convert all file formats as needed
+
 // to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
 //  - see local variables for all execution units
@@ -126,6 +133,9 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
     override fun save() {
         try {
+            // if we inspect/edit another prefab currently, we need to save that!
+            PrefabInspector.currentInspector?.save()
+            // save scene
             ECSSceneTabs.currentTab?.save()
         } catch (e: Exception) {
             e.printStackTrace()

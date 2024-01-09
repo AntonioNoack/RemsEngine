@@ -1,9 +1,9 @@
 package me.anno.gpu.blending
 
 import me.anno.language.translation.NameDesc
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL40C.glBlendEquationSeparatei
-import org.lwjgl.opengl.GL40C.glBlendFuncSeparatei
+import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.glBlendEquationSeparatei
+import org.lwjgl.opengl.GL46C.glBlendFuncSeparatei
 
 // custom blend modes? only for the engine by programmers;
 // I don't think people in Rem's Studio or otherwise would/could use them well

@@ -3,7 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.supportsF16Targets
 import me.anno.gpu.GFX.supportsF32Targets
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 
 class TargetType(
     val name: String,

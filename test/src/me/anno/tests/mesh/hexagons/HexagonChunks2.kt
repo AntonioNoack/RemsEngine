@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -91,7 +91,7 @@ fun main() {
                             dk--
                             recalculate()
                         },
-                    IntInput("n", "", n, Type.LONG_PLUS, style)
+                    IntInput("n", "", n, NumberType.LONG_PLUS, style)
                         .setChangeListener {
                             n = it.toInt()
                             recalculate()

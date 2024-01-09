@@ -73,6 +73,8 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// todo star assets, and they will always (?) come first in sorting
+
 // todo dynamically change aspect ratio based on content for better coverage?
 
 // todo double click is not working in touch mode?
@@ -489,7 +491,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         for (srcFile in files) {
             if (progress.isCancelled) break
             val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
-            dstFile.writeFile(srcFile, { progress.progress += it }, { it?.printStackTrace() })
+            dstFile.writeFile(srcFile, { delta, _ -> progress.progress += delta }, { it?.printStackTrace() })
         }
         progress.finish()
         invalidate()

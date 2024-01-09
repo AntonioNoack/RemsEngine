@@ -486,9 +486,6 @@ object LineShapes {
             )
         }
 
-        // todo draw 2 rings every power of 10, plus start, plus end
-        // todo or for every sth...
-
         fun drawRing(fraction: Double) {
 
             p0.lerp(p1, fraction, tmp)

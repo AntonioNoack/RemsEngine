@@ -1,6 +1,6 @@
 package me.anno.ui.editor.config
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -94,10 +94,10 @@ class ContentCreator(
                     is Long -> IntInput("", "", value, style)
                         .setChangeListener { map[fullName] = it }
                         .setPlaceholder("Value")
-                    is Float -> FloatInput("", "", value, Type.FLOAT, style)
+                    is Float -> FloatInput("", "", value, NumberType.FLOAT, style)
                         .setChangeListener { map[fullName] = it.toFloat() }
                         .setPlaceholder("Value")
-                    is Double -> FloatInput("", "", value, Type.DOUBLE, style)
+                    is Double -> FloatInput("", "", value, NumberType.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
                         .setPlaceholder("Value")
                     else -> {

@@ -3,6 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
+import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.RemsEngine.Companion.collectSelected
@@ -23,11 +24,12 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
+import me.anno.ui.custom.CustomSizeContainer
+import me.anno.ui.debug.TrackingPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
@@ -36,21 +38,25 @@ import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
+import me.anno.utils.Color.white
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.structures.lists.Lists.cross
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 
 /**
  * creates UI to inspect and edit PrefabSaveables
  * */
-class PrefabInspector(val reference: FileReference) {
+class PrefabInspector(var reference: FileReference) {
 
     val prefab: Prefab
         get() {
@@ -71,6 +77,10 @@ class PrefabInspector(val reference: FileReference) {
                     prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) },
             workspace
         )
+
+    fun update() {
+        reference = reference.validate()
+    }
 
     val adds get() = prefab.adds
     val sets get() = prefab.sets
@@ -332,19 +342,17 @@ class PrefabInspector(val reference: FileReference) {
         for (property in reflections.debugProperties) {
             // todo group them by their @Group-value
             val title = property.name.camelCaseToTitle()
+            val getter = property.getter
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
+            val relevantInstances = instances.filter { it::class == instances.first()::class }
             list1.add(UpdatingTextPanel(100L, style) {
-                // todo call on all, where class matches
-                val relevantInstances = instances.filter { it::class == instances.first()::class }
-                relevantInstances.joinToString { property.getter.call(it).toString() }
+                relevantInstances
+                    .joinToString { getter.call(it).toString() }
                     .shorten2Way(200)
             })
-            // todo when clicked, a tracking graph/plot is displayed (real time)
-            /*list1.addLeftClickListener {
-
-            }*/
             list.add(list1)
+            createTrackingButton(list, list1, relevantInstances, property, style)
         }
 
         val allProperties = reflections.allProperties

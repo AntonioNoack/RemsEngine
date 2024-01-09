@@ -1,6 +1,6 @@
 package me.anno.tests.engine.effect
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.EditorState
@@ -25,15 +25,15 @@ fun main() {
         val list = PanelListY(style)
         val list2 = PanelListX(style)
         val effect = RenderMode.DEPTH_OF_FIELD.renderGraph!!.nodes.filterIsInstance<DepthOfFieldNode>().first()
-        list2.add(FloatInput("Point", effect.getInput(1) as Float, Type.FLOAT_PLUS, style)
+        list2.add(FloatInput("Point", effect.getInput(1) as Float, NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(1, it.toFloat()) })
-        list2.add(FloatInput("Scale", effect.getInput(2) as Float, Type.FLOAT_PLUS, style)
+        list2.add(FloatInput("Scale", effect.getInput(2) as Float, NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(2, it.toFloat()) })
-        list2.add(FloatInput("RadScale", effect.getInput(3) as Float, Type.LONG_PLUS, style)
+        list2.add(FloatInput("RadScale", effect.getInput(3) as Float, NumberType.LONG_PLUS, style)
             .setChangeListener { effect.setInput(3, it.toFloat()) })
-        list2.add(FloatInput("MaxSize", effect.getInput(4) as Float, Type.FLOAT_PLUS, style)
+        list2.add(FloatInput("MaxSize", effect.getInput(4) as Float, NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(4, it.toFloat()) })
-        list2.add(FloatInput("Spherical", effect.getInput(5) as Float, Type.FLOAT_PLUS, style)
+        list2.add(FloatInput("Spherical", effect.getInput(5) as Float, NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(5, it.toFloat()) })
         list.add(sceneView)
         list.add(list2)

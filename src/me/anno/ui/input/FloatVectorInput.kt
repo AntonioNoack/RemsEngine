@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
@@ -25,7 +24,7 @@ import kotlin.math.max
 open class FloatVectorInput(
     title: String,
     visibilityKey: String,
-    val type: Type,
+    val type: NumberType,
     style: Style,
     val createComponent: () -> FloatInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
@@ -34,14 +33,14 @@ open class FloatVectorInput(
         private val LOGGER = LogManager.getLogger(FloatVectorInput::class)
     }
 
-    constructor(title: String, visibilityKey: String, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style, { FloatInput("", visibilityKey, type, style) })
 
-    constructor(style: Style) : this("", "", Type.FLOAT, style)
+    constructor(style: Style) : this("", "", NumberType.FLOAT, style)
 
     constructor(
         title: String, visibilityKey: String, value: Quaternionf,
-        type: Type = Type.QUATERNION, style: Style
+        type: NumberType = NumberType.QUATERNION, style: Style
     ) : this(title, visibilityKey, type, style) {
         if (type.components == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
@@ -54,56 +53,56 @@ open class FloatVectorInput(
 
     constructor(
         title: String, visibilityKey: String, value: Vector2f,
-        type: Type = Type.VEC2, style: Style
+        type: NumberType = NumberType.VEC2, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Vector3f,
-        type: Type = Type.VEC3, style: Style
+        type: NumberType = NumberType.VEC3, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Vector4f,
-        type: Type = Type.VEC4, style: Style
+        type: NumberType = NumberType.VEC4, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Planef,
-        type: Type = Type.PLANE4, style: Style
+        type: NumberType = NumberType.PLANE4, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Planed,
-        type: Type = Type.PLANE4D, style: Style
+        type: NumberType = NumberType.PLANE4D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Vector2d,
-        type: Type = Type.VEC2D, style: Style
+        type: NumberType = NumberType.VEC2D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Vector3d,
-        type: Type = Type.VEC3D, style: Style
+        type: NumberType = NumberType.VEC3D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
         title: String, visibilityKey: String, value: Vector4d,
-        type: Type = Type.VEC4D, style: Style
+        type: NumberType = NumberType.VEC4D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, -1, false)
     }
@@ -116,7 +115,7 @@ open class FloatVectorInput(
     val valueList = VectorInputList(visibilityKey, style)
 
     init {
-        if (type == Type.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
+        if (type == NumberType.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
         this += valueList
         if (titleView != null) valueList.hide()
     }
@@ -366,23 +365,23 @@ open class FloatVectorInput(
             val dy0 = dy * size
             val delta = dx0 - dy0
             when (type) {
-                Type.POSITION -> {
+                NumberType.POSITION -> {
                     val scaleFactor = 0.2f
                     setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
                 }
-                Type.VEC3 -> {
+                NumberType.VEC3 -> {
                     val scaleFactor = 0.2f
                     setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
                 }
-                Type.VEC3D -> {
+                NumberType.VEC3D -> {
                     val scaleFactor = 0.2
                     setValue(Vector3d(vxd + dx0 * scaleFactor, vyd - dy0 * scaleFactor, vzd), true)
                 }
-                Type.POSITION_2D -> {
+                NumberType.POSITION_2D -> {
                     val scaleFactor = 0.2f
                     setValue(Vector2f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor), true)
                 }
-                Type.ROT_YXZ -> {
+                NumberType.ROT_YXZ -> {
                     val scaleFactor = 20f
                     if (isControlDown) {
                         setValue(Vector3f(vx, vy, vz + delta * scaleFactor), true)
@@ -390,7 +389,7 @@ open class FloatVectorInput(
                         setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz), true)
                     }
                 }
-                Type.ROT_YXZ64 -> {
+                NumberType.ROT_YXZ64 -> {
                     val scaleFactor = 20.0
                     if (isControlDown) {
                         setValue(Vector3d(vxd, vyd, vzd + delta * scaleFactor), true)
@@ -398,7 +397,7 @@ open class FloatVectorInput(
                         setValue(Vector3d(vxd + dy0 * scaleFactor, vyd + dx0 * scaleFactor, vzd), true)
                     }
                 }
-                Type.SCALE -> {
+                NumberType.SCALE -> {
                     val scaleFactor = 1.03f
                     if (isControlDown) {
                         val scaleX = pow(scaleFactor, dx0)
@@ -409,7 +408,7 @@ open class FloatVectorInput(
                         setValue(Vector3f(vx * scale, vy * scale, vz * scale), true)
                     }
                 }
-                Type.COLOR -> {
+                NumberType.COLOR -> {
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)
                     if (isControlDown) {
@@ -418,7 +417,7 @@ open class FloatVectorInput(
                         setValue(Vector4f(vx, vy, vz, clamp(vw + delta, 0f, 1f)), true)
                     }
                 }
-                Type.SKEW_2D -> {
+                NumberType.SKEW_2D -> {
                     if (isShiftDown) {
                         setValue(Vector2f(vx, vy + dy0 / 5), true)
                     } else {

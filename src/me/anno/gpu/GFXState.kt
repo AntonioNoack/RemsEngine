@@ -14,9 +14,9 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
-import org.lwjgl.opengl.GL20C.GL_FRONT
-import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
-import org.lwjgl.opengl.GL45C.*
+import org.lwjgl.opengl.GL46C.GL_FRONT
+import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
+import org.lwjgl.opengl.GL46C.*
 import kotlin.test.assertNotEquals
 
 /**

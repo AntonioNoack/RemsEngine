@@ -91,6 +91,7 @@
       <element id="module-output" name="Recast" />
       <element id="module-output" name="Lua" />
       <element id="module-output" name="Box2d" />
+      <element id="module-output" name="Mesh" />
     </root>
   </artifact>
 </component>

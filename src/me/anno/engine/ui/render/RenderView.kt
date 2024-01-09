@@ -16,7 +16,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
@@ -854,7 +853,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         DebugShapes.removeExpired()
 
         LineBuffer.finish(cameraMatrix)
-        PlaneShapes.finish()
     }
 
     /**

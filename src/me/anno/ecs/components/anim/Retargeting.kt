@@ -2,7 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
@@ -322,7 +322,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 })
                 if (false) list.add(run {
                     val value = dstBoneRotations[i]
-                    val type = Type.ROT_YXZ.withDefault(Vector3f(0f))
+                    val type = NumberType.ROT_YXZ.withDefault(Vector3f(0f))
                     FloatVectorInput(
                         "Correction", "${bone.name}-rot",
                         value.toEulerAnglesDegrees(), type, style

@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
@@ -340,7 +340,7 @@ fun main() {
         val main = SceneView(PlayMode.EDITING, style)
         main.weight = 1f
         val controls = PanelListY(style)
-        controls.add(IntInput("n", "", n, Type.LONG_PLUS, style)
+        controls.add(IntInput("n", "", n, NumberType.LONG_PLUS, style)
             .setChangeListener {
                 n = it.toInt()
                 validate()

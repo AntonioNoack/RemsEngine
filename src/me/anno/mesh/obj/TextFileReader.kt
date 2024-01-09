@@ -1,7 +1,6 @@
 package me.anno.mesh.obj
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -225,7 +224,7 @@ open class TextFileReader(val reader: InputStream) {
             .trim()
         skipLine()
         if (path.startsWith("./")) path = path.substring(2)
-        val file = getReference(parent.getParent(), path)
+        val file = FileReference.getReference(parent.getParent(), path)
         if (!file.exists) LOGGER.warn("Missing file $file")
         return file
     }

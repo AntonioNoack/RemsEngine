@@ -12,8 +12,7 @@ import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL43.*
-import org.lwjgl.opengl.GL43C
+import org.lwjgl.opengl.GL46C.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
@@ -164,7 +163,7 @@ class ComputeShader(
         @JvmStatic
         fun bindBuffer1(slot: Int, buffer: OpenGLBuffer) {
             buffer.ensureBuffer()
-            glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
         }
 
         /**

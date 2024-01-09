@@ -3,8 +3,8 @@ package me.anno.gpu.query
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.maths.Maths
-import org.lwjgl.opengl.GL15C.*
-import org.lwjgl.opengl.GL33C.glGetQueryObjecti64
+import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.glGetQueryObjecti64
 import kotlin.math.max
 
 open class GPUQuery(

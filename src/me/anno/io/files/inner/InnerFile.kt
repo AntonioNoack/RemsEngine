@@ -58,6 +58,11 @@ abstract class InnerFile(
         lastModified = max(lastModified + 1, System.currentTimeMillis())
     }
 
+    override fun invalidate() {
+        super.invalidate()
+        markAsModified()
+    }
+
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         val bytes = data
         when {

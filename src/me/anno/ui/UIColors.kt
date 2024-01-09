@@ -21,4 +21,9 @@ object UIColors {
     const val dodgerBlue = 0x00a7f2 or black // ~ dodger blue / dark sky blue
     const val magenta = 0xff00ff or black
 
+    const val axisXColor = 0xff7777 or black
+    const val axisYColor = 0x77ff77 or black
+    const val axisZColor = 0x7777ff or black
+    const val axisWColor = 0xcccccc or black
+
 }

@@ -27,7 +27,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.Compare.ifSame
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 import kotlin.math.min
 
 /**

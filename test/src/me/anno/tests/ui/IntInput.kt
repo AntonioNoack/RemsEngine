@@ -1,6 +1,6 @@
 package me.anno.tests.ui
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Key
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 
 fun main() {
     disableRenderDoc()
-    testUI("IntInput", IntInput("Quality", "", Type.VIDEO_QUALITY_CRF, style))
+    testUI("IntInput", IntInput("Quality", "", NumberType.VIDEO_QUALITY_CRF, style))
 }
 
 class IntInputTests : UITests() {
@@ -21,7 +21,7 @@ class IntInputTests : UITests() {
 
         LogManager.disableLogger("SimpleExpressionParser")
 
-        val test = IntInput("Quality", "", Type.VIDEO_QUALITY_CRF, style)
+        val test = IntInput("Quality", "", NumberType.VIDEO_QUALITY_CRF, style)
         prepareUI(test)
 
         test.setValue(20, false)

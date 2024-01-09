@@ -21,7 +21,6 @@ import me.anno.utils.Color.white4
 import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.opengl.GL11.*
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import kotlin.test.assertEquals
@@ -44,6 +43,9 @@ class GLTFWriter(
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
+        private const val GL_FLOAT = 0x1406
+        private const val GL_UNSIGNED_BYTE = 0x1401
+        private const val GL_UNSIGNED_INT = 0x1405
     }
 
     private class BufferView(

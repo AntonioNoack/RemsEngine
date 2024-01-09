@@ -5,8 +5,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
@@ -14,8 +12,7 @@ import me.anno.image.raw.IntImage
 import me.anno.utils.Color
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -129,7 +126,7 @@ object VRAMToRAM {
 
                     buffer.position(0)
 
-                    Framebuffer.bindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0)
+                    Framebuffer.bindFramebuffer(GL_READ_FRAMEBUFFER, 0)
                     glReadPixels(0, 0, partW, partH, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
 
                     GFX.check()

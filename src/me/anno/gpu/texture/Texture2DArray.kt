@@ -25,8 +25,7 @@ import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

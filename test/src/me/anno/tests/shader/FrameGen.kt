@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -46,7 +46,7 @@ import org.joml.Matrix4x3d
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.GL_POINT_SMOOTH
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 import kotlin.math.max
 
 fun main() {
@@ -315,7 +315,7 @@ fun main() {
         val list = PanelListY(style)
         renderPanel.weight = 1f
         list.add(renderPanel)
-        list.add(IntInput("Interpolated Frames", "", interFrames, Type.LONG_PLUS, style)
+        list.add(IntInput("Interpolated Frames", "", interFrames, NumberType.LONG_PLUS, style)
             .setChangeListener { interFrames = it.toInt() })
         list
     }

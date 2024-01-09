@@ -82,14 +82,15 @@ object Spellchecking : CacheSection("Spellchecking") {
     }
 
     private val libraries = listOf(
-        // todo make this work again.
-        //Language.entries.filter { it.shortCode == "en" } to "enCompact.jar",
         /*Language.entries.filter {
-            when (it.shortCode) {
-                "en", "de", "es", "fr" -> true
-                else -> false
-            }
-        } to "de-en-es-frCompact.jar",*/
+            it.code.startsWith("en")
+        } to "enCompact.jar",*/
+        Language.entries.filter {
+            it.code.startsWith("en") ||
+                    it.code.startsWith("de") ||
+                    it.code.startsWith("es") ||
+                    it.code.startsWith("fr")
+        } to "de-en-es-frCompact.jar",
         Language.entries to "allCompact.jar"
     )
 

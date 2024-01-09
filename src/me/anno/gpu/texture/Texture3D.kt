@@ -22,8 +22,7 @@ import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

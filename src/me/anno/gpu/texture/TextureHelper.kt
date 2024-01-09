@@ -7,7 +7,7 @@ import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL46C.*
 
 object TextureHelper {
 

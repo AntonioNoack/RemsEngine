@@ -54,11 +54,9 @@ open class PanelContainer(
         super.setPosition(x, y)
         val wi = width - padding.width
         val hi = height - padding.height
-        child.setPosSize(
+        child.setPosition(
             x + padding.left + child.alignmentX.getOffset(wi, child.minW),
             y + padding.top + child.alignmentY.getOffset(hi, child.minH),
-            child.alignmentX.getSize(wi, child.minW),
-            child.alignmentY.getSize(hi, child.minH)
         )
     }
 

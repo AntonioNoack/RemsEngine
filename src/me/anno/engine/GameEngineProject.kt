@@ -71,14 +71,17 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     private var isValid = true
-    fun invalidate() {
-        // save project config after a small delay
+    /**
+     * save project config after a small delay
+     * */
+    fun saveMaybe() {
         if (isValid) {
             isValid = false
             addEvent {
                 if (!isValid) {
                     isValid = true
                     configFile.writeText(JsonStringWriter.toText(this, location))
+                    LOGGER.info("Saved Project")
                 }
             }
         }
@@ -255,7 +258,9 @@ class GameEngineProject() : NamedSaveable() {
         when (name) {
             "openTabs" -> {
                 openTabs.clear()
-                openTabs.addAll(values.filter { it.exists }.map { it.toLocalPath(location) })
+                openTabs.addAll(values
+                    .filter { it.exists }
+                    .map { it.toLocalPath(location) })
             }
             else -> super.readFileArray(name, values)
         }

@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.ui.Panel
@@ -24,7 +23,7 @@ import kotlin.math.roundToInt
 open class IntVectorInput(
     title: String,
     visibilityKey: String,
-    val type: Type,
+    val type: NumberType,
     style: Style,
     val createComponent: () -> IntInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
@@ -33,22 +32,22 @@ open class IntVectorInput(
         private val LOGGER = LogManager.getLogger(IntVectorInput::class)
     }
 
-    constructor(title: String, visibilityKey: String, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style, { IntInput("", visibilityKey, type, style) })
 
-    constructor(style: Style) : this("", "", Type.LONG, style)
+    constructor(style: Style) : this("", "", NumberType.LONG, style)
 
-    constructor(title: String, visibilityKey: String, value: Vector2i, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value: Vector2i, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(title: String, visibilityKey: String, value: Vector3i, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value: Vector3i, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
-    constructor(title: String, visibilityKey: String, value: Vector4i, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value: Vector4i, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value, -1, false)
     }
@@ -61,7 +60,7 @@ open class IntVectorInput(
     val valueList = VectorInputList(visibilityKey, style)
 
     init {
-        if (type == Type.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
+        if (type == NumberType.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
         this += valueList
         if (titleView != null) valueList.hide()
     }

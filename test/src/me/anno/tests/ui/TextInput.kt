@@ -1,8 +1,8 @@
 package me.anno.tests.ui
 
-import me.anno.animation.Type
-import me.anno.animation.Type.Companion.SCALE
-import me.anno.animation.Type.Companion.VEC3D
+import me.anno.ui.input.NumberType
+import me.anno.ui.input.NumberType.Companion.SCALE
+import me.anno.ui.input.NumberType.Companion.VEC3D
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.studio.StudioBase
@@ -17,7 +17,7 @@ fun main() {
     // arrow keys were broken because of class names / action manager
     disableRenderDoc()
     val ti = PureTextInput(style).setValue("103212", false) // works
-    val fi = FloatInput("Float", "", 103212f, Type.DOUBLE, style) // broken
+    val fi = FloatInput("Float", "", 103212f, NumberType.DOUBLE, style) // broken
     val ii = IntInput("Int", "", 103212, style) // broken
     val fvi = FloatVectorInput("Float Vector", "", SCALE, style)
     val ivi = IntVectorInput("Int Vector", "", VEC3D, style)

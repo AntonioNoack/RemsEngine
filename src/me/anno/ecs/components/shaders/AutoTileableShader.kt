@@ -4,6 +4,7 @@ import me.anno.cache.CacheSection
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.anisotropic16
@@ -129,7 +130,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         clearCoatCalculation +
                         finalMotionCalculation
             ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(randomGLSL)
-                .add(getTexture).add(sampleTile)
+                .add(getTexture).add(sampleTile).add(RendererLib.getReflectivity)
         )
     }
 

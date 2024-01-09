@@ -20,7 +20,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.*
-import org.lwjgl.opengl.GL11C.glScissor
+import org.lwjgl.opengl.GL46C.glScissor
 import kotlin.math.abs
 
 class PlanarReflection : LightComponentBase() {

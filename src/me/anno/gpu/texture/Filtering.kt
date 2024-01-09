@@ -1,6 +1,6 @@
 package me.anno.gpu.texture
 
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 
 /** Sensible filtering settings for OpenGL. Besides min/max for depth, nothing else makes much sense. */
 enum class Filtering(val mag: Int, val min: Int, val needsMipmap: Boolean) {

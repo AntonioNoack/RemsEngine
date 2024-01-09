@@ -1,6 +1,6 @@
 package me.anno.tests.rtrt.other
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -31,7 +31,7 @@ fun main() {
     disableRenderDoc()
     testUI2("Hilbert Curve") {
         var n = 4096
-        val input = IntInput("", "", n, Type.LONG_PLUS, style)
+        val input = IntInput("", "", n, NumberType.LONG_PLUS, style)
             .setChangeListener { n = it.toInt() }
         val main = TestDrawPanel {
             it.clear()

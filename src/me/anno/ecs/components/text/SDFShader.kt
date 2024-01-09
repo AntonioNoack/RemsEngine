@@ -1,6 +1,7 @@
 package me.anno.ecs.components.text
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
@@ -35,7 +36,10 @@ object SDFShader : ECSMeshShader("SDF") {
                         clearCoatCalculation +
                         reflectionCalculation +
                         finalMotionCalculation
-            ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
+            ).add(ShaderLib.quatRot)
+                .add(ShaderLib.brightness)
+                .add(ShaderLib.parallaxMapping)
+                .add(RendererLib.getReflectivity)
         )
     }
 }

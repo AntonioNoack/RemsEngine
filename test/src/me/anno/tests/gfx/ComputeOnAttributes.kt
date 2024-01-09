@@ -15,8 +15,8 @@ import me.anno.studio.StudioBase
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Vector2i
-import org.lwjgl.opengl.GL42C.glMemoryBarrier
-import org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
 
 fun main() {
     rotatingCube()

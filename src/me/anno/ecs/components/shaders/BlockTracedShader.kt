@@ -1,6 +1,7 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -130,7 +131,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         clearCoatCalculation +
                         reflectionCalculation +
                         ""
-            )
+            ).add(getReflectivity)
         )
     }
 

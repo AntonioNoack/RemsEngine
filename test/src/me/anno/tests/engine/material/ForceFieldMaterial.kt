@@ -7,8 +7,11 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel.createPlane
 import me.anno.ecs.components.mesh.shapes.UVSphereModel.createUVSphere
 import me.anno.ecs.components.shaders.Skybox
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -21,11 +24,11 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.input.Input
 import me.anno.maths.Maths.mix
@@ -51,7 +54,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
         bindDepthToPosition(shader)
         var depth = findDepthTexture(GFXState.framebuffer.currentValue)
         if (depth == null) println("no depth was found!")
-        if (Input.isShiftDown && depth is Framebuffer) {
+        if (Input.isShiftDown && depth is Framebuffer) { // todo we probably need to do this in some environments, don't we?
             val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, DepthBufferType.TEXTURE]
             depth.copyTo(tmp, GL_DEPTH_BUFFER_BIT)
             depth = tmp
@@ -93,7 +96,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                         // clearCoatCalculation +
                         reflectionCalculation +
                         finalMotionCalculation
-            ).add(ShaderLib.brightness).add(rawToDepth)
+            ).add(ShaderLib.brightness).add(rawToDepth).add(RendererLib.getReflectivity)
         )
     }
 }
@@ -121,6 +124,10 @@ class ForceFieldMaterial : Material() {
  * todo water shader based on same principles for foam
  * */
 fun main() {
+
+    PluginRegistry.init()
+    ExtensionLoader.load()
+
     val scene = Entity()
     val planeMat = Material().apply {
         diffuseBase.set(0.1f, 0.1f, 0.1f, 1f)

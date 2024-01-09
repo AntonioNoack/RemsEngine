@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
@@ -22,12 +21,12 @@ import kotlin.math.roundToLong
 open class FloatInput(
     title: String,
     visibilityKey: String,
-    type: Type = Type.FLOAT,
+    type: NumberType = NumberType.FLOAT,
     style: Style,
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
 
-    constructor(style: Style) : this("", "", Type.FLOAT, style)
+    constructor(style: Style) : this("", "", NumberType.FLOAT, style)
 
     final override var value: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
@@ -46,17 +45,17 @@ open class FloatInput(
         }
     }
 
-    constructor(title: String, visibilityKey: String, value0: Float, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value0: Float, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Float, type: Type, style: Style) :
+    constructor(title: String, value0: Float, type: NumberType, style: Style) :
             this(title, "", type, style) {
         setValue(value0, false)
     }
 
-    constructor(title: String, visibilityKey: String, value0: Double, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value0: Double, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value0, -1, false)
     }

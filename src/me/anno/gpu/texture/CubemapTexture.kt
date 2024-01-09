@@ -14,8 +14,7 @@ import me.anno.maths.Maths
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL32C.GL_TEXTURE_CUBE_MAP_SEAMLESS
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import kotlin.math.PI
 

@@ -12,8 +12,6 @@ import org.joml.*
  * typically, it's easier to create elements and scene hierarchies directly rather than creating and designing a prefab;
  *
  * this class cleans up after you: it creates a prefab from your "hacked" instance, so you can be lazy
- *
- * todo test cases for Entity({addMuchStuff()}).ref
  * */
 class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
 
@@ -265,7 +263,6 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
 
     fun writeObjectImpl(value: PrefabSaveable) {
         if (doneObjects.add(value)) {
-            // todo is this good enough? mmh...
             val lastPath = currentPath
             currentPath = value.prefabPath
             prefab.sets.clear(currentPath)

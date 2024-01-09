@@ -8,8 +8,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths.max
 import me.anno.utils.Color.convertABGR2ARGB
-import org.lwjgl.opengl.GL11C.GL_FLOAT
-import org.lwjgl.opengl.GL30C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 
 /**
  * the easiest check whether an image has R and B channels inverted: if so, this will look correct

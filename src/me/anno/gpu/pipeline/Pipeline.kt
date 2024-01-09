@@ -60,8 +60,6 @@ import kotlin.math.max
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
  * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
- *
- * // todo we need a collector of static meshes
  * */
 class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 

@@ -38,4 +38,8 @@ class DNAStruct(val index: Int, val type: DNAType, val fields: Array<DNAField>, 
 
     val byName = fields.associateBy { it.decoratedName }
 
+    override fun toString(): String {
+        return "$type:${fields.joinToString()}"
+    }
+
 }

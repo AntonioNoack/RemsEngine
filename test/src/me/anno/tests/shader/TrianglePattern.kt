@@ -3,9 +3,9 @@ package me.anno.tests.shader
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.builder.ShaderStage
-import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 
@@ -43,7 +43,7 @@ fun main() {
                                 // clearCoatCalculation +
                                 reflectionCalculation +
                                 finalMotionCalculation
-                    )
+                    ).add(RendererLib.getReflectivity)
                 )
             }
         }

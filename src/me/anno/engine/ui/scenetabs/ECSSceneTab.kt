@@ -15,13 +15,14 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
+import me.anno.engine.ui.scenetabs.ECSSceneTabs.project
 import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.utils.Color.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
@@ -32,6 +33,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -43,7 +45,7 @@ import org.joml.Vector3d
 
 class ECSSceneTab(
     val inspector: PrefabInspector,
-    val file: FileReference,
+    var file: FileReference,
     val playMode: PlayMode,
     name: String = findName(file)
 ) : TextPanel(name, DefaultConfig.style) {
@@ -223,7 +225,9 @@ class ECSSceneTab(
                             LOGGER.info("Removed ${oldSize - 1} items")
                         }
                     },
-                    MenuOption(NameDesc("Close")) { ECSSceneTabs.close(this, true) },
+                    MenuOption(NameDesc("Close")) {
+                        ECSSceneTabs.close(this, true)
+                    },
                     MenuOption(NameDesc("Close All Others")) {
                         val tabs = ECSSceneTabs.children3.reversed()
                         for (tab in tabs) {
@@ -263,6 +267,8 @@ class ECSSceneTab(
 
     override fun onUpdate() {
         super.onUpdate()
+        file = getReference(file.absolutePath)
+        inspector.reference = file
         backgroundColor = when {
             ECSSceneTabs.currentTab == this -> mixARGB(originalBGColor, white, 0.2f)
             ECSSceneTabs.currentTab?.playMode == PlayMode.PLAY_TESTING -> mixARGB(originalBGColor, black, 0.1f)

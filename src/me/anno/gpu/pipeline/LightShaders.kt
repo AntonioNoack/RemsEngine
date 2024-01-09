@@ -7,12 +7,14 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -38,7 +40,6 @@ import me.anno.gpu.texture.*
 import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 object LightShaders {
 
@@ -63,7 +64,7 @@ object LightShaders {
     // con: we use more vram
     // con: we remove cache locality
     /*private val lightInstanceBuffers = Array(512) {
-        StaticBuffer(lightInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        StaticBuffer(lightInstancedAttributes, instancedBatchSize, BufferUsage.DYNAMIC)
     }
     private var libIndex = 0
     // performance: the same
@@ -73,7 +74,7 @@ object LightShaders {
         "lights",
         lightInstancedAttributes,
         instancedBatchSize,
-        GL_DYNAMIC_DRAW
+        BufferUsage.DYNAMIC
     )
 
     val useMSAA get() = GFXState.currentBuffer.samples > 1
@@ -136,13 +137,16 @@ object LightShaders {
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
                 colorToLinear +
-                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalMetallic, finalRoughness);\n" +
+                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, getReflectivity(finalRoughness, finalMetallic));\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n" +
                 colorToSRGB +
                 "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                 "   color = vec4(finalColor, 1.0);\n"
-    ).add(tonemapGLSL).add(sampleSkyboxForAmbient)
+    )
+        .add(tonemapGLSL)
+        .add(getReflectivity)
+        .add(sampleSkyboxForAmbient)
 
     fun getCombineLightShader(settingsV2: DeferredSettings): Shader {
         val useMSAA = useMSAA
@@ -314,8 +318,8 @@ object LightShaders {
             ) + depthVars, "" +
                     // light calculation including shadows if !instanced
                     "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
-                    "bool hasSpecular = finalMetallic > 0.0;\n" +
-                    "float reflectivity = finalMetallic * (1.0 - finalRoughness);\n" +
+                    "float reflectivity = mix(0.04,1.0,finalMetallic) * (1.0 - finalRoughness);\n" +
+                    "bool hasSpecular = reflectivity > 0.0;\n" +
                     "vec3 V = -normalize(rawCameraDirection(uv));\n" +
                     "float NdotV = dot(finalNormal,V);\n" +
                     "int shadowMapIdx0 = 0;\n" + // always 0 at the start
@@ -343,7 +347,7 @@ object LightShaders {
                     "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                     // ~65k is the limit, after that only Infinity
                     // todo car sample's light on windows looks clamped... who is clamping it?
-                    "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
+                    "vec3 color = mix(diffuseLight, specularLight, reflectivity);\n" +
                     // "light = vec4(fract(-0.01 + finalPosition/worldScale + cameraPosition), 1.0);\n"
                     "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
         )

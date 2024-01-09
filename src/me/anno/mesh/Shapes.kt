@@ -14,14 +14,16 @@ import kotlin.math.sign
 @Suppress("unused")
 object Shapes {
 
-    fun scale(src: FloatArray, scale: Float, dst: FloatArray = FloatArray(src.size)): FloatArray {
+    private fun scale(src: FloatArray, scale: Float, ): FloatArray {
+        val dst = FloatArray(src.size)
         for (i in src.indices) {
             dst[i] = src[i] * scale
         }
         return dst
     }
 
-    fun linear(src: FloatArray, offset: Vector3f, scale: Vector3f, dst: FloatArray = FloatArray(src.size)): FloatArray {
+    private fun linear(src: FloatArray, offset: Vector3f, scale: Vector3f): FloatArray {
+        val dst = FloatArray(src.size)
         for (i in src.indices step 3) {
             dst[i] = src[i] * scale.x + offset.x
             dst[i + 1] = src[i + 1] * scale.y + offset.y

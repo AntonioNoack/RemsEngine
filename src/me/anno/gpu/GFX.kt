@@ -38,11 +38,8 @@ import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL43C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
-import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
-import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.*
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue

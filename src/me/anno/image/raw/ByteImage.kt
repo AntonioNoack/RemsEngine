@@ -67,7 +67,6 @@ open class ByteImage(
         checkRedundancy: Boolean,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        // todo optimize for async scenario
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("ByteImage", width, height) {
                 createTexture(texture, true, checkRedundancy, callback)

@@ -260,12 +260,9 @@ abstract class Collider : CollidingComponent() {
         return distance
     }
 
-    open fun raycastAnyHit(
-        start: Vector3f, direction: Vector3f, radiusAtOrigin: Float, radiusPerUnit: Float,
-        surfaceNormal: Vector3f?, maxDistance: Float
-    ): Float {
+    open fun raycastAnyHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         var distance = 0f
-        val pos = Vector3f(start)
+        val pos = Vector3f(query.start)
         var isDone = 0
         var allowedStepDistance = 0f
         for (i in 0 until 16) { // max steps
@@ -275,11 +272,11 @@ abstract class Collider : CollidingComponent() {
             }
             distance += allowedStepDistance
             // we have gone too far -> the ray does not intersect the collider
-            if (distance >= maxDistance) {
+            if (distance >= query.maxDistance) {
                 return Float.POSITIVE_INFINITY
             } else {
                 // we are still in the sector
-                pos.set(direction).mul(distance).add(start)
+                pos.set(query.direction).mul(distance).add(query.start)
                 if (allowedStepDistance < 1e-3f) {
                     // we found the surface :)
                     isDone++ // we want at least one extra iteration

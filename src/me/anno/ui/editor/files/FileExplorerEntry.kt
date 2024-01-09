@@ -845,7 +845,7 @@ open class FileExplorerEntry(
                             )
                             thisFile.writeFile(
                                 files.first(),
-                                { progress.progress += it },
+                                { delta, _ -> progress.progress += delta },
                                 { it?.printStackTrace() })
                             thisFile.invalidate()
                             invalidateDrawing()

@@ -14,7 +14,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.text.SimpleDateFormat

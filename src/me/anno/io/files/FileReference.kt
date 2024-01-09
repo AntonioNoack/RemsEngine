@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
@@ -105,7 +106,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // a little unspecific; works anyway
             val parent = getReferenceOrTimeout(absolutePath).getParent()
             if (parent != null && parent != InvalidRef) {
-                // todo we should invalidate ALL windowStacks
                 for (window0 in GFX.windows) {
                     for (window in window0.windowStack) {
                         try {
@@ -113,9 +113,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                                 if (it is FileExplorer && it.folder
                                         .absolutePath
                                         .startsWith(parent.absolutePath)
-                                ) {
-                                    it.invalidate()
-                                }
+                                ) it.invalidate()
                             }
                         } catch (e: Exception) {
                             // this is not on the UI thread, so the UI may change, and cause
@@ -126,6 +124,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 }
             }
             CacheSection.invalidateFiles(path)
+            val tab = ECSSceneTabs.currentTab
+            if (tab != null) {
+                tab.onUpdate()
+                ECSSceneTabs.open(tab, true)
+            }
         }
 
         /** keep the value loaded and check if it has changed maybe (internal files, like zip files) */
@@ -458,26 +461,32 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     @Throws(IOException::class)
-    open fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
-        outputStream().use { output: OutputStream ->
-            file.inputStream { input, exc ->
-                if (input != null) {
+    open fun writeFile(
+        file: FileReference,
+        progress: (delta: Long, total: Long) -> Unit,
+        callback: (Exception?) -> Unit
+    ) {
+        file.inputStream { input, exc ->
+            if (input != null) {
+                outputStream().use { output ->
+                    var total = 0L
                     val buffer = ByteArray(2048)
                     while (true) {
                         val numReadBytes = input.read(buffer)
                         if (numReadBytes < 0) break
                         output.write(buffer, 0, numReadBytes)
-                        deltaProgress(numReadBytes.toLong())
+                        total += numReadBytes
+                        progress(numReadBytes.toLong(), total)
                     }
-                    callback(null)
-                } else callback(exc)
-            }
+                }
+                callback(null)
+            } else callback(exc)
         }
     }
 
     @Throws(IOException::class)
     fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
-        writeFile(file, {}, callback)
+        writeFile(file, { _, _ -> }, callback)
     }
 
     @Throws(IOException::class)
@@ -621,8 +630,20 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
-    fun copyTo(dst: FileReference, callback: (Exception?) -> Unit) {
-        dst.writeFile(this, callback)
+    fun copyTo(
+        dst: FileReference,
+        progressCallback: (delta: Long, total: Long) -> Unit,
+        finishCallback: (Exception?) -> Unit
+    ) {
+        dst.writeFile(this, progressCallback, finishCallback)
+    }
+
+    fun copyTo(dst: FileReference, finishCallback: (Exception?) -> Unit) {
+        copyTo(dst, { _, _ -> }, finishCallback)
+    }
+
+    fun copyTo(dst: FileReference) {
+        copyTo(dst, {})
     }
 
     abstract val isDirectory: Boolean

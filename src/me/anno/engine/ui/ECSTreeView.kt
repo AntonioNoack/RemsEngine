@@ -526,7 +526,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
             window.panel.forAll {
                 if (it is RenderView) {
                     // not perfect, but good enough probably
-                    // todo smooth lerp over .2s for orientation?
+                    // to do smooth lerp over .2s for orientation?
                     val aabb = element.aabb
                     val newRadius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ)
                     if (newRadius.isFinite() && newRadius > 0.0) it.radius = newRadius

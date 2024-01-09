@@ -7,7 +7,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 
 class Framebuffer3D(
     override var name: String,

@@ -77,6 +77,8 @@ class RenderMode(
                 .then1(CombineLightsNode(), mapOf("Samples" to 8))
                 .then(SSRNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )

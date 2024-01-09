@@ -21,7 +21,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 import kotlin.math.abs
 
 object Reduction {

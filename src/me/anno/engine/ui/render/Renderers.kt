@@ -7,6 +7,7 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
 import me.anno.engine.ui.render.RendererLib.lightCode
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
@@ -72,6 +73,7 @@ object Renderers {
     }
 
     @JvmStatic
+    @Suppress("unused")
     fun tonemapKt(color: Vector4f): Vector4f {
         val tmp = JomlPools.vec3f.create()
         tmp.set(color.x, color.y, color.z)
@@ -82,6 +84,7 @@ object Renderers {
     }
 
     @JvmStatic
+    @Suppress("unused")
     fun tonemapInvKt(color: Vector4f): Vector4f {
         val tmp = JomlPools.vec3f.create()
         tmp.set(color.x, color.y, color.z)
@@ -98,10 +101,6 @@ object Renderers {
             "finalOverdraw = vec4(0.125);\n"
         )
     )
-
-    // same functionality :D
-    @JvmField
-    val cheapRenderer = overdrawRenderer
 
     @JvmField
     val pbrRenderer = object : Renderer("pbr") {
@@ -165,6 +164,7 @@ object Renderers {
                 )
                     .add(randomGLSL)
                     .add(tonemapGLSL)
+                    .add(getReflectivity)
                     .add(sampleSkyboxForAmbient),
                 finalResultStage
             )
@@ -198,22 +198,23 @@ object Renderers {
             .allocateDirect(previewLights.size * 4 * 4)
             .asFloatBuffer()
 
+        init {
+            tmpDefaultUniforms.position(0)
+            for (data in previewLights) {
+                val f = length(data.x, data.y, data.z)
+                tmpDefaultUniforms.put(data.x / f)
+                tmpDefaultUniforms.put(data.y / f)
+                tmpDefaultUniforms.put(data.z / f)
+                tmpDefaultUniforms.put(data.w)
+            }
+            tmpDefaultUniforms.flip()
+        }
+
         override fun uploadDefaultUniforms(shader: Shader) {
             super.uploadDefaultUniforms(shader)
             GFX.check()
-            shader.use()
-            val uniform = shader["lightData"]
-            if (uniform >= 0) {
-                tmpDefaultUniforms.position(0)
-                for (data in previewLights) {
-                    val f = length(data.x, data.y, data.z)
-                    tmpDefaultUniforms.put(data.x / f)
-                    tmpDefaultUniforms.put(data.y / f)
-                    tmpDefaultUniforms.put(data.z / f)
-                    tmpDefaultUniforms.put(data.w)
-                }
-                tmpDefaultUniforms.flip()
-                shader.v4Array(uniform, tmpDefaultUniforms)
+            if (shader.hasUniform("lightData")) {
+                shader.v4Array("lightData", tmpDefaultUniforms)
                 GFX.check()
             }
         }
@@ -245,10 +246,12 @@ object Renderers {
                             "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
                             "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                             // light calculation
-                            "vec3 ambientLight = vec3(0.2);\n" +
-                            "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
-                            "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
-                            "vec3 specularColor = finalColor * finalMetallic;\n" +
+                            // model ambient light using simple sky model
+                            "vec3 ambientLight = vec3(0.3) * vec3(0.6,0.8,1.0);\n" +
+                            "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
+                            "float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+                            "vec3 diffuseColor  = finalColor * (1.0-reflectivity);\n" +
+                            "vec3 specularColor = finalColor * reflectivity;\n" +
                             "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
                             specularBRDFv2NoDivInlined2Start +
                             "for(int i=0;i<${previewLights.size};i++){\n" +
@@ -266,14 +269,12 @@ object Renderers {
                             "}\n" +
                             specularBRDFv2NoDivInlined2End +
                             colorToLinear +
-                            "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
+                            "finalColor = diffuseColor * diffuseLight + specularLight * specularColor;\n" +
                             "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                            // todo linear2srgb before or after tonemap?
+                            "finalColor = tonemapLinear(finalColor);\n" +
                             colorToSRGB +
-                            "finalColor = tonemap(finalColor);\n" +
-                            // todo SRGB textures/framebuffers?
                             "finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(randomGLSL).add(tonemapGLSL), finalResultStage
+                ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity), finalResultStage
             )
         }
     }

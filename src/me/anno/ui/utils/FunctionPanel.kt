@@ -5,9 +5,9 @@ import me.anno.gpu.drawing.DrawCurves.lineBatch
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import java.math.BigDecimal
@@ -18,9 +18,11 @@ import kotlin.math.*
 /**
  * Panel, which draws a numeric function as a graph, and lets the user navigate like on a map.
  * */
-open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Style) : MapPanel(style) {
+abstract class FunctionPanel(style: Style) : MapPanel(style) {
 
-    constructor(function: Function1d, style: Style) : this(listOf(function to -1), style)
+    abstract fun getNumFunctions(): Int
+    abstract fun getValue(index: Int, x: Double): Double
+    abstract fun getColor(index: Int): Int
 
     var lineThickness = 1f
     var functionName: String? = "f"
@@ -99,14 +101,17 @@ open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Styl
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         drawNumbered2DLineGrid(x0, y0, x1, y1)
-        for ((function, lineColor) in functions) {
-            drawCurve(x0, y0, x1, y1, function, lineColor, lineThickness)
+        for (funcIndex in 0 until getNumFunctions()) {
+            val lineColor = getColor(funcIndex)
+            drawCurve(x0, y0, x1, y1, funcIndex, lineColor, lineThickness)
         }
-        showValueAtCursor()
+        if (isHovered) {
+            showValueAtCursor()
+        }
     }
 
     fun drawNumbered2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val s0 = log10(windowToCoordsDirY(height.toDouble()))
+        val s0 = log10(max(windowToCoordsDirY(height.toDouble()), 1e-308))
         val s1 = floor(s0)
         val s2 = 10.0.pow(s1)
         val sf = 1f - (s0 - s1).toFloat()
@@ -123,7 +128,7 @@ open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Styl
         if (window != null && funcName != null) {
             val mx = window.mouseX.toDouble()
             val vx = windowToCoordsX(mx)
-            val vy = functions.map { (func, _) -> func.calc(vx) }
+            val vy = (0 until getNumFunctions()).map { getValue(it, vx) }
             drawSimpleTextCharByChar(
                 x, y, 2,
                 "$funcName($vx): $vy"
@@ -131,7 +136,7 @@ open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Styl
         }
     }
 
-    fun drawCurve(x0: Int, y0: Int, x1: Int, y1: Int, func: Function1d, lineColor: Int, lineThickness: Float) {
+    fun drawCurve(x0: Int, y0: Int, x1: Int, y1: Int, funcIndex: Int, lineColor: Int, lineThickness: Float) {
         val bgColor = backgroundColor
         var lx = 0f
         var ly = 0f
@@ -142,7 +147,7 @@ open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Styl
         for (x in x0 until x1) {
             val xd = x.toDouble()
             val xv = windowToCoordsX(xd)
-            val yv = -func.calc(xv)
+            val yv = -getValue(funcIndex, xv)
             val yd = coordsToWindowY(yv)
             val xf = xd.toFloat()
             val yf = yd.toFloat()
@@ -154,5 +159,4 @@ open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Styl
         }
         lineBatch.finish(v)
     }
-
 }

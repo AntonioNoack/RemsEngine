@@ -46,6 +46,7 @@
       <element id="module-output" name="Engine" />
       <element id="module-output" name="KOML" />
       <element id="module-output" name="Bullet" />
+      <element id="module-output" name="Mesh" />
     </root>
   </artifact>
 </component>

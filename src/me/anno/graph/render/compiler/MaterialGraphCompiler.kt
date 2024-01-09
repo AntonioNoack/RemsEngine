@@ -1,6 +1,7 @@
 package me.anno.graph.render.compiler
 
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
@@ -218,7 +219,7 @@ class MaterialGraphCompiler(
                                 // todo optional sheen calculation
                                 reflectionCalculation +
                                 finalMotionCalculation
-                    ).add(functions)
+                    ).add(functions).add(RendererLib.getReflectivity)
                 )
             }
         }

@@ -53,6 +53,7 @@ class Cursor : ICacheData {
 
     companion object {
         val default = Cursor(0)
+        val resize = Cursor(GLFW_RESIZE_ALL_CURSOR)
         val hResize = Cursor(GLFW_HRESIZE_CURSOR)
         val vResize = Cursor(GLFW_VRESIZE_CURSOR)
         val editText = Cursor(GLFW_IBEAM_CURSOR)

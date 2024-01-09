@@ -12,9 +12,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import org.lwjgl.opengl.GL11C.GL_UNSIGNED_BYTE
-import org.lwjgl.opengl.GL11C.glTexImage2D
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import kotlin.math.max
 

@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL46C
 
 /**
  * standard, presentation framebuffer
@@ -22,7 +22,7 @@ object NullFramebuffer : IFramebuffer {
     override fun ensure() {}
 
     override fun bindDirectly() {
-        Framebuffer.bindFramebuffer(GL30C.GL_FRAMEBUFFER, 0)
+        Framebuffer.bindFramebuffer(GL46C.GL_FRAMEBUFFER, 0)
         Frame.lastPtr = 0
     }
 

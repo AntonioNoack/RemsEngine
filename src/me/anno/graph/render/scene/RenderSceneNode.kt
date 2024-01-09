@@ -17,7 +17,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
-import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 
 class RenderSceneNode : RenderSceneNode0(
     "Render Scene",

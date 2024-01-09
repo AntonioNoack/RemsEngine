@@ -30,7 +30,7 @@ import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 
 /**
  * collects the lights within a scene

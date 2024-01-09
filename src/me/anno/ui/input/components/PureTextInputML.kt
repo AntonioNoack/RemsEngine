@@ -70,8 +70,6 @@ open class PureTextInputML(style: Style) :
             }
         }
 
-    // todo use these listeners
-    // todo call them: enter when limit is reached, or shift is pressed with enter
     private var enterListener: ((text: String) -> Unit)? = null
     private var resetListener: (() -> String?)? = null
 

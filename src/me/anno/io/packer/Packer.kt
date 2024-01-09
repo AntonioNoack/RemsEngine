@@ -20,7 +20,7 @@ import kotlin.math.abs
 object Packer {
 
     // todo remove unnecessary classes, if possible
-    // todo e.g. we only need a few image formats,
+    //  e.g. we only need a few image formats,
     // we don't need pdf etc. (except we export an editor), ...
 
     //////////////////////////////////////////
@@ -57,7 +57,7 @@ object Packer {
 
     // the best formats (probably)
     // images  png, jpg, hdr
-    // audio  mp3
+    // audio  mp3 -> ogg is better?
     // video  mp4
     // documents  md/svg/pdf?
     // mesh   Rem's Engine .json

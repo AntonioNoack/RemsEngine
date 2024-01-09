@@ -1,12 +1,10 @@
 package me.anno.ui.input
 
-import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong
@@ -18,7 +16,7 @@ import kotlin.math.roundToLong
 open class IntInput(
     title: String,
     visibilityKey: String,
-    type: Type = Type.LONG,
+    type: NumberType = NumberType.LONG,
     style: Style,
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
@@ -40,27 +38,27 @@ open class IntInput(
         }
     }
 
-    constructor(style: Style) : this("", "", Type.LONG, style)
+    constructor(style: Style) : this("", "", NumberType.LONG, style)
 
     @Suppress("unused")
-    constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value0: Int, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
     @Suppress("unused")
-    constructor(title: String, visibilityKey: String, value0: Long, type: Type, style: Style) :
+    constructor(title: String, visibilityKey: String, value0: Long, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Int, style: Style) :
-            this(title, visibilityKey, Type.LONG, style) {
+            this(title, visibilityKey, NumberType.LONG, style) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Long, style: Style) :
-            this(title, visibilityKey, Type.LONG, style) {
+            this(title, visibilityKey, NumberType.LONG, style) {
         setValue(value0, false)
     }
 

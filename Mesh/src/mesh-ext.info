@@ -1,0 +1,4 @@
+plugin-name: Mesh Loaders
+author: Antonio Noack
+description: Loads meshes of all kinds of file formats
+main-class: me.anno.mesh.MeshLoaderPlugin

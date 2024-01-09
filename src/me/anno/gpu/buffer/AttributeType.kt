@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 
 @Suppress("unused")
 enum class AttributeType(val byteSize: Int, val normalized: Boolean, val id: Int) {

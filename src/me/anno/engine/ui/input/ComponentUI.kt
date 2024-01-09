@@ -1,6 +1,6 @@
 package me.anno.engine.ui.input
 
-import me.anno.animation.Type
+import me.anno.ui.input.NumberType
 import me.anno.ecs.annotations.ListType
 import me.anno.ecs.annotations.MapType
 import me.anno.ecs.annotations.Range
@@ -417,7 +417,7 @@ object ComponentUI {
             }
             // todo char
             "Byte" -> {
-                val type = Type(default as Byte,
+                val type = NumberType(default as Byte,
                     { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
@@ -432,7 +432,7 @@ object ComponentUI {
                 }
             }
             "UByte" -> {
-                val type = Type(default as UByte,
+                val type = NumberType(default as UByte,
                     { clamp(AnyToLong.getLong(it, 0), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
@@ -447,7 +447,7 @@ object ComponentUI {
                 }
             }
             "Short" -> {
-                val type = Type(default as Short,
+                val type = NumberType(default as Short,
                     { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
@@ -462,7 +462,7 @@ object ComponentUI {
                 }
             }
             "UShort" -> {
-                val type = Type(default as UShort,
+                val type = NumberType(default as UShort,
                     {
                         clamp(
                             AnyToLong.getLong(it, 0),
@@ -494,7 +494,7 @@ object ComponentUI {
                         }
                     }
                 } else {
-                    val type = Type(default as? Int ?: 0,
+                    val type = NumberType(default as? Int ?: 0,
                         { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
                     return IntInput(title, visibilityKey, type, style).apply {
                         alignmentX = AxisAlignment.FILL
@@ -509,7 +509,7 @@ object ComponentUI {
                 }
             }
             "UInt" -> {
-                val type = Type(default as? UInt ?: 0u,
+                val type = NumberType(default as? UInt ?: 0u,
                     { clamp(AnyToLong.getLong(it, 0), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
@@ -524,7 +524,7 @@ object ComponentUI {
                 }
             }
             "Long" -> {
-                val type = Type(default as? Long ?: 0L,
+                val type = NumberType(default as? Long ?: 0L,
                     { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -538,7 +538,7 @@ object ComponentUI {
                 }
             }
             "ULong" -> {// not fully supported
-                val type = Type(default as? ULong ?: 0uL,
+                val type = NumberType(default as? ULong ?: 0uL,
                     { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -553,7 +553,7 @@ object ComponentUI {
             }
             // todo slider type, which returns a float in 01 range
             "Float" -> {
-                val type = Type(AnyToFloat.getFloat(default, 0f),
+                val type = NumberType(AnyToFloat.getFloat(default, 0f),
                     { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -567,7 +567,7 @@ object ComponentUI {
                 }
             }
             "Double" -> {
-                val type = Type(default as? Double ?: 0.0,
+                val type = NumberType(default as? Double ?: 0.0,
                     { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     alignmentX = AxisAlignment.FILL
@@ -609,7 +609,7 @@ object ComponentUI {
             // float vectors
             // todo ranges for vectors
             "Vector2f" -> {
-                val type = Type.VEC2.withDefault(default as? Vector2f ?: Vector2f())
+                val type = NumberType.VEC2.withDefault(default as? Vector2f ?: Vector2f())
                 return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -621,7 +621,7 @@ object ComponentUI {
                 }
             }
             "Vector3f" -> {
-                val type = Type.VEC3.withDefault(default as? Vector3f ?: Vector3f())
+                val type = NumberType.VEC3.withDefault(default as? Vector3f ?: Vector3f())
                 return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -633,7 +633,7 @@ object ComponentUI {
                 }
             }
             "Vector4f" -> {
-                val type = Type.VEC4.withDefault(default as? Vector4f ?: Vector4f())
+                val type = NumberType.VEC4.withDefault(default as? Vector4f ?: Vector4f())
                 return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -645,7 +645,7 @@ object ComponentUI {
                 }
             }
             "Planef" -> {
-                val type = Type.PLANE4.withDefault(default as? Planef ?: Planef())
+                val type = NumberType.PLANE4.withDefault(default as? Planef ?: Planef())
                 return FloatVectorInput(title, visibilityKey, value as Planef, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -657,7 +657,7 @@ object ComponentUI {
                 }
             }
             "Vector2d" -> {
-                val type = Type.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
+                val type = NumberType.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
                 return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -669,7 +669,7 @@ object ComponentUI {
                 }
             }
             "Vector3d" -> {
-                val type = Type.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
+                val type = NumberType.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
                 return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -681,7 +681,7 @@ object ComponentUI {
                 }
             }
             "Vector4d" -> {
-                val type = Type.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
+                val type = NumberType.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
                 return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -693,7 +693,7 @@ object ComponentUI {
                 }
             }
             "Planed" -> {
-                val type = Type.PLANE4D.withDefault(default as? Planed ?: Planed())
+                val type = NumberType.PLANE4D.withDefault(default as? Planed ?: Planed())
                 return FloatVectorInput(title, visibilityKey, value as Planed, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -706,7 +706,7 @@ object ComponentUI {
             }
             // int vectors
             "Vector2i" -> {
-                val type = Type(default as? Vector2i ?: Vector2i(), 2)
+                val type = NumberType(default as? Vector2i ?: Vector2i(), 2)
                 return IntVectorInput(title, visibilityKey, value as Vector2i, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -718,7 +718,7 @@ object ComponentUI {
                 }
             }
             "Vector3i" -> {
-                val type = Type(default as? Vector3i ?: Vector3i(), 3)
+                val type = NumberType(default as? Vector3i ?: Vector3i(), 3)
                 return IntVectorInput(title, visibilityKey, value as Vector3i, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -730,7 +730,7 @@ object ComponentUI {
                 }
             }
             "Vector4i" -> {
-                val type = Type(default as? Vector4i ?: Vector4i(), 4)
+                val type = NumberType(default as? Vector4i ?: Vector4i(), 4)
                 return IntVectorInput(title, visibilityKey, value as Vector4i, type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -746,7 +746,7 @@ object ComponentUI {
             // entered using yxz angle, because that's much more intuitive
             "Quaternionf" -> {
                 value as Quaternionf
-                val type = Type.ROT_YXZ.withDefault((default as Quaternionf).toEulerAnglesDegrees())
+                val type = NumberType.ROT_YXZ.withDefault((default as Quaternionf).toEulerAnglesDegrees())
                 return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -760,7 +760,7 @@ object ComponentUI {
             }
             "Quaterniond" -> {
                 value as Quaterniond
-                val type = Type.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
+                val type = NumberType.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
                 return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -837,7 +837,7 @@ object ComponentUI {
                 // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
                     panel.add(
-                        FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
+                        FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), NumberType.VEC4, style)
                             .addChangeListener { x, y, z, w, _ ->// todo correct change listener
                                 value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                             }
@@ -859,7 +859,7 @@ object ComponentUI {
             "AABBf" -> {
                 value as AABBf
                 default as AABBf
-                val typeMin = Type.VEC3.withDefault(default.getMin())
+                val typeMin = NumberType.VEC3.withDefault(default.getMin())
                 val panel = TitledListY(title, visibilityKey, style)
                 panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
                     property.init(this)
@@ -870,7 +870,7 @@ object ComponentUI {
                         property.set(this, value, mask.and(7))
                     }
                 })
-                val typeMax = Type.VEC3D.withDefault(default.getMax())
+                val typeMax = NumberType.VEC3D.withDefault(default.getMax())
                 panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)
@@ -886,7 +886,7 @@ object ComponentUI {
             "AABBd" -> {
                 value as AABBd
                 default as AABBd
-                val typeMin = Type.VEC3D.withDefault(default.getMin())
+                val typeMin = NumberType.VEC3D.withDefault(default.getMin())
                 val panel = TitledListY(title, visibilityKey, style)
                 panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
                     property.init(this)
@@ -897,7 +897,7 @@ object ComponentUI {
                         property.set(this, value, mask.and(3))
                     }
                 })
-                val typeMax = Type.VEC3D.withDefault(default.getMax())
+                val typeMax = NumberType.VEC3D.withDefault(default.getMax())
                 panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
                     alignmentX = AxisAlignment.FILL
                     property.init(this)

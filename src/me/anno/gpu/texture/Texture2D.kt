@@ -39,10 +39,8 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11.GL_R
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
-import org.lwjgl.opengl.GL45C.*
+import org.lwjgl.opengl.GL14
+import org.lwjgl.opengl.GL46C.*
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
@@ -187,7 +185,7 @@ open class Texture2D(
             }
         }
         val numChannels = when (dataFormat) {
-            GL_R, GL_RED, GL_RED_INTEGER -> 1
+            GL_RED, GL_RED_INTEGER -> 1
             GL_RG, GL_RG_INTEGER -> 2
             GL_RGB, GL_BGR, GL_RGB_INTEGER -> 3
             GL_RGBA, GL_BGRA, GL_RGBA_INTEGER -> 4
@@ -1110,7 +1108,7 @@ open class Texture2D(
             }
             // whenever the base mipmap is changed, the mipmaps will be updated :)
             // todo it seems like this needs to be called manually in WebGL
-            glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
+            glTexParameteri(target, GL14.GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
@@ -1231,7 +1229,7 @@ open class Texture2D(
         useFrame(this, 0) {
             glFlush()
             glFinish()
-            GL11C.glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         }
         switchRGB2BGR(buffer)
         val image = IntImage(width, height, buffer, channels > 3)

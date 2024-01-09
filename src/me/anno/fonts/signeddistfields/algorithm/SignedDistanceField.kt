@@ -78,7 +78,6 @@ object SignedDistanceField {
         val invH = 1f / (h - 1f)
         val invW = 1f / (w - 1f)
 
-        // todo add this offset in Rem's Studio
         val offset = 0.5f // such that the shader can be the same even if the system only supports normal textures
         for (y in 0 until h) {
 

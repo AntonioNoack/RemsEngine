@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.Build
 import me.anno.Engine
+import me.anno.studio.Events.addEvent
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.file.FileSystems
@@ -98,7 +99,9 @@ object FileWatch {
                             .toString()
                             .replace('\\', '/')
                         val absolutePath = "$folder/$fileName"
-                        FileReference.invalidate(absolutePath)
+                        addEvent {
+                            FileReference.invalidate(absolutePath)
+                        }
                         LOGGER.debug("{} {}", kind, absolutePath)
 
                         // they say the directory is no longer valid...

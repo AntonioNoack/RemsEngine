@@ -12,7 +12,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL43C.*
+import org.lwjgl.opengl.GL46C.*
 
 class Framebuffer(
     override var name: String,

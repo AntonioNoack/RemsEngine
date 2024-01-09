@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="Recast" />
     <orderEntry type="module" module-name="Box2d" />
     <orderEntry type="module" module-name="KOML" />
+    <orderEntry type="module" module-name="Mesh" />
   </component>
 </module>

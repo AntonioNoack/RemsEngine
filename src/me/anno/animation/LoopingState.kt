@@ -13,6 +13,9 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
             return clamp(time, 0, duration)
         }
     },
+    /**
+     * this plays on repeat
+     * */
     PLAY_LOOP(1, NameDesc("Looping")) {
         override fun get(time: Double, duration: Double): Double {
             val t = time % duration
@@ -25,6 +28,10 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
             return if (t < 0) t + duration else t
         }
     },
+    /**
+     * This plays forward, then backward, then repeat.
+     * It's not supported everywhere, e.g., getting videos to play backwards isn't that common/straight forward.
+     * */
     PLAY_REVERSING_LOOP(2, NameDesc("Reversing")) {
         override fun get(time: Double, duration: Double): Double {
             val doubleDuration = 2.0 * duration

@@ -225,7 +225,7 @@ object PrefabCache : CacheSection("Prefab") {
         } else callback(null, null)
     }
 
-    var debugLoading = false
+    var debugLoading = true
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,

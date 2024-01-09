@@ -118,8 +118,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         LastModifiedCache.invalidate(file)
     }
 
-    override fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
-        super.writeFile(file, deltaProgress, callback)
+    override fun writeFile(
+        file: FileReference,
+        progress: (delta: Long, total: Long) -> Unit,
+        callback: (Exception?) -> Unit
+    ) {
+        super.writeFile(file, progress, callback)
         LastModifiedCache.invalidate(file)
     }
 

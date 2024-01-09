@@ -11,7 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL43C.*
+import org.lwjgl.opengl.GL46C.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

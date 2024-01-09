@@ -4,11 +4,12 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.utils.FunctionPanel
+import me.anno.ui.utils.FunctionPanelNd
 import kotlin.math.sin
 
 fun main() {
     disableRenderDoc()
     testUI3("Function Panel") {
-        FunctionPanel({ x -> sin(x * x) / x }, style)
+        FunctionPanelNd({ x -> sin(x * x) / x }, style)
     }
 }

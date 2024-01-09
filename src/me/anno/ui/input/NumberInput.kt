@@ -1,21 +1,19 @@
 package me.anno.ui.input
 
-import me.anno.animation.Type
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isLeftDown
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
-import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput<BaseType>(
     style: Style,
     title: String,
     val visibilityKey: String,
-    val type: Type = Type.FLOAT,
+    val type: NumberType = NumberType.FLOAT,
     inputPanel0: NumberInputComponent?
 ) : PanelListY(style), InputPanel<BaseType>, TextStyleable {
 
@@ -148,5 +146,4 @@ abstract class NumberInput<BaseType>(
     }
 
     override fun getCursor(): Cursor = Cursor.drag
-
 }

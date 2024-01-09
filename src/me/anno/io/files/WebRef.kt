@@ -2,10 +2,12 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
 import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -85,7 +87,13 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun inputStreamSync(): InputStream {
-        return toURL().openStream()
+        val connection = toURL().openConnection() as HttpURLConnection
+        if (connection.responseCode == 200) {
+            return connection.inputStream
+        } else {
+            LOGGER.warn(connection.errorStream.readText())
+            throw IOException("$absolutePath failed")
+        }
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -133,6 +141,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(WebRef::class)
         val webCache = CacheSection("Web")
 
         private fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {

@@ -99,13 +99,20 @@ object BlenderMeshConverter {
 
         // todo vertex colors
         val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
-        val triCount = polygons.sumOf {
+        val triCount0 = polygons.sumOf {
             when (val size = it.loopSize) {
                 0 -> 0
                 1, 2 -> 1
                 else -> size - 2
-            }
+            }.toLong()
         }
+
+        if (triCount0 < 0 || triCount0 > 100_000_000) {
+            LOGGER.warn("Invalid number of triangles: $triCount0")
+            return null
+        }
+
+        val triCount = triCount0.toInt()
 
         val boneWeights = src.vertexGroups
         val materialIndices = if (materials.size > 1) IntArray(triCount) else null

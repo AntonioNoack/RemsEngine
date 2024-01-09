@@ -36,7 +36,9 @@ open class InnerFolder(
 
     override fun invalidate() {
         super.invalidate()
-        for (child in children.values) child.invalidate()
+        for (child in children.values) {
+            child.invalidate()
+        }
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {

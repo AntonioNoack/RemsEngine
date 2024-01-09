@@ -5,12 +5,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
-import org.lwjgl.opengl.GL31C.*
-import org.lwjgl.opengl.GL43C.GL_BUFFER
-import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL46C.*
 import org.lwjgl.system.MemoryUtil
 
-class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int = GL_STATIC_DRAW) :
+class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
     OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
 
     var indices: IntArray = indices
@@ -73,7 +71,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 val buffer = ByteBufferPool.allocate(indices.size)
                 for (i in indices) buffer.put(i.toByte())
                 buffer.flip()
-                GL30C.glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                GL46C.glBufferData(GL46C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
             }*/
             maxIndex < 65536 -> {
                 elementsType = AttributeType.UINT16
@@ -84,7 +82,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 if (indices.size * 2L == locallyAllocated) {
                     glBufferSubData(target, 0, buffer)
                 } else {
-                    glBufferData(target, buffer, usage)
+                    glBufferData(target, buffer, usage.id)
                 }
                 locallyAllocated = allocate(locallyAllocated, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
@@ -95,7 +93,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 if (indices.size * 4L == locallyAllocated) {
                     glBufferSubData(target, 0, indices)
                 } else {
-                    glBufferData(target, indices, usage)
+                    glBufferData(target, indices, usage.id)
                 }
                 locallyAllocated = allocate(locallyAllocated, indices.size * 4L)
             }

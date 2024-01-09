@@ -11,8 +11,8 @@ import me.anno.gpu.texture.Texture2D.Companion.getNumberType
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.GL_FLOAT
-import org.lwjgl.opengl.GL30C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 

@@ -9,7 +9,7 @@ import me.anno.gpu.shader.builder.Varying
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL46C.*
 
 // todo locations for the varyings: for debugging with RenderDoc
 

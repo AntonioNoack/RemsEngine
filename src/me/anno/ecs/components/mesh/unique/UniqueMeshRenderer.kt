@@ -4,10 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.*
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.Buffer
-import me.anno.gpu.buffer.DrawMode
-import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.buffer.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
@@ -20,7 +17,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
-import org.lwjgl.opengl.GL31C.GL_DYNAMIC_DRAW
 
 /**
  * renderer for static geometry, that still can be partially loaded/unloaded
@@ -45,8 +41,8 @@ abstract class UniqueMeshRenderer<Key>(
     val entries = ArrayList<MeshEntry>()
     val ranges = ArrayList<IntRange>()
 
-    private var buffer0 = StaticBuffer("umr0", attributes, 0, GL_DYNAMIC_DRAW)
-    private var buffer1 = StaticBuffer("urm1", attributes, 0, GL_DYNAMIC_DRAW)
+    private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
+    private var buffer1 = StaticBuffer("urm1", attributes, 0, BufferUsage.DYNAMIC)
 
     @DebugProperty
     @NotSerializedProperty

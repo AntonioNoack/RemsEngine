@@ -7,15 +7,10 @@ import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.*
-import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.blender.BlenderReader
-import me.anno.mesh.maya.MayaASCII2015
-import me.anno.mesh.mitsuba.MitsubaReader
-import me.anno.mesh.obj.MTLReader
-import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -87,17 +82,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
 
         // meshes
         // to do all mesh extensions
-        register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh")) { it, c ->
-            c(AnimatedMeshesLoader.readAsFolder(it), null)
-        }
-        register("blend", BlenderReader::readAsFolder)
-        register("obj", OBJReader.Companion::readAsFolder)
-        register("mtl", MTLReader.Companion::readAsFolder)
         register("vox", VOXReader.Companion::readAsFolder)
-        register("maya", MayaASCII2015::readAsFolder)
-
-        register("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
-        register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
 
         // cannot be read by assimp anyway
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
@@ -129,7 +114,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         return data?.value as? InnerFolder
     }
 
-
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
@@ -145,7 +129,9 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
                     if (ec is ZipException && ec.message == "Archive is not a ZIP archive") {
                         LOGGER.warn("{} '{}'", ec.message, file)
                     } else ec?.printStackTrace()
-                    Unit
+                    if (folder != null) { // todo remove watch dog when unloading it?
+                        FileWatch.addWatchDog(file1)
+                    }
                 }
                 if (reader != null) {
                     reader(file1, callback)
@@ -177,5 +163,4 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
      * is there a better strategy than this?? maybe index a few on every go to load something
      * */
     var sizeLimit = 20_000_000L
-
 }

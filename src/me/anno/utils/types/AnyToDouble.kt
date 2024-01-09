@@ -22,7 +22,15 @@ object AnyToDouble {
                 0 -> this.toDouble()
                 else -> defaultValue
             }
+            is UByte -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
             is Short -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
+            is UShort -> when (index) {
                 0 -> this.toDouble()
                 else -> defaultValue
             }
@@ -30,7 +38,15 @@ object AnyToDouble {
                 0 -> this.toDouble()
                 else -> defaultValue
             }
+            is UInt -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
             is Long -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
+            is ULong -> when (index) {
                 0 -> this.toDouble()
                 else -> defaultValue
             }
@@ -122,6 +138,24 @@ object AnyToDouble {
                 1 -> y.toDouble()
                 2 -> z.toDouble()
                 3 -> w.toDouble()
+                else -> defaultValue
+            }
+            is AABBf -> when(index){
+                0 -> minX.toDouble()
+                1 -> minY.toDouble()
+                2 -> minZ.toDouble()
+                3 -> maxX.toDouble()
+                4 -> maxY.toDouble()
+                5 -> maxZ.toDouble()
+                else -> defaultValue
+            }
+            is AABBd -> when(index){
+                0 -> minX
+                1 -> minY
+                2 -> minZ
+                3 -> maxX
+                4 -> maxY
+                5 -> maxZ
                 else -> defaultValue
             }
             is CharSequence -> toString()

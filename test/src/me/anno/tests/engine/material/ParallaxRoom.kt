@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.GLSLType
@@ -122,6 +123,7 @@ object ParallaxRoomShader : ECSMeshShader("ParallaxRoom") {
             ).add(ShaderLib.quatRot).add(ShaderLib.brightness)
                 // .add(ShaderLib.parallaxMapping)
                 .add(ShaderLib.blendColor)
+                .add(RendererLib.getReflectivity)
         )
     }
 }

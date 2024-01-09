@@ -27,7 +27,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
-import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL46C.*
 import java.nio.IntBuffer
 
 // todo sims game with baked, high quality lighting

@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
@@ -231,6 +232,7 @@ object SDFComposer {
                 functions.add(quatRot)
                 functions.add(rawToDepth)
                 functions.add(depthToPosition)
+                functions.add(RendererLib.getReflectivity)
                 stage.add(build(functions, shapeDependentShader))
                 return listOf(stage)
             }

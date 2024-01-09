@@ -8,7 +8,9 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.joml.Vector4d
 import kotlin.math.*
 
-// https://easings.net/
+/**
+ * these are the easing functions from https://easings.net/
+ * */
 @Suppress("unused")
 enum class Interpolation(
     val id: Int, val symbol: String,

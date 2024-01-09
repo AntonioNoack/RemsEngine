@@ -12,7 +12,6 @@ import me.anno.utils.Color.r
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.lwjgl.opengl.GL15C.GL_STREAM_DRAW
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -60,7 +59,7 @@ object TriangleBuffer {
 
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
-    private val buffer = StaticBuffer("lines", attributes, 65536, GL_STREAM_DRAW)
+    private val buffer = StaticBuffer("lines", attributes, 65536, BufferUsage.STREAM)
     const val triangleSize = 3 * (3 * 4 + 4)
 
     var bytes: ByteBuffer

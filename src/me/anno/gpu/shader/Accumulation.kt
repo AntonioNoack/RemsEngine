@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.builder.Variable
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL42C.*
+import org.lwjgl.opengl.GL46C.*
 import kotlin.math.min
 
 /**

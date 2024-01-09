@@ -111,7 +111,7 @@ object BlenderReader {
         clock.stop("read meshes")
     }
 
-    private fun readAnimation(action: BAction, givenBones: List<Bone>, skeleton: FileReference): Animation? {
+    private fun readAnimation(action: BAction, givenBones: List<Bone>, skeleton: FileReference, fps: Float): Animation? {
         val curves = action.curves // animated values
         if (curves.any { it.path.startsWith("pose.bones[\"") }) {
 
@@ -181,7 +181,7 @@ object BlenderReader {
         // LOGGER.debug("Action[{}]: {}", i, action)
     }
 
-    private fun extractHierarchy(file: BlenderFile): Prefab {
+    private fun extractHierarchy(file: BlenderFile, fps: Float): Prefab {
         val prefab = Prefab("Entity")
         if ("Object" in file.instances) {
 
@@ -202,7 +202,7 @@ object BlenderReader {
                     val name = bObject.id.realName
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
-                    createObject(prefab, bObject, path, false)
+                    createObject(prefab, bObject, path, false, fps)
                 }
                 if (postTransform) {
                     prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
@@ -210,18 +210,16 @@ object BlenderReader {
             } else {
                 // there must be a root
                 paths[roots.first()] = Path.ROOT_PATH
-                createObject(prefab, roots.first(), Path.ROOT_PATH, true)
+                createObject(prefab, roots.first(), Path.ROOT_PATH, true, fps)
             }
 
             for (obj in objects) {
                 obj as BObject
-                makeObject(prefab, obj, paths)
+                makeObject(prefab, obj, paths, fps)
             }
         }
         return prefab
     }
-
-    var fps = 30f
 
     fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
 
@@ -241,6 +239,7 @@ object BlenderReader {
         clock.stop("read blender file")
         // data.printTypes()
 
+        var fps = 30f
         for (scene in file.instances["Scene"] ?: emptyList()) {
             scene as BScene
             LOGGER.debug("Scene: {}", scene)
@@ -253,20 +252,20 @@ object BlenderReader {
         readMeshes(file, folder, clock)
         // readAnimations(file, folder, clock)
 
-        val prefab = extractHierarchy(file)
+        val prefab = extractHierarchy(file, fps)
         prefab.sealFromModifications()
         folder.createPrefabChild("Scene.json", prefab)
         clock.stop("read hierarchy")
         return folder
     }
 
-    private fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>): Path {
+    private fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>, fps: Float): Path {
         return paths.getOrPut(obj) {
             val name = obj.id.realName
-            val parent = makeObject(prefab, obj.parent!!, paths)
+            val parent = makeObject(prefab, obj.parent!!, paths, fps)
             val childIndex = prefab.adds[parent]?.count { it.type == 'e' } ?: 0
             val path = Path(parent, name, childIndex, 'e')
-            createObject(prefab, obj, path, false)
+            createObject(prefab, obj, path, false, fps)
             path
         }
     }
@@ -333,7 +332,7 @@ object BlenderReader {
         return dstBoneIndices
     }
 
-    fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean) {
+    fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
                 path.parent ?: Path.ROOT_PATH,
@@ -407,7 +406,7 @@ object BlenderReader {
                             armatureObject.animData?.action ?: obj.animData?.action // obj.animData just in case
                         if (action != null) {
                             @Suppress("UNCHECKED_CAST")
-                            val animation = readAnimation(action, skeleton["bones"] as List<Bone>, skeletonRef)
+                            val animation = readAnimation(action, skeleton["bones"] as List<Bone>, skeletonRef, fps)
                             if (animation != null) {
                                 val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
                                 prefab[c, "animations"] = listOf(animState)

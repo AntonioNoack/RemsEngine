@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
+import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -98,7 +99,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val reflectionPlaneCalculation = "" +
                 // reflections
                 "if(hasReflectionPlane){\n" +
-                "   float effect = dot(reflectionPlaneNormal,finalNormal) * sqrt((1.0 - finalRoughness) * finalMetallic);\n" +
+                "   float effect = dot(reflectionPlaneNormal,finalNormal) * getReflectivity(finalRoughness,finalMetallic);\n" +
                 "   float factor = min(effect, 1.0);\n" +
                 "   if(factor > 0.0){\n" +
                 // todo distance to plane, and fading
@@ -130,20 +131,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionMapCalculation = "" +
                 "#ifdef DEFERRED\n" +
-                "   float factor = finalMetallic * (1.0 - finalRoughness);\n" +
-                "   if(factor > 0.0){\n" +
+                "   float reflectivity = getReflectivitySq(finalRoughness,finalMetallic);\n" +
+                "   if(reflectivity > 0.0){\n" +
+                "       reflectivity = sqrt(reflectivity);\n" +
                 "       vec3 dir = $cubemapsAreLeftHanded * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear
                 // todo like planar reflections, blur LODs (?)
                 "       float lod = finalRoughness * 5.0;\n" +
                 "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3(2.2));\n" +
-                "       finalEmissive += finalColor * skyEmissive * factor;\n" +
+                "       finalEmissive += finalColor * skyEmissive * reflectivity;\n" +
                 // doing this would make SSR reflect the incorrect color
-                // "       finalColor    *= 1.0 - factor;\n" +
+                // "       finalColor    *= 1.0 - reflectivity;\n" +
                 // doing this would disable SSR
-                //"       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
-                //"       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
+                //"       finalRoughness = mix(finalRoughness,  1.0, reflectivity);\n" +
+                //"       finalMetallic  = mix(finalMetallic,   0.0, reflectivity);\n" +
                 "   }\n" +
                 "#endif\n" +
                 ""
@@ -517,7 +519,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                                     reflectionCalculation
                         } else "") +
                         finalMotionCalculation
-            ).add(quatRot).add(brightness).add(parallaxMapping)
+            ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity)
         )
     }
 

@@ -9,12 +9,12 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL46C.*
 
-abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
+abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUsage) :
     OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
-    constructor(name: String, attributes: List<Attribute>) : this(name, attributes, GL_STATIC_DRAW)
+    constructor(name: String, attributes: List<Attribute>) : this(name, attributes, BufferUsage.STATIC)
 
     var drawMode = DrawMode.TRIANGLES
     var drawLength
@@ -153,7 +153,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
     fun bind(shader: Shader) {
         checkSession()
         if (!isUpToDate) upload()
-        // else if (drawLength > 0) bindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        // else if (drawLength > 0) bindBuffer(GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributes(shader)
         }
@@ -162,7 +162,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
     fun bindInstanced(shader: Shader, instanceData: Buffer?) {
         checkSession()
         if (!isUpToDate) upload()
-        // else if (drawLength > 0) bindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        // else if (drawLength > 0) bindBuffer(GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributesInstanced(shader, instanceData)
         }

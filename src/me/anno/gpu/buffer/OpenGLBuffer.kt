@@ -13,18 +13,17 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL31C
-import org.lwjgl.opengl.GL43C.GL_BUFFER
-import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL46C.*
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: List<Attribute>, val usage: Int) :
-    ICacheData {
+abstract class OpenGLBuffer(
+    val name: String, val type: Int,
+    var attributes: List<Attribute>, val usage: BufferUsage
+) : ICacheData {
 
-    constructor(name: String, type: Int, attributes: List<Attribute>) : this(name, type, attributes, GL_STATIC_DRAW)
+    constructor(name: String, type: Int, attributes: List<Attribute>) : this(name, type, attributes, BufferUsage.STATIC)
 
     val stride = computeOffsets(attributes)
 
@@ -76,7 +75,7 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
             glBufferSubData(type, 0, nio)
         } else {
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            glBufferData(type, nio, usage)
+            glBufferData(type, nio, usage.id)
         }
 
         GFX.check()
@@ -101,7 +100,7 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         bindBuffer(type, pointer)
 
         locallyAllocated = allocate(locallyAllocated, newLimit)
-        glBufferData(type, newLimit, usage)
+        glBufferData(type, newLimit, usage.id)
 
         GFX.check()
         isUpToDate = true
@@ -146,11 +145,11 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         }
 
         GFX.check()
-        glBindBuffer(GL31C.GL_COPY_READ_BUFFER, pointer)
-        glBindBuffer(GL31C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
-        GL31C.glCopyBufferSubData(
-            GL31C.GL_COPY_READ_BUFFER,
-            GL31C.GL_COPY_WRITE_BUFFER,
+        glBindBuffer(GL_COPY_READ_BUFFER, pointer)
+        glBindBuffer(GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+        glCopyBufferSubData(
+            GL_COPY_READ_BUFFER,
+            GL_COPY_WRITE_BUFFER,
             from, to, size
         )
         GFX.check()

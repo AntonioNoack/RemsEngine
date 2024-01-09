@@ -17,7 +17,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C.*
 import kotlin.concurrent.thread
 import kotlin.math.abs
 

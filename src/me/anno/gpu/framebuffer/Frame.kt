@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.offsetX
 import me.anno.gpu.GFX.offsetY
 import me.anno.gpu.GFXState
-import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL46C
 import kotlin.math.max
 import kotlin.math.min
 
@@ -96,7 +96,7 @@ object Frame {
             GFX.viewportHeight = h
 
             // this is mirrored
-            GL11C.glViewport(x2, y2, w, h)
+            GL46C.glViewport(x2, y2, w, h)
 
             GFX.check()
 

@@ -13,6 +13,8 @@ object PluginRegistry {
             "res://bullet-ext.info",
             "res://recast-ext.info",
             "res://sdf-ext.info",
+            "res://lua-ext.info",
+            "res://mesh-ext.info",
         )
         for (path in paths) {
             ExtensionLoader.tryLoadMainInfo(path)

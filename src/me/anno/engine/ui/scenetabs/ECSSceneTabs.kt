@@ -4,14 +4,12 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.GameEngineProject.Companion.currentProject
-import me.anno.engine.RemsEngine
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
@@ -140,7 +138,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             val tabLocal = tab.file.toLocalPath(project.location)
             if (project.openTabs.add(tabLocal) || project.lastScene != tabLocal) {
                 project.lastScene = tabLocal
-                project.invalidate()
+                project.saveMaybe()
             }
         }
 
@@ -175,7 +173,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         val project = project
         if (project != null) {
             project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
-            project.invalidate()
+            project.saveMaybe()
         }
     }
 

@@ -6,6 +6,7 @@ import me.anno.maths.Maths.pow
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.utils.Function1d
 import me.anno.ui.utils.FunctionPanel
+import me.anno.ui.utils.FunctionPanelNd
 import me.anno.utils.Color.white
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -45,7 +46,7 @@ fun main() {
     // > the approximate behaviour is
     // mix((1-x)^5, 1, 0.96)
     testUI3("FresnelConductor") {
-        FunctionPanel(listOf(
+        FunctionPanelNd(listOf(
             Function1d { fresnelConductorApprox(it.toFloat()).toDouble() } to white,
             Function1d { fresnelConductorExact(it.toFloat(), 1.5f, 0f).toDouble() } to mediumAquamarine
         ), style)

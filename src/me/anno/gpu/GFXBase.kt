@@ -39,9 +39,9 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.*
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL43C.GL_MULTISAMPLE
-import org.lwjgl.opengl.GL43C.glDebugMessageCallback
+import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_MULTISAMPLE
+import org.lwjgl.opengl.GL46C.glDebugMessageCallback
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
@@ -249,7 +249,7 @@ object GFXBase {
         // the engine will still be loading,
         // so it has to be a still image
         // alternatively we could play a small animation
-        GFX.maxSamples = max(1, GL30C.glGetInteger(GL30C.GL_MAX_SAMPLES))
+        GFX.maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         GFX.check()
         // nice features :3
         // cause issues in FrameGen -> not enabled everywhere

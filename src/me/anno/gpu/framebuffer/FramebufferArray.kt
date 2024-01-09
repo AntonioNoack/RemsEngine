@@ -9,7 +9,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL46C.*
 
 class FramebufferArray(
     override var name: String,
