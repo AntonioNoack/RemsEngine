@@ -21,6 +21,7 @@ import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
+import me.anno.installer.Installer
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
@@ -249,6 +250,10 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
         workspace.tryMkdirs()
 
         getWelcomeUI().create(this)
+
+        // do that now, because we now can support progress bars
+        // todo collect progress bars from the start
+        Installer.checkFFMPEGInstall()
 
         ShaderLib.init()
 

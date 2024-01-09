@@ -6,6 +6,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OS.downloads
 import me.anno.utils.files.Files.formatFileSize
 
+// this is fast enough :3, -> so use this for downloads
 fun main() {
     val src = getReference(
         "https://www.dropbox.com/scl/fi/bhst74qy43sf02z00wh58/" +

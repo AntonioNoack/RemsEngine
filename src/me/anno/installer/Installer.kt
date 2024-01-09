@@ -4,9 +4,11 @@ import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
+import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import me.anno.video.ffmpeg.FFMPEG
@@ -24,6 +26,17 @@ object Installer {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(Installer::class)
 
+    private val mirrors = getReference("res://mirrors.txt")
+        .readLinesSync(1024).toList()
+        .mapNotNull {
+            val idx = it.indexOf(':')
+            if (idx > 0 && idx < it.length - 1) {
+                val key = it.substring(0, idx).trim()
+                val value = it.substring(idx + 1).trim()
+                key to value
+            } else null
+        }.associate { it }
+
     // on startup check if ffmpeg can be found
     // if not, download it - from our website?
 
@@ -35,7 +48,7 @@ object Installer {
 
     // all files need to be checked every time
     @JvmStatic
-    fun checkInstall() {
+    fun checkFFMPEGInstall() {
         // todo we need faster mirrors for this; 500kB/s isn't enough
         // todo it would be also nice, if it always was the newest version
         // todo and autoupdating would be nice, too
@@ -51,35 +64,56 @@ object Installer {
         else LOGGER.info("$src already is downloaded :)")
     }
 
-    @JvmStatic
-    fun download(fileName: String, dstFile: FileReference, callback: () -> Unit) =
-        download(fileName, dstFile, true, callback)
+    private fun generateURL(fileName: String, withHttps: Boolean): String {
+        val protocol = if (withHttps) "https" else "http"
+        val name = fileName.replace(" ", "%20")
+        // create subdomain for downloads?
+        return "${protocol}://remsstudio.phychi.com/download/${name}"
+    }
 
     @JvmStatic
-    fun download(fileName: String, dstFile: FileReference, withHttps: Boolean = true, callback: () -> Unit) {
+    fun download(fileName: String, dstFile: FileReference, callback: () -> Unit) {
+        download(
+            fileName, dstFile, listOfNotNull(
+                mirrors[fileName],
+                generateURL(fileName, true),
+                generateURL(fileName, false),
+            ), callback
+        )
+    }
+
+    @JvmStatic
+    fun download(fileName: String, dstFile: FileReference, urls: List<String>, callback: () -> Unit) {
+        thread(name = "Download $fileName") {
+            downloadSync(fileName, dstFile, urls, callback)
+        }
+    }
+
+    @JvmStatic
+    fun downloadSync(fileName: String, dstFile: FileReference, urls: List<String>, callback: () -> Unit) {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
-        thread(name = "Download $fileName") {
-            val window = GFX.someWindow
-            val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
-            val protocol = if (withHttps) "https" else "http"
-            val name = fileName.replace(" ", "%20")
-            val totalURL = "${protocol}://remsstudio.phychi.com/download/${name}"
+        val window = GFX.someWindow
+        val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
+        for (i in urls.indices) {
+            val url = urls[i]
             try {
-                runDownload(URL(totalURL), fileName, dstFile, tmp, progress)
+                runDownload(URL(url), fileName, dstFile, tmp, progress)
                 callback()
+                return
             } catch (e: SSLHandshakeException) {
-                if (withHttps) {
-                    download(fileName, dstFile, false, callback)
-                } else {
-                    LOGGER.error("Something went wrong with HTTPS :/. Please update Java, or download $totalURL to $dstFile :)")
+                if (url == urls.last()) {
+                    progress?.cancel(false)
+                    LOGGER.error("Something went wrong with HTTPS :/. Please update Java, or download $url to $dstFile :)")
                     e.printStackTrace()
                 }
             } catch (e: IOException) {
-                progress?.cancel(false)
-                LOGGER.error("Tried to download $fileName from $totalURL to $dstFile, but failed! You can try to do it yourself.")
-                e.printStackTrace()
+                if (url == urls.last()) {
+                    progress?.cancel(false)
+                    LOGGER.error("Tried to download $fileName from $url to $dstFile, but failed! You can try to do it yourself.")
+                    e.printStackTrace()
+                }
             }
         }
     }

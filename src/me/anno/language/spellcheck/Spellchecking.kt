@@ -82,15 +82,16 @@ object Spellchecking : CacheSection("Spellchecking") {
     }
 
     private val libraries = listOf(
+        // todo these break with NoClassDefFoundError: org/languagetool/language/BritishEnglish
         /*Language.entries.filter {
             it.code.startsWith("en")
         } to "enCompact.jar",*/
-        Language.entries.filter {
+        /*Language.entries.filter {
             it.code.startsWith("en") ||
                     it.code.startsWith("de") ||
                     it.code.startsWith("es") ||
                     it.code.startsWith("fr")
-        } to "de-en-es-frCompact.jar",
+        } to "de-en-es-frCompact.jar",*/
         Language.entries to "allCompact.jar"
     )
 

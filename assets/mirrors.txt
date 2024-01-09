@@ -1,0 +1,4 @@
+// This file contains mappings for files, so they can be downloaded faster.
+spellchecking/allCompact.jar: https://www.dropbox.com/scl/fi/bhst74qy43sf02z00wh58/allCompact.jar?rlkey=d9yvjkrudxj2cjup8kcg0ltyj&dl=1
+ffmpeg/bin/ffmpeg.exe: https://www.dropbox.com/scl/fi/nc4m7tm7jmslj1pmb0y4l/ffmpeg-6.1.1.exe?rlkey=sy8v5fhhxio6v4ylr37pt93yh&dl=1
+ffmpeg/bin/ffprobe.exe: https://www.dropbox.com/scl/fi/nw1zmbcywv116fttxvl4e/ffprobe-6.1.1.exe?rlkey=o5jm7xuz8yk0gt352vvg17w2t&dl=1
