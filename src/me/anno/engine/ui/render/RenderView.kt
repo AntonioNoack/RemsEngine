@@ -1,6 +1,5 @@
 package me.anno.engine.ui.render
 
-// this list of imports is insane XD
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -48,6 +47,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.RenderGraph
+import me.anno.input.Input
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -73,26 +73,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
 
-// to do render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
-// (because meshes at 0 are very common and to be expected)
-
-// done shadows
-
-// done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
-// done nice ui for that: drop down menus at top or bottom
-
-// to do blend between multiple cameras, only allow 2? yes :)
-
-// todo easily allow for multiple players in the same instance, with just player key mapping
-// -> camera cannot be global, or todo it must be switched whenever the player changes
-
-// todo we could do the blending of the scenes using stencil tests <3 (very efficient)
-//  - however it would limit us to a single renderer...
-// -> first just draw a single scene and later todo make it multiplayer
-
 // todo make shaders of materials be references via a file (StaticRef)? this will allow for visual shaders in the future
 
-// todo define the render pipeline from the editor? maybe from the code in an elegant way? top level element?
+// todo define custom render modes using files within the project, editable in a GraphEditor
 
 /**
  * a panel that renders the scene;
@@ -225,15 +208,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         setRenderState()
 
-        // todo draw all local players in their respective fields
-        // todo use customizable masks for the assignment (plus a button mapping)
-        // todo if a color doesn't appear on the mapping, it doesn't need to be drawn
-        // todo more important players can have a larger field
-        // todo slope of these partial windows can be customized for nicer looks
-
-        // localPlayer = world.localPlayers.children.firstOrNull() as? LocalPlayer
-
-        // todo find which sections shall be rendered for what camera
         val player = localPlayer
         var camera0 = player?.cameraState?.previousCamera ?: editorCamera
         val camera1 = player?.cameraState?.currentCamera ?: editorCamera
@@ -664,7 +638,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         width: Int, height: Int, aspectRatio: Float,
         fov: Float, world: PrefabSaveable?
     ) {
-
         pipeline.clear()
         if (isPerspective) {
             pipeline.frustum.definePerspective(
@@ -686,7 +659,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
-        addDefaultLightsIfRequired(pipeline)
+        addDefaultLightsIfRequired(pipeline, world, this)
         entityBaseClickId = pipeline.lastClickId
     }
 
@@ -694,15 +667,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun setClearDepth() {
         stage0.depthMode = depthMode
-        /**
-         * the depth mode is a little convoluted:
-         * - we need to draw the backsides (far) of lights to ensure that we can see them, even if we are inside them
-         * - we want to use the depth test for optimization
-         * - if we choose the normal mode, we wouldn't see it ->
-         * - use the inverse mode, and discard lights that are too close instead of those that are too far
-         * */
-        // todo re-enable, when we know, why the directional light doesn't like this
-        // pipeline.lightPseudoStage.depthMode = invDepthMode
     }
 
     private val depthMode
@@ -965,9 +929,42 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val aabbColorDefault = -1
         val aabbColorHovered = 0xffaaaa or black
 
-        fun addDefaultLightsIfRequired(pipeline: Pipeline) {
+        fun addDefaultLightsIfRequired(pipeline: Pipeline, world: PrefabSaveable?, rv: RenderView?) {
             // todo when we have our directional lights within the skybox somehow, remove this
             if (pipeline.lightStage.size <= 0) {
+                // also somehow calculate the required bounds, and calculate shadows for the default sun
+                val bounds = when (world) {
+                    is Entity -> world.getBounds()
+                    is Component -> {
+                        val bounds = AABBd()
+                        world.fillSpace(Matrix4x3d(), bounds)
+                        bounds
+                    }
+                    else -> null
+                }
+                // todo this raises the draw calls by a factor of 16. why????
+                if (rv != null && false && Input.isShiftDown) {
+                    if (bounds == null || bounds.isEmpty() || bounds.volume > 1e38) {
+                        defaultSun.shadowMapCascades = 0
+                        defaultSun.onUpdate()
+                    } else {
+                        rv.setRenderState() // camera position needs to be reset
+                        defaultSun.rootOverride = world
+                        defaultSun.shadowMapCascades = 1
+                        // calculate good position for sun
+                        val transform = defaultSunEntity.transform
+                        transform.localPosition = transform.localPosition
+                            .set(bounds.centerX, bounds.centerY, bounds.centerZ)
+                        transform.localScale = transform.localScale
+                            .set(3.0 / max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)))
+                        transform.teleportUpdate()
+                        transform.validate()
+                        defaultSun.onUpdate()
+                        defaultSun.rootOverride = null
+                        rv.setRenderState() // camera position needs to be reset
+                        println("drawing shadows at ${Time.gameTime}")
+                    }
+                }
                 defaultSun.fill(pipeline, defaultSunEntity, 0)
             }
         }

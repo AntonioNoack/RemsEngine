@@ -1,8 +1,6 @@
 package me.anno.engine.ui.control
 
-import me.anno.studio.Inspectable
-
-class DraggingControlSettings : Inspectable {
+class DraggingControlSettings : ControlSettings() {
     var snapSettings = SnappingSettings()
     var gridSettings = GridSettings()
 }

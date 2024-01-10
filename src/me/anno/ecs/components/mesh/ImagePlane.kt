@@ -1,27 +1,47 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.CullMode
 import me.anno.gpu.texture.Clamping
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import kotlin.math.max
 
 // todo video plane? :D
-class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
+class ImagePlane(source: FileReference = InvalidRef) : ProceduralMesh() {
 
+    @SerializedProperty
     var async = false
+    // todo if true, somehow get notified when we get the data
+    // for bounds... :/
 
+    @Type("Texture/Reference")
+    @SerializedProperty
+    var source: FileReference
+        get() = material.diffuseMap
+        set(value) {
+            material.diffuseMap = value
+        }
+
+    @SerializedProperty
     var alignmentX = AxisAlignment.CENTER
+
+    @SerializedProperty
     var alignmentY = AxisAlignment.CENTER
 
+    @NotSerializedProperty
     val material = Material()
 
     init {
         material.diffuseMap = source
         material.clamping = Clamping.CLAMP
+        material.cullMode = CullMode.BOTH
         materials = listOf(material.ref)
     }
 
@@ -110,6 +130,15 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
         dst.alignmentY = alignmentY
     }
 
+    override fun onUpdate(): Int {
+        // our save system was evil and first loaded source, then materials, overriding any changes
+        if (materials.firstOrNull() != material.ref) {
+            materials = listOf(material.ref)
+            invalidateMesh()
+        }
+        return 10
+    }
+
     override val className: String get() = "ImagePlane"
 
     companion object {
@@ -117,5 +146,4 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
         val normals = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f)
         val uvs = floatArrayOf(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)
     }
-
 }

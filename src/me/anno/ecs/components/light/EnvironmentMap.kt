@@ -153,7 +153,7 @@ class EnvironmentMap : LightComponentBase() {
 
                 // clear using sky
                 clearSky(pipeline)
-                addDefaultLightsIfRequired(pipeline)
+                addDefaultLightsIfRequired(pipeline, root, null)
                 pipeline.bakedSkybox = RenderView.currentInstance?.pipeline?.bakedSkybox
                 pipeline.draw(false)
             }

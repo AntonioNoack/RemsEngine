@@ -58,10 +58,7 @@ import kotlin.math.tan
 // todo select a bunch of assets, make it a collection,
 //  and draw them using a brush, for foliage
 
-// todo bug: after dragging image,
-//  - firstly, image is not showing
-//  - secondly, image is then showing when dragging another thing
-//  - it would be nice if we could place images onto materials (?)
+// todo it would be nice if we could place images onto materials (?)
 
 // todo gizmos & movement for properties with @PositionAnnotation
 
@@ -90,7 +87,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         renderView.renderMode = RenderMode.values[index]
     }
 
-    val settings = DraggingControlSettings()
+    override val settings = DraggingControlSettings()
     val snappingSettings get() = settings.snapSettings
 
     init {

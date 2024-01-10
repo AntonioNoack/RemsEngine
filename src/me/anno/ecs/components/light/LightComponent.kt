@@ -72,6 +72,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     var depthFunc = DepthMode.CLOSE
 
+    @NotSerializedProperty
+    var rootOverride: PrefabSaveable? = null
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -217,7 +220,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 */
                 val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
                 RenderState.calculateDirections(isPerspective)
-                val root = entity.getRoot(Entity::class)
+                val root = rootOverride ?: entity.getRoot(Entity::class)
                 pipeline.fill(root)
                 result.clearColor(0, depth = true)
                 pipeline.drawWithoutSky()

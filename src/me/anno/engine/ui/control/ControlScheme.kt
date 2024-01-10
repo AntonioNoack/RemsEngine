@@ -32,7 +32,6 @@ import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
@@ -54,6 +53,8 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     val cameraNode = camera.entity!!
 
+    open val settings = ControlSettings()
+
     val selectedEntities
         get() = EditorState.selection.mapNotNull {
             when (it) {
@@ -65,7 +66,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
-    val isSelected get() = uiParent!!.children.any2 { it.isInFocus }
+    val isSelected get() = uiParent!!.isAnyChildInFocus
 
     val dirX = Vector3d()
     val dirY = Vector3d()
@@ -255,13 +256,14 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius
         val s = factor * radius * 1.2
-        if (isSelected && !Input.isControlDown && !Input.isShiftDown && !Input.isAltDown) {
-            if (Input.isKeyDown('a')) velocity.x -= s
-            if (Input.isKeyDown('d')) velocity.x += s
-            if (Input.isKeyDown('w')) velocity.z -= s
-            if (Input.isKeyDown('s')) velocity.z += s
-            if (Input.isKeyDown('q')) velocity.y -= s
-            if (Input.isKeyDown('e')) velocity.y += s
+        val shiftSpace = settings.enableShiftSpaceControls
+        if (isSelected && !Input.isControlDown && (!Input.isShiftDown || shiftSpace) && !Input.isAltDown) {
+            if (Input.isKeyDown(Key.KEY_A)) velocity.x -= s
+            if (Input.isKeyDown(Key.KEY_D)) velocity.x += s
+            if (Input.isKeyDown(Key.KEY_W)) velocity.z -= s
+            if (Input.isKeyDown(Key.KEY_S)) velocity.z += s
+            if (Input.isKeyDown(Key.KEY_Q) || (shiftSpace && Input.isShiftDown)) velocity.y -= s
+            if (Input.isKeyDown(Key.KEY_E) || (shiftSpace && Input.isKeyDown(Key.KEY_SPACE))) velocity.y += s
         }
         if (velocity.lengthSquared() > 0.0001 * sq(radius)) {
             moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
@@ -275,17 +277,10 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
     }
 
     open fun moveCamera(dx: Double, dy: Double, dz: Double) {
-        val normXZ = !Input.isShiftDown // todo use UI toggle instead
         val r = rotationTarget
         val fromDegrees = PI / 180
         val y = r.y * fromDegrees
-        if (normXZ) {
-            val c = cos(y)
-            val s = sin(y)
-            dirX.set(+c, 0.0, +s)
-            dirZ.set(-s, 0.0, +c)
-            dirY.set(0.0, 1.0, 0.0)
-        } else {
+        if (settings.changeYByWASD) {
             val x = r.x * fromDegrees
             val z = r.z * fromDegrees
             val m = JomlPools.mat3d.borrow()
@@ -293,6 +288,12 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             dirX.set(1.0, 0.0, 0.0).mul(m)
             dirY.set(0.0, 1.0, 0.0).mul(m)
             dirZ.set(0.0, 0.0, 1.0).mul(m)
+        } else {
+            val c = cos(y)
+            val s = sin(y)
+            dirX.set(+c, 0.0, +s)
+            dirZ.set(-s, 0.0, +c)
+            dirY.set(0.0, 1.0, 0.0)
         }
         renderView.orbitCenter.add(
             dirX.dot(dx, dy, dz),
@@ -308,7 +309,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             testHits()
         }
         parseTouchInput()
-        backgroundColor = backgroundColor and 0xffffff
+        makeBackgroundTransparent()
         super.onDraw(x0, y0, x1, y1)
         checkMovement()
     }

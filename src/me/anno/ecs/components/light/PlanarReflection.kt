@@ -130,7 +130,7 @@ class PlanarReflection : LightComponentBase() {
         // pipeline.frustum.showPlanes()
 
         pipeline.fill(root)
-        addDefaultLightsIfRequired(pipeline)
+        addDefaultLightsIfRequired(pipeline, root, null)
         // pipeline.planarReflections.clear()
         pipeline.reflectionCullingPlane.set(mirrorNormal, mirrorDot * worldScale)
 

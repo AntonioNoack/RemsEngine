@@ -563,6 +563,8 @@ object Thumbs {
         generateEntityFrame(srcFile, dstFile, size, data, callback)
     }
 
+    // todo exclude lights from AABB calculations for thumbnails?
+    //  (except when only having lights, then add a floor)
     @JvmStatic
     fun generateEntityFrame(
         srcFile: FileReference,

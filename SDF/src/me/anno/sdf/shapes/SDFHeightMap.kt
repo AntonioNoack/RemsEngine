@@ -2,6 +2,7 @@ package me.anno.sdf.shapes
 
 import me.anno.Time
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
@@ -89,7 +90,8 @@ class SDFHeightMap : SDFShape() {
             invalidateBounds()
         }
 
-    @SerializedProperty("Image/Reference")
+    @Type("Texture/Reference")
+    @SerializedProperty
     var source: FileReference = InvalidRef
 
     private var lastImg: ITexture2D? = null

@@ -37,21 +37,9 @@ object Installer {
             } else null
         }.associate { it }
 
-    // on startup check if ffmpeg can be found
-    // if not, download it - from our website?
-
-    // check all dependencies
-
-    // where should we put ffmpeg?
-    // typically that would be (xyz on Linux, idk, maybe anywhere?, ~/.remsStudio?)
-    // put it into ~/.AntonioNoack/RemsStudio?
-
-    // all files need to be checked every time
     @JvmStatic
     fun checkFFMPEGInstall() {
-        // todo we need faster mirrors for this; 500kB/s isn't enough
-        // todo it would be also nice, if it always was the newest version
-        // todo and autoupdating would be nice, too
+        // todo update libraries, if possible
         if (!FFMPEG.isInstalled && OS.isWindows) {
             downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
             downloadMaybe("ffmpeg/bin/ffprobe.exe", ffprobePath)
