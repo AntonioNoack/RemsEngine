@@ -281,7 +281,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val bg1 = min(x1, this.x + this.width - padding.right)
 
         // draw selected line background color
-        if (cursor0 == cursor1) {
+        if (isInFocus && cursor0 == cursor1 ) {
             drawRect(bg0, minSY, bg1 - bg0, maxSH, selectedLineBGColor)
         }
 

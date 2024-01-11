@@ -45,8 +45,8 @@ open class TrackingPanel(val getValues: List<() -> Double>, val colors: IntArray
     var times = LongArray(64)
     var size = 0
 
-    var minValue = 0.0
-    var maxValue = 0.0
+    var minValue = Double.POSITIVE_INFINITY
+    var maxValue = Double.NEGATIVE_INFINITY
 
     init {
         times.fill(Long.MAX_VALUE)
@@ -79,8 +79,10 @@ open class TrackingPanel(val getValues: List<() -> Double>, val colors: IntArray
     // todo draw x axis with time units
 
     fun autoScale() {
-        scale = 0.85 * height / (maxValue - minValue)
-        targetScale = scale
+        if (maxValue > minValue) {
+            scale = 0.85 * height / (maxValue - minValue)
+            targetScale = scale
+        }
     }
 
     fun autoMove() {

@@ -21,6 +21,7 @@ import org.luaj.vm2.LuaThread.STATUS_DEAD
 import org.luaj.vm2.LuaThread.thread_orphan_check_interval
 import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
+import org.luaj.vm2.lib.jse.CoerceLuaToJava
 import org.luaj.vm2.lib.jse.JsePlatform
 import java.util.*
 
@@ -109,6 +110,11 @@ open class ScriptComponent : Component() {
         @JvmStatic
         fun Any?.toLua(): LuaValue {
             return CoerceJavaToLua.coerce(this)
+        }
+
+        @JvmStatic
+        fun LuaValue.toJava(): Any? {
+            return CoerceLuaToJava.coerce(this, Any::class.java)
         }
 
         @JvmStatic

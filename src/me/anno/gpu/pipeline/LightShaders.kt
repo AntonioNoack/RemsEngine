@@ -74,7 +74,7 @@ object LightShaders {
         "lights",
         lightInstancedAttributes,
         instancedBatchSize,
-        BufferUsage.DYNAMIC
+        BufferUsage.STREAM
     )
 
     val useMSAA get() = GFXState.currentBuffer.samples > 1

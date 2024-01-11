@@ -18,6 +18,10 @@ object AnyToDouble {
     operator fun Any?.get(index: Int, defaultValue: Double): Double {
         return when (this) {
             null -> defaultValue
+            is Boolean -> when (index) {
+                0 -> if (this) 1.0 else 0.0
+                else -> defaultValue
+            }
             is Byte -> when (index) {
                 0 -> this.toDouble()
                 else -> defaultValue
@@ -140,7 +144,7 @@ object AnyToDouble {
                 3 -> w.toDouble()
                 else -> defaultValue
             }
-            is AABBf -> when(index){
+            is AABBf -> when (index) {
                 0 -> minX.toDouble()
                 1 -> minY.toDouble()
                 2 -> minZ.toDouble()
@@ -149,7 +153,7 @@ object AnyToDouble {
                 5 -> maxZ.toDouble()
                 else -> defaultValue
             }
-            is AABBd -> when(index){
+            is AABBd -> when (index) {
                 0 -> minX
                 1 -> minY
                 2 -> minZ

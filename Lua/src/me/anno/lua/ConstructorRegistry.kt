@@ -49,6 +49,7 @@ object ConstructorRegistry : LuaUserdata(Any()) {
         if (entry != null) return LuaConstructor(entry.sampleInstance::class)
         val extra = extraRegistry[key]
         if (extra != null) return LuaConstructor(extra)
+        if (key == "ListOf") return LuaListOf
         return LuaValue.NIL
     }
 

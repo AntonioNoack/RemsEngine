@@ -8,6 +8,8 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.lua.ScriptComponent.Companion.getFunction
 import me.anno.lua.ScriptComponent.Companion.toLua
+import org.apache.logging.log4j.LogManager
+import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -62,9 +64,21 @@ open class QuickScriptComponent : Component() {
         }
     }
 
-    fun callFunction(code: String): LuaValue {
+    fun callFunction(code: String) {
         val func = getFunction1(code) {}
-        return if (func.isfunction()) func.call()
-        else func
+        if (func.isfunction()) {
+            try {
+                val value = func.call()
+                if (!value.isnil()) {
+                    LOGGER.info("Return value: {}", value)
+                }
+            } catch (e: LuaError) {
+                LOGGER.warn(e)
+            }
+        }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(QuickScriptComponent::class)
     }
 }

@@ -1146,10 +1146,11 @@ object ComponentUI {
                                 setOnChangeListener { ce, seq ->
                                     val code = seq.toString()
                                     try {
-                                        val clazz = javaClass.classLoader.loadClass("me.anno.sdf.ScriptComponent")
+                                        val clazz = javaClass.classLoader.loadClass("me.anno.lua.ScriptComponent")
                                         val method = clazz.getMethod("getRawFunction", String::class.java)
-                                        val func = method.invoke(code)
+                                        val func = method.invoke(null, code)
                                         ce.tooltip = if (func is LuaError) {
+                                            LOGGER.warn(func.toString())
                                             func.toString()
                                         } else null
                                     } catch (e: Exception) {

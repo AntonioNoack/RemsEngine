@@ -14,7 +14,7 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
 
     private var batchCount = 0
     private val buffer by lazy {
-        StaticBuffer(name, attributes, batchSize, BufferUsage.DYNAMIC).apply {
+        StaticBuffer(name, attributes, batchSize, BufferUsage.STREAM).apply {
             createNioBuffer()
             nioBuffer!!.position(batchSize * stride)
             ensureBuffer() // maximum size :)

@@ -9,6 +9,7 @@ import me.anno.ui.UIColors.axisZColor
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.custom.CustomSizeContainer
 import me.anno.ui.debug.TrackingPanel
 import me.anno.utils.Color
@@ -23,14 +24,16 @@ object PropertyTracking {
     private val LOGGER = LogManager.getLogger(PropertyTracking::class)
     fun createTrackingButton(
         list: PanelList,
-        insertAfter: Panel,
+        insertAfter: PanelListX,
         relevantInstances: List<Any?>,
         property: KProperty<*>,
         style: Style
     ) {
+        // todo instead of adding this large button, add a small button left to it
         val getter = property.getter
         // when clicked, a tracking graph/plot is displayed (real time)
         val channels: List<Pair<(Any?) -> Double, Int>> = when (property.returnType.classifier) {
+            Boolean::class,
             UByte::class, Byte::class, UShort::class, Short::class, UInt::class, Int::class,
             ULong::class, Long::class, Float::class, Double::class -> listOf(
                 { it: Any? -> getDouble(getter.call(it), 0.0) } to Color.white
@@ -67,9 +70,10 @@ object PropertyTracking {
         }
         val samples = relevantInstances.cross(channels)
         var dynPanel: Panel? = null
-        val button = TextButton("Start Tracking", style)
+        val button = TextButton("\uD83D\uDC41\uFE0F", true, style)
+        button.setTooltip("Start Tracking")
         button.addLeftClickListener {
-            button.text = if (dynPanel == null) "Stop Tracking" else "Track"
+            button.setTooltip(if (dynPanel == null) "Stop Tracking" else "Track")
             if (dynPanel == null) {
                 val tracking = TrackingPanel(
                     samples.map { (inst, funcI) -> // functions
@@ -91,6 +95,6 @@ object PropertyTracking {
                 dynPanel = null
             }
         }
-        list.add(button)
+        insertAfter.add(0, button)
     }
 }

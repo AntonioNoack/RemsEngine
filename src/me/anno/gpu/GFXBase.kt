@@ -38,10 +38,11 @@ import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46C.*
-import org.lwjgl.opengl.GL46C.GL_MULTISAMPLE
-import org.lwjgl.opengl.GL46C.glDebugMessageCallback
+import org.lwjgl.opengl.GLCapabilities
+import org.lwjgl.opengl.GLUtil
+import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
@@ -286,14 +287,15 @@ object GFXBase {
         if (isDebug) {
             glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
                 val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
-                if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2)
-                    LOGGER.warn(
-                        message2 +
-                                ", source: " + getDebugSourceName(source) +
-                                ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
-                                ", id: " + getErrorTypeName(id) +
-                                ", severity: " + getDebugSeverityName(severity)
-                    )
+                if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2) {
+                    val msg = message2 +
+                            ", source: " + getDebugSourceName(source) +
+                            ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
+                            ", id: " + getErrorTypeName(id) +
+                            ", severity: " + getDebugSeverityName(severity)
+                    if (type == KHRDebug.GL_DEBUG_TYPE_OTHER) LOGGER.info(msg)
+                    else LOGGER.warn(msg)
+                }
             }, 0)
             glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }

@@ -12,5 +12,6 @@
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
     <orderEntry type="module" module-name="SDF" />
     <orderEntry type="module" module-name="KOML" />
+    <orderEntry type="module" module-name="Mesh" />
   </component>
 </module>
