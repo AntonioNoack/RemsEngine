@@ -14,6 +14,7 @@ import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.ifBlank2
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
@@ -155,7 +156,7 @@ open class EnumInput(
         if (isInputAllowed) openMenu(
             windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
-                .with("%1", title),
+                .with("%1", title.ifBlank2("Value")),
             options.mapIndexed { index, option ->
                 MenuOption(option) {
                     setValue1(option, index)

@@ -1,5 +1,6 @@
 package me.anno.ui.debug
 
+import me.anno.Time
 import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Key
@@ -147,6 +148,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             }
             info.addLeftClickListener {
                 runGC()
+                Time.updateTime() // running GC lags, so skip a bit of time
             }
             info.addRightClickListener {
                 Menu.openMenu(it.windowStack, listOf(

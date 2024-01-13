@@ -19,35 +19,35 @@ import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.UIColors.dodgerBlue
 import me.anno.ui.UIColors.blueishGray
-import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.UIColors.deepPink
+import me.anno.ui.UIColors.dodgerBlue
 import me.anno.ui.UIColors.fireBrick
-import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.UIColors.gold
 import me.anno.ui.UIColors.greenYellow
+import me.anno.ui.UIColors.mediumAquamarine
+import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 import kotlin.math.*
 
-// todo bug: scrollbar has inverted y movement
 open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     private val graphs = ArrayList<Graph>()
@@ -59,8 +59,9 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             if (field !== value) {
                 field = value
                 invalidateLayout()
-                children.removeAll { it is NodePanel }
+                children.removeAll { it is NodePanel || it is NodeGroupPanel }
                 nodeToPanel.clear()
+                nodeToPanel2.clear()
             }
         }
 
@@ -114,28 +115,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override val maxScrollPositionY: Long get() = (scrollTop + scrollBottom).toLong()
     override val childSizeX: Long get() = width + maxScrollPositionX
     override val childSizeY: Long get() = height + maxScrollPositionY
-
-    fun centerOnNodes(scaleFactor: Float = 0.9f) {
-        // todo not correct yet :/
-        val graph = graph ?: return
-        val bounds = JomlPools.aabbd.borrow()
-        for (node in graph.nodes) {
-            bounds.union(node.position)
-            val inputs = node.inputs
-            if (inputs != null) for (con in inputs) {
-                bounds.union(con.position)
-            }
-            val outputs = node.outputs
-            if (outputs != null) for (con in outputs) {
-                bounds.union(con.position)
-            }
-        }
-        if (!bounds.isEmpty()) {
-            center.set(bounds.centerX, bounds.centerY)
-            val factor = scaleFactor / max(bounds.deltaX / width, bounds.deltaY / height)
-            if (factor.isFinite() && factor > 0.0) scale *= factor
-        }
-    }
 
     var font = monospaceFont
 
@@ -224,28 +203,34 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         ensureChildren()
         // place all children
         val graph = graph ?: return
-        var left = 0
-        var right = 0
-        var top = 0
-        var bottom = 0
+        scrollLeft = 0
+        scrollRight = 0
+        scrollTop = 0
+        scrollBottom = 0
         val xe = x + width
         val ye = y + height
         val nodes = graph.nodes
         for (i in nodes.indices) {
             val node = nodes[i]
             val panel = nodeToPanel[node] ?: continue
-            val xi = coordsToWindowX(node.position.x).toInt() - panel.width / 2
-            val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
-            panel.setPosSize(xi, yi, panel.minW, panel.minH)
-            left = max(left, x - xi)
-            top = max(top, y - yi)
-            right = max(right, (xi + panel.width) - xe)
-            bottom = max(bottom, (yi + panel.height) - ye)
+            place(node.position, panel, xe, ye)
         }
-        scrollLeft = left
-        scrollRight = right
-        scrollTop = top
-        scrollBottom = bottom
+        val groups = graph.groups
+        for (i in groups.indices) {
+            val group = groups[i]
+            val panel = nodeToPanel2[group] ?: continue
+            place(group.position, panel, xe, ye)
+        }
+    }
+
+    private fun place(position: Vector3d, panel: Panel, xe: Int, ye: Int) {
+        val xi = coordsToWindowX(position.x).toInt() - panel.width / 2
+        val yi = coordsToWindowY(position.y).toInt()
+        panel.setPosSize(xi, yi, panel.minW, panel.minH)
+        scrollLeft = max(scrollLeft, x - xi)
+        scrollTop = max(scrollTop, y - yi)
+        scrollRight = max(scrollRight, (xi + panel.width) - xe)
+        scrollBottom = max(scrollBottom, (yi + panel.height) - ye)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
@@ -286,9 +271,30 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         drawGrid(x0, y0, x1, y1)
+        drawNodeGroups(x0, y0, x1, y1)
         drawNodeConnections(x0, y0, x1, y1)
-        drawChildren(x0, y0, x1, y1)
+        drawNodePanels(x0, y0, x1, y1)
         drawScrollbars(x0, y0, x1, y1)
+    }
+
+    open fun drawNodeGroups(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            if (child.isVisible && child is NodeGroupPanel) {
+                drawChild(child, x0, y0, x1, y1)
+            }
+        }
+    }
+
+    open fun drawNodePanels(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            if (child.isVisible && child is NodePanel) {
+                drawChild(child, x0, y0, x1, y1)
+            }
+        }
     }
 
     open fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -551,7 +557,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 if (old is EnumInput) return old.apply { textSize = font.size }
                 val clazz = javaClass.classLoader.loadClass(type.substring(5, type.length - 1))
                 val values = EnumInput.getEnumConstants(clazz)
-                return EnumInput(NameDesc(con.currValue.toString()), values.map { NameDesc(it.toString()) }, style)
+                return EnumInput(
+                    NameDesc(con.name), NameDesc(con.currValue.toString()),
+                    values.map { NameDesc(it.toString()) }, style
+                )
+                    .apply { titleView?.hide() }
                     .setChangeListener { _, index, _ ->
                         con.currValue = values[index]
                         onChange(false)
@@ -630,7 +640,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     override val className: String get() = "GraphEditor"
 
-    @Suppress("MayBeConstant")
     companion object {
 
         private val LOGGER = LogManager.getLogger(GraphPanel::class)

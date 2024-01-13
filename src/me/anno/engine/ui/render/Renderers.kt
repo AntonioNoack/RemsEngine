@@ -6,8 +6,8 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
-import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.getReflectivity
+import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
@@ -194,36 +194,10 @@ object Renderers {
             Vector4f(0f, 0f, 1f, 1f)
         )
 
-        val tmpDefaultUniforms = ByteBufferPool
-            .allocateDirect(previewLights.size * 4 * 4)
-            .asFloatBuffer()
-
-        init {
-            tmpDefaultUniforms.position(0)
-            for (data in previewLights) {
-                val f = length(data.x, data.y, data.z)
-                tmpDefaultUniforms.put(data.x / f)
-                tmpDefaultUniforms.put(data.y / f)
-                tmpDefaultUniforms.put(data.z / f)
-                tmpDefaultUniforms.put(data.w)
-            }
-            tmpDefaultUniforms.flip()
-        }
-
-        override fun uploadDefaultUniforms(shader: Shader) {
-            super.uploadDefaultUniforms(shader)
-            GFX.check()
-            if (shader.hasUniform("lightData")) {
-                shader.v4Array("lightData", tmpDefaultUniforms)
-                GFX.check()
-            }
-        }
-
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(
                     "previewRenderer", listOf(
-                        Variable(GLSLType.V4F, "lightData", previewLights.size),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
                         Variable(GLSLType.V1F, "finalAlpha"),
                         Variable(GLSLType.V3F, "finalPosition"),
@@ -254,6 +228,11 @@ object Renderers {
                             "vec3 specularColor = finalColor * reflectivity;\n" +
                             "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
                             specularBRDFv2NoDivInlined2Start +
+                            "vec4 lightData[${previewLights.size}] = vec4[](${
+                                previewLights.joinToString {
+                                    "vec4(${it.x},${it.y},${it.z},${it.w})"
+                                }
+                            });\n" +
                             "for(int i=0;i<${previewLights.size};i++){\n" +
                             "   vec4 data = lightData[i];\n" +
                             "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
@@ -303,21 +282,23 @@ object Renderers {
     }
 
     @JvmField
-    val isInstancedRenderer = object: Renderer("isInstanced") {
+    val isInstancedRenderer = object : Renderer("isInstanced") {
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
-                ShaderStage("isInstanced", listOf(
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ), "" +
-                        "float f;\n" +
-                        "#ifdef INSTANCED\n" +
-                        "   f = 1.0;\n" +
-                        "#elif defined(SKY)\n" +
-                        "   f = 0.5;\n" +
-                        "#else\n" +
-                        "   f = 0.0;\n" +
-                        "#endif\n" +
-                        "finalResult = vec4(f,f,f,1.0);\n")
+                ShaderStage(
+                    "isInstanced", listOf(
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            "float f;\n" +
+                            "#ifdef INSTANCED\n" +
+                            "   f = 1.0;\n" +
+                            "#elif defined(SKY)\n" +
+                            "   f = 0.5;\n" +
+                            "#else\n" +
+                            "   f = 0.0;\n" +
+                            "#endif\n" +
+                            "finalResult = vec4(f,f,f,1.0);\n"
+                )
             )
         }
     }

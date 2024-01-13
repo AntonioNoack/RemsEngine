@@ -10,10 +10,10 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
+import kotlin.math.max
 
 class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : Panel(style) {
 
-    // todo - draws in the background
     // todo - has a user-customizable size
     // todo - when moved, moves all children
 
@@ -27,10 +27,18 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         val baseTextSize = baseTextSize
         val baseTextSizeI4 = (baseTextSize * 4).toInt()
         val font = gp.font
-        // enough width for title
-        minW = baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, group.name, -1, -1))
-        // enough height for all lines
-        minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
+        val ex = group.extends.x
+        val ey = group.extends.y
+        minW = max(
+            // enough width for title
+            baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, group.name, -1, -1)),
+            gp.coordsToWindowDirX(ex).toInt()
+        )
+        minH = max(
+            // enough height for all lines
+            ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt(),
+            gp.coordsToWindowDirY(ey).toInt()
+        )
     }
 
     var focusOutlineColor = -1
@@ -55,7 +63,6 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
     var titleWidth = 0
     var titleY0 = 0
     var titleY1 = 0
-
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // if gp is zooming, take a screenshot of this panel, and redraw it as such (because that's cheaper)

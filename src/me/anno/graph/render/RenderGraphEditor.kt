@@ -53,8 +53,9 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
         if (drawResultInBackground) {
             drawTransparentBackground(x, y, width, height)
             RenderGraph.draw(rv, this, graph as FlowGraph)
+            drawNodeGroups(x0, y0, x1, y1)
             drawNodeConnections(x0, y0, x1, y1)
-            drawChildren(x0, y0, x1, y1)
+            drawNodePanels(x0, y0, x1, y1)
             drawSelection(x0, y0, x1, y1)
             drawScrollbars(x0, y0, x1, y1)
         } else super.onDraw(x0, y0, x1, y1)

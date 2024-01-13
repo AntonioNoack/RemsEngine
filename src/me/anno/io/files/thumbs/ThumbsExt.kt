@@ -72,6 +72,8 @@ object ThumbsExt {
         val shader = ECSShaderLib.pbrModelShader.value
         shader.use()
 
+        shader.printCode()
+
         if (normalizeScale || centerMesh) {
             if (normalizeScale) modelMatrix.scale(getScaleFromAABB(getBounds()))
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
