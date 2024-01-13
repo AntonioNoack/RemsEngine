@@ -4,26 +4,32 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.ECSRegistry
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.Image
 import me.anno.gpu.texture.TextureCache
+import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.readLE32F
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.align
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.Color.black
+import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL13C.glCompressedTexImage2D
+import java.awt.image.BufferedImage
 import java.io.InputStream
 
 fun main() {
@@ -47,10 +53,10 @@ fun main() {
             }
         }
     }
-    // load all images for a really long time
-    for (img in images.values) {
+    // todo why/how was loading all textures preventing them from being loaded???
+    /* for (img in images.values) {
         TextureCache[img, 1_000_000_000L, true]
-    }
+    }*/
     // read meshes like files
     val entity = Entity()
     for ((id, data) in meshes) {
@@ -74,6 +80,21 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         throw NotImplementedError()
     }
 
+    override fun createIntImage(): IntImage {
+        // todo texture is incomplete???
+        val tex = Texture2D("gmaps", width, height, 1)
+        var isReady = false
+        createTexture(tex, false, false) { ready, _ ->
+            isReady = ready != null
+        }
+        Sleep.waitForGFXThread(true) { isReady && tex.isCreated() }
+        return tex.createImage(false, false)
+    }
+
+    override fun createBufferedImage(): BufferedImage {
+        return createIntImage().createBufferedImage()
+    }
+
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -84,7 +105,6 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             }
         } else {
             texture.beforeUpload(0, 0)
-            texture.bindBeforeUpload()
             val tmp = Texture2D.bufferPool[data.size, false, false]
             tmp.put(data).flip()
             GFX.check()
@@ -153,14 +173,20 @@ fun readImageFile(stream: InputStream): Image {
                     i += 8
                 }
             }
-            IntImage(w, h, image, false)
+            val result = IntImage(w, h, image, false)
+            if (false) {
+                if (ctr == 0) desktop.getChild("gmaps").tryMkdirs()
+                result.write(desktop.getChild("gmaps/${ctr++}.png"))
+            }
+            result
         }
         else -> throw NotImplementedError("Unknown format $w,$h,$format,$dataType,$length")
     }
 }
 
+var ctr = 0
 val pos = Vector3d()
-val imgToMat = HashMap<Int, Material>()
+val imgToMat = HashMap<Int, FileReference>()
 val images = HashMap<Int, FileReference>()
 
 fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
@@ -213,11 +239,8 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
     val tex0 = input.readLE32()
     if (tex0 > 0) {
         // load albedo texture
-        var mat = imgToMat[tex0]
-        if (mat != null) {
-            mesh.material = mat.ref
-        } else {
-            mat = Material()
+        mesh.material = imgToMat.getOrPut(tex0) {
+            val mat = Material()
             if (tex0.hasFlag(1)) {
                 // load binary image
                 val imgFile = images[tex0]
@@ -229,8 +252,7 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
                 val imageFile = parent.getChild("img$tex0.png")
                 mat.diffuseMap = imageFile
             }
-            mesh.material = mat.ref
-            imgToMat[tex0] = mat
+            mat.ref
         }
     }
     val entity = Entity()

@@ -1093,7 +1093,7 @@ object ComponentUI {
 
                         val list = PanelListY(style)
                         if (!name.isNullOrBlank()) {
-                            list.add(TextPanel(name, style))
+                            list.add(TextPanel(title, style))
                         }
                         list.add(fi)
 
