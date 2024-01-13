@@ -838,7 +838,7 @@ open class FileExplorerEntry(
                 files, explorer.folder, listOf(
                     MenuOption(NameDesc("Replace")) {
                         thread(name = "replacing file") {
-                            val progress = GFX.someWindow!!.addProgressBar(
+                            val progress = GFX.someWindow.addProgressBar(
                                 "Replacing",
                                 "Bytes",
                                 files.sumOf { it.length() }.toDouble()

@@ -13,7 +13,7 @@ fun main() {
     object : StudioBase("Crashing", 1, false) {
         override fun createUI() {
             val renderView = RenderView1(PlayMode.PLAYING, flatCube.front, style)
-            val windowStack = GFX.someWindow!!.windowStack
+            val windowStack = GFX.someWindow.windowStack
             val window = Window(renderView, false, windowStack)
             window.drawDirectly = true
             windowStack.add(window)

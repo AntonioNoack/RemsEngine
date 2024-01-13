@@ -288,7 +288,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     fun copy(index: Int) {
         // hopefully good enough...
         val panel = list.children[index]
-        val window = GFX.someWindow!!
+        val window = GFX.someWindow
         Input.copy(window, panel.getPanelAt((panel.lx0 + panel.lx1) / 2, (panel.ly0 + panel.ly1) / 2) ?: panel)
     }
 

@@ -25,34 +25,32 @@ object AssetImport {
     }
 
     fun shallowCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
-        val window = GFX.someWindow
-        val progress = window?.addProgressBar("Shallow Copy", "", files.size.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Shallow Copy", "", files.size.toDouble())
         for (src in files) {
             val srcPrefab = PrefabCache[src]
             if (srcPrefab == null) {
                 LOGGER.warn("Cannot read $src as prefab")
                 continue
             }
-            if (progress != null) progress.total += 0.5
+            progress.total += 0.5
             val dstPrefab = Prefab(srcPrefab.clazzName, src)
             val name = findName(src, dstPrefab, true)
             savePrefab(dst, name, dstPrefab)
-            if (progress != null) progress.total += 0.5
+            progress.total += 0.5
         }
         onCopyFinished(dst, fe)
-        progress?.finish(true)
+        progress.finish(true)
     }
 
     fun deepCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
-        val window = GFX.someWindow
-        val progress = window?.addProgressBar("Deep Copy", "", files.size.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Deep Copy", "", files.size.toDouble())
         val mapping = HashMap<FileReference, FileReference>()
         for (src in files) {
             deepCopyAssets(src, dst, mapping)
-            if (progress != null) progress.total += 1.0
+            progress.total += 1.0
         }
         onCopyFinished(dst, fe)
-        progress?.finish(true)
+        progress.finish(true)
     }
 
     fun onCopyFinished(dst: FileReference, fe: FileExplorer?) {

@@ -487,7 +487,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     fun copyInto(files: List<FileReference>, folder: FileReference) {
-        val progress = GFX.someWindow!!.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (srcFile in files) {
             if (progress.isCancelled) break
             val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
@@ -498,7 +498,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     fun moveInto(files: List<FileReference>, folder: FileReference) {
-        val progress = GFX.someWindow!!.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (srcFile in files) {
             if (progress.isCancelled) break
             if (folder == srcFile.getParent()) continue
@@ -510,7 +510,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     fun createLinksInto(files: List<FileReference>, folder: FileReference) {
-        val progress = GFX.someWindow!!.addProgressBar("Creating Links", "Files", files.size.toDouble())
+        val progress = GFX.someWindow.addProgressBar("Creating Links", "Files", files.size.toDouble())
         var tmp: FileReference? = null
         loop@ for (file in files) {
             if (progress.isCancelled) break

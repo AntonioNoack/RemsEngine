@@ -133,7 +133,7 @@ fun createControls(
     controls.rotationSpeed = 0.15f
     controls.friction = 20f
 
-    val window = GFX.someWindow!!
+    val window = GFX.someWindow
     var lx = window.mouseX
     var ly = window.mouseY
     var lz = Input.mouseWheelSumY

@@ -68,6 +68,8 @@ object GFX {
     @JvmField
     val windows = ArrayList<OSWindow>()
 
+    private val firstWindow = OSWindow("Rem's Engine")
+
     /**
      * current window, which is being rendered to by OpenGL
      * */
@@ -84,8 +86,8 @@ object GFX {
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
-    val someWindow
-        get() = focusedWindow ?: windows.firstOrNull() // we also could choose the one closest to the mouse :)
+    val someWindow // we also could choose the one closest to the mouse :)
+        get() = focusedWindow ?: windows.firstOrNull() ?: firstWindow
 
     @JvmStatic
     var idleFPS by ConfigRef("ui.window.idleFPS", 10)

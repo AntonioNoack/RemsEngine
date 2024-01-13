@@ -53,11 +53,7 @@ object Menu {
     }
 
     fun msg(title: NameDesc) {
-        val window = GFX.focusedWindow ?: GFX.someWindow
-        if(window != null) {
-            val windowStack = window.windowStack
-            msg(windowStack, title)
-        } else LOGGER.info("${title.name} (${title.desc})")
+        msg(GFX.someWindow.windowStack, title)
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {

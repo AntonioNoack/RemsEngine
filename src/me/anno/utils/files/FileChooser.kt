@@ -169,7 +169,7 @@ object FileChooser {
             callback
         )
         val baseWindow = GFX.someWindow
-        return if (openInSeparateWindow || baseWindow == null) {
+        return if (openInSeparateWindow) {
             // make this window a little smaller than default, so it's more obvious
             val w = OSWindow.defaultWidth * 6 / 7
             val h = OSWindow.defaultHeight * 5 / 7

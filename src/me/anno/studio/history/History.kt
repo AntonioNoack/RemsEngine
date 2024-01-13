@@ -85,7 +85,7 @@ abstract class History<V : Any> : Saveable() {
 
     fun display() {
         openMenu(
-            GFX.someWindow!!.windowStack,
+            GFX.someWindow.windowStack,
             NameDesc("Inspect History", "", "ui.inspectHistory"),
             states.mapIndexed { index, change ->
                 val title0 = getTitle(change)

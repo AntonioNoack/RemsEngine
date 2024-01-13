@@ -24,7 +24,7 @@ open class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : S
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.addAll(createMainPanel())
         ui.fill(1f)
-        val windowStack = GFX.someWindow!!.windowStack
+        val windowStack = GFX.someWindow.windowStack
         val window = Window(ui, false, windowStack)
         window.drawDirectly = true
         windowStack.add(window)
@@ -47,7 +47,7 @@ open class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : S
             ECSSceneTabs.currentTab?.save()
         } catch (e: Exception) {
             e.printStackTrace()
-            Menu.msg((GFX.someWindow ?: return).windowStack, NameDesc(e.toString()))
+            Menu.msg(GFX.someWindow.windowStack, NameDesc(e.toString()))
         }
     }
 

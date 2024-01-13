@@ -86,7 +86,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
 
         fun testSceneWithUI(title: String, scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
             testUI3(title) {
-                GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
+                GFX.someWindow.windowStack.firstOrNull()?.drawDirectly = false
                 testScene(scene, init)
             }
         }

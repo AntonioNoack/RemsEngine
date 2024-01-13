@@ -46,8 +46,8 @@ fun main() {
                     )
                 )
                 val g3 = option("Random Thing")
-                val ws = GFX.someWindow?.windowStack
-                if (ws != null) Menu.openComplexMenu(
+                val ws = GFX.someWindow.windowStack
+                Menu.openComplexMenu(
                     ws, 0, 0, NameDesc("Test Menu"),
                     listOf(g1, g2, g3)
                 )

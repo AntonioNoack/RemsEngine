@@ -225,7 +225,7 @@ fun main() {
 
                 // enable compute-shader-based rendering, which looks better
                 // only possible on separate framebuffer
-                GFX.someWindow!!.windowStack.first().drawDirectly = false
+                GFX.someWindow.windowStack.first().drawDirectly = false
 
                 super.onDraw(x0, y0, x1, y1)
                 var x = x

@@ -283,7 +283,7 @@ fun main() {
     physics.gravity /= sphere.hexagonsPerSide
 
     TestStudio.testUI3("HexagonSphere Physics") {
-        GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
+        GFX.someWindow.windowStack.firstOrNull()?.drawDirectly = false
         val renderView = object : RenderView(PlayMode.PLAYING, DefaultConfig.style) {
             override fun getWorld() = scene
             override fun updateWorldScale() {

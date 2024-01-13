@@ -71,6 +71,7 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     private var isValid = true
+
     /**
      * save project config after a small delay
      * */
@@ -151,38 +152,34 @@ class GameEngineProject() : NamedSaveable() {
         // we can't really do that anyway...
         if (!OS.isWeb) {
             thread(name = "Indexing Resources") {
-                val progressBar = GFX.someWindow?.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
+                val progressBar = GFX.someWindow.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
                     override fun formatProgress(): String {
                         return "$name: ${progress.toLong()} / ${total.toLong()} $unit"
                     }
                 })
                 val filesToIndex = ArrayList<FileReference>()
                 indexFolder(progressBar, location, maxIndexDepth, filesToIndex)
-                while (!Engine.shutdown && filesToIndex.isNotEmpty() && progressBar?.isCancelled != true) {
+                while (!Engine.shutdown && filesToIndex.isNotEmpty() && !progressBar.isCancelled) {
                     if (Engine.shutdown) break
-                    if (progressBar != null) {
-                        progressBar.progress += 1.0
-                    }
+                    progressBar.progress += 1.0
                     val fileToIndex = filesToIndex.removeFirst()
                     indexResource(fileToIndex)
                 }
-                progressBar?.finish(true)
+                progressBar.finish(true)
             }
         }
     }
 
     fun indexFolder(
-        progressBar: ProgressBar?,
+        progressBar: ProgressBar,
         file: FileReference, depth: Int,
         resourcesToIndex: MutableCollection<FileReference>
     ) {
         val depthM1 = depth - 1
-        if (!file.isDirectory || Engine.shutdown || progressBar?.isCancelled == true) return
+        if (!file.isDirectory || Engine.shutdown || progressBar.isCancelled) return
         val children = file.listChildren() ?: return
-        if (progressBar != null) {
-            progressBar.total += children.size
-            progressBar.progress += 1.0
-        }
+        progressBar.total += children.size
+        progressBar.progress += 1.0
         for (child in children) {
             if (child.isDirectory) {
                 if (depthM1 >= 0) {

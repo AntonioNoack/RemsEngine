@@ -52,7 +52,7 @@ object Retargetings {
 
     fun openUI(anim: AnimMeshComponent) {
         // find all animation states, where the skeleton needs mapping, and ask the user, which to edit
-        val window = GFX.someWindow ?: return
+        val window = GFX.someWindow
         val states = anim.animations
         val dstSkeleton = anim.skeleton
         val baseSkeletonCheck = SkeletonCache[dstSkeleton]

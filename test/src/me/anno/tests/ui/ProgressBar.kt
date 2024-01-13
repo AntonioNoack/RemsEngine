@@ -20,7 +20,7 @@ fun main() {
         testUI("Progress Bar") {
             var offset = 0f
             // testing indeterminate mode
-            val window = GFX.someWindow!!
+            val window = GFX.someWindow
             window.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
             window.addProgressBar(object : ProgressBar("Sample", "Bytes", 1e6) {
                 override fun formatProgress(): String {

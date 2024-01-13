@@ -108,8 +108,8 @@ class Controller(val id: Int) {
         calibration = loadCalibration(guid) ?: ControllerCalibration(isGamepad)
         if (!calibration.isCalibrated) {
             LOGGER.warn("No calibration was found for controller '$name', guid '$guid'")
-            Menu.ask(GFX.someWindow!!.windowStack, NameDesc("Calibrate new controller '$name'?")) {
-                CalibrationProcedure.start(GFX.someWindow!!, style)
+            Menu.ask(GFX.someWindow.windowStack, NameDesc("Calibrate new controller '$name'?")) {
+                CalibrationProcedure.start(GFX.someWindow, style)
             }
         }
         buttonDownTime.fill(0)

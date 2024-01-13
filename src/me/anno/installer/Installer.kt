@@ -82,8 +82,7 @@ object Installer {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
-        val window = GFX.someWindow
-        val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
+        val progress = GFX.someWindow.addProgressBar(fileName, "Bytes", Double.NaN)
         for (i in urls.indices) {
             val url = urls[i]
             try {
@@ -92,13 +91,13 @@ object Installer {
                 return
             } catch (e: SSLHandshakeException) {
                 if (url == urls.last()) {
-                    progress?.cancel(false)
+                    progress.cancel(false)
                     LOGGER.error("Something went wrong with HTTPS :/. Please update Java, or download $url to $dstFile :)")
                     e.printStackTrace()
                 }
             } catch (e: IOException) {
                 if (url == urls.last()) {
-                    progress?.cancel(false)
+                    progress.cancel(false)
                     LOGGER.error("Tried to download $fileName from $url to $dstFile, but failed! You can try to do it yourself.")
                     e.printStackTrace()
                 }
@@ -154,13 +153,12 @@ object Installer {
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
         thread(name = "Download $fileName") {
-            val window = GFX.someWindow
-            val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
+            val progress = GFX.someWindow.addProgressBar(fileName, "Bytes", Double.NaN)
             try {
                 runDownload(URL(srcFile.absolutePath), fileName, dstFile, tmp, progress)
                 callback()
             } catch (e: IOException) {
-                progress?.cancel(false)
+                progress.cancel(false)
                 LOGGER.error("Tried to download $fileName from $srcFile to $dstFile, but failed! You can try to do it yourself.")
                 e.printStackTrace()
             }

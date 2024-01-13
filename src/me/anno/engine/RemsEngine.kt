@@ -45,8 +45,6 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
-// todo float input is broken again!!!, deleting two characters at the same time
-
 // todo implement exporting process:
 //  - pack libraries and Universal into folder
 //  - checkboxes for libraries/modules like Mesh to save space/complexity
@@ -209,7 +207,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
     override fun createProjectUI() {
 
-        val windowStack = GFX.someWindow!!.windowStack
+        val windowStack = GFX.someWindow.windowStack
         val style = style
         val list = PanelListY(style)
         val options = OptionBar(style)

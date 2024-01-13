@@ -242,7 +242,7 @@ open class ColorInput(
             // - open (new?) window in fullscreen
             // - add controls on the bottom, or somewhere..., with a preview of the color
             // - select on click, or when dragging + enter then
-            val windowX = GFX.activeWindow ?: GFX.someWindow
+            val windowX = GFX.someWindow
             GFX.addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
                 val screenshot = Screenshots.takeSystemScreenshot()
                 val colorPicker = if (screenshot == null) {

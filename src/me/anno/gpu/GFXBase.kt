@@ -105,7 +105,14 @@ object GFXBase {
 
             val clock = initLWJGL()
 
-            val window0 = createWindow(OSWindow(title), clock)
+            val window0 = createWindow(
+                if (GFX.windows.isEmpty() && !GFX.someWindow.shouldClose) {
+                    val window = GFX.someWindow // first window is being reused
+                    window.title = title
+                    window
+                } else OSWindow(title),
+                clock
+            )
 
             runLoops(window0)
 
