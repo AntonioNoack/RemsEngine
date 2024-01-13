@@ -4,10 +4,13 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.LightSpawner
+import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -15,13 +18,16 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.pipeline.LightData
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
 import me.anno.maths.Maths.sq
 import me.anno.maths.paths.PathFindingAccelerator
 import me.anno.mesh.Shapes
+import me.anno.tests.LOGGER
+import me.anno.tests.engine.light.setTranslateScaleInverse
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.tests.LOGGER
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.abs
@@ -194,7 +200,7 @@ fun main() {
 
         val mat0 = Material().apply { diffuseBase.set(1.0f, 0.0f, 0.0f, 1f) }
         val mat1 = Material().apply { diffuseBase.set(0.0f, 0.3f, 0.9f, 1f) }
-        val mat2 = Material().apply { emissiveBase.set(50f, 50f, 20f) }
+        val mat2 = Material().apply { emissiveBase.set(50f, 50f, 20f).mul(0.5f) }
         var count0 = 0
         var count1 = 0
         var count2 = 0
@@ -213,6 +219,32 @@ fun main() {
             }
         }
         scene.add(debugCubeSpawner)
+        if (true) {
+            val debugLightSpawner = object : LightSpawner() {
+                private val light = PointLight().apply {
+                    color.set(mat2.emissiveBase).mul(0.2f)
+                }
+
+                override fun fill(pipeline: Pipeline, instancedLights: LightData, entity: Entity) {
+                    val dst = instancedLights[light]
+                    val scale = 10.0
+                    for (index in count1 until count2) {
+                        val (drawMatrix, invMatrix) = getTransform(index - count1)
+                        val src = debugCubeSpawner.getTransform(index)
+                        drawMatrix.set(src.getDrawMatrix()).scale(scale)
+                        invMatrix.setTranslateScaleInverse(drawMatrix.m30, drawMatrix.m31, drawMatrix.m32, scale)
+                        dst.add(light, drawMatrix, invMatrix)
+                    }
+                }
+            }
+            scene.add(debugLightSpawner)
+            val sun = DirectionalLight()
+            val sunE = Entity(sun)
+            val sky = Skybox()
+            sky.applyOntoSun(sunE, sun, 10f)
+            scene.add(sky)
+            scene.add(sunE)
+        }
 
         fun updateCubes() {
             val pair = testPathfinding()

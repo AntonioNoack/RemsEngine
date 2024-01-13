@@ -1,10 +1,13 @@
 package me.anno.tests.files
 
 import me.anno.io.json.generic.JsonFormatter
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
-fun main() {
-
-    val src = """
+class JsonFormatterTest {
+    @Test
+    fun transformTwiceShouldBeSame() {
+        val src = """
          [{"class":"Prefab","i:*ptr":1,"S:className":"Entity","CAdd[]:adds":[7,{"c:type":"c","S:name":"BoxCollider",
          "S:className":"BoxCollider"},{"c:type":"c","S:name":"BulletPhysics","S:className":"BulletPhysics"},{"c:type":"c",
          "S:name":"Rigidbody","S:className":"Rigidbody"},{"c:type":"c","S:name":"SliderConstraint","S:className":"SliderConstraint"},
@@ -19,12 +22,9 @@ fun main() {
          [-1.8121681560740845,-0.022380086565996216,-2.405396522738568]},{"Path:path":35,"q4d:rotation":[0,0,0,1]},{"Path:path":35,"v3d:scale":[1]}]}]
     """.replace('"', '"')
 
-    val f1 = JsonFormatter.format(src)
-    val f2 = JsonFormatter.format(f1)
+        val f1 = JsonFormatter.format(src)
+        val f2 = JsonFormatter.format(f1)
 
-    println(f1)
-
-    if (f1 == f2) println("format² matches format :)")
-    else println(f2)
-
+        assertEquals(f1, f2)
+    }
 }

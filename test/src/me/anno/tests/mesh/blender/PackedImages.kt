@@ -18,7 +18,6 @@ import me.anno.utils.OS.pictures
 fun main() {
     PluginRegistry.init()
     ExtensionLoader.load()
-    // todo normals and UVs are missing???
     val file = documents.getChild("Blender/PackSample.blend")
     BlenderReader.readAsFolder(file) { folder, exc ->
         exc?.printStackTrace()

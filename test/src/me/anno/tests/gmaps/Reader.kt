@@ -81,7 +81,6 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
     }
 
     override fun createIntImage(): IntImage {
-        // todo texture is incomplete???
         val tex = Texture2D("gmaps", width, height, 1)
         var isReady = false
         createTexture(tex, false, false) { ready, _ ->

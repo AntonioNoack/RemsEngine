@@ -1,9 +1,12 @@
 package me.anno.tests.files
 
 import me.anno.image.ImageCache
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import java.io.File
 
 fun main() {
 
@@ -14,13 +17,11 @@ fun main() {
     val image = ImageCache[ref, false]
     LOGGER.info(image)
 
-    println(ref.readTextSync())
-
     // ffmpeg does not support it either
-    /*val tmp = File.createTempFile("ref", ".eps")
-    tmp.writeText(ref.readText())
+    val tmp = File.createTempFile("ref", ".eps")
+    tmp.writeText(ref.readTextSync())
     val meta = getMeta(FileFileRef(tmp), false)
     LOGGER.info(meta)
-    tmp.delete()*/
+    tmp.delete()
 
 }

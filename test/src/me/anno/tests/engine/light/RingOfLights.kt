@@ -10,17 +10,32 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.LightData
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.TAU
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
-import org.joml.AABBd
-import org.joml.Quaterniond
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.math.cos
 import kotlin.math.sin
+
+// same as .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
+fun Matrix4x3f.setTranslateScaleInverse(px: Double, py: Double, pz: Double, scale: Double): Matrix4x3f {
+    val isc = 1.0 / scale
+    val iws = (1.0 / (scale * RenderState.worldScale)).toFloat()
+    val dx = isc * RenderState.cameraPosition.x
+    val dy = isc * RenderState.cameraPosition.y
+    val dz = isc * RenderState.cameraPosition.z
+    return set(
+        iws, 0f, 0f,
+        0f, iws, 0f,
+        0f, 0f, iws,
+        (dx - px * isc).toFloat(),
+        (dy - py * isc).toFloat(),
+        (dz - pz * isc).toFloat()
+    )
+}
 
 /**
  * recreate colorful test scene with 100k lights from ages ago :3,
@@ -65,17 +80,12 @@ fun main() {
         val positionY = elementSize * 0.5
 
         var firstTurn = true
-        override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+        override fun fill(pipeline: Pipeline, instancedLights: LightData, entity: Entity) {
             // to do acceleration structure for frustum tests?
             var k = 0
-            val dst = pipeline.lightStage.instanced[colors[0]]
+            val dst = instancedLights[colors[0]]
             val nr = numColors * colorRepetitions
             val sc = scale.x
-            val isc = 1.0 / scale.x
-            val iws = (1.0 / (sc * RenderState.worldScale)).toFloat()
-            val dx = isc * RenderState.cameraPosition.x
-            val dy = isc * RenderState.cameraPosition.y
-            val dz = isc * RenderState.cameraPosition.z
             val aabb = AABBd()
             val frustum = pipeline.frustum
             for (j in 0 until superRings) {
@@ -97,20 +107,12 @@ fun main() {
                     if (frustum.isVisible(aabb)) {
                         // same as
                         // .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
-                        invCamSpaceMatrix.set(
-                            iws, 0f, 0f,
-                            0f, iws, 0f,
-                            0f, 0f, iws,
-                            (dx - px * isc).toFloat(),
-                            (dy - py * isc).toFloat(),
-                            (dz - pz * isc).toFloat()
-                        )
+                        invCamSpaceMatrix.setTranslateScaleInverse(px, py, pz, scale.x)
                         dst.add(light, drawMatrix, invCamSpaceMatrix)
                     }
                 }
             }
             firstTurn = false
-            return clickId
         }
     })
 

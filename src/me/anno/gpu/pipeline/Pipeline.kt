@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -168,6 +169,10 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
     }
 
     fun addLight(light: LightComponent, entity: Entity) {
+        addLight(light, entity.transform)
+    }
+
+    fun addLight(light: LightComponent, transform: Transform) {
         // for debugging of the light shapes
         // addMesh(light.getLightPrimitive(), MeshRenderer(), entity, 0)
         val stage = lightStage
@@ -175,9 +180,9 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         light.invCamSpaceMatrix
-            .set4x3delta(entity.transform.getDrawMatrix(), RenderState.cameraPosition, RenderState.worldScale)
+            .set4x3delta(transform.getDrawMatrix(), RenderState.cameraPosition, RenderState.worldScale)
             .invert()
-        stage.add(light, entity)
+        stage.add(light, transform)
     }
 
     var transparentPass: TransparentPass = GlassPass()

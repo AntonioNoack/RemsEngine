@@ -33,6 +33,7 @@ import org.lwjgl.system.MemoryUtil
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
 
@@ -327,7 +328,8 @@ object StaticMeshesLoader {
                 transparent, reflective, transparency
             )
             if (diffuse != null) {
-                diffuse.w = opacity
+                val gamma = 1f / 2.2f // idk why it's soo wrong...
+                diffuse.set(diffuse.x.pow(gamma), diffuse.y.pow(gamma), diffuse.z.pow(gamma), opacity)
                 prefab["diffuseBase"] = diffuse
             } else if (opacity != 1f) {
                 prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
