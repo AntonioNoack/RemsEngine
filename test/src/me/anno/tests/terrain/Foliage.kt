@@ -9,8 +9,10 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.*
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
@@ -188,6 +190,9 @@ class FoliageShader(
 }
 
 fun main() {
+
+    PluginRegistry.init()
+    ExtensionLoader.load()
 
     // https://www.youtube.com/watch?v=jw00MbIJcrk
 

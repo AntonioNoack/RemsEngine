@@ -198,17 +198,17 @@ object Renderers {
             return listOf(
                 ShaderStage(
                     "previewRenderer", listOf(
-                        Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                        Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
                         Variable(GLSLType.V1F, "finalAlpha"),
                         Variable(GLSLType.V3F, "finalPosition"),
-                        Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
-                        Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalRoughness"),
+                        Variable(GLSLType.V1F, "finalMetallic"),
                         Variable(GLSLType.V1F, "finalSheen"),
                         Variable(GLSLType.V3F, "finalSheenNormal"),
                         Variable(GLSLType.V4F, "finalClearCoat"),
                         Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
                         Variable(GLSLType.V3F, "finalNormal"),
-                        Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
+                        Variable(GLSLType.V3F, "finalEmissive"),
                         Variable(GLSLType.V1F, "finalOcclusion"),
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +

@@ -45,7 +45,7 @@ class ProcessingGroupTest {
             for (i in i0 until i1) {
                 data[i] += i + 1
             }
-            Thread.sleep(1)
+            Thread.sleep(10)
         }
         for (i in data.indices) {
             assertEquals(i + 1, data[i], "Entry $i was not computed!")

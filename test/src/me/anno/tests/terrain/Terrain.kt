@@ -18,9 +18,11 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toRGB
+import me.anno.utils.Color.white
+import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import kotlin.math.*
 
@@ -28,6 +30,8 @@ import kotlin.math.*
 //  - using our Sims sample?
 //  - using our chunk system?
 //  - like the tsunami module?
+
+// todo chunk loading is broken... chunks get missing???
 
 // todo lod system
 // todo gpu accelerated?
@@ -54,6 +58,8 @@ class TerrainChunk(
                 sin(x) * sin(y) + 10f * cos(x * s) * cos(y * s)
             })
         mesh.calculateNormals(true)
+        mesh.color0 = mesh.color0.resize(mesh.positions!!.size / 3)
+        mesh.color0!!.fill(white)
     }
 }
 
@@ -246,6 +252,10 @@ fun main() {
 
                 val comp = chunkSystem.getChunk(xi, 0, zi, true)!!
                 val mesh = comp.getMesh()
+                if (mesh.positions == null || mesh.color0 == null) {
+                    me.anno.tests.LOGGER.warn("Missing positions/color for $xi/$zi :(")
+                    return
+                }
 
                 val falloffFactor = -100f / sq(hit.distance).toFloat()
 

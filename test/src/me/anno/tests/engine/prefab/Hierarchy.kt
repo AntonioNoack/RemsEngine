@@ -9,7 +9,9 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ScenePrefab
+import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
@@ -183,6 +185,8 @@ class HierarchyTests {
 
     @Test
     fun testAddSimpleChild() {
+        PluginRegistry.init()
+        ExtensionLoader.load()
         val scene = Prefab("Entity")
         val added = PrefabCache[FileReference.getReference(OS.documents, "CuteGhost.fbx")]!!
         val ca = scene.adds.values.sumOf { it.size }
