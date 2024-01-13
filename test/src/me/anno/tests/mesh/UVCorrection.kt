@@ -3,12 +3,15 @@ package me.anno.tests.mesh
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
+import me.anno.engine.PluginRegistry
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.mesh.obj.OBJReader
+import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -23,25 +26,28 @@ import kotlin.math.abs
  * uv-sign detection implementation test
  * */
 fun main() {
+    PluginRegistry.init()
+    ExtensionLoader.load()
     ECSRegistry.init()
     @Suppress("SpellCheckingInspection")
     val samples = listOf(
         // path and ideal detection
-        "ogldev-source/Content/jeep.obj", // y
-        "ogldev-source/Content/hheli.obj", // y
-        "ogldev-source/Content/spider.obj", // n
-        "ogldev-source/Content/dragon.obj", // doesn't matter
-        "ogldev-source/Content/buddha.obj", // doesn't matter
-        "ogldev-source/Content/dabrovic-sponza/sponza.obj"
+        "ogldev-source/jeep.obj", // y
+        "ogldev-source/hheli.obj", // y
+        "ogldev-source/spider.obj", // n
+        "ogldev-source/dragon.obj", // doesn't matter
+        "ogldev-source/buddha.obj", // doesn't matter
+        "ogldev-source/dabrovic-sponza/sponza.obj"
     )
     val clock = Clock()
     for (sample in samples) {
         val ref = FileReference.getReference(OS.downloads, sample)
         OBJReader.readAsFolder(ref) { folder, _ ->
-            folder!!
-            clock.start()
-            UVCorrection.correct(folder)
-            clock.stop("calc") // the first one is always extra long
+            if (folder != null) {
+                clock.start()
+                UVCorrection.correct(folder)
+                clock.stop("calc") // the first one is always extra long
+            } else LOGGER.warn("Cannot read $ref")
         }
     }
 }
@@ -125,6 +131,4 @@ object UVCorrection {
     private fun delta(c0: Int, c1: Int): Int {
         return abs(c1.r() - c0.r()) + abs(c1.g() - c0.g()) + abs(c1.b() - c0.b())
     }
-
-
 }

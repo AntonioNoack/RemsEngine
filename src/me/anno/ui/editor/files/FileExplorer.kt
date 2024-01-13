@@ -403,7 +403,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     private fun getClosestPanel(): FileExplorerEntry? {
         // save preferred file by lastFolder
-        val window = window!!
+        val window = window ?: return null
         val x0 = window.mouseXi * 2
         val y0 = window.mouseYi * 2
         return content2d.children.minByOrNull {

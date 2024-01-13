@@ -5,10 +5,10 @@ object BoxBlur {
     @JvmStatic
     fun boxBlurX(
         image: FloatArray, w: Int, h: Int, i0: Int, stride: Int, thickness: Int, normalize: Boolean,
-        old: FloatArray = FloatArray(w)
+        tmp: FloatArray = FloatArray(w)
     ) {
         if (thickness <= 1) return
-        if (thickness > w) return boxBlurX(image, w, h, i0, stride, w, normalize, old)
+        if (thickness > w) return boxBlurX(image, w, h, i0, stride, w, normalize, tmp)
         val th2 = thickness shr 1
         val th1 = thickness - th2
         for (y in 0 until h) {
@@ -20,7 +20,7 @@ object BoxBlur {
             for (x in 0 until th2) {
                 sum += image[i1 + x]
             }
-            image.copyInto(old, 0, i1, i1 + w - th1)
+            image.copyInto(tmp, 0, i1, i1 + w - th1)
             // start of sum 2
             for (x in 0 until th1) {
                 val i = i1 + x
@@ -30,14 +30,14 @@ object BoxBlur {
             // updated sum
             for (x in th1 until w - th2) {
                 val i = i1 + x
-                sum += image[i + th2] - old[x - th1]
+                sum += image[i + th2] - tmp[x - th1]
                 image[i] = sum
             }
             // end of sum
             val new0 = image[i1 + w - 1]
             for (x in w - th2 until w) {
                 val i = i1 + x
-                sum += new0 - old[x - th1]
+                sum += new0 - tmp[x - th1]
                 image[i] = sum
             }
         }
@@ -61,7 +61,7 @@ object BoxBlur {
         thickness: Int,
         normalize: Boolean,
         sum: FloatArray = FloatArray(w),
-        old: FloatArray = FloatArray(w * (h - (thickness + 1).shr(1)))
+        tmp: FloatArray = FloatArray(w * (h - thickness.shr(1)))
     ) {
         if (thickness <= 1) return
         if (thickness > h) return boxBlurY(image, w, h, i0, stride, h, normalize, sum)
@@ -71,7 +71,7 @@ object BoxBlur {
         val th1 = thickness - th2
 
         for (y in 0 until h - th1) {
-            image.copyInto(old, y * w, y * stride + i0, y * stride + i0 + w)
+            image.copyInto(tmp, y * w, y * stride + i0, y * stride + i0 + w)
         }
 
         val th2y = th2 * stride
@@ -94,7 +94,7 @@ object BoxBlur {
             val i1 = i0 + y * stride
             val ni = i1 + th2y
             for (x in 0 until w) {
-                sum[x] += image[ni + x] - old[x]
+                sum[x] += image[ni + x] - tmp[x]
                 image[i1 + x] = sum[x]
             }
         }
@@ -104,7 +104,7 @@ object BoxBlur {
             val oi = y * w - th1y
             val ni = i1 + th2y
             for (x in 0 until w) {
-                sum[x] += image[ni + x] - old[oi + x]
+                sum[x] += image[ni + x] - tmp[oi + x]
                 image[i1 + x] = sum[x]
             }
         }
@@ -114,7 +114,7 @@ object BoxBlur {
             val i1 = i0 + y * stride
             val oi = y * w - th1y
             for (x in 0 until w) {
-                sum[x] += image[ni + x] - old[oi + x]
+                sum[x] += image[ni + x] - tmp[oi + x]
                 image[i1 + x] = sum[x]
             }
         }

@@ -150,53 +150,41 @@ class PipelineStage(
                 tmp4x3.set4x3Delta(localTransform)
                 shader.m4x3("localTransform", tmp4x3)
 
-                val ilt = shader["invLocalTransform"]
-                if (ilt >= 0) {
-                    shader.m4x3(ilt, tmp4x3.invert())
+                if (shader.hasUniform("invLocalTransform")) {
+                    shader.m4x3("invLocalTransform", tmp4x3.invert())
                 }
 
                 shader.v1f("worldScale", RenderState.worldScale)
 
-                val oldTransform = shader["prevLocalTransform"]
-                if (oldTransform >= 0) {
+                if (shader.hasUniform("prevLocalTransform")) {
                     val prevWorldScale = RenderState.prevWorldScale
                     shader.m4x3delta(
-                        oldTransform, transform.getDrawnMatrix(time),
+                        "prevLocalTransform", transform.getDrawnMatrix(time),
                         RenderState.prevCameraPosition, prevWorldScale
                     )
                     shader.v1f("prevWorldScale", prevWorldScale)
                 }
             } else {
-
                 val localTransform = JomlPools.mat4x3d.create().identity()
-                tmp4x3.set4x3Delta(localTransform)
-                shader.m4x3("localTransform", tmp4x3)
-
-                val ilt = shader["invLocalTransform"]
-                if (ilt >= 0) {
-                    shader.m4x3(ilt, tmp4x3.invert())
-                }
-
-                shader.v1f("worldScale", RenderState.worldScale)
-
-                val oldTransform = shader["prevLocalTransform"]
-                if (oldTransform >= 0) {
-                    val prevWorldScale = RenderState.prevWorldScale
-                    shader.m4x3delta(
-                        oldTransform, localTransform.identity(),
-                        RenderState.prevCameraPosition, prevWorldScale
-                    )
-                    shader.v1f("prevWorldScale", prevWorldScale)
-                }
-
+                setupLocalTransform(shader, localTransform)
                 JomlPools.mat4x3d.sub(1)
             }
         }
 
         fun setupLocalTransform(shader: GPUShader, transform: Matrix4x3d) {
-            tmp4x3.set4x3Delta(transform)
-            shader.m4x3delta("localTransform", transform)
+            shader.m4x3("localTransform", tmp4x3.set4x3Delta(transform))
             shader.v1f("worldScale", RenderState.worldScale)
+            if (shader.hasUniform("prevLocalTransform")) {
+                val prevWorldScale = RenderState.prevWorldScale
+                shader.m4x3delta(
+                    "prevLocalTransform", transform,
+                    RenderState.prevCameraPosition, prevWorldScale
+                )
+                shader.v1f("prevWorldScale", prevWorldScale)
+            }
+            if (shader.hasUniform("invLocalTransform")) {
+                shader.m4x3("invLocalTransform", tmp4x3.invert())
+            }
         }
 
         fun initShader(shader: GPUShader, applyToneMapping: Boolean) {
@@ -377,7 +365,12 @@ class PipelineStage(
                         buffer.limit(12 * numberOfLights)
                         for (i in 0 until numberOfLights) {
                             buffer.position(12 * i)
-                            m4x3delta(lights[i]!!.drawMatrix, RenderState.cameraPosition, RenderState.worldScale, buffer)
+                            m4x3delta(
+                                lights[i]!!.drawMatrix,
+                                RenderState.cameraPosition,
+                                RenderState.worldScale,
+                                buffer
+                            )
                         }
                         buffer.position(0)
                         shader.m4x3Array(lightMatrices, buffer)
@@ -476,7 +469,6 @@ class PipelineStage(
                 }
             }
         }
-
     }
 
     var nextInsertIndex = 0

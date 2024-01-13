@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.gltf
 
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.OS.downloads

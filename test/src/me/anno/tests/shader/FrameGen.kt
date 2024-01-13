@@ -9,7 +9,9 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.render.RenderState
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
@@ -50,6 +52,8 @@ import org.lwjgl.opengl.GL46C.*
 import kotlin.math.max
 
 fun main() {
+    PluginRegistry.init()
+    ExtensionLoader.load()
 
     // todo this has bad graphics, because I'm using Pipeline directly
     // todo instead, use RenderGraph/RenderView

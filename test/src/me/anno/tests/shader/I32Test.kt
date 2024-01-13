@@ -3,8 +3,11 @@ package me.anno.tests.shader
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.Pipeline
@@ -23,11 +26,14 @@ class TestI32Stack(val space: Float) : InstancedI32Stack(
         listOf(
             ShaderStage(
                 "i32-pos", listOf(
-                    Variable(GLSLType.V1I, "instanceI32"),
+                    Variable(GLSLType.V1I, "instanceI32", VariableMode.ATTR),
                     Variable(GLSLType.V3F, "localPosition"),
+                    Variable(GLSLType.M4x3, "localTransform"),
                     Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 ),
-                "finalPosition = localPosition + vec3(0.0,0.0,float(instanceI32)*$space);\n"
+                "vec3 tmpPosition = localPosition;\n" +
+                        "tmpPosition.z += float(instanceI32)*$space;\n" +
+                        "finalPosition = matMul(localTransform, vec4(tmpPosition, 1.0));\n"
             )
         ),
         MeshInstanceData.DEFAULT.transformNorTan,
@@ -38,8 +44,6 @@ class TestI32Stack(val space: Float) : InstancedI32Stack(
 
 /**
  * Shows how to use an i32-MeshSpawner
- *
- * todo this is broken :(
  * */
 fun main() {
 

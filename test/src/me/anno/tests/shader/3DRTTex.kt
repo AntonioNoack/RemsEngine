@@ -26,6 +26,7 @@ fun main() {
     }
 
     val mesh = MeshComponent(flatCube.scaled(Vector3f(size).mul(0.5f)).back.ref)
+    mesh.isInstanced = false // instancing isn't supported, because we don't have invLocalTransform there yet
     mesh.materials = listOf(material.ref)
 
     testSceneWithUI("3DRTTex", mesh) {

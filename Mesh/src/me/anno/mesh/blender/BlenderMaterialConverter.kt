@@ -114,8 +114,13 @@ object BlenderMaterialConverter {
                             return Pair(Vector4f(value1.first.x), value1.second)
                         }
                     }
+                    "ShaderNodeMixRGB" -> {
+                        // todo find mix value?
+                        // return first value as a guess
+                        return findTintedMap(lookup(node, "Color1")) ?: findTintedMap(lookup(node, "Color2"))
+                    }
                     null -> return getDefault(socket.defaultValue)
-                    else -> LOGGER.warn("Unknown node type ${node.type}")
+                    else -> LOGGER.warn("Unknown node type ${node.type}, ${node.inputs.map { "${it.type} ${it.name}" }}")
                 }
                 return null
             }

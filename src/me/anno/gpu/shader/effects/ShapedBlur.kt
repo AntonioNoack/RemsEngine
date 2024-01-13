@@ -4,6 +4,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -13,8 +14,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Streams.read0String
-import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
+import me.anno.io.Streams.readLE32F
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.hasFlag
@@ -56,16 +57,26 @@ object ShapedBlur {
         return result
     }
 
-    fun applyFilter(src0: ITexture2D, shader: Shader, stages: Int, fp: Boolean, scale0: Float = 1f): ITexture2D {
+    fun applyFilter(
+        src0: ITexture2D,
+        shader: Shader,
+        stages: Int,
+        fp: TargetType,
+        scale0: Float,
+        gamma: Float
+    ): ITexture2D {
         var src: ITexture2D = src0
-        val dst0 = FBStack["d0", src.width, src.height, 4, fp, 1, DepthBufferType.NONE]
-        val dst1 = FBStack["d1", src.width, src.height, 4, fp, 1, DepthBufferType.NONE]
+        val afp = arrayOf(fp)
+        val dst0 = FBStack["d0", src.width, src.height, afp, 1, DepthBufferType.NONE]
+        val dst1 = FBStack["d1", src.width, src.height, afp, 1, DepthBufferType.NONE]
         shader.use()
         for (i in 0 until stages) {
             val target = if (i.hasFlag(1)) dst1 else dst0
             useFrame(target) {
                 shader.v1i("uPass", i)
                 shader.v2f("duv", scale0 / src.width, -scale0 / src.height)
+                shader.v3f("inGamma", if (i > 0) 1f else gamma)
+                shader.v3f("outGamma", if (i < stages - 1) 1f else 1f / gamma)
                 src.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
                 src = target.getTextureI(0)
@@ -95,13 +106,13 @@ object ShapedBlur {
                 val px = tmp.x
                 val py = tmp.y
                 if (gaussian) {
-                    src.append("+textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
-                        .append("),0).rgb")
+                    src.append("+pow(textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
+                        .append("),0).rgb,inGamma)")
                 } else {
                     val weight = tmp.z
                     val sign = if (weight < 0f) '-' else '+'
-                    src.append(sign).append("textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
-                        .append("),0).rgb*").append(abs(weight))
+                    src.append(sign).append("pow(textureLod(tex,uv+duv*vec2(").append(px).append(',').append(py)
+                        .append("),0).rgb,inGamma)*").append(abs(weight))
                 }
             }
             if (gaussian) src.append(")*").append(1f / length).append(";break;\n")
@@ -109,7 +120,8 @@ object ShapedBlur {
         }
         src.append(
             "   }\n" +
-                    "   result = vec4(color,1.0);\n" +
+                    "   color = max(color,vec3(0.0));\n" +
+                    "   result = vec4(pow(color,outGamma),1.0);\n" +
                     "}\n"
         )
         return Shader(
@@ -117,6 +129,8 @@ object ShapedBlur {
             listOf(
                 Variable(GLSLType.V1I, "uPass"),
                 Variable(GLSLType.V2F, "duv"),
+                Variable(GLSLType.V3F, "inGamma"),
+                Variable(GLSLType.V3F, "outGamma"),
                 Variable(GLSLType.S2D, "tex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ),
@@ -161,5 +175,4 @@ object ShapedBlur {
             dst.set(px, py, d.w)
         })
     }
-
 }

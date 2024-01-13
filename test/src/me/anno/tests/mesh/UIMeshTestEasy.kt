@@ -2,10 +2,12 @@ package me.anno.tests.mesh
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
+import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
@@ -31,6 +33,8 @@ fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.
 }
 
 fun main() {
+    PluginRegistry.init()
+    ExtensionLoader.load()
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
     testUI3("Easy Mesh UI", ::createEasyMeshUI)

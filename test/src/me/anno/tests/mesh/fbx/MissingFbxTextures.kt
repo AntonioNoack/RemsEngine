@@ -8,10 +8,14 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.engine.ECSRegistry
+import me.anno.engine.PluginRegistry
+import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
+    PluginRegistry.init()
+    ExtensionLoader.load()
     // load fbx with incorrect path -> how do we display it?
     // we showed it like we loaded it,
     // now we try to correct it by indexing all files from the same zip :)

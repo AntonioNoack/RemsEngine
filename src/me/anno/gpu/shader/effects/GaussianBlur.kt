@@ -36,22 +36,22 @@ object GaussianBlur {
         val f0 = thickness / 3
         val f1 = thickness - 2 * f0
         if (f0 < 2 && f1 < 2) return false
-        val tmp = FloatArray(w)
-        val tmp2 = FloatArray(w * (h - (thickness + 1).shr(1)))
+        val tmp1 = FloatArray(w)
+        val tmp2 = FloatArray(w * (h - thickness.shr(1)))
         var x = 1
         // if the first row in the result is guaranteed to be zero,
         // we could use the image itself as buffer; (but only we waste space in the first place ->
         // don't optimize that case)
         if (f0 > 1) {
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp, tmp2)
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
             x = sq(min(w, f0) * min(h, f0))
         }
         if (f1 > 1) {
-            BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp)
-            BoxBlur.boxBlurY(image, w, h, i0, stride, f1, false, tmp, tmp2)
+            BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp1)
+            BoxBlur.boxBlurY(image, w, h, i0, stride, f1, false, tmp1, tmp2)
             x *= min(w, f1) * min(h, f1)
         }
         if (normalize) {

@@ -34,9 +34,6 @@ fun main() {
 }
 
 fun createTestScene(): Entity {
-
-    // todo transparent things for GlassPass test
-
     val scene = Entity()
     scene.add(Skybox())
     scene.add(DirectionalLight())

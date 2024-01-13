@@ -3,6 +3,8 @@ package me.anno.tests.mesh
 import me.anno.Engine
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
+import me.anno.engine.PluginRegistry
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -34,6 +36,8 @@ import java.nio.IntBuffer
 
 fun main() {
 
+    PluginRegistry.init()
+    ExtensionLoader.load()
     HiddenOpenGLContext.createOpenGL()
     ShaderLib.init()
     Thumbs.useCacheFolder = true
@@ -54,7 +58,7 @@ fun main() {
 
     // check what is the result using the animations
     // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
-    val dst0 = getReference(desktop, "byAnimation.png")
+    val dst0 = desktop.getChild("byAnimation.png")
     Thumbs.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
         if (result is Texture2D) GPUImage(result).write(dst0)
         exc?.printStackTrace()
@@ -68,7 +72,7 @@ fun main() {
     boneMap.clear()
 
     findAllBones(aiScene, rootNode, boneList, boneMap)
-    val dst1 = getReference(desktop, "byTree.png")
+    val dst1 = desktop.getChild("byTree.png")
     Thumbs.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
         if (result is Texture2D) GPUImage(result).write(dst1)
         exc?.printStackTrace()

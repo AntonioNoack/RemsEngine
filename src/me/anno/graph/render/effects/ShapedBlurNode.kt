@@ -1,5 +1,6 @@
 package me.anno.graph.render.effects
 
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.filters
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -9,15 +10,15 @@ import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.Style
 import me.anno.utils.Sleep.waitUntil
 
 class ShapedBlurNode() : ActionNode(
     "heart_5x32",
-    listOf("Texture", "Input", "Float", "Scale"),
+    listOf("Texture", "Input", "Float", "Scale", "Float", "Gamma"),
     listOf("Texture", "Blurred")
 ) {
 
@@ -28,6 +29,7 @@ class ShapedBlurNode() : ActionNode(
     init {
         setInput(1, whiteTexture)
         setInput(2, 1f)
+        setInput(3, 2.2f)
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
@@ -67,11 +69,14 @@ class ShapedBlurNode() : ActionNode(
         val tex0 = getInput(1) as? Texture
         val tex1 = tex0?.tex ?: whiteTexture
         val scale = getInput(2) as Float
-        val output = if (scale > 0f && tex1 != whiteTexture) {
+        val gamma = getInput(3) as Float
+        val output = if (scale > 0f && tex1 != whiteTexture && gamma > 0f) {
             val filter = filters[type]?.value
             if (filter != null) {
                 val (shader, stages) = filter
-                Texture(applyFilter(tex1, shader, stages, tex1.isHDR, scale))
+                val tmpType = if (tex1.isHDR || gamma > 1.4f) TargetType.Float32x3
+                else TargetType.UInt8x3
+                Texture(applyFilter(tex1, shader, stages, tmpType, scale, gamma))
             } else tex0
         } else tex0
         setOutput(1, output)

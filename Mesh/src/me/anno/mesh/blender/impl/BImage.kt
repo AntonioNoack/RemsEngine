@@ -1,7 +1,5 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
@@ -46,7 +44,7 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
      * */
     val type = short("type")
 
-    val packedFiles = inside("packedfiles") as BListBase<BImagePackedFile>
+    val packedFiles = inside("packedfiles") as? BListBase<BImagePackedFile>
 
     /**
      * {id=ID(192)@0, name[1024]=char(1)@192, *cache=MovieCache(0)@1216, *gputexture[3][2]=GPUTexture(0)@1224,
@@ -69,5 +67,4 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
         return "Image@${position.toString(16)} { $id, $name, $genX x $genY, " +
                 "source: $source, type: $type, packed: $packedFiles }"
     }
-
 }

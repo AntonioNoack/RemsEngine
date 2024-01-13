@@ -1,5 +1,6 @@
 package me.anno.tests.shader
 
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.sdf.shapes.SDFHeart
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
@@ -75,10 +76,9 @@ fun singleTest() {
     val source = OS.pictures.getChild("blurTest.png")
     val (shader, stages) = decompress(tmp.inputStreamSync())
     val src = TextureCache[source, false]!!
-    applyFilter(src, shader, stages, src.isHDR)
+    applyFilter(src, shader, stages, TargetType.Float16x3, 1f, 2.2f)
         .write(OS.desktop.getChild("heart.png"))
 }
-
 
 fun compress(
     all: String,

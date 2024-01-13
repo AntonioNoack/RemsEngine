@@ -1,5 +1,7 @@
 package me.anno.tests.mesh.obj
 
+import me.anno.engine.PluginRegistry
+import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.obj.TextFileReader
 import me.anno.mesh.obj.OBJReader
@@ -11,6 +13,9 @@ import java.io.InputStream
 import kotlin.random.Random
 
 fun main() {
+
+    PluginRegistry.init()
+    ExtensionLoader.load()
 
     val clock = Clock()
 

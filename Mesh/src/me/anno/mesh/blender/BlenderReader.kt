@@ -61,7 +61,7 @@ object BlenderReader {
         val resultMap = HashMap<String, FileReference>()
         for (i in instances.indices) {
             val image = instances[i] as BImage
-            val rawImageData = image.packedFiles.first?.packedFile?.data
+            val rawImageData = image.packedFiles?.first?.packedFile?.data
             val reference = if (rawImageData != null) {
                 val name = image.id.realName
                 val newName = if ('.' in name) name else {
