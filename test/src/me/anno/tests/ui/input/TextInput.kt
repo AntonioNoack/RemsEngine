@@ -5,8 +5,8 @@ import me.anno.ui.input.NumberType.Companion.SCALE
 import me.anno.ui.input.NumberType.Companion.VEC3D
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI2
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.IntInput
@@ -22,7 +22,7 @@ fun main() {
     val fvi = FloatVectorInput("Float Vector", "", SCALE, style)
     val ivi = IntVectorInput("Int Vector", "", VEC3D, style)
     testUI2("Text Input") {
-        StudioBase.instance!!.enableVSync = true
+        EngineBase.instance!!.enableVSync = true
         listOf(ti, fi, ii, fvi, ivi)
     }
 }

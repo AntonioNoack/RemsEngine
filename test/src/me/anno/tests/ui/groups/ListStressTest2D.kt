@@ -1,15 +1,15 @@
 package me.anno.tests.ui.groups
 
 import me.anno.config.DefaultConfig.style
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
     testUI3("List Stresstest 2d") {
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
         val n = 100_000
         val list = PanelList2D(style)
         list.childWidth = 120

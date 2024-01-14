@@ -7,7 +7,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.Dict
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -109,7 +109,7 @@ abstract class TreeView<V : Any>(
         } else {
             // if not, create a copy
             @Suppress("unchecked_cast")
-            val clone = JsonStringReader.read(data, StudioBase.workspace, true)
+            val clone = JsonStringReader.read(data, EngineBase.workspace, true)
                 .firstOrNull() as? V ?: return
             moveChange {
                 insertElement(relativeY, hovered, clone, type1)

@@ -6,7 +6,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -30,7 +30,7 @@ fun main() {
     mesh.materials = listOf(material.ref)
 
     testSceneWithUI("3DRTTex", mesh) {
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
         val data = Texture3D("density", size.x, size.y, size.z)
         data.createMonochrome(densities)
         data.swizzleAlpha()

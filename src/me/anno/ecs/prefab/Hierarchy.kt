@@ -6,7 +6,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -131,7 +131,7 @@ object Hierarchy {
     fun stringify(element: PrefabSaveable): String {
         return JsonStringWriter.toText(
             extractPrefab(element.prefab!!, element.prefabPath),
-            StudioBase.workspace
+            EngineBase.workspace
         )
     }
 

@@ -7,10 +7,10 @@ import java.io.File
 
 class FileTransferable(val files: List<File>) : Transferable {
 
-    private val tdf = arrayOf(DataFlavor.javaFileListFlavor)
+    private val flavors = arrayOf(DataFlavor.javaFileListFlavor)
 
-    override fun getTransferDataFlavors() = tdf
-    override fun isDataFlavorSupported(flavor: DataFlavor?) = tdf.any { it == flavor }
+    override fun getTransferDataFlavors() = flavors
+    override fun isDataFlavorSupported(flavor: DataFlavor?) = flavors.any { it == flavor }
 
     override fun getTransferData(flavor: DataFlavor?): Any {
         if (isDataFlavorSupported(flavor)) return files

@@ -3,20 +3,20 @@ package me.anno.tests.mesh.blender
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageCache
 import me.anno.mesh.blender.BlenderReader
 import me.anno.tests.files.printTree
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     val file = documents.getChild("Blender/PackSample.blend")
     BlenderReader.readAsFolder(file) { folder, exc ->

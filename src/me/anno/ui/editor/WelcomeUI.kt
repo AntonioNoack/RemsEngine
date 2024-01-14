@@ -1,10 +1,9 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
-import me.anno.engine.GameEngineProject
+import me.anno.engine.projects.GameEngineProject
 import me.anno.gpu.GFX
 import me.anno.input.Key
-import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -14,12 +13,12 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate
-import me.anno.studio.Events.addEvent
-import me.anno.studio.GFXSettings
-import me.anno.studio.ProjectHeader
-import me.anno.studio.Projects
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.showFPS
+import me.anno.engine.Events.addEvent
+import me.anno.engine.GFXSettings
+import me.anno.engine.projects.ProjectHeader
+import me.anno.engine.projects.Projects
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.showFPS
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -51,7 +50,7 @@ interface WelcomeUI {
         return Panel(style).apply { backgroundColor = black }
     }
 
-    fun create(studio: StudioBase) {
+    fun create(studio: EngineBase) {
 
         val window = GFX.someWindow
         val windowStack = window.windowStack
@@ -145,7 +144,7 @@ interface WelcomeUI {
         windowStack.push(mainWindow)
     }
 
-    fun createRecentProjectsUI(studio: StudioBase, style: Style, recent: List<ProjectHeader>): Panel {
+    fun createRecentProjectsUI(studio: EngineBase, style: Style, recent: List<ProjectHeader>): Panel {
 
         val window = GFX.someWindow
         val recentProjects = SettingCategory(
@@ -226,7 +225,7 @@ interface WelcomeUI {
 
     fun createProjectUI()
 
-    fun openProject(studio: StudioBase, name: String, folder: FileReference) {
+    fun openProject(studio: EngineBase, name: String, folder: FileReference) {
         if (OS.isWeb) { // threading not yet supported in web
             openProject2(name, folder)
         } else {
@@ -246,7 +245,7 @@ interface WelcomeUI {
     }
 
     fun loadLastProject(
-        studio: StudioBase,
+        studio: EngineBase,
         usableFile: FileReference?, nameInput: TextInput,
         recent: List<ProjectHeader>
     ) {
@@ -258,7 +257,7 @@ interface WelcomeUI {
         }
     }
 
-    fun loadNewProject(studio: StudioBase, file: FileReference?, nameInput: TextInput) {
+    fun loadNewProject(studio: EngineBase, file: FileReference?, nameInput: TextInput) {
         if (file != null) {
             openProject(studio, nameInput.value, file)
         } else {
@@ -271,7 +270,7 @@ interface WelcomeUI {
         }
     }
 
-    fun createNewProjectUI(studio: StudioBase, style: Style): Panel {
+    fun createNewProjectUI(studio: EngineBase, style: Style): Panel {
 
         val newProject = SettingCategory("New Project", "New Workplace", "ui.project.new", style)
         newProject.show2()
@@ -344,7 +343,7 @@ interface WelcomeUI {
         var lastName = nameInput.value
         fileInput = FileInput(
             Dict["Project Location", "ui.newProject.location"], style,
-            getReference(StudioBase.workspace, lastName), emptyList(),
+            getReference(EngineBase.workspace, lastName), emptyList(),
             true
         )
 

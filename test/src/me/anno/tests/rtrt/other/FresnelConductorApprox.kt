@@ -3,9 +3,8 @@ package me.anno.tests.rtrt.other
 import me.anno.config.DefaultConfig.style
 import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.maths.Maths.pow
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.utils.Function1d
-import me.anno.ui.utils.FunctionPanel
 import me.anno.ui.utils.FunctionPanelNd
 import me.anno.utils.Color.white
 import kotlin.math.max

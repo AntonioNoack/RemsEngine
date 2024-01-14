@@ -14,8 +14,8 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.engine.EngineBase.Companion.dragged
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window

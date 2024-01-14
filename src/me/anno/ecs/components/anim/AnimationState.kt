@@ -8,7 +8,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 
 /**
  * represents how animations shall be played;

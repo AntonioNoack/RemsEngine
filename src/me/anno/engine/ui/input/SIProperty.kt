@@ -1,6 +1,6 @@
 package me.anno.engine.ui.input
 
-import me.anno.engine.IProperty
+import me.anno.engine.inspector.IProperty
 import me.anno.io.find.DetectiveWriter
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference

@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.light.LightType
-import me.anno.engine.pbr.PBRLibraryGLTF
+import me.anno.gpu.deferred.PBRLibraryGLTF
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.gpu.pipeline.LightShaders.translucencyNL
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded

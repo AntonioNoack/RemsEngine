@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.*
 import me.anno.extensions.ExtensionLoader
@@ -37,9 +37,9 @@ import me.anno.maths.noise.PerlinNoise
 import me.anno.sdf.SDFComposer.sdfConstants
 import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
 import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
@@ -191,7 +191,7 @@ class FoliageShader(
 
 fun main() {
 
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
 
     // https://www.youtube.com/watch?v=jw00MbIJcrk
@@ -285,7 +285,7 @@ fun main() {
         }
         scene.add(AllMeshComp(mesh0))
         scene.add(AllMeshComp(mesh1))
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
 
         list
     }

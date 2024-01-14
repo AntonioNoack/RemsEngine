@@ -15,7 +15,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestEngine
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.tests.LOGGER
@@ -261,7 +261,7 @@ fun main() {
     //Engine.requestShutdown()
     //return
 
-    TestStudio.testUI("Unity") {
+    TestEngine.testUI("Unity") {
         object : FileExplorer(testScene, true, DefaultConfig.style) {
 
             override fun getFolderOptions(): List<FileExplorerOption> = emptyList()

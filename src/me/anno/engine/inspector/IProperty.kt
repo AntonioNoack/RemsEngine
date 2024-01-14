@@ -1,4 +1,4 @@
-package me.anno.engine
+package me.anno.engine.inspector
 
 import me.anno.ui.Panel
 

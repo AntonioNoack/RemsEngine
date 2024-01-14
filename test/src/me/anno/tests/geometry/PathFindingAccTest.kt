@@ -27,7 +27,7 @@ import me.anno.mesh.Shapes
 import me.anno.tests.LOGGER
 import me.anno.tests.engine.light.setTranslateScaleInverse
 import me.anno.tests.utils.TestWorld
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.abs

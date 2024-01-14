@@ -1,9 +1,11 @@
-package me.anno.engine.pbr
+package me.anno.gpu.deferred
 
 import kotlin.math.PI
 
-// from jGLTF
-// https://github.com/javagl/JglTF/blob/bb081a2e31b522bacb051d22053768d78c363814/jgltf-model/src/main/resources/pbr.frag
+/**
+ * from jGLTF
+ * https://github.com/javagl/JglTF/blob/bb081a2e31b522bacb051d22053768d78c363814/jgltf-model/src/main/resources/pbr.frag
+ * */
 object PBRLibraryGLTF {
 
     // todo regular plastic has specular as well... why not in this model?

@@ -2,19 +2,18 @@ package me.anno.tests.mesh.fbx
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.firstComponentInChildren
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     // load fbx with incorrect path -> how do we display it?
     // we showed it like we loaded it,

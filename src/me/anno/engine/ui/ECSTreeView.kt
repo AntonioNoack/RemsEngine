@@ -21,7 +21,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.menuSeparator1
@@ -208,7 +208,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
                 }
             }
         }
-        val clone = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull() ?: return
+        val clone = JsonStringReader.read(data, EngineBase.workspace, true).firstOrNull() ?: return
         moveChange {
             insertElement(relativeY, hovered, clone, type1)
         }
@@ -547,7 +547,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
      * returns true on success
      * */
     private fun tryPaste(data: String): Boolean {
-        return when (val element = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull()) {
+        return when (val element = JsonStringReader.read(data, EngineBase.workspace, true).firstOrNull()) {
             is Prefab -> {
                 val prefab = EditorState.prefab
                 val root = prefab?.getSampleInstance() ?: return false

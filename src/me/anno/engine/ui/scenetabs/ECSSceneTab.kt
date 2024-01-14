@@ -15,7 +15,6 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
-import me.anno.engine.ui.scenetabs.ECSSceneTabs.project
 import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.input.Key
@@ -23,7 +22,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
@@ -287,7 +286,7 @@ class ECSSceneTab(
             "DragStart" -> {
                 val title = file.nameWithoutExtension
                 val stringContent = file.absolutePath
-                StudioBase.dragged = Draggable(stringContent, "File", file, title, style)
+                EngineBase.dragged = Draggable(stringContent, "File", file, title, style)
                 true
             }
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)

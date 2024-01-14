@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.spline.Splines
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import org.joml.*
 import kotlin.math.PI
 import kotlin.math.cos

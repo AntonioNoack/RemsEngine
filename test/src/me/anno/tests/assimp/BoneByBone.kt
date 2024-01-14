@@ -8,7 +8,7 @@ import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
@@ -16,7 +16,7 @@ fun main() {
     LogManager.enableLogger("AnimatedMeshesLoader")
     ECSRegistry.init()
     val project = OS.documents.getChild("RemsEngine/YandereSim")
-    StudioBase.workspace = project
+    EngineBase.workspace = project
     val animFiles = project.getChild("Characters/anim-files/Walking.fbx")
     // done: BoneByBone != Imported on test meshes, only Imported works
     val animFiles1 = listOf("BoneByBone", "Imported").map {

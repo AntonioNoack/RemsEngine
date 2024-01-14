@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
-import me.anno.studio.Events.addEvent
+import me.anno.engine.Events.addEvent
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.progress.ProgressBar

@@ -3,7 +3,7 @@ package me.anno.utils.files
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS
 
 object LocalFile {
@@ -19,7 +19,7 @@ object LocalFile {
         } else null
     }
 
-    fun String.toLocalPath(workspace: FileReference = StudioBase.workspace): String {
+    fun String.toLocalPath(workspace: FileReference = EngineBase.workspace): String {
         val fileStr = replace('\\', '/')
         if (fileStr.contains("://")) return fileStr
         return checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
@@ -35,7 +35,7 @@ object LocalFile {
             ?: fileStr
     }
 
-    fun String.toGlobalFile(workspace: FileReference = StudioBase.workspace): FileReference {
+    fun String.toGlobalFile(workspace: FileReference = EngineBase.workspace): FileReference {
         val fileStr = if ('\\' in this) replace('\\', '/') else this
         val i1 = fileStr.lastIndexOf("$/")
         if (i1 < 0) return getReference(fileStr)
@@ -44,7 +44,7 @@ object LocalFile {
         return when (fileStr.substring(i0 + 1, i1)) {
             "CONFIG" -> ConfigBasics.configFolder
             "CACHE" -> ConfigBasics.cacheFolder
-            "WORKSPACE" -> workspace.nullIfUndefined() ?: StudioBase.workspace
+            "WORKSPACE" -> workspace.nullIfUndefined() ?: EngineBase.workspace
             "DOWNLOADS" -> OS.downloads
             "DOCUMENTS" -> OS.documents
             "PICTURES" -> OS.pictures

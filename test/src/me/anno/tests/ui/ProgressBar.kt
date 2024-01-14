@@ -8,7 +8,7 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import kotlin.concurrent.thread
 
 fun main() {

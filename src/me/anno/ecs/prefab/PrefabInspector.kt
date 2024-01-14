@@ -18,9 +18,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.Events.addEvent
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.Events.addEvent
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -28,8 +28,6 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
-import me.anno.ui.custom.CustomSizeContainer
-import me.anno.ui.debug.TrackingPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
@@ -38,18 +36,14 @@ import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
-import me.anno.utils.Color.white
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
-import me.anno.utils.structures.lists.Lists.cross
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3d
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 

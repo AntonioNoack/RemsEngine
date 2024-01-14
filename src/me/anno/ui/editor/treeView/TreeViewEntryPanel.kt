@@ -11,8 +11,8 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -117,7 +117,7 @@ class TreeViewEntryPanel<V : Any>(
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
-        val isInFocus = isAnyChildInFocus || StudioBase.instance?.isSelected(transform) == true
+        val isInFocus = isAnyChildInFocus || EngineBase.instance?.isSelected(transform) == true
         val textColor = mixARGB(black, treeView.getLocalColor(transform, isHovered, isInFocus), 180f / 255f)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +

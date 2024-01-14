@@ -14,7 +14,7 @@ import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestEngine
 
 fun main() {
 
@@ -53,7 +53,7 @@ fun main() {
 
     compile()
     // show resulting material as preview
-    TestStudio.testUI("MaterialGraph") {
+    TestEngine.testUI("MaterialGraph") {
         val ui = CustomList(false, DefaultConfig.style)
         val ge = object : GraphEditor(g, DefaultConfig.style) {
             override fun canDeleteNode(node: Node): Boolean {

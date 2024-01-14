@@ -2,7 +2,7 @@ package me.anno.tests.files
 
 import me.anno.Engine
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -12,7 +12,7 @@ import me.anno.io.xml.generic.XMLFormatter
 import me.anno.io.xml.saveable.XMLStringWriter
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     val ref = getReference("res://icon.obj")
     val mesh = MeshCache[ref]!!

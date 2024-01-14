@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.graph.render.effects.DepthOfFieldNode
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.FloatInput
 import me.anno.utils.OS.downloads
 

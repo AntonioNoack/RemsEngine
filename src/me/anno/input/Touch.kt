@@ -6,6 +6,10 @@ import me.anno.ui.WindowStack
 import org.joml.Vector3f
 import kotlin.math.max
 
+/**
+ * Stores the current state of which touches are present, where, and for how long;
+ * useful for Android, Web on phone, and touch-enabled laptops
+ * */
 class Touch(var x: Float, var y: Float) {
 
     val t0 = Time.nanoTime
@@ -139,7 +143,5 @@ class Touch(var x: Float, var y: Float) {
                 listener.onTouchUp(touch)
             }
         }
-
     }
-
 }

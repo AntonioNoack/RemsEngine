@@ -6,7 +6,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
@@ -152,17 +152,17 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     abstract fun writeFile(
         name: String, value: FileReference, force: Boolean = false,
-        workspace: FileReference = StudioBase.workspace
+        workspace: FileReference = EngineBase.workspace
     )
 
     abstract fun writeFileArray(
         name: String, values: Array<FileReference>, force: Boolean = false,
-        workspace: FileReference = StudioBase.workspace
+        workspace: FileReference = EngineBase.workspace
     )
 
     abstract fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>, force: Boolean = false,
-        workspace: FileReference = StudioBase.workspace
+        workspace: FileReference = EngineBase.workspace
     )
 
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {

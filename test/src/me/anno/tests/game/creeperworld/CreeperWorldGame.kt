@@ -15,7 +15,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.tests.game.creeperworld.RockTypes.dissolved
 import me.anno.tests.game.creeperworld.RockTypes.hardness
 import me.anno.tests.game.creeperworld.RockTypes.rock
@@ -23,7 +23,7 @@ import me.anno.tests.game.creeperworld.RockTypes.stone
 import me.anno.tests.physics.fluid.RWState
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Floats.f3
@@ -201,7 +201,7 @@ fun main() {
     val updateInterval = 1f / 60f
     val image = IntArray(world.size)
     testUI3("Creeper World") {
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
         val texture = Texture2D("tex", w, h, 1)
         var nextUpdate = 0L
         var tickIndex = 0

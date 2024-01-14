@@ -7,7 +7,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 /**
  * todo thanks to RenderGraphs, not having the same size of renderviews is probably costly... (because Framebuffers need to be resized constantly)

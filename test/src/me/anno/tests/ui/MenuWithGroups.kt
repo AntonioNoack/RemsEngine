@@ -9,7 +9,7 @@ import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 /**
  * a test for menus with multiple layers (groups)

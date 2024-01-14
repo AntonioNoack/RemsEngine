@@ -18,7 +18,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.white4
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4fArrayList

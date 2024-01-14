@@ -6,8 +6,8 @@ import me.anno.language.translation.Dict
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -208,7 +208,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     val win = GFX.activeWindow
                     sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
                         if (parent != null && x + width >= window.width - FrameTimings.width) {
-                            if (StudioBase.showFPS) {
+                            if (EngineBase.showFPS) {
                                 max(
                                     1,
                                     window.y + min(

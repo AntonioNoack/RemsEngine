@@ -13,7 +13,7 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.studio.Events.addEvent
+import me.anno.engine.Events.addEvent
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf

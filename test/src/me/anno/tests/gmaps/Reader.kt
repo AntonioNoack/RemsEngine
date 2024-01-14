@@ -4,15 +4,11 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE16

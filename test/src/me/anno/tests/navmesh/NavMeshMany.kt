@@ -11,8 +11,8 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
 import org.joml.Vector3d
 import org.recast4j.detour.*
@@ -74,7 +74,7 @@ class AgentController1b(
 fun main() {
     testUI("NavMeshMany") {
 
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
         ECSRegistry.init()
 
         val mask = 1 shl 16

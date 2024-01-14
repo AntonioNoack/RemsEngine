@@ -10,7 +10,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 

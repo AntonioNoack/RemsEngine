@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong

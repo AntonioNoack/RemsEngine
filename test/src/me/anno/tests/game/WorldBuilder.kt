@@ -22,11 +22,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.random
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.Quaternionf
@@ -58,7 +58,7 @@ fun main() {
 
         ECSRegistry.init()
 
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
 
         val list = CustomList(true, style)
 

@@ -8,7 +8,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
 import me.anno.utils.Color.mixARGB
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.Style
@@ -109,7 +109,7 @@ class ColorField(
             "DragStart" -> {
                 val color = color
                 val colorString = color.toHexColor()
-                StudioBase.dragged = Draggable(
+                EngineBase.dragged = Draggable(
                     colorString, "Color", color,
                     ColorField(this)
                 )

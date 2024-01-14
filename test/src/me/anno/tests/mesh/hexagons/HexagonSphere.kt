@@ -22,7 +22,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio.Companion.testUI2
+import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads

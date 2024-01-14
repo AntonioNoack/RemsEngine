@@ -25,7 +25,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.random
 import me.anno.maths.noise.PerlinNoise
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.tests.mesh.hexagons.createFaceMesh
 import me.anno.ui.UIColors.dodgerBlue
 import me.anno.ui.UIColors.paleGoldenRod
@@ -35,7 +35,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB

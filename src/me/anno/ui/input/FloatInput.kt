@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble

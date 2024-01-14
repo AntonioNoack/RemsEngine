@@ -2,8 +2,8 @@ package me.anno.ui.editor.stacked
 
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

@@ -10,7 +10,7 @@ import me.anno.graph.render.RenderGraphEditor
 import me.anno.graph.types.NodeLibrary
 import me.anno.tests.gfx.metalRoughness
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 
 /**
  * Displays a post-processing pipeline in graph form, which can be edited in real-time.

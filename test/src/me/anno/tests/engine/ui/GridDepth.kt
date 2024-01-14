@@ -2,7 +2,7 @@ package me.anno.tests.engine.ui
 
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.utils.OS.documents
 
 fun main() {

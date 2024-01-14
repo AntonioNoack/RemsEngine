@@ -3,14 +3,14 @@ package me.anno.tests.shader
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.downloads
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     val scene = Entity()
     scene.add(Skybox())

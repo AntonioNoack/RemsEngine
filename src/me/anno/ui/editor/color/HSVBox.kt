@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.input.Input
-import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import org.joml.Vector3f

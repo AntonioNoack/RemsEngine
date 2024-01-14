@@ -13,7 +13,7 @@ import me.anno.io.SaveableArray
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.max
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu

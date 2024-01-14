@@ -4,11 +4,11 @@ import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.FloatVectorInput

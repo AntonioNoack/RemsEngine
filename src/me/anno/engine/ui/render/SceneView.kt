@@ -18,11 +18,10 @@ import me.anno.graph.ui.GraphEditor
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 
 @Suppress("MemberVisibilityCanBePrivate")

@@ -10,8 +10,7 @@ import me.anno.input.Input
 import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
-import me.anno.studio.Events.addEvent
-import me.anno.studio.StudioBase
+import me.anno.engine.Events.addEvent
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.ui.editor.code.CodeEditor
 import org.apache.logging.log4j.LogManager
@@ -28,7 +27,7 @@ object EngineActions {
             "PrintLayout" to { printLayout();true },
             "DragEnd" to {
 
-                val dragged = StudioBase.dragged
+                val dragged = EngineBase.dragged
 
                 // LOGGER.debug("Executing DragEnd, $dragged")
 
@@ -40,7 +39,7 @@ object EngineActions {
                     val window = GFX.focusedWindow
                     if (window != null) when (type) {
                         "File" -> {
-                            val hp = StudioBase.instance?.hoveredPanel
+                            val hp = EngineBase.instance?.hoveredPanel
                             if (hp != null) hp.onPasteFiles(
                                 window.mouseX, window.mouseY,
                                 data.split("\n").map { getReference(it) }
@@ -48,19 +47,19 @@ object EngineActions {
                             else LOGGER.warn("No panel was hovered for drop")
                         }
                         else -> {
-                            val hp = StudioBase.instance?.hoveredPanel
+                            val hp = EngineBase.instance?.hoveredPanel
                             if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
                             else LOGGER.warn("No panel was hovered for drop")
                         }
                     } else LOGGER.warn("Could not drop, because no window was focussed")
 
-                    StudioBase.dragged = null
+                    EngineBase.dragged = null
 
                     true
                 } else false
             },
             "ClearCache" to {
-                StudioBase.instance?.clearAll()
+                EngineBase.instance?.clearAll()
                 true
             },
             "Redo" to { PrefabInspector.currentInspector?.history?.redo() ?: false },
@@ -87,7 +86,7 @@ object EngineActions {
                 } else */false
             },
             "Save" to {
-                StudioBase.instance?.save()
+                EngineBase.instance?.save()
                 true
             },
             "Paste" to {
@@ -115,7 +114,7 @@ object EngineActions {
                 true
             },
             "OpenHistory" to {
-                StudioBase.instance?.openHistory()
+                EngineBase.instance?.openHistory()
                 true
             },
             "SelectAll" to {

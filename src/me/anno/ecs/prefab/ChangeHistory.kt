@@ -9,8 +9,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.io.ISaveable
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.studio.StudioBase
-import me.anno.studio.history.StringHistory
+import me.anno.engine.EngineBase
+import me.anno.engine.history.StringHistory
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.structures.lists.Lists.count2
 import org.apache.logging.log4j.LogManager
@@ -29,7 +29,7 @@ class ChangeHistory : StringHistory() {
             ECSRegistry.init()
         }
 
-        val workspace = StudioBase.workspace
+        val workspace = EngineBase.workspace
         val changes = JsonStringReader.read(curr, workspace, true).filterIsInstance<Change>()
         val prefab = prefab!!
         val prevAdds = prefab.adds

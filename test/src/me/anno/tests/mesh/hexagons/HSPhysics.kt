@@ -22,7 +22,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestEngine
 import me.anno.utils.Color.black
 import me.anno.utils.OS.documents
 import me.anno.utils.files.Files.formatFileSize
@@ -282,7 +282,7 @@ fun main() {
 
     physics.gravity /= sphere.hexagonsPerSide
 
-    TestStudio.testUI3("HexagonSphere Physics") {
+    TestEngine.testUI3("HexagonSphere Physics") {
         GFX.someWindow.windowStack.firstOrNull()?.drawDirectly = false
         val renderView = object : RenderView(PlayMode.PLAYING, DefaultConfig.style) {
             override fun getWorld() = scene

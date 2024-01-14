@@ -9,7 +9,7 @@ package org.joml
  * the effective argument will always be the *current* matrix of the matrix stack.
  *
  * @author Kai Burjack, modified by Antonio Noack to be infinite, yet not allocation free
- * users of RemsStudio shouldn't have to worry about tree depth, if their machine is strong enough to handle it
+ * our users shouldn't have to worry about tree depth, if their machine is strong enough to handle it
  */
 class Matrix4dArrayList : Matrix4d() {
 

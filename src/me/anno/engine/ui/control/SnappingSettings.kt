@@ -3,7 +3,7 @@ package me.anno.engine.ui.control
 import me.anno.config.ConfigRef
 import me.anno.ecs.annotations.Range
 import me.anno.maths.Maths.hasFlag
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 import org.joml.Vector3d
 import kotlin.math.floor
 import kotlin.math.round

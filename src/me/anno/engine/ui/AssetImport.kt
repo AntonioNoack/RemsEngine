@@ -9,7 +9,7 @@ import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS
@@ -252,7 +252,7 @@ object AssetImport {
 
     private fun savePrefab(dstFolder: FileReference, name: String, newPrefab: Prefab): FileReference {
         var dstFile = dstFolder.getChild("$name.json")
-        val data = JsonStringWriter.toText(newPrefab, StudioBase.workspace)
+        val data = JsonStringWriter.toText(newPrefab, EngineBase.workspace)
         if (dstFile.exists && newPrefab.clazzName in copyCheckedTypes) {
             // compare the contents: if identical, we can use it
             val data0 = try {

@@ -8,7 +8,7 @@ import me.anno.ui.Window
  * engine runtime for testing; without console
  * */
 @Suppress("unused")
-class PureTestStudio(title: String, val createMainPanel1: () -> Panel) : TestStudio(title, { emptyList() }) {
+class PureTestEngine(title: String, val createMainPanel1: () -> Panel) : TestEngine(title, { emptyList() }) {
 
     override fun createUI() {
         val ui = createMainPanel1()
@@ -27,7 +27,7 @@ class PureTestStudio(title: String, val createMainPanel1: () -> Panel) : TestStu
          * no audio
          * */
         fun testPureUI(title: String, createMainPanel: () -> Panel) {
-            PureTestStudio(title, createMainPanel).run()
+            PureTestEngine(title, createMainPanel).run()
         }
 
         /**
@@ -36,7 +36,7 @@ class PureTestStudio(title: String, val createMainPanel1: () -> Panel) : TestStu
          * no audio
          * */
         fun testPureUI(title: String, mainPanel: Panel) {
-            PureTestStudio(title) { mainPanel }.run()
+            PureTestEngine(title) { mainPanel }.run()
         }
     }
 }

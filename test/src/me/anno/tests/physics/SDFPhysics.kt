@@ -14,7 +14,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import org.joml.Vector3d
 import java.util.*
 

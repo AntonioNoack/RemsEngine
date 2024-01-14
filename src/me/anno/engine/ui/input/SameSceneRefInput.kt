@@ -3,11 +3,10 @@ package me.anno.engine.ui.input
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.utils.Color.mixARGB
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
@@ -58,7 +57,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
     val linkIcon = object : TextPanel("\uD83D\uDD17", style) {
 
         fun isDraggingGoodType(): Int {
-            val dragged = StudioBase.dragged?.getOriginal()
+            val dragged = EngineBase.dragged?.getOriginal()
             return when {
                 clazz.isInstance(dragged) -> 5
                 containsType(dragged) -> 4
@@ -164,7 +163,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {
             "PrefabSaveable" -> {
-                val instance = StudioBase.dragged?.getOriginal() as? PrefabSaveable
+                val instance = EngineBase.dragged?.getOriginal() as? PrefabSaveable
                 if (instance == null) {
                     LOGGER.warn("Dragged instance was not PrefabSaveable")
                 } else if (clazz.isInstance(instance)) {

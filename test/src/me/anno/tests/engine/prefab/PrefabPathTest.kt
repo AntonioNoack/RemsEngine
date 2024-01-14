@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.utils.OS.documents
 import kotlin.test.assertEquals
 

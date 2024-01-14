@@ -15,7 +15,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
@@ -710,7 +710,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath
     }
 
-    open fun toLocalPath(workspace: FileReference = StudioBase.workspace): String {
+    open fun toLocalPath(workspace: FileReference = EngineBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
     }
 

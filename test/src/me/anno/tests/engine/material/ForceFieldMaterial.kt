@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel.createPlane
 import me.anno.ecs.components.mesh.shapes.UVSphereModel.createUVSphere
 import me.anno.ecs.components.shaders.Skybox
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -125,7 +125,7 @@ class ForceFieldMaterial : Material() {
  * */
 fun main() {
 
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
 
     val scene = Entity()

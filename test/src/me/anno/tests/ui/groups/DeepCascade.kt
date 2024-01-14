@@ -5,7 +5,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 // create a deep cascade of panels to find eventual slow-downs
 fun main() {

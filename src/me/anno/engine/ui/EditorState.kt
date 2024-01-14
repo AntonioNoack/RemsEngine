@@ -12,7 +12,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 import me.anno.ui.custom.CustomPanelType
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector

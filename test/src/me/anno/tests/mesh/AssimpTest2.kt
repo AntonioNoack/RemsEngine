@@ -3,7 +3,7 @@ package me.anno.tests.mesh
 import me.anno.Engine
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
@@ -36,7 +36,7 @@ import java.nio.IntBuffer
 
 fun main() {
 
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     HiddenOpenGLContext.createOpenGL()
     ShaderLib.init()

@@ -1,14 +1,14 @@
 package me.anno.engine.ui.input
 
-import me.anno.engine.IProperty
-import me.anno.engine.Ptr
+import me.anno.engine.inspector.IProperty
+import me.anno.utils.structures.Pointer
 import me.anno.ui.Panel
 
 class MapPanelProperty(
     val value: Any?,
     val setFunc: (Any?) -> Unit,
     val type: String,
-    val panel: Ptr<Panel?>
+    val panel: Pointer<Panel?>
 ) : IProperty<Any?> {
     override val annotations: List<Annotation> get() = emptyList()
     override fun init(panel: Panel?) {}

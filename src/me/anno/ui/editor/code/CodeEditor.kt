@@ -14,7 +14,7 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
-import me.anno.studio.history.StringHistory
+import me.anno.engine.history.StringHistory
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.Font

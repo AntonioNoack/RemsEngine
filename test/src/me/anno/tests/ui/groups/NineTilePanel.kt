@@ -3,11 +3,11 @@ package me.anno.tests.ui.groups
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths.sq
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 
 fun main() {
@@ -18,7 +18,7 @@ fun main() {
             AxisAlignment.CENTER,
             AxisAlignment.MAX,
         )
-        StudioBase.showFPS = false
+        EngineBase.showFPS = false
         NineTilePanel(style).apply {
             addLeftClickListener {
                 val window = window!!

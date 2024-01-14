@@ -2,9 +2,9 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorEnd
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.getReflectivity

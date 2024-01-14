@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -169,7 +169,7 @@ open class FileInput(
             val value = value
             val title = value.nameWithoutExtension
             val stringContent = value.absolutePath
-            StudioBase.dragged = Draggable(stringContent, "File", value, title, style)
+            EngineBase.dragged = Draggable(stringContent, "File", value, title, style)
             true
         } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }

@@ -1,7 +1,7 @@
 package me.anno.engine.ui.input
 
-import me.anno.engine.IProperty
-import me.anno.engine.Ptr
+import me.anno.engine.inspector.IProperty
+import me.anno.utils.structures.Pointer
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.editor.stacked.ArrayPanel2
@@ -19,7 +19,7 @@ open class AnyArrayPanel2(title: String, visibilityKey: String, val childType: S
     }
 
     override fun createPanel(value: Any?): Panel {
-        val panel = Ptr<Panel?>(null)
+        val panel = Pointer<Panel?>(null)
         val property = ArrayPanelProperty(this, value, childType, panel)
         panel.value = ComponentUI.createUIByTypeName(null, visibilityKey, property, childType, null, style)
         return panel.value!!
@@ -44,7 +44,7 @@ open class AnyArrayPanel2(title: String, visibilityKey: String, val childType: S
         val anyArrayPanel: AnyArrayPanel2,
         val value: Any?,
         val arrayType: String,
-        val panel: Ptr<Panel?>
+        val panel: Pointer<Panel?>
     ) : IProperty<Any?> {
         override fun init(panel: Panel?) {}
         override val annotations: List<Annotation> get() = emptyList()

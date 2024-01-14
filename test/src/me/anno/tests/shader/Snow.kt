@@ -41,7 +41,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f

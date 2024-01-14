@@ -17,8 +17,8 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
-import me.anno.studio.Events.addEvent
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.Events.addEvent
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment

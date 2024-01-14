@@ -1,6 +1,6 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 
 class Option private constructor(
     val title: String,

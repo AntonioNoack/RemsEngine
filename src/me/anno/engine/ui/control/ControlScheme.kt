@@ -27,7 +27,7 @@ import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
@@ -324,7 +324,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
                 } // handled like a mouse
                 2 -> {
 
-                    val speed = -120f * StudioBase.shiftSlowdown / windowStack.height
+                    val speed = -120f * EngineBase.shiftSlowdown / windowStack.height
                     // this gesture started on this view -> this is our gesture
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation

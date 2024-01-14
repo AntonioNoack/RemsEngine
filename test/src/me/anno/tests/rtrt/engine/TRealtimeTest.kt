@@ -18,7 +18,7 @@ import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
 import me.anno.tests.LOGGER

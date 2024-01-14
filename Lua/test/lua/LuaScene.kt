@@ -2,7 +2,7 @@ package lua
 
 import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference.Companion.getReference
@@ -13,7 +13,7 @@ import me.anno.lua.QuickScriptComponent
  * */
 fun main() {
 
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     ECSRegistry.init()
 

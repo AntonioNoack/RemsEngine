@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Key
 import me.anno.tests.ui.UITests
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.input.IntInput
 import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Assertions.assertEquals

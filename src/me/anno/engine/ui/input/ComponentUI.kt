@@ -26,7 +26,7 @@ import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.IProperty
+import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.AssetImport
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -46,8 +46,8 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -101,13 +101,13 @@ object ComponentUI {
                 "Deep-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
                 ""
             )
-        ) { _, files -> AssetImport.deepCopyImport(StudioBase.workspace, files, null) },
+        ) { _, files -> AssetImport.deepCopyImport(EngineBase.workspace, files, null) },
         FileExplorerOption(
             NameDesc(
                 "Shallow-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
                 ""
             )
-        ) { _, files -> AssetImport.shallowCopyImport(StudioBase.workspace, files, null) },
+        ) { _, files -> AssetImport.shallowCopyImport(EngineBase.workspace, files, null) },
 
         // todo test whether this actually works
         // (on both Windows and Linux)
@@ -124,7 +124,7 @@ object ComponentUI {
                 if (file.isDirectory) file.name
                 else "${file.nameWithoutExtension}.$ext",
                 NameDesc("Link"), { -1 }, { newName ->
-                    val dst = StudioBase.workspace.getChild(newName)
+                    val dst = EngineBase.workspace.getChild(newName)
                     if (file != dst) {
                         AssetImport.createLink(file, dst)
                     } else LOGGER.warn("Cannot link file to itself")
@@ -350,7 +350,7 @@ object ComponentUI {
         }
         // serialize saveables for now, this is simple
         // a first variant for editing may be a json editor
-        val value0 = JsonFormatter.format(JsonStringWriter.toText(saveable, StudioBase.workspace))
+        val value0 = JsonFormatter.format(JsonStringWriter.toText(saveable, EngineBase.workspace))
         val input = TextInputML(title, value0, style)
         val textColor = input.base.textColor
         input.addChangeListener {
@@ -358,7 +358,7 @@ object ComponentUI {
                 property.set(input, null)
             } else {
                 try {
-                    val value2 = JsonStringReader.read(it, StudioBase.workspace, false).firstOrNull()
+                    val value2 = JsonStringReader.read(it, EngineBase.workspace, false).firstOrNull()
                     if (value2 != null) {
                         property.set(input, value2)
                         input.base.textColor = textColor

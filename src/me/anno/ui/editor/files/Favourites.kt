@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.utils.OS
 import me.anno.utils.files.LocalFile.toGlobalFile
 

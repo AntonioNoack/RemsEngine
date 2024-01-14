@@ -40,7 +40,7 @@ import me.anno.tests.network.Instance
 import me.anno.tests.network.Player
 import me.anno.tests.network.tcpProtocol
 import me.anno.tests.network.udpProtocol
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toRGB

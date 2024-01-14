@@ -10,7 +10,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -275,10 +275,10 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         var rx = dx
         var ry = dy
-        if (isDownOnScrollbarX != 0 && rx != 0f && StudioBase.dragged == null) {
+        if (isDownOnScrollbarX != 0 && rx != 0f && EngineBase.dragged == null) {
             rx = scrollX(if (isDownOnScrollbarX > 0) rx / relativeSizeX else -rx.toDouble()).toFloat()
         }
-        if (isDownOnScrollbarY != 0 && ry != 0f && StudioBase.dragged == null) {
+        if (isDownOnScrollbarY != 0 && ry != 0f && EngineBase.dragged == null) {
             ry = scrollY(if (isDownOnScrollbarY > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
         }
         if (rx != 0f || ry != 0f) {

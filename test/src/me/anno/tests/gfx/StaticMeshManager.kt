@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.engine.ui.render.SceneView
 import me.anno.mesh.Shapes
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Color
 import java.util.*
 
@@ -56,6 +56,6 @@ fun main() {
 
     scene.add(StaticMeshManager())
     SceneView.testSceneWithUI("StaticMeshManager", scene) {
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
     }
 }

@@ -46,9 +46,9 @@ import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
-import me.anno.studio.Events.addEvent
-import me.anno.studio.GFXSettings
-import me.anno.studio.StudioBase
+import me.anno.engine.Events.addEvent
+import me.anno.engine.GFXSettings
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -353,7 +353,7 @@ open class FileExplorerEntry(
                 val frameTime = (Time.nanoTime / 1e9) % animSample.duration
                 val frameIndex = (frameTime * animSample.numFrames).toFloat()
                 val samples = min(
-                    GFX.maxSamples, when (StudioBase.instance?.gfxSettings) {
+                    GFX.maxSamples, when (EngineBase.instance?.gfxSettings) {
                         GFXSettings.HIGH -> 8
                         GFXSettings.MEDIUM -> 2
                         else -> 1
@@ -742,7 +742,7 @@ open class FileExplorerEntry(
                 val title = selectedFiles.joinToString("\n") { it.nameWithoutExtension }
                 val stringContent = selectedFiles.joinToString("\n") { it.toString() }
                 val original: Any = if (selectedFiles.size == 1) selectedFiles[0] else selectedFiles
-                StudioBase.dragged = Draggable(stringContent, "File", original, title, style)
+                EngineBase.dragged = Draggable(stringContent, "File", original, title, style)
             }
             "Enter" -> {
                 if (explorer != null) {

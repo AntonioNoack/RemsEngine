@@ -1,7 +1,7 @@
 package me.anno.engine.ui.control
 
 import me.anno.config.ConfigRef
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 
 class GridSettings : Inspectable {
     // todo setting to snap grid itself???

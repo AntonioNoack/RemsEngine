@@ -1,6 +1,6 @@
 package me.anno.ui.input
 
-import me.anno.engine.IProperty
+import me.anno.engine.inspector.IProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox

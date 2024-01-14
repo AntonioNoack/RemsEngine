@@ -2,14 +2,14 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
 import me.anno.extensions.ExtensionLoader
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.downloads
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     ECSRegistry.initMeshes()
     testUI("MistubaReader") {

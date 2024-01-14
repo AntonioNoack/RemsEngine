@@ -5,7 +5,7 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.ui.base.IconPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.hex24

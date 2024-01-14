@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -12,7 +12,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     // given a triangle, and uv coordinates of a triangle,
     //  draw a pixelated image such that it appears to have triangular pixels

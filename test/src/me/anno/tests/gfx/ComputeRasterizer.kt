@@ -37,7 +37,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.Shapes.flatCube
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
@@ -648,6 +648,6 @@ fun computeRasterizer() {
         )
     }
     testSceneWithUI("Compute Rasterizer", scene) {
-        StudioBase.instance?.enableVSync = false // we want to go fast, so we need to measure performance
+        EngineBase.instance?.enableVSync = false // we want to go fast, so we need to measure performance
     }
 }

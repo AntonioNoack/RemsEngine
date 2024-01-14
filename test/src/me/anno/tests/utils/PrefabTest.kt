@@ -12,10 +12,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.editor.PropertyInspector
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
@@ -34,7 +33,7 @@ fun main() {
     // broken text input
     // testSceneWithUI(sample)
     testUI("PrefabTest") {
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
         sample.prefabPath = Path.ROOT_PATH
         EditorState.prefabSource = sample.ref
         PrefabInspector.currentInspector = PrefabInspector(sample.ref)

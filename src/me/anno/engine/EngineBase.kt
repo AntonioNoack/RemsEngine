@@ -1,34 +1,26 @@
-package me.anno.studio
+package me.anno.engine
 
 import me.anno.Build
 import me.anno.Engine
-import me.anno.Engine.projectName
 import me.anno.Time
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.extensions.ExtensionLoader
-import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
-import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.OSWindow
+import me.anno.gpu.*
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
-import me.anno.io.config.ConfigBasics.cacheFolder
-import me.anno.io.config.ConfigBasics.configFolder
+import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths
-import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.Tooltips
@@ -37,17 +29,16 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Logging
 import me.anno.utils.OS
-import me.anno.utils.types.Strings.addSuffix
-import me.anno.utils.types.Strings.filterAlphaNumeric
+import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
  * base class for UI setup;
- * manages audio, graphics, settings, game loop, ui
+ * manages audio, graphics, settings, game loop, and UI
  * */
-abstract class StudioBase(
+abstract class EngineBase(
     val title: String,
     val configName: String,
     val versionNumber: Int,
@@ -56,13 +47,13 @@ abstract class StudioBase(
 ) {
 
     constructor(title: String, versionNumber: Int, versionSuffix: String?, needsAudio: Boolean) :
-            this(title, filterAlphaNumeric(title), versionNumber, versionSuffix, needsAudio)
+            this(title, Strings.filterAlphaNumeric(title), versionNumber, versionSuffix, needsAudio)
 
     constructor(title: String, configName: String, versionNumber: Int, needsAudio: Boolean) :
             this(title, configName, versionNumber, null, needsAudio)
 
     constructor(title: String, versionNumber: Int, needsAudio: Boolean) :
-            this(title, filterAlphaNumeric(title), versionNumber, null, needsAudio)
+            this(title, Strings.filterAlphaNumeric(title), versionNumber, null, needsAudio)
 
     init {
         LOGGER.info("Process ID: ${OS.getProcessID()}")
@@ -73,7 +64,10 @@ abstract class StudioBase(
      * x.yy.zz
      * */
     val versionName =
-        addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
+        Strings.addSuffix(
+            "${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}",
+            versionSuffix
+        )
 
     open fun loadConfig() {}
 
@@ -132,9 +126,9 @@ abstract class StudioBase(
 
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
-        projectName = configName
-        configFolder = getReference(OS.home, ".config/$configName")
-        cacheFolder = getReference(OS.home, ".cache/$configName")
+        Engine.projectName = configName
+        ConfigBasics.configFolder = FileReference.getReference(OS.home, ".config/$configName")
+        ConfigBasics.cacheFolder = FileReference.getReference(OS.home, ".cache/$configName")
     }
 
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {
@@ -210,7 +204,7 @@ abstract class StudioBase(
 
             if (isFirstFrame) tick("Window drawing")
 
-            useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
+            GFXState.useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
                 if (drawUIOverlay(window, w, h)) didSomething = true
             }
         }
@@ -320,8 +314,8 @@ abstract class StudioBase(
             val (rw, rh) = dragged.getSize(w / 5, h / 5)
             var x = lastMouseX.roundToInt() - rw / 2
             var y = lastMouseY.roundToInt() - rh / 2
-            x = clamp(x, 0, w - rw)
-            y = clamp(y, 0, h - rh)
+            x = Maths.clamp(x, 0, w - rw)
+            y = Maths.clamp(y, 0, h - rh)
             GFX.clip(x, y, min(rw, w), min(rh, h)) {
                 dragged.draw(x, y)
                 didSomething = true
@@ -343,7 +337,7 @@ abstract class StudioBase(
 
     companion object {
 
-        var instance: StudioBase? = null
+        var instance: EngineBase? = null
 
         var showRedraws by ConfigRef("debug.ui.showRedraws", false)
         var showFPS by ConfigRef("debug.ui.showFPS", false)
@@ -351,7 +345,7 @@ abstract class StudioBase(
 
         var workspace = OS.documents
 
-        private val LOGGER = LogManager.getLogger(StudioBase::class)
+        private val LOGGER = LogManager.getLogger(EngineBase::class)
 
         var dragged: IDraggable? = null
 

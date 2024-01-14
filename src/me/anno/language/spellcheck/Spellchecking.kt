@@ -10,7 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.generic.JsonReader
 import me.anno.language.Language
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.ShutdownException
@@ -33,7 +33,7 @@ object Spellchecking : CacheSection("Spellchecking") {
     private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib/spellchecking")]
 
     var defaultLanguage = Language.AmericanEnglish
-    private val language get() = StudioBase.instance?.language ?: defaultLanguage
+    private val language get() = EngineBase.instance?.language ?: defaultLanguage
 
     fun check(
         sentence: CharSequence,

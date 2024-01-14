@@ -20,7 +20,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.angleDifference
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Triangles.subCross
 import org.jbox2d.collision.shapes.PolygonShape
@@ -29,7 +29,6 @@ import org.jbox2d.dynamics.BodyDef
 import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
-import org.joml.Quaterniond
 import org.joml.Vector2f
 import org.joml.Vector3d
 import java.util.*

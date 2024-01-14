@@ -10,7 +10,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -136,6 +136,6 @@ fun main() {
         scene.add(boid)
     }
     testSceneWithUI("Boids", scene) {
-        StudioBase.showFPS = true
+        EngineBase.showFPS = true
     }
 }

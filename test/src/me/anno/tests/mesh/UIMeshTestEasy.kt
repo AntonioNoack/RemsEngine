@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -11,7 +11,7 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 /**
  * load an existing asset, like the arrow, and draw it :)
@@ -33,7 +33,7 @@ fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.
 }
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future

@@ -1,7 +1,6 @@
 package me.anno.tests.ui
 
 import me.anno.cache.CacheSection
-import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves
@@ -18,7 +17,7 @@ import me.anno.tests.ui.OSMMapCache.getMapData
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import org.joml.AABBd

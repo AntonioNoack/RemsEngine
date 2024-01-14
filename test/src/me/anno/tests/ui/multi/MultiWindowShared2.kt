@@ -3,11 +3,11 @@ package me.anno.tests.ui.multi
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXBase
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.studio.Events.addEvent
+import me.anno.engine.Events.addEvent
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import kotlin.math.sin
 
 /**

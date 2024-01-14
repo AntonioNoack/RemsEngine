@@ -4,9 +4,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.UIColors.fireBrick
 import me.anno.maths.noise.PerlinNoise
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.utils.Function1d
-import me.anno.ui.utils.FunctionPanel
 import me.anno.ui.utils.FunctionPanelNd
 import me.anno.utils.Color.black
 import org.joml.Vector4f

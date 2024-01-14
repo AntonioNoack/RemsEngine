@@ -2,7 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.studio.Events.addEvent
+import me.anno.engine.Events.addEvent
 import me.anno.utils.files.Files.listFiles2
 import org.apache.logging.log4j.LogManager
 

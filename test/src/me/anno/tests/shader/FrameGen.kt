@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.DepthMode
@@ -38,10 +38,10 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.input.Input
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.IntInput
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3d
@@ -52,7 +52,7 @@ import org.lwjgl.opengl.GL46C.*
 import kotlin.math.max
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
 
     // todo this has bad graphics, because I'm using Pipeline directly
@@ -70,7 +70,7 @@ fun main() {
     val scene = PrefabCache[path]!!.getSampleInstance() as Entity
     testUI3("FrameGen") {
         DefaultConfig["debug.renderdoc.enabled"] = true
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
         var interFrames = 2
         val renderPanel = object : Panel(style) {
 

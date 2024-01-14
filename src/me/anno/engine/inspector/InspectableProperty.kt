@@ -1,6 +1,5 @@
-package me.anno.studio
+package me.anno.engine.inspector
 
-import me.anno.engine.IProperty
 import me.anno.io.serialization.CachedProperty
 import me.anno.ui.Panel
 

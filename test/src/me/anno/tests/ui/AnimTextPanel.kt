@@ -7,7 +7,7 @@ import me.anno.maths.Maths
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha

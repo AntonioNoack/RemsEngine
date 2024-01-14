@@ -16,10 +16,9 @@ import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.engine.GameEngineProject
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers.previewRenderer
@@ -47,7 +46,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.*
@@ -86,7 +84,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white4
@@ -1353,7 +1351,7 @@ object Thumbs {
                                         // try to read the file as an asset
                                         // not sure about using the workspace here...
                                         val sth =
-                                            JsonStringReader.read(decoded, StudioBase.workspace, true).firstOrNull()
+                                            JsonStringReader.read(decoded, EngineBase.workspace, true).firstOrNull()
                                         generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
                                     else -> LOGGER.warn("File $decoded is empty")

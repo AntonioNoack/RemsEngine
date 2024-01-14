@@ -10,7 +10,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import org.joml.Vector2f
 import kotlin.math.cos

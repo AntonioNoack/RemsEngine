@@ -7,8 +7,8 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.network.*
 import me.anno.network.packets.PingPacket
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.showRedraws
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList2D
@@ -16,7 +16,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.UpdatingSimpleTextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -38,7 +38,7 @@ val udpProtocol = Protocol("UDP", NetworkProtocol.UDP)
 fun main() {
     disableRenderDoc()
     testUI3("ServerClientWorld") {
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
         showRedraws = true
         val list = PanelList2D(style)
         val master = PanelListY(style)

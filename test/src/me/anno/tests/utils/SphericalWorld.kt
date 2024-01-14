@@ -16,7 +16,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.tetrahedron
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestEngine
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -104,7 +104,7 @@ fun main() {
         // baseShape.copy(mesh)
         testSceneWithUI("SphericalWorld", mesh)
     } else {
-        TestStudio.testUI3("SphericalWorld") {
+        TestEngine.testUI3("SphericalWorld") {
             val relativeDetail = 0.1
             val detailFactor = sq(relativeDetail)
             val oldPosition = Vector3d()

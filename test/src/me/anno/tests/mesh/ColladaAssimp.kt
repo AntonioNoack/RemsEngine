@@ -1,13 +1,13 @@
 package me.anno.tests.mesh
 
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.OS
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     // not a single of my files can be loaded with Assimp 4.1 ...
     // BLEND: Expected at least one object with no parent

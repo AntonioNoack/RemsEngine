@@ -13,7 +13,7 @@ import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
-import me.anno.engine.pbr.DeferredRenderer
+import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun

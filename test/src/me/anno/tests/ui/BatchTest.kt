@@ -4,16 +4,16 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 
 fun main() {
     testUI3("Batch Test") {
-        StudioBase.instance?.enableVSync = false
-        StudioBase.showFPS = true
+        EngineBase.instance?.enableVSync = false
+        EngineBase.showFPS = true
         object : Panel(style) {
 
             var batch = false

@@ -20,7 +20,7 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.unity.UnityReader
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Logging.hash32
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -138,7 +138,7 @@ object PrefabCache : CacheSection("Prefab") {
             is PrefabReadable -> resource.readPrefab()
             else -> {
                 try {
-                    val read = JsonStringReader.read(resource, StudioBase.workspace, true)
+                    val read = JsonStringReader.read(resource, EngineBase.workspace, true)
                     val prefab = read.firstOrNull()
                     if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
                     // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
@@ -174,7 +174,7 @@ object PrefabCache : CacheSection("Prefab") {
                         loadPrefabFromFolder(file, callback)
                     } else file.inputStream { it, e ->
                         if (it != null) {
-                            val prefab = JsonStringReader.read(it, StudioBase.workspace, false).firstOrNull()
+                            val prefab = JsonStringReader.read(it, EngineBase.workspace, false).firstOrNull()
                             it.close()
                             if (prefab is Prefab) prefab.source = file
                             if (prefab != null) {

@@ -3,10 +3,10 @@ package me.anno.tests.ui.input
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
-import me.anno.ui.debug.TestStudio.Companion.testUI2
+import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.input.EnumInput
@@ -28,7 +28,7 @@ fun testCodeEditor(title: String, editor: CodeEditor) {
     disableRenderDoc()
     testUI2(title) {
 
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
 
         CodeEditor.registerActions()
 

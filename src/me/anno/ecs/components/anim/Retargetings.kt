@@ -1,27 +1,21 @@
 package me.anno.ecs.components.anim
 
-import me.anno.animation.LoopingState
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
-import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 

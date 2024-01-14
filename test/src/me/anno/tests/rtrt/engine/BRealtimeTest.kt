@@ -39,14 +39,14 @@ import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Clock
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
@@ -145,7 +145,7 @@ fun createControls(
                 controls.onMouseMoved(0f, 0f, dx, dy)
             }
             if (Input.wasKeyPressed('v')) {
-                StudioBase.instance?.toggleVsync()
+                EngineBase.instance?.toggleVsync()
             }
             val dw = Input.mouseWheelSumY - lz
             controls.onMouseWheel(0f, 0f, 0f, dw, true)

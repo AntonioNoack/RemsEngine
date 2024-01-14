@@ -9,7 +9,7 @@ import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
@@ -132,7 +132,7 @@ object ExtensionLoader {
 
     @JvmStatic
     private fun checkExtensionRequirements(info: ExtensionInfo): Boolean {
-        val instance = StudioBase.instance
+        val instance = EngineBase.instance
         val instanceVersion = instance?.versionNumber ?: 0
         if (instanceVersion in info.minVersion until info.maxVersion) {
             // check if the mod was not disabled

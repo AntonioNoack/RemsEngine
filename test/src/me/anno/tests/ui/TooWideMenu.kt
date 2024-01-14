@@ -6,7 +6,7 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.menu.Menu.openMenuByPanels
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.utils.ThumbnailPanel
 
 fun main() {

@@ -29,7 +29,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.text.UpdatingTextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.documents
 import org.joml.Quaterniond
 import org.joml.Vector3d

@@ -18,7 +18,7 @@ import me.anno.graph.types.states.StateMachine
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.downloads
 
 fun main() {

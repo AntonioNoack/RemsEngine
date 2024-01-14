@@ -6,8 +6,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.EngineBase
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
@@ -65,7 +65,7 @@ class OptionPanel(
         if (data.isBlank2()) return
         try {
             val index = indexInParent
-            val values = JsonStringReader.read(data, StudioBase.workspace, true)
+            val values = JsonStringReader.read(data, EngineBase.workspace, true)
             for (it in values) {
                 it as? Inspectable ?: continue
                 val option = stackPanel.getOptionFromInspectable(it) ?: continue

@@ -2,7 +2,7 @@ package me.anno.io.xml.generic
 
 import me.anno.io.ISaveable
 import me.anno.io.xml.saveable.XMLStringWriter
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.types.Strings
 import java.io.ByteArrayInputStream
 
@@ -12,7 +12,7 @@ object XMLFormatter {
         return when (v) {
             is String -> format(XMLReader().read(ByteArrayInputStream(v.encodeToByteArray())))
             is XMLNode -> format(v, indentation, lineBreakLength)
-            is ISaveable -> format(XMLStringWriter.toText(v, StudioBase.workspace))
+            is ISaveable -> format(XMLStringWriter.toText(v, EngineBase.workspace))
             else -> throw IllegalArgumentException()
         }
     }

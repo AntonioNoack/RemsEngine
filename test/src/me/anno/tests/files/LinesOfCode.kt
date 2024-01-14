@@ -3,10 +3,9 @@ package me.anno.tests.files
 import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.types.Strings.isBlank2

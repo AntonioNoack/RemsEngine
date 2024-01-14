@@ -1,12 +1,13 @@
-package me.anno.studio
+package me.anno.engine.inspector
 
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.inspector.InspectableProperty
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.ISaveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel

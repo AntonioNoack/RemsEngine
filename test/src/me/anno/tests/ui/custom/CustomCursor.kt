@@ -5,7 +5,7 @@ import me.anno.gpu.Cursor
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
     val image = ImageCache[getReference("res://icon.png"), false]!!

@@ -18,7 +18,7 @@ import me.anno.io.ISaveable
 import me.anno.mesh.Shapes
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.types.Floats.toRadians
 
 // get rain effect working like snow in https://www.glslsandbox.com/e#36547.0

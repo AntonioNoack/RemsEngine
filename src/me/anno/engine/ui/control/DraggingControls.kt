@@ -30,7 +30,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX

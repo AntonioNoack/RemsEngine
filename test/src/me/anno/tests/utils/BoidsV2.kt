@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -131,6 +131,6 @@ fun main() {
         scene.add(boid)
     }
     testSceneWithUI("Boids V2", scene) {
-        StudioBase.showFPS = true
+        EngineBase.showFPS = true
     }
 }

@@ -1,8 +1,8 @@
-package me.anno.studio
+package me.anno.engine.projects
 
 import me.anno.config.DefaultConfig
-import me.anno.engine.GameEngineProject
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.engine.EngineBase
+import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
@@ -14,7 +14,7 @@ object Projects {
 
     private var recentProjectCount = 10
     fun getRecentProjects(): ArrayList<ProjectHeader> {
-        registerCustomClass(GameEngineProject::class)
+        ISaveable.registerCustomClass(GameEngineProject::class)
         val projects = ArrayList<ProjectHeader>()
         val usedFiles = HashSet<FileReference>()
         for (i in 0 until recentProjectCount) {
@@ -28,7 +28,7 @@ object Projects {
         // load projects, which were forgotten because the config was deleted
         if (DefaultConfig["recent.projects.detectAutomatically", true]) {
             try {
-                for (folder in StudioBase.workspace.listChildren() ?: emptyList()) {
+                for (folder in EngineBase.workspace.listChildren() ?: emptyList()) {
                     if (folder !in usedFiles) {
                         if (folder.isDirectory) {
                             val configFile = FileReference.getReference(folder, "Project.json")

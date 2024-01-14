@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
@@ -56,7 +56,7 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
     val height get() = h1
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
-        if (StudioBase.dragged != null) return
+        if (EngineBase.dragged != null) return
         if (panel != null && panel.windowStack.peek() != panel.window) {
             LOGGER.warn("illegal focus request")
         }

@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveableProperty
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.input.InputPanel
 
 fun main() {

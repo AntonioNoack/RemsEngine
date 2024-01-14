@@ -6,8 +6,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFXBase
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.shader.GPUShader.Companion.UniformCacheSize
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS.pictures
 import kotlin.system.exitProcess
@@ -33,8 +33,8 @@ fun runFileExplorerTest() {
         UniformCacheSize = 0
         GFXBase.useSeparateGLFWThread = false
         testUI3("Engine in OpenGL") {
-            StudioBase.instance?.enableVSync = false
-            StudioBase.showFPS = true
+            EngineBase.instance?.enableVSync = false
+            EngineBase.showFPS = true
             FileExplorer(pictures, true, style)
         }
     } catch (e: Throwable) {

@@ -6,7 +6,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.length
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -87,7 +87,7 @@ object Tooltips {
                 draw(window, pbi * window.progressbarHeight, container)
                 return true
             }
-            val hovered = StudioBase.instance?.hoveredPanel
+            val hovered = EngineBase.instance?.hoveredPanel
             if (hovered != null) {
 
                 val tooltip = hovered.getTooltipToP(mouseX, mouseY)

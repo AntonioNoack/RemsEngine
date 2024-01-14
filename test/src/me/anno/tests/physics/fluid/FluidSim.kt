@@ -28,7 +28,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader
 import me.anno.tests.physics.fluid.FluidSimulator.splatShader
@@ -250,7 +250,7 @@ fun main() {
     // we handle collisions ourselves
     comp.collisionMask = 0
     testSceneWithUI("FluidSim", scene) {
-        StudioBase.instance!!.enableVSync = true
+        EngineBase.instance!!.enableVSync = true
         it.editControls = object : DraggingControls(it.renderer) {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {}
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

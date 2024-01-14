@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
 import me.anno.graph.render.scene.RenderSceneNode0
-import me.anno.studio.Inspectable
+import me.anno.engine.inspector.Inspectable
 import java.util.*
 
 class OutlineEffectSelectNode : RenderSceneNode0(

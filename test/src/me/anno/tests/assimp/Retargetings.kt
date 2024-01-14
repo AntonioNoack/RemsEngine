@@ -10,16 +10,16 @@ import me.anno.ecs.components.anim.Retargetings
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS
 
 fun main() {
     // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
     ECSRegistry.init()
-    StudioBase.workspace = OS.documents.getChild("RemsEngine\\YandereSim")
+    EngineBase.workspace = OS.documents.getChild("RemsEngine\\YandereSim")
     // find two human meshes with different skeletons
-    val meshFile = StudioBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
-    val animFile = StudioBase.workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
+    val meshFile = EngineBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
+    val animFile = EngineBase.workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
     val scene = PrefabCache[meshFile]!!.createInstance() as Entity
     val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
     lateinit var testedComponent: AnimMeshComponent

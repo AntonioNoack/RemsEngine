@@ -27,8 +27,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
-import me.anno.studio.Events
-import me.anno.studio.StudioBase
+import me.anno.engine.Events
+import me.anno.engine.EngineBase
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.structures.Task
@@ -544,7 +544,7 @@ object GFX {
 
         resetFBStack()
 
-        val inst = StudioBase.instance
+        val inst = EngineBase.instance
         if (inst != null && doRender) {
             // in case of an error, we have to fix it,
             // so give us the best chance to do so:

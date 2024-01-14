@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
-import me.anno.studio.StudioBase.Companion.showRedraws
+import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.utils.OS.music
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Floats.toRadians

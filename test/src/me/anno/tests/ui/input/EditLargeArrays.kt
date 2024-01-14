@@ -5,9 +5,9 @@ import me.anno.engine.ui.input.AnyArrayPanel2
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.input.ComponentUI.writeTo
 import me.anno.io.ISaveable.Companion.getReflections
-import me.anno.studio.Inspectable
-import me.anno.studio.InspectableProperty
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.inspector.InspectableProperty
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 // todo some content seems to be missing / invisible: with base >= 15
 

@@ -2,7 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
-import me.anno.studio.Events.addEvent
+import me.anno.engine.Events.addEvent
 
 open class FileContentImporter<V> {
 

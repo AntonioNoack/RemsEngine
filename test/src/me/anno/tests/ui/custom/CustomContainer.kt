@@ -6,7 +6,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomPanelType
 import me.anno.ui.custom.UITypeLibrary
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 
 fun main() {
     disableRenderDoc()

@@ -5,7 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 
 // todo (interactable) springs as well :) -> make the UI joyful
@@ -36,7 +36,7 @@ abstract class UIAnimation(
     }
 
     fun clone() = JsonStringReader.readFirst<UIAnimation>(
-        JsonStringWriter.toText(this, StudioBase.workspace), StudioBase.workspace
+        JsonStringWriter.toText(this, EngineBase.workspace), EngineBase.workspace
     )
 
     override val className: String get() = "UIAnimation"

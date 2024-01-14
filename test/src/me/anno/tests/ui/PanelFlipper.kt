@@ -8,7 +8,7 @@ import me.anno.ui.base.IconPanel
 import me.anno.ui.base.groups.PanelFlipper
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.UpdatingTextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle

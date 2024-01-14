@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.syntysource
 
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileReference.Companion.getReference
@@ -11,7 +11,7 @@ fun main() {
     //  - find such a file
     //  - introduce path mappings
     //  - make them work
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     val path = getReference(
         "E:/Assets/Sources/POLYGON_Construction_Source_Files.zip/" +

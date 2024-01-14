@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.extensions.ExtensionLoader
@@ -23,7 +23,7 @@ import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import kotlin.math.max
 import kotlin.math.min
 
@@ -90,7 +90,7 @@ class SimpleMeshTest(
 
 fun main() {
     // todo MSAA is broken... why?
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future

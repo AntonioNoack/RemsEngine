@@ -10,7 +10,7 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLScanner
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.count2

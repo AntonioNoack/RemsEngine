@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.AnyToInt
 import me.anno.video.ffmpeg.FFMPEGStream
@@ -78,7 +78,7 @@ class VideoData(
         val framesPerContainer: Int
             get() {
                 val default = 64
-                val instance = StudioBase.instance
+                val instance = EngineBase.instance
                 return if (instance != null) AnyToInt.getInt(instance.gfxSettings["video.frames.perContainer"], default)
                 else default
             }

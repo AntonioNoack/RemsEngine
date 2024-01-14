@@ -6,7 +6,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 
 fun main() {

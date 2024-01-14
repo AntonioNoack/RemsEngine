@@ -3,7 +3,7 @@ package me.anno.tests.ui.files
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc
 import me.anno.language.translation.NameDesc
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.documents
 import me.anno.utils.files.FileChooser
 import me.anno.utils.files.FileExtensionFilter

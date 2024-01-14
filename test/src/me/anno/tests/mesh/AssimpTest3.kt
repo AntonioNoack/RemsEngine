@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
 import me.anno.io.json.generic.JsonFormatter
@@ -14,7 +14,7 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.all2
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     val source = downloads.getChild("3d/FemaleStandingPose/6.1.fbx")
     val json = JsonFormatter.format(shorten(parseBinaryFBX6000(source.inputStreamSync())))

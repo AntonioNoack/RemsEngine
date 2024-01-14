@@ -8,7 +8,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY

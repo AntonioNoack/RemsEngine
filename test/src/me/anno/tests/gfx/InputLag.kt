@@ -2,7 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.Time
 import me.anno.gpu.drawing.GFXx2D.drawCircle
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.black
 import org.joml.Vector2f
@@ -41,7 +41,7 @@ fun main() {
         // without vsync (at 2000 fps): still 33ms lag (yellow ring)
         // without vsync, with glFinish() after glfwSwapBuffers(): 16-25ms lag (between green and yellow)
         // with Vsync and glFinish(): 2 frames input lag (yellow ring)
-        StudioBase.instance?.enableVSync = vsync
+        EngineBase.instance?.enableVSync = vsync
         it.clear()
         val window = it.window!!
         val mx = window.mouseX

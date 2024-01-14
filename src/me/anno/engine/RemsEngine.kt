@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.GameEngineProject.Companion.currentProject
+import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
@@ -27,8 +27,8 @@ import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.projects.GameEngineProject
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -101,7 +101,7 @@ import org.joml.Matrix4f
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), WelcomeUI {
+open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), WelcomeUI {
 
     override fun loadConfig() {
         DefaultConfig.defineDefaultFileAssociations()
@@ -122,7 +122,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
         ScenePrefab.prefab.value.getSampleInstance()
         startClock.stop("Sample Scene")
 
-        PluginRegistry.init()
+        OfficialExtensions.register()
         startClock.stop("Loading Plugins")
     }
 

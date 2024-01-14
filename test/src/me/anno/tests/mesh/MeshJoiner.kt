@@ -2,18 +2,18 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.extensions.ExtensionLoader
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS.documents
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     ECSRegistry.init()
     val workspace = documents.getChild("RemsEngine/YandereSim")
-    StudioBase.workspace = workspace
+    EngineBase.workspace = workspace
     // the source file isn't a Mesh yet, so it has to be joined
     testSceneWithUI("MeshCache/MeshJoiner", MeshCache[workspace.getChild("School.json")]!!)
 }

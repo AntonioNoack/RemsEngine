@@ -7,7 +7,7 @@ import me.anno.graph.render.NodeGroup
 import me.anno.graph.ui.GraphEditor
 import me.anno.ui.UIColors
 import me.anno.ui.base.SpyPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Color.withAlpha
 
 fun main() {

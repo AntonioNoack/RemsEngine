@@ -1,15 +1,15 @@
 package me.anno.tests.ui.groups
 
 import me.anno.config.DefaultConfig.style
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 
 fun main() {
     testUI("ListStressTest-Y") {
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
         val n = 100_000
         val list = PanelListY(style)
         list.allChildrenHaveSameSize = true

@@ -22,8 +22,8 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.studio.Events.addEvent
-import me.anno.studio.StudioBase
+import me.anno.engine.Events.addEvent
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
@@ -314,7 +314,7 @@ object GFXBase {
         GFX.setup(tick)
         GFX.check()
         tick?.stop("Render step zero")
-        StudioBase.instance?.gameInit()
+        EngineBase.instance?.gameInit()
         tick?.stop("Game Init")
     }
 
@@ -325,7 +325,7 @@ object GFXBase {
             Time.updateTime()
             renderFrame()
         }
-        StudioBase.instance?.onShutdown()
+        EngineBase.instance?.onShutdown()
     }
 
     @JvmStatic
@@ -364,7 +364,7 @@ object GFXBase {
                 updateWindows()
                 renderFrame()
             }
-            StudioBase.instance?.onShutdown()
+            EngineBase.instance?.onShutdown()
         }
     }
 

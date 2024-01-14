@@ -4,13 +4,13 @@ import me.anno.Engine
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
 fun main() {
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
     ECSRegistry.init()
     val prefab = PrefabCache[OS.documents.getChild("cube bricks.glb")]!!

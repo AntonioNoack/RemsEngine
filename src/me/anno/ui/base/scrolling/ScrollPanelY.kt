@@ -9,7 +9,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -191,7 +191,7 @@ open class ScrollPanelY(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isDownOnScrollbar != 0 && Input.isLeftDown && StudioBase.dragged == null) {
+        if (isDownOnScrollbar != 0 && Input.isLeftDown && EngineBase.dragged == null) {
             val dy2 = scrollY(if (isDownOnScrollbar > 0) dy / relativeSizeY else -dy.toDouble()).toFloat()
             if (dx != 0f || dy2 != 0f) super.onMouseMoved(x, y, dx, dy2)
         } else super.onMouseMoved(x, y, dx, dy)

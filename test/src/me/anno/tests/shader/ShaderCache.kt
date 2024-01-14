@@ -6,7 +6,7 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.shader.ShaderCache
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 private fun compileCachedShaders() {
     GFX.checkIsGFXThread()

@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.GameEngineProject.Companion.currentProject
+import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
@@ -20,8 +20,8 @@ import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.msg
@@ -126,7 +126,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
 
     private fun pastePrefab(data: String): Boolean {
         try {
-            val read = JsonStringReader.read(data, StudioBase.workspace, true)
+            val read = JsonStringReader.read(data, EngineBase.workspace, true)
             val saveable = read.getOrNull(0) ?: return false
             when (saveable) {
                 is Prefab -> {

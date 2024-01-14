@@ -27,8 +27,8 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 import org.joml.AABBf
@@ -293,7 +293,7 @@ fun main() {
     testUI("MeshToVoxels") {
 
         // to measure performance
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
 
         val renderer = attributeRenderers[DeferredLayerType.COLOR]
 

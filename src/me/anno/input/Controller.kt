@@ -18,7 +18,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
@@ -442,7 +442,7 @@ class Controller(val id: Int) {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getCaliFile(guid)
             if (!file.exists || file.isDirectory) return null
-            return JsonStringReader.readFirstOrNull<ControllerCalibration>(file, StudioBase.workspace)
+            return JsonStringReader.readFirstOrNull<ControllerCalibration>(file, EngineBase.workspace)
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {
@@ -452,7 +452,7 @@ class Controller(val id: Int) {
             )
             val file = getCaliFile(guid)
             file.getParent()?.tryMkdirs()
-            JsonStringWriter.save(calibration, file, StudioBase.workspace)
+            JsonStringWriter.save(calibration, file, EngineBase.workspace)
         }
 
         const val MAX_NUM_BUTTONS = 128

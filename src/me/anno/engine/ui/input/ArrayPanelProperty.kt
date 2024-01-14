@@ -1,7 +1,7 @@
 package me.anno.engine.ui.input
 
-import me.anno.engine.IProperty
-import me.anno.engine.Ptr
+import me.anno.engine.inspector.IProperty
+import me.anno.utils.structures.Pointer
 import me.anno.ui.Panel
 
 /**
@@ -11,7 +11,7 @@ class ArrayPanelProperty(
     val anyArrayPanel: AnyArrayPanel,
     val value: Any?,
     val arrayType: String,
-    val panel: Ptr<Panel?>
+    val panel: Pointer<Panel?>
 ) :
     IProperty<Any?> {
     override fun init(panel: Panel?) {}

@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.ExpandingFloatArray
@@ -185,6 +185,6 @@ fun main() {
     }
 
     testSceneWithUI("Boids V3", boid) {
-        StudioBase.showFPS = true
+        EngineBase.showFPS = true
     }
 }

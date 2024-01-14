@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.animation.Interpolation
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.studio.StudioBase.Companion.showRedraws
+import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.EventType
 import me.anno.ui.anim.MoveAnimation
@@ -13,7 +13,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI
 
 /**
  * test ui with button that changes size when being hovered

@@ -11,7 +11,7 @@ import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.mesh.Shapes.flatCube
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Vector2i
@@ -62,6 +62,6 @@ fun rotatingCube() {
     scene.add(comp)
     scene.add(MeshComponent(mesh))
     testSceneWithUI("Procedural GPU Mesh", scene) {
-        StudioBase.instance?.enableVSync = true
+        EngineBase.instance?.enableVSync = true
     }
 }

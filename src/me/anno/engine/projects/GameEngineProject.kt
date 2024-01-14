@@ -1,9 +1,11 @@
-package me.anno.engine
+package me.anno.engine.projects
 
 import me.anno.Engine
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.EngineBase
+import me.anno.engine.Events
+import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
@@ -14,8 +16,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.Events.addEvent
-import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -78,7 +78,7 @@ class GameEngineProject() : NamedSaveable() {
     fun saveMaybe() {
         if (isValid) {
             isValid = false
-            addEvent {
+            Events.addEvent {
                 if (!isValid) {
                     isValid = true
                     configFile.writeText(JsonStringWriter.toText(this, location))
@@ -111,7 +111,7 @@ class GameEngineProject() : NamedSaveable() {
 
     fun init() {
 
-        workspace = location
+        EngineBase.workspace = location
 
         // if last scene is invalid, create a valid scene
         if (lastScene == "") {
@@ -135,7 +135,7 @@ class GameEngineProject() : NamedSaveable() {
         // open all tabs
         for (tab in openTabs.toList()) {
             try {
-                ECSSceneTabs.open(tab.toGlobalFile(workspace), PlayMode.EDITING, false)
+                ECSSceneTabs.open(tab.toGlobalFile(EngineBase.workspace), PlayMode.EDITING, false)
             } catch (e: Exception) {
                 LOGGER.warn("Could not open $tab", e)
             }
@@ -203,7 +203,7 @@ class GameEngineProject() : NamedSaveable() {
                 "ttf", "woff1", "woff2" -> addToIndex(file, "Font")
                 else -> {
                     val timeout = 0L // because we don't really need it
-                    val prefab = PrefabCache[file, maxPrefabDepth, timeout, false]
+                    val prefab = PrefabCache[file, Prefab.maxPrefabDepth, timeout, false]
                     if (prefab != null) {
                         addToIndex(file, prefab.clazzName)
                     }

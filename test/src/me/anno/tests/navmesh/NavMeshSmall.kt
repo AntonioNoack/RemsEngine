@@ -12,8 +12,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
 import me.anno.recast.NavMesh
-import me.anno.studio.StudioBase
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.engine.EngineBase
+import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
 import org.joml.Vector3d
 import org.recast4j.detour.*
@@ -28,7 +28,7 @@ import kotlin.math.max
 fun main() {
     testUI("NavMeshSmall") {
 
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
         ECSRegistry.initMeshes()
 
         val mask = 1 shl 16

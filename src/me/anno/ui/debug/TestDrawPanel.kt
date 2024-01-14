@@ -5,9 +5,9 @@ import me.anno.config.DefaultConfig.style
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -52,7 +52,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
         if (key == Key.KEY_V && Input.isControlDown) {
-            StudioBase.instance?.toggleVsync()
+            EngineBase.instance?.toggleVsync()
         } else super.onKeyDown(x, y, key)
     }
 

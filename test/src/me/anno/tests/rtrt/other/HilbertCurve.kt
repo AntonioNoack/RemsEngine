@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.ui.debug.TestDrawPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI2
+import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
 import org.joml.Vector2f
 

@@ -1,6 +1,6 @@
 package me.anno.engine.ui.input
 
-import me.anno.engine.Ptr
+import me.anno.utils.structures.Pointer
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -26,14 +26,14 @@ open class AnyMapPanel(
 
     override fun createPanel(value: MutablePair<Any?, Any?>): Panel {
 
-        val keyPanelPtr = Ptr<Panel?>(null)
+        val keyPanelPtr = Pointer<Panel?>(null)
         val keyProperty = MapPanelProperty(value.first, { value.first = it; onChange() }, keyType, keyPanelPtr)
         val keyPanel = ComponentUI.createUIByTypeName("", "", keyProperty, keyType, null, style)
         keyPanel.setTooltip("Key")
         keyPanel.weight = 1f
         keyPanelPtr.value = keyPanel
 
-        val valuePanelPtr = Ptr<Panel?>(null)
+        val valuePanelPtr = Pointer<Panel?>(null)
         val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanelPtr)
         val valuePanel = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
         valuePanel.setTooltip("Value")

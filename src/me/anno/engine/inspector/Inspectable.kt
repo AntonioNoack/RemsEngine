@@ -1,4 +1,4 @@
-package me.anno.studio
+package me.anno.engine.inspector
 
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY

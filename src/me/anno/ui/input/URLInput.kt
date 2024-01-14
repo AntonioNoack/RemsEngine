@@ -4,7 +4,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -77,7 +77,7 @@ open class URLInput(
             val lastValue = value
             val title = lastValue.nameWithoutExtension
             val stringContent = lastValue.absolutePath
-            StudioBase.dragged = Draggable(stringContent, "File", lastValue, title, style)
+            EngineBase.dragged = Draggable(stringContent, "File", lastValue, title, style)
             true
         } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }

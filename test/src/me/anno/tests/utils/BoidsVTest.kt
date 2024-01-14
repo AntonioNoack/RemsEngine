@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
@@ -146,6 +146,6 @@ fun main() {
     }
 
     testSceneWithUI("Boids V4", boid) {
-        StudioBase.showFPS = true
+        EngineBase.showFPS = true
     }
 }

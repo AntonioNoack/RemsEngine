@@ -1,8 +1,8 @@
 package me.anno.engine.ui.render
 
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode

@@ -12,7 +12,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
-import me.anno.studio.StudioBase
+import me.anno.engine.EngineBase
 import me.anno.utils.OS.downloads
 
 fun main() {
@@ -93,6 +93,6 @@ fun main() {
         }
     }
     testSceneWithUI("Metallic", scene) {
-        StudioBase.instance?.enableVSync = false
+        EngineBase.instance?.enableVSync = false
     }
 }

@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.obj
 
-import me.anno.engine.PluginRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
@@ -8,7 +8,7 @@ import me.anno.utils.OS
 
 fun main() {
 
-    PluginRegistry.init()
+    OfficialExtensions.register()
     ExtensionLoader.load()
 
     val source = OS.downloads.getChild("San_Miguel/san-miguel.obj")

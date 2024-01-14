@@ -7,7 +7,7 @@ import me.anno.ecs.EntityQuery.getComponents
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.light.*
 import me.anno.engine.debug.DebugShapes
-import me.anno.engine.pbr.DeferredRenderer
+import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
