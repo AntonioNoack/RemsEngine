@@ -1,5 +1,7 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.DitherMode
+import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
@@ -7,15 +9,22 @@ import me.anno.gpu.shader.Shader
 import java.util.*
 import kotlin.math.max
 
+/**
+ * Combines multiple vertex/fragment stages into a single shader.
+ * Resolves variables and functions somewhat.
+ * */
 class ShaderBuilder(val name: String) {
 
-    constructor(name: String, settingsV2: DeferredSettings?) : this(name) {
+    constructor(name: String, settingsV2: DeferredSettings?, ditherMode: DitherMode) : this(name) {
         settings = settingsV2
+        this.ditherMode = ditherMode
     }
+
+    var ditherMode = GFXState.ditherMode.currentValue
 
     // there exist 3 passes: vertex, fragment, geometry
     // input variables can be defined on multiple ways: uniforms / attributes
-    // output colors can be further and further processed
+    // output colors can be further processed
 
     val vertex = MainStage().apply {
         define(Variable(GLSLType.V4F, "gl_Position", true))
@@ -70,6 +79,7 @@ class ShaderBuilder(val name: String) {
     fun create(suffix: String? = null): Shader {
 
         val settings = settings
+        val ditherMode = GFXState.ditherMode.currentValue
         if (settings != null) {
             if (fragment.stages.isEmpty()) fragment.stages.add(ShaderStage("?", emptyList(), ""))
             val lastStage = fragment.stages.last()
@@ -122,24 +132,24 @@ class ShaderBuilder(val name: String) {
         }
 
         // create the code
-        val vertCode = vertex.createCode(false, settings, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
+        val vertCode = vertex.createCode(
+            false, settings, disabledLayers,
+            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F
+        )
         val attributes = vertex.attributes
-        val fragCode = fragment.createCode(true, settings, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
+        val fragCode = fragment.createCode(
+            true, settings, disabledLayers,
+            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F
+        )
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariablesV2F && it !in bridgeVariablesI2F } +
                 bridgeVariablesV2F.values +
                 bridgeVariablesI2F.values
 
-        val shader = object : Shader(
+        val shader = Shader(
             if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
             varying, fragment.uniforms.sortedBy { it.name }, fragCode
-        ) {
-            override fun compile() {
-                super.compile()
-                use()
-                v4f("tint", -1)
-            }
-        }
+        )
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)

@@ -1,6 +1,8 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
@@ -241,12 +243,14 @@ class MainStage {
                 .append(";\n}\n")
         }
         code.append("}\n")
+
     }
 
     fun createCode(
         isFragmentStage: Boolean,
         settings: DeferredSettings?,
         disabledLayers: BitSet?,
+        ditherMode: DitherMode,
         bridgeVariablesV2F: Map<Variable, Variable>,
         bridgeVariablesI2F: Map<Variable, Variable>
     ): String {
@@ -306,7 +310,15 @@ class MainStage {
 
         // define all required functions
         // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
-        if (settings != null) functions2.add(ShaderLib.octNormalPacking)
+        if (isFragmentStage) {
+            if (settings != null) {
+                functions2.add(ShaderLib.octNormalPacking)
+            }
+            if (ditherMode == DitherMode.DITHER2X2) {
+                functions2.add(ShaderLib.dither2x2)
+            }
+        }
+
         for (func in functions2) code.append(func)
         if (functions2.isNotEmpty()) code.append('\n')
 
@@ -390,6 +402,29 @@ class MainStage {
             for ((local, varying) in bridgeVariablesI2F) {
                 code.append(varying.name).append('=').append(local.name).append("; // bridge-step#8\n")
             }
+        }
+
+        if (isFragmentStage && Variable(GLSLType.V1F, "finalAlpha") in defined) {
+            code.append("#ifndef CUSTOM_DITHER\n")
+            when (ditherMode) {
+                DitherMode.ALPHA_THRESHOLD_INV255 -> {
+                    code.append("if(finalAlpha<${1f / 255f}) { discard; }\n")
+                }
+                DitherMode.ALPHA_THRESHOLD_HALF -> {
+                    code.append("if(finalAlpha<0.5) { discard; }\n")
+                }
+                DitherMode.ALPHA_THRESHOLD_ONE -> {
+                    code.append("if(finalAlpha<1.0) { discard; }\n")
+                }
+                DitherMode.DITHER2X2 -> {
+                    code.append("if(dither2x2(finalAlpha)) { discard; }\n")
+                }
+                DitherMode.DRAW_EVERYTHING -> {} // done
+                else -> throw NotImplementedError()
+            }
+            code.append("#endif\n")
+        } else if(isFragmentStage){
+            println("skipping $ditherMode, because !finalAlpha")
         }
 
         // write to the outputs for fragment shader

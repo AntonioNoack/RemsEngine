@@ -255,13 +255,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         glslVersion = max(glslVersion, 330)
     }
 
-    open fun createBuilder(): ShaderBuilder {
-        val builder = ShaderBuilder(name, null)
-        builder.ignored += Array(8) { "shadowMapPlanar$it" }
-        builder.ignored += Array(8) { "shadowMapCubic$it" }
-        return builder
-    }
-
     open fun createRandomIdStage(): ShaderStage {
         return ShaderStage(
             "randomId", listOf(
@@ -272,7 +265,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     open fun createBase(key: ShaderKey): ShaderBuilder {
-        val builder = createBuilder()
+        val builder = ShaderBuilder(name, null, key.ditherMode)
         val flags = key.flags
         builder.addVertex(createVertexStages(key))
         builder.addVertex(createRandomIdStage())

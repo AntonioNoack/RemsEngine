@@ -136,7 +136,7 @@ class WeightedBlended : TransparentPass() {
         private val blend0s = arrayOf(BlendMode.PURE_ADD, blend0)
     }
 
-    override fun draw1(pipeline: Pipeline) {
+    override fun blendTransparentStages(pipeline: Pipeline) {
 
         val b0 = GFXState.currentBuffer
         val r0 = GFXState.currentRenderer
@@ -157,7 +157,7 @@ class WeightedBlended : TransparentPass() {
                 GFXState.depthMask.use(false) {
                     val blend: Any = if (perTargetBlending) blend0s else blend2
                     GFXState.blendMode.use(blend) {
-                        draw2(pipeline)
+                        drawTransparentStages(pipeline)
                     }
                 }
             }

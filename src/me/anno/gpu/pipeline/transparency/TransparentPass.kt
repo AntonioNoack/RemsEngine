@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline.transparency
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -29,25 +30,44 @@ abstract class TransparentPass : ICacheData {
         return tmp
     }
 
-    fun draw0(pipeline: Pipeline, sky: Boolean) {
-        if (!sky) {
-            GFXState.currentBuffer.clearColor(0)
+    fun drawPipeline(pipeline: Pipeline, needsClear: Boolean, drawColoredSky: Boolean) {
+        if (GFXState.ditherMode.currentValue != DitherMode.DRAW_EVERYTHING) {
+            drawPipelineOpaque(pipeline)
+        } else {
+            if (!drawColoredSky && needsClear) {
+                GFXState.currentBuffer.clearColor(0)
+            }
+            drawOpaqueStages(pipeline)
+            if (drawColoredSky) {
+                pipeline.drawSky()
+            }
+            blendTransparentStages(pipeline)
         }
+    }
+
+    fun drawPipelineOpaque(pipeline: Pipeline) {
+        // first only opaque, rest later?
         val stages = pipeline.stages
         for (i in stages.indices) {
             val stage = stages[i]
-            if (stage.blendMode == null)
-                stage.bindDraw(pipeline)
+            val baseStage = if (stage.blendMode == null) stage else pipeline.defaultStage
+            baseStage.bindDraw(pipeline, stage)
         }
-        if (sky) {
-            pipeline.drawSky()
-        }
-        draw1(pipeline)
     }
 
-    abstract fun draw1(pipeline: Pipeline)
+    fun drawOpaqueStages(pipeline: Pipeline) {
+        val stages = pipeline.stages
+        for (i in stages.indices) {
+            val stage = stages[i]
+            if (stage.blendMode == null) {
+                stage.bindDraw(pipeline)
+            }
+        }
+    }
 
-    fun draw2(pipeline: Pipeline) {
+    abstract fun blendTransparentStages(pipeline: Pipeline)
+
+    fun drawTransparentStages(pipeline: Pipeline) {
         val stages = pipeline.stages
         for (i in stages.indices) {
             val stage = stages[i]

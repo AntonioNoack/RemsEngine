@@ -278,7 +278,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // multi-sampled buffer
         return when {
             // msaa, single target
-            renderMode == RenderMode.MSAA_NON_DEFERRED -> base8Buffer
+            renderMode == RenderMode.MSAA_FORWARD -> base8Buffer
             // aliased, multi-target
             renderer == DeferredRenderer -> baseNBuffer1
             else -> base1Buffer

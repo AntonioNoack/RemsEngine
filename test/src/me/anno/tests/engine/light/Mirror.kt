@@ -39,6 +39,6 @@ fun main() {
     })
     testSceneWithUI("Planar Reflections", scene) {
         // doesn't have ssao yet
-        it.renderer.renderMode = RenderMode.NON_DEFERRED
+        it.renderer.renderMode = RenderMode.FORWARD
     }
 }

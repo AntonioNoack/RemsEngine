@@ -54,7 +54,7 @@ open class Material : PrefabSaveable(), Renderable {
     // 1 = transparent
     // 2 = decal
     @Docs("For default usages look at [me.anno.gpu.pipeline.PipelineStage]")
-    @NotSerializedProperty
+    @SerializedProperty
     var pipelineStage: Int = 0
 
     @Docs("Shader override, by default is ECSShaderLib.pbrModelShader")

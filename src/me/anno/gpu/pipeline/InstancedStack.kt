@@ -122,7 +122,9 @@ open class InstancedStack {
 
                 val shader = stage.getShader(material)
                 shader.use()
+                GFX.check()
                 bindRandomness(shader)
+                GFX.check()
 
                 // update material and light properties
                 val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
@@ -136,7 +138,9 @@ open class InstancedStack {
                     setupLights(pipeline, shader, aabb, true)
                 }
 
+                GFX.check()
                 material.bind(shader)
+                GFX.check()
                 shader.v4f("tint", 1f)
                 shader.v1b("hasAnimation", useAnimations)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)

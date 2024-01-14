@@ -23,8 +23,6 @@ import kotlin.test.assertNotEquals
  * holds rendering-related state,
  * currently, with OpenGL, this must be changed from a single thread only!
  * all functions feature rendering-callbacks, so you can change settings without having to worry about the previously set state by your caller
- *
- * renamed from OpenGL to GFXState, because we might support Vulkan in the future
  * */
 object GFXState {
 
@@ -167,6 +165,8 @@ object GFXState {
      * defines how the instanced transform is derived from available attributes (depends on InstancedStack)
      * */
     val instanceData = SecureStack(MeshInstanceData.DEFAULT)
+
+    val ditherMode = SecureStack(DitherMode.DRAW_EVERYTHING)
 
     val cullMode = SecureStack(CullMode.BOTH)
 

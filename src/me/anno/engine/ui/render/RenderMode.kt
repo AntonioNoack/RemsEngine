@@ -89,8 +89,8 @@ class RenderMode(
 
         val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
-        val NON_DEFERRED = RenderMode("Non-Deferred", Renderers.pbrRenderer)
-        val MSAA_NON_DEFERRED = RenderMode("MSAA Non-Deferred", Renderers.pbrRenderer)
+        val FORWARD = RenderMode("Forward", Renderers.pbrRenderer)
+        val MSAA_FORWARD = RenderMode("MSAA Forward", Renderers.pbrRenderer)
 
         val ALL_DEFERRED_LAYERS = RenderMode("All Deferred Layers")
         val ALL_DEFERRED_BUFFERS = RenderMode("All Deferred Buffers")

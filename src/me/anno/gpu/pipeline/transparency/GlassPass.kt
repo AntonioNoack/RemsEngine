@@ -36,7 +36,7 @@ import me.anno.utils.types.Booleans.toInt
 class GlassPass : TransparentPass() {
 
     // todo refractions (of non-transparent objects) :3
-    //  this would need a whole copy of the scene with all buffers :/
+    //  this would need a copy of the two buffers we write to
     // theoretically needs a search, again...
     // depends on normal
 
@@ -67,7 +67,7 @@ class GlassPass : TransparentPass() {
                                 "finalAlpha *= fresnel;\n" +
                                 "finalEmissive = finalColor * finalAlpha;\n" + // reflections
                                 "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
-                                "finalAlpha = 1.0;\n"
+                                ""
                     )
                         .add(fresnelSchlick)
                         .add(getReflectivity)
@@ -78,8 +78,8 @@ class GlassPass : TransparentPass() {
 
         // override diffuseColor and finalEmissive in shader
         val applyShader = LazyMap<Int, Shader> { bits ->
-            val diffuseSlot = bits.and(0xff)
-            val emissiveSlot = bits.ushr(8).and(0xff)
+            val diffuseSlot = bits.and(255)
+            val emissiveSlot = bits.ushr(8).and(255)
             val multisampled = bits.hasFlag(1 shl 16)
             val sampleType = if (multisampled) GLSLType.S2DMS else GLSLType.S2D
             Shader(
@@ -99,15 +99,19 @@ class GlassPass : TransparentPass() {
                         "void main() {\n" +
                         (if(multisampled) "" +
                                 "ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" else "") +
-                        "   vec4 tint = vec4(exp(-getTex(diffuseGlassTex).rgb),1.0);\n" +
-                        "   diffuse  = getTex(diffuseSrcTex) * tint;\n" +
-                        "   emissive = getTex(emissiveSrcTex) * tint + vec4(getTex(emissiveGlassTex).rgb,0.0);\n" +
+                        "   vec4 diffuseData = getTex(diffuseGlassTex);\n" +
+                        "   float tr = 1.0-1.0/(1.0+diffuseData.a);\n" +
+                        "   vec3 tint = exp(-diffuseData.rgb);\n" +
+                        "   diffuse = getTex(diffuseSrcTex);\n" +
+                        "   emissive = getTex(emissiveSrcTex);\n" +
+                        "   diffuse.rgb = diffuse.rgb * tint;\n" + // todo why are colors desaturated in non-blended areas, when we blend based on "tr"?
+                        "   emissive.rgb = emissive.rgb * tint + getTex(emissiveGlassTex).rgb;\n" +
                         "}\n"
             )
         }
     }
 
-    override fun draw1(pipeline: Pipeline) {
+    override fun blendTransparentStages(pipeline: Pipeline) {
 
         val b0 = GFXState.currentBuffer
         val tmp = getFB(arrayOf(TargetType.Float16x3, TargetType.Float16x3))
@@ -116,7 +120,7 @@ class GlassPass : TransparentPass() {
             GFXState.depthMode.use(DepthMode.CLOSE) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                        draw2(pipeline)
+                        drawTransparentStages(pipeline)
                     }
                 }
             }

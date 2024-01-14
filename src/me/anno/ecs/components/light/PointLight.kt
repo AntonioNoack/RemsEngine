@@ -90,24 +90,26 @@ class PointLight : LightComponent(LightType.POINT) {
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(DepthMode.CLOSE) {
-            result.draw(resolution, Renderer.nothingRenderer) { side ->
-                result.clearColor(0, depth = true)
-                setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
-                rotateForCubemap(rot3.identity(), side)
-                rot3.mul(rotInvert)
-                cameraMatrix.rotate(rot3)
+            GFXState.ditherMode.use(ditherMode) {
+                result.draw(resolution, Renderer.nothingRenderer) { side ->
+                    result.clearColor(0, depth = true)
+                    setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
+                    rotateForCubemap(rot3.identity(), side)
+                    rot3.mul(rotInvert)
+                    cameraMatrix.rotate(rot3)
 
-                // define camera position and rotation
-                val cameraRotation = rot3.invert(RenderState.cameraRotation)
-                RenderState.calculateDirections(true)
+                    // define camera position and rotation
+                    val cameraRotation = rot3.invert(RenderState.cameraRotation)
+                    RenderState.calculateDirections(true)
 
-                pipeline.clear()
-                pipeline.frustum.definePerspective(
-                    near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
-                    position, cameraRotation
-                )
-                pipeline.fill(root)
-                pipeline.drawWithoutSky()
+                    pipeline.clear()
+                    pipeline.frustum.definePerspective(
+                        near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
+                        position, cameraRotation
+                    )
+                    pipeline.fill(root)
+                    pipeline.drawWithoutSky(false)
+                }
             }
         }
 

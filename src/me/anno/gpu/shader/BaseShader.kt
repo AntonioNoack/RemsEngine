@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
@@ -45,6 +46,7 @@ open class BaseShader(
         val renderer: Renderer,
         val vertexData: MeshVertexData,
         val instanceData: MeshInstanceData,
+        val ditherMode: DitherMode,
         val flags: Int
     )
 
@@ -102,6 +104,27 @@ open class BaseShader(
         return shader
     }
 
+    /** shader for deferred rendering */
+    open fun createDeferredShader(key: ShaderKey): Shader {
+        val deferred = key.renderer.deferredSettings!!
+        val flags = key.flags
+        val shader = deferred.createShader(
+            name,
+            flags.hasFlag(IS_INSTANCED),
+            vertexVariables,
+            vertexShader,
+            varyings,
+            fragmentVariables,
+            fragmentShader,
+            textures,
+            key.renderer.getVertexPostProcessing(flags),
+            key.renderer.getPixelPostProcessing(flags),
+            key.ditherMode
+        )
+        finish(shader)
+        return shader
+    }
+
     val value: Shader
         get() {
             GFX.check()
@@ -144,26 +167,6 @@ open class BaseShader(
 
     fun setTextureIndices(textures: List<String>?) {
         this.textures = textures
-    }
-
-    /** shader for deferred rendering */
-    open fun createDeferredShader(key: ShaderKey): Shader {
-        val deferred = key.renderer.deferredSettings!!
-        val flags = key.flags
-        val shader = deferred.createShader(
-            name,
-            flags.hasFlag(IS_INSTANCED),
-            vertexVariables,
-            vertexShader,
-            varyings,
-            fragmentVariables,
-            fragmentShader,
-            textures,
-            key.renderer.getVertexPostProcessing(flags),
-            key.renderer.getPixelPostProcessing(flags)
-        )
-        finish(shader)
-        return shader
     }
 
     fun finish(shader: Shader, minVersion: Int = 0) {
@@ -214,8 +217,9 @@ open class BaseShader(
             val renderer = GFXState.currentRenderer
             val instanceData = GFXState.instanceData.currentValue
             val vertexData = GFXState.vertexData.currentValue
+            val ditherMode = GFXState.ditherMode.currentValue
             val flags = getFlags()
-            return ShaderKey(renderer, vertexData, instanceData, flags)
+            return ShaderKey(renderer, vertexData, instanceData, ditherMode, flags)
         }
 
         fun getFlags(): Int {

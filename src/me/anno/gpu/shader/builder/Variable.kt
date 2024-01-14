@@ -104,11 +104,11 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
     var slot = -1
 
     override fun equals(other: Any?): Boolean {
-        return other is Variable && other.name == name
+        return other is Variable && other.type == type && other.name == name
     }
 
     override fun hashCode(): Int {
-        return name.hashCode()
+        return type.hashCode() * 31 + name.hashCode()
     }
 
     override fun toString(): String {

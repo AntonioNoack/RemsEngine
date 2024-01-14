@@ -632,7 +632,7 @@ object Thumbs {
             rv.pipeline.clear()
             rv.pipeline.fill(scene)
             rv.setRenderState()
-            rv.pipeline.drawWithoutSky()
+            rv.pipeline.drawWithoutSky(true)
         }
     }
 

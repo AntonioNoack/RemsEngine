@@ -1,5 +1,6 @@
 package me.anno.gpu.deferred
 
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
@@ -172,10 +173,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         fragmentShader: String,
         textures: List<String>?,
         vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>
+        pixelPostProcessing: List<ShaderStage>,
+        ditherMode: DitherMode
     ): Shader {
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
-        val builder = ShaderBuilder(shaderName, this)
+        val builder = ShaderBuilder(shaderName, this, ditherMode)
         builder.addVertex(ShaderStage("def-vs", vertexVariables + varyings, vertex))
         builder.addVertex(vertexPostProcessing)
         builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))

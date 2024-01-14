@@ -11,7 +11,7 @@ import me.anno.utils.OS.documents
 
 fun main() {
     ECSRegistry.init()
-    // todo normals look broken, maybe scaled incorrectly???
+    // normals look broken, maybe scaled incorrectly???
     // transforms were broken -> is now fixed :)
     workspace = documents.getChild("RemsEngine/YandereSim")
     val meshFile = workspace.getChild("Walls/Office/meshes/SM_Bld_Floor_Grass_01.json")

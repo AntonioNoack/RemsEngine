@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettings
@@ -70,10 +71,14 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @NotSerializedProperty
     var shadowTextures: IFramebuffer? = null
 
+    @SerializedProperty
     var depthFunc = DepthMode.CLOSE
 
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
+
+    @SerializedProperty
+    var ditherMode = DitherMode.DITHER2X2
 
     override fun fill(
         pipeline: Pipeline,
@@ -199,31 +204,33 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val renderer = Renderer.nothingRenderer
         val tmpPos = JomlPools.vec3d.create().set(position)
         GFXState.depthMode.use(DepthMode.CLOSE) {
-            result.draw(renderer) { i ->
-                if (i > 0) { // reset position and rotation
-                    position.set(tmpPos)
+            GFXState.ditherMode.use(ditherMode) {
+                result.draw(renderer) { i ->
+                    if (i > 0) { // reset position and rotation
+                        position.set(tmpPos)
+                    }
+                    pipeline.clear()
+                    val cascadeScale = shadowMapPower.pow(-i.toDouble())
+                    updateShadowMap(
+                        cascadeScale, worldScale,
+                        RenderState.cameraMatrix,
+                        position, rotation, direction,
+                        drawTransform, pipeline, resolution
+                    )
+                    /* test frustum, breaks cascades though (because cameraMatrix isn't reset)
+                        RenderState.cameraPosition.set(originalPosition)
+                        RenderState.worldScale = originalWorldScale
+                        pipeline.frustum.showPlanes()
+                        RenderState.worldScale = worldScale
+                        position.set(tmpPos)
+                    */
+                    val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
+                    RenderState.calculateDirections(isPerspective)
+                    val root = rootOverride ?: entity.getRoot(Entity::class)
+                    pipeline.fill(root)
+                    result.clearColor(0, depth = true)
+                    pipeline.drawWithoutSky(false)
                 }
-                pipeline.clear()
-                val cascadeScale = shadowMapPower.pow(-i.toDouble())
-                updateShadowMap(
-                    cascadeScale, worldScale,
-                    RenderState.cameraMatrix,
-                    position, rotation, direction,
-                    drawTransform, pipeline, resolution
-                )
-                /* test frustum, breaks cascades though (because cameraMatrix isn't reset)
-                    RenderState.cameraPosition.set(originalPosition)
-                    RenderState.worldScale = originalWorldScale
-                    pipeline.frustum.showPlanes()
-                    RenderState.worldScale = worldScale
-                    position.set(tmpPos)
-                */
-                val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
-                RenderState.calculateDirections(isPerspective)
-                val root = rootOverride ?: entity.getRoot(Entity::class)
-                pipeline.fill(root)
-                result.clearColor(0, depth = true)
-                pipeline.drawWithoutSky()
             }
         }
         JomlPools.vec3d.sub(1)

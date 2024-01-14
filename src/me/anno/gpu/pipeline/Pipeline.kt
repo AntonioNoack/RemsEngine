@@ -262,7 +262,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     fun draw(drawSky: Boolean = true) {
         if (hasTransparentPart()) {
-            transparentPass.draw0(this, drawSky)
+            transparentPass.drawPipeline(this, true, drawSky)
         } else {
             var hasDrawnSky = !drawSky
             for (i in stages.indices) {
@@ -281,12 +281,13 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
     }
 
-    fun drawWithoutSky() {
+    fun drawWithoutSky(needsClear: Boolean) {
         if (hasTransparentPart()) {
-            // todo test this
-            transparentPass.draw0(this, false)
+            transparentPass.drawPipeline(this, needsClear, false)
         } else {
-            GFXState.currentBuffer.clearColor(0)
+            if (needsClear) {
+                GFXState.currentBuffer.clearColor(0)
+            }
             for (i in stages.indices) {
                 val stage = stages[i]
                 if (stage.size > 0) {

@@ -523,11 +523,11 @@ class PipelineStage(
         // (a helper function for that (and finding it again) might be added in the future)
     )
 
-    fun bindDraw(pipeline: Pipeline) {
-        bind { draw(pipeline) }
+    fun bindDraw(pipeline: Pipeline, drawn: PipelineStage = this) {
+        bind { drawn.draw(pipeline) }
     }
 
-    fun bind(draw: () -> Unit) {
+    private fun bind(draw: () -> Unit) {
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {

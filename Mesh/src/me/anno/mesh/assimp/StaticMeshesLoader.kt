@@ -23,6 +23,7 @@ import me.anno.utils.strings.StringHelper.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
+import org.hsluv.HSLuvColorSpace.fromLinear
 import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -33,7 +34,6 @@ import org.lwjgl.system.MemoryUtil
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
 
@@ -328,8 +328,7 @@ object StaticMeshesLoader {
                 transparent, reflective, transparency
             )
             if (diffuse != null) {
-                val gamma = 1f / 2.2f // idk why it's soo wrong...
-                diffuse.set(diffuse.x.pow(gamma), diffuse.y.pow(gamma), diffuse.z.pow(gamma), opacity)
+                diffuse.w = opacity
                 prefab["diffuseBase"] = diffuse
             } else if (opacity != 1f) {
                 prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
@@ -566,7 +565,8 @@ object StaticMeshesLoader {
     fun getColor(aiMaterial: AIMaterial, color: AIColor4D, flag: String): Vector4f? {
         val result = aiGetMaterialColor(aiMaterial, flag, aiTextureType_NONE, 0, color)
         return if (result == 0) {
-            Vector4f(color.r(), color.g(), color.b(), color.a())
+            // colors are linear in Assimp, sRGB in Rem's Engine
+            Vector4f(fromLinear(color.r()), fromLinear(color.g()), fromLinear(color.b()), color.a())
         } else null
     }
 
@@ -704,6 +704,8 @@ object StaticMeshesLoader {
             val vec = AIColor4D.malloc()
             val dst = IntArray(vertexCount)
             for (j in 0 until vertexCount) {
+                // todo since all colors are linear in sRGB, we probably need to convert them here, too, don't we???
+                //  test that somehow... maybe with orange-color in Blender -> fbx -> see result here
                 src.get(vec)
                 val r = f2i(vec.r())
                 val g = f2i(vec.g())

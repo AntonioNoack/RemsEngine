@@ -248,6 +248,12 @@ open class Shader(
 
         compileBindTextureNames()
         compileSetDebugLabel()
+
+        // ^^
+        use()
+        if (hasUniform("tint")) {
+            v4f("tint", 1f)
+        }
     }
 
     fun getAttributeLocation(name: String): Int {
