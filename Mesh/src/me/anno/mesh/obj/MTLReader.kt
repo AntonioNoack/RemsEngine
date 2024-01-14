@@ -4,8 +4,10 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
+import me.anno.mesh.obj.OBJReader.Companion.readPath
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.EOFException
 import java.io.InputStream
@@ -50,20 +52,20 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                         // metallic
                         "Ns" -> {
                             // in Blender, this is the roughness, expressed as (1-roughness)² * 1000
-                            val exponent = readValue()
+                            val exponent = readScalar()
                             val smoothness = sqrt(exponent / 1000f)
                             val roughness = clamp(1f - smoothness)
                             material?.set("roughnessMinMax", Vector2f(0f, roughness))
                         }
                         "d" -> {
-                            color.w = readValue()
+                            color.w = readScalar()
                             hadOpacity = true
                         }
                         /*"map_Ka" -> // ???
                             material!!.setProperty("diffuseMap", readFile(file))
                             material.ambientTexture = readFile(file)*/
-                        "map_Kd" -> material!!["diffuseMap"] = readFile(file)
-                        "map_Ke" -> material!!["emissiveMap"] = readFile(file)
+                        "map_Kd" -> material!!["diffuseMap"] = readPath(file)
+                        "map_Ke" -> material!!["emissiveMap"] = readPath(file)
                         "map_Ks" -> {
                             // to do roughness or metallic?
                             // not used by Blender in my small experiment
@@ -77,13 +79,13 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                         "Tr" -> {
                             if (!hadOpacity) {
                                 // todo mark Tr as reversed, if the value is 1.0f? maybe :)
-                                val v = readValue()
+                                val v = readScalar()
                                 color.w = if (v == 1f) 1f else 1f - v
                             } else skipLine()
                         }
                         @Suppress("SpellCheckingInspection")
                         "illum" -> {
-                            val v = readValue().toInt()
+                            val v = readScalar().toInt()
                             if (v == 3) {
                                 // metallic, at least as Blender output
                                 // 2 = just roughness
@@ -125,6 +127,24 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
         }
         material?.set("diffuseBase", color)
         reader.close()
+    }
+
+    fun readScalar(): Float {
+        skipSpaces()
+        val x = readFloat()
+        skipLine()
+        return x
+    }
+
+    fun readVector3f(): Vector3f {
+        skipSpaces()
+        val x = readFloat()
+        skipSpaces()
+        val y = readFloat()
+        skipSpaces()
+        val z = readFloat()
+        skipLine()
+        return Vector3f(x, y, z)
     }
 
     // todo normal map, occlusion

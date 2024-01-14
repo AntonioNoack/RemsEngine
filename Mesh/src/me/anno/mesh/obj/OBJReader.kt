@@ -28,8 +28,6 @@ import java.io.InputStream
 // (yes, when using assimp, I am copying everything, which is non-optimal)
 class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(input) {
 
-    // constructor(file: FileReference) : this(file.inputStream(), file)
-
     val folder = InnerFolder(file)
     val materialsFolder by lazy { InnerFolder(folder, "materials") }
     val meshesFolder by lazy { InnerFolder(folder, "meshes") }
@@ -267,7 +265,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     private fun readMaterialLib() {
         // mtllib
         if (nextChar() == 't' && nextChar() == 'l' && nextChar() == 'l' && nextChar() == 'i' && nextChar() == 'b') {
-            val file2 = readFile(file)
+            val file2 = readPath(file)
             if (file2.exists && !file2.isDirectory) {
                 try {
                     val folder = MTLReader.readAsFolderSync(file2, materialsFolder)
@@ -472,6 +470,18 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 if (it != null) callback(OBJReader(it, file).folder, exc)
                 else callback(null, exc)
             }
+        }
+
+        fun TextFileReader.readPath(parent: FileReference): FileReference {
+            var path = readUntilNewline()
+                .replace('\\', '/')
+                .replace("//", "/")
+                .trim()
+            skipLine()
+            if (path.startsWith("./")) path = path.substring(2)
+            val file = FileReference.getReference(parent.getParent(), path)
+            if (!file.exists) LOGGER.warn("Missing file $file")
+            return file
         }
     }
 }

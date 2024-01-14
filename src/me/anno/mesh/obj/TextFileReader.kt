@@ -1,9 +1,5 @@
 package me.anno.mesh.obj
 
-import me.anno.io.files.FileReference
-import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector3f
 import java.io.EOFException
 import java.io.InputStream
 import kotlin.math.pow
@@ -11,7 +7,6 @@ import kotlin.math.pow
 open class TextFileReader(val reader: InputStream) {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(TextFileReader::class)
         const val minus = '-'.code
         private const val zero = '0'.code
         private const val nine = '9'.code
@@ -188,45 +183,4 @@ open class TextFileReader(val reader: InputStream) {
             }
         }
     }
-
-    fun readValue(): Float {
-        skipSpaces()
-        val x = readFloat()
-        skipLine()
-        return x
-    }
-
-    @Suppress("unused")
-    fun readVector2f(): Vector2f {
-        skipSpaces()
-        val x = readFloat()
-        skipSpaces()
-        val y = readFloat()
-        skipLine()
-        return Vector2f(x, y)
-    }
-
-    fun readVector3f(): Vector3f {
-        skipSpaces()
-        val x = readFloat()
-        skipSpaces()
-        val y = readFloat()
-        skipSpaces()
-        val z = readFloat()
-        skipLine()
-        return Vector3f(x, y, z)
-    }
-
-    fun readFile(parent: FileReference): FileReference {
-        var path = readUntilNewline()
-            .replace('\\', '/')
-            .replace("//", "/")
-            .trim()
-        skipLine()
-        if (path.startsWith("./")) path = path.substring(2)
-        val file = FileReference.getReference(parent.getParent(), path)
-        if (!file.exists) LOGGER.warn("Missing file $file")
-        return file
-    }
-
 }
