@@ -207,7 +207,7 @@ class PipelineStage(
                 shader.v1f("defRRT", fract(Time.gameTime))
                 // define all randomnesses: depends on framebuffer
                 // and needs to be set for all shaders
-                val layers = deferred.layers2
+                val layers = deferred.storageLayers
                 for (index in layers.indices) {
                     val layer = layers[index]
                     val m: Float // (1+m)*x+n

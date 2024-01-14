@@ -72,15 +72,17 @@ class MeshInstanceData(
                 ShaderStage(
                     "def-pos", listOf(
                         Variable(GLSLType.V4F, "instanceFinalId", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "finalId", VariableMode.OUT),
+                        Variable(GLSLType.V4F, "finalId", VariableMode.OUT).flat(),
                         Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.M4x3, "localTransform", VariableMode.OUT),
+                        Variable(GLSLType.M4x3, "localTransform", VariableMode.OUT).flat(),
+                        Variable(GLSLType.M4x3, "invLocalTransform", VariableMode.OUT).flat(),
                     ),
                     "" +
                             "finalId = instanceFinalId;\n" +
-                            "localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n"
+                            "localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                            "invLocalTransform = mat4x3(inverse(mat4(localTransform)));\n"
                 ).add(loadMat4x3)
             ) + DEFAULT.transformPosition,
             DEFAULT.transformNorTan,
@@ -91,7 +93,7 @@ class MeshInstanceData(
                         Variable(GLSLType.V4F, "instancePrevTrans0", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "instancePrevTrans1", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "instancePrevTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.M4x3, "prevLocalTransform", VariableMode.OUT)
+                        Variable(GLSLType.M4x3, "prevLocalTransform", VariableMode.OUT).flat()
                     ),
                     "prevLocalTransform = loadMat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2);\n"
                 ).add(loadMat4x3)

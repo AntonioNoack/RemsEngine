@@ -309,7 +309,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun findAspectRatio(): Float {
         var aspect = width.toFloat() / height
 
-        val layers = deferred.settingsV1
+        val layers = deferred.storageLayers
         val size = when (renderMode) {
             RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 2 /* 1 for light, 1 for depth */
             RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 2 /* 1 for light, 1 for depth */

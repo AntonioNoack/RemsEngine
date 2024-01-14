@@ -1,7 +1,6 @@
 package me.anno.gpu.pipeline.transparency
 
 import me.anno.cache.ICacheData
-import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -73,16 +72,6 @@ abstract class TransparentPass : ICacheData {
             val stage = stages[i]
             if (stage.blendMode != null)
                 stage.draw(pipeline)
-        }
-    }
-
-    fun combine(draw: () -> Unit) {
-        GFXState.depthMode.use(DepthMode.ALWAYS) {
-            GFXState.depthMask.use(false) {
-                GFXState.blendMode.use(null) {
-                    draw()
-                }
-            }
         }
     }
 }

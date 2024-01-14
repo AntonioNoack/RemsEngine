@@ -2,7 +2,6 @@ package me.anno.gpu.shader.builder
 
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
@@ -243,7 +242,6 @@ class MainStage {
                 .append(";\n}\n")
         }
         code.append("}\n")
-
     }
 
     fun createCode(
@@ -423,8 +421,6 @@ class MainStage {
                 else -> throw NotImplementedError()
             }
             code.append("#endif\n")
-        } else if(isFragmentStage){
-            println("skipping $ditherMode, because !finalAlpha")
         }
 
         // write to the outputs for fragment shader

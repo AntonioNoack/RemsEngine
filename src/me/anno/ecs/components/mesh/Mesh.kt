@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.callbacks.LineIndexCallback
 import me.anno.ecs.components.mesh.callbacks.TriangleIndexCallback
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
@@ -235,6 +236,15 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         return clone
     }
 
+    fun unlink() {
+        buffer = null
+        triBuffer = null
+        lineBuffer = null
+        debugLineBuffer = null
+        prefabPath = Path.ROOT_PATH
+        prefab = null
+    }
+
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Mesh
@@ -263,6 +273,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         dst.morphTargets = morphTargets
         // draw mode
         dst.drawMode = drawMode
+        dst.cullMode = cullMode
         // buffer
         dst.needsMeshUpdate = needsMeshUpdate
         dst.buffer = buffer

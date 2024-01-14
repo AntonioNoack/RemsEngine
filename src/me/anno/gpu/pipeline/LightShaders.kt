@@ -185,7 +185,7 @@ object LightShaders {
             deferredVariables += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
             deferredVariables += Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT)
             val imported = HashSet<String>()
-            for (layer in settingsV2.layers) {
+            for (layer in settingsV2.semanticLayers) {
                 // if this layer is present,
                 // then define the output,
                 // and write the mapping
@@ -481,7 +481,7 @@ object LightShaders {
             val imported = HashSet<String>()
             val sampleVariableName = if (useMSAA) "gl_SampleID" else null
             val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
-            for (layer in settingsV2.layers) {
+            for (layer in settingsV2.semanticLayers) {
                 // if this layer is present,
                 // then define the output,
                 // and write the mapping

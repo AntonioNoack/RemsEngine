@@ -133,7 +133,7 @@ class RenderSceneNode : RenderSceneNode0(
 
         // todo only blit textures, where necessary (e.g. only metallic might have to be blitted)
 
-        val layers = settings.layers
+        val layers = settings.semanticLayers
         for (j in layers.indices) {
             val layer = layers[j]
             val i = DeferredLayerType.values.indexOf(layer.type) + 1

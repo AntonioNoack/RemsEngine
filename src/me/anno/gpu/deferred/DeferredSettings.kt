@@ -20,7 +20,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     // todo shader to blit depth with different resolutions/formats
 
-    class Layer(val type: DeferredLayerType, val textureName: String, val texIndex: Int, val mapping: String) {
+    class SemanticLayer(val type: DeferredLayerType, val textureName: String, val texIndex: Int, val mapping: String) {
 
         fun appendMapping(
             fragment: StringBuilder,
@@ -79,8 +79,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    val layers = ArrayList<Layer>()
-    val layers2: ArrayList<DeferredLayer>
+    val semanticLayers = ArrayList<SemanticLayer>()
+    val storageLayers: ArrayList<DeferredLayer>
     val emptySlots = ArrayList<Triple<Int, String, String>>() // index, name, mask
 
     init {
@@ -97,8 +97,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             val layerIndex = spaceInLayers.indexOfFirst { it >= dimensions }
             val startIndex = 4 - spaceInLayers[layerIndex]
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
-            val layer = Layer(layerType, "defLayer$layerIndex", layerIndex, mapping)
-            layers.add(layer)
+            val semanticLayer = SemanticLayer(layerType, "defLayer$layerIndex", layerIndex, mapping)
+            semanticLayers.add(semanticLayer)
             spaceInLayers[layerIndex] -= dimensions
             usedTextures0 = max(usedTextures0, layerIndex)
             val op = needsHighPrecision[layerIndex]
@@ -119,7 +119,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
         usedTextures0++
 
-        layers2 = ArrayList(usedTextures0)
+        storageLayers = ArrayList(usedTextures0)
         for (layerIndex in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
                 "defLayer$layerIndex", when (needsHighPrecision[layerIndex]) {
@@ -129,7 +129,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                     else -> TargetType.Float32x4
                 }
             )
-            layers2.add(layer2)
+            storageLayers.add(layer2)
             val empty = spaceInLayers[layerIndex]
             if (empty > 0) {
                 val mask = when (spaceInLayers[layerIndex]) {
@@ -143,11 +143,10 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    val settingsV1 = layers2
-    val targetTypes = Array(layers2.size) { layers2[it].type }
+    val targetTypes = Array(storageLayers.size) { storageLayers[it].type }
 
     fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
-        val layers = layers2
+        val layers = storageLayers
         val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
         else DepthBufferType.INTERNAL
         return if (layers.size <= GFX.maxColorAttachments) {
@@ -188,22 +187,24 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     }
 
     fun appendLayerDeclarators(disabledLayers: BitSet?, uniforms: HashSet<Variable>) {
-        val layers = settingsV1
+        val layers = storageLayers
         uniforms.add(Variable(GLSLType.V1F, "defRRT"))
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
-                uniforms.add(Variable(GLSLType.V4F, type.name, VariableMode.OUT))
+                val outVariable = Variable(GLSLType.V4F, type.name, VariableMode.OUT)
+                outVariable.slot = index
+                uniforms.add(outVariable)
                 uniforms.add(Variable(GLSLType.V2F, type.nameRR))
             }
         }
     }
 
     fun appendLayerWriters(output: StringBuilder, disabledLayers: BitSet?) {
-        for (index in layers.indices) {
+        for (index in semanticLayers.indices) {
             val defRR = "defRR$index"
             output.append("float $defRR = random(0.001 * gl_FragCoord.xy + vec2($index.0,defRRT))-0.5;\n")
-            val layer = layers[index]
+            val layer = semanticLayers[index]
             if (disabledLayers == null || !disabledLayers[layer.texIndex]) {
                 layer.appendLayer(output, defRR)
             }
@@ -220,12 +221,12 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    fun findLayer(type: DeferredLayerType): Layer? {
-        return layers.firstOrNull2 { it.type == type }
+    fun findLayer(type: DeferredLayerType): SemanticLayer? {
+        return semanticLayers.firstOrNull2 { it.type == type }
     }
 
     fun zw(type: DeferredLayerType): Boolean {
-        val layer = layers.first2 { it.type == type }
+        val layer = semanticLayers.first2 { it.type == type }
         if (layer.mapping.length != 2) throw IllegalStateException("layer is not 2d")
         return layer.mapping == "zw"
     }
@@ -235,23 +236,23 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     }
 
     fun findTexture(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
-        val layer = layers.firstOrNull2 { it.type == type } ?: return null
+        val layer = semanticLayers.firstOrNull2 { it.type == type } ?: return null
         return findTexture(buffer, layer)
     }
 
     fun findTextureMS(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
-        val layer = layers.firstOrNull2 { it.type == type } ?: return null
+        val layer = semanticLayers.firstOrNull2 { it.type == type } ?: return null
         return findTextureMS(buffer, layer)
     }
 
-    fun findTexture(buffer: IFramebuffer, layer: Layer?): ITexture2D? {
-        if (layer == null) return null
-        return buffer.getTextureI(layer.texIndex)
+    fun findTexture(buffer: IFramebuffer, semanticLayer: SemanticLayer?): ITexture2D? {
+        if (semanticLayer == null) return null
+        return buffer.getTextureI(semanticLayer.texIndex)
     }
 
-    fun findTextureMS(buffer: IFramebuffer, layer: Layer?): ITexture2D? {
-        if (layer == null) return null
-        return buffer.getTextureIMS(layer.texIndex)
+    fun findTextureMS(buffer: IFramebuffer, semanticLayer: SemanticLayer?): ITexture2D? {
+        if (semanticLayer == null) return null
+        return buffer.getTextureIMS(semanticLayer.texIndex)
     }
 
     fun split(index: Int, splitSize: Int): DeferredSettings {

@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -93,11 +94,11 @@ class GlassPass : TransparentPass() {
                     Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = diffuseSlot },
                     Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = emissiveSlot },
                 ), "" +
-                        (if(multisampled) "" +
+                        (if (multisampled) "" +
                                 "#define getTex(s) texelFetch(s,uvi,gl_SampleID)\n" else
-                                    "#define getTex(s) texture(s,uv)\n") +
+                            "#define getTex(s) texture(s,uv)\n") +
                         "void main() {\n" +
-                        (if(multisampled) "" +
+                        (if (multisampled) "" +
                                 "ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" else "") +
                         "   vec4 diffuseData = getTex(diffuseGlassTex);\n" +
                         "   float tr = 1.0-1.0/(1.0+diffuseData.a);\n" +
@@ -133,7 +134,7 @@ class GlassPass : TransparentPass() {
         val l0 = s0?.findLayer(DeferredLayerType.COLOR)
         val l1 = s0?.findLayer(DeferredLayerType.EMISSIVE)
 
-        combine {
+        renderPurely2 {
             val diffuseSlot = l0?.texIndex ?: 0
             val emissiveSlot = l1?.texIndex ?: 1
             val bits = diffuseSlot or emissiveSlot.shl(8) or (tmp.samples > 1).toInt(1 shl 16)

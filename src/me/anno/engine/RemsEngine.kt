@@ -68,10 +68,7 @@ import org.joml.Matrix4f
 
 // todo: translate everything (again xD)
 
-// todo usable editing of materials: own color + indent + super material selector
-// todo + add & remove materials
-
-// todo then create first release :3 (to easier get started for others)
+// todo create first release :3 (to easier get started for others)
 
 // todo billboards, which are conditionally rendered: when point is visible (for nice light camera-bug effects, e.g. stars with many blades)
 

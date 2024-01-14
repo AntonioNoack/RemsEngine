@@ -231,7 +231,7 @@ fun computeRasterizer() {
                 .sortedBy { it.size }
             val uniformTextures = uniforms
                 .filter { it.type.isSampler }
-            val outputs = (target?.layers2?.map { Variable(GLSLType.V4F, it.name) }
+            val outputs = (target?.storageLayers?.map { Variable(GLSLType.V4F, it.name) }
                 ?: shader.fragmentVariables.filter { it.inOutMode == VariableMode.OUT })
             ComputeShader(
                 "rasterizer", Vector3i(512, 1, 1), listOf(

@@ -21,7 +21,6 @@ class DecalMaterial : Material() {
 
     companion object {
         private val shaderLib = HashMap<Int, ECSMeshShader>()
-        val sett get() = GFXState.currentRenderer.deferredSettings
     }
 
     // can we support this in forward rendering?
@@ -76,17 +75,17 @@ class DecalMaterial : Material() {
         super.bind(shader)
         bindDepthToPosition(shader)
         // bind textures
-        val buff = GFXState.currentBuffer
-        val sett = sett
+        val buffer = GFXState.currentBuffer
+        val sett = GFXState.currentRenderer.deferredSettings
         if (sett != null) {
-            val layers = sett.layers2
-            for (index in 0 until min(layers.size, buff.numTextures)) {
-                buff.getTextureI(index).bindTrulyNearest(shader, layers[index].name + "_in0")
+            val layers = sett.storageLayers
+            for (index in 0 until min(layers.size, buffer.numTextures)) {
+                buffer.getTextureI(index).bindTrulyNearest(shader, layers[index].nameIn0)
             }
         }
         shader.v4f("decalSharpness", decalSharpness)
-        shader.v2f("windowSize", buff.width.toFloat(), buff.height.toFloat())
-        buff.depthTexture?.bindTrulyNearest(shader, "depth_in0")
+        shader.v2f("windowSize", buffer.width.toFloat(), buffer.height.toFloat())
+        buffer.depthTexture?.bindTrulyNearest(shader, "depth_in0")
     }
 
     fun getShader(): ECSMeshShader {

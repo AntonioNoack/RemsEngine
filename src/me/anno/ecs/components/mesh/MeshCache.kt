@@ -132,12 +132,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     val clone = mesh.clone() as Mesh
                     transformMesh(clone, matrix)
                     clone.materials = materials
-                    clone.buffer = null
-                    clone.triBuffer = null
-                    clone.lineBuffer = null
-                    clone.debugLineBuffer = null
-                    clone.prefabPath = Path.ROOT_PATH
-                    clone.prefab = null
+                    clone.unlink()
                     clone
                 }
             }

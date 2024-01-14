@@ -1,9 +1,9 @@
 package me.anno.ecs.components.mesh.decal
 
-import me.anno.ecs.components.mesh.decal.DecalMaterial.Companion.sett
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -16,15 +16,16 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.fill
 import java.util.*
 
 class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        val sett = sett
-        val availableLayers = sett?.layers?.toHashSet() ?: emptySet()
-        val availableLayers2 = sett?.layers2?.toHashSet() ?: emptySet()
+        val settings = key.renderer.deferredSettings
+        val availableSemantic = settings?.semanticLayers?.toHashSet() ?: emptySet()
+        val availableStorage = settings?.storageLayers?.toHashSet() ?: emptySet()
         GFXState.currentRenderer
-        val availableLayerTypes = availableLayers.map { it.type }.toHashSet()
+        val availableLayerTypes = availableSemantic.map { it.type }.toHashSet()
         val variables = ArrayList(depthVars)
         variables.addAll(
             listOf(
@@ -42,10 +43,10 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                 Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
             )
         )
-        for (layer in availableLayers2) {
+        for (layer in availableStorage) {
             variables.add(Variable(GLSLType.S2D, layer.name + "_in0"))
         }
-        for (layer in availableLayers) {
+        for (layer in availableSemantic) {
             variables.add(Variable(floats[layer.type.workDims - 1], "${layer.type.glslName}_in2", VariableMode.OUT))
         }
         val originalStage = super.createFragmentStages(key)
@@ -54,13 +55,14 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
             // inputs
             ShaderStage(
                 "inputs", variables, "" +
+                        // todo why is the shape changing when moving the camera???
                         "ivec2 uvz = ivec2(gl_FragCoord.xy);\n" +
                         // load all textures
-                        availableLayers2.joinToString("") {
+                        availableStorage.joinToString("") {
                             "vec4 ${it.name}_in1 = texelFetch(${it.name}_in0, uvz, 0);\n"
                         } +
                         // map textures to deferred layers
-                        availableLayers.joinToString("") {
+                        availableSemantic.joinToString("") {
                             val tmp = StringBuilder()
                             it.appendMapping(tmp, "_in2", "_in1", "_in0", "", null, null)
                             tmp.toString()
@@ -77,8 +79,8 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                                 "vec3 finalNormal_in2 = normalize(cross(posU-pos0, posV-pos0));\n" else "") +
                         "localPosition = matMul(invLocalTransform, vec4(finalPosition, 1.0));\n" +
                         // automatic blending on edges? alpha should be zero there anyway
-                        "vec3 alphaMultiplier0 = clamp(decalSharpness.xyz * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
-                        "alphaMultiplier = alphaMultiplier0.x * alphaMultiplier0.y * alphaMultiplier0.z;\n" +
+                        "vec3 alphaMultiplier3d = clamp(decalSharpness.xyz * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
+                        "alphaMultiplier = alphaMultiplier3d.x * alphaMultiplier3d.y * alphaMultiplier3d.z;\n" +
                         "alphaMultiplier *= clamp(-decalSharpness.w * dot(normal, finalNormal_in2), 0.0, 1.0);\n" +
                         "if(alphaMultiplier < 0.5/255.0) discard;\n" +
                         "uv = localPosition.xy * vec2(0.5,-0.5) + 0.5;\n" +
@@ -90,8 +92,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                         "tan3 -= dot(tan3, normal) * normal;\n" +
                         "tangent = vec4(normalize(tan3), 1.0);\n" +
                         // fix for sometimes tangent being NaN on the edge
-                        "if(any(isnan(tangent.xyz))) tangent = vec4(0,1,0,0);\n" +
-                        ""
+                        "if(any(isnan(tangent.xyz))) tangent = vec4(0,1,0,0);\n"
             ).add(quatRot).add(rawToDepth).add(depthToPosition).add(ShaderLib.octNormalPacking),
         ) + originalStage + listOf(
             ShaderStage(
@@ -126,23 +127,22 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
         )
     }
 
-    // forward shader isn't really supported
-
-    fun getDisabledLayers(): BitSet? {
-        val settings = sett ?: return null
-        val disabled = BitSet(settings.layers2.size)
-        for (i in settings.layers2.indices) disabled.set(i, true)
+    // forward shader is not supported
+    fun getDisabledLayers(settings: DeferredSettings?): BitSet? {
+        settings ?: return null
+        val disabledLayers = BitSet(settings.storageLayers.size)
+        disabledLayers.fill(true)
         for (layer in modifiedLayers) {
             val layer1 = settings.findLayer(layer) ?: continue
-            disabled.set(layer1.texIndex, false)
+            disabledLayers.set(layer1.texIndex, false)
         }
-        return disabled
+        return disabledLayers
     }
 
     override fun createDeferredShader(key: ShaderKey): Shader {
         val base = createBase(key)
         base.settings = key.renderer.deferredSettings
-        base.disabledLayers = getDisabledLayers()
+        base.disabledLayers = getDisabledLayers(base.settings)
         // build & finish
         val shader = base.create("dcl${key.flags}")
         finish(shader)

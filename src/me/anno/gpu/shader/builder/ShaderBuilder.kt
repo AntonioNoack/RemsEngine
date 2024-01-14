@@ -83,7 +83,7 @@ class ShaderBuilder(val name: String) {
         if (settings != null) {
             if (fragment.stages.isEmpty()) fragment.stages.add(ShaderStage("?", emptyList(), ""))
             val lastStage = fragment.stages.last()
-            for (layer in settings.layers) {
+            for (layer in settings.semanticLayers) {
                 val w2d = layer.type.workToData
                 val idx = w2d.indexOf('.')
                 if (idx > 0) {
