@@ -20,8 +20,8 @@ import kotlin.random.Random
 
 // done support TCP and UDP packets
 
-// todo there should be lobbies, where players are assigned to other servers, with seamless transfers...
-// todo ssl encryption
+// to do there should be lobbies, where players are assigned to other servers, with seamless transfers...
+// todo ssl encryption -> you need to generate and register certificates for that to work...
 // to do be safe against malicious attacks
 // done: e.g. players might block data transfer by not reading
 

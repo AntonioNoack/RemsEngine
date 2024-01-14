@@ -20,11 +20,13 @@ import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.interfaces.InputListener
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
@@ -59,6 +61,10 @@ import kotlin.math.*
 
 fun main() {
 
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
+    // todo usable controls 😅
     // done moving
     // todo shooting
     //  - add gun model

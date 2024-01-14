@@ -38,8 +38,6 @@ val udpProtocol = Protocol("UDP", NetworkProtocol.UDP)
 fun main() {
     disableRenderDoc()
     testUI3("ServerClientWorld") {
-        EngineBase.instance?.enableVSync = true
-        showRedraws = true
         val list = PanelList2D(style)
         val master = PanelListY(style)
         master.add(TextButton("Join All", style)

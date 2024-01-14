@@ -165,7 +165,6 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
 
         fun getCodeName(code: Int): String? {
             // from https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-            @Suppress("unused")
             return when (code) {
                 100 -> "Continue"
                 101 -> "Switching Protocols"
@@ -234,5 +233,4 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
             }
         }
     }
-
 }

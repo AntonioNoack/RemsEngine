@@ -3,6 +3,8 @@ package me.anno.image.hdr
 import me.anno.image.raw.FloatImage
 import java.io.*
 import kotlin.math.pow
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * src/author: https://github.com/aicp7/HDR_file_readin
@@ -27,12 +29,9 @@ object HDRReader {
     private fun read1(input: InputStream): FloatImage {
 
         // Parse HDR file's header line
-        // readLine(InputStream in) method will be introduced later.
-
-        // The first line of the HDR file. If it is an HDR file, the first line should be "#?RADIANCE"
-        // If not, we will throw a IllegalArgumentException.
+        // The first line of each HDR file must be "#?RADIANCE".
         val isHDR = readLine(input)
-        require(isHDR == HDR_MAGIC) { "Unrecognized format: $isHDR" }
+        assertEquals(HDR_MAGIC, isHDR, "Unrecognized format")
 
         // Besides the first line, there are several lines describing the different information of this HDR file.
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
@@ -56,8 +55,8 @@ object HDRReader {
             width = tokens[1].toInt()
             height = tokens[3].toInt()
         }
-        require(width > 0) { "HDR Width must be positive" }
-        require(height > 0) { "HDR Height must be positive" }
+        assertTrue(width > 0, "HDR Width must be positive")
+        assertTrue(height > 0, "HDR Height must be positive")
 
         // In the above, the basic information has been collected. Now, we will deal with the pixel data.
         // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each r,g,b and a shared one byte exponent.
@@ -81,9 +80,9 @@ object HDRReader {
             // For every line, we need check this kind of information. And the starting four numbers of every line is the same
             val a = din.readUnsignedByte()
             val b = din.readUnsignedByte()
-            require(!(a != 2 || b != 2)) { "Only HDRs with run length encoding are supported." }
+            assertTrue(!(a != 2 || b != 2), "Only HDRs with run length encoding are supported.")
             val checksum = din.readUnsignedShort()
-            require(checksum == width) { "Width-Checksum is incorrect. Is this file a true HDR?" }
+            assertEquals(width, checksum, "Width-Checksum is incorrect. Is this file a true HDR?")
 
             // This inner loop is for the four channels. The way they compressed the data is in this way:
             // Firstly, they compressed a row.

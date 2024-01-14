@@ -9,7 +9,7 @@ import java.io.DataOutputStream
 
 open class POS0Packet : Packet {
 
-    // todo there could be a ping-pong-pos packet that responds with the positions of the nearest k players for super smooth movements :)
+    // to do there could be a ping-pong-pos packet that responds with the positions of the nearest k players for super smooth movements :)
 
     constructor() : super("POS0")
     constructor(magic: String) : super(magic)
