@@ -11,15 +11,15 @@ import kotlin.math.max
 
 object MeshUtils {
 
-    fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
+    fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
         mesh.getBounds()
-        centerMesh(stack, localStack, AABBd().set(mesh.getBounds()), { mesh.getBounds(it, false) }, targetFrameUsage)
+        centerMesh(cameraMatrix, modelMatrix, AABBd().set(mesh.getBounds()), { mesh.getBounds(it, false) }, targetFrameUsage)
     }
 
-    fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
+    fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
         mesh.getBounds()
         val aabb = AABBf()
-        centerMesh(stack, localStack, AABBd().set(mesh.aabb), {
+        centerMesh(cameraMatrix, modelMatrix, AABBd().set(mesh.aabb), {
             aabb.set(mesh.aabb)
             aabb.transform(it)
         }, targetFrameUsage)

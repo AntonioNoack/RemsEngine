@@ -6,8 +6,6 @@ import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.*
-import me.anno.ecs.components.collider.twod.CircleCollider
-import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.CustomBulletCollider
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
@@ -167,10 +165,10 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
         is ConeCollider -> collider.createBulletShape(scale)
         is ConvexCollider -> ConvexHullShape3(collider.points!!)
         is CylinderCollider -> collider.createBulletShape(scale)
-        is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
+        // is CircleCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
         is SphereCollider -> SphereShape(collider.radius * scale.dot(0.33, 0.34, 0.33))
         is BoxCollider -> collider.createBulletShape(scale)
-        is RectCollider -> {
+        /*is RectCollider -> {
             val halfExtends = collider.halfExtends
             return BoxShape(
                 javax.vecmath.Vector3d(
@@ -179,7 +177,7 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
                     scale.z
                 )
             )
-        }
+        }*/
         is CustomBulletCollider -> collider.createBulletCollider(scale) as CollisionShape
         // is SDFCollider -> collider.createBulletShape(scale)
         else -> defaultShape

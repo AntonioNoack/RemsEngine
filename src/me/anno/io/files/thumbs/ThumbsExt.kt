@@ -39,20 +39,20 @@ object ThumbsExt {
     }
 
     fun createCameraMatrix(aspectRatio: Float): Matrix4f {
-        val stack = Matrix4f()
-        Perspective.setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
-        return stack
+        val cameraMatrix = Matrix4f()
+        Perspective.setPerspective(cameraMatrix, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
+        return cameraMatrix
     }
 
     fun createModelMatrix(): Matrix4x3f {
-        val stack = Matrix4x3f()
-        stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX((15f).toRadians())// rotate it into a nice viewing angle
-        stack.rotateY((-25f).toRadians())
+        val modelMatrix = Matrix4x3f()
+        modelMatrix.translate(0f, 0f, -1f)// move the camera back a bit
+        modelMatrix.rotateX((15f).toRadians())// rotate it into a nice viewing angle
+        modelMatrix.rotateY((-25f).toRadians())
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
-        stack.scale(1.05f * 0.5f)
-        return stack
+        modelMatrix.scale(1.05f * 0.5f)
+        return modelMatrix
     }
 
     fun Mesh.drawAssimp(

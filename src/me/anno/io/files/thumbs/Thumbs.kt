@@ -717,9 +717,7 @@ object Thumbs {
     }
 
     private val matCameraMatrix = createCameraMatrix(1f)
-
-    @JvmField
-    val matModelMatrix = createModelMatrix().scale(0.62f)
+    private val matModelMatrix = createModelMatrix().scale(0.62f)
 
     @JvmStatic
     private fun generateMaterialFrame(
