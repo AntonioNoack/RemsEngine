@@ -9,7 +9,7 @@ import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.twod.CircleCollider
-import me.anno.ecs.components.collider.twod.Collider2d
+import me.anno.box2d.Collider2d
 import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier

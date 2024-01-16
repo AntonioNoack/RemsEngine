@@ -1,7 +1,7 @@
-package me.anno.ecs.components.collider.twod
+package me.anno.box2d
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes.drawRect
+import me.anno.engine.ui.LineShapes
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
@@ -37,7 +37,7 @@ class RectCollider : Collider2d() {
         val p1 = v3.create().set(+x, -y, 0f)
         val p2 = v3.create().set(-x, -y, 0f)
         val p3 = v3.create().set(-x, +y, 0f)
-        drawRect(entity, p0, p1, p2, p3)
+        LineShapes.drawRect(entity, p0, p1, p2, p3)
         v3.sub(4)
     }
 

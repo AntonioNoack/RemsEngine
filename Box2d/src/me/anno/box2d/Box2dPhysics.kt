@@ -2,9 +2,6 @@ package me.anno.box2d
 
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
-import me.anno.ecs.components.collider.twod.CircleCollider
-import me.anno.ecs.components.collider.twod.Collider2d
-import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.engine.serialization.NotSerializedProperty

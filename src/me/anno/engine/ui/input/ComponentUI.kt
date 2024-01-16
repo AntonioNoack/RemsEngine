@@ -76,7 +76,6 @@ import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.luaj.vm2.LuaError
 import java.io.Serializable
 import kotlin.math.ln
 import kotlin.math.pow
@@ -1149,7 +1148,8 @@ object ComponentUI {
                                         val clazz = javaClass.classLoader.loadClass("me.anno.lua.ScriptComponent")
                                         val method = clazz.getMethod("getRawFunction", String::class.java)
                                         val func = method.invoke(null, code)
-                                        ce.tooltip = if (func is LuaError) {
+                                        val luaErrorClass = javaClass.classLoader.loadClass("org.luaj.vm2.LuaError")
+                                        ce.tooltip = if (luaErrorClass.isInstance(func)) {
                                             LOGGER.warn(func.toString())
                                             func.toString()
                                         } else null

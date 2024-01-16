@@ -1,4 +1,4 @@
-package me.anno.ecs.components.collider.twod
+package me.anno.box2d
 
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Range
@@ -7,8 +7,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import org.jbox2d.dynamics.Fixture
-
-// todo remove box2d Fixture dependency... how can we move it? :/
 
 // todo colliders by meshes in 2d,
 // todo colliders by points in 2d
