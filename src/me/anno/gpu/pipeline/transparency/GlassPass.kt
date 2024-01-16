@@ -65,8 +65,7 @@ class GlassPass : TransparentPass() {
                                 RendererLib.skyMapCode +
                                 colorToSRGB +
                                 "float fresnel = fresnelSchlick(abs(dot(finalNormal,normalize(finalPosition))), gl_FrontFacing ? 1.0 / IOR : IOR);\n" +
-                                "finalAlpha *= fresnel;\n" +
-                                "finalEmissive = finalColor * finalAlpha;\n" + // reflections
+                                "finalEmissive = finalColor * finalAlpha * fresnel;\n" + // reflections
                                 "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
                                 ""
                     )

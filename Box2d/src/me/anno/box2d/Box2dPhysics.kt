@@ -7,7 +7,7 @@ import me.anno.ecs.components.collider.twod.Collider2d
 import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
 import me.anno.utils.Logging.hash32

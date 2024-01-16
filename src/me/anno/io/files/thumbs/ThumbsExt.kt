@@ -28,6 +28,7 @@ import kotlin.math.max
 
 object ThumbsExt {
 
+    val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
     private val LOGGER = LogManager.getLogger(ThumbsExt::class)
 
     fun createCameraMatrix(aspectRatio: Float): Matrix4f {

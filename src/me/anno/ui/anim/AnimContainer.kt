@@ -4,8 +4,8 @@ import me.anno.Time.deltaTime
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min

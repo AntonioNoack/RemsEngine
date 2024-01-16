@@ -13,7 +13,7 @@ import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length

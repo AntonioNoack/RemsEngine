@@ -21,8 +21,8 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp

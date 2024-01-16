@@ -12,6 +12,7 @@
       <module fileurl="file://$PROJECT_DIR$/Recast/Recast.iml" filepath="$PROJECT_DIR$/Recast/Recast.iml" />
       <module fileurl="file://$PROJECT_DIR$/SDF/SDF.iml" filepath="$PROJECT_DIR$/SDF/SDF.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/Tests.iml" filepath="$PROJECT_DIR$/test/Tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Unpack/Unpack.iml" filepath="$PROJECT_DIR$/Unpack/Unpack.iml" />
     </modules>
   </component>
 </project>

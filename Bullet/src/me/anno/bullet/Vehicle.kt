@@ -3,7 +3,7 @@ package me.anno.bullet
 import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 
 class Vehicle : Rigidbody() {
 

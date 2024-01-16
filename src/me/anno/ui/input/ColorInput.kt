@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min

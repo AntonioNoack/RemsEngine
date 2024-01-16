@@ -15,8 +15,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import org.joml.*

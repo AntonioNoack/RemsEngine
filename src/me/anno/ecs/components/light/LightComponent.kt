@@ -19,8 +19,8 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools

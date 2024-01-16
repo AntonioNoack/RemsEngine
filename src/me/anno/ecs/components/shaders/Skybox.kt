@@ -12,8 +12,8 @@ import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DefaultSun
 import me.anno.gpu.shader.GLSLType
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
 import org.joml.Quaternionf
 import org.joml.Vector3f

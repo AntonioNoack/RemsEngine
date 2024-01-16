@@ -3,7 +3,7 @@ package me.anno.ecs.database
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.ISaveable
-import me.anno.io.serialization.CachedReflections
+import me.anno.engine.inspector.CachedReflections
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.TablePanel

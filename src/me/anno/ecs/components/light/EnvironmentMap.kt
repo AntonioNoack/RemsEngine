@@ -24,7 +24,7 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes

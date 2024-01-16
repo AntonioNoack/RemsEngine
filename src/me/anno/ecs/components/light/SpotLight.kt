@@ -10,7 +10,7 @@ import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.*
 import kotlin.math.atan
 

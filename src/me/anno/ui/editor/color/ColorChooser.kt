@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style

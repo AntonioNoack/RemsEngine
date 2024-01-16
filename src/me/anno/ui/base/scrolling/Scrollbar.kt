@@ -3,7 +3,7 @@ package me.anno.ui.base.scrolling
 import me.anno.Time.deltaTime
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel

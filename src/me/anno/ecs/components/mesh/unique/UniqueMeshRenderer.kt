@@ -10,7 +10,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.graph.hdb.allocator.size
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager

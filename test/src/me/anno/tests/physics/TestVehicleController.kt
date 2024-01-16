@@ -7,7 +7,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 
 class TestVehicleController : Component(), InputListener {

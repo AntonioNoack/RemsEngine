@@ -35,7 +35,7 @@ import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel

@@ -1,4 +1,4 @@
-package me.anno.io.serialization
+package me.anno.engine.inspector
 
 import me.anno.ecs.annotations.*
 import me.anno.ui.input.EnumInput

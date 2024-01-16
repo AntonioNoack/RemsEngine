@@ -15,6 +15,7 @@ object OfficialExtensions {
             "res://sdf-ext.info",
             "res://lua-ext.info",
             "res://mesh-ext.info",
+            "res://unpack-ext.info"
         )
         for (path in paths) {
             ExtensionLoader.tryLoadMainInfo(path)

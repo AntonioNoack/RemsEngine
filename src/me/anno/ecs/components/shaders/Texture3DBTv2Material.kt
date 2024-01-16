@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.utils.Logging.hash32raw
 import org.joml.Vector3i

@@ -4,7 +4,7 @@ import me.anno.Time.deltaTime
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min

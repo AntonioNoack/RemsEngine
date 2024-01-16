@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.serialization.CachedReflections
+import me.anno.engine.inspector.CachedReflections
 import kotlin.reflect.full.declaredMembers
 
 fun main() {

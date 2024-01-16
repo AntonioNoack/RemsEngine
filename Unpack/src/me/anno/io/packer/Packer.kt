@@ -1,15 +1,17 @@
 package me.anno.io.packer
 
 import me.anno.Time
-import me.anno.io.files.LastModifiedCache
 import me.anno.image.ImageReadable
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.createZipFile
+import me.anno.io.files.LastModifiedCache
 import me.anno.io.zip.GetStreamCallback
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
+import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.nio.file.attribute.FileTime
 import java.util.zip.ZipEntry
@@ -127,6 +129,17 @@ object Packer {
         return map
     }
 
+    @JvmStatic
+    private fun createZipFile(file: FileReference, callback: GetStreamCallback) {
+        return if (file is FileFileRef) callback.callback(ZipFile(file.file), null) else {
+            file.readBytes { it, exc ->
+                if (it != null) {
+                    callback.callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
+                } else callback.callback(null, exc)
+            }
+        }
+    }
+
     /**
      * packs all resources as raw files into a zip file
      * returns the map of new locations, so they can be replaced
@@ -207,5 +220,4 @@ object Packer {
         zos.close()
         return map ?: emptyMap()
     }
-
 }

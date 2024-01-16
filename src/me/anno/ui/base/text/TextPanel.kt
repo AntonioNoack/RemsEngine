@@ -18,7 +18,7 @@ import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style

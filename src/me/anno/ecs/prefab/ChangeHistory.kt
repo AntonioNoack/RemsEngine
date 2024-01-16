@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.io.ISaveable
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.EngineBase
 import me.anno.engine.history.StringHistory
 import me.anno.ui.editor.PropertyInspector

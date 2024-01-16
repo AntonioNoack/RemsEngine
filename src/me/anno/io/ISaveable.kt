@@ -6,7 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.CachedReflections
+import me.anno.engine.inspector.CachedReflections
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager

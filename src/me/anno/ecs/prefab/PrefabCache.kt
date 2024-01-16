@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
+import me.anno.engine.EngineBase
 import me.anno.engine.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidFormatException
@@ -19,8 +20,6 @@ import me.anno.io.files.inner.InnerFolderCache.imageFormats
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.unity.UnityReader
-import me.anno.engine.EngineBase
 import me.anno.utils.Logging.hash32
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -41,7 +40,12 @@ object PrefabCache : CacheSection("Prefab") {
     operator fun get(resource: FileReference?, async: Boolean) =
         pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async))
 
-    operator fun get(resource: FileReference?, depth: Int = maxPrefabDepth, timeout: Long = prefabTimeout, async: Boolean = false) =
+    operator fun get(
+        resource: FileReference?,
+        depth: Int = maxPrefabDepth,
+        timeout: Long = prefabTimeout,
+        async: Boolean = false
+    ) =
         pairToPrefab(getPrefabPair(resource, depth, timeout, async))
 
     private fun pairToPrefab(pair: FileReadPrefabData?): Prefab? {
@@ -132,7 +136,7 @@ object PrefabCache : CacheSection("Prefab") {
         return prefab
     }
 
-    private fun loadJson(resource: FileReference?): ISaveable? {
+    fun loadJson(resource: FileReference?): ISaveable? {
         return when (resource) {
             InvalidRef, null -> null
             is PrefabReadable -> resource.readPrefab()
@@ -153,13 +157,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    private fun loadUnityFile(resource: FileReference, callback: (Prefab?, Exception?) -> Unit) {
-        UnityReader.readAsAsset(resource) { json, e ->
-            if (json != null) {
-                callback(loadJson(json) as? Prefab, null)
-            } else callback(null, e)
-        }
-    }
+    var unityReader: ((FileReference, (ISaveable?, Exception?) -> Unit) -> Unit)? = null
 
     private fun loadPrefab4(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
         if (file is PrefabReadable) {
@@ -193,15 +191,20 @@ object PrefabCache : CacheSection("Prefab") {
                         }
                     }
                 }
-                "yaml" -> loadUnityFile(file) { prefab, e ->
-                    if (prefab is Prefab) prefab.source = file
-                    if (prefab != null) {
-                        callback(prefab, null)
-                    } else {
-                        LOGGER.warn("$file is yaml, but not from Unity")
-                        e?.printStackTrace()
-                        loadPrefabFromFolder(file, callback)
-                    }
+                "yaml" -> {
+                    val unityReader = unityReader
+                    if (unityReader != null) {
+                        unityReader(file) { prefab, e ->
+                            if (prefab is Prefab) prefab.source = file
+                            if (prefab != null) {
+                                callback(prefab, null)
+                            } else {
+                                LOGGER.warn("$file is yaml, but not from Unity")
+                                e?.printStackTrace()
+                                loadPrefabFromFolder(file, callback)
+                            }
+                        }
+                    } else loadPrefabFromFolder(file, callback)
                 }
                 else -> {
                     if (signature in imageFormats || signature == "gimp" || signature == "webp") {

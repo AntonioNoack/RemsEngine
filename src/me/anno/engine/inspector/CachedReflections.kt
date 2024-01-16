@@ -1,8 +1,10 @@
-package me.anno.io.serialization
+package me.anno.engine.inspector
 
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.utils.OS
 import me.anno.utils.strings.StringHelper.titlecase
 import org.apache.logging.log4j.LogManager

@@ -15,7 +15,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.sdf.SDFCombiningFunctions.sdMax

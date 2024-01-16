@@ -16,7 +16,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.*

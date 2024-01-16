@@ -4,8 +4,8 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.jbox2d.dynamics.Fixture
 
 // todo remove box2d Fixture dependency... how can we move it? :/

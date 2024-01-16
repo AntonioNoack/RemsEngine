@@ -16,7 +16,7 @@ import java.io.OutputStream
 class InnerZipFile(
     absolutePath: String,
     val zipSource: FileReference,
-    val getZipStream: (callback: (ZipFile?, Exception?) -> Unit) -> Unit,
+    val getZipStream: (callback: GetStreamCallback) -> Unit,
     relativePath: String,
     _parent: FileReference
 ) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
@@ -83,11 +83,11 @@ class InnerZipFile(
 
         fun fileFromStreamV2(file: FileReference, callback: GetStreamCallback) {
             return if (file is FileFileRef) {
-                callback(ZipFile(file.file), null)
+                callback.callback(ZipFile(file.file), null)
             } else {
                 file.readBytes { it, exc ->
-                    if (it != null) callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
-                    else callback(null, exc)
+                    if (it != null) callback.callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
+                    else callback.callback(null, exc)
                 }
             }
         }

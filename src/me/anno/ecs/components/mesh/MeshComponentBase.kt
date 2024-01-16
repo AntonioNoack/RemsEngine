@@ -18,8 +18,8 @@ import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.base.menu.Menu

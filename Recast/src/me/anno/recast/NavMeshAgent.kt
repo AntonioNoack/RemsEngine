@@ -1,7 +1,7 @@
 package me.anno.recast
 
 import me.anno.ecs.Component
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.Vector3f
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.FindRandomPointResult

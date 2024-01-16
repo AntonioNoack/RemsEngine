@@ -2,7 +2,7 @@ package me.anno.ecs.components.collider.twod
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawCircle
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import org.jbox2d.collision.shapes.CircleShape
 import org.joml.AABBd

@@ -9,7 +9,7 @@ import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment

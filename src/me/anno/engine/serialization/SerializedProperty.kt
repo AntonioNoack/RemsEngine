@@ -1,4 +1,4 @@
-package me.anno.io.serialization
+package me.anno.engine.serialization
 
 /**
  * use this to mark a property for serialization

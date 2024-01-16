@@ -2,7 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.IProperty
-import me.anno.io.serialization.CachedProperty
+import me.anno.engine.inspector.CachedProperty
 import me.anno.maths.Maths.hasFlag
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable

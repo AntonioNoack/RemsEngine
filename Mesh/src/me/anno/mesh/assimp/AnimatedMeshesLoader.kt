@@ -14,7 +14,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.zip.InnerZipFile
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
@@ -145,9 +144,12 @@ object AnimatedMeshesLoader {
             loadTextures(aiScene, texFolder)
         } else emptyList()
         val missingFilesLookup: Map<String, FileReference> = when (file) {
-            is InnerZipFile -> {
-                val parent = file.getParent() as InnerFolder
-                parent.lookup ?: emptyMap()
+            is InnerFolder -> {
+                var innerFolder: InnerFolder = file
+                while (true) {
+                    innerFolder = file.getParent() as? InnerFolder ?: break
+                }
+                innerFolder.lookup ?: emptyMap() // good?
             }
             else -> {
                 // todo fill this by folder, /tex, /textures

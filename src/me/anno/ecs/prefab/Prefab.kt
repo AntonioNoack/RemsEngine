@@ -11,7 +11,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2

@@ -9,16 +9,9 @@ import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
-import me.anno.io.unity.UnityReader
-import me.anno.io.zip.*
 import me.anno.mesh.vox.VOXReader
-import org.apache.logging.log4j.LogManager
-import java.io.IOException
-import java.util.zip.ZipException
 
 object InnerFolderCache : CacheSection("InnerFolderCache") {
-
-    private val LOGGER = LogManager.getLogger(InnerFolderCache::class)
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -32,12 +25,12 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
     private val readerByFileExtension = HashMap<String, InnerFolderReader>(64)
 
     @Suppress("unused")
-    fun registerFileExtension(signature: String, reader: InnerFolderReader) {
-        readerBySignature[signature] = reader
+    fun registerFileExtension(fileExtension: String, reader: InnerFolderReader) {
+        readerBySignature[fileExtension] = reader
     }
 
-    fun registerFileExtension(signatures: List<String>, reader: InnerFolderReader) {
-        for (signature in signatures) {
+    fun registerFileExtension(fileExtensions: List<String>, reader: InnerFolderReader) {
+        for (signature in fileExtensions) {
             readerBySignature[signature] = reader
         }
     }
@@ -56,6 +49,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         readerBySignature.remove(signature)
     }
 
+    fun unregisterFileExtension(fileExtension: String) {
+        readerByFileExtension.remove(fileExtension)
+    }
+
     fun hasReaderForSignature(signature: String?): Boolean {
         return signature != null && signature in readerBySignature
     }
@@ -67,19 +64,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
     val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr", "qoi")
 
     init {
-
-        // compressed folders
-        register(listOf("zip", "bz2", "lz4", "xar", "oar"), InnerZipFile.Companion::createZipRegistryV2)
-        register("7z") { it, c -> c(Inner7zFile.createZipRegistry7z(it) { Inner7zFile.fileFromStream7z(it) }, null) }
-        register("rar") { it, c ->
-            c(
-                InnerRarFile.createZipRegistryRar(it) { InnerRarFile.fileFromStreamRar(it) },
-                null
-            )
-        }
-        register("gzip", InnerTarFile.Companion::readAsGZip)
-        register("tar", InnerTarFile.Companion::readAsGZip)
-
         // meshes
         // to do all mesh extensions
         register("vox", VOXReader.Companion::readAsFolder)
@@ -95,18 +79,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         // "xml" can be "dae" as well
         register("svg", SVGMesh.Companion::readAsFolder)
 
-        // register yaml generally for unity files?
-        registerFileExtension(UnityReader.unityExtensions) { it, c ->
-            val f = UnityReader.readAsFolder(it) as? InnerFolder
-            c(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
-        }
-
-        // todo register windows lnk
-        //  then remove all windows-lnk specific code
-        //  then check whether the stuff still works
-
-        // register windows url
-        register("url", ::readURLAsFolder)
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {
@@ -126,18 +98,14 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
                 val callback = { folder: InnerFolder?, ec: Exception? ->
                     if (file1 is InnerFile) file1.folder = folder
                     data.value = folder
-                    if (ec is ZipException && ec.message == "Archive is not a ZIP archive") {
-                        LOGGER.warn("{} '{}'", ec.message, file)
-                    } else ec?.printStackTrace()
+                    ec?.printStackTrace()
                     if (folder != null) { // todo remove watch dog when unloading it?
                         FileWatch.addWatchDog(file1)
                     }
                 }
                 if (reader != null) {
                     reader(file1, callback)
-                } else {
-                    InnerZipFile.createZipRegistryV2(file1, callback)
-                }
+                } else data.value = null
                 data
             }
         } as? AsyncCacheData<*>

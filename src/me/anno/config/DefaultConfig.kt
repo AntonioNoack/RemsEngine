@@ -6,7 +6,6 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
-import me.anno.io.unity.UnityReader
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.Style
@@ -89,7 +88,6 @@ object DefaultConfig : StringMap() {
             "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar",
             "npz" // numpy archive
         )
-        addImportMappings("Asset", *UnityReader.unityExtensions.toTypedArray())
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar", "desktop")
         addImportMappings("Metadata", "json", "xml")
         addImportMappings("Link", "url", "lnk")

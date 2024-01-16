@@ -16,7 +16,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes

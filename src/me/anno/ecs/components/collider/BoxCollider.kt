@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawBox
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d

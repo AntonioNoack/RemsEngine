@@ -16,8 +16,8 @@ import me.anno.gpu.texture.*
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f
 import org.joml.Vector3f

@@ -2,6 +2,7 @@ package me.anno.io.unity
 
 import me.anno.cache.CacheData
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
@@ -11,14 +12,14 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerLinkFile
+import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
 import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.beautify
 import me.anno.io.yaml.YAMLReader.parseYAML
-import me.anno.io.files.inner.InnerFolder
-import me.anno.io.files.inner.InnerLinkFile
-import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.utils.ColorParsing.parseHex
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.BiMap
@@ -39,7 +40,13 @@ import kotlin.math.min
 //  worked in the past
 object UnityReader {
 
-    val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
+    fun loadUnityFile(resource: FileReference, callback: (Prefab?, Exception?) -> Unit) {
+        readAsAsset(resource) { json, e ->
+            if (json != null) {
+                callback(PrefabCache.loadJson(json) as? Prefab, null)
+            } else callback(null, e)
+        }
+    }
 
     private val LOGGER = LogManager.getLogger(UnityReader::class)
 
@@ -57,7 +64,7 @@ object UnityReader {
                     else false
                 }) {
                 val data = UnityProjectCache.getEntry(
-                    root, unityProjectTimeout, async, ::loadUnityProject
+                    root, unityProjectTimeout, async, UnityReader::loadUnityProject
                 ) as? CacheData<*>
                 return data?.value as? UnityProject
             }// else invalid project
@@ -340,9 +347,6 @@ object UnityReader {
             }
 
             // LOGGER.debug("pos rot sca: $position, $rotation, $scale by $changes")
-
-            JomlPools.vec3d.sub(2)
-            JomlPools.quat4d.sub(1)
         }
     }
 
@@ -516,6 +520,7 @@ object UnityReader {
             firstNode = folder.getOrPut(fileId) {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
+                file.hide()
                 prefab.source = file
                 prefab["name"] = node.key
                 file

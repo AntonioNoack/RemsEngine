@@ -6,8 +6,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.image.raw.IntImage
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Arrays.resize

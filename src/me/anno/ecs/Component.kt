@@ -8,13 +8,12 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
-import me.anno.engine.inspector.Inspectable
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
-abstract class Component : PrefabSaveable(), Inspectable {
+abstract class Component : PrefabSaveable() {
 
     override var isEnabled: Boolean = true
         set(value) {

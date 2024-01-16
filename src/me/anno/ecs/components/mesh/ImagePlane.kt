@@ -6,8 +6,8 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.texture.Clamping
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta

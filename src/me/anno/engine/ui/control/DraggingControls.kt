@@ -25,7 +25,7 @@ import me.anno.input.Key
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length

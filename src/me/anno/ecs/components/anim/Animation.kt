@@ -14,7 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4x3f
 

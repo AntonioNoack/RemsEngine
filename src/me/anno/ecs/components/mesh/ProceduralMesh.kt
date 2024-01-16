@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 

@@ -8,6 +8,7 @@ import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.parseYAML
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
+import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -73,9 +74,10 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 // folder = InnerFolder(content)
                 // but it would also override the original resources...
                 folder = InnerFolder("${root.absolutePath}/$guid", guid, root)
+                folder.hide()
                 files[guid] = folder
                 when (guidObject.lcExtension) {
-                    in UnityReader.unityExtensions -> {
+                    in ThumbsExt.unityExtensions -> {
                         val node = getYAML(guidObject)
                         parse(node, guid, folder)
                     }

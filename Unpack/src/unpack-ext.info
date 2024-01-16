@@ -1,0 +1,4 @@
+plugin-name: Unpack Plugin
+author: Antonio Noack
+description: Allows reading zip, rar, tar and 7z files; plus some basic support to load Unity scenes, because their packages are tar-based.
+main-class: me.anno.io.UnpackPlugin

@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.io.files.inner.InnerFile
@@ -11,11 +12,10 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.unity.UnityReader
+import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
-import me.anno.engine.EngineBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
@@ -25,8 +25,6 @@ import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.commons.compress.archivers.zip.ZipFile
-import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
 import java.io.*
@@ -272,17 +270,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 return result
             }
         }
-
-        @JvmStatic
-        fun createZipFile(file: FileReference, callback: (ZipFile?, Exception?) -> Unit) {
-            return if (file is FileFileRef) callback(ZipFile(file.file), null) else {
-                file.readBytes { it, exc ->
-                    if (it != null) {
-                        callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
-                    } else callback(null, exc)
-                }
-            }
-        }
     }
 
     private var isValid = true
@@ -316,8 +303,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     private val _hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = _hasValidName
 
-    var isHidden = // hidden file in Linux, or file in unity package
-        name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath)
+    var isHidden = name.startsWith('.')// hidden file in Linux, or file in unity package
 
     fun hide() {
         isHidden = true
@@ -643,7 +629,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun copyTo(dst: FileReference) {
-        copyTo(dst, {})
+        copyTo(dst) {}
     }
 
     abstract val isDirectory: Boolean
@@ -652,36 +638,20 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         // only read the first bytes
         val signature = Signature.findNameSync(this)
         if (InnerFolderCache.hasReaderForFileExtension(lcExtension)) {
-            // LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
             return true
         }
         if (InnerFolderCache.hasReaderForSignature(signature)) {
-            // LOGGER.info("Checking $absolutePath for zip/similar file, matches signature")
             return true
         }
-        return when (signature) {
+        return when (signature) { // todo these should be handled by InnerFolderCache...
             null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
                 // dae is xml
                 when (lcExtension) {
-                    in UnityReader.unityExtensions, "json" -> {
+                    in ThumbsExt.unityExtensions, "json" -> {
                         // LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }
-                    else -> try {
-                        var zis: ZipFile? = null
-                        var e: Exception? = null
-                        createZipFile(this) { z, exc ->
-                            zis = z
-                            e = exc
-                        }
-                        waitUntil(true) { zis != null || e != null }
-                        val result = (zis ?: throw e!!).entries.hasMoreElements()
-                        // LOGGER.info("Checking $absolutePath for zip file, success")
-                        result
-                    } catch (e: Exception) {
-                        // LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
-                        false
-                    }
+                    else -> false
                 }
             }
             else -> {

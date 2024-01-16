@@ -14,8 +14,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.RemsEngine
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.engine.Events.addEvent
 import me.anno.ui.debug.FrameTimings

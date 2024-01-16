@@ -10,7 +10,7 @@ import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Style

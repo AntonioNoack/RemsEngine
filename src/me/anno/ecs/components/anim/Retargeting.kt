@@ -28,7 +28,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.engine.inspector.Inspectable
 import me.anno.ui.Style

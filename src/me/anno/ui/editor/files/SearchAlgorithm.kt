@@ -116,7 +116,7 @@ object SearchAlgorithm {
                     val children = file.listChildren()
                     if (children != null) {
                         for (child in children) {
-                            if (newSearch.matches(child.name)) {
+                            if (!child.isHidden && newSearch.matches(child.name)) {
                                 resultSet.add(child)
                             }
                         }

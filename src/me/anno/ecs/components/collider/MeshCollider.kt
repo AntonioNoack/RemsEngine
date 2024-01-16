@@ -11,7 +11,7 @@ import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min

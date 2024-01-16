@@ -12,8 +12,8 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools

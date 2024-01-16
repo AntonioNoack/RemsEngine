@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 
 enum class CullMode {
 

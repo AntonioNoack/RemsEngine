@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.files.FileReference
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import org.joml.AABBd
 import org.joml.Matrix4x3d

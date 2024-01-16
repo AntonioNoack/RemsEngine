@@ -15,7 +15,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.graph.types.states.StateMachine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 
 @Docs("Controls animations using a state machine like in Unity")
 class AnimController : Component() {

@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.Node
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
 
 class NodeGroup : PrefabSaveable() {

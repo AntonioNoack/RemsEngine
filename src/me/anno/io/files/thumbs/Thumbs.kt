@@ -80,11 +80,8 @@ import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
-import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
-import me.anno.engine.EngineBase
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white4
@@ -1341,28 +1338,7 @@ object Thumbs {
                     if (base != null) base(srcFile, dstFile, size, callback)
                     else when (srcFile.lcExtension) {
                         // todo thumbnails for Rem's Studio transforms
-                        // parse unity files
-                        in UnityReader.unityExtensions -> UnityReader.readAsAsset(srcFile) { decoded, e ->
-                            if (decoded != InvalidRef && decoded != null) {
-                                when {
-                                    decoded is PrefabReadable ->
-                                        generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
-                                    decoded.length() > 0 -> {
-                                        // try to read the file as an asset
-                                        // not sure about using the workspace here...
-                                        val sth =
-                                            JsonStringReader.read(decoded, EngineBase.workspace, true).firstOrNull()
-                                        generateSomething(sth, srcFile, dstFile, size, callback)
-                                    }
-                                    else -> LOGGER.warn("File $decoded is empty")
-                                }
-                            } else {
-                                LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
-                                LOGGER.warn("${e?.message}; by $srcFile")
-                                e?.printStackTrace()
-                            }
-                        }
-                        "json" -> {
+                        in ThumbsExt.unityExtensions, "json" -> {
                             try {
                                 // try to read the file as an asset
                                 generateSomething(srcFile, dstFile, size, callback)

@@ -2,7 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d

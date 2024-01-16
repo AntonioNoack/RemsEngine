@@ -34,9 +34,6 @@
     <orderEntry type="library" exported="" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="JavaNativeAccess" level="project" />
     <orderEntry type="library" name="Other" level="project" />
-    <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
-    <orderEntry type="library" name="JBullet2x64" level="project" />
-    <orderEntry type="library" name="jUnRAR" level="project" />
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
@@ -59,5 +56,6 @@
     </orderEntry>
     <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
     <orderEntry type="module" module-name="KOML" />
+    <orderEntry type="library" name="JBullet2x64" level="project" />
   </component>
 </module>

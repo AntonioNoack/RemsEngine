@@ -6,7 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.mix
 import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel

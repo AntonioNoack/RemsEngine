@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.*
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
 import me.anno.utils.Color.black

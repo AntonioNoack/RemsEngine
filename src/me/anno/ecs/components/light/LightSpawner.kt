@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.LightData
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.serialization.NotSerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f

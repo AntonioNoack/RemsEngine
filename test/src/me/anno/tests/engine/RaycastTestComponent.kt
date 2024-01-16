@@ -7,7 +7,7 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
-import me.anno.io.serialization.SerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
 
 class RaycastTestComponent : Component() {
