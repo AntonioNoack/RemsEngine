@@ -18,6 +18,6 @@ open class ThumbnailPanel(var source: FileReference, style: Style) : ImagePanel(
     }
 
     override fun getTexture(): ITexture2D? {
-        return Thumbs.getThumbnail(source, getThumbnailResolution(), true)
+        return Thumbs[source, getThumbnailResolution(), true]
     }
 }

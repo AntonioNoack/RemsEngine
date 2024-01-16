@@ -214,7 +214,7 @@ open class FileInput(
         val stdSize = 64
         val size = stdSize - stdSize / 20 // 1/20th is padding
         val file = value
-        Thumbs.getThumbnail(file, size, true) ?: return null
+        Thumbs[file, size, true] ?: return null
         // could be cached...
         val entry = object : FileExplorerEntry(file, style) {
             override fun calculateSize(w: Int, h: Int) {

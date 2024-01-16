@@ -311,7 +311,7 @@ open class FileExplorerEntry(
 
     private fun getImage(): Any? {
         val ref1 = ref1 ?: return null
-        val thumb = Thumbs.getThumbnail(ref1, width, true)
+        val thumb = Thumbs[ref1, width, true]
         return thumb ?: getDefaultIcon()
     }
 
@@ -388,7 +388,7 @@ open class FileExplorerEntry(
                 return
             }
         }
-        val image0 = Thumbs.getThumbnail(file, w, true)
+        val image0 = Thumbs[file, w, true]
         val image1 = image0 ?: getDefaultIcon()
         val image2 = if (image1 == null || (image1 is Texture2D && !image1.wasCreated)) whiteTexture else image1
         val rot = (image2 as? Texture2D)?.rotation

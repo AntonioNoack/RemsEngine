@@ -1,6 +1,5 @@
 package me.anno.ecs.components.physics
 
-import cz.advel.stack.Stack
 import me.anno.Engine
 import me.anno.Time
 import me.anno.ecs.Component
@@ -276,10 +275,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                         // there is still work to do
                         val t0 = Time.nanoTime
                         val debug = false //Engine.gameTime > 10e9 // wait 10s
-                        if (debug) {
-                            Stack.printClassUsage()
-                            Stack.printSizes()
-                        }
                         step(targetStepNanos, debug)
                         val t1 = Time.nanoTime
                         addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }

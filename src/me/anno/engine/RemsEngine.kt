@@ -185,6 +185,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
             val sky = Skybox()
             val cameraMatrix = Matrix4f()
             override val canDrawOverBorders get() = true
+            private val modelMatrix = ThumbsExt.createModelMatrix().scale(0.62f)
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 useFrame(previewRenderer) {
                     sky.nadirSharpness = 10f
@@ -199,7 +200,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
                         (x1 - x0) * 1f / (y1 - y0),
                         0.001f, 10f, 0f, 0f
                     )
-                    ThumbsExt.bindShader(shader, cameraMatrix, Thumbs.matModelMatrix)
+                    ThumbsExt.bindShader(shader, cameraMatrix, modelMatrix)
                     sky.material.bind(shader)
                     sky.getMesh().draw(shader, 0)
                 }

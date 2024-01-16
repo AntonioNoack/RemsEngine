@@ -8,5 +8,7 @@ class Box2dMod : Mod() {
         super.onPreInit()
         registerCustomClass(Box2dPhysics::class)
         registerCustomClass(Rigidbody2d::class)
+        registerCustomClass(RectCollider::class)
+        registerCustomClass(CircleCollider::class)
     }
 }

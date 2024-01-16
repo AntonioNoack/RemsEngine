@@ -186,11 +186,6 @@ object Thumbs {
 
     @JvmStatic
     operator fun get(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
-        return getThumbnail(file, neededSize, async)
-    }
-
-    @JvmStatic
-    fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
 
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
@@ -267,7 +262,7 @@ object Thumbs {
         generate(srcFile, size, callback)
     }
 
-    fun copyTexIfPossible(
+    private fun copyTexIfPossible(
         srcFile: FileReference,
         size: Int,
         tex: ITexture2D,
@@ -389,7 +384,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun renderToImage(
+    private fun renderToImage(
         src: FileReference,
         checkRotation: Boolean,
         dstFile: HDBKey,
@@ -474,11 +469,10 @@ object Thumbs {
         }
     }
 
-    @JvmField
-    val flipYRot = ImageTransform(mirrorHorizontal = false, mirrorVertical = true, 0)
+    private val flipYRot = ImageTransform(mirrorHorizontal = false, mirrorVertical = true, 0)
 
     @JvmStatic
-    fun generateVideoFrame(
+    private fun generateVideoFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -518,7 +512,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateSVGFrame(
+    private fun generateSVGFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -538,15 +532,8 @@ object Thumbs {
         }
     }
 
-    inline fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
-        for (index in 0 until max(l0.size, l1.size)) {
-            val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
-            if (li != null && li != InvalidRef) run(li)
-        }
-    }
-
     @JvmStatic
-    fun generatePrefabReadableFrame(
+    private fun generatePrefabReadableFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -561,7 +548,7 @@ object Thumbs {
     // todo exclude lights from AABB calculations for thumbnails?
     //  (except when only having lights, then add a floor)
     @JvmStatic
-    fun generateEntityFrame(
+    private fun generateEntityFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -645,7 +632,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateColliderFrame(
+    private fun generateColliderFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -662,7 +649,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateMeshFrame(
+    private fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -687,7 +674,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateMeshFrame(
+    private fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -713,7 +700,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateMeshFrame(
+    private fun generateMeshFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -729,26 +716,13 @@ object Thumbs {
         }
     }
 
-    @JvmField
-    val matCameraMatrix = createCameraMatrix(1f)
+    private val matCameraMatrix = createCameraMatrix(1f)
 
     @JvmField
     val matModelMatrix = createModelMatrix().scale(0.62f)
 
-    // todo if we have preview images, we could use them as cheaper textures
     @JvmStatic
-    fun generateMaterialFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-        val material = MaterialCache[srcFile] ?: return
-        generateMaterialFrame(srcFile, dstFile, material, size, callback)
-    }
-
-    @JvmStatic
-    fun generateMaterialFrame(
+    private fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         material: Material,
@@ -776,7 +750,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun split(total: Int): Int {
+    private fun split(total: Int): Int {
         // smartly split space
         val maxRatio = 3
         if (total <= maxRatio) return GFXx2D.getSize(total, 1)
@@ -795,7 +769,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateMaterialFrame(
+    private fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         materials: List<FileReference>,
@@ -824,7 +798,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun renderMultiWindowImage(
+    private fun renderMultiWindowImage(
         srcFile: FileReference,
         dstFile: HDBKey,
         count: Int, size: Int,
@@ -862,7 +836,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateSkeletonFrame(
+    private fun generateSkeletonFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         skeleton: Skeleton,
@@ -890,7 +864,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateAnimationFrame(
+    private fun generateAnimationFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         animation: Animation,
@@ -998,7 +972,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateSomething(
+    private fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
         dstFile: HDBKey,
@@ -1037,7 +1011,7 @@ object Thumbs {
         }
     }
 
-    fun shallReturnIfExists(
+    private fun shallReturnIfExists(
         srcFile: FileReference,
         dstFile: ByteSlice?,
         callback: (ITexture2D?, Exception?) -> Unit,
@@ -1053,7 +1027,7 @@ object Thumbs {
         return true
     }
 
-    fun shallReturnIfExists(
+    private fun shallReturnIfExists(
         srcFile: FileReference,
         dstFile: HDBKey,
         callback: (ITexture2D?, Exception?) -> Unit,
@@ -1266,7 +1240,7 @@ object Thumbs {
         registerExtension("md", ::generateTextImage)
     }
 
-    fun generateVideoFrame0(
+    private fun generateVideoFrame0(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -1443,7 +1417,7 @@ object Thumbs {
         }
     }
 
-    fun generateSomething(
+    private fun generateSomething(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -1455,7 +1429,7 @@ object Thumbs {
         )
     }
 
-    fun generateFontPreview(
+    private fun generateFontPreview(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,

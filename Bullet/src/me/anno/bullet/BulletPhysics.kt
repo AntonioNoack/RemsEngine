@@ -299,6 +299,10 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     override fun step(dt: Long, printSlack: Boolean) {
         // just in case
+        if (printSlack) {
+            Stack.printClassUsage()
+            Stack.printSizes()
+        }
         Stack.reset(printSlack)
         super.step(dt, printSlack)
     }

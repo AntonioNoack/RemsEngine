@@ -11,7 +11,7 @@ fun main() {
     val dst = desktop
     var size = 64
     while (size <= 256) {
-        Thumbs.getThumbnail(src, size, false)!!.createImage(true, true)
+        Thumbs[src, size, false]!!.createImage(true, true)
             .write(dst.getChild("$size.png"))
         size *= 2
     }

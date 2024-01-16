@@ -31,6 +31,13 @@ object ThumbsExt {
     val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
     private val LOGGER = LogManager.getLogger(ThumbsExt::class)
 
+    private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
+        for (index in 0 until max(l0.size, l1.size)) {
+            val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
+            if (li != null && li != InvalidRef) run(li)
+        }
+    }
+
     fun createCameraMatrix(aspectRatio: Float): Matrix4f {
         val stack = Matrix4f()
         Perspective.setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
@@ -156,7 +163,7 @@ object ThumbsExt {
     fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
-        Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
+        iterateMaterials(comp.materials, mesh.materials) { material ->
             textures += listTextures(material)
         }
         textures.removeAll { it == InvalidRef }
@@ -211,7 +218,7 @@ object ThumbsExt {
         entity.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
             val mesh = comp.getMesh()
             if (mesh != null) {
-                Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
+                iterateMaterials(comp.materials, mesh.materials) { material ->
                     textures += listTextures(material)
                 }
             } else warnMissingMesh(comp, null)

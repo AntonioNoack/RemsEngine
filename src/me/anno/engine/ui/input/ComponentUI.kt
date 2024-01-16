@@ -42,7 +42,6 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
@@ -1344,7 +1343,7 @@ object ComponentUI {
         buttons.weight = 1f
         val mainList = SizeLimitingContainer(
             panelList,
-            Maths.max(sampleUI.window!!.width / 3, 200),
+            max(sampleUI.window!!.width / 3, 200),
             -1, style
         )
         Menu.openMenuByPanels(

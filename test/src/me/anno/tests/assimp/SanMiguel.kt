@@ -5,13 +5,10 @@ import me.anno.engine.ECSRegistry
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
-import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.Clock
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
@@ -74,15 +71,6 @@ fun main() {
     PrefabCache[file]
     clock.stop("assimp")
 
-    // val file = getReference(documents, "sphere.obj")
-
-    // static is fine:
-    /*val loaded = StaticMeshesLoader().load(file)
-    val entity = loaded.hierarchy
-    Thumbs.generateEntityFrame(getReference(desktop, "debug.png"), 512, entity) {}
-*/
-    Thumbs.generateSomething(file, HDBKey.InvalidKey, 512) { result, exc ->
-        if (result is Texture2D) GPUImage(result).write(desktop.getChild("miguel.png"))
-        exc?.printStackTrace()
-    }
+    val result = Thumbs[file, 512, false]!!
+    if (result is Texture2D) GPUImage(result).write(desktop.getChild("miguel.png"))
 }

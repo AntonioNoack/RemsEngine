@@ -10,8 +10,6 @@ import me.anno.ecs.components.camera.control.FirstPersonController
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.camera.control.ThirdPersonController
 import me.anno.ecs.components.collider.*
-import me.anno.ecs.components.collider.twod.CircleCollider
-import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.decal.DecalMaterial
@@ -104,12 +102,6 @@ object ECSRegistry {
     }
 
     @JvmStatic
-    fun init2dColliders() {
-        registerCustomClass(RectCollider())
-        registerCustomClass(CircleCollider())
-    }
-
-    @JvmStatic
     fun initTextRenderers() {
         registerCustomClass(TextMeshComponent())
         registerCustomClass(TextTextureComponent())
@@ -178,7 +170,6 @@ object ECSRegistry {
 
         // colliders
         init3dColliders()
-        init2dColliders()
 
         // prefab system
         initPrefabs()
