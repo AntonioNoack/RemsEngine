@@ -13,7 +13,7 @@ class Frustum {
     // if we replace those floats with doubles
 
     // -x,+x,-y,+y,-z,+z
-    val planes = Array(13) { Vector4d() }
+    val planes = Array(13) { Planed() }
     var length = 6
 
     private val normals = Array(13) { Vector3d() }
@@ -92,8 +92,7 @@ class Frustum {
         for (i in 0 until length) {
             val position = positions[i].add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
+            planes[i].set(position, normal)
         }
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
@@ -106,8 +105,7 @@ class Frustum {
         for (i in 0 until length) {
             val position = cameraRotation.transform(positions[i]).add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
+            planes[i].set(position, normal)
         }
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
@@ -167,9 +165,7 @@ class Frustum {
         }
 
         for (i in 0 until 6) {
-            val normal = normals[i]
-            val distance = positions[i].dot(normal)
-            planes[i].set(normal, -distance)
+            planes[i].set(positions[i], normals[i])
         }
 
         val dx = normals[0].lengthSquared()
@@ -355,11 +351,11 @@ class Frustum {
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
         for (i in 0 until length) {
             val plane = planes[i]
-            val x = if (plane.x > 0.0) aabb.minX else aabb.maxX
-            val y = if (plane.y > 0.0) aabb.minY else aabb.maxY
-            val z = if (plane.z > 0.0) aabb.minZ else aabb.maxZ
+            val x = if (plane.dirX > 0.0) aabb.minX else aabb.maxX
+            val y = if (plane.dirY > 0.0) aabb.minY else aabb.maxY
+            val z = if (plane.dirZ > 0.0) aabb.minZ else aabb.maxZ
             // outside
-            if (plane.w + plane.x * x + plane.y * y + plane.z * z >= 0.0) return false
+            if (plane.dot(x, y, z) >= 0.0) return false
         }
         return true
     }

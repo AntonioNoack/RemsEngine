@@ -3,7 +3,6 @@ package me.anno.tests.image.fft
 import me.anno.Engine
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.image.raw.CompositeFloatImage
 import me.anno.image.raw.FloatImage
 import me.anno.utils.Clock
 import me.anno.utils.Color.g
@@ -99,7 +98,7 @@ fun main() {
     invTransform(b, fft)
     clock.stop("InvFFT")
 
-    val image = CompositeFloatImage(w, h, arrayOf(r, g, b))
+    val image = FloatImage(w, h, 3, r + g + b)
     image
         .resized(src.width, src.height, true)
         .write(desktop.getChild("MoireFFT.jpg"))

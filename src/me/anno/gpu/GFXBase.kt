@@ -4,6 +4,8 @@ import me.anno.Build.isDebug
 import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.getErrorTypeName
@@ -22,8 +24,6 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.engine.Events.addEvent
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
@@ -34,7 +34,6 @@ import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager.getLogger
-import org.lwjgl.BufferUtils
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -48,6 +47,7 @@ import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
+import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -555,14 +555,16 @@ object GFXBase {
 
     @JvmStatic
     fun setIcon(window: Long, srcImage: Image) {
-        val image = imageToGLFW(srcImage)
+        val (image, pixels) = imageToGLFW(srcImage)
         val buffer = GLFWImage.malloc(1)
         buffer.put(0, image)
         GLFW.glfwSetWindowIcon(window, buffer)
+        buffer.free()
+        ByteBufferPool.free(pixels)
     }
 
     @JvmStatic
-    fun imageToGLFW(srcImage: Image): GLFWImage {
+    fun imageToGLFW(srcImage: Image): Pair<GLFWImage, ByteBuffer> {
         val image = GLFWImage.malloc()
         val w = srcImage.width
         val h = srcImage.height
@@ -579,8 +581,7 @@ object GFXBase {
         }
         pixels.flip()
         image.set(w, h, pixels)
-        ByteBufferPool.free(pixels)
-        return image
+        return image to pixels
     }
 
     @JvmStatic

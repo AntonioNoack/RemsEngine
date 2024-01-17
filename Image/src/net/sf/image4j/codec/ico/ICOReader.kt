@@ -7,8 +7,8 @@ import me.anno.io.Streams.readLE32
 import me.anno.utils.structures.tuples.IntPair
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
-import net.sf.image4j.io.CountingInputStream
-import net.sf.image4j.io.Utils
+import me.anno.utils.structures.CountingInputStream
+import net.sf.image4j.Utils
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
 import java.io.EOFException

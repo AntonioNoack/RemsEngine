@@ -2,8 +2,8 @@ package me.anno.gpu.buffer
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Shader
-import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
+import org.joml.AABBf
 import org.lwjgl.opengl.GL46C
 import java.nio.ByteOrder
 
@@ -42,10 +42,7 @@ open class StaticBuffer(
     }
 
     // data for SVGs, might be removed in the future
-    var minX = 0f
-    var maxX = 0f
-    var minY = 0f
-    var maxY = 0f
+    var bounds: AABBf? = null
 
     /**
      * copies all information over
@@ -57,13 +54,6 @@ open class StaticBuffer(
         for (i in 0 until length) {
             dst.put(src[i])
         }
-    }
-
-    fun setBounds(svg: SVGMesh) {
-        minX = svg.minX
-        maxX = svg.maxX
-        minY = svg.minY
-        maxY = svg.maxY
     }
 
     open fun clear() {

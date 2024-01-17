@@ -697,6 +697,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3f(name: String, v: Vector3f) = v3f(name, v.x, v.y, v.z)
     fun v3f(name: String, v: Vector3d) = v3f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     fun v4f(name: String, v: Vector4f) = v4f(name, v.x, v.y, v.z, v.w)
+    fun v4f(name: String, v: Planed) = v4f(name, v.dirX.toFloat(), v.dirY.toFloat(), v.dirZ.toFloat(), v.distance.toFloat())
     fun v4f(name: String, v: Quaternionf) = v4f(name, v.x, v.y, v.z, v.w)
     fun v4f(name: String, v: Quaterniond) = v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun v4f(name: String, v: Vector4d) =

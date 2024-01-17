@@ -3,8 +3,8 @@ package net.sf.image4j.codec.bmp
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
-import net.sf.image4j.io.CountingInputStream
-import net.sf.image4j.io.Utils
+import me.anno.utils.structures.CountingInputStream
+import net.sf.image4j.Utils
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream

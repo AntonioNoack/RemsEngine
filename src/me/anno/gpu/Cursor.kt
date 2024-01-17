@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFXBase.imageToGLFW
 import me.anno.image.Image
+import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.glfw.GLFW.*
 
 /**
@@ -30,7 +31,10 @@ class Cursor : ICacheData {
     private fun create() {
         val image = image
         pointer = if (image != null) {
-            glfwCreateCursor(imageToGLFW(image), centerX, centerY)
+            val (image1, pixels) = imageToGLFW(image)
+            val cursor = glfwCreateCursor(image1, centerX, centerY)
+            ByteBufferPool.free(pixels)
+            cursor
         } else if (glfwType != 0) {
             glfwCreateStandardCursor(glfwType)
         } else 0L

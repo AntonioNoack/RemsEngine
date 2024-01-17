@@ -61,7 +61,7 @@ Some depend on local files, which you might not have, but most should work, and 
 ### File Formats
 
 - supports loading all kinds of formats
-    - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, xcf (Gimp)
+    - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, qoi, xcf (Gimp)
     - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
     - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh, mitsuba
     - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
@@ -198,13 +198,15 @@ Use any IDE you want, with Java and Kotlin support. Best use IntelliJ IDEA.
 Then run any of the tests you want 😊.
 
 Some parts of the engine have been packed into modules.
-This is the preferred way to create a game, or extension.
+This is the preferred way to create a game, or library.
 Currently extracted modules:
 - PDF (pdf document to image converter),
 - SDF (signed distance functions),
 - Bullet (3d physics),
 - Box2d (2d physics),
 - Recast (path finding)
+- Image (image loaders)
+- Mesh (mesh loaders)
 
 So if you need them, don't forget to import them into your project.
 (either as a compiled artifact = .jar, or as an Intellij module)

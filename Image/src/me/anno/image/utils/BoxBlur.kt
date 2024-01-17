@@ -1,4 +1,4 @@
-package me.anno.image
+package me.anno.image.utils
 
 object BoxBlur {
 

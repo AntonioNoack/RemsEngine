@@ -17,6 +17,9 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
 
+/**
+ * creates a new texture from any texture by swizzling channels, or setting some to zero/one
+ * */
 object TextureMapper {
 
     private val LOGGER = LogManager.getLogger(TextureMapper::class)

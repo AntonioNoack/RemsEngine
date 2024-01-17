@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.image.jpg.findRotation
+import me.anno.image.jpg.ExifOrientation
 import me.anno.utils.OS
 
 fun main() {
@@ -20,7 +20,6 @@ fun main() {
 
         // before we had implemented and checked our version :)
         // println(ImageData.getRotation(src))
-        println(findRotation(src))
-
+        println(ExifOrientation.findRotation(src))
     }
 }

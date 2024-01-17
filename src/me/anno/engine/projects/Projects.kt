@@ -1,5 +1,6 @@
 package me.anno.engine.projects
 
+import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.io.ISaveable
@@ -12,7 +13,7 @@ object Projects {
 
     private val LOGGER = LogManager.getLogger(Projects::class)
 
-    private var recentProjectCount = 10
+    private val recentProjectCount by ConfigRef("ui.project.numRecent", 10)
     fun getRecentProjects(): ArrayList<ProjectHeader> {
         ISaveable.registerCustomClass(GameEngineProject::class)
         val projects = ArrayList<ProjectHeader>()

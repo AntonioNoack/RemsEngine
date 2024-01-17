@@ -4,8 +4,6 @@ import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.ImageReader
-import me.anno.image.gimp.GimpImage
-import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
@@ -73,12 +71,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         // images
         // to do all image formats
         register(imageFormats, ImageReader::readAsFolder)
-        register("gimp", GimpImage.Companion::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
-
-        // "xml" can be "dae" as well
-        register("svg", SVGMesh.Companion::readAsFolder)
-
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {

@@ -2,15 +2,15 @@ package me.anno.mesh.fbx
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.Streams.consumeMagic
-import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
+import me.anno.io.Streams.readLE64F
+import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.lists.Lists.pop
 import me.anno.utils.types.InputStreams.readNBytes2
-import net.sf.image4j.io.CountingInputStream
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException

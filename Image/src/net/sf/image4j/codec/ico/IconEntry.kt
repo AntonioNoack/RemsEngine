@@ -2,7 +2,7 @@ package net.sf.image4j.codec.ico
 
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
-import net.sf.image4j.io.CountingInputStream
+import me.anno.utils.structures.CountingInputStream
 
 /**
  * Represents an IconEntry structure, which contains information about an ICO image.

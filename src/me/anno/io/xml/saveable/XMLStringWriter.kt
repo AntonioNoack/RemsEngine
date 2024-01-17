@@ -12,12 +12,6 @@ class XMLStringWriter(initialCapacity: Int, workspace: FileReference) : XMLWrite
 
     private val data = StringBuilder(initialCapacity)
 
-    /** you should not use this function
-     * if you use it, your file no longer will be readable (probably)
-     * */
-    @Suppress("unused")
-    fun getFoolishWriteAccess() = data
-
     override fun append(v: String) {
         data.append(v)
     }

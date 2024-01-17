@@ -3,6 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawXYPlane
 import me.anno.engine.ui.render.RenderState
@@ -16,7 +17,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.*
@@ -101,7 +101,7 @@ class PlanarReflection : LightComponentBase() {
 
         val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
         val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
-        val mirrorDot = mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)
+        val mirrorPos = reflectedMirrorPosition - reflectedCameraPosition
         val isPerspective = abs(cameraMatrix0.m33) < 0.5f
 
         // better way to do this?
@@ -125,14 +125,14 @@ class PlanarReflection : LightComponentBase() {
         }
 
         // define last frustum plane
-        pipeline.frustum.planes[pipeline.frustum.length].set(mirrorNormal, mirrorDot) // todo is this correct??, scale?
+        pipeline.frustum.planes[pipeline.frustum.length].set(mirrorPos, mirrorNormal) // todo is this correct??, scale?
         pipeline.frustum.length++
         // pipeline.frustum.showPlanes()
 
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)
         // pipeline.planarReflections.clear()
-        pipeline.reflectionCullingPlane.set(mirrorNormal, mirrorDot * worldScale)
+        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale, mirrorNormal) // ??
 
         mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
         val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)

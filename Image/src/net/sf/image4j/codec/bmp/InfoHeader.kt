@@ -8,7 +8,7 @@ package net.sf.image4j.codec.bmp
 
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
-import net.sf.image4j.io.CountingInputStream
+import me.anno.utils.structures.CountingInputStream
 
 /**
  * Represents a bitmap InfoHeader structure, which provides header information.

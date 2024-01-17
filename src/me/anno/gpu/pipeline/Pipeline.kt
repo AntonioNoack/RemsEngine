@@ -14,6 +14,7 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.*
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.CullMode
@@ -44,7 +45,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
@@ -53,8 +53,8 @@ import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.SmallestKList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
+import org.joml.Planed
 import org.joml.Vector3d
-import org.joml.Vector4d
 import java.util.*
 import kotlin.math.max
 
@@ -102,12 +102,12 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     // vec4(pos,1).dot(prp) > 0.0 -> discard
     // therefore use 0,0,0,0 to disable this plane
-    val reflectionCullingPlane = Vector4d()
+    val reflectionCullingPlane = Planed()
 
     var applyToneMapping = true
 
     fun disableReflectionCullingPlane() {
-        reflectionCullingPlane.set(0.0)
+        reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
     }
 
     fun findStage(material: Material): PipelineStage {

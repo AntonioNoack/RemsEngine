@@ -18,7 +18,6 @@ import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.ffmpeg.MediaMetadata
-import net.sf.image4j.codec.ico.ICOReader
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
@@ -72,25 +71,34 @@ object ImageReader {
         }
 
         if (file.lcExtension == "ico") {
-            Signature.findName(file) { sign ->
-                if (sign == null || sign == "ico") {
-                    file.inputStream { it, exc ->
-                        if (it != null) {
-                            val layers = ICOReader.readAllLayers(it)
-                            for (index in layers.indices) {
-                                val layer = layers[index]
-                                folder.createImageChild("layer$index", layer)
+            try {
+                val icoReaderClass = this::class.java.classLoader
+                    .loadClass("net.sf.image4j.codec.ico.ICOReader")
+                val method = icoReaderClass.getMethod("readAllLayers", FileReference::class.java)
+                Signature.findName(file) { sign ->
+                    if (sign == null || sign == "ico") {
+                        file.inputStream { it, exc ->
+                            if (it != null) {
+                                val layers = method.invoke(null, it) as List<*>
+                                for (index in layers.indices) {
+                                    val layer = layers[index] as? Image ?: break
+                                    folder.createImageChild("layer$index", layer)
+                                }
+                                it.close()
+                                callback(folder, null)
+                            } else {
+                                exc?.printStackTrace()
+                                callback(folder, null)
                             }
-                            it.close()
-                            callback(folder, null)
-                        } else {
-                            exc?.printStackTrace()
-                            callback(folder, null)
                         }
-                    }
-                } else callback(folder, null)
+                    } else callback(folder, null)
+                }
+                return // we're done, don't call callback twice
+            } catch (e: ClassNotFoundException) {
+                LOGGER.warn("Can't find ICOReader to load layers for .ico file")
+            } catch (e: NoSuchMethodException) {
+                LOGGER.warn("Can't find ICOReader.readAllLayers to load layers for .ico file")
             }
-            return
         }
 
         callback(folder, null)

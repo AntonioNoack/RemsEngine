@@ -1,7 +1,6 @@
-package net.sf.image4j.io
+package net.sf.image4j
 
 import java.io.EOFException
-import java.io.IOException
 import java.io.InputStream
 
 /**

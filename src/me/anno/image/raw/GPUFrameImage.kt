@@ -8,6 +8,9 @@ import me.anno.io.files.FileReference
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 
+/**
+ * image for a video frame on the GPU
+ * */
 class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Boolean) :
     Image(frame.width, frame.height, numChannels, hasAlphaChannel) {
 

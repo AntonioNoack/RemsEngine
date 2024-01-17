@@ -1,6 +1,6 @@
 package me.anno.image.exr
 
-import me.anno.image.raw.CompositeFloatBufferImage
+import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IFloatImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.pooling.ByteBufferPool
@@ -151,7 +151,6 @@ object EXRReader {
             // return images
 
             TODO()
-
         } else {
             val header = EXRHeader.create()
             // InitEXRHeader(header)
@@ -182,7 +181,6 @@ object EXRReader {
         }
 
         return readImage(header, image)
-
     }
 
     private fun readImage(
@@ -256,8 +254,12 @@ object EXRReader {
             floats = mapChannels(floats, channelNames, "rgba")
         }
 
-        return CompositeFloatBufferImage(width, height, floats)
-
+        val values = FloatArray(floats.sumOf { it.remaining() })
+        var offset = 0
+        for (vs in floats) {
+            vs.get(values, offset, width * height)
+            offset += width * height
+        }
+        return FloatImage(width, height, floats.size, values)
     }
-
 }

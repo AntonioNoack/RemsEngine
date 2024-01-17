@@ -2,6 +2,7 @@ package me.anno.image.colormap
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGBRandomly
 import me.anno.utils.Color.hasAlpha
 import kotlin.math.abs
@@ -94,13 +95,12 @@ class LinearColorMap(
     override val className: String get() = "LinearColorMap"
 
     companion object {
-        const val zeroColor = 255 shl 24
-        const val negInfColor = 0xff7700 or zeroColor
-        const val minColor = 0xff0000 or zeroColor
-        const val maxColor = 0xffffff or zeroColor
-        var nanColor = 0x7700ff or zeroColor
-        const val posInfColor = 0xffff77 or zeroColor
-        val default = LinearColorMap(0f, 1f, negInfColor, minColor, zeroColor, maxColor, posInfColor, nanColor)
+        const val negInfColor = 0xff7700 or black
+        const val minColor = 0xff0000 or black
+        const val maxColor = 0xffffff or black
+        var nanColor = 0x7700ff or black
+        const val posInfColor = 0xffff77 or black
+        val default = LinearColorMap(0f, 1f, negInfColor, minColor, black, maxColor, posInfColor, nanColor)
     }
 
 }

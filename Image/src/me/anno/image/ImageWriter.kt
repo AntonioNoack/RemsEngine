@@ -1,7 +1,6 @@
 package me.anno.image
 
 import me.anno.Time
-import me.anno.gpu.shader.effects.GaussianBlur.gaussianBlur
 import me.anno.gpu.texture.callbacks.F2F
 import me.anno.gpu.texture.callbacks.I3F
 import me.anno.gpu.texture.callbacks.I3I
@@ -9,24 +8,21 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
 import me.anno.image.raw.write
+import me.anno.image.utils.GaussianBlur
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.unmix
+import me.anno.maths.Maths
 import me.anno.ui.base.components.Padding
+import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
-import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
-import me.anno.utils.Color.rgba
-import me.anno.utils.OS.desktop
+import me.anno.utils.OS
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
-import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Polygon
 import java.awt.RenderingHints
@@ -48,7 +44,7 @@ object ImageWriter {
     @JvmStatic
     private fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
-        val file = desktop.getChild(name2)
+        val file = OS.desktop.getChild(name2)
         file.getParent()?.tryMkdirs()
         return file
     }
@@ -151,7 +147,7 @@ object ImageWriter {
                     b += color.b()
                     a += color.a()
                 }
-                val color = alpha or rgba(r / samples, g / samples, b / samples, a / samples)
+                val color = alpha or Color.rgba(r / samples, g / samples, b / samples, a / samples)
                 buffer.setElem(i, color)
             }
         }
@@ -256,7 +252,7 @@ object ImageWriter {
     @JvmStatic
     fun getColor(v: Float, minColor: Int, zeroColor: Int, maxColor: Int, nanColor: Int): Int {
         return when {
-            v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
+            v.isFinite() -> Color.mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
             v.isNaN() -> nanColor
             v < 0f -> minColor
             else -> maxColor
@@ -335,8 +331,8 @@ object ImageWriter {
             for (j in 0 until steps.toInt()) {
                 // add point
                 val f = j * invSteps
-                val x = mix(p0.x, p1.x, f) + thickness
-                val y = mix(p0.y, p1.y, f) + thickness
+                val x = Maths.mix(p0.x, p1.x, f) + thickness
+                val y = Maths.mix(p0.y, p1.y, f) + thickness
                 val xi = floor(x)
                 val yi = floor(y)
                 val fx = x - xi
@@ -359,7 +355,7 @@ object ImageWriter {
         }
         // bokeh-blur would be nicer, and correcter,
         // but this is a pretty good trade-off between visuals and performance :)
-        gaussianBlur(image, w, h, 0, w, thickness, true)
+        GaussianBlur.gaussianBlur(image, w, h, 0, w, thickness, true)
         val t1 = Time.nanoTime
         // nanoseconds per pixel
         // ~ 24ns/px for everything, including copy;
@@ -414,7 +410,7 @@ object ImageWriter {
             val v = values[x]
             if (v in min..max) {
                 val color = map.getColor(v)
-                val cy = clamp((unmix(max, min, v) * h).toInt(), 0, my)
+                val cy = Maths.clamp((Maths.unmix(max, min, v) * h).toInt(), 0, my)
                 // draw background until there ... done automatically
                 // draw colored pixel
                 pixels[offset + cy * w2] = color
@@ -446,7 +442,7 @@ object ImageWriter {
         gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         // draw all points
         for (p in points) {
-            gfx.color = Color(0x777777 or random.nextInt() or (255 shl 24))
+            gfx.color = java.awt.Color(0x777777 or random.nextInt() or (255 shl 24))
             val ax = ((p.x - ox) * s).toInt()
             val ay = ((p.y - oy) * s).toInt()
             gfx.drawOval(ax, ay, 1, 1)
@@ -454,7 +450,7 @@ object ImageWriter {
         // draw all triangles
         for (triIndex in 0 until indices.size / 3) {
 
-            gfx.color = Color(0x777777 or random.nextInt() or (255 shl 24))
+            gfx.color = java.awt.Color(0x777777 or random.nextInt() or (255 shl 24))
 
             val i = triIndex * 3
 
@@ -473,7 +469,7 @@ object ImageWriter {
             gfx.drawLine(bx, by, cx, cy)
             gfx.drawLine(cx, cy, ax, ay)
 
-            gfx.color = Color(gfx.color.rgb and 0x77ffffff, true)
+            gfx.color = java.awt.Color(gfx.color.rgb and 0x77ffffff, true)
             gfx.fill(Polygon(intArrayOf(ax, bx, cx), intArrayOf(ay, by, cy), 3))
 
             val px = (ax + bx + cx) / 3
@@ -481,6 +477,6 @@ object ImageWriter {
 
             gfx.fillOval(px - 2, py - 2, 5, 5)
         }
-        bi.write(desktop.getChild(name))
+        bi.write(OS.desktop.getChild(name))
     }
 }

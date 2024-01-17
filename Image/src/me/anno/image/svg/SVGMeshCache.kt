@@ -16,7 +16,7 @@ object SVGMeshCache : CacheSection("Meshes") {
                 svg.parse(XMLReader().read(input) as XMLNode)
                 val buffer = svg.buffer // may be null if the parsing failed / the svg is blank
                 if (buffer != null) {
-                    buffer.setBounds(svg)
+                    buffer.bounds = svg.bounds
                     buffer
                 } else CacheData(0)
             }

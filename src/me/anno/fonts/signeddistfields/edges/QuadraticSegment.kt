@@ -5,7 +5,6 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProductXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.EquationSolver.solveCubic
@@ -69,8 +68,8 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
     override fun union(bounds: AABBf, tmp: FloatArray) {
 
-        union(bounds, p0)
-        union(bounds, p1)
+        bounds.union(p0)
+        bounds.union(p1)
 
         val bot = JomlPools.vec2f.create()
             .set(p1).add(p1)
@@ -78,14 +77,17 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
         if (bot.x != 0f) {
             val param = (p1.x - p0.x) / bot.x
-            if (param > 0f && param < 1f) union(bounds, point(param, bot))
+            if (param > 0f && param < 1f) {
+                bounds.union(point(param, bot))
+            }
         } else {
             val param = (p1.y - p0.y) / bot.y
-            if (param > 0f && param < 1f) union(bounds, point(param, bot))
+            if (param > 0f && param < 1f) {
+                bounds.union(point(param, bot))
+            }
         }
 
         JomlPools.vec2f.sub(1)
-
     }
 
     override fun signedDistance(
@@ -156,6 +158,4 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
         return dst
     }
-
-
 }

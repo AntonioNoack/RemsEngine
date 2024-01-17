@@ -41,8 +41,8 @@ open class TextGroup(
 
         val layout = TextLayout(".", font.font, ctx)
         baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
-        minX = 0f
-        maxX = 0f
+        bounds.minX = 0f
+        bounds.maxX = 0f
     }
 
     private fun getOffset(ctx: FontRenderContext, previous: Int, current: Int) =

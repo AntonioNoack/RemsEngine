@@ -1,8 +1,7 @@
-package me.anno.gpu.shader.effects
+package me.anno.image.utils
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.renderPurely
-import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -10,11 +9,9 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.image.BoxBlur
-import me.anno.image.BoxBlur.multiply
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.maths.Maths.sq
+import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import kotlin.math.max
@@ -47,7 +44,7 @@ object GaussianBlur {
             BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
             BoxBlur.boxBlurX(image, w, h, i0, stride, f0, false, tmp1)
             BoxBlur.boxBlurY(image, w, h, i0, stride, f0, false, tmp1, tmp2)
-            x = sq(min(w, f0) * min(h, f0))
+            x = Maths.sq(min(w, f0) * min(h, f0))
         }
         if (f1 > 1) {
             BoxBlur.boxBlurX(image, w, h, i0, stride, f1, false, tmp1)
@@ -55,7 +52,7 @@ object GaussianBlur {
             x *= min(w, f1) * min(h, f1)
         }
         if (normalize) {
-            multiply(image, w, h, i0, stride, 1f / x)
+            BoxBlur.multiply(image, w, h, i0, stride, 1f / x)
         }
         return true
     }
@@ -67,7 +64,7 @@ object GaussianBlur {
         localTransform: Matrix4fArrayList, size: Float, pixelSize: Float
     ) {
         // step1
-        useFrame(w, h, true, target, Renderer.copyRenderer) {
+        GFXState.useFrame(w, h, true, target, Renderer.copyRenderer) {
             target.clearDepth()
             GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
@@ -89,7 +86,7 @@ object GaussianBlur {
 
         var size = pixelSize
 
-        renderPurely {
+        GFXState.renderPurely {
 
             val steps = pixelSize * h
             val subSteps = (steps / 10f).toInt()
@@ -110,7 +107,7 @@ object GaussianBlur {
                 size = pixelSize * smallerW / w
                 // draw image on smaller thing...
                 val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE]
-                useFrame(smallerW, smallerH, false, temp2, Renderer.copyRenderer) {
+                GFXState.useFrame(smallerW, smallerH, false, temp2, Renderer.copyRenderer) {
                     // temp2.clearColor(0, true)
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
@@ -122,18 +119,30 @@ object GaussianBlur {
             if (debug && Key.KEY_I in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
-                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE], smallerW, smallerH,
-                0, threshold, true, isFullscreen,
-                localTransform, size, pixelSize
+                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE],
+                smallerW,
+                smallerH,
+                0,
+                threshold,
+                true,
+                isFullscreen,
+                localTransform,
+                size,
+                pixelSize
             )
             drawBlur(
-                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE], smallerW, smallerH,
-                resultIndex, 0f, false, isFullscreen,
-                localTransform, size, pixelSize
+                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE],
+                smallerW,
+                smallerH,
+                resultIndex,
+                0f,
+                false,
+                isFullscreen,
+                localTransform,
+                size,
+                pixelSize
             )
 
         }
-
     }
-
 }

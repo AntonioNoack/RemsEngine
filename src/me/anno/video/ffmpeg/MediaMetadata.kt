@@ -4,9 +4,6 @@ import me.anno.audio.AudioReadable
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
-import me.anno.image.gimp.GimpImage
-import me.anno.image.qoi.QOIReader
-import me.anno.image.tar.TGAReader
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.readText
 import me.anno.io.files.FileFileRef
@@ -26,7 +23,6 @@ import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.parseTime
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.devNull
-import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -352,53 +348,12 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
                 } else false
             }
             registerSignatureHandler(100) { file, signature, dst ->
-                if (signature == "gimp") {
-                    // Gimp files are a special case, which is not covered by FFMPEG
-                    dst.ready = false
-                    file.inputStream { it, exc ->
-                        if (it != null) {
-                            dst.setImage(GimpImage.findSize(it))
-                        } else exc?.printStackTrace()
-                        dst.ready = true
-                    }
-                    true
-                } else false
-            }
-            registerSignatureHandler(100) { _, signature, dst ->
-                if (signature == "qoi") {
-                    // we have a simple reader, so use it :)
-                    dst.setImageByStream(QOIReader::findSize)
-                } else false
-            }
-            registerSignatureHandler(100) { file, signature, dst ->
                 // only load ffmpeg for ffmpeg files
                 if (signature == "gif" || signature == "media" || signature == "dds") {
                     if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
                         dst.loadFFMPEG()
                     }
                     true
-                } else false
-            }
-            registerSignatureHandler(100) { _, signature, dst ->
-                if (signature == "ico") {
-                    dst.setImageByStream(ICOReader::findSize)
-                } else false
-            }
-            registerSignatureHandler(100) { file, signature, dst ->
-                if (signature == "" || signature == null) {
-                    when (file.lcExtension) {
-                        "tga" -> dst.setImageByStream(TGAReader::findSize)
-                        "ico" -> dst.setImageByStream(ICOReader::findSize)
-                        // else unknown
-                        else -> {
-                            LOGGER.debug(
-                                "{} has unknown extension and signature: '{}'",
-                                file.absolutePath,
-                                signature
-                            )
-                            false
-                        }
-                    }
                 } else false
             }
             registerSignatureHandler(100) { file, signature, dst ->

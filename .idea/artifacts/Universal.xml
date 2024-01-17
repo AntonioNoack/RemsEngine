@@ -92,6 +92,7 @@
       <element id="module-output" name="Lua" />
       <element id="module-output" name="Box2d" />
       <element id="module-output" name="Mesh" />
+      <element id="module-output" name="Image" />
     </root>
   </artifact>
 </component>

@@ -7,6 +7,9 @@ import me.anno.image.Image
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 
+/**
+ * image for a texture
+ * */
 class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boolean) :
     Image(texture.width, texture.height, numChannels, hasAlphaChannel) {
 

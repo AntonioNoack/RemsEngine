@@ -1,8 +1,8 @@
 package me.anno.tests.image
 
-import me.anno.image.BoxBlur.boxBlurX
-import me.anno.image.BoxBlur.boxBlurY
-import me.anno.image.BoxBlur.multiply
+import me.anno.image.utils.BoxBlur.boxBlurX
+import me.anno.image.utils.BoxBlur.boxBlurY
+import me.anno.image.utils.BoxBlur.multiply
 import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.utils.Color.g01

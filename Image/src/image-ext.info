@@ -1,0 +1,4 @@
+plugin-name: Image Loaders
+author: Antonio Noack
+description: Loads images from different formats, like .ico, .bmp, .qoi, .tar
+main-class: me.anno.image.ImagePlugin

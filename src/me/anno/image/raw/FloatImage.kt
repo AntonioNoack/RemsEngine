@@ -74,18 +74,6 @@ class FloatImage(
         }
     }
 
-    fun toFloatBufferImage(
-        data: FloatBuffer = ByteBufferPool
-            .allocateDirect(width * height * numChannels * 4)
-            .asFloatBuffer()
-    ): FloatBufferImage {
-        val ownData = this.data
-        for (i in 0 until Maths.min(ownData.size, data.limit())) {
-            data.put(i, ownData[i])
-        }
-        return FloatBufferImage(width, height, numChannels, data, map)
-    }
-
     fun normalized() = clone().normalize()
 
     fun clone(): FloatImage {

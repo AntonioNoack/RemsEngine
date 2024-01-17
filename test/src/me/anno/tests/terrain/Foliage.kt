@@ -139,7 +139,7 @@ class FoliageShader(
         val frustum = rv.pipeline.frustum
         val p0 = frustum.planes[0]
         val p1 = frustum.planes[1]
-        var projectedFOV = PI - (atan2(p0.x, p0.z) - atan2(p1.x, p1.z))
+        var projectedFOV = PI - (atan2(p0.dirX, p0.dirZ) - atan2(p1.dirX, p1.dirZ))
         if (projectedFOV > TAU) projectedFOV -= TAU
         projectedFOV = max(projectedFOV, 0.09)
 

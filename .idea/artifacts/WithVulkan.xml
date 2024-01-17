@@ -97,6 +97,7 @@
       <element id="module-output" name="KOML" />
       <element id="module-output" name="Bullet" />
       <element id="module-output" name="Mesh" />
+      <element id="module-output" name="Image" />
     </root>
   </artifact>
 </component>

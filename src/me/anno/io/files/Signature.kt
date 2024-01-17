@@ -1,7 +1,6 @@
 package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.image.gimp.GimpImage
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -236,7 +235,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("ico", 0, 0, 0, 2, 0, 1),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
-            Signature("gimp", 0, GimpImage.MAGIC), // gimp file
+            Signature("gimp", 0, "gimp xcf "), // gimp image file
             Signature("qoi", 0, "qoif"),
             Signature("exr", 0, 0x76, 0x2f, 0x31, 0x01), // HDR image format, can be exported from Blender
             Signature("webp", 8, "WEBP"), // after RIFF header

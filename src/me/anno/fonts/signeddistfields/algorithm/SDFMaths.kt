@@ -1,6 +1,5 @@
 package me.anno.fonts.signeddistfields.algorithm
 
-import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -28,10 +27,6 @@ object SDFMaths {
             polarity -> dst.set(-y / length, x / length)
             else -> dst.set(y / length, -x / length)
         }
-    }
-
-    fun union(aabb: AABBf, p1: Vector2f) {
-        aabb.union(p1.x, p1.y, 0f)
     }
 
     fun absDotNormalized(a: Vector2f, b: Vector2f) =

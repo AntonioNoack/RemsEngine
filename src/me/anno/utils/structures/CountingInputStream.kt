@@ -1,4 +1,4 @@
-package net.sf.image4j.io
+package me.anno.utils.structures
 
 import java.io.EOFException
 import java.io.FilterInputStream

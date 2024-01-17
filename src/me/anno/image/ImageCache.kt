@@ -3,15 +3,9 @@ package me.anno.image
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.image.exr.EXRReader
-import me.anno.image.gimp.GimpImage
 import me.anno.image.hdr.HDRReader
-import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
-import me.anno.utils.Sleep.waitUntil
-import me.anno.image.qoi.QOIReader
 import me.anno.utils.Sleep.waitForGFXThread
-import net.sf.image4j.codec.ico.ICOReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -49,11 +43,12 @@ object ImageCache : CacheSection("Image") {
 
     init {
         registerStreamReader("hdr") { HDRReader.read(it) }
-        registerStreamReader("tga") { TGAReader.read(it, false) }
-        registerStreamReader("ico") { ICOReader.read(it) }
-        registerStreamReader("gimp") { GimpImage.read(it) }
-        registerStreamReader("exr") { EXRReader.read(it) }
-        registerStreamReader("qoi") { QOIReader.read(it) }
+    }
+
+    fun unregister(signature: String) {
+        byteReaders.remove(signature)
+        fileReaders.remove(signature)
+        streamReaders.remove(signature)
     }
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...

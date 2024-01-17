@@ -29,8 +29,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.maths.Maths.hasFlag
-import me.anno.maths.Maths.length
-import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector3f

@@ -1,7 +1,5 @@
-package me.anno.io.css
+package me.anno.image.svg
 
-import me.anno.image.svg.CSSData
-import me.anno.image.svg.SVGMesh
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 

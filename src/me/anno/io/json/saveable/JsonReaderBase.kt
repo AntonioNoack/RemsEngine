@@ -202,11 +202,10 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    private fun <ArrayType, InstanceType> readArray(
+    private fun <ArrayType> readArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
-        readValue: () -> InstanceType,
-        putValue: (array: ArrayType, index: Int, value: InstanceType) -> Unit
+        putValue: (array: ArrayType, index: Int) -> Unit
     ): ArrayType {
         assertEquals(skipSpace(), '[')
         val rawLength = readLong()
@@ -219,12 +218,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         val values = createArray(length)
         content@ while (true) {
             when (val next = skipSpace()) {
-                ',' -> {
-                    val raw = readValue()
-                    if (i < length) {
-                        putValue(values, i++, raw)
-                    }// else skip
-                }
+                ',' -> putValue(values, i++)
                 ']' -> break@content
                 else -> error("unknown character $next in $typeName[] in $lineNumber:$lineIndex")
             }
@@ -238,8 +232,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         crossinline readValue: () -> Type,
     ): Array<Type> {
         return readArray(typeName,
-            { Array(it) { a0 } }, { readValue() },
-            { array, index, value -> array[index] = value }
+            { Array(it) { a0 } },
+            { array, index -> array[index] = readValue() }
         )
     }
 
@@ -250,8 +244,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         val sampleInstance = sampleArray[0]
         return readArray(typeName,
             { Array(it) { sampleArray } },
-            { readArray(typeName, sampleInstance, readValue) },
-            { array, index, value -> array[index] = value }
+            { array, index -> array[index] = readArray(typeName, sampleInstance, readValue) }
         )
     }
 
@@ -759,39 +752,29 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private fun readBoolArray() = readArray("boolean",
-        { BooleanArray(it) }, { readBool() },
-        { array, index, value -> array[index] = value })
+        { BooleanArray(it) }, { array, index -> array[index] = readBool() })
 
     private fun readCharArray() = readArray("char",
-        { CharArray(it) }, { readChar() },
-        { array, index, value -> array[index] = value })
+        { CharArray(it) }, { array, index -> array[index] = readChar() })
 
     private fun readByteArray() = readArray("byte",
-        { ByteArray(it) }, { readByte() },
-        { array, index, value -> array[index] = value })
+        { ByteArray(it) }, { array, index -> array[index] = readByte() })
 
     private fun readShortArray() = readArray("short",
-        { ShortArray(it) }, { readShort() },
-        { array, index, value -> array[index] = value })
+        { ShortArray(it) }, { array, index -> array[index] = readShort() })
 
     private fun readIntArray() = readArray("int",
-        { IntArray(it) }, { readInt() },
-        { array, index, value -> array[index] = value })
+        { IntArray(it) }, { array, index -> array[index] = readInt() })
 
     private fun readLongArray() = readArray("long",
-        { LongArray(it) }, { readLong() },
-        { array, index, value -> array[index] = value })
+        { LongArray(it) }, { array, index -> array[index] = readLong() })
 
-    private fun readFloatArray() = readArray(
-        "float",
-        { FloatArray(it) }, { readFloat() },
-        { array, index, value -> array[index] = value }
+    private fun readFloatArray() = readArray("float",
+        { FloatArray(it) }, { array, index -> array[index] = readFloat() }
     )
 
-    private fun readDoubleArray() = readArray(
-        "double",
-        { DoubleArray(it) }, { readDouble() },
-        { array, index, value -> array[index] = value }
+    private fun readDoubleArray() = readArray("double",
+        { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
     private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
@@ -931,27 +914,29 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             "R[]" -> obj.readFileArray(name, readArray("FileRef", InvalidRef) { readFile() })
             "R[][]" -> obj.readFileArray2D(name, readArray2D("FileRef", file0a) { readFile() })
             "*[]", "[]" -> {// array of mixed types
-                val elements = readArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
-                    when (val next = skipSpace()) {
-                        'n' -> readNull()
-                        '{' -> readObject()
-                        in '0'..'9' -> readPtr(next)
-                        else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                    }
-                }, { array, index, value -> array[index] = value })
+                val elements = readArray("Any", { arrayOfNulls<ISaveable?>(it) },
+                    { array, index ->
+                        array[index] = when (val next = skipSpace()) {
+                            'n' -> readNull()
+                            '{' -> readObject()
+                            in '0'..'9' -> readPtr(next)
+                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                        }
+                    })
                 obj.readObjectArray(name, elements)
             }
             else -> {
                 if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
-                    val elements = readArray(type, { arrayOfNulls<ISaveable?>(it) }, {
-                        when (val next = skipSpace()) {
-                            'n' -> readNull()
-                            '{' -> readObjectAndRegister(type)
-                            in '0'..'9' -> readPtr(next)
-                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                        }
-                    }, { array, index, value -> array[index] = value })
+                    val elements = readArray(type, { arrayOfNulls<ISaveable?>(it) },
+                        { array, index ->
+                            array[index] = when (val next = skipSpace()) {
+                                'n' -> readNull()
+                                '{' -> readObjectAndRegister(type)
+                                in '0'..'9' -> readPtr(next)
+                                else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                            }
+                        })
                     obj.readObjectArray(name, elements)
                 } else {
                     when (val next = skipSpace()) {

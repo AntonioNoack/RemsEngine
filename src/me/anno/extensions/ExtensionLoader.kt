@@ -22,9 +22,6 @@ import kotlin.reflect.KClass
 
 object ExtensionLoader {
 
-    // q: do linux soft links work in mods/plugins folder?
-    // a: they should, they will just appear as File.canonicalFile != File.absoluteFile
-
     @JvmStatic
     lateinit var pluginsFolder: FileReference
 

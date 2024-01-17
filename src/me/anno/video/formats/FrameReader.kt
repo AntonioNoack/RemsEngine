@@ -6,7 +6,6 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
@@ -88,5 +87,7 @@ abstract class FrameReader<FrameType>(
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameReader::class)
+
+        fun String.isFFMPEGOnlyExtension() = equals("webp", true)// || equals("jp2", true)
     }
 }

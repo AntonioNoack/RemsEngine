@@ -8,6 +8,7 @@ import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
+import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Graphics2D
@@ -19,7 +20,6 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class TextMesh(
@@ -259,13 +259,8 @@ class TextMesh(
         buffer.positions = positions
 
         for (it in outerFragments) {
-            minX = min(minX, it.minX)
-            minY = min(minY, it.minY)
-            maxX = max(maxX, it.maxX)
-            maxY = max(maxY, it.maxY)
+            bounds.union(it.bounds)
         }
-
-        if (minX.isNaN() || minY.isNaN() || maxX.isNaN() || maxY.isNaN()) throw RuntimeException()
 
         // center the text, ignore the characters themselves
 
@@ -277,22 +272,11 @@ class TextMesh(
             positions[i++] = 0f
         }
 
-        minX *= baseScale * 0.5f
-        maxX *= baseScale * 0.5f
+        bounds.minX *= baseScale * 0.5f
+        bounds.maxX *= baseScale * 0.5f
 
-        minX += 0.5f
-        maxX += 0.5f
-    }
-
-    fun List<Vector2f>.iterateTriangleLines(iterator: (Vector2f, Vector2f) -> Unit) {
-        for (i in indices step 3) {
-            val a = this[i]
-            val b = this[i + 1]
-            val c = this[i + 2]
-            iterator(a, b)
-            iterator(b, c)
-            iterator(c, a)
-        }
+        bounds.minX += 0.5f
+        bounds.maxX += 0.5f
     }
 
     private fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
@@ -325,30 +309,22 @@ class TextMesh(
 
     class Fragment(val ring: MutableList<Vector2f>) {
         var triangles = Triangulation.ringToTrianglesVec2f(ring)
-        val minX: Float
-        val minY: Float
-        val maxX: Float
-        val maxY: Float
+        val bounds = AABBf()
 
         init {
-            val x = ring.map { it.x }
-            val y = ring.map { it.y }
-            minX = x.minOrNull()!!
-            minY = y.minOrNull()!!
-            maxX = x.maxOrNull()!!
-            maxY = y.maxOrNull()!!
+            for (v in ring) {
+                bounds.union(v)
+            }
         }
 
         val size = triangleSize(triangles)
         var isInside = false
         val needingRemoval = ArrayList<Fragment>()
         fun boundsOverlap(s: Fragment): Boolean {
-            val overlapX = s.minX <= maxX || s.maxX >= minX
-            val overlapY = s.minY <= maxY || s.maxY >= minY
-            return overlapX && overlapY
+            return bounds.testAABB(s.bounds)
         }
 
-        fun boundsContain(v: Vector2f) = v.x in minX..maxX && v.y in minY..maxY
+        fun boundsContain(v: Vector2f) = bounds.testPoint(v.x, v.y, 0f)
     }
 
     companion object {

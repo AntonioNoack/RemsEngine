@@ -4,7 +4,6 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.maths.EquationSolver.solveQuadratic
@@ -88,19 +87,20 @@ class CubicSegment(
         var solutions = solveQuadratic(tmp, a2.x, a1.x, a0.x)
         for (i in 0 until solutions) {
             val tmpI = tmp[i]
-            if (tmpI > 0f && tmpI < 1f)
-                union(bounds, point(tmpI, tmpV2))
+            if (tmpI > 0f && tmpI < 1f) {
+                bounds.union(point(tmpI, tmpV2))
+            }
         }
 
         solutions = solveQuadratic(tmp, a2.y, a1.y, a0.y)
         for (i in 0 until solutions) {
             val tmpI = tmp[i]
-            if (tmpI > 0f && tmpI < 1f)
-                union(bounds, point(tmpI, tmpV2))
+            if (tmpI > 0f && tmpI < 1f) {
+                bounds.union(point(tmpI, tmpV2))
+            }
         }
 
         JomlPools.vec2f.sub(4)
-
     }
 
     override fun signedDistance(
@@ -140,7 +140,7 @@ class CubicSegment(
         // Iterative minimum distance search
         for (i in 0..CUBIC_SEARCH_STARTS) {
             var t = i.toFloat() / CUBIC_SEARCH_STARTS
-            setQe(qe, qa, ab, br, az, t)
+            interpolate(qe, qa, ab, br, az, t)
             for (step in 0 until CUBIC_SEARCH_STEPS) {
                 // Improve t
                 d1.set(az).mul(t * t)
@@ -150,7 +150,7 @@ class CubicSegment(
                 d2.set(az).mul(t).add(br).mul(6f) // az * (6f * t) + br * 6f
                 t -= qe.dot(d1) / (d1.lengthSquared() + qe.dot(d2))
                 if (t <= 0f || t >= 1f) break
-                setQe(qe, qa, ab, br, az, t)
+                interpolate(qe, qa, ab, br, az, t)
                 val distance2 = qe.length()
                 if (distance2 < abs(minDistance)) {
                     minDistance = nonZeroSign(direction(t, epDir).cross(qe)) * distance2
@@ -170,19 +170,17 @@ class CubicSegment(
         JomlPools.vec2f.sub(8)
 
         return dst
-
     }
 
-    private fun setQe(qe: Vector2f, qa: Vector2f, ab: Vector2f, br: Vector2f, az: Vector2f, t: Float) {
+    private fun interpolate(dst: Vector2f, qa: Vector2f, ab: Vector2f, br: Vector2f, az: Vector2f, t: Float) {
         // var qe = qa + (3 * t) * ab + (3 * t * t) * br + (t * t * t) * az
         // = qa + t*(3*ab + t * (3*br + t*az))
         val f0 = 3f * t
         val f1 = 3f * t * t
         val f2 = t * t * t
-        qe.set(qa)
+        dst.set(qa)
             .add(ab.x * f0, ab.y * f0)
             .add(br.x * f1, br.y * f1)
             .add(az.x * f2, az.y * f2)
     }
-
 }

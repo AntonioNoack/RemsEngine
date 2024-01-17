@@ -1,8 +1,8 @@
 package me.anno.io.xml.generic
 
+import me.anno.engine.EngineBase
 import me.anno.io.ISaveable
 import me.anno.io.xml.saveable.XMLStringWriter
-import me.anno.engine.EngineBase
 import me.anno.utils.types.Strings
 import java.io.ByteArrayInputStream
 
@@ -10,9 +10,15 @@ object XMLFormatter {
 
     fun format(v: Any?, indentation: String = "  ", lineBreakLength: Int = 50): String {
         return when (v) {
-            is String -> format(XMLReader().read(ByteArrayInputStream(v.encodeToByteArray())))
+            is String -> format(
+                XMLReader().read(ByteArrayInputStream(v.encodeToByteArray())),
+                indentation, lineBreakLength
+            )
             is XMLNode -> format(v, indentation, lineBreakLength)
-            is ISaveable -> format(XMLStringWriter.toText(v, EngineBase.workspace))
+            is ISaveable -> format(
+                XMLStringWriter.toText(v, EngineBase.workspace),
+                indentation, lineBreakLength
+            )
             else -> throw IllegalArgumentException()
         }
     }

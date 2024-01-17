@@ -8,11 +8,10 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
-import me.anno.io.css.CSSReader
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolder
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
@@ -24,12 +23,12 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Matrix4dArrayList
 import org.joml.Vector2f
 import org.joml.Vector4f
 import org.the3deers.util.EarCut.pointInTriangle
 import java.io.IOException
-import java.util.*
 import kotlin.math.*
 
 // todo create outline from svg? could be really nice to have :)
@@ -49,10 +48,11 @@ class SVGMesh {
     val styles = HashMap<String, Any>()
 
     // centered
-    var minX = 0f
-    var maxX = 0f
-    var minY = 0f
-    var maxY = 0f
+    val bounds = AABBf()
+
+    init {
+        bounds.union(0f, 0f, 0f)
+    }
 
     val transform = Matrix4dArrayList()
 
@@ -70,10 +70,10 @@ class SVGMesh {
         val h = viewBox[3]
         createMesh(viewBox[0], viewBox[1], w, h)
         createMesh2(viewBox[0], viewBox[1], w, h)
-        minX = -w / (2f * h)
-        maxX = +w / (2f * h)
-        minY = -0.5f
-        maxY = +0.5f
+        bounds.minX = -w / (2f * h)
+        bounds.maxX = +w / (2f * h)
+        bounds.minY = -0.5f
+        bounds.maxY = +0.5f
     }
 
     fun parseChildren(children: List<Any>, parentGroup: XMLNode?) {
@@ -630,7 +630,6 @@ class SVGMesh {
         }
 
         lineTo(x2, y2)
-
     }
 
     fun angle(ux: Float, uy: Float, vx: Float, vy: Float): Float {
@@ -780,7 +779,6 @@ class SVGMesh {
             for (i in 1 until curveSteps) {
                 addCirclePoint(x + rx, y + ry, rx, ry, i, 2, curveSteps)
             }
-
         } else {
             moveTo(x, y)
             lineTo(x + w, y)
@@ -841,7 +839,6 @@ class SVGMesh {
         reflectedY = 2 * y - y2
 
         lineTo(x, y)
-
     }
 
     fun quadraticTo(x1: Float, y1: Float, x: Float, y: Float) {
@@ -863,7 +860,6 @@ class SVGMesh {
         reflectedY = 2 * y - y1
 
         lineTo(x, y)
-
     }
 
     fun lineTo(x: Float, y: Float) {
@@ -872,7 +868,6 @@ class SVGMesh {
 
         this.x = x
         this.y = y
-
     }
 
     fun moveTo(x: Float, y: Float) {
@@ -883,7 +878,6 @@ class SVGMesh {
 
         this.x = x
         this.y = y
-
     }
 
     fun end(closed: Boolean) {
@@ -906,7 +900,6 @@ class SVGMesh {
             )
             currentCurve = ArrayList()
         }
-
     }
 
     fun close() = end(true)
@@ -949,7 +942,5 @@ class SVGMesh {
                 } else callback(null, exc)
             }
         }
-
     }
-
 }

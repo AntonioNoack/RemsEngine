@@ -1,11 +1,11 @@
 package me.anno.image.raw
 
-import me.anno.utils.Color.black
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.utils.Color.black
 import kotlin.math.min
 
 /**
@@ -39,12 +39,8 @@ open class OpaqueImage(val src: Image) :
         } else {
             when (src) {
                 is IntImage -> {
-                    val data = src.cloneData()
-                    val data2 = if (checkRedundancy) texture.checkRedundancy(data) else data
-                    if (sync && GFX.isGFXThread()) texture.createBGR(data2, false)
-                    else GFX.addGPUTask("OpaqueImage", width, height) {
-                        texture.createBGR(data2, false)
-                    }
+                    IntImage(width, height, src.data, false)
+                        .createTexture(texture, sync, checkRedundancy, callback)
                 }
                 is GPUImage -> {
                     TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UInt8x4, callback)

@@ -41,7 +41,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
@@ -49,8 +48,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.*
-import me.anno.gpu.texture.ImageToTexture.Companion.imageTimeout
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
@@ -61,30 +58,25 @@ import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
-import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.raw.toImage
-import me.anno.image.svg.SVGMeshCache
-import me.anno.image.tar.TGAReader
 import me.anno.io.ISaveable
-import me.anno.io.base.InvalidClassException
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
+import me.anno.io.files.thumbs.ThumbsExt.unityExtensions
 import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
-import me.anno.utils.Color.white4
 import me.anno.utils.OS
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
@@ -103,13 +95,12 @@ import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
-import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
+import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -354,7 +345,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun transformNSaveNUpload(
+    fun transformNSaveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
         src: Image,
@@ -384,7 +375,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun renderToImage(
+    fun renderToImage(
         src: FileReference,
         checkRotation: Boolean,
         dstFile: HDBKey,
@@ -512,27 +503,6 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generateSVGFrame(
-        srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-
-        val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!
-
-        val maxSize = max(buffer.maxX, buffer.maxY)
-        val w = (size * buffer.maxX / maxSize).roundToInt()
-        val h = (size * buffer.maxY / maxSize).roundToInt()
-
-        if (w < 2 || h < 2) return
-
-        val transform = Matrix4fArrayList()
-        transform.scale(buffer.maxY / buffer.maxX, 1f, 1f)
-        renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
-            SVGxGFX.draw3DSVG(transform, buffer, whiteTexture, white4, Filtering.NEAREST, whiteTexture.clamping, null)
-        }
-    }
-
-    @JvmStatic
     private fun generatePrefabReadableFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
@@ -548,7 +518,7 @@ object Thumbs {
     // todo exclude lights from AABB calculations for thumbnails?
     //  (except when only having lights, then add a floor)
     @JvmStatic
-    private fun generateEntityFrame(
+    fun generateEntityFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -720,7 +690,7 @@ object Thumbs {
     private val matModelMatrix = createModelMatrix().scale(0.62f)
 
     @JvmStatic
-    private fun generateMaterialFrame(
+    fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         material: Material,
@@ -767,7 +737,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generateMaterialFrame(
+    fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         materials: List<FileReference>,
@@ -834,7 +804,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generateSkeletonFrame(
+    fun generateSkeletonFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         skeleton: Skeleton,
@@ -970,7 +940,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generateSomething(
+    fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
         dstFile: HDBKey,
@@ -1026,8 +996,7 @@ object Thumbs {
     }
 
     private fun shallReturnIfExists(
-        srcFile: FileReference,
-        dstFile: HDBKey,
+        srcFile: FileReference, dstFile: HDBKey,
         callback: (ITexture2D?, Exception?) -> Unit,
         callback1: (Boolean) -> Unit
     ) {
@@ -1037,7 +1006,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun findScale(
+    fun findScale(
         src: Image,
         srcFile: FileReference,
         size0: Int,
@@ -1100,13 +1069,13 @@ object Thumbs {
                     if (!foundSolution) {
                         val foundExists = shallReturnIfExists(srcFile, byteSlice, callback)
                         if (!foundExists) {
-                            generate(srcFile, size, key, callback)
+                            generate(srcFile, key, size, callback)
                         }
                     }
                 }
             }
         } else {
-            generate(srcFile, size, InvalidKey, callback)
+            generate(srcFile, InvalidKey, size, callback)
         }
     }
 
@@ -1187,31 +1156,9 @@ object Thumbs {
                 } else callback(null, exc)
             }
         }
-        registerSignature("jpg") { srcFile, dstFile, size, callback ->
-            JPGThumbnails.extractThumbnail(srcFile) { bytes ->
-                if (bytes != null) {
-                    try {
-                        val image = ImageIO.read(ByteArrayInputStream(bytes))
-                        transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
-                    } catch (e: Exception) {
-                        generateImage(srcFile, dstFile, size, callback)
-                    }
-                } else generateImage(srcFile, dstFile, size, callback)
-            }
-        }
-        registerSignature("ico") { srcFile, dstFile, size, callback ->
-            // for ico we could find the best image from looking at the headers
-            srcFile.inputStream { it, exc ->
-                if (it != null) {
-                    val image = ICOReader.read(it, size)
-                    transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-                } else exc?.printStackTrace()
-            }
-        }
         registerSignature("png", ::generateImage)
         registerSignature("bmp", ::generateImage)
         registerSignature("psd", ::generateImage)
-        registerSignature("qoi", ::generateImage)
         registerSignature("ttf", ::generateFontPreview)
         registerSignature("woff1", ::generateFontPreview)
         registerSignature("woff2", ::generateFontPreview)
@@ -1221,21 +1168,50 @@ object Thumbs {
         registerSignature("media") { srcFile, dstFile, size, callback ->
             generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
         }
-        registerSignature("blend", ::generateSomething)
-        registerSignature("mitsuba-scene", ::generateSomething)
-        registerSignature("mitsuba-meshes", ::generateSomething)
         registerSignature("exe", ::generateSystemIcon)
-        registerExtension("obj", ::generateSomething)
-        registerExtension("fbx", ::generateSomething)
-        registerExtension("gltf", ::generateSomething)
-        registerExtension("glb", ::generateSomething)
-        registerExtension("dae", ::generateSomething)
-        registerExtension("md2", ::generateSomething)
-        registerExtension("md5mesh", ::generateSomething)
-        registerExtension("svg", ::generateSVGFrame)
         registerExtension("txt", ::generateTextImage)
         registerExtension("html", ::generateTextImage)
         registerExtension("md", ::generateTextImage)
+        registerExtension("lnk") { srcFile, dstFile, size, callback ->
+            WindowsShortcut.get(srcFile) { link, exc ->
+                if (link != null) {
+                    val iconFile = link.iconPath ?: link.absolutePath
+                    generate(getReference(iconFile), dstFile, size, callback)
+                } else callback(null, exc)
+            }
+        }
+        registerExtension("url") { srcFile, dstFile, size, callback ->
+            // try to read the url, and redirect to the icon
+            findIconLineInTxtLink(srcFile, dstFile, size, "IconFile=", callback)
+        }
+        registerExtension("desktop") { srcFile, dstFile, size, callback ->
+            // sample data by https://help.ubuntu.com/community/UnityLaunchersAndDesktopFiles:
+            //[Desktop Entry]
+            //Version=1.0
+            //Name=BackMeUp
+            //Comment=Back up your data with one click
+            //Exec=/home/alex/Documents/backup.sh
+            //Icon=/home/alex/Pictures/backup.png
+            //Terminal=false
+            //Type=Application
+            //Categories=Utility;Application;
+            findIconLineInTxtLink(srcFile, dstFile, size, "Icon=", callback)
+        }
+        // try as an asset
+        for (ext in unityExtensions) {
+            registerExtension(ext, ::generateSomething)
+        }
+        registerExtension("json", ::generateSomething)
+
+        val ignored = listOf(
+            "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar",
+            "sims", "lua-bytecode"
+        )
+        for (signature in ignored) {
+            registerExtension(signature) { _, _, _, callback ->
+                callback(null, IOException("Cannot generate thumbnail"))
+            }
+        }
     }
 
     private fun generateVideoFrame0(
@@ -1249,9 +1225,7 @@ object Thumbs {
 
     @JvmStatic
     private fun generate(
-        srcFile: FileReference,
-        size: Int,
-        dstFile: HDBKey,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
 
@@ -1273,10 +1247,14 @@ object Thumbs {
         // upload the result to the gpu
         // save the file
 
-        if (OS.isWindows) when (srcFile.absolutePath) {
-            "C:/pagefile.sys", "C:/hiberfil.sys",
-            "C:/DumpStack.log", "C:/DumpStack.log.tmp",
-            "C:/swapfile.sys" -> return
+        if (OS.isWindows) {
+            when (srcFile.absolutePath) {
+                "C:/pagefile.sys", "C:/hiberfil.sys",
+                "C:/DumpStack.log", "C:/DumpStack.log.tmp",
+                "C:/swapfile.sys" -> {
+                    callback(null, IOException("Cannot generate thumbnail"))
+                }
+            }
         }
 
         when (srcFile) {
@@ -1296,107 +1274,25 @@ object Thumbs {
             val reader = readerBySignature[signature]
             if (reader != null) {
                 reader(srcFile, dstFile, size, callback)
-            } else when (signature) {
-                // list all signatures, which can be assigned strictly by their signature
-                // for ico we could find the best image from looking at the headers
-                "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
+            } else try {
+                val base = readerByExtension[srcFile.lcExtension]
+                if (base != null) base(srcFile, dstFile, size, callback)
+                else {
+                    // todo thumbnails for Rem's Studio transforms
+                    // png, jpg, jpeg, ico, webp, mp4, ...
+                    generateImage(srcFile, dstFile, size, callback)
                 }
-                "sims" -> {
-                }
-                "lua-bytecode" -> {
-                }
-                else -> try {
-                    val base = readerByExtension[srcFile.lcExtension]
-                    if (base != null) base(srcFile, dstFile, size, callback)
-                    else when (srcFile.lcExtension) {
-                        // todo thumbnails for Rem's Studio transforms
-                        in ThumbsExt.unityExtensions, "json" -> {
-                            try {
-                                // try to read the file as an asset
-                                generateSomething(srcFile, dstFile, size, callback)
-                            } catch (_: ShutdownException) {
-                            } catch (e: InvalidClassException) {
-                                LOGGER.info("${e.message}; by $srcFile")
-                            } catch (e: Throwable) {
-                                LOGGER.info("${e.message}; by $srcFile")
-                                e.printStackTrace()
-                            }
-                        }
-                        "tga" -> {
-                            srcFile.inputStream { it, exc ->
-                                if (it != null) {
-                                    val src = it.use { input: InputStream -> TGAReader.read(input, false) }
-                                    findScale(src, srcFile, size, callback) { dst ->
-                                        saveNUpload(srcFile, false, dstFile, dst, callback)
-                                    }
-                                }
-                                exc?.printStackTrace()
-                            }
-                        }
-                        "mtl" -> {
-                            // read as folder
-                            val children = InnerFolderCache.readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
-                            if (children.isNotEmpty()) {
-                                val maxSize = 25 // with more, too many details are lost
-                                generateMaterialFrame(
-                                    srcFile, dstFile,
-                                    if (children.size < maxSize) children else
-                                        children.subList(0, maxSize), size, callback
-                                )
-                            } else {
-                                // just an empty material to symbolize, that the file is empty
-                                // we maybe could do better with some kind of texture...
-                                generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
-                            }
-                        }
-                        "lnk" -> {
-                            WindowsShortcut.get(srcFile) { link, exc ->
-                                if (link != null) {
-                                    val iconFile = link.iconPath ?: link.absolutePath
-                                    generate(getReference(iconFile), size, callback)
-                                } else callback(null, exc)
-                            }
-                        }
-                        "url" -> {
-                            // try to read the url, and redirect to the icon
-                            findIconLineInTxtLink(srcFile, size, "IconFile=", callback)
-                        }
-                        "desktop" -> {
-                            // sample data by https://help.ubuntu.com/community/UnityLaunchersAndDesktopFiles:
-                            //[Desktop Entry]
-                            //Version=1.0
-                            //Name=BackMeUp
-                            //Comment=Back up your data with one click
-                            //Exec=/home/alex/Documents/backup.sh
-                            //Icon=/home/alex/Pictures/backup.png
-                            //Terminal=false
-                            //Type=Application
-                            //Categories=Utility;Application;
-                            findIconLineInTxtLink(srcFile, size, "Icon=", callback)
-                        }
-                        "ico" -> srcFile.inputStream { it, exc ->
-                            if (it != null) {
-                                val image = ICOReader.read(it, size)
-                                transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-                            } else exc?.printStackTrace()
-                        }
-                        // png, jpg, jpeg, ico, webp, mp4, ...
-                        else -> generateImage(srcFile, dstFile, size, callback)
-                    }
-                } catch (e: ShutdownException) {
-                    // don't care
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    LOGGER.warn("Could not load image from $srcFile: ${e.message}")
-                }
+            } catch (e: ShutdownException) {
+                // don't care
+            } catch (e: Exception) {
+                e.printStackTrace()
+                LOGGER.warn("Could not load image from $srcFile: ${e.message}")
             }
         }
     }
 
     private fun findIconLineInTxtLink(
-        srcFile: FileReference,
-        size: Int,
-        prefix: String,
+        srcFile: FileReference, dstFile: HDBKey, size: Int, prefix: String,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val lineLengthLimit = 1024
@@ -1408,14 +1304,14 @@ object Thumbs {
                         .substring(prefix.length)
                         .trim() // against \r
                         .replace('\\', '/')
-                    generate(getReference(iconFile), size, callback)
+                    generate(getReference(iconFile), dstFile, size, callback)
                 }
                 lines.close()
             } else exc?.printStackTrace()
         }
     }
 
-    private fun generateSomething(
+    fun generateSomething(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -1519,7 +1415,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generateImage(
+    fun generateImage(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -1554,9 +1450,7 @@ object Thumbs {
 
     @JvmStatic
     private fun generateSystemIcon(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         srcFile.toFile({
