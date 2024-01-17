@@ -72,9 +72,7 @@ class GimpImage {
         fun readImage(input: InputStream): GimpImage {
             val bytes = input.readBytes()
             input.close()
-            val data = ByteBuffer.wrap(bytes)
-                .order(ByteOrder.BIG_ENDIAN)
-            return readImage(data)
+            return readImage(ByteBuffer.wrap(bytes))
         }
 
         fun read(file: FileReference, callback: (Image?, Exception?) -> Unit) {
@@ -136,6 +134,7 @@ class GimpImage {
         }
 
         private fun readImage(data: ByteBuffer): GimpImage {
+            data.order(ByteOrder.BIG_ENDIAN)
             for (char in MAGIC) {
                 if (data.get() != char.code.toByte())
                     throw IOException("Magic doesn't match")
@@ -158,14 +157,14 @@ class GimpImage {
         }
 
         fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
-            file.inputStream { it, exc ->
+            file.readByteBuffer(false) { it, exc ->
                 if (it != null) {
                     readAsFolder(file, it, callback)
                 } else callback(null, exc)
             }
         }
 
-        fun readAsFolder(file: FileReference, input: InputStream, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, input: ByteBuffer, callback: (InnerFolder?, Exception?) -> Unit) {
             val info = readImage(input)
             ImageReader.readAsFolder(file) { folder, exc ->
                 if (folder != null) {

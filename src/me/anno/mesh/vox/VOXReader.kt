@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3i
 import java.io.IOException
-import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -27,13 +26,10 @@ class VOXReader {
         return "#${idCtr++}"
     }
 
-    fun read(input: InputStream): VOXReader {
+    fun read(bytes: ByteBuffer): VOXReader {
 
         //val t0 = Time.nanoTime
-        val bytes = ByteBuffer
-            .wrap(input.readBytes())
-            .order(ByteOrder.LITTLE_ENDIAN)
-
+        bytes.order(ByteOrder.LITTLE_ENDIAN)
         bytes.position(0)
 
         if (bytes.capacity() < 8) throw IOException("VOXFile is too small")
@@ -361,7 +357,7 @@ class VOXReader {
     companion object {
 
         fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
-            file.inputStream { it, exc ->
+            file.readByteBuffer(false) { it, exc ->
                 if (it != null) {
                     val reader = VOXReader().read(it)
                     callback(readAsFolder(reader, file).first, null)

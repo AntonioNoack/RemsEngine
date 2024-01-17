@@ -164,8 +164,8 @@ open class Saveable : ISaveable {
     override val approxSize get() = 100
     override val className: String
         get() {
-            val clazz = javaClass
-            return clazz.simpleName ?: clazz.name
+            val clazz = this::class
+            return clazz.simpleName ?: clazz.toString()
         }
 
     override fun toString(): String = JsonStringWriter.toText(this, EngineBase.workspace)// + "@${super.toString()}"

@@ -24,8 +24,7 @@ object Strings {
 
     @JvmStatic
     fun Int.joinChars0(): CharArray {
-        val char = this
-        return Character.toChars(char)
+        return Character.toChars(this)
     }
 
     @JvmStatic

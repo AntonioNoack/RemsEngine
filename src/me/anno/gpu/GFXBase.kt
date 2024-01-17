@@ -29,6 +29,7 @@ import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -565,7 +566,7 @@ object GFXBase {
         val image = GLFWImage.malloc()
         val w = srcImage.width
         val h = srcImage.height
-        val pixels = BufferUtils.createByteBuffer(w * h * 4)
+        val pixels = ByteBufferPool.allocateDirect(w * h * 4)
         for (y in 0 until h) {
             for (x in 0 until w) {
                 // argb -> rgba
@@ -578,6 +579,7 @@ object GFXBase {
         }
         pixels.flip()
         image.set(w, h, pixels)
+        ByteBufferPool.free(pixels)
         return image
     }
 

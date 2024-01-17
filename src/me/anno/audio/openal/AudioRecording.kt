@@ -1,5 +1,6 @@
 package me.anno.audio.openal
 
+import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
 import org.lwjgl.openal.ALC10
@@ -12,7 +13,7 @@ class AudioRecording {
     val sampleRate = 44100
     val sampleSize = 1024
 
-    val buffer = BufferUtils.createByteBuffer(sampleRate / 2)
+    val buffer = ByteBufferPool.allocateDirect(sampleRate / 2)
 
     init {
 

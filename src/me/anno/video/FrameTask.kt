@@ -15,6 +15,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
+import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL46C.*
@@ -74,7 +75,7 @@ abstract class FrameTask(
     fun writeFrame(frame: Framebuffer) {
 
         val pixelByteCount = 3 * width * height
-        val pixels = BufferUtils.createByteBuffer(pixelByteCount)
+        val pixels = ByteBufferPool.allocateDirect(pixelByteCount)
 
         GFX.check()
 
@@ -99,6 +100,7 @@ abstract class FrameTask(
             image.write(dst)
             // c1.stop("saved to file"), 0.07s on NVME SSD
             LOGGER.info("Wrote frame to $dst")
+            ByteBufferPool.free(pixels)
         }
     }
 

@@ -167,15 +167,15 @@ class LineSequence : IntSequence {
     }
 
     fun remove(index: Int): Int {
-        synchronized(this) {
+        return synchronized(this) {
             val lineIndex = getLineIndexAt(index)
             val indexInLine = index - indexTable[lineIndex]
-            return remove(lineIndex, indexInLine)
+            remove(lineIndex, indexInLine)
         }
     }
 
     fun remove(lineIndex: Int, indexInLine: Int): Int {
-        synchronized(this) {
+        return synchronized(this) {
             val oldBuilder = lines[lineIndex]
             if (indexInLine >= oldBuilder.size) {
                 // merge lines
@@ -184,7 +184,7 @@ class LineSequence : IntSequence {
                 lines.removeAt(lineIndex + 1)
                 maxLineLength = max(maxLineLength, oldBuilder.size)
                 rebuildIndexTable()
-                return '\n'.code
+                '\n'.code
             } else {
                 val oldValue = oldBuilder[indexInLine]
                 // just remove a Int
@@ -196,7 +196,7 @@ class LineSequence : IntSequence {
                     maxLineLength = lines.maxOf { it.size }
                 }
                 // rebuildIndexTable()
-                return oldValue
+                oldValue
             }
         }
     }
@@ -245,5 +245,4 @@ class LineSequence : IntSequence {
     fun clear() {
         setText(null)
     }
-
 }

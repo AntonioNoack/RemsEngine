@@ -47,7 +47,7 @@ object LinearRegression {
             println("A*A:")
             printMatrix(xtx, degree, degree)
             val xty = setAtX(X, y, degree, numPts)
-            val xtxInv = inverse(xtx.clone(), degree) ?: return null
+            val xtxInv = inverse(xtx.copyOf(), degree) ?: return null
             println("inv(A*A):")
             printMatrix(xtxInv, degree, degree)
             println("(A*A)*inv(A*A):")
