@@ -18,6 +18,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.GFX
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -184,6 +185,7 @@ open class Material : PrefabSaveable(), Renderable {
     open fun bind(shader: GPUShader) {
 
         // all the data, the shader needs to know from the material
+        GFX.check()
 
         val white = TextureLib.whiteTexture
         val n001 = TextureLib.normalTexture
@@ -197,6 +199,8 @@ open class Material : PrefabSaveable(), Renderable {
         val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, white, f, c)
         val normalTex = bindTexture(shader, "normalMap", normalMap, n001, f, c)
         bindTexture(shader, "diffuseMap", diffuseMap, white, f, c)
+
+        GFX.check()
 
         shader.v4f("diffuseBase", diffuseBase)
         shader.v2f(
@@ -213,6 +217,8 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("sheen", sheen)
         shader.v1f("IOR", indexOfRefraction)
 
+        GFX.check()
+
         if (clearCoatStrength > 0f) {
             shader.v4f("clearCoat", clearCoatColor, clearCoatStrength)
             shader.v2f("clearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
@@ -225,6 +231,8 @@ open class Material : PrefabSaveable(), Renderable {
                 valueType.bind(shader, uniformName)
             }
         }
+
+        GFX.check()
     }
 
     override fun fill(

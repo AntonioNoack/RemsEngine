@@ -45,10 +45,12 @@ object ImageCache : CacheSection("Image") {
         registerStreamReader("hdr") { HDRReader.read(it) }
     }
 
-    fun unregister(signature: String) {
-        byteReaders.remove(signature)
-        fileReaders.remove(signature)
-        streamReaders.remove(signature)
+    fun unregister(vararg signatures: String) {
+        for(signature in signatures) {
+            byteReaders.remove(signature)
+            fileReaders.remove(signature)
+            streamReaders.remove(signature)
+        }
     }
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...

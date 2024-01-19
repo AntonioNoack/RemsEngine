@@ -12,7 +12,7 @@ import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager

@@ -8,9 +8,9 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.OS
-import me.anno.video.BlankFrameDetector
+import me.anno.video.formats.gpu.BlankFrameDetector
 import me.anno.video.VideoCreator
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import kotlin.concurrent.thread
 
 fun main() {

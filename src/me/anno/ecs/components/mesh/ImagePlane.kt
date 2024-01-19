@@ -10,7 +10,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import kotlin.math.max
 
 // todo video plane? :D

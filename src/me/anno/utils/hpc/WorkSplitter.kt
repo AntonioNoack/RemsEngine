@@ -139,8 +139,8 @@ abstract class WorkSplitter(val numThreads: Int) {
         }
     }
 
-    inline fun <V> processStage(entries: List<V>, doIO: Boolean, crossinline stage: (V) -> Unit) {
-        if (doIO) {// for IO, just process everything in parallel
+    inline fun <V> processStage(entries: List<V>, allInParallel: Boolean, crossinline stage: (V) -> Unit) {
+        if (allInParallel) {// for IO, just process everything in parallel
             val threads = entries.map {
                 thread(name = "Stage[$it]") {
                     try {
@@ -170,7 +170,7 @@ abstract class WorkSplitter(val numThreads: Int) {
     inline fun <V> processStage(
         entries: List<V>,
         getPriority: (V) -> Double,
-        doIO: Boolean,
+        allInParallel: Boolean,
         crossinline stage: (V) -> Unit
     ) {
         // may be expensive, if there is tons of extensions...
@@ -179,7 +179,7 @@ abstract class WorkSplitter(val numThreads: Int) {
             .groupBy { getPriority(it) }
             .entries.sortedByDescending { it.key }
         for ((_, values) in sortedByPriority) {
-            processStage(values, doIO, stage)
+            processStage(values, allInParallel, stage)
         }
     }
 

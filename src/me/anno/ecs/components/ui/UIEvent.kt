@@ -5,7 +5,7 @@ import me.anno.extensions.events.Event
 import me.anno.input.Key
 import me.anno.ui.Window
 
-// todo make our UI library use these(?)
+// make our UI library use these? -> no, hierarchical handling is best for now
 class UIEvent(
     var window: Window?,
     var x: Float,

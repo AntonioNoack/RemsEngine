@@ -2,7 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.Engine
 import me.anno.utils.OS.videos
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 
 fun main() {

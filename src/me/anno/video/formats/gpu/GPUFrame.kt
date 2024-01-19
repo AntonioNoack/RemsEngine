@@ -24,7 +24,6 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.LazyMap
-import me.anno.video.BlankFrameDetector
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore

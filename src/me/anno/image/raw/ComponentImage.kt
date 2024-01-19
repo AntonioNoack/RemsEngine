@@ -13,8 +13,6 @@ import me.anno.utils.Color.black
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
 
 /**
  * maps a component like R/G/B/A onto RGB1 (opaque, grayscale)
@@ -26,44 +24,11 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         private val LOGGER = LogManager.getLogger(ComponentImage::class)
     }
 
-    val shift = when (channel) {
+    private val shift = when (channel) {
         'r' -> 16
         'g' -> 8
         'b' -> 0
         else -> 24
-    }
-
-    override fun createBufferedImage(): BufferedImage {
-        val image = BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
-        val buffer = image.data.dataBuffer as DataBufferByte
-        val data1 = buffer.data
-        val shift = shift
-        when (src) {
-            is IntImage -> {
-                val data = src.data
-                if (inverse) {
-                    for (i in 0 until width * height) {
-                        data1[i] = (255 - data[i].shr(shift)).toByte()
-                    }
-                } else {
-                    for (i in 0 until width * height) {
-                        data1[i] = data[i].shr(shift).toByte()
-                    }
-                }
-            }
-            else -> {
-                if (inverse) {
-                    for (i in 0 until width * height) {
-                        data1[i] = (255 - src.getRGB(i).shr(shift)).toByte()
-                    }
-                } else {
-                    for (i in 0 until width * height) {
-                        data1[i] = src.getRGB(i).shr(shift).toByte()
-                    }
-                }
-            }
-        }
-        return image
     }
 
     override fun createTexture(
@@ -128,7 +93,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         }
     }
 
-    fun getValue(index: Int): Int {
+    private fun getValue(index: Int): Int {
         val base = src.getRGB(index).ushr(shift).and(255)
         return if (inverse) 255 - base else base
     }

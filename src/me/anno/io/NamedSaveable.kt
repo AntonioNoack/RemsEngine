@@ -2,6 +2,9 @@ package me.anno.io
 
 import me.anno.io.base.BaseWriter
 
+/**
+ * something that should be saveable, but also nameable by editors or users
+ * */
 open class NamedSaveable : Saveable() {
 
     open var name = ""

@@ -1,7 +1,5 @@
 package me.anno.io
 
-import java.io.InputStream
+import java.io.ByteArrayInputStream
 
-object EmptyInputStream : InputStream() {
-    override fun read(): Int = -1
-}
+val EmptyInputStream = ByteArrayInputStream(ByteArray(0))

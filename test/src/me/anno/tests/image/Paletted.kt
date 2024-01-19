@@ -13,8 +13,7 @@ import me.anno.utils.Color.hex4
 import me.anno.utils.Color.r01
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
-import me.anno.video.formats.cpu.ARGBFrame.rgb2yuv
-import me.anno.video.formats.cpu.ARGBFrame.yuv2rgb
+import me.anno.video.formats.cpu.YUVFrames
 import org.joml.AABBf
 import org.joml.Vector3f
 import java.util.*
@@ -38,7 +37,7 @@ fun main() {
     if (useYUV) {
         val data = image.data
         for (i in data.indices) {
-            data[i] = rgb2yuv(data[i])
+            data[i] = YUVFrames.rgb2yuv(data[i])
         }
     }
 
@@ -147,7 +146,7 @@ fun main() {
 
     if (useYUV) {
         for (i in palette.indices) {
-            palette[i] = yuv2rgb(palette[i])
+            palette[i] = YUVFrames.yuv2rgb(palette[i])
         }
     }
 
@@ -162,8 +161,8 @@ fun testYUV2RGB() {
     val bdx = AABBf()
     for (i in 0 until 1_000_000) {
         val rgbIn = rnd.nextInt() and 0xffffff
-        val yuv = rgb2yuv(rgbIn)
-        val rgbOut = yuv2rgb(yuv)
+        val yuv = YUVFrames.rgb2yuv(rgbIn)
+        val rgbOut = YUVFrames.yuv2rgb(yuv)
         val dist = Vector3f.length(
             rgbIn.r01() - rgbOut.r01(),
             rgbIn.g01() - rgbOut.g01(),

@@ -16,8 +16,7 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.arrays.ExpandingDoubleArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.formatPercent
-import me.anno.video.formats.cpu.ARGBFrame.rgb2yuv
-import me.anno.video.formats.cpu.ARGBFrame.yuv2rgb
+import me.anno.video.formats.cpu.YUVFrames
 import kotlin.math.*
 
 val matrix = Array(4) { ExpandingDoubleArray(100) }
@@ -226,7 +225,7 @@ fun main() {
 
     val imageData = image.data
     if (transformIntoYuv) for (i in imageData.indices) {
-        imageData[i] = rgb2yuv(imageData[i])
+        imageData[i] = YUVFrames.rgb2yuv(imageData[i])
     }
 
     val w = image.width
@@ -494,7 +493,7 @@ fun main() {
                 val ci = clusterIds[ii]
                 if (ci == 0) continue
                 val cluster = clusters[ci]
-                predicted.setRGB(x, y, yuv2rgb(cluster.predict(x - cluster.cx, y - cluster.cy)))
+                predicted.setRGB(x, y, YUVFrames.yuv2rgb(cluster.predict(x - cluster.cx, y - cluster.cy)))
             }
         }
     } else {

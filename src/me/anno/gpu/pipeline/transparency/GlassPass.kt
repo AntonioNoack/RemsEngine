@@ -33,6 +33,8 @@ import me.anno.utils.types.Booleans.toInt
 /**
  * order-independent transparency for deferred rendering;
  * issue: glass panes are not tinted by panes before them
+ *
+ * todo this needs to be rendered separately: we must calculate SSAO and such before this
  * */
 class GlassPass : TransparentPass() {
 
@@ -100,12 +102,13 @@ class GlassPass : TransparentPass() {
                         (if (multisampled) "" +
                                 "ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" else "") +
                         "   vec4 diffuseData = getTex(diffuseGlassTex);\n" +
-                        "   float tr = 1.0-1.0/(1.0+diffuseData.a);\n" +
+                        "   vec4 emissiveData = getTex(emissiveGlassTex);\n" +
+                        "   float tr = clamp(diffuseData.a,0.0,1.0);\n" +
                         "   vec3 tint = exp(-diffuseData.rgb);\n" +
                         "   diffuse = getTex(diffuseSrcTex);\n" +
                         "   emissive = getTex(emissiveSrcTex);\n" +
-                        "   diffuse.rgb = diffuse.rgb * tint;\n" + // todo why are colors desaturated in non-blended areas, when we blend based on "tr"?
-                        "   emissive.rgb = emissive.rgb * tint + getTex(emissiveGlassTex).rgb;\n" +
+                        "   diffuse.rgb = diffuse.rgb * tint * (1.0-tr);\n" +
+                        "   emissive.rgb = emissive.rgb * tint * (1.0-tr) + emissiveData.rgb / (diffuseData.a + 0.01);\n" +
                         "}\n"
             )
         }
@@ -114,7 +117,7 @@ class GlassPass : TransparentPass() {
     override fun blendTransparentStages(pipeline: Pipeline) {
 
         val b0 = GFXState.currentBuffer
-        val tmp = getFB(arrayOf(TargetType.Float16x3, TargetType.Float16x3))
+        val tmp = getFB(arrayOf(TargetType.Float16x4, TargetType.Float16x3))
         useFrame(b0.width, b0.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
             GFXState.depthMode.use(DepthMode.CLOSE) {

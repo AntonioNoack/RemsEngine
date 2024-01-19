@@ -31,5 +31,6 @@
     <orderEntry type="module" module-name="Mesh" />
     <orderEntry type="module" module-name="Unpack" />
     <orderEntry type="module" module-name="Image" />
+    <orderEntry type="module" module-name="Video" />
   </component>
 </module>

@@ -36,8 +36,8 @@ class PDFPlugin : Plugin() {
 
     override fun onDisable() {
         super.onDisable()
-        InnerFolderCache.unregister("pdf")
-        Thumbs.unregisterSignature("pdf")
+        InnerFolderCache.unregisterSignatures("pdf")
+        Thumbs.unregisterSignatures("pdf")
     }
 
 }

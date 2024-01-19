@@ -1,7 +1,6 @@
 package me.anno.graph.render.scene
 
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.NodeOutput

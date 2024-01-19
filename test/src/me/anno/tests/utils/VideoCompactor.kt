@@ -8,7 +8,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 
 fun main() {
     val source = documents.getChild("RemsStudio/Example Project/Scenes/Bad Apple.webm")

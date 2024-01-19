@@ -32,24 +32,20 @@ class InnerLinkFile(
     override val isSomeKindOfDirectory: Boolean
         get() = link.isSomeKindOfDirectory
 
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+    override fun inputStreamSync(): InputStream = link.inputStreamSync()
+    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) =
+        link.inputStream(lengthLimit, callback)
+
+    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) =
         link.inputStream(Long.MAX_VALUE, callback)
-    }
 
     override fun readBytesSync(): ByteArray = link.readBytesSync()
     override fun readTextSync(): String = link.readTextSync()
     override fun readByteBufferSync(native: Boolean): ByteBuffer = link.readByteBufferSync(native)
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        link.readText(callback)
-    }
-
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        link.readBytes(callback)
-    }
-
-    override fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) = link.readText(callback)
+    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) = link.readBytes(callback)
+    override fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) =
         link.readByteBuffer(native, callback)
-    }
 
     override fun listChildren() = link.listChildren()
     override fun length() = link.length()

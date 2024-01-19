@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.Time
+import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
@@ -667,8 +668,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                 thread(name = "switchTo($folder)") {
                     try {
                         switchTo1(folder)
-                    } catch (e: ShutdownException) {
-                        // ignored
+                    } catch (_: IgnoredException) {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

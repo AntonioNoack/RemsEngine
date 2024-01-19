@@ -3,7 +3,7 @@ package me.anno.audio.streams
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
 import me.anno.io.files.FileReference
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)

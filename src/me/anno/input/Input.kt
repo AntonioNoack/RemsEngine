@@ -10,7 +10,6 @@ import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.io.ISaveable
-import me.anno.io.SaveableArray
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
@@ -700,15 +699,15 @@ object Input {
                 }
                 when (val first = inFocus0.onCopyRequested(mouseX, mouseY)) {
                     is ISaveable -> {
-                        // create array
-                        val array = SaveableArray()
-                        array.add(first)
+                        val saveables = ArrayList<ISaveable>()
+                        saveables.add(first)
                         for (panel in inFocus) {
                             if (panel !== inFocus0) {
-                                array.add(panel.onCopyRequested(mouseX, mouseY) as? ISaveable ?: continue)
+                                val ith = panel.onCopyRequested(mouseX, mouseY) as? ISaveable ?: continue
+                                saveables.add(ith)
                             }
                         }
-                        setClipboardContent(JsonStringWriter.toText(listOf(array), InvalidRef))
+                        setClipboardContent(JsonStringWriter.toText(saveables, InvalidRef))
                         // todo where necessary, support pasting an array of elements
                     }
                     is FileReference -> {

@@ -47,7 +47,7 @@ class InnerImageFile(
     }
 
     override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(bytes.decodeToString(), null)
+        callback(readTextSync(), null)
     }
 
     override fun readTextSync(): String {

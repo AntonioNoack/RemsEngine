@@ -172,7 +172,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         var data: ICacheData? = null
         try {
             data = generator(key)
-        } catch (_: ShutdownException) { // shutting down anyway
+        } catch (_: IgnoredException) {
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: {}", e.message)
         } catch (e: Exception) {
@@ -185,11 +185,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         var data: ICacheData? = null
         try {
             data = generator(key0, key1)
-        } catch (_: ShutdownException) { // shutting down anyway
+        } catch (_: IgnoredException) {
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: {}", e.message)
-        } catch (e: ShutdownException) {
-            throw e
         } catch (e: Exception) {
             return e
         }
@@ -281,8 +279,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                             LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
                             entry.data?.destroy()
                         }
-                    } catch (ignored: ShutdownException) {
-                        // don't care
+                    } catch (_: IgnoredException) {
                     }
                     LOGGER.debug("Finished {}", name)
                 }

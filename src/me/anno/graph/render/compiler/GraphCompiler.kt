@@ -40,7 +40,7 @@ import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.video.VideoCache
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector2f
 import org.joml.Vector3f

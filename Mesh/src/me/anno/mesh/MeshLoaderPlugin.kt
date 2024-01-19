@@ -60,6 +60,6 @@ class MeshLoaderPlugin : Plugin() {
             "fbx", "gltf", "dae", "draco", "md2",
             "md5mesh", "blend", "obj", "mtl",
             "maya", "mitsuba-meshes", "mitsuba-scene"
-        )) InnerFolderCache.unregister(ext)
+        )) InnerFolderCache.unregisterSignatures(ext)
     }
 }

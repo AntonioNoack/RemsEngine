@@ -17,6 +17,7 @@ object OfficialExtensions {
             "res://mesh-ext.info",
             "res://unpack-ext.info",
             "res://image-ext.info",
+            "res://video-ext.info",
         )
         for (path in paths) {
             ExtensionLoader.tryLoadMainInfo(path)

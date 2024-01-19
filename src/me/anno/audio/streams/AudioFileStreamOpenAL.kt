@@ -2,6 +2,7 @@ package me.anno.audio.streams
 
 import me.anno.Time
 import me.anno.animation.LoopingState
+import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.ALBase.isALThread
 import me.anno.audio.openal.AudioTasks
@@ -9,8 +10,7 @@ import me.anno.audio.openal.AudioTasks.addAudioTask
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.openal.SoundSource
 import me.anno.io.files.FileReference
-import me.anno.video.AudioCreator.Companion.playbackSampleRate
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
 import java.nio.ByteBuffer

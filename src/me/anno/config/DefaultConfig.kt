@@ -40,7 +40,6 @@ object DefaultConfig : StringMap() {
 
         // in case it wasn't registered yet
         registerCustomClass(StringMap())
-        registerCustomClass(SaveableArray())
 
         tick.stop("registering classes for config")
 

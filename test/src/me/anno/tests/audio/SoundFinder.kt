@@ -5,7 +5,7 @@ import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.formatTime
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.nio.ShortBuffer
 import kotlin.math.abs
@@ -23,7 +23,7 @@ fun main() {
 
     fun getData(start: Double, duration: Double): ShortBuffer {
         val sequence = FFMPEGStream.getAudioSequence(sourceFile, start, duration, sampleRate)
-        return Sleep.waitUntilDefined(true) { sequence.soundBuffer?.data }
+        return Sleep.waitUntilDefined(true) { sequence.value?.data }
     }
 
     val sourceData = getData(0.0, meta.audioDuration)

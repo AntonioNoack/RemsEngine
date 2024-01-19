@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
 import java.io.File
 import java.io.FileOutputStream
@@ -52,6 +53,8 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun inputStream(lengthLimit: Long, callback: (InputStream?, Exception?) -> Unit) {
         try {
             callback(inputStreamSync(), null)
+        } catch (_: IgnoredException) {
+            callback(null, null)
         } catch (e: Exception) {
             callback(null, e)
         }

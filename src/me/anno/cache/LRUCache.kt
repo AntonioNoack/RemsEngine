@@ -1,5 +1,9 @@
 package me.anno.cache
 
+/**
+ * thread-safe, last-recently-used cache with <size> entries,
+ * if you have more than say 64 entries, you should consider something like a hashmap instead
+ * */
 class LRUCache<K, V>(val size: Int) {
 
     private val keys = arrayOfNulls<Any?>(size)
@@ -11,6 +15,9 @@ class LRUCache<K, V>(val size: Int) {
         values.fill(null)
     }
 
+    /**
+     * returns value on success, Unit on failure (value may be null)
+     * */
     operator fun get(key: K): Any? {
         synchronized(this) {
             for (i in 0 until size) {

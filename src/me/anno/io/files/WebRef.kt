@@ -23,6 +23,8 @@ import kotlin.math.min
 
 /**
  * http/https resource
+ * on the web, these may be the only resources available except for InnerFiles
+ * 
  * todo get/put/post
  * todo define request headers like user-agent
  *

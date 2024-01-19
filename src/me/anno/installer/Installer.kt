@@ -7,13 +7,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.utils.OS
 import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
-import me.anno.video.ffmpeg.FFMPEG
-import me.anno.video.ffmpeg.FFMPEG.ffmpegPath
-import me.anno.video.ffmpeg.FFMPEG.ffprobePath
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -39,10 +35,13 @@ object Installer {
 
     @JvmStatic
     fun checkFFMPEGInstall() {
-        // todo update libraries, if possible
-        if (!FFMPEG.isInstalled && OS.isWindows) {
-            downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
-            downloadMaybe("ffmpeg/bin/ffprobe.exe", ffprobePath)
+        // todo update FFMPEG download, if possible
+        try {
+            val clazz = Installer::class.java.classLoader.loadClass("me.anno.video.VideoPlugin")
+            val method = clazz.getMethod("checkFFMPEGInstall")
+            method.invoke(null)
+        } catch (e: Exception) {
+            LOGGER.warn("VideoPlugin unavailable")
         }
     }
 

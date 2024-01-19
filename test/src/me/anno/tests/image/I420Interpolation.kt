@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.utils.OS
-import me.anno.video.formats.cpu.I420Frame
+import me.anno.video.formats.cpu.YUVFrames
 import java.nio.ByteBuffer
 
 fun main() {
@@ -17,8 +17,8 @@ fun main() {
         val bj = xj + yj * w2
         return when {
             xf == 0 && yf == 0 -> data[bj].toInt().and(255) // no interpolation needed
-            yf == 0 -> I420Frame.mix(data[bj], data[bj + 1]) // only x interpolation needed
-            xf == 0 -> I420Frame.mix(data[bj], data[bj + w2]) // only y interpolation needed
+            yf == 0 -> YUVFrames.mix(data[bj], data[bj + 1]) // only x interpolation needed
+            xf == 0 -> YUVFrames.mix(data[bj], data[bj + w2]) // only y interpolation needed
             else -> {
                 val a = data[bj].toInt().and(255)
                 val b = data[bj + 1].toInt().and(255)
@@ -54,7 +54,7 @@ fun main() {
         for (yi in 0 until hx) {
             for (xi in 0 until wx) {
                 val it = xi + w * yi
-                data[it] = I420Frame.yuv2rgb(
+                data[it] = YUVFrames.yuv2rgb(
                     yData[it],
                     interpolate(xi, yi, w2, uData),
                     interpolate(xi, yi, w2, vData)
@@ -69,19 +69,19 @@ fun main() {
         for (yi in 0 until hx step 2) {
             var it = yi * w
             for (xi in 0 until wx step 2) {
-                data[it] = I420Frame.yuv2rgb(
+                data[it] = YUVFrames.yuv2rgb(
                     yData[it],
-                    I420Frame.int00(xi, yi, w2, uData),
-                    I420Frame.int00(xi, yi, w2, vData)
+                    YUVFrames.int00(xi, yi, w2, uData),
+                    YUVFrames.int00(xi, yi, w2, vData)
                 )
                 it += 2
             }
             it = 1 + yi * w
             for (xi in 1 until wx step 2) {
-                data[it] = I420Frame.yuv2rgb(
+                data[it] = YUVFrames.yuv2rgb(
                     yData[it],
-                    I420Frame.int10(xi, yi, w2, uData),
-                    I420Frame.int10(xi, yi, w2, vData)
+                    YUVFrames.int10(xi, yi, w2, uData),
+                    YUVFrames.int10(xi, yi, w2, vData)
                 )
                 it += 2
             }
@@ -90,19 +90,19 @@ fun main() {
         for (yi in 1 until hx step 2) {
             var it = yi * w
             for (xi in 0 until wx step 2) {
-                data[it] = I420Frame.yuv2rgb(
+                data[it] = YUVFrames.yuv2rgb(
                     yData[it],
-                    I420Frame.int01(xi, yi, w2, uData),
-                    I420Frame.int01(xi, yi, w2, vData)
+                    YUVFrames.int01(xi, yi, w2, uData),
+                    YUVFrames.int01(xi, yi, w2, vData)
                 )
                 it += 2
             }
             it = 1 + yi * w
             for (xi in 1 until wx step 2) {
-                data[it] = I420Frame.yuv2rgb(
+                data[it] = YUVFrames.yuv2rgb(
                     yData[it],
-                    I420Frame.int11(xi, yi, w2, uData),
-                    I420Frame.int11(xi, yi, w2, vData)
+                    YUVFrames.int11(xi, yi, w2, uData),
+                    YUVFrames.int11(xi, yi, w2, vData)
                 )
                 it += 2
             }

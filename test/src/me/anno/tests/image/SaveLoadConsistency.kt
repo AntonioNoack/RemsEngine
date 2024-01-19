@@ -17,7 +17,7 @@ import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import me.anno.video.VideoCreator
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 
 fun main() {
     HiddenOpenGLContext.createOpenGL(2048)
@@ -44,7 +44,7 @@ fun testVideo(image: FileReference) {
         TextureCache.clear()
         val t0 = Time.nanoTime
         VideoCache.clear()
-        val gpu = VideoCache.getFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
+        val gpu = VideoCache.getVideoFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
             ?: throw NullPointerException("Missing $src")
         if (gpu.width != w || gpu.height != h) throw IllegalStateException()
         useFrame(dst1) {

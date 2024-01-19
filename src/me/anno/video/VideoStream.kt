@@ -5,19 +5,8 @@ import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
-import me.anno.io.files.Signature
-import me.anno.utils.ShutdownException
-import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.types.InputStreams.skipN
-import me.anno.video.ffmpeg.FFMPEGMetaParser
-import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import me.anno.video.formats.gpu.GPUFrame
-import me.anno.video.formats.gpu.GPUFrameReader
-import org.apache.logging.log4j.LogManager
-import java.io.EOFException
-import java.io.InputStream
-import kotlin.concurrent.thread
 
 class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
@@ -25,7 +14,7 @@ class VideoStream(
 ) : ICacheData {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(VideoStream::class)
+        var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int) -> Unit)? = null
     }
 
     var isPlaying = false
@@ -36,10 +25,10 @@ class VideoStream(
     private var startTime = 0L
     private var standTime = 0L
 
-    private val capacity = 16
-    private val sortedFrames = ArrayList<Pair<Int, GPUFrame>>()
-    private var lastRequestedFrame = 0
-    private var workerId = 0
+    val capacity = 16
+    val sortedFrames = ArrayList<Pair<Int, GPUFrame>>()
+    var lastRequestedFrame = 0
+    var workerId = 0
 
     fun togglePlaying() {
         val time = getTime()
@@ -67,107 +56,7 @@ class VideoStream(
 
     fun startWorker(frameIndex0: Int, maxNumFrames: Int) {
         val id = ++workerId
-        thread(name = "Stream/$workerId/${file.name}") {
-            val signature = Signature.findNameSync(file)
-            val process = object : FFMPEGStream(file, false) {
-                val parser = FFMPEGMetaParser()
-                val oldFrames = ArrayList<GPUFrame>()
-                var nextReadIndex = frameIndex0
-                override fun process(process: Process, vararg arguments: String) {
-                    parseAsync(parser, process.errorStream)
-                    try {
-                        waitForMetadata(parser)
-                        if (codec.isNotEmpty() && codec != FFMPEGMetaParser.invalidCodec) {
-                            val input = process.inputStream
-                            input.use {
-                                readFrame(it)
-                                while (id == workerId) {
-                                    loadNextFrameMaybe(it)
-                                }
-                            }
-                        } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")
-                    } catch (e: OutOfMemoryError) {
-                        LOGGER.warn("Engine has run out of memory!!")
-                    } catch (ignored: EOFException) {
-                    } catch (ignored: ShutdownException) {
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    // clear old frames
-                    for (frame in oldFrames) {
-                        frame.destroy()
-                    }
-                    oldFrames.clear()
-                }
-
-                var frameSize = 0L
-                fun readFrame(input: InputStream) {
-                    val currentIndex = nextReadIndex++
-                    val w = width
-                    val h = height
-                    val frame = oldFrames.removeLastOrNull() ?: run {
-                        GPUFrameReader.createGPUFrame(w, h, codec, file)
-                    }
-                    frameSize = frame.getByteSize()
-                    try {
-                        frame.load(input)
-                    } catch (e: Exception) {
-                        oldFrames.add(frame)
-                        throw e
-                    }
-                    synchronized(sortedFrames) {
-                        if (id == workerId) {
-                            // remove everything that is too new
-                            val tooNew = sortedFrames.count { it.first >= nextReadIndex }
-                            val oldFrames = sortedFrames.subList(sortedFrames.size - tooNew, sortedFrames.size)
-                            for (oldFrame in oldFrames) this.oldFrames.add(oldFrame.second)
-                            oldFrames.clear()
-                            // then append the new frame
-                            sortedFrames.add(currentIndex to frame)
-                        } else oldFrames.add(frame)
-                    }
-                }
-
-                fun skipFrame(input: InputStream) {
-                    input.skipN(frameSize)
-                    nextReadIndex++
-                }
-
-                override fun destroy() {}
-                fun loadNextFrameMaybe(input: InputStream) {
-                    // pop old frames
-                    synchronized(sortedFrames) {
-                        // throw away everything that is too old
-                        val goodFrames = sortedFrames.count { it.first <= lastRequestedFrame }
-                        val oldFrames = goodFrames - 1
-                        if (oldFrames > 0) {
-                            val toRemove = sortedFrames.subList(0, oldFrames)
-                            for (frame in toRemove) this.oldFrames.add(frame.second)
-                            toRemove.clear()
-                        }
-                    }
-                    // if we're too slow, trash a few frames
-                    for (i in nextReadIndex until lastRequestedFrame) {
-                        skipFrame(input)
-                    }
-                    if (nextReadIndex < lastRequestedFrame + capacity) {
-                        readFrame(input)
-                    } else {
-                        // we're too fast
-                        Thread.sleep(0)
-                    }
-                }
-            }
-            process.run(
-                *FFMPEGStream.getImageSequenceArguments(
-                    file, signature, meta.videoWidth, meta.videoHeight,
-                    frameIndex0 / meta.videoFPS,
-                    maxNumFrames, meta.videoFPS,
-                    meta.videoWidth, meta.videoFPS,
-                    meta.videoFrameCount
-                ).toTypedArray()
-            )
-        }
+        runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames)
     }
 
     fun stop() {

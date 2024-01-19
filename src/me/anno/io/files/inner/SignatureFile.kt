@@ -5,6 +5,9 @@ import me.anno.io.files.Signature
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
+/**
+ * file, which has a pre-computed signature
+ * */
 interface SignatureFile {
 
     var signature: Signature?

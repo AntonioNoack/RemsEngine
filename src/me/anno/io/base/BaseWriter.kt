@@ -1,12 +1,12 @@
 package me.anno.io.base
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.engine.EngineBase
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
@@ -26,144 +26,340 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
      * */
     fun getPointer(value: ISaveable) = pointers[value]
 
-    abstract fun writeBoolean(name: String, value: Boolean, force: Boolean = true)
-    abstract fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean = false)
-    abstract fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean = false)
+    open fun writeSomething(name: String, value: Any?, force: Boolean) {
+        LOGGER.warn("Unknown class ${if (value != null) value::class else null} for serialization")
+    }
 
-    abstract fun writeChar(name: String, value: Char, force: Boolean = false)
-    abstract fun writeCharArray(name: String, values: CharArray, force: Boolean = false)
-    abstract fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean = false)
+    open fun writeBoolean(name: String, value: Boolean, force: Boolean = true) =
+        writeSomething(name, value, force)
 
-    abstract fun writeByte(name: String, value: Byte, force: Boolean = false)
-    abstract fun writeByteArray(name: String, values: ByteArray, force: Boolean = false)
-    abstract fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean = false)
+    open fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeShort(name: String, value: Short, force: Boolean = false)
-    abstract fun writeShortArray(name: String, values: ShortArray, force: Boolean = false)
-    abstract fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean = false)
+    open fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeInt(name: String, value: Int, force: Boolean = false)
-    abstract fun writeIntArray(name: String, values: IntArray, force: Boolean = false)
-    abstract fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean = false)
+    open fun writeChar(name: String, value: Char, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeColor(name: String, value: Int, force: Boolean = true)
-    abstract fun writeColorArray(name: String, values: IntArray, force: Boolean = true)
-    abstract fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean = true)
+    open fun writeCharArray(name: String, values: CharArray, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeLong(name: String, value: Long, force: Boolean = false)
-    abstract fun writeLongArray(name: String, values: LongArray, force: Boolean = false)
-    abstract fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false)
+    open fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
-    abstract fun writeFloatArray(name: String, values: FloatArray, force: Boolean = false)
-    abstract fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean = false)
+    open fun writeByte(name: String, value: Byte, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
-    abstract fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean = false)
-    abstract fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean = false)
+    open fun writeByteArray(name: String, values: ByteArray, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeString(name: String, value: String, force: Boolean = false)
-    abstract fun writeStringArray(name: String, values: Array<String>, force: Boolean = false)
-    abstract fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean = false)
+    open fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeVector2f(name: String, value: Vector2f, force: Boolean = false)
-    abstract fun writeVector3f(name: String, value: Vector3f, force: Boolean = false)
-    abstract fun writeVector4f(name: String, value: Vector4f, force: Boolean = false)
-    abstract fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean = false)
-    abstract fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean = false)
-    abstract fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean = false)
-    abstract fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean = false)
-    abstract fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean = false)
-    abstract fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean = false)
+    open fun writeShort(name: String, value: Short, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeVector2d(name: String, value: Vector2d, force: Boolean = false)
-    abstract fun writeVector3d(name: String, value: Vector3d, force: Boolean = false)
-    abstract fun writeVector4d(name: String, value: Vector4d, force: Boolean = false)
-    abstract fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean = false)
-    abstract fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean = false)
-    abstract fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean = false)
-    abstract fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean = false)
-    abstract fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean = false)
-    abstract fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean = false)
+    open fun writeShortArray(name: String, values: ShortArray, force: Boolean = false) =
+        writeSomething(name, values, force)
 
-    abstract fun writeVector2i(name: String, value: Vector2i, force: Boolean = false)
-    abstract fun writeVector3i(name: String, value: Vector3i, force: Boolean = false)
-    abstract fun writeVector4i(name: String, value: Vector4i, force: Boolean = false)
-    abstract fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean = false)
-    abstract fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean = false)
-    abstract fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean = false)
-    abstract fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean = false)
-    abstract fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean = false)
-    abstract fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean = false)
+    open fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeInt(name: String, value: Int, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeIntArray(name: String, values: IntArray, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeColor(name: String, value: Int, force: Boolean = true) =
+        writeSomething(name, value, force)
+
+    open fun writeColorArray(name: String, values: IntArray, force: Boolean = true) =
+        writeSomething(name, values, force)
+
+    open fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean = true) =
+        writeSomething(name, values, force)
+
+    open fun writeLong(name: String, value: Long, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeLongArray(name: String, values: LongArray, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeFloat(name: String, value: Float, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeFloatArray(name: String, values: FloatArray, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeDouble(name: String, value: Double, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeString(name: String, value: String, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeStringArray(name: String, values: Array<String>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2f(name: String, value: Vector2f, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector3f(name: String, value: Vector3f, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector4f(name: String, value: Vector4f, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2d(name: String, value: Vector2d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector3d(name: String, value: Vector3d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector4d(name: String, value: Vector4d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2i(name: String, value: Vector2i, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector3i(name: String, value: Vector3i, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector4i(name: String, value: Vector4i, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean = false) =
+        writeSomething(name, values, force)
 
     // matrices, which are commonly used in game development
-    abstract fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean = false)
-    abstract fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean = false)
-    abstract fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean = false)
-    abstract fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean = false)
-    abstract fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean = false)
-    abstract fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean = false)
-    abstract fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean = false)
-    abstract fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean = false)
-    abstract fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean = false)
-    abstract fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean = false)
-    abstract fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean = false)
-    abstract fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean = false)
-    abstract fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean = false)
-    abstract fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean = false)
-    abstract fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean = false)
+    open fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean = false)
-    abstract fun writeMatrix3x2d(name: String, value: Matrix3x2d, force: Boolean = false)
-    abstract fun writeMatrix3x3d(name: String, value: Matrix3d, force: Boolean = false)
-    abstract fun writeMatrix4x3d(name: String, value: Matrix4x3d, force: Boolean = false)
-    abstract fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean = false)
-    abstract fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean = false)
-    abstract fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean = false)
-    abstract fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean = false)
-    abstract fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean = false)
-    abstract fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean = false)
-    abstract fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean = false)
-    abstract fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean = false)
-    abstract fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean = false)
-    abstract fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean = false)
-    abstract fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean = false)
+    open fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false)
-    abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)
-    abstract fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean = false)
-    abstract fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean = false)
-    abstract fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean = false)
-    abstract fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean = false)
+    open fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeAABBf(name: String, value: AABBf, force: Boolean = false)
-    abstract fun writeAABBd(name: String, value: AABBd, force: Boolean = false)
-    abstract fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean = false)
-    abstract fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean = false)
-    abstract fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean = false)
-    abstract fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean = false)
+    open fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writePlanef(name: String, value: Planef, force: Boolean = false)
-    abstract fun writePlaned(name: String, value: Planed, force: Boolean = false)
-    abstract fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean = false)
-    abstract fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean = false)
-    abstract fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean = false)
-    abstract fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean = false)
+    open fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean = false) =
+        writeSomething(name, value, force)
 
-    abstract fun writeFile(
+    open fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeMatrix3x2d(name: String, value: Matrix3x2d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeMatrix3x3d(name: String, value: Matrix3d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeMatrix4x3d(name: String, value: Matrix4x3d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeAABBf(name: String, value: AABBf, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeAABBd(name: String, value: AABBd, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writePlanef(name: String, value: Planef, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writePlaned(name: String, value: Planed, force: Boolean = false) =
+        writeSomething(name, value, force)
+
+    open fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean = false) =
+        writeSomething(name, values, force)
+
+    open fun writeFile(
         name: String, value: FileReference, force: Boolean = false,
         workspace: FileReference = EngineBase.workspace
-    )
+    ) = writeSomething(name, value, force)
 
-    abstract fun writeFileArray(
+    open fun writeFileArray(
         name: String, values: Array<FileReference>, force: Boolean = false,
         workspace: FileReference = EngineBase.workspace
-    )
+    ) = writeSomething(name, values, force)
 
-    abstract fun writeFileArray2D(
+    open fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>, force: Boolean = false,
         workspace: FileReference = EngineBase.workspace
-    )
+    ) = writeSomething(name, values, force)
 
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {
         when {

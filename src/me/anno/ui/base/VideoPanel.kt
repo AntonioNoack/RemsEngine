@@ -6,8 +6,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.io.files.FileReference
 import me.anno.ui.Style
 import me.anno.video.VideoStream
-import me.anno.video.ffmpeg.MediaMetadata
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata
+import me.anno.io.MediaMetadata.Companion.getMeta
 
 // todo only request a resolution that we need
 open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boolean, style: Style) :

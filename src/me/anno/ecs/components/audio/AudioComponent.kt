@@ -9,7 +9,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import kotlin.math.abs
 import kotlin.math.ceil
 

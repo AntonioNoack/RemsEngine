@@ -43,8 +43,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         }
     }
 
-    fun unregister(signature: String) {
-        readerBySignature.remove(signature)
+    fun unregisterSignatures(vararg signatures: String) {
+        for (signature in signatures) {
+            readerBySignature.remove(signature)
+        }
     }
 
     fun unregisterFileExtension(fileExtension: String) {

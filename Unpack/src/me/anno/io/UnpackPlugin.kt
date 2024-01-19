@@ -62,7 +62,7 @@ class UnpackPlugin : Plugin() {
     override fun onDisable() {
         super.onDisable()
         for (sig in listOf("zip", "bz2", "lz4", "xar", "oar", "7z", "rar", "gzip", "tar", "url")) {
-            InnerFolderCache.unregister(sig)
+            InnerFolderCache.unregisterSignatures(sig)
         }
         // unregister more?
         PrefabCache.unityReader = null

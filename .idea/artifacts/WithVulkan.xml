@@ -98,6 +98,8 @@
       <element id="module-output" name="Bullet" />
       <element id="module-output" name="Mesh" />
       <element id="module-output" name="Image" />
+      <element id="module-output" name="Unpack" />
+      <element id="module-output" name="Video" />
     </root>
   </artifact>
 </component>

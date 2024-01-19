@@ -1,0 +1,96 @@
+package me.anno.image
+
+import me.anno.gpu.drawing.SVGxGFX
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.ImageToTexture
+import me.anno.gpu.texture.TextureLib
+import me.anno.graph.hdb.HDBKey
+import me.anno.image.jpg.JPGThumbnails
+import me.anno.image.raw.toImage
+import me.anno.image.svg.SVGMeshCache
+import me.anno.image.tar.TGAReader
+import me.anno.io.files.FileReference
+import me.anno.io.files.thumbs.Thumbs
+import me.anno.utils.Color
+import net.sf.image4j.codec.ico.ICOReader
+import org.joml.Matrix4fArrayList
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
+import kotlin.math.max
+import kotlin.math.roundToInt
+
+object ImageThumbnails {
+
+    fun generateJPGFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        JPGThumbnails.extractThumbnail(srcFile) { bytes ->
+            if (bytes != null) {
+                try {
+                    val image = ImageIO.read(ByteArrayInputStream(bytes))
+                    Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
+                } catch (e: Exception) {
+                    Thumbs.generateImage(srcFile, dstFile, size, callback)
+                }
+            } else Thumbs.generateImage(srcFile, dstFile, size, callback)
+        }
+    }
+
+    fun generateTGAFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        srcFile.inputStream { it, exc ->
+            if (it != null) {
+                val src = it.use { TGAReader.read(it, false) }
+                Thumbs.findScale(src, srcFile, size, callback) { dst ->
+                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+                }
+            }
+            exc?.printStackTrace()
+        }
+    }
+
+    fun generateICOFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        srcFile.inputStream { it, exc ->
+            if (it != null) {
+                val image = it.use { ICOReader.read(it, size) }
+                Thumbs.transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+            } else exc?.printStackTrace()
+        }
+    }
+
+    fun generateSVGFrame(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+
+        val buffer = SVGMeshCache[srcFile, ImageToTexture.imageTimeout, false]!!
+        val bounds = buffer.bounds!!
+        val maxSize = max(bounds.maxX, bounds.maxY)
+        val w = (size * bounds.maxX / maxSize).roundToInt()
+        val h = (size * bounds.maxY / maxSize).roundToInt()
+
+        if (w < 2 || h < 2) return
+
+        val transform = Matrix4fArrayList()
+        transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)
+        Thumbs.renderToImage(srcFile, false, dstFile, false, Renderer.colorRenderer, false, callback, w, h) {
+            SVGxGFX.draw3DSVG(
+                transform,
+                buffer,
+                TextureLib.whiteTexture,
+                Color.white4,
+                Filtering.NEAREST,
+                TextureLib.whiteTexture.clamping,
+                null
+            )
+        }
+    }
+}

@@ -5,6 +5,7 @@ import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.AudioReadable
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.AudioCache
+import me.anno.audio.AudioCache.getAudioSequence
 import me.anno.audio.AudioSliceKey
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
@@ -12,8 +13,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.structures.tuples.ShortPair
-import me.anno.video.ffmpeg.MediaMetadata
-import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
+import me.anno.io.MediaMetadata
 import org.lwjgl.openal.AL10
 import kotlin.math.max
 import kotlin.math.min
@@ -35,9 +35,8 @@ class AudioStreamRaw(
         var bufferSize = 4096
 
         // should be set by the engine depending on the OS
-        // could be overridden manually, e.g. to get a 8kHz vibe;
+        // could be overridden manually, e.g., to get a 8kHz vibe;
         // if you do that, consider overriding bufferSize as well, so the audio could be adjusted faster if needed (idk yet)
-        var playbackSampleRate = 48000
         val ffmpegSliceSampleDuration = 30.0 // seconds, 30s of music
 
         inline fun averageSamples(
@@ -97,7 +96,6 @@ class AudioStreamRaw(
         if (index0 < 0 || (repeat === LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) {
 
             shortPair.set(0, 0)
-
         } else {
 
             val index = repeat[index0, maxSampleIndex]
@@ -147,10 +145,10 @@ class AudioStreamRaw(
                     val timeout = (sliceDuration * 2 * 1000).toLong()
                     val sliceTime = sliceIndex * sliceDuration
                     val soundBuffer = AudioCache.getEntry(key, timeout, false) {
-                        val sequence = getAudioSequence(file, sliceTime, sliceDuration, sampleRate)
+                        val sequence = getAudioSequence!!(file, sliceTime, sliceDuration, sampleRate)
                         waitUntilDefined(true) {
-                            if (sequence.isEmpty) SoundBuffer(0)
-                            else sequence.soundBuffer
+                            if (sequence.hasValue) sequence.value ?: SoundBuffer(0)
+                            else null
                         }
                     } as SoundBuffer
                     lastSoundBuffer = soundBuffer
@@ -169,7 +167,6 @@ class AudioStreamRaw(
                 }
             }
         }
-
     }
 
     override fun getBuffer(
@@ -205,11 +202,8 @@ class AudioStreamRaw(
             rightBuffer[sampleIndex] = dst.second
 
             indexI = indexJ
-
         }
 
         return leftBuffer to rightBuffer
-
     }
-
 }

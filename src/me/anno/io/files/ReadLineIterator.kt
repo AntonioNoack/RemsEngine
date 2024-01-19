@@ -5,6 +5,10 @@ import me.anno.utils.structures.NextEntryIterator
 import java.io.BufferedReader
 import java.io.IOException
 
+/**
+ * reads lines as strings until reader is empty;
+ * limits line length, and if a line is longer, the suffix is appended
+ * */
 class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val suffix: String = "...") :
     NextEntryIterator<String>() {
 

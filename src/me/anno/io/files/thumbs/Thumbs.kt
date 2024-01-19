@@ -1,6 +1,7 @@
 package me.anno.io.files.thumbs
 
 import me.anno.Time
+import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -60,6 +61,7 @@ import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.toImage
 import me.anno.io.ISaveable
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -92,7 +94,6 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache.getVideoFrame
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
@@ -202,8 +203,7 @@ object Thumbs {
                             callback(it)
                             exc?.printStackTrace()
                         }
-                    } catch (e: ShutdownException) {
-                        // don't care
+                    } catch (_: IgnoredException) {
                     } catch (e: Throwable) {
                         e.printStackTrace()
                     }
@@ -1126,8 +1126,10 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun unregisterSignature(signature: String) {
-        readerBySignature.remove(signature)
+    fun unregisterSignatures(vararg signatures: String) {
+        for (signature in signatures) {
+            readerBySignature.remove(signature)
+        }
     }
 
     @JvmStatic
@@ -1139,8 +1141,10 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun unregisterExtension(signature: String) {
-        readerByExtension.remove(signature)
+    fun unregisterExtensions(vararg extensions: String) {
+        for (extension in extensions) {
+            readerByExtension.remove(extension)
+        }
     }
 
     init {
@@ -1209,9 +1213,11 @@ object Thumbs {
         )
         for (signature in ignored) {
             registerExtension(signature) { _, _, _, callback ->
-                callback(null, IOException("Cannot generate thumbnail"))
+                callback(null, IgnoredException())
             }
         }
+
+        // todo compressed folders shouldn't have specific icon, only zip folder
     }
 
     private fun generateVideoFrame0(
@@ -1282,8 +1288,7 @@ object Thumbs {
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     generateImage(srcFile, dstFile, size, callback)
                 }
-            } catch (e: ShutdownException) {
-                // don't care
+            } catch (_: IgnoredException) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 LOGGER.warn("Could not load image from $srcFile: ${e.message}")

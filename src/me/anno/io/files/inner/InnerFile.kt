@@ -12,7 +12,7 @@ import java.net.URI
 
 /**
  * a file, which is inside another file,
- * e.g. inside a zip file, or inside a mesh
+ * e.g., inside a zip file, or inside a mesh
  * */
 abstract class InnerFile(
     absolutePath: String,

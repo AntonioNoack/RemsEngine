@@ -3,6 +3,7 @@ package me.anno.language.spellcheck
 import me.anno.Engine.shutdown
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
 import me.anno.io.Streams.listen
@@ -196,7 +197,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 if (queue.isEmpty()) sleepShortly(true)
                 else processRequest(queue, reader, writer)
             }
-        } catch (ignored: ShutdownException) {
+        } catch (_: IgnoredException) {
         }
     }
 

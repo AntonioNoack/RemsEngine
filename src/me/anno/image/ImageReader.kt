@@ -8,16 +8,14 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
 import me.anno.io.files.BundledRef
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.Sleep.waitForGFXThread
-import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
+import me.anno.utils.OS.desktop
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
@@ -29,8 +27,12 @@ import javax.imageio.ImageIO
  * */
 object ImageReader {
 
+    // todo components' thumbnails are broken :/
+
     private val LOGGER = LogManager.getLogger(ImageReader::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
+
+    var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) -> Unit)? = null
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
@@ -121,12 +123,12 @@ object ImageReader {
         swizzle: String, inverse: Boolean
     ) {
         when (swizzle.length) {
-            1 -> createComponent(file, folder, name) {
+            1 -> createComponent(file, folder, name) { srcImage ->
                 when {
-                    (swizzle == "a" && !it.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
-                    (swizzle == "b" && it.numChannels < 3) || (swizzle == "g" && it.numChannels < 2) ->
+                    (swizzle == "a" && !srcImage.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
+                    (swizzle == "b" && srcImage.numChannels < 3) || (swizzle == "g" && srcImage.numChannels < 2) ->
                         GPUImage(if (inverse) whiteTexture else blackTexture)
-                    else -> ComponentImage(it, inverse, swizzle[0])
+                    else -> ComponentImage(srcImage, inverse, swizzle[0])
                 }
             }
             else -> throw NotImplementedError(swizzle)
@@ -168,9 +170,10 @@ object ImageReader {
 
     private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
+        val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
             data.value = null
-        } else if (shouldUseFFMPEG(signature, file)) {
+        } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
             tryFFMPEG(file, signature, forGPU) { it, e ->
                 data.value = it
                 e?.printStackTrace()
@@ -182,9 +185,10 @@ object ImageReader {
     }
 
     private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?, forGPU: Boolean) {
+        val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
             data.value = null
-        } else if (shouldUseFFMPEG(signature, file)) {
+        } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
             tryFFMPEG(file, signature, forGPU) { it, e ->
                 data.value = it
                 e?.printStackTrace()
@@ -201,49 +205,8 @@ object ImageReader {
         }
     }
 
-    private fun frameIndex(meta: MediaMetadata): Int {
+    fun frameIndex(meta: MediaMetadata): Int {
         return Maths.min(20, (meta.videoFrameCount - 1) / 3)
-    }
-
-    private fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) {
-        if (file is FileFileRef) {
-            val meta = MediaMetadata.getMeta(file, false)
-            if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-                callback(null, IOException("Meta for $file is missing video"))
-            } else if (forGPU) {
-                FFMPEGStream.getImageSequenceGPU(
-                    file, signature, meta.videoWidth, meta.videoHeight,
-                    frameIndex(meta), 1, meta.videoFPS,
-                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
-                        val frame = frames.firstOrNull()
-                        if (frame != null) {
-                            waitForGFXThread(true) { frame.isCreated || frame.isDestroyed }
-                            callback(GPUFrameImage(frame), null)
-                        } else callback(null, IOException("No frame was found"))
-                    }
-                )
-            } else {
-                FFMPEGStream.getImageSequenceCPU(
-                    file, signature, meta.videoWidth, meta.videoHeight,
-                    frameIndex(meta), 1, meta.videoFPS,
-                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
-                        val frame = frames.firstOrNull()
-                        if (frame != null) callback(frame, null)
-                        else callback(null, IOException("No frame was found"))
-                    }
-                )
-            }
-        } else {
-            // todo when we have native ffmpeg, don't copy the file
-            val tmp = FileFileRef.createTempFile("4ffmpeg", file.extension)
-            file.readBytes { bytes, e ->
-                if (bytes != null) {
-                    tmp.writeBytes(bytes)
-                    tryFFMPEG(FileReference.getReference(tmp), signature, forGPU, callback)
-                    tmp.delete()
-                } else callback(null, e)
-            }
-        }
     }
 
     private fun tryGeneric(file: FileReference, callback: ImageCallback) {

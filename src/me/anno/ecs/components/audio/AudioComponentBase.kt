@@ -12,7 +12,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import org.joml.Vector3f
 import org.lwjgl.openal.AL10.AL_INVERSE_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL10.alDistanceModel

@@ -7,7 +7,7 @@ import me.anno.video.VideoProxyCreator
 fun main() {
     // test proxy generation with slices
     val src = videos.getChild("2023-02-28 09-24-10.mkv")
-    for (i in 0 until 100L) {
+    for (i in 0 until 100) {
         println(VideoProxyCreator.getProxyFile(src, i, false) ?: break)
     }
     Engine.requestShutdown()

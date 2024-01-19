@@ -85,7 +85,7 @@ object HeavyIterator {
         // process all instances, which were waiting because of us
         val waiting = synchronized(this) {
             val waiting = waitingRequests.remove(source)
-            if (waiting == null || waiting.isEmpty()) {
+            if (waiting.isNullOrEmpty()) {
                 // we are done 🥳
                 lockedFiles.remove(source)
                 null

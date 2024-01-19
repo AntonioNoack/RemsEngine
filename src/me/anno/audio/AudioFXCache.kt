@@ -2,6 +2,7 @@ package me.anno.audio
 
 import me.anno.Time.nanoTime
 import me.anno.animation.LoopingState
+import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
 import me.anno.audio.streams.AudioStreamRaw
@@ -13,8 +14,7 @@ import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.video.AudioCreator.Companion.playbackSampleRate
-import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.io.MediaMetadata
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min

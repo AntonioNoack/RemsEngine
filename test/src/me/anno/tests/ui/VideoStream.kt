@@ -17,7 +17,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.videos
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import kotlin.math.abs
 
 fun main() {

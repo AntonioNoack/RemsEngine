@@ -5,7 +5,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata.Companion.getMeta
 import java.io.File
 
 fun main() {

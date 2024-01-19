@@ -85,8 +85,8 @@ import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.VideoCache.getVideoFrame
-import me.anno.video.ffmpeg.MediaMetadata
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
+import me.anno.io.MediaMetadata
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf

@@ -111,9 +111,7 @@ object FileWatch {
                             LOGGER.warn("Directory $folder is no longer valid")
                             break
                         }*/
-
                     }
-
                 }
             }
             synchronized(watched) {

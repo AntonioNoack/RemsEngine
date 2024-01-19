@@ -14,47 +14,22 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
         dst[name] = type to value
     }
 
-    override fun writeBoolean(name: String, value: Boolean, force: Boolean) =
-        put(name, "Boolean", value)
-
-    override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) =
-        put(name, "BooleanArray", values)
+    override fun writeSomething(name: String, value: Any?, force: Boolean) {
+        val type = if (value != null) value::class.simpleName!! else "?"
+        put(name, type, value)
+    }
 
     override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) =
         put(name, "Array<BooleanArray>", values)
 
-    override fun writeChar(name: String, value: Char, force: Boolean) =
-        put(name, "Char", value)
-
-    override fun writeCharArray(name: String, values: CharArray, force: Boolean) =
-        put(name, "CharArray", values)
-
     override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) =
         put(name, "Array<CharArray>", values)
-
-    override fun writeByte(name: String, value: Byte, force: Boolean) =
-        put(name, "Byte", value)
-
-    override fun writeByteArray(name: String, values: ByteArray, force: Boolean) =
-        put(name, "ByteArray", values)
 
     override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) =
         put(name, "Array<ByteArray>", values)
 
-    override fun writeShort(name: String, value: Short, force: Boolean) =
-        put(name, "Short", value)
-
-    override fun writeShortArray(name: String, values: ShortArray, force: Boolean) =
-        put(name, "ShortArray", values)
-
     override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) =
         put(name, "Array<ShortArray>", values)
-
-    override fun writeInt(name: String, value: Int, force: Boolean) =
-        put(name, "Int", value)
-
-    override fun writeIntArray(name: String, values: IntArray, force: Boolean) =
-        put(name, "IntArray", values)
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) =
         put(name, "Array<IntArray>", values)
@@ -68,50 +43,20 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) =
         put(name, "Array<Array<Color4>>", values)
 
-    override fun writeLong(name: String, value: Long, force: Boolean) =
-        put(name, "Long", value)
-
-    override fun writeLongArray(name: String, values: LongArray, force: Boolean) =
-        put(name, "LongArray", values)
-
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) =
         put(name, "Array<LongArray>", values)
-
-    override fun writeFloat(name: String, value: Float, force: Boolean) =
-        put(name, "Float", value)
-
-    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) =
-        put(name, "FloatArray", values)
 
     override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) =
         put(name, "Array<FloatArray>", values)
 
-    override fun writeDouble(name: String, value: Double, force: Boolean) =
-        put(name, "Double", value)
-
-    override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) =
-        put(name, "DoubleArray", values)
-
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) =
         put(name, "Array<DoubleArray>", values)
-
-    override fun writeString(name: String, value: String, force: Boolean) =
-        put(name, "String", value)
 
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) =
         put(name, "Array<String>", values)
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) =
         put(name, "Array<Array<String>>", values)
-
-    override fun writeVector2f(name: String, value: Vector2f, force: Boolean) =
-        put(name, "Vector2f", value)
-
-    override fun writeVector3f(name: String, value: Vector3f, force: Boolean) =
-        put(name, "Vector3f", value)
-
-    override fun writeVector4f(name: String, value: Vector4f, force: Boolean) =
-        put(name, "Vector4f", value)
 
     override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) =
         put(name, "Array<Vector2f>", values)
@@ -130,15 +75,6 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
 
     override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) =
         put(name, "Array<Array<Vector4f>>", values)
-
-    override fun writeVector2d(name: String, value: Vector2d, force: Boolean) =
-        put(name, "Vector2d", value)
-
-    override fun writeVector3d(name: String, value: Vector3d, force: Boolean) =
-        put(name, "Vector3d", value)
-
-    override fun writeVector4d(name: String, value: Vector4d, force: Boolean) =
-        put(name, "Vector4d", value)
 
     override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) =
         put(name, "Array<Array<Vector2f>>", values)
@@ -275,29 +211,17 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) =
         put(name, "Array<Array<Matrix4x4d>>", values)
 
-    override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) =
-        put(name, "Quaternion", value)
-
-    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) =
-        put(name, "Quaterniond", value)
-
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
-        put(name, "Array<Quaternion>", values)
+        put(name, "Array<Quaternionf>", values)
 
     override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
         put(name, "Array<Quaterniond>", values)
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
-        put(name, "Array<Array<Quaternion>>", values)
+        put(name, "Array<Array<Quaternionf>>", values)
 
     override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
         put(name, "Array<Array<Quaterniond>>", values)
-
-    override fun writeAABBf(name: String, value: AABBf, force: Boolean) =
-        put(name, "AABBf", value)
-
-    override fun writeAABBd(name: String, value: AABBd, force: Boolean) =
-        put(name, "AABBd", value)
 
     override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) =
         put(name, "Array<AABBf>", values)
@@ -311,12 +235,6 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) =
         put(name, "Array<Array<AABBd>>", values)
 
-    override fun writePlanef(name: String, value: Planef, force: Boolean) =
-        put(name, "Planef", value)
-
-    override fun writePlaned(name: String, value: Planed, force: Boolean) =
-        put(name, "Planed", value)
-
     override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) =
         put(name, "Array<Planef>", values)
 
@@ -328,9 +246,6 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
 
     override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
         put(name, "Array<Array<Planed>>", values)
-
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) =
-        put(name, "FileReference", value)
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) =
         put(name, "Array<FileReference>", values)

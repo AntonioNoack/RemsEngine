@@ -1,0 +1,4 @@
+plugin-name: Video IO
+author: Antonio Noack
+description: Loads video, audio and images from many file formats
+main-class: me.anno.video.VideoPlugin
