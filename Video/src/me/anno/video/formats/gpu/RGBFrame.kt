@@ -45,7 +45,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGB", width, height) {
             if (!isDestroyed && !rgb.isDestroyed) {
-                rgb.createRGB(data, true)
+                rgb.createRGB(data, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

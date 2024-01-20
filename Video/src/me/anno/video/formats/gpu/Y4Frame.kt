@@ -25,7 +25,7 @@ class Y4Frame(w: Int, h: Int) : RGBFrame(w, h) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("Y4", width, height) {
             if (!isDestroyed && !rgb.isDestroyed) {
-                rgb.createMonochrome(data, true)
+                rgb.createMonochrome(data, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

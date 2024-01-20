@@ -73,7 +73,7 @@ open class Texture2D(
 
     override var channels: Int = 0
 
-    override fun toString() = "Texture2D(\"$name\", $width x $height x $samples, ${GFX.getName(internalFormat)})"
+    override fun toString() = "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GFX.getName(internalFormat)})"
 
     /**
      * Pseudo-Reference, such that ImageGPUCache[ref] = this;

@@ -35,7 +35,7 @@ class BGRAFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 1) {
         acquire(true, creationLimiter)
         GFX.addGPUTask("BGRA", width, height) {
             if (!isDestroyed && !bgra.isDestroyed) {
-                bgra.createRGBA(data, true)
+                bgra.createRGBA(data, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

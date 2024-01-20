@@ -11,10 +11,10 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.io.MediaMetadata
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
@@ -78,7 +78,6 @@ object AudioFXCache : CacheSection("AudioFX0") {
             result = 31 * result + repeat.hashCode()
             return result
         }
-
     }
 
     class AudioData(
@@ -111,7 +110,6 @@ object AudioFXCache : CacheSection("AudioFX0") {
             FAPool.returnBuffer(timeRight)
             FAPool.returnBuffer(freqRight)*/
         }
-
     }
 
     fun getBuffer(
@@ -127,10 +125,8 @@ object AudioFXCache : CacheSection("AudioFX0") {
     // I don't know where these problems came from... in Release 1.1.2, they were fine
     private val rawDataLimiter = Semaphore(32)
 
-    fun getRawData(
-        meta: MediaMetadata,
-        key: PipelineKey
-    ): AudioData {
+    fun getRawData(meta: MediaMetadata, key: PipelineKey): AudioData {
+        if (meta.audioSampleRate == 0) throw IllegalArgumentException("Cannot load audio without sample rate")
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         acquire(true, rawDataLimiter)
         val entry = getEntry(key to "", timeout, false) { (it, _) ->
@@ -215,7 +211,6 @@ object AudioFXCache : CacheSection("AudioFX0") {
         override fun hashCode(): Int {
             return _hashCode
         }
-
     }
 
     class ShortData : CacheData<ShortArray?>(null) {
@@ -268,12 +263,10 @@ object AudioFXCache : CacheSection("AudioFX0") {
                         mv = min(mv, v1)
                         xv = max(xv, v0)
                         xv = max(xv, v1)
-
                     }
 
                     values[split * 2 + 0] = mv.toShort()
                     values[split * 2 + 1] = xv.toShort()
-
                 }
                 data.value = values
             }
@@ -301,5 +294,4 @@ object AudioFXCache : CacheSection("AudioFX0") {
     }
 
     private const val timeout = 20_000L // audio needs few memory, so we can keep all recent audio
-
 }

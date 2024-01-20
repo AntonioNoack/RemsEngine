@@ -10,6 +10,9 @@ import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.engine.EngineBase
+import me.anno.engine.Events.addEvent
+import me.anno.engine.GFXSettings
 import me.anno.engine.ui.render.Renderers
 import me.anno.fonts.FontManager
 import me.anno.gpu.DepthMode
@@ -34,11 +37,13 @@ import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.io.MediaMetadata
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceAsync
 import me.anno.io.files.Reference.getReferenceOrTimeout
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
@@ -46,9 +51,6 @@ import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
-import me.anno.engine.Events.addEvent
-import me.anno.engine.GFXSettings
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -84,9 +86,7 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
-import me.anno.video.VideoCache.getVideoFrame
-import me.anno.io.MediaMetadata
-import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.video.VideoStream
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -259,13 +259,20 @@ open class FileExplorerEntry(
                     previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
-                    frameIndex = if (isHovered && supportsPlayback) {
+                    frameIndex = if (isHovered && supportsPlayback &&
+                        GFX.activeWindow == GFX.focusedWindow
+                    ) {
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = Time.nanoTime
                             val file = getReferenceOrTimeout(path)
-                            stopPlayback(file)
-                            if (meta.hasAudio) startPlayback(file, meta)
+                            stopAnyPlayback()
+                            val maxSize = min(
+                                max(meta.videoWidth, meta.videoHeight),
+                                max(width, height)
+                            )
+                            if (meta.hasAudio) startAudioPlayback(file, meta)
+                            if (meta.hasVideo) startVideoPlayback(file, meta, maxSize)
                             0
                         } else {
                             time = (Time.nanoTime - startTime) * 1e-9 - hoverPlaybackDelay
@@ -431,20 +438,16 @@ open class FileExplorerEntry(
         }
     }
 
-    fun getFrame(offset: Int) = getVideoFrame(
-        ref1 ?: InvalidRef, scale, frameIndex + offset,
-        videoBufferLength, previewFPS, 1000, true
-    )
-
     private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val image = getFrame(0)
-        if (frameIndex > 0) getFrame(videoBufferLength)
-        if (image != null && image.isCreated) {
+        val image = video?.getFrame()
+        if (image != null) {
             val size = width - 2 * padding
             val (nw, nh) = ImageScale.scaleMin(image.width, image.height, size, size)
             drawTexture((x0 + x1 - nw) / 2, (y0 + y1 - nh) / 2, nw, nh, image)
             drawCircle(x0, y0, x1, y1)
-        } else drawDefaultIcon(x0, y0, x1, y1)
+        } else {
+            drawDefaultIcon(x0, y0, x1, y1)
+        }
 
         // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
         if (height >= 3 * titlePanel.font.sizeInt) {
@@ -870,31 +873,40 @@ open class FileExplorerEntry(
 
     companion object {
 
-        private var audioRef: FileReference? = null
+        private var lastVideoOrAudioRef: FileReference? = null
         private var audio: AudioFileStreamOpenAL? = null
+        private var video: VideoStream? = null
         val hoverPlaybackDelay = 0.5
 
-        fun startPlayback(file: FileReference, meta: MediaMetadata) {
-            stopAnyPlayback()
+        fun startAudioPlayback(file: FileReference, meta: MediaMetadata) {
             val audio = AudioFileStreamOpenAL(
                 file, LoopingState.PLAY_LOOP,
                 -hoverPlaybackDelay, true, meta, 1.0,
                 left = true, center = false, right = true
             )
-            this.audio = audio
-            audioRef = file
             audio.start()
+            this.audio = audio
+            lastVideoOrAudioRef = file
+        }
+
+        fun startVideoPlayback(file: FileReference, meta: MediaMetadata, maxSize: Int) {
+            val video = VideoStream(file, meta, false, LoopingState.PLAY_LOOP, maxSize)
+            video.start(-hoverPlaybackDelay)
+            this.video = video
+            lastVideoOrAudioRef = file
         }
 
         fun stopPlayback(file: FileReference) {
-            if (audioRef != file) return
+            if (lastVideoOrAudioRef != file) return
             stopAnyPlayback()
         }
 
         fun stopAnyPlayback() {
             audio?.stop()
+            video?.destroy()
             audio = null
-            audioRef = null
+            video = null
+            lastVideoOrAudioRef = null
         }
 
         @JvmField
@@ -902,9 +914,6 @@ open class FileExplorerEntry(
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorerEntry::class)
-
-        @JvmField
-        var videoBufferLength = 64
 
         @JvmStatic
         private val charHHMMSS = ComparableStringBuilder("hh:mm:ss/hh:mm:ss")

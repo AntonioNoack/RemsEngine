@@ -460,7 +460,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                         val frameCount = max(1, meta.videoFrameCount)
                         var frameIndex = (time * meta.videoFPS).toInt() % frameCount
                         if (frameIndex < 0) frameIndex += frameCount
-                        val bufferLength = FileExplorerEntry.videoBufferLength
+                        val bufferLength = 64
                         val timeout = 1000L
                         val fps = meta.videoFPS
                         // load future and previous frames

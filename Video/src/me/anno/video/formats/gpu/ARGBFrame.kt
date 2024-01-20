@@ -46,7 +46,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 0) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGBA", width, height) {
             if (!isDestroyed && !rgba.isDestroyed) {
-                rgba.createRGBA(data, true)
+                rgba.createRGBA(data, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

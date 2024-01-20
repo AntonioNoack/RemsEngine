@@ -7,6 +7,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
@@ -14,11 +15,11 @@ import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.ImagePanel
+import me.anno.ui.base.VideoPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu
-import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 
 object FileExplorerOptions {
@@ -149,64 +150,69 @@ object FileExplorerOptions {
     }
 
     fun openImageViewerImpl(windowStack: WindowStack, files: List<FileReference>, style: Style) {
-        val imagePanel = object : ImagePanel(style) {
+        val nullMeta = getMeta(files.first(), false)
+        val imagePanel = if (nullMeta != null && nullMeta.hasVideo && nullMeta.videoFrameCount > 1) {
+            // todo switch between videos
+            VideoPanel.createSimpleVideoPlayer(files.first())
+        } else {
+            object : ImagePanel(style) {
 
-            var index = 0
-            val file get() = files[index]
+                var index = 0
+                val file get() = files[index]
 
-            override fun getTexture(): ITexture2D? {
-                val tex = TextureCache[file, true] ?: Thumbs[file, max(width, height), true] ?: return null
-                tex.bind(0, Filtering.NEAREST, Clamping.CLAMP)
-                return tex
-            }
-
-            val font = style.getFont("text")
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.onDraw(x0, y0, x1, y1)
-                drawText( // draw file name at bottom center
-                    x + width / 2, y + height, font, file.name,
-                    -1, backgroundColor, width, -1,
-                    AxisAlignment.CENTER, AxisAlignment.MAX
-                )
-            }
-
-            fun step(di: Int) {
-                index = (index + di) % files.size
-                invalidateDrawing()
-            }
-
-            fun prev() = step(files.size - 1)
-            fun next() = step(1)
-            fun reset() {
-                zoom = 1f
-                offsetX = 0f
-                offsetY = 0f
-            }
-
-            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-                if (button == Key.BUTTON_LEFT && !long) next()
-                else super.onMouseClicked(x, y, button, long)
-            }
-
-            override fun onKeyTyped(x: Float, y: Float, key: Key) {
-                when (key) {
-                    Key.KEY_ARROW_LEFT, Key.KEY_ARROW_UP, Key.KEY_PAGE_UP -> prev()
-                    Key.KEY_ARROW_RIGHT, Key.KEY_ARROW_DOWN, Key.KEY_PAGE_DOWN -> next()
-                    Key.KEY_0, Key.KEY_KP_0 -> reset()
-                    else -> super.onKeyTyped(x, y, key)
+                override fun getTexture(): ITexture2D? {
+                    val tex = TextureCache[file, true] ?: Thumbs[file, max(width, height), true] ?: return null
+                    tex.bind(0, Filtering.NEAREST, Clamping.CLAMP)
+                    return tex
                 }
-            }
-        }.enableControls()
 
+                val font = style.getFont("text")
+                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                    super.onDraw(x0, y0, x1, y1)
+                    drawText( // draw file name at bottom center
+                        x + width / 2, y + height, font, file.name,
+                        -1, backgroundColor, width, -1,
+                        AxisAlignment.CENTER, AxisAlignment.MAX
+                    )
+                }
+
+                fun step(di: Int) {
+                    index = (index + di) % files.size
+                    invalidateDrawing()
+                }
+
+                fun prev() = step(files.size - 1)
+                fun next() = step(1)
+                fun reset() {
+                    zoom = 1f
+                    offsetX = 0f
+                    offsetY = 0f
+                }
+
+                override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+                    if (button == Key.BUTTON_LEFT && !long) next()
+                    else super.onMouseClicked(x, y, button, long)
+                }
+
+                override fun onKeyTyped(x: Float, y: Float, key: Key) {
+                    when (key) {
+                        Key.KEY_ARROW_LEFT, Key.KEY_ARROW_UP, Key.KEY_PAGE_UP -> prev()
+                        Key.KEY_ARROW_RIGHT, Key.KEY_ARROW_DOWN, Key.KEY_PAGE_DOWN -> next()
+                        Key.KEY_0, Key.KEY_KP_0 -> reset()
+                        else -> super.onKeyTyped(x, y, key)
+                    }
+                }
+            }.enableControls()
+        }
         val stack = PanelStack(style)
         stack.add(imagePanel)
         stack.add(TextButton("Close", style)
             .addLeftClickListener(Menu::close)
             .apply {
                 alignmentX = AxisAlignment.MIN
-                alignmentY = AxisAlignment.MAX
+                alignmentY = if (imagePanel is ImagePanel) AxisAlignment.MAX
+                else AxisAlignment.MIN
             })
-
         windowStack.push(Window(stack, false, windowStack))
         imagePanel.requestFocus()
     }

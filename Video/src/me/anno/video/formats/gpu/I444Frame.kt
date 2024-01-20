@@ -53,7 +53,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I444-Y", width, height) {
             if (!isDestroyed && !y.isDestroyed) {
-                y.createMonochrome(yData, true)
+                y.createMonochrome(yData, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
@@ -68,7 +68,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I444-UV", width, height) {
             if (!isDestroyed && !uv.isDestroyed) {
-                uv.createRG(interlaced, true)
+                uv.createRG(interlaced, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

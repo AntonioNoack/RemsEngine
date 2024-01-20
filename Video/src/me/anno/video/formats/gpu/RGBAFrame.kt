@@ -43,7 +43,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGBA", width, height) {
             if (!isDestroyed && !rgb.isDestroyed) {
-                rgb.createRGBA(data, true)
+                rgb.createRGBA(data, false)
             } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }

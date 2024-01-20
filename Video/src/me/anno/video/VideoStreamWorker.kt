@@ -2,7 +2,8 @@ package me.anno.video
 
 import me.anno.cache.IgnoredException
 import me.anno.io.files.Signature
-import me.anno.utils.ShutdownException
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.InputStreams.skipN
 import me.anno.video.ffmpeg.FFMPEGMetaParser
@@ -16,7 +17,7 @@ import kotlin.concurrent.thread
 
 object VideoStreamWorker {
     private val LOGGER = LogManager.getLogger(VideoStreamWorker::class)
-    fun runVideoStreamWorker(self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int) {
+    fun runVideoStreamWorker(self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, maxSize: Int) {
         val file = self.file
         val meta = self.meta
         thread(name = "Stream/$id/${file.name}") {
@@ -112,9 +113,15 @@ object VideoStreamWorker {
                     }
                 }
             }
+            // scale video as needed
+            val scale = clamp(maxSize.toDouble() / max(meta.videoWidth, meta.videoHeight).toDouble() )
+            val w0 = max((scale * meta.videoWidth).toInt(), 2)
+            val h0 = max((scale * meta.videoHeight).toInt(), 2)
+            val w1 = w0 - w0.and(1)
+            val h1 = h0 - h0.and(1)
             process.run(
                 *FFMPEGStream.getImageSequenceArguments(
-                    file, signature, meta.videoWidth, meta.videoHeight,
+                    file, signature, w1, h1,
                     frameIndex0 / meta.videoFPS,
                     maxNumFrames, meta.videoFPS,
                     meta.videoWidth, meta.videoFPS,

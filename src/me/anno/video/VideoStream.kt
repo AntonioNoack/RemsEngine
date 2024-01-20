@@ -4,17 +4,20 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.ICacheData
-import me.anno.io.files.FileReference
 import me.anno.io.MediaMetadata
+import me.anno.io.files.FileReference
+import me.anno.maths.Maths.max
 import me.anno.video.formats.gpu.GPUFrame
 
 class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
-    var playAudio: Boolean, var looping: LoopingState
+    var playAudio: Boolean, var looping: LoopingState,
+    var maxSize: Int,
 ) : ICacheData {
 
     companion object {
-        var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int) -> Unit)? = null
+        var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, maxSize: Int) -> Unit)? =
+            null
     }
 
     var isPlaying = false
@@ -56,7 +59,7 @@ class VideoStream(
 
     fun startWorker(frameIndex0: Int, maxNumFrames: Int) {
         val id = ++workerId
-        runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames)
+        runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames, maxSize)
     }
 
     fun stop() {
@@ -103,11 +106,13 @@ class VideoStream(
     }
 
     fun getTime(): Double {
-        val time0 = if (isPlaying) {
-            (Time.nanoTime - startTime)
-        } else {
-            standTime
-        } * 1e-9
+        val time0 = max(
+            if (isPlaying) {
+                (Time.nanoTime - startTime)
+            } else {
+                standTime
+            }, 0L
+        ) * 1e-9
         return looping[time0, meta.videoDuration]
     }
 
@@ -135,10 +140,6 @@ class VideoStream(
                 .maxByOrNull { it.first }
             goodFrames ?: sortedFrames.firstOrNull { it.second.isCreated }
         }?.second
-    }
-
-    init {
-        skipTo(0.0)
     }
 
     override fun destroy() {
