@@ -127,8 +127,8 @@ abstract class EngineBase(
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
         Engine.projectName = configName
-        ConfigBasics.configFolder = FileReference.getReference(OS.home, ".config/$configName")
-        ConfigBasics.cacheFolder = FileReference.getReference(OS.home, ".cache/$configName")
+        ConfigBasics.configFolder = OS.home.getChild( ".config").getChild(configName)
+        ConfigBasics.cacheFolder = OS.home.getChild( ".cache").getChild(configName)
     }
 
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {
@@ -176,8 +176,6 @@ abstract class EngineBase(
         onGameLoopStart()
 
         if (isFirstFrame) tick("Game loop")
-
-        if (Maths.random() < 0.1) FileReference.updateCache()
 
         updateVSync(window)
         updateHoveredAndCursor(window)

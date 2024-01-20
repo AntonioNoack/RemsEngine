@@ -12,7 +12,7 @@ import kotlin.math.min
 fun main() {
 
     val images = pictures.getChild("Screenshots")
-        .listChildren()!!
+        .listChildren()
         .map { file ->
             val number = file.name.filter { it in '0'..'9' }.toIntOrNull()
             Pair(number, file)

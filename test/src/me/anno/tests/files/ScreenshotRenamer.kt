@@ -16,7 +16,7 @@ fun main() {
 
 fun rename1(file: FileReference, dates: HashMap<String, Int>) {
     if (file.isDirectory) {
-        for (child in file.listChildren() ?: return) {
+        for (child in file.listChildren()) {
             rename1(child, dates)
         }
     } else if (regex0.matches(file.name) || regex1.matches(file.name)) {

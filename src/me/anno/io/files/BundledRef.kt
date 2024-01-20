@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.Build
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.files.Reference.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.URI
@@ -92,7 +93,7 @@ class BundledRef(
         } else jarAsZip2
     }
 
-    override fun getParent() = cachedParent
+    override fun getParent(): FileReference = cachedParent
 
     override val lastModified get(): Long = 0L
     override val lastAccessed get(): Long = 0L
@@ -164,7 +165,7 @@ class BundledRef(
                     ?.codeSource
                     ?.location
                     ?.toURI()
-                if (uri != null) File(uri) else null
+                if (uri != null) File(uri).absolutePath else null
             } catch (e: NullPointerException) {
                 e.printStackTrace()
                 null

@@ -15,7 +15,7 @@ import kotlin.math.*
 fun main() {
     // parse everything absolute
     // write everything with the shortest form
-    val src = downloads.listChildren()!!
+    val src = downloads.listChildren()
     val dst = downloads.getChild("compressed")
     for (s in src) {
         if (s.lcExtension == "svg") {

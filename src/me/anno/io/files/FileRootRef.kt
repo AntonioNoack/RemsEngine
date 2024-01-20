@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.io.files.Reference.getReference
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -28,13 +29,13 @@ object FileRootRef : FileReference("root") {
 
     override fun mkdirs(): Boolean = true
 
-    override fun listChildren() = File.listRoots().map { getReference(it) }
+    override fun listChildren(): List<FileReference> = File.listRoots().map { getReference(it.absolutePath) }
 
     override fun getChild(name: String): FileReference {
         return listChildren().firstOrNull { it.name == name } ?: InvalidRef
     }
 
-    override fun getParent() = null
+    override fun getParent(): FileReference = InvalidRef
 
     override fun renameTo(newName: FileReference): Boolean {
         return false
@@ -49,5 +50,4 @@ object FileRootRef : FileReference("root") {
     override fun toUri(): URI {
         return URI("file:/")
     }
-
 }

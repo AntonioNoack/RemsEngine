@@ -7,7 +7,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
@@ -369,8 +369,8 @@ object StaticMeshesLoader {
         if (ior > 1f) prefab["indexOfRefraction"] = ior
 
         if (metallicRoughness != InvalidRef) {
-            prefab["metallicMap"] = getReference(metallicRoughness, "b.png")
-            prefab["roughnessMap"] = getReference(metallicRoughness, "g.png")
+            prefab["metallicMap"] = metallicRoughness.getChild("b.png")
+            prefab["roughnessMap"] = metallicRoughness.getChild("g.png")
             prefab["roughnessMinMax"] = Vector2f(0.1f, 1f)
             prefab["metallicMinMax"] = Vector2f(0f, 1f)
         } else {

@@ -1,7 +1,6 @@
 package me.anno.tests.image
 
 import me.anno.image.ImageCache
-import me.anno.io.files.FileReference
 import me.anno.utils.OS
 
 fun main() {
@@ -11,10 +10,10 @@ fun main() {
     )) {
         val name = file.nameWithoutExtension
         ImageCache[file, false]!!
-            .write(FileReference.getReference(OS.desktop, "$name.png"))
-        for (it in file.listChildren()!!) {
+            .write(OS.desktop.getChild("$name.png"))
+        for (it in file.listChildren()) {
             ImageCache[it, false]!!
-                .write(FileReference.getReference(OS.desktop, "$name.${it.nameWithoutExtension}.png"))
+                .write(OS.desktop.getChild("$name.${it.nameWithoutExtension}.png"))
         }
     }
 }

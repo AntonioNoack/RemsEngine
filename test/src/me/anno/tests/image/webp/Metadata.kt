@@ -10,7 +10,7 @@ fun main() {
     val src = pictures.getChild("Anime")
     val dst = desktop.getChild("webp")
     dst.tryMkdirs()
-    for (file in src.listChildren()!!) {
+    for (file in src.listChildren()) {
         if (file.lcExtension == "webp") {
             println(getMeta(file, false))
             val image = ImageIO.read(file.inputStreamSync())

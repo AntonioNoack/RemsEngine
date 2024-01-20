@@ -1,10 +1,9 @@
 package me.anno.utils
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Ints.toIntOrDefault
 import java.lang.management.ManagementFactory
-import java.util.*
 import kotlin.concurrent.thread
 
 /**
@@ -45,26 +44,26 @@ object OS {
     val home by lazy { getReference(System.getProperty("user.home")) }
 
     @JvmStatic
-    val downloads by lazy { getReference(home, "Downloads") }
+    val downloads by lazy { home.getChild( "Downloads") }
 
     @JvmStatic
-    val desktop by lazy { getReference(home, "Desktop") }
+    val desktop by lazy { home.getChild( "Desktop") }
 
     @JvmStatic
-    val documents by lazy { getReference(home, "Documents") }
+    val documents by lazy { home.getChild( "Documents") }
 
     @JvmStatic
-    val pictures by lazy { getReference(home, "Pictures") }
+    val pictures by lazy { home.getChild( "Pictures") }
 
     @JvmStatic
-    val videos by lazy { getReference(home, "Videos") }
+    val videos by lazy { home.getChild( "Videos") }
 
     @JvmStatic
-    val music by lazy { getReference(home, "Music") }
+    val music by lazy { home.getChild( "Music") }
 
     // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
     @JvmStatic
-    val screenshots by lazy { getReference(pictures, "Screenshots") }
+    val screenshots by lazy { pictures.getChild("Screenshots") }
 
     @JvmStatic
     fun startProcess(vararg args: String) {

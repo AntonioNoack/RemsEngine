@@ -10,7 +10,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.mesh.obj.SimpleOBJReader
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntilDefined
@@ -27,23 +27,20 @@ object Logo {
     var logoBackgroundColor = 0
     var logoIconColor = 0xff212256.toInt()
 
-    val logoSrc = FileReference.getReference("res://icon.obj")
+    val logoSrc = getReference("res://icon.obj")
 
-    val shader by lazy {
+    val shader = Shader(
+        "logo", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "size")
+        ), "void main(){ gl_Position = vec4(coords * size, 1.0); }",
+        emptyList(), listOf(
+            Variable(GLSLType.V4F, "logoColor")
+        ), "void main(){ gl_FragColor = logoColor; }"
+    )
 
-        val shader = Shader(
-            "logo", listOf(
-                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                Variable(GLSLType.V3F, "size")
-            ), "void main(){ gl_Position = vec4(coords * size, 1.0); }",
-            emptyList(), listOf(
-                Variable(GLSLType.V4F, "logoColor")
-            ), "void main(){ gl_FragColor = logoColor; }"
-        )
-
+    init {
         shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
-        shader
-
     }
 
     val frame by lazy {

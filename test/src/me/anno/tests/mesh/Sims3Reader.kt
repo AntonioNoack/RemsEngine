@@ -1,6 +1,5 @@
 package me.anno.tests.mesh
 
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.maths.Maths.hasFlag
 import me.anno.tests.LOGGER
@@ -23,12 +22,12 @@ fun main() {
     // .world = world
     // .dbc = collection of archives in single file
 
-    val folder = getReference(OS.documents, "Electronic Arts/Die Sims 3")
+    val folder = OS.documents.getChild("Electronic Arts/Die Sims 3")
     // val ref = getReference(folder,"Thumbnails/ObjectThumbnails.package")
     // val ref = getReference(folder, "Saves/Fiora.sims3/France_0x0859db50.nhd")
-    val ref = getReference(folder, "Saves/Fiora.sims3/France_0x0859db50ExportDB.package")
+    val ref = folder.getChild("Saves/Fiora.sims3/France_0x0859db50ExportDB.package")
 
-    val dst = getReference(desktop, "Sims")
+    val dst = desktop.getChild("Sims")
     dst.tryMkdirs()
     // dst.listChildren()?.map { it.delete() }
     // DBPP would be encrypted data
@@ -84,7 +83,7 @@ fun main() {
                 extension = "null"
             if (entry.compressed > 0)
                 extension = "c.$extension"
-            val ref2 = getReference(dst, entry.chunkOffset.toString(16) + ".$extension")
+            val ref2 = dst.getChild(entry.chunkOffset.toString(16) + ".$extension")
             ref2.writeBytes(outputBuffer)
 
             // http://simswiki.info/wiki.php?title=Sims_3:PackedFileTypes
@@ -127,10 +126,8 @@ fun main() {
                 else -> "not yet registered"
             }
             println("$type $entry")
-
         }
     }
-
 }
 
 

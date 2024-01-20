@@ -3,7 +3,7 @@ package me.anno.tests.elemental
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.io.config.ConfigBasics.cacheFolder
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow

@@ -35,7 +35,7 @@ class JPGReader {
         fun main(args: Array<String>) {
             fun convert(file: FileReference) {
                 if (file.isDirectory) {
-                    for (child in file.listChildren() ?: return) {
+                    for (child in file.listChildren()) {
                         convert(child)
                     }
                 } else if (Signature.findNameSync(file) == "jpg") {

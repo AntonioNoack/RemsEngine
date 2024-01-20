@@ -12,22 +12,23 @@ import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.files.inner.InnerLinkFile
+import me.anno.tests.LOGGER
 import me.anno.ui.debug.TestEngine
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 
 fun inspectAsset(asset: FileReference) {
-    for (file in asset.listChildren()!!.filterIsInstance<InnerLinkFile>().sortedBy { -it.length() }) {
+    for (file in asset.listChildren().filterIsInstance<InnerLinkFile>().sortedBy { -it.length() }) {
         LOGGER.info(file.name + " links to " + file.link)
     }
-    for (file in asset.listChildren()!!.filter { it !is InnerLinkFile }.sortedBy { -it.length() }) {
+    for (file in asset.listChildren().filter { it !is InnerLinkFile }.sortedBy { -it.length() }) {
         LOGGER.info(file.name + ", " + file.length().formatFileSize())
         LOGGER.info(JsonFormatter.format(file.readTextSync()))
     }
@@ -37,7 +38,7 @@ fun FileReference.printTree(depth: Int, maxDepth: Int) {
     if (!isHidden) {
         LOGGER.debug(Tabs.spaces(depth * 2) + name)
         if (depth + 1 < maxDepth && (if (depth == 0) isSomeKindOfDirectory else isDirectory)) {
-            for (child in listChildren() ?: emptyList()) {
+            for (child in listChildren()) {
                 child.printTree(depth + 1, maxDepth)
             }
         }
@@ -62,15 +63,12 @@ fun testRendering(file: FileReference, size: Int = 512, index: Int) {
 
 fun smallRenderTest() {
 
-    val projectPath = FileReference.getReference(OS.downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
-    val colliderComponent =
-        FileReference.getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
-    val meshComponent =
-        FileReference.getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/33053279949580010.json")
-    val entityOfComponent =
-        FileReference.getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/1661159153272266.json")
+    val projectPath = OS.downloads.getChild("up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+    val colliderComponent = projectPath.getChild("f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
+    val meshComponent = projectPath.getChild("f9a80be48a6254344b5f885cfff4bbb0/33053279949580010.json")
+    val entityOfComponent = projectPath.getChild("f9a80be48a6254344b5f885cfff4bbb0/1661159153272266.json")
     val bbox =
-        FileReference.getReference("E:/Assets/Polygon_Street_Racer_Unity_Package_2018_4_Update_01.unitypackage/Assets/PolygonStreetRacer/Prefabs/Generic/SM_Generic_TreeStump_01.prefab")
+        getReference("E:/Assets/Polygon_Street_Racer_Unity_Package_2018_4_Update_01.unitypackage/Assets/PolygonStreetRacer/Prefabs/Generic/SM_Generic_TreeStump_01.prefab")
 
     HiddenOpenGLContext.createOpenGL()
 
@@ -126,7 +124,7 @@ m_RootOrder: 0
 m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
     * */
 
-    val projectPath = FileReference.getReference(OS.downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+    val projectPath = OS.downloads.getChild("up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
     val scene = projectPath.getChild("Assets/PolygonSciFiCity/Scenes/Demo_TriplanarDirt.unity/2130288114.json")
 
     HiddenOpenGLContext.createOpenGL()
@@ -157,7 +155,7 @@ fun main() {
     /*sceneRenderTest()
     return*/
 
-    val projectPath = FileReference.getReference(OS.downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+    val projectPath = OS.downloads.getChild("up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
 
     /*
     return*/
@@ -214,7 +212,7 @@ fun main() {
 
     return*/
 
-    ImageCache[FileReference.getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
+    ImageCache[projectPath.getChild("Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
         .write(OS.desktop.getChild("LineTex4.png"))
 
     // circular sample
@@ -229,8 +227,8 @@ fun main() {
     Engine.shutdown()*/
 
 
-    val assets = FileReference.getReference(projectPath, "Assets")
-    val main = FileReference.getReference(assets, "PolygonSciFiCity")
+    val assets = projectPath.getChild("Assets")
+    val main = assets.getChild("PolygonSciFiCity")
 
     //parseYAML(getReference(main, "Materials/Alternates/PolygonScifi_03_B.mat").readText())
     //parseYAML(getReference(main, "Scenes/Demo.unity"))
@@ -253,9 +251,9 @@ fun main() {
 
     // ECSRegistry.init()
 
-    val testScene = FileReference.getReference(main, "Scenes/Demo_TriplanarDirt.unity")
+    val testScene = main.getChild("Scenes/Demo_TriplanarDirt.unity")
     for (fileName in listOf("2130288114", "668974552")) {
-        val file = FileReference.getReference(testScene, "$fileName.json")
+        val file = testScene.getChild("$fileName.json")
         LOGGER.debug("$fileName: " + PrefabCache.printDependencyGraph(file))
     }
     //Engine.requestShutdown()

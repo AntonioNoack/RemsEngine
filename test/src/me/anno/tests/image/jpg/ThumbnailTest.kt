@@ -8,7 +8,7 @@ import me.anno.utils.OS.pictures
 fun main() {
     // thread: https://stackoverflow.com/questions/10349622/extract-thumbnail-from-jpeg-file
     desktop.getChild("jpg").mkdirs()
-    for (file in pictures.listChildren()!!) {
+    for (file in pictures.listChildren()) {
         if (file.isDirectory) continue
         if (file.lcExtension != "jpg") continue
         extractThumbnail(file) { data ->

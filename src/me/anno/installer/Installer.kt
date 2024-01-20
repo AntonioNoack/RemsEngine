@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.structures.Iterators.toList

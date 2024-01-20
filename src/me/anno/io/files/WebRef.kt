@@ -24,7 +24,7 @@ import kotlin.math.min
 /**
  * http/https resource
  * on the web, these may be the only resources available except for InnerFiles
- * 
+ *
  * todo get/put/post
  * todo define request headers like user-agent
  *
@@ -132,12 +132,12 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         throw IOException("Operation WebRef.mkdirs() is not supported")
     }
 
-    override fun getParent(): FileReference? {
+    override fun getParent(): FileReference {
         var endIndex = absolutePath.indexOf('?')
         if (endIndex < 0) endIndex = absolutePath.length
         if (absolutePath[endIndex - 1] == '/') endIndex--
         endIndex = absolutePath.lastIndexOf('/', endIndex)
-        if (endIndex < 0) return null // we're already at the top level
+        if (endIndex < 0) return InvalidRef // we're already at the top level
         return WebRef(absolutePath.substring(0, endIndex), emptyMap())
     }
 

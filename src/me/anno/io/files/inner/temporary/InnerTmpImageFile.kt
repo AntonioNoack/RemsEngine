@@ -24,7 +24,7 @@ class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ex
     }
 
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference>? = null
+    override fun listChildren(): List<FileReference> = emptyList()
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         callback(inputStreamSync(), null)

@@ -2,6 +2,8 @@ package me.anno.io.files
 
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.register
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -17,7 +19,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         private var trackOpenStreamsMillis = 0L
 
         fun createTempFile(name: String, extension: String): FileReference {
-            return getReference(File.createTempFile(name, extension))
+            return getReference(File.createTempFile(name, extension).absolutePath)
         }
 
         private fun beautifyPath(path: String): String {
@@ -35,7 +37,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             if (src.isDirectory) {
                 dst.mkdirs()
                 started(src)
-                for (child in src.listChildren() ?: emptyList()) {
+                for (child in src.listChildren()) {
                     copyHierarchy(child, dst.getChild(child.name), started, finished)
                 }
                 finished(src)
@@ -159,14 +161,15 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return file.listFiles()?.isNotEmpty() == true
     }
 
-    override fun listChildren(): List<FileReference>? {
+    override fun listChildren(): List<FileReference> {
         return (if (exists) {
             if (isDirectory) file.listFiles()?.map { getChild(it.name) }
             else zipFileForDirectory?.listChildren()
         } else null) ?: super.listChildren()
     }
 
-    override fun getParent() = getReference(file.parentFile).nullIfUndefined() ?: FileRootRef
+    override fun getParent(): FileReference =
+        getReference(file.parentFile?.absolutePath).ifUndefined(FileRootRef)
 
     override fun renameTo(newName: FileReference): Boolean {
         val response = file.renameTo(
@@ -182,9 +185,9 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun getChild(name: String): FileReference {
         return if (!exists || isDirectory) {
-            if ('/' in name || '\\' in name) getReference(this, name)
+            if ('/' in name || '\\' in name) getReference("$absolutePath/$name")
             else register(FileFileRef(File(file, name)))
-        } else getReference(zipFileForDirectory, name)
+        } else zipFileForDirectory?.getChild(name) ?: InvalidRef // todo
     }
 
     override val exists: Boolean

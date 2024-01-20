@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.texture.Filtering
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.IconPanel
 import me.anno.ui.base.groups.PanelFlipper

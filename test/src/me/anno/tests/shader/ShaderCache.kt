@@ -11,7 +11,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 private fun compileCachedShaders() {
     GFX.checkIsGFXThread()
     ShaderCache.init()
-    val list = ShaderCache.cacheFolder.listChildren()!!.toSet()
+    val list = ShaderCache.cacheFolder.listChildren().toSet()
     val fine = list.filter { sample ->
         if (sample.lcExtension == "bin") {
             val prefix = "${sample.name}."

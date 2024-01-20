@@ -8,7 +8,7 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Modifiers
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.utils.StringMap
 import me.anno.engine.Events.addEvent
 import me.anno.ui.WindowStack.Companion.printLayout

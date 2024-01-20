@@ -1,6 +1,6 @@
 package me.anno.ui.editor.color.spaces
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.pooling.JomlPools

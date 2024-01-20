@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 

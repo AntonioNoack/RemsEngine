@@ -1,6 +1,7 @@
 package me.anno.io.links
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -16,7 +17,7 @@ object URLReader {
                     val fileI = if (line.startsWith("URL=file://")) {
                         line.substring(11).toGlobalFile()
                     } else if (line.startsWith("URL=")) {
-                        FileReference.getReference(line.substring(4))
+                        getReference(line.substring(4))
                     } else continue
                     files.add(fileI)
                 }

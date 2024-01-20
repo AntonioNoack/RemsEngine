@@ -8,13 +8,11 @@ import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
 import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.generic.JsonReader
 import me.anno.language.Language
 import me.anno.engine.EngineBase
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
-import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.process.BetterProcessBuilder
@@ -31,7 +29,7 @@ import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
 
-    private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib/spellchecking")]
+    private val path = DefaultConfig["spellchecking.path", OS.downloads.getChild("lib/spellchecking")]
 
     var defaultLanguage = Language.AmericanEnglish
     private val language get() = EngineBase.instance?.language ?: defaultLanguage
@@ -102,7 +100,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         var fileName: String? = null
         for ((languages, fileNameMaybe) in libraries) {
             if (language in languages) {
-                val dst = getReference(path, fileNameMaybe)
+                val dst = path.getChild(fileNameMaybe)
                 if (dst.exists) {// done :)
                     callback(dst)
                     return
@@ -112,7 +110,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 if (fileName == null) fileName = fileNameMaybe
             }
         }
-        val dst = getReference(path, fileName!!)
+        val dst = path.getChild(fileName!!)
         if (dst in requestedDownloads) {
             waitForDownload(dst, callback)
         } else {

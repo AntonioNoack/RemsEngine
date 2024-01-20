@@ -1,6 +1,6 @@
 package me.anno.build
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.home

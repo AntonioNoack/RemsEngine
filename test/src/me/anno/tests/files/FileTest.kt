@@ -1,7 +1,7 @@
 package me.anno.tests.files
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.Tabs
 import org.apache.logging.log4j.LogManager
 
@@ -14,7 +14,7 @@ fun main() {
     fun printHierarchy(file: FileReference, depth: Int) {
         logger.info(Tabs.tabs(depth) + file.absolutePath)
         if (file.isSomeKindOfDirectory) {
-            val children = file.listChildren() ?: emptyList()
+            val children = file.listChildren()
             if (children.isNotEmpty()) {
                 for (child in children)
                     printHierarchy(child, depth + 1)

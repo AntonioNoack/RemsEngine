@@ -95,7 +95,7 @@ class GameEngineProject() : NamedSaveable() {
     fun forAllFiles(folder: FileReference, maxDepth: Int, run: (FileReference) -> Unit) {
         try {
             // to do go into things as well???
-            for (child in folder.listChildren() ?: return) {
+            for (child in folder.listChildren()) {
                 if (child.isDirectory) {
                     if (maxDepth > 0) {
                         forAllFiles(child, maxDepth - 1, run)
@@ -177,7 +177,7 @@ class GameEngineProject() : NamedSaveable() {
     ) {
         val depthM1 = depth - 1
         if (!file.isDirectory || Engine.shutdown || progressBar.isCancelled) return
-        val children = file.listChildren() ?: return
+        val children = file.listChildren()
         progressBar.total += children.size
         progressBar.progress += 1.0
         for (child in children) {

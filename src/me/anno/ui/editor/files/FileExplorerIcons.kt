@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 
 object FileExplorerIcons {
 

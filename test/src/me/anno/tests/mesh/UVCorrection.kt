@@ -41,7 +41,7 @@ fun main() {
     )
     val clock = Clock()
     for (sample in samples) {
-        val ref = FileReference.getReference(OS.downloads, sample)
+        val ref = OS.downloads.getChild(sample)
         OBJReader.readAsFolder(ref) { folder, _ ->
             if (folder != null) {
                 clock.start()

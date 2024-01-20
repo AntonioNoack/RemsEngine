@@ -2,7 +2,7 @@ package me.anno.gpu
 
 import me.anno.Build
 import me.anno.config.DefaultConfig
-import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
@@ -40,7 +40,7 @@ object RenderDoc {
         try {
             // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()
             // at least this is the default location for RenderDoc
-            if (FileReference.getReference(path).exists) {
+            if (getReference(path).exists) {
                 LOGGER.info("Loading RenderDoc")
                 System.load(path)
                 GFXBase.usesRenderDoc = true

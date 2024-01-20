@@ -1,14 +1,13 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.utils.OS
 
 fun main() {
-    val tmpDir = FileReference.getReference(OS.desktop, "tmp")
+    val tmpDir = OS.desktop.getChild("tmp")
     tmpDir.mkdirs()
-    val tmpFile = FileReference.getReference(tmpDir, "x.txt")
+    val tmpFile = tmpDir.getChild("x.txt")
     FileWatch.addWatchDog(tmpFile)
     Thread.sleep(100)
     tmpFile.writeText("") // must be registered

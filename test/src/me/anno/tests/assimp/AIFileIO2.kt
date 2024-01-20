@@ -2,7 +2,6 @@ package me.anno.tests.assimp
 
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerByteFile
 import me.anno.io.files.inner.InnerFolder
@@ -20,7 +19,7 @@ fun main() {
         "3d/azeria/scene.gltf",
         "3d/azeria/azeria.zip/scene.gltf"
     )) {
-        val ref = getReference(downloads, file)
+        val ref = downloads.getChild(file)
         val data = ref.readBytesSync()
         val folder = InnerFolder(InvalidRef)
         val intFile = InnerByteFile(folder, ref.name, data)

@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.decal.DecalMeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.utils.OS
 import kotlin.math.PI

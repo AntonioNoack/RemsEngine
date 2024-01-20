@@ -17,7 +17,7 @@ fun main() {
 
     val name = "female_casualsuit01"
 
-    val src = FileReference.getReference(documents, "MakeHuman/data/clothes/$name/$name.npz")
+    val src = documents.getChild( "MakeHuman/data/clothes/$name/$name.npz")
     val data = NumPyReader.readNPZ(src)
     // numbers for fedora
     val coord = data["coord"] // positions, 634x vec3

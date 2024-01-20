@@ -124,8 +124,8 @@ abstract class InnerFile(
         return false
     }
 
-    override fun listChildren(): List<FileReference>? {
-        return zipFileForDirectory?.listChildren()
+    override fun listChildren(): List<FileReference> {
+        return zipFileForDirectory?.listChildren() ?: emptyList()
     }
 
     override fun getParent(): FileReference {

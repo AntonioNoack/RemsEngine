@@ -6,7 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.engine.Events.addEvent
 import me.anno.ui.editor.files.FileNames.toAllowedFilename

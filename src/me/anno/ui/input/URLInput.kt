@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style

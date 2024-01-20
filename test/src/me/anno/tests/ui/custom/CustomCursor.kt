@@ -3,7 +3,7 @@ package me.anno.tests.ui.custom
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Cursor
 import me.anno.image.ImageCache
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 

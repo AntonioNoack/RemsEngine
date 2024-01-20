@@ -16,7 +16,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32F
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.InputStreams.readNBytes2

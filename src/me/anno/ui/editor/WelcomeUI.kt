@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
@@ -343,7 +342,7 @@ interface WelcomeUI {
         var lastName = nameInput.value
         fileInput = FileInput(
             Dict["Project Location", "ui.newProject.location"], style,
-            getReference(EngineBase.workspace, lastName), emptyList(),
+            EngineBase.workspace.getChild(lastName), emptyList(),
             true
         )
 
@@ -352,7 +351,7 @@ interface WelcomeUI {
         nameInput.addChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.value.name) {
-                fileInput.setText(getReference(fileInput.value.getParent(), newName).toString(), false)
+                fileInput.setText(fileInput.value.getSibling(newName).toString(), false)
                 updateFileInputColor()
             }
             lastName = newName

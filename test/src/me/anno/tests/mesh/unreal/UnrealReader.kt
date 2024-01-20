@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.unreal
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.types.Buffers.skip
 import java.io.InputStream
 import java.nio.ByteBuffer

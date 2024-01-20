@@ -2,7 +2,6 @@ package me.anno.tests.files
 
 import me.anno.Engine
 import me.anno.engine.RemsEngine
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.documents
 import me.anno.utils.Sleep.waitUntil
 import kotlin.concurrent.thread
@@ -13,20 +12,20 @@ fun main() {
     // does this work for imported meshes? yes :)
 
     val folder = documents
-    val file1 = getReference(folder, "t1.obj")
-    val file2 = getReference(folder, "t2.obj")
+    val file1 = folder.getChild("t1.obj")
+    val file2 = folder.getChild("t2.obj")
 
     thread(name = "ToggleThread") {
         var ctr = 0
         var data1: ByteArray? = null
-        getReference(documents, "cube.obj").readBytes { it, exc ->
+        documents.getChild("cube.obj").readBytes { it, exc ->
             data1 = if (it == null) {
                 exc!!.printStackTrace()
                 ByteArray(0)
             } else it
         }
         var data2: ByteArray? = null
-        getReference(documents, "sphere.obj").readBytes { it, exc ->
+        documents.getChild("sphere.obj").readBytes { it, exc ->
             data2 = if (it == null) {
                 exc!!.printStackTrace()
                 ByteArray(0)

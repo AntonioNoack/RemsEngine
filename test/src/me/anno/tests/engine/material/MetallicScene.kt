@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere

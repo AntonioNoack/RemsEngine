@@ -36,7 +36,7 @@ object Files {
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
         val default = if (extension.isEmpty()) nameWithoutExtension else "$nameWithoutExtension.$extension"
-        val siblings = parent.listChildren() ?: return default
+        val siblings = parent.listChildren()
         if (default !in siblings.map { it.name }) return default
         val prefix = if (colonSymbol.code == 0) nameWithoutExtension else "$nameWithoutExtension$colonSymbol"
         // val nameLength = prefix.length + digitsLength

@@ -11,7 +11,7 @@ fun main() {
 fun format(file: FileReference, depth: Int) {
     if (file.isDirectory) {
         if (depth > 0) {
-            for (child in file.listChildren() ?: return) {
+            for (child in file.listChildren()) {
                 format(child, depth - 1)
             }
         }

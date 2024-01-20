@@ -3,6 +3,7 @@ package me.anno.tests.image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
@@ -12,7 +13,7 @@ import me.anno.utils.OS.desktop
 fun createUVCheckerImage(): IntImage {
 
     // load texture with numbers
-    val numbers = ImageCache[FileReference.getReference("res://textures/dig8.png"), false]!!
+    val numbers = ImageCache[getReference("res://textures/dig8.png"), false]!!
     val cw = 27 // character size in <numbers>
     val ch = 37
     val co = 17 // character offset from top, ~ch/2

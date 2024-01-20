@@ -9,7 +9,7 @@ fun main() {
     val src = pictures.getChild("atlas.webp")
     val image = ImageCache[src, false]!!.createIntImage()
     println("alpha-pixels: ${image.data.count { it.a() < 255 }}/${image.data.size}")
-    for (file in pictures.getChild("Anime").listChildren()!!) {
+    for (file in pictures.getChild("Anime").listChildren()) {
         Signature.findName(file) { println(it) }
     }
 }

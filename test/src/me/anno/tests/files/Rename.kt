@@ -1,7 +1,7 @@
 package me.anno.tests.files
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.tests.LOGGER
 
 fun main() {
@@ -9,7 +9,7 @@ fun main() {
 }
 
 fun rename(folder: FileReference) {
-    for (child in folder.listChildren()!!) {
+    for (child in folder.listChildren()) {
         if (child.isDirectory) {
             rename(child)
         } else {

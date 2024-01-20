@@ -1,7 +1,7 @@
 package me.anno.tests.files
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -13,7 +13,7 @@ fun main() {
 
     fun deleteClassFiles(file: FileReference) {
         if (file.isDirectory) {
-            for (f in file.listChildren()!!) {
+            for (f in file.listChildren()) {
                 deleteClassFiles(f)
             }
         } else {
@@ -25,12 +25,12 @@ fun main() {
 
     fun cleanEclipseProject(file: FileReference) {
 
-        if (!getReference(file, ".classpath").exists) {
+        if (!file.getChild(".classpath").exists) {
             logger.info("not a project: $file")
             return
         }
 
-        getReference(file, "bin").deleteRecursively()
+        file.getChild("bin").deleteRecursively()
 
     }
 
@@ -38,11 +38,11 @@ fun main() {
 
         if (!file.isDirectory) return
 
-        for (f in file.listChildren()!!) {
+        for (f in file.listChildren()) {
             deleteEmptyFolders(f)
         }
 
-        if (file.listChildren()!!.isEmpty()) {
+        if (file.listChildren().isEmpty()) {
             logger.info("deleting $file")
             file.deleteRecursively()
         }
@@ -53,7 +53,7 @@ fun main() {
 
         if (!file.isDirectory) return
 
-        if (file.listChildren()!!.none { it.extension == "iml" }) {
+        if (file.listChildren().none { it.extension == "iml" }) {
             return
         }
 
@@ -62,12 +62,12 @@ fun main() {
         val files = listOf(".gradle", "gradle", "out", "build", "app/build", "captures", "app/.externalNativeBuild")
 
         for (f in files) {
-            getReference(file, f).deleteRecursively()
+            file.getChild(f).deleteRecursively()
         }
 
-        val release = getReference(file, "app/release")
+        val release = file.getChild("app/release")
         if (release.exists) {
-            if (release.listChildren()!!.size > 2) {
+            if (release.listChildren().size > 2) {
                 logger.info("Problematic: $file")
             } else {
                 release.deleteRecursively()
@@ -79,12 +79,12 @@ fun main() {
     }
 
     val folder = getReference("E:\\Projects\\Android")
-    for (file in folder.listChildren()!!) {
+    for (file in folder.listChildren()) {
         cleanIntellijProject(file)
     }
 
     val folder2 = getReference("E:\\Projects\\Java")
-    for (file in folder2.listChildren()!!) {
+    for (file in folder2.listChildren()) {
         cleanEclipseProject(file)
         cleanIntellijProject(file)
         deleteClassFiles(file)

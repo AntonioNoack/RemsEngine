@@ -1,6 +1,5 @@
 package me.anno.tests.structures
 
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
@@ -22,11 +21,11 @@ fun main() {
 
     val clock = Clock()
 
-    val folder = getReference(downloads, "WordCount.zip/WordCount_v1")
+    val folder = downloads.getChild("WordCount.zip/WordCount_v1")
 
     clock.stop("reading zip")
 
-    val books = folder.listChildren()!!
+    val books = folder.listChildren()
         .filter { it.lcExtension == "txt" }
         .map { file ->
             file.readTextSync()

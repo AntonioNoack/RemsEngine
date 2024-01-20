@@ -84,7 +84,7 @@ object AssetImport {
             dstFile.writeFile(srcFolder) {}
         } else {
             // todo what if this is directly an asset? mesh, material, ...
-            for (srcFile in srcFolder.listChildren() ?: return) {
+            for (srcFile in srcFolder.listChildren()) {
                 if (srcFile.isDirectory) {
                     val dstFolder2 = dstFolder.getChild(srcFile.name)
                     if (!dstFolder2.exists) dstFolder2.tryMkdirs()

@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.image.ImageCache
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS.desktop
 
 fun main() {
@@ -16,7 +16,7 @@ fun convertAllPNGToJPG() {
     val src = getReference("E:/Assets/Sponza/textures")
     val dst = src.getChild("jpg")
     dst.tryMkdirs()
-    for (child in src.listChildren()!!) {
+    for (child in src.listChildren()) {
         if (child.lcExtension == "png") {
             val jpgPath = dst.getChild(child.nameWithoutExtension + ".jpg")
             ImageCache[child, 0L, false]!!
@@ -34,7 +34,7 @@ fun scaleDownImages() {
     val src = desktop.getChild("Berlin")
     val dst = src.getChild("small")
     dst.tryMkdirs()
-    for (child in src.listChildren()!!) {
+    for (child in src.listChildren()) {
         if (child.isDirectory) continue
         val image = ImageCache[child, false] ?: continue
         image

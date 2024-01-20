@@ -10,7 +10,6 @@ import me.anno.input.Input.isMouseLocked
 import me.anno.input.controller.CalibrationProcedure
 import me.anno.input.controller.ControllerCalibration
 import me.anno.io.config.ConfigBasics
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
@@ -437,7 +436,7 @@ class Controller(val id: Int) {
         }
 
         private fun getCaliFile(guid: String) =
-            getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
+            ConfigBasics.configFolder.getChild("controller/${formatGuid(guid)}.json")
 
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getCaliFile(guid)
@@ -451,7 +450,7 @@ class Controller(val id: Int) {
                         "that has not actually been calibrated"
             )
             val file = getCaliFile(guid)
-            file.getParent()?.tryMkdirs()
+            file.getParent().tryMkdirs()
             JsonStringWriter.save(calibration, file, EngineBase.workspace)
         }
 

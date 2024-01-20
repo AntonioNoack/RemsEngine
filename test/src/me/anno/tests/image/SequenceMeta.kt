@@ -1,11 +1,10 @@
 package me.anno.tests.image
 
-import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import me.anno.video.ImageSequenceMeta
 
 fun main() {
-    val file = FileReference.getReference(OS.documents, "Blender\\Image Sequence\\%.jpg")
+    val file = OS.documents.getChild("Blender\\Image Sequence\\%.jpg")
     val meta = ImageSequenceMeta(file)
     println(meta.toString())
     /*meta.matches.forEach { (file, _) ->

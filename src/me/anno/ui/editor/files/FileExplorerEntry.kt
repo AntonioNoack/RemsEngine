@@ -35,9 +35,9 @@ import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.files.FileReference.Companion.getReferenceAsync
-import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
+import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.getReferenceAsync
+import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.thumbs.Thumbs
@@ -221,7 +221,7 @@ open class FileExplorerEntry(
         titlePanel.canBeSeen = canBeSeen
 
         // todo instead invalidate all file explorers, if they contain that file
-        /*val newFile = FileReference.getReference(file)
+        /*val newFile = getReference(file)
         if (newFile !== file) {
             file = newFile
             invalidateDrawing()

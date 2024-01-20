@@ -1,7 +1,6 @@
 package me.anno.tests.files
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.documents
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -12,7 +11,7 @@ fun main() {
 
     fun add(file: FileReference, path: String = "") {
         if (file.isDirectory || path.isEmpty()) {
-            for (child in file.listChildren() ?: emptyList()) {
+            for (child in file.listChildren()) {
                 add(child, if (path.isEmpty()) child.name else "$path/${child.name}")
             }
         } else {
@@ -20,7 +19,7 @@ fun main() {
         }
     }
 
-    val src = getReference(documents, "IdeaProjects/RobotSteve")
+    val src = documents.getChild("IdeaProjects/RobotSteve")
     add(src.getChild("lib/luaj-jse-3.0.2.jar"))
     add(src.getChild("target/RobotSteve-1.0-SNAPSHOT.jar"))
 

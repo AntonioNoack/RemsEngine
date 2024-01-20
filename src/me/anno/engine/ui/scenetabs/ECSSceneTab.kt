@@ -19,7 +19,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.engine.EngineBase

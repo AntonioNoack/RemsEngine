@@ -10,7 +10,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil

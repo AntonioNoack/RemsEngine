@@ -6,7 +6,6 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
@@ -27,7 +26,7 @@ fun main() {
     // reading the structure alone: 0.7s
     clock.start()
     // a huge file, which causes the engine to crash :/
-    val file = getReference(downloads, "San_Miguel.zip/San-Miguel.obj")
+    val file = downloads.getChild("San_Miguel.zip/San-Miguel.obj")
     clock.stop("creating reference")
 
     // 3.3s

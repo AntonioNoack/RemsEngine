@@ -6,12 +6,12 @@ import me.anno.utils.OS.documents
 fun copy(src: List<FileReference>, dst: FileReference, path: String) {
     if (src.first().isDirectory) {
         dst.tryMkdirs()
-        val srcChildren = src.map { it.listChildren()!! }.flatten().map { it.name }.toHashSet()
+        val srcChildren = src.map { it.listChildren() }.flatten().map { it.name }.toHashSet()
         for (srcI in srcChildren) {
             val srcII = src.map { it.getChild(srcI) }.filter { it.exists }
             copy(srcII, dst.getChild(srcI), "$path/${srcI}")
         }
-        val dstChildren = dst.listChildren()!!
+        val dstChildren = dst.listChildren()
         val dstNames = dstChildren.map { it.name }.filter { it !in srcChildren }
         if (dstNames.isNotEmpty()) {
             println("Foreign files in $dst: $dstNames")

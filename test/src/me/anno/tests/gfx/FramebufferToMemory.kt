@@ -5,7 +5,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.OS
 
@@ -24,5 +23,5 @@ fun main() {
         )
     }
     val image = fb.createImage(false, withAlpha = false)
-    image.write(FileReference.getReference(OS.desktop, "odd.png"))
+    image.write(OS.desktop.getChild("odd.png"))
 }

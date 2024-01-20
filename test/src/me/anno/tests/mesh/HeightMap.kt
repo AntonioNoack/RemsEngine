@@ -2,7 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.image.ImageCache
 import me.anno.image.ImageWriter
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
@@ -26,7 +26,7 @@ fun createHeightMesh() {
     val w = image.width
     val h = image.height
 
-    val fileOut = getReference(desktop, "${file.nameWithoutExtension}.obj")
+    val fileOut = desktop.getChild("${file.nameWithoutExtension}.obj")
     val out = fileOut.outputStream()
     for (j in 0 until h) {
         for (i in 0 until w) {
@@ -50,7 +50,7 @@ fun convert() {
     val th = 3000
     val joined = IntArray(tw * th)
     val combined = downloads.getChild("heights-combined-jena.zip")
-    val children = combined.listChildren()!!
+    val children = combined.listChildren()
     HeavyProcessing.processUnbalanced(0, children.size, true) { ix0, ix1 ->
         for (ci in ix0 until ix1) {
             val zip = children[ci]
@@ -58,7 +58,7 @@ fun convert() {
             val x0 = (name[1].toInt() - 680) * 1000
             val y0 = (name[2].toInt() - 5644) * 1000
             val i0 = x0 + y0 * tw
-            val data = zip.listChildren()!!.first { it.lcExtension == "xyz" }
+            val data = zip.listChildren().first { it.lcExtension == "xyz" }
             val lines = data.readLinesSync(Int.MAX_VALUE)
                 .filter { it.isNotEmpty() }
                 .toList()

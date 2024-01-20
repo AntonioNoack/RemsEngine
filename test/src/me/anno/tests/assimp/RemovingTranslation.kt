@@ -32,7 +32,7 @@ fun main() {
     // fbx animation is broken...
     // glb works
     val file = documents.getChild("RobotArmTest.glb")
-    val animFile = file.getChild("animations").listChildren()!!.first()
+    val animFile = file.getChild("animations").listChildren().first()
     val animation = AnimationCache[animFile]!! as ImportedAnimation
     val skeleton = SkeletonCache[animation.skeleton]!!
     val bones = skeleton.bones

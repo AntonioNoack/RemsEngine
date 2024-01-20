@@ -8,8 +8,8 @@ import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
+import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolderCache
@@ -62,7 +62,6 @@ import me.anno.utils.OS.home
 import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
-import me.anno.utils.ShutdownException
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
@@ -180,8 +179,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         }
     }
 
-    val history = History(initialLocation ?: documents)
-    val folder get() = history.value
+    val history: History<FileReference> = History(initialLocation ?: documents)
+    val folder: FileReference get() = history.value
     private var lastFolder: FileReference = InvalidRef
     private var fileToScrollTo: FileReference = InvalidRef
     private var panelToScrollTo: FileExplorerEntry? = null

@@ -1,6 +1,6 @@
 package me.anno.maths.geometry
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.arrays.ExpandingFloatArray

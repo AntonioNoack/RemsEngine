@@ -8,6 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.io.MediaMetadata
+import me.anno.io.files.Reference.getReference
 import java.io.IOException
 
 object ImageReaderExt {
@@ -45,7 +46,7 @@ object ImageReaderExt {
             file.readBytes { bytes, e ->
                 if (bytes != null) {
                     tmp.writeBytes(bytes)
-                    tryFFMPEG(FileReference.getReference(tmp), signature, forGPU, callback)
+                    tryFFMPEG(getReference(tmp), signature, forGPU, callback)
                     tmp.delete()
                 } else callback(null, e)
             }

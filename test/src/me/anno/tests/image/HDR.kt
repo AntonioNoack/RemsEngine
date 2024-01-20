@@ -2,13 +2,13 @@ package me.anno.tests.image
 
 import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.IntImage
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.Color.rgb
 import kotlin.math.sqrt
 
 /*fun main() {
     // test HDR writer using the working HDR reader
-    val ref = FileReference.getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
+    val ref = getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
     val correctInput = HDRImage(ref)
     val createdStream = ByteArrayOutputStream(correctInput.width * correctInput.height * 4)
     HDRImage.writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream)

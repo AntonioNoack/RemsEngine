@@ -64,7 +64,7 @@ import me.anno.io.ISaveable
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.temporary.InnerTmpFile
@@ -80,7 +80,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
 import me.anno.utils.OS
-import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntil

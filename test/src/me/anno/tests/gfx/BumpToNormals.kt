@@ -9,7 +9,7 @@ import javax.vecmath.Vector3f
 
 fun main() {
     val folder = downloads.getChild("ogldev-source/crytek_sponza/textures")
-    for (file in folder.listChildren()!!) {
+    for (file in folder.listChildren()) {
         if (file.nameWithoutExtension.endsWith("bump", true)) {
             var newName = file.nameWithoutExtension
             newName = newName.substring(0, newName.length - 4) + "normal." + file.extension

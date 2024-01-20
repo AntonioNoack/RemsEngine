@@ -8,7 +8,7 @@ fun main() {
     val dst = OS.desktop.getChild("exr")
     dst.tryMkdirs()
     OS.downloads.getChild("2d/EXR samples.zip")
-        .listChildren()!!
+        .listChildren()
         .filter { it.lcExtension == "exr" }
         .forEach {
             try {

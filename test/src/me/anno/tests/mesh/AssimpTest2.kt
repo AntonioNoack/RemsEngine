@@ -13,7 +13,6 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.assimp.StaticMeshesLoader
@@ -46,7 +45,7 @@ fun main() {
 
     // done test animation / skeleton
     @Suppress("SpellCheckingInspection")
-    val file = getReference(downloads, "3d/taryk/scene.gltf")
+    val file = downloads.getChild("3d/taryk/scene.gltf")
     val aiScene = StaticMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags).first
     val rootNode = aiScene.mRootNode()!!
 
@@ -85,7 +84,7 @@ fun main() {
 @Suppress("unused", "SpellCheckingInspection")
 fun walkingTest() {
     // val loader = AnimatedMeshesLoader
-    val (_, prefab) = AnimatedMeshesLoader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
+    val (_, prefab) = AnimatedMeshesLoader.readAsFolder2(downloads.getChild("fbx/simple pack anims/Walking.fbx"))
     for (change in prefab.adds) {
         println(change)
     }
@@ -99,7 +98,7 @@ fun oldTest() {
     // if we are lucky, we can use assimp to load all models and play all skeletal animations
     // this would really be great <3
 
-    val file = getReference(OS.documents, "redMonkey.glb")
+    val file = OS.documents.getChild("redMonkey.glb")
     val scene = aiImportFile(file.toString(), 0)
 
     if (scene != null) {

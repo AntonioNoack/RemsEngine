@@ -1,10 +1,8 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.engine.serialization.SerializedProperty
 

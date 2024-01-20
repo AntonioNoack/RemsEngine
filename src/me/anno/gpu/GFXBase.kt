@@ -21,7 +21,7 @@ import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
 import me.anno.io.files.BundledRef
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.Panel

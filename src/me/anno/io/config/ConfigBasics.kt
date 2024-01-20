@@ -2,7 +2,6 @@ package me.anno.io.config
 
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -15,7 +14,7 @@ object ConfigBasics {
 
     private val LOGGER = LogManager.getLogger(ConfigBasics::class)
 
-    var configFolder = getReference(home, ".config/RemsEngine")
+    var configFolder = home.getChild(".config/RemsEngine")
     var cacheFolder = configFolder
 
     fun getConfigFile(localFileName: String): FileReference {

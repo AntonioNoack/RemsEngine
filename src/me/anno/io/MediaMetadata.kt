@@ -5,6 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
@@ -152,7 +153,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
         @JvmStatic
         fun getMeta(path: String, async: Boolean): MediaMetadata? {
-            return getMeta(FileReference.getReference(path), async)
+            return getMeta(getReference(path), async)
         }
 
         @JvmStatic

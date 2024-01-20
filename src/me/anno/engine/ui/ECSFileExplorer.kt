@@ -14,7 +14,7 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringReader
@@ -105,7 +105,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
                     deepCopyImport(current, files, this)
                 },
                 MenuOption(NameDesc("Link To Index")) {
-                    val firstParent = files.first().getParent()
+                    val firstParent = files.first().getParent().nullIfUndefined()
                     val name = if (files.size == 1) files.first().nameWithoutExtension
                     else if (files.all2 { it.getParent() == firstParent }) firstParent?.nameWithoutExtension ?: "Root"
                     else files.first().nameWithoutExtension
@@ -126,7 +126,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
 
     private fun pastePrefab(data: String): Boolean {
         try {
-            val read = JsonStringReader.read(data, EngineBase.workspace, true)
+            val read = JsonStringReader.read(data, workspace, true)
             val saveable = read.getOrNull(0) ?: return false
             when (saveable) {
                 is Prefab -> {

@@ -4,6 +4,9 @@ import me.anno.Time.nanoTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
+import me.anno.engine.EngineBase.Companion.dragged
+import me.anno.engine.EngineBase.Companion.instance
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.input.Touch.Companion.onTouchDown
@@ -13,16 +16,13 @@ import me.anno.io.ISaveable
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
-import me.anno.engine.Events.addEvent
-import me.anno.engine.EngineBase.Companion.dragged
-import me.anno.engine.EngineBase.Companion.instance
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.menu.Menu
@@ -756,7 +756,7 @@ object Input {
             val data = clipboard.getData(javaFileListFlavor) as? List<*>
             val data2 = data?.filterIsInstance<File>()
             if (!data2.isNullOrEmpty()) {
-                return data2.map { getReference(it) }
+                return data2.map { getReference(it.absolutePath) }
             }
         } catch (_: UnsupportedFlavorException) {
         }
@@ -823,7 +823,7 @@ object Input {
                 panel.onPasteFiles(
                     window.mouseX,
                     window.mouseY,
-                    data2.map { copiedInternalFiles[it] ?: getReference(it) })
+                    data2.map { copiedInternalFiles[it] ?: getReference(it.absolutePath) })
                 return
                 // return
             }
@@ -876,7 +876,7 @@ object Input {
                 val ctr = AtomicInteger()
                 if (tmp0 != null) tmp0 else {
                     val tmp = File(tmpFolder.value, it.name)
-                    copyHierarchy(it, getReference(tmp), { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
+                    copyHierarchy(it, getReference(tmp.absolutePath), { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
                     Sleep.waitUntil(true) { ctr.get() == 0 } // wait for all copying to complete
                     copiedInternalFiles[tmp] = it
                     tmp

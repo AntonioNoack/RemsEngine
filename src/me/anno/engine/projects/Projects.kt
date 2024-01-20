@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
 
@@ -20,8 +21,8 @@ object Projects {
         val usedFiles = HashSet<FileReference>()
         for (i in 0 until recentProjectCount) {
             val name = DefaultConfig["recent.projects[$i].name"] as? String ?: continue
-            val file = FileReference.getReference(DefaultConfig["recent.projects[$i].file"] as? String ?: continue)
-            if (file !in usedFiles) {
+            val file = DefaultConfig["recent.projects[$i].file", InvalidRef]
+            if (file !in usedFiles && file.exists) {
                 projects += ProjectHeader(name, file)
                 usedFiles += file
             }
@@ -29,10 +30,10 @@ object Projects {
         // load projects, which were forgotten because the config was deleted
         if (DefaultConfig["recent.projects.detectAutomatically", true]) {
             try {
-                for (folder in EngineBase.workspace.listChildren() ?: emptyList()) {
+                for (folder in EngineBase.workspace.listChildren()) {
                     if (folder !in usedFiles) {
                         if (folder.isDirectory) {
-                            val configFile = FileReference.getReference(folder, "Project.json")
+                            val configFile = folder.getChild("Project.json")
                             if (configFile.exists) {
                                 try {
                                     LOGGER.debug("Reading {}", configFile)

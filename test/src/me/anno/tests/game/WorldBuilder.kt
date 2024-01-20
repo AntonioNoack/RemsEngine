@@ -18,7 +18,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.random
@@ -78,7 +78,7 @@ fun main() {
             mainFolder.getChild("Environments"),
             mainFolder.getChild("Buildings"),
             mainFolder.getChild("Props"),
-        ).map { it.listChildren()!! }.flatten()
+        ).map { it.listChildren() }.flatten()
 
         val buildMenu = PanelList2D(false, null, style)
         buildMenu.scaleChildren = true

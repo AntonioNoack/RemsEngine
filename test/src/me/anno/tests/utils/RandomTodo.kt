@@ -13,7 +13,7 @@ fun main() {
 
 fun index(file: FileReference) {
     if (file.isDirectory) {
-        for (child in file.listChildren()!!) {
+        for (child in file.listChildren()) {
             index(child)
         }
     } else if (file.lcExtension == "kt") {

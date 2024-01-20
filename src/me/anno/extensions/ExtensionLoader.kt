@@ -7,7 +7,7 @@ import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.engine.EngineBase
 import me.anno.utils.hpc.HeavyProcessing.processStage
@@ -41,8 +41,8 @@ object ExtensionLoader {
 
         unload()
 
-        pluginsFolder = getReference(configFolder, "plugins")
-        modsFolder = getReference(configFolder, "mods")
+        pluginsFolder = configFolder.getChild("plugins")
+        modsFolder = configFolder.getChild("mods")
 
         modsFolder.tryMkdirs()
         pluginsFolder.tryMkdirs()
@@ -80,7 +80,7 @@ object ExtensionLoader {
         maxDepth: Int = 5
     ) {
         if (!folder.exists) return
-        for (it in folder.listChildren() ?: return) {
+        for (it in folder.listChildren()) {
             if (!it.name.startsWith(".")) {
                 if (it.isDirectory) {
                     if (maxDepth > 0) {

@@ -11,7 +11,7 @@ import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise

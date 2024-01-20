@@ -39,9 +39,9 @@ object InvalidRef : FileReference("") {
         return false
     }
 
-    override fun listChildren(): List<FileReference>? = null
+    override fun listChildren(): List<FileReference> = emptyList()
 
-    override fun getParent(): FileReference? = null
+    override fun getParent(): FileReference = InvalidRef
     override fun renameTo(newName: FileReference): Boolean {
         LOGGER.warn("Cannot rename InvalidRef")
         return false

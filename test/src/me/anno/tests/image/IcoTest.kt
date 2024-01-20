@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS.desktop
 import net.sf.image4j.codec.ico.ICOReader
 
@@ -8,7 +8,7 @@ fun main() {
     // this test now can be directly executed by clicking on an .ico file in the file explorer
     val dst = desktop.getChild("ico")
     dst.tryMkdirs()
-    for (source in getReference("C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/data/games").listChildren()!!) {
+    for (source in getReference("C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/data/games").listChildren()) {
         try {
             ICOReader.readAllLayers(source.inputStreamSync())
                 .forEachIndexed { index, image ->

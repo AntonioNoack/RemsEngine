@@ -11,7 +11,7 @@ fun main() {
     ExtensionLoader.load()
     // not a single of my files can be loaded with Assimp 4.1 ...
     // BLEND: Expected at least one object with no parent
-    val file = OS.downloads.getChild("3d/FemaleStandingPose").listChildren()!!
+    val file = OS.downloads.getChild("3d/FemaleStandingPose").listChildren()
     for (child in file) {
         if (child.lcExtension == "dae")
             try {

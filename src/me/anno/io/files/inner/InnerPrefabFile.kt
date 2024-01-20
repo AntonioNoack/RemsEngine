@@ -25,7 +25,7 @@ open class InnerPrefabFile(
 
     // it's a prefab, not a zip; never ever
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference>? = null
+    override fun listChildren(): List<FileReference> = emptyList()
 
     override fun readTextSync() = text
     override fun readBytesSync() = bytes

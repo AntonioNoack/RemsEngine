@@ -2,7 +2,7 @@ package me.anno.utils.files
 
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.engine.EngineBase
 import me.anno.utils.OS
 

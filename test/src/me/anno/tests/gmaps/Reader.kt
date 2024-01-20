@@ -32,7 +32,7 @@ fun main() {
     // load all pck files
     val folder = downloads.getChild("gmaps-decent")
     val meshes = ArrayList<Pair<Int, ByteArray>>()
-    for (file in folder.listChildren()!!) {
+    for (file in folder.listChildren()) {
         if (file.name.startsWith("gmaps") && file.lcExtension == "pck") {
             val input = file.inputStreamSync()
             val files = input.readLE32()

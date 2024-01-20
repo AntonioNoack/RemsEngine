@@ -479,7 +479,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 .trim()
             skipLine()
             if (path.startsWith("./")) path = path.substring(2)
-            val file = FileReference.getReference(parent.getParent(), path)
+            val file = parent.getParent()!!.getChild(path)
             if (!file.exists) LOGGER.warn("Missing file $file")
             return file
         }

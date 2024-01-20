@@ -12,9 +12,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ScenePrefab
 import me.anno.extensions.ExtensionLoader
-import me.anno.io.files.FileReference
-import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
 import me.anno.utils.OS
@@ -123,7 +122,7 @@ class HierarchyTests {
 
     @Test
     fun testJsonFormatter() {
-        val ref = FileReference.getReference(OS.documents, "RemsEngine/SampleProject/Scene.json")
+        val ref = OS.documents.getChild("RemsEngine/SampleProject/Scene.json")
         val prefab = PrefabCache[ref]
         println(JsonFormatter.format(prefab.toString()))
     }
@@ -188,7 +187,7 @@ class HierarchyTests {
         OfficialExtensions.register()
         ExtensionLoader.load()
         val scene = Prefab("Entity")
-        val added = PrefabCache[FileReference.getReference(OS.documents, "CuteGhost.fbx")]!!
+        val added = PrefabCache[OS.documents.getChild("CuteGhost.fbx")]!!
         val ca = scene.adds.values.sumOf { it.size }
         val cs = scene.sets.size
         Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')

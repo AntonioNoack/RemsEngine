@@ -35,7 +35,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes.flatCube
 import me.anno.engine.EngineBase
 import me.anno.tests.shader.drawMovablePoints

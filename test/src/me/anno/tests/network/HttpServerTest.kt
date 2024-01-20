@@ -1,7 +1,7 @@
 package me.anno.tests.network
 
 import me.anno.io.files.LastModifiedCache
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.http.HttpProtocol
@@ -30,11 +30,11 @@ fun main() {
             meta: Map<String, String>,
             data: ByteArray
         ) {
-            var file = getReference(folder, path)
+            var file = folder.getChild(path)
             if (file.isDirectory && !file.name.startsWith('.')) file = file.getChild("index.html")
             if (!file.exists && "Referer" in meta) {
                 // for my phone... awkward
-                file = getReference(getReference(folder, extractPathFromURL(meta["Referer"]!!)), path)
+                file = folder.getChild(extractPathFromURL(meta["Referer"]!!)).getChild(path)
                 logger.info("Extended path from $path")
             }
             if (file.lcExtension in publicExtensions && file.exists && !file.name.startsWith('.') && !file.isDirectory) {
@@ -53,11 +53,13 @@ fun main() {
             } else {
                 logger.warn("$path -> $file was not found, $args, $meta")
                 val msg = "<h1>404 - File Not Found!</h1>"
-                sendResponse(client, 404, "Not Found", mapOf(
-                    "Content-Length" to msg.length,
-                    "Content-Type" to "text/html",
-                    "Connection" to "close"
-                ))
+                sendResponse(
+                    client, 404, "Not Found", mapOf(
+                        "Content-Length" to msg.length,
+                        "Content-Type" to "text/html",
+                        "Connection" to "close"
+                    )
+                )
                 client.dos.write(msg.toByteArray())
             }
         }

@@ -41,6 +41,7 @@ import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference
 import me.anno.io.utils.StringMap
 import me.anno.ui.UIRegistry
 import org.apache.logging.log4j.LogManager
@@ -114,7 +115,7 @@ object ECSRegistry {
         if (hasBeenInited) return
         hasBeenInited = true
 
-        FileReference.registerStatic(ScenePrefab)
+        Reference.registerStatic(ScenePrefab)
 
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())

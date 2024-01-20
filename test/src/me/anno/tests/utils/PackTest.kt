@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.packer.Packer
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
@@ -15,7 +15,7 @@ fun main() {
         OS.pictures.getChild("fav128.png"),
         OS.documents.getChild("sphere.obj"),
         OS.downloads.getChild("3d/vampire.zip/dancing_vampire.dae"),
-        FileReference.getReference("http://phychi.com/img/fav16.png")
+        getReference("http://phychi.com/img/fav16.png")
         // todo ftp/sftp resources?
     )
 
@@ -28,5 +28,4 @@ fun main() {
     logger.info(dst.listChildren())
 
     logger.info("End")
-
 }

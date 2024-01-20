@@ -1,7 +1,7 @@
 package me.anno.tests.engine
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.lists.Lists.any2
@@ -31,7 +31,7 @@ fun search(file: FileReference, maxDepth: Int, zipDepth: Int) {
         if (file.isDirectory) {
             processingGroup += {
                 println("Looking into $file")
-                for (child in file.listChildren()!!) {
+                for (child in file.listChildren()) {
                     search(child, maxDepth - 1, zipDepth)
                 }
             }
@@ -40,7 +40,7 @@ fun search(file: FileReference, maxDepth: Int, zipDepth: Int) {
                 println("Looking into $file")
                 try {
                     val children = try {
-                        file.listChildren() ?: emptyList()
+                        file.listChildren()
                     } catch (e: Exception) {
                         emptyList()
                     }

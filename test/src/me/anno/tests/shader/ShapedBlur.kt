@@ -33,7 +33,7 @@ fun saveFilters() {
     val archive1 = OS.downloads.getChild("supplemental_shaders.zip/custom")
     val out = OS.downloads.getChild(fileName).outputStream()
     val tmp = ResetByteArrayOutputStream(2048)
-    for (file in archive1.listChildren()!!) {
+    for (file in archive1.listChildren()) {
         if (file.lcExtension == "glsl" && !file.name.startsWith("2020")) {
             compress(file.readTextSync(), tmp)
             addFilter(file.nameWithoutExtension, out, tmp)
@@ -41,7 +41,7 @@ fun saveFilters() {
     }
     out.write(0) // marker that gaussian blur is next
     val archive2 = OS.downloads.getChild("supplemental_shaders.zip/gaussians")
-    for (file in archive2.listChildren()!!) {
+    for (file in archive2.listChildren()) {
         if (file.lcExtension == "glsl") {
             compressGaussian(file.readTextSync(), tmp)
             addFilter(file.nameWithoutExtension.replace("gauss", ""), out, tmp)

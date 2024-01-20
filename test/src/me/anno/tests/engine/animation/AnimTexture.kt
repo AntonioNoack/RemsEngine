@@ -12,7 +12,7 @@ fun main() {
     ECSRegistry.initWithGFX()
     val source = OS.downloads.getChild("3d/azeria/scene.gltf") // animated mesh file
     val skeletonSource = source.getChild("skeletons/Skeleton.json")
-    val animationsSources = source.getChild("animations").listChildren()!!
+    val animationsSources = source.getChild("animations").listChildren()
     val skeleton = SkeletonCache[skeletonSource]!!
     val animations = animationsSources.map { AnimationCache[it]!! }
     val texture = AnimTexture(skeleton)

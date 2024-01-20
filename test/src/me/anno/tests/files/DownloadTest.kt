@@ -1,7 +1,7 @@
 package me.anno.tests.files
 
 import me.anno.Time
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.OS.downloads
 import me.anno.utils.files.Files.formatFileSize

@@ -96,7 +96,7 @@ class HierarchicalDatabase(
 
     private fun cleanupStrayFiles() {
         synchronized(storageFiles) {
-            val files = storage.listChildren() ?: emptyList()
+            val files = storage.listChildren()
             for (file in files) {
                 if (file == indexFile || file.isDirectory) continue
                 if (file.lcExtension == dataExtension) {

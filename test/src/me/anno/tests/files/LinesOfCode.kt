@@ -54,7 +54,7 @@ fun main() {
             override fun selectElements(elements: List<FileReference>) {}
             override fun focusOnElement(element: FileReference) {}
             override fun openAddMenu(parent: FileReference) {}
-            override fun getChildren(element: FileReference) = element.listChildren() ?: emptyList()
+            override fun getChildren(element: FileReference) = element.listChildren()
             override fun isCollapsed(element: FileReference) = element !in notCollapsed
             override fun setCollapsed(element: FileReference, collapsed: Boolean) {
                 if (collapsed) notCollapsed.remove(element)
@@ -96,12 +96,12 @@ fun indexed(file: FileReference, depth: Int): Vector3i? {
     }
 }
 
-fun indexDir(file: FileReference, depth: Int): Vector3i? {
+fun indexDir(file: FileReference, depth: Int): Vector3i {
     var childCount = 0
     var hasMore = false
     var sum = 0
     var unique = 0
-    for (child in file.listChildren() ?: return null) {
+    for (child in file.listChildren()) {
         val data = try {
             indexMaybe(child, depth - 1)
         } catch (e: Exception) {

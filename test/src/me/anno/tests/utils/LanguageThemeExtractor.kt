@@ -50,7 +50,7 @@ fun main() {
     }
 
     val listOfAll = ArrayList<String>()
-    for (file in folder.listChildren()!!) {
+    for (file in folder.listChildren()) {
         if (file.lcExtension == "css" && file.nameWithoutExtension != "ambiance-mobile") {
             var name = file.nameWithoutExtension.trim()
             val text = file.readTextSync()

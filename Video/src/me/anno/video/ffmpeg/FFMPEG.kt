@@ -2,6 +2,7 @@ package me.anno.video.ffmpeg
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
 
 object FFMPEG {
@@ -9,16 +10,16 @@ object FFMPEG {
     // Linux needs ffmpeg to be installed; on Windows just use and call the exe files
     val isInstalled = DefaultConfig["ffmpeg.isInstalled", !OS.isWindows]
 
-    var ffmpegPath = if (isInstalled) FileReference.getReference("ffmpeg") else
-        DefaultConfig["ffmpeg.path", FileReference.getReference(OS.downloads, "lib/ffmpeg/bin/ffmpeg.exe")]
-    var ffprobePath = if (isInstalled) FileReference.getReference("ffprobe") else
-        DefaultConfig["ffmpeg.probe.path", FileReference.getReference(ffmpegPath.getParent(), "ffprobe.exe")]
+    var ffmpegPath = if (isInstalled) getReference("ffmpeg") else
+        DefaultConfig["ffmpeg.path", OS.downloads.getChild("lib/ffmpeg/bin/ffmpeg.exe")]
+    var ffprobePath = if (isInstalled) getReference("ffprobe") else
+        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getParent().getChild("ffprobe.exe")]
 
     var ffmpegPathString = if (isInstalled) "ffmpeg" else
-        FileReference.getReference(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
+        getReference(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
             .absolutePath.replace('\\', '/')
     var ffprobePathString = if (isInstalled) "ffprobe" else
-        DefaultConfig["ffmpeg.probe.path", FileReference.getReference(ffmpegPath.getParent(), "ffprobe.exe")]
+        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getParent().getChild("ffprobe.exe")]
             .absolutePath.replace('\\', '/')
 
     val ffmpeg
@@ -32,5 +33,4 @@ object FFMPEG {
         return if (!file.exists || file.isDirectory) null
         else file
     }
-
 }

@@ -63,7 +63,7 @@ fun main() {
         folder: FileReference,
         pkg: Package
     ) {
-        for (file in folder.listChildren() ?: return) {
+        for (file in folder.listChildren()) {
             if (file.isDirectory) {
                 val path = file.absolutePath.substring(source.absolutePath.length + 1)
                     .replace('/', '.')

@@ -3,7 +3,7 @@ package me.anno.language.translation
 import me.anno.config.DefaultConfig
 import me.anno.io.Streams.readText
 import me.anno.io.config.ConfigBasics
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.ui.Style
 import me.anno.ui.input.EnumInput
 import org.apache.logging.log4j.LogManager

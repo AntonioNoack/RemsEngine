@@ -23,7 +23,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.tests.physics.TestVehicleController
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
@@ -56,13 +56,13 @@ val map = documents.getChild("CarChase.glb")
 
 // todo: this probably should be created in the editor; there, we have much better control
 val heistPackage = getReference("E:/Assets/Unity/POLYGON_Heist_Unity_Package_2017_1.unitypackage/Assets/PolygonHeist")
-val carModel = getReference(heistPackage, "Model/SM_Veh_Car_Police_Heist_01.fbx")
-val carModelMain = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_01.json")
-val carModelFL = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Wheel_fl.json")
-val carModelSteer = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_SteeringW.json")
-val carModelGlass = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Glass.json")
-val carModelPlates = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Plates.json")
-val carModelMat = getReference(heistPackage, "Materials/PolygonHeist_Character_Material_01.mat")
+val carModel = heistPackage.getChild("Model/SM_Veh_Car_Police_Heist_01.fbx")
+val carModelMain = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_01.json")
+val carModelFL = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Wheel_fl.json")
+val carModelSteer = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_SteeringW.json")
+val carModelGlass = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Glass.json")
+val carModelPlates = carModel.getChild("meshes/SM_Veh_Car_Police_Heist_Plates.json")
+val carModelMat = heistPackage.getChild("Materials/PolygonHeist_Character_Material_01.mat")
 
 fun createUI(): Panel {
 

@@ -24,7 +24,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.length

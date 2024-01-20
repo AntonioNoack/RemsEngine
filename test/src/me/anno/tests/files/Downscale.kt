@@ -2,7 +2,7 @@ package me.anno.tests.files
 
 import me.anno.image.ImageCache
 import me.anno.image.ImageScale.scaleMax
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
@@ -19,7 +19,7 @@ fun main() {
     val dst = getReference("C:/XAMPP/htdocs/anionoa/ico384")
     dst.mkdirs()
     val ext = listOf("png", "jpg", "webp")
-    for (child in src.listChildren()!!) {
+    for (child in src.listChildren()) {
         val image = ImageCache[child, false] ?: continue
         val (w, h) = scaleMax(image.width, image.height, 384)
         if (w < image.width && h < image.height) {

@@ -1,7 +1,6 @@
 package me.anno.tests.utils
 
 import me.anno.io.config.ConfigBasics
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.utils.OS
@@ -42,7 +41,7 @@ fun main() {
 
     // a special file, which does not work as a stream using the default ZipInputStream (only DEFLATED entries can have EXT descriptor)
     @Suppress("SpellCheckingInspection")
-    val ref = getReference(OS.downloads, "Stone_Wall_uljlcdwew_4K_surface_ms.zip")
+    val ref = OS.downloads.getChild("Stone_Wall_uljlcdwew_4K_surface_ms.zip")
     logger.info(ref.isSomeKindOfDirectory)
 
     val zis2 = ZipFile(SeekableInMemoryByteChannel(ref.readBytesSync()))
@@ -59,7 +58,6 @@ fun main() {
         val entry = zis.nextEntry ?: break
         LOGGER.info(entry.name)
     }*/
-
 }
 
 @Suppress("unused")

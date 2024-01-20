@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.gtav
 
 import me.anno.io.Streams.readLE32
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import java.io.InputStream
 
 // to do extract GTA V's meshes from its game files ->

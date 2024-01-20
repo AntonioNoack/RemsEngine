@@ -30,7 +30,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     val bytes by lazy { text.encodeToByteArray() }
 
     override fun isSerializedFolder(): Boolean = false
-    override fun listChildren(): List<FileReference>? = null
+    override fun listChildren(): List<FileReference> = emptyList()
 
     override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(text, null)

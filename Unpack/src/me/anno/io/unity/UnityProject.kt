@@ -143,7 +143,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         when {
             file.isDirectory -> {
                 if (maxDepth <= 0) return false
-                for (child in file.listChildren() ?: return false) {
+                for (child in file.listChildren()) {
                     register(child, maxDepth - 1)
                 }
             }

@@ -21,7 +21,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import kotlin.math.max

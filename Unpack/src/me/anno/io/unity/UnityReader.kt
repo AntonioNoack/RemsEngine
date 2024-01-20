@@ -10,7 +10,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
@@ -21,7 +21,6 @@ import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.beautify
 import me.anno.io.yaml.YAMLReader.parseYAML
 import me.anno.utils.ColorParsing.parseHex
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -57,9 +56,9 @@ object UnityReader {
 
     fun getUnityProjectByRoot(root: FileReference, async: Boolean = false): UnityProject? {
         if (root.isSomeKindOfDirectory) {
-            val children = root.listChildren() ?: return null
+            val children = root.listChildren()
             if (children.any {
-                    if (it.isDirectory) (it.listChildren() ?: emptyList())
+                    if (it.isDirectory) it.listChildren()
                         .any { c -> c.lcExtension == "meta" }
                     else false
                 }) {
@@ -74,10 +73,10 @@ object UnityReader {
 
     fun getUnityProjectByChild(file: FileReference, async: Boolean = false): UnityProject? {
         if (file.isDirectory) {
-            val children = file.listChildren() ?: return null
+            val children = file.listChildren()
             if (children.any { it.lcExtension == "meta" }) {
                 val data = UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
-                    val root = file.getParent()!!
+                    val root = file.getParent()
                     loadUnityProject(root)
                 } as? CacheData<*>
                 return data?.value as? UnityProject
@@ -98,7 +97,7 @@ object UnityReader {
             project.register(root.getChild("ProjectSettings"))
             project.register(root.getChild("UserSettings"))
             if (!hasAssetsFolder) {
-                for (childFile in root.listChildren() ?: emptyList()) {
+                for (childFile in root.listChildren()) {
                     project.register(childFile)
                 }
             }
@@ -113,7 +112,7 @@ object UnityReader {
         var abs = file.absolutePath
         if (!abs.endsWith("/")) abs += "/"
         if (file.isDirectory) {
-            val child = getReference(file, "Assets")
+            val child = file.getChild("Assets")
             if (child.exists) return getUnityProjectByChild(child)
         }
         val key = "/Assets/"

@@ -17,7 +17,7 @@ class ImageSequenceMeta(file: FileReference) {
         val suffix = key.substring(i1)
         // LOGGER.info("'$prefix' $i0-$i1 '$suffix'")
         // val file2 = file.unsafeFile
-        matches = (file.getParent()?.listChildren() ?: emptyList())
+        matches = file.getParent().listChildren()
             .mapNotNull { child ->
                 val name = child.name
                 if (name.startsWith(prefix) && name.endsWith(suffix)) {

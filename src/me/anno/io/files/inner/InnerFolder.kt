@@ -5,6 +5,8 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.appendPath
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.lazy.InnerLazyByteFile
 import me.anno.io.files.inner.lazy.InnerLazyImageFile
 import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
@@ -47,7 +49,7 @@ open class InnerFolder(
 
     override fun getChild(name: String): FileReference {
         return if ('\\' in name || '/' in name) {
-            getReference(this, name)
+            getReference("$absolutePath/$name")
         } else {
             synchronized(children) {
                 val c0 = children.values.filter { it.name.equals(name, true) }

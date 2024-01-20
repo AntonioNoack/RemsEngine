@@ -3,6 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.engine.Events.addEvent
+import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.utils.files.Files.listFiles2
 import org.apache.logging.log4j.LogManager
 
@@ -180,7 +181,7 @@ object SearchAlgorithm {
                     val entry = entries[i] as? FileExplorerEntry ?: continue
                     val wasVisible = entry.isVisible
                     entry.isVisible = entry.isParent ||
-                            newSearch.matches(FileReference.getReferenceOrTimeout(entry.path).name)
+                            newSearch.matches(getReferenceOrTimeout(entry.path).name)
                     changedLayout = changedLayout || wasVisible != entry.isVisible
                 }
                 if (changedLayout) {

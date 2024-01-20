@@ -28,7 +28,7 @@ fun main() {
 
     val meshFile = OS.downloads.getChild("3d/azeria/scene.gltf")
     var animFile = meshFile.getChild("animations")
-    if (animFile.listChildren()!!.first().isDirectory) animFile = animFile.listChildren()!!.first()
+    if (animFile.listChildren().first().isDirectory) animFile = animFile.listChildren().first()
     animFile = animFile.getChild("BoneByBone.json")
     val animation = PrefabCache.getPrefabInstance(animFile).run {
         if (this is ImportedAnimation) BoneByBoneAnimation(this)

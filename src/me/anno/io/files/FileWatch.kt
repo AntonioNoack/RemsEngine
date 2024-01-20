@@ -100,7 +100,7 @@ object FileWatch {
                             .replace('\\', '/')
                         val absolutePath = "$folder/$fileName"
                         addEvent {
-                            FileReference.invalidate(absolutePath)
+                            Reference.invalidate(absolutePath)
                         }
                         LOGGER.debug("{} {}", kind, absolutePath)
 
