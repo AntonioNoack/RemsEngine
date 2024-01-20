@@ -25,7 +25,6 @@ fun main() {
     } else {
         HiddenOpenGLContext.createOpenGL()
         val src = ori.getChild("r.png")
-        // todo thumbnails in FileExplorer are broken :/
         Thumbs[src, 512, false]!!.write(desktop.getChild("icon-thumbs.png"))
         Engine.requestShutdown()
     }

@@ -7,6 +7,7 @@ import me.anno.gpu.texture.TextureLib.missingColors
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
+import me.anno.io.MediaMetadata
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
@@ -14,8 +15,6 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.io.MediaMetadata
-import me.anno.utils.OS.desktop
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
@@ -27,8 +26,6 @@ import javax.imageio.ImageIO
  * */
 object ImageReader {
 
-    // todo components' thumbnails are broken :/
-
     private val LOGGER = LogManager.getLogger(ImageReader::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
@@ -36,9 +33,6 @@ object ImageReader {
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
-
-        // todo white with transparency, black with transparency
-        //  (overriding color)
 
         val folder = InnerFolder(file)
 
@@ -59,6 +53,10 @@ object ImageReader {
         createComponent(file, folder, "1-g.png", "g", true)
         createComponent(file, folder, "1-b.png", "b", true)
         createComponent(file, folder, "1-a.png", "a", true)
+
+        // white with transparency, black with transparency (overriding color)
+        createAlphaMask(file, folder, "111a.png", false)
+        createAlphaMask(file, folder, "000a.png", true)
 
         // grayscale, if not only a single channel
         createComponent(file, folder, "grayscale.png") {
@@ -132,6 +130,18 @@ object ImageReader {
                 }
             }
             else -> throw NotImplementedError(swizzle)
+        }
+    }
+
+    @JvmStatic
+    private fun createAlphaMask(file: FileReference, folder: InnerFolder, name: String, black: Boolean) {
+        createComponent(file, folder, name) { srcImage ->
+            if (srcImage.hasAlphaChannel) {
+                val color1 = if (black) 0 else 0xffffff
+                AlphaMaskImage(srcImage, false, 'a', color1)
+            } else {
+                GPUImage(if (black) blackTexture else whiteTexture)
+            }
         }
     }
 

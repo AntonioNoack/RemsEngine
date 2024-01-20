@@ -3,8 +3,11 @@ package me.anno.image.raw
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.image.Image
 import me.anno.io.files.FileReference
+import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -21,11 +24,20 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     constructor(texture: ITexture2D) : this(texture, texture.channels)
 
     override fun getRGB(index: Int): Int {
-        val msg = "GPUImage.getRGB() is highly inefficient!!!"
-        LOGGER.warn(msg, RuntimeException(msg))
-        // is not flipping correct?
-        return (texture as Texture2D).createImage(false, hasAlphaChannel)
-            .getRGB(index)
+        return when (texture) {
+            TextureLib.invisibleTexture -> 0
+            TextureLib.whiteTexture -> white
+            TextureLib.blackTexture -> black
+            TextureLib.missingTexture -> TextureLib.missingColors[index]
+            else -> {
+                val msg = "GPUImage.getRGB() is highly inefficient!!!"
+                LOGGER.warn(msg, RuntimeException(msg))
+                // is not flipping correct?
+                (texture as Texture2D)
+                    .createImage(false, hasAlphaChannel)
+                    .getRGB(index)
+            }
+        }
     }
 
     override fun createBufferedImage() =

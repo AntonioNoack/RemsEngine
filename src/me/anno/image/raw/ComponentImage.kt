@@ -31,7 +31,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         if (src is GPUImage) {
-            val m = if (inverse) channel.uppercaseChar() else channel
+            val map = if (inverse) channel.uppercaseChar() else channel
             val tex = src.texture
             val type = if (tex is Texture2D) {
                 when (getNumberType(tex.internalFormat)) {
@@ -41,7 +41,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
                 }
             } else UInt8x4
             TextureMapper.mapTexture(
-                src.texture, texture, "$m$m${m}1",
+                src.texture, texture, "$map$map${map}1",
                 type, callback
             )
         } else {
