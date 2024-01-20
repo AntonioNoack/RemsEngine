@@ -24,12 +24,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         private val LOGGER = LogManager.getLogger(ComponentImage::class)
     }
 
-    private val shift = when (channel) {
-        'r' -> 16
-        'g' -> 8
-        'b' -> 0
-        else -> 24
-    }
+    private val shift = "bgra".indexOf(channel) * 8
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,

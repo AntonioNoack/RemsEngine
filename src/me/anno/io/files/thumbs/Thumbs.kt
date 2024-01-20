@@ -64,8 +64,8 @@ import me.anno.io.ISaveable
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
@@ -137,9 +137,6 @@ object Thumbs {
     val sphereMesh = UVSphereModel.createUVSphere(30, 30)
 
     init {
-        if (!useCacheFolder) {
-            folder.listChildren()?.forEach { it.deleteRecursively() }
-        }
         var index = 0
         for (size in sizes) {
             while (index <= size) {

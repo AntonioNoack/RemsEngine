@@ -6,13 +6,13 @@ import me.anno.gpu.GFX
 import me.anno.image.*
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.toImage
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache
-import me.anno.io.MediaMetadata.Companion.getMeta
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager
@@ -46,27 +46,22 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         }
     }
 
-    var texture: ITexture2D? = null
-    val hasFailed get() = hasValue && texture == null
-
     fun callback(texture: ITexture2D?, error: Exception?) {
-        this.texture = texture
+        value = texture
         error?.printStackTrace()
     }
 
     init {
         if (file is ImageReadable) {
             val texture = Texture2D("i2t/ir/${file.name}", 1024, 1024, 1)
-            this.texture = texture
             texture.create(file.readGPUImage(), true, ::callback)
         } else {
             val cpuImage = ImageCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
-                this.texture = texture
                 cpuImage.createTexture(texture, sync = true, checkRedundancy = true, ::callback)
             } else when (Signature.findNameSync(file)) {
-                "dds", "media" -> useFFMPEG(file)
+                "dds", "media" -> tryUsingVideoCache(file)
                 else -> {
                     val async = AsyncCacheData<Image?>()
                     ImageReader.readImage(file, async, true)
@@ -75,14 +70,12 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
                         is GPUImage -> {
                             val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
                             texture.rotation = (image.texture as? Texture2D)?.rotation
-                            this.texture = texture
                             texture.create(image, true, ::callback)
                         }
                         null -> tryGetImage0(file, file.lcExtension)
                         else -> {
                             val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
                             texture.rotation = getRotation(file)
-                            this.texture = texture
                             texture.create(image, true, ::callback)
                         }
                     }
@@ -91,19 +84,19 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         }
     }
 
-    fun useFFMPEG(file: FileReference) {
+    fun tryUsingVideoCache(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
         val meta = getMeta(file, false)
         if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
             LOGGER.warn("Cannot load $file using FFMPEG")
-            texture = null
+            value = null
         } else {
             val frame = Sleep.waitForGFXThreadUntilDefined(true) {
                 VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
             }
             frame.waitToLoad()
             GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                texture = frame.toTexture()
+                value = frame.toTexture()
             }
         }
     }
@@ -113,7 +106,7 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         // read the exif rotation header
         // because some camera images are rotated incorrectly
         if (fileExtension.getImportType() == "Video") {
-            useFFMPEG(file)
+            tryUsingVideoCache(file)
         } else tryGetImage1(file)
     }
 
@@ -122,10 +115,9 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         if (image != null) {
             val texture = Texture2D("i2t/bi/${file.name}", 1024, 1024, 1)
             texture.rotation = getRotation(file)
-            this.texture = texture
             texture.create(image, checkRedundancy = true, ::callback)
         } else {
-            useFFMPEG(file)
+            tryUsingVideoCache(file)
         }
     }
 
@@ -154,9 +146,5 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
 
     private fun onError(file: FileReference, e: Throwable) {
         LOGGER.warn("Cannot read image from input $file, $e")
-    }
-
-    override fun destroy() {
-        texture?.destroy()
     }
 }

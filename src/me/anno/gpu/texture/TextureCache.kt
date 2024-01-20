@@ -26,7 +26,7 @@ object TextureCache : CacheSection("Texture") {
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = try {
-            getDualEntry(file, file.lastModified, timeout, asyncGenerator) { it, _ ->
+            getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
                 generateImageData(it)
             }
         } catch (e: Exception) {
@@ -36,8 +36,8 @@ object TextureCache : CacheSection("Texture") {
         return when {
             entry == null -> false
             entry !is ImageToTexture -> true
-            entry.hasFailed -> true
-            entry.texture?.wasCreated == true -> true
+            entry.hasValue && entry.value == null -> true
+            entry.value?.wasCreated == true -> true
             else -> false
         }
     }
@@ -63,20 +63,16 @@ object TextureCache : CacheSection("Texture") {
             LOGGER.warn("Image missing: $file")
             return null
         }
-        val imageData = getDualEntry(
-            file, file.lastModified, timeout, asyncGenerator
-        ) { it, _ -> generateImageData(it) } as? ImageToTexture ?: return null
-        if (!imageData.hasFailed &&
-            imageData.texture?.wasCreated != true &&
+        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
+            generateImageData(it)
+        } as? ImageToTexture ?: return null
+        if (!imageData.hasValue &&
             !asyncGenerator && !OS.isWeb
         ) {
             // the texture was forced to be loaded -> wait for it
-            Sleep.waitForGFXThread(true) {
-                val texture = imageData.texture
-                (texture != null && (texture.wasCreated || texture.isDestroyed)) || imageData.hasFailed
-            }
+            Sleep.waitForGFXThread(true) { imageData.hasValue }
         }
-        val texture = imageData.texture
+        val texture = imageData.value
         return if (texture != null && texture.isCreated()) texture else null
     }
 
