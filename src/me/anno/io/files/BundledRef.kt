@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.Build
 import me.anno.utils.structures.Callback
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.*
@@ -18,7 +19,7 @@ class BundledRef(
 
     override fun getChild(name: String): FileReference {
         val zfd = zipFileForDirectory
-        return zfd?.getChild(name) ?: parse("$absolutePath/$name")
+        return zfd?.getChild(name) ?: parse(appendPath(absolutePath,name))
     }
 
     override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {

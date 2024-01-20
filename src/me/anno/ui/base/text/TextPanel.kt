@@ -3,6 +3,7 @@ package me.anno.ui.base.text
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
@@ -18,7 +19,6 @@ import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -206,7 +206,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val index = min(charIndex, text.length)
         var answer = xOffsets[index]
         if (answer == Int.MIN_VALUE) {
-            answer = getTextSizeX(font, text.substring(0, index), -1, -1) - 1
+            answer = getTextSizeX(font, text.substring(0, index), -1, -1, false) - 1
             xOffsets[charIndex] = answer
         }
         return answer
@@ -234,17 +234,26 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit, false)
         }
         if (useMonospaceCharacters) {
-            val size = getTextSizeCharByChar(font, text, true)
-            minW = max(1, getSizeX(size) + padding.width)
-            minH = max(1, getSizeY(size) + padding.height)
+            calculateSizeMono()
         } else {
             val inst = instantTextLoading
             if (inst) loadTexturesSync.push(true)
-            val size = getTextSize(textCacheKey)
-            minW = max(1, getSizeX(size) + padding.width)
-            minH = max(1, getSizeY(size) + padding.height)
+            val size = getTextSize(textCacheKey, !inst)
+            if (size == -1) {
+                calculateSizeMono()
+                invalidateLayout() // mark as not final yet
+            } else {
+                minW = max(1, getSizeX(size) + padding.width)
+                minH = max(1, getSizeY(size) + padding.height)
+            }
             if (inst) loadTexturesSync.pop()
         }
+    }
+
+    private fun calculateSizeMono() {
+        val size = getTextSizeCharByChar(font, text, true)
+        minW = max(1, getSizeX(size) + padding.width)
+        minH = max(1, getSizeY(size) + padding.height)
     }
 
     fun underline(i0: Int, i1: Int) {
@@ -259,8 +268,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
         val x = this.x + dx + padding.left
         val y = this.y + dy + padding.top + font.sizeInt * 10 / 8
-        val x0 = x + getTextSizeX(font, text.subSequence(0, i0), -1, -1)
-        val x1 = x + getTextSizeX(font, text.subSequence(0, i1), -1, -1)
+        val x0 = x + getTextSizeX(font, text.subSequence(0, i0), -1, -1, false)
+        val x1 = x + getTextSizeX(font, text.subSequence(0, i1), -1, -1, false)
         DrawRectangles.drawRect(x0, y, x1 - x0, thickness, color)
     }
 
@@ -269,7 +278,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         calculateSize(w, text)
     }
 
-    fun getMaxWidth() = getTextSizeX(font, text, -1, -1) + padding.width
+    fun getMaxWidth() = getTextSizeX(font, text, -1, -1, false) + padding.width
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading

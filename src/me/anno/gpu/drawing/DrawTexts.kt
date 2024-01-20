@@ -220,14 +220,12 @@ object DrawTexts {
         return if (equalSpaced) {
             val charWidth = font.sampleWidth
             val textWidth = charWidth * text.length
-            val size = FontManager.getSize(font, text, -1, -1)
-            GFXx2D.getSize(textWidth, GFXx2D.getSizeY(size))
+            GFXx2D.getSize(textWidth, font.sizeInt)
         } else {
             val font2 = FontManager.getFont(font)
             val group = TextGroup(font2, text, 0.0)
             val textWidth = group.offsets.last().toFloat()
-            val size = FontManager.getSize(font, text, -1, -1)
-            GFXx2D.getSize(textWidth.roundToInt(), GFXx2D.getSizeY(size))
+            GFXx2D.getSize(textWidth.roundToInt(), font.sizeInt)
         }
     }
 
@@ -281,7 +279,7 @@ object DrawTexts {
             fun getTexture(char: Int): ITexture2D? {
                 return if (!Character.isWhitespace(char)) {
                     val txt = char.joinChars().toString()
-                    FontManager.getTexture(font, txt, -1, -1)
+                    FontManager.getTexture(font, txt, -1, -1, false)
                 } else null
             }
 
@@ -321,8 +319,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            val size = FontManager.getSize(font, text, -1, -1)
-            return GFXx2D.getSize(fx - (x + dx), GFXx2D.getSizeY(size))
+            return GFXx2D.getSize(fx - (x + dx), font.sizeInt)
         } else {
 
             val font2 = FontManager.getFont(font)
@@ -345,7 +342,7 @@ object DrawTexts {
                     val o1 = offsets[index].toInt()
                     val fx = x + dxi + o0
                     val w = o1 - o0
-                    val texture = FontManager.getTexture(font, txt, -1, -1)
+                    val texture = FontManager.getTexture(font, txt, -1, -1, false)
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         val x2 = fx + (w - texture.width).shr(1)
@@ -359,8 +356,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            val size = FontManager.getSize(font, text, -1, -1)
-            return GFXx2D.getSize(textWidth.roundToInt(), GFXx2D.getSizeY(size))
+            return GFXx2D.getSize(textWidth.roundToInt(), font.sizeInt)
         }
     }
 
@@ -405,7 +401,7 @@ object DrawTexts {
         if (key.text.isEmpty())
             return GFXx2D.getSize(0, font.sizeInt)
         if (key.text.isBlank2())
-            return FontManager.getSize(key)
+            return FontManager.getSize(key, false)
 
         GFX.check()
 
@@ -424,7 +420,7 @@ object DrawTexts {
 
             val txt = key.text.toString()
 
-            val texture = FontManager.getTexture(key)
+            val texture = FontManager.getTexture(key, false)
             if (texture != null) {
                 draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt, true)
             }
@@ -449,7 +445,7 @@ object DrawTexts {
             val fx = x + dxi + o0
             val w = o1 - o0
 
-            val texture = FontManager.getTexture(key)
+            val texture = FontManager.getTexture(key, false)
             if (texture != null) {
                 draw(shader, texture, fx + (w - texture.width).shr(1), y2, text, true)
             }
@@ -459,8 +455,7 @@ object DrawTexts {
 
         GFX.loadTexturesSync.pop()
 
-        val size = FontManager.getSize(key)
-        return GFXx2D.getSize(charWidth, GFXx2D.getSizeY(size))
+        return GFXx2D.getSize(charWidth, font.sizeInt)
     }
 
     private fun draw(
@@ -503,7 +498,8 @@ object DrawTexts {
 
         GFX.check()
 
-        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
+        val async = !GFX.loadTexturesSync.peek()
+        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit, async)
 
         val charByChar = (tex0 == null || !tex0.isCreated()) && text.length > 1
         return if (charByChar) {
@@ -568,7 +564,8 @@ object DrawTexts {
                 true
             )
         } else {
-            val tex0 = FontManager.getTexture(key)
+            val async = !GFX.loadTexturesSync.peek()
+            val tex0 = FontManager.getTexture(key, async)
             val charByChar = tex0 == null || !tex0.isCreated()
             if (charByChar) {
                 return drawTextCharByChar(
@@ -605,7 +602,8 @@ object DrawTexts {
             )
         }
 
-        val tex0 = FontManager.getTexture(key)
+        val async = !GFX.loadTexturesSync.peek()
+        val tex0 = FontManager.getTexture(key, async)
         val charByChar = tex0 == null || !tex0.isCreated()
         if (charByChar) {
             return drawTextCharByChar(
@@ -618,16 +616,16 @@ object DrawTexts {
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 
-    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
-        GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit))
+    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
+        GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit, async))
 
     @Suppress("unused")
-    fun getTextSizeY(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
-        GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit))
+    fun getTextSizeY(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
+        GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit, async))
 
-    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
-        FontManager.getSize(font, text, widthLimit, heightLimit)
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean) =
+        FontManager.getSize(font, text, widthLimit, heightLimit, async)
 
-    fun getTextSize(key: TextCacheKey) =
-        FontManager.getSize(key)
+    fun getTextSize(key: TextCacheKey, async: Boolean) =
+        FontManager.getSize(key, async)
 }

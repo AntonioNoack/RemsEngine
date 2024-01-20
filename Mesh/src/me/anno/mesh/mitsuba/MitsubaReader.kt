@@ -14,6 +14,7 @@ import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
@@ -100,7 +101,7 @@ object MitsubaReader {
                     val mesh = readMeshData(stream, version)
                     val prefab = (mesh.ref as PrefabReadable).readPrefab()
 
-                    InnerPrefabFile("$absolutePath/$name", relativePath, folder, prefab)
+                    InnerPrefabFile(appendPath(absolutePath, name), relativePath, folder, prefab)
                 }
                 stream.close()
                 callback.ok(folder)

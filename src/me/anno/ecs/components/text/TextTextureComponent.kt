@@ -38,7 +38,7 @@ class TextTextureComponent : TextComponent {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        val size = FontManager.getSize(key)
+        val size = FontManager.getSize(key, false)
         mesh.indices = Shapes.flat11.indices
         val pos = mesh.positions.resize(Shapes.flat11.positions.size)
         val dx = GFXx2D.getSizeX(size).toFloat() / GFXx2D.getSizeY(size)
@@ -62,7 +62,7 @@ class TextTextureComponent : TextComponent {
 
     override fun onUpdate(): Int {
         return if (material.diffuseMap == InvalidRef) {
-            val texture = FontManager.getTexture(key)
+            val texture = FontManager.getTexture(key, true)
             if (texture != null && texture.isCreated()) {
                 material.diffuseMap = texture.createImage(flipY = false, withAlpha = false).ref
                 material.clamping = Clamping.CLAMP

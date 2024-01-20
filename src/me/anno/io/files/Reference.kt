@@ -184,7 +184,7 @@ object Reference {
     }
 
     @JvmStatic
-    fun appendPath(fileI: File, i: Int, parts: List<String>) =
+    private fun appendPath(fileI: File, i: Int, parts: List<String>) =
         appendPath(FileFileRef(fileI), i, parts)
 
     @JvmStatic

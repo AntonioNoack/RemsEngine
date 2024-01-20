@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
+import me.anno.cache.IgnoredException
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage
@@ -10,6 +11,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
 import me.anno.utils.OS
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.math.sqrt
 
@@ -48,15 +50,6 @@ object TextureCache : CacheSection("Texture") {
 
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): ITexture2D? {
         if (file == InvalidRef) return null
-        if (file is ImageReadable) {
-            val image = file.readGPUImage()
-            if (image is GPUImage) {
-                val texture = image.texture as? Texture2D
-                    ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
-                if (texture is TextureLib.IndestructibleTexture2D) texture.ensureExists()
-                return if (!texture.isDestroyed && texture.wasCreated) texture else null
-            }
-        }
         if (file !is InnerFile) {
             if (file.isDirectory || !file.exists) return null
         } else if (file.isDirectory || !file.exists) {
@@ -64,7 +57,16 @@ object TextureCache : CacheSection("Texture") {
             return null
         }
         val imageData = getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
-            generateImageData(it)
+            val result = if (file is ImageReadable) {
+                val image = file.readGPUImage()
+                if (image is GPUImage) {
+                    val texture = image.texture as? Texture2D
+                        ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
+                    if (texture is TextureLib.IndestructibleTexture2D) texture.ensureExists()
+                    if (!texture.isDestroyed && texture.wasCreated) texture else null
+                } else null
+            } else null
+            result ?: generateImageData(it)
         } as? TextureReader ?: return null
         if (!imageData.hasValue &&
             !asyncGenerator && !OS.isWeb
@@ -91,11 +93,16 @@ object TextureCache : CacheSection("Texture") {
 
     fun getLateinitTextureLimited(
         key: Any, timeout: Long, async: Boolean, limit: Int,
-        generator: (callback: (ITexture2D?) -> Unit) -> Unit
+        generator: (callback: Callback<ITexture2D>) -> Unit
     ): LateinitTexture? {
         return getEntryLimited(key, timeout, async, limit) {
             val textureContainer = LateinitTexture()
-            generator { textureContainer.texture = it }
+            generator { result, exc ->
+                textureContainer.texture = result
+                if (exc != null && exc !is IgnoredException) {
+                    exc.printStackTrace()
+                }
+            }
             textureContainer
         } as? LateinitTexture
     }

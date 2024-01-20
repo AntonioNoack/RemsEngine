@@ -19,7 +19,6 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.utils.structures.Callback
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
@@ -88,6 +87,7 @@ import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Warning.unused
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
@@ -193,22 +193,7 @@ object Thumbs {
         val key = ThumbnailKey(file, lastModified, size)
 
         val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
-            if (async) {
-                thread(name = "Thumbs/${key.file.name}") {
-                    try {
-                        generate0(file, size, key) { it, exc ->
-                            callback(it)
-                            exc?.printStackTrace()
-                        }
-                    } catch (_: IgnoredException) {
-                    } catch (e: Throwable) {
-                        e.printStackTrace()
-                    }
-                }
-            } else generate0(file, size, key) { it, exc ->
-                callback(it)
-                exc?.printStackTrace()
-            }
+            generate0(file, size, key, callback)
         }?.texture
         val value = when (texture) {
             is GPUFrame -> if (texture.wasCreated) texture else null

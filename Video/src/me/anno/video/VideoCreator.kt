@@ -146,7 +146,7 @@ open class VideoCreator(
         builder += output.absolutePath
 
         process = builder.start()
-        logOutput(null, process.inputStream, true)
+        logOutput(null, output.absolutePath, process.inputStream, true)
         thread(name = "VideoCreator:updates") {
             processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) {
                 close()

@@ -59,7 +59,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
     }
 
     fun onAlignmentChange() {
-        size = FontManager.getSize(font, text, -1, -1)
+        size = FontManager.getSize(font, text, -1, -1, false)
         dx = getSizeX(size).toDouble() / getSizeY(size)
         alignmentOffset = when (alignmentX) {
             AxisAlignment.MIN -> -2f

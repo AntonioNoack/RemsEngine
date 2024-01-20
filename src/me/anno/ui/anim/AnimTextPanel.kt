@@ -151,7 +151,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         if (equalSpaced) {
 
             val text1 = text.second
-            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit)
+            val charWidth = DrawTexts.getTextSizeX(font, "x", widthLimit, heightLimit, false)
             val textWidth = charWidth * text1.size
 
             val dxi = DrawTexts.getOffset(textWidth, alignX)
@@ -162,10 +162,10 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
             for (index in text1.indices) {
                 val key = text1[index]
-                val size = FontManager.getSize(key)
+                val size = FontManager.getSize(key, false)
                 h = GFXx2D.getSizeY(size)
                 if (!key.text.isBlank2()) {
-                    val texture = FontManager.getTexture(key)
+                    val texture = FontManager.getTexture(key, false)
                     if (texture != null &&  texture.wasCreated) {
                         texture.bindTrulyNearest(0)
                         val x2 = fx + (charWidth - texture.width) / 2
@@ -204,7 +204,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             val text1 = text.second
             for (index in text1.indices) {
                 val txt = text1[index]
-                val size = FontManager.getSize(txt)
+                val size = FontManager.getSize(txt, false)
                 val o0 = group.offsets[index].toFloat()
                 val o1 = group.offsets[index + 1].toFloat()
                 val fx = x + dxi + o0
@@ -212,7 +212,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                 h = GFXx2D.getSizeY(size)
                 if (!txt.text.isBlank2()) {
                     // todo in TextGroup, ti is broken ... why??
-                    val texture = FontManager.getTexture(txt)
+                    val texture = FontManager.getTexture(txt, false)
                     if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
                         val x2 = fx + (w - texture.width) / 2

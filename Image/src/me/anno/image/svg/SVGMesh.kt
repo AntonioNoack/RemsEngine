@@ -3,7 +3,6 @@ package me.anno.image.svg
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
-import me.anno.utils.structures.Callback
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.gradient.Formula
@@ -19,6 +18,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
 import me.anno.utils.Warning.unused
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.toRadians
@@ -254,6 +254,7 @@ class SVGMesh {
             val colors = ExpandingIntArray(totalPointCount)
             for (curve in curves) {
                 val triangles = curve.triangles
+                if (triangles.isEmpty()) continue
                 val minX = triangles.minOf { it.x }
                 val maxX = triangles.maxOf { it.x }
                 val minY = triangles.minOf { it.y }

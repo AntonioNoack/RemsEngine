@@ -49,7 +49,7 @@ open class InnerFolder(
 
     override fun getChild(name: String): FileReference {
         return if ('\\' in name || '/' in name) {
-            getReference("$absolutePath/$name")
+            getReference(appendPath(absolutePath, name))
         } else {
             synchronized(children) {
                 val c0 = children.values.filter { it.name.equals(name, true) }
@@ -87,7 +87,7 @@ open class InnerFolder(
     fun createChild(name: String, relativePath: String = getSubName(name)): InnerFolder {
         val child = children[name]
         if (child != null) return child as InnerFolder
-        val absolutePath = "$absolutePath/$name"
+        val absolutePath = appendPath(absolutePath, name)
         return InnerFolder(absolutePath, relativePath, this)
     }
 
@@ -105,7 +105,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createTextChild(name, content, null) }
-            ?: InnerTextFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerTextFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun createPrefabChild(name: String, content: Prefab, registry: HashMap<String, InnerFile>? = null): InnerFile {
@@ -113,7 +113,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createPrefabChild(name, content, null) }
-            ?: InnerPrefabFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerPrefabFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun createLazyPrefabChild(
@@ -125,7 +125,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createLazyPrefabChild(name, content, null) }
-            ?: InnerLazyPrefabFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerLazyPrefabFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun createLazyImageChild(
@@ -146,7 +146,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createLazyImageChild(name, cpuImage, gpuImage, null) }
-            ?: InnerLazyImageFile("$absolutePath/$name", relativePath, this, cpuImage, gpuImage)
+            ?: InnerLazyImageFile(appendPath(absolutePath, name), relativePath, this, cpuImage, gpuImage)
     }
 
     fun createByteChild(name: String, content: ByteArray, registry: HashMap<String, InnerFile>? = null): InnerFile {
@@ -154,7 +154,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
-            ?: InnerByteFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerByteFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     @Suppress("unused")
@@ -167,7 +167,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
-            ?: InnerLazyByteFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerLazyByteFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun createImageChild(
@@ -179,7 +179,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createImageChild(name, content, null) }
-            ?: InnerImageFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerImageFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun createStreamChild(
@@ -191,7 +191,7 @@ open class InnerFolder(
         if (child != null) return child
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createStreamChild(name, content, null) }
-            ?: InnerStreamFile("$absolutePath/$name", relativePath, this, content)
+            ?: InnerStreamFile(appendPath(absolutePath, name), relativePath, this, content)
     }
 
     fun sealPrefabs() {

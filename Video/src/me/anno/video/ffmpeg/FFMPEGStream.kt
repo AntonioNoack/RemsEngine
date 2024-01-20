@@ -229,9 +229,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         }
 
         @JvmStatic
-        fun logOutput(prefix: String?, stream: InputStream, warn: Boolean) {
+        fun logOutput(prefix: String?, name: String, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
-            thread(name = "LogOutput") {
+            thread(name = "LogOutput<$name>") {
                 while (true) {
                     val line = reader.readLine() ?: break
                     val lineWithPrefix = if (prefix == null) line else "[$prefix] $line"

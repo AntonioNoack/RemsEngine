@@ -492,7 +492,9 @@ class AWTFont(val font: Font) {
             createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
         } else {
             GFX.addGPUTask("awt-font-v6", width, height) {
-                createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+                if (!texture.isDestroyed) {
+                    createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+                }
             }
         }
         return texture

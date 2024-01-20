@@ -216,7 +216,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val background = backgroundColor
         val x = this.x + padding.left + xi * charWidth
         val y = this.y + padding.top + yi * lineHeight
-        val tw = DrawTexts.getTextSizeX(font, text, -1, -1)
+        val tw = DrawTexts.getTextSizeX(font, text, -1, -1, false)
         drawRect(x, y, charWidth, lineHeight, background or black)
         drawText(x - (charWidth - tw) / 2, y, font, key, textColor, background and 0xffffff)
     }
@@ -241,7 +241,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val background = backgroundColor
         val x = this.x + padding.left + xi * charWidth
         val y = this.y + padding.top + yi * lineHeight
-        val tw = DrawTexts.getTextSizeX(font, text, -1, -1)
+        val tw = DrawTexts.getTextSizeX(font, text, -1, -1, false)
         drawText(x + (charWidth - tw) / 2, y, font, key, textColor, background and 0xffffff)
     }
 

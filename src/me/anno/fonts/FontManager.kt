@@ -61,10 +61,8 @@ object FontManager {
     ): Int {
         return if (widthLimit < 0 || widthLimit >= GFX.maxTextureSize || font.size < 1f) GFX.maxTextureSize
         else {
-            loadTexturesSync.push(true)
-            val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit)
+            val size0 = getSize(font, text, GFX.maxTextureSize, heightLimit, false)
             val w = GFXx2D.getSizeX(size0)
-            loadTexturesSync.pop()
             if (w <= widthLimit) return size0
             val step = max(1, font.size.toInt())
             min(w, (widthLimit + step / 2) / step * step)
@@ -88,31 +86,26 @@ object FontManager {
     ): Int {
         return if (heightLimit < 0 || heightLimit >= GFX.maxTextureSize) GFX.maxTextureSize
         else {
-            loadTexturesSync.push(true)
-            val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize)
+            val size0 = getSize(font, text, widthLimit2, GFX.maxTextureSize, false)
             val h = GFXx2D.getSizeY(size0)
-            loadTexturesSync.pop()
             limitHeight(font, min(h, heightLimit))
         }
     }
 
-    fun getSize(
-        key: TextCacheKey
-    ): Int {
-        // GFX.checkIsGFXThread()
-        val data = TextSizeCache.getEntry(key, 100_000, false) {
+    fun getSize(key: TextCacheKey, async: Boolean): Int {
+        val data = TextSizeCache.getEntry(key, 100_000, async) {
             val awtFont = getFont(it)
             val averageFontSize = getAvgFontSize(it.fontSizeIndex())
             val wl = if (it.widthLimit < 0) GFX.maxTextureSize else min(it.widthLimit, GFX.maxTextureSize)
             val hl = if (it.heightLimit < 0) GFX.maxTextureSize else min(it.heightLimit, GFX.maxTextureSize)
             CacheData(awtFont.calculateSize(it.text, averageFontSize, wl, hl))
-        } as CacheData<*>
-        return data.value as Int
+        } as? CacheData<*>
+        return data?.value as? Int ?: -1
     }
 
-    fun getSize(font: me.anno.ui.base.Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
+    fun getSize(font: me.anno.ui.base.Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
-        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false))
+        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false), async)
     }
 
     fun getBaselineY(
@@ -132,7 +125,8 @@ object FontManager {
         font: me.anno.ui.base.Font,
         text: String,
         widthLimit: Int,
-        heightLimit: Int
+        heightLimit: Int,
+        async: Boolean
     ): TextCacheKey? {
 
         if (text.isBlank2()) return null
@@ -155,12 +149,13 @@ object FontManager {
         font: me.anno.ui.base.Font,
         text: String,
         widthLimit: Int,
-        heightLimit: Int
+        heightLimit: Int,
+        async: Boolean
     ): ITexture2D? {
         val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
         val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-        val key = getTextCacheKey(font, text, wl, hl) ?: return null
-        return getTexture(key)
+        val key = getTextCacheKey(font, text, wl, hl, false) ?: return null
+        return getTexture(key, async)
     }
 
     fun getASCIITexture(font: me.anno.ui.base.Font): Texture2DArray {
@@ -169,7 +164,7 @@ object FontManager {
         } as Texture2DArray
     }
 
-    fun getTexture(cacheKey: TextCacheKey, async: Boolean = false): ITexture2D? {
+    fun getTexture(cacheKey: TextCacheKey, async: Boolean): ITexture2D? {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
