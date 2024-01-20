@@ -2,15 +2,12 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shader3DSimple
-import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.distance
@@ -187,36 +184,34 @@ object Grid {
         // todo why is line smoothing doing nothing?
         // if (LineBuffer.enableLineSmoothing) glEnable(GL_LINE_SMOOTH)
         // to avoid flickering
-        depthMode.use(DepthMode.ALWAYS) {
 
-            val log = log10(distance)
-            val f = (log - floor(log)).toFloat()
-            val cameraDistance = (10.0 * pow(10.0, floor(log))).toFloat()
+        val log = log10(distance)
+        val f = (log - floor(log)).toFloat()
+        val cameraDistance = (10.0 * pow(10.0, floor(log))).toFloat()
 
-            stack.scale(cameraDistance)
+        stack.scale(cameraDistance)
 
-            val gridAlpha = 0.05f
+        val gridAlpha = 0.05f
 
-            drawGrid(stack, gridAlpha * (1f - f))
+        drawGrid(stack, gridAlpha * (1f - f))
 
-            stack.scale(10f)
+        stack.scale(10f)
 
-            drawGrid(stack, gridAlpha)
+        drawGrid(stack, gridAlpha)
 
-            stack.scale(10f)
+        stack.scale(10f)
 
-            drawGrid(stack, gridAlpha * f)
+        drawGrid(stack, gridAlpha * f)
 
-            stack.rotateX(PIf / 2f)
-            drawLine(stack, xAxisColor, 0.15f) // x
+        stack.rotateX(PIf / 2f)
+        drawLine(stack, xAxisColor, 0.15f) // x
 
-            stack.rotateY(PIf / 2f)
-            drawLine(stack, yAxisColor, 0.15f) // y
+        stack.rotateY(PIf / 2f)
+        drawLine(stack, yAxisColor, 0.15f) // y
 
-            stack.rotateZ(PIf / 2f)
-            drawLine(stack, zAxisColor, 0.15f) // z
+        stack.rotateZ(PIf / 2f)
+        drawLine(stack, zAxisColor, 0.15f) // z
 
-        }
         // if (LineBuffer.enableLineSmoothing) glDisable(GL_LINE_SMOOTH)
     }
 
