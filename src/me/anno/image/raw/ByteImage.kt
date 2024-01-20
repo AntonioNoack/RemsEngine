@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -65,7 +66,7 @@ open class ByteImage(
         texture: Texture2D,
         sync: Boolean,
         checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("ByteImage", width, height) {
@@ -87,7 +88,7 @@ open class ByteImage(
                 }
                 else -> throw NotImplementedError()
             }
-            callback(texture, null)
+            callback.ok(texture)
         }
     }
 

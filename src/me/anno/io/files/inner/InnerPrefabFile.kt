@@ -29,22 +29,7 @@ open class InnerPrefabFile(
 
     override fun readTextSync() = text
     override fun readBytesSync() = bytes
-
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(text, null)
-    }
-
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes, null)
-    }
-
-    override fun inputStreamSync(): InputStream {
-        return ByteArrayInputStream(text.encodeToByteArray())
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(inputStreamSync(), null)
-    }
+    override fun inputStreamSync(): InputStream = ByteArrayInputStream(text.encodeToByteArray())
 
     override fun readPrefab(): Prefab {
         return prefab

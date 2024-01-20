@@ -2,6 +2,7 @@ package me.anno.io.files.inner.lazy
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
@@ -36,20 +37,16 @@ open class InnerLazyPrefabFile(
     override fun readTextSync() = text
     override fun readBytesSync() = bytes
 
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(text, null)
+    override fun readText(callback: Callback<String>) {
+        callback.ok(text)
     }
 
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes, null)
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(bytes)
     }
 
     override fun inputStreamSync(): InputStream {
         return ByteArrayInputStream(bytes)
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(inputStreamSync(), null)
     }
 
     override fun readPrefab(): Prefab {

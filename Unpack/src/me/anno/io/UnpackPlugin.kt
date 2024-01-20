@@ -34,13 +34,13 @@ class UnpackPlugin : Plugin() {
             val file = Inner7zFile.createZipRegistry7z(src) {
                 Inner7zFile.fileFromStream7z(src)
             }
-            callback(file, null)
+            callback.ok(file)
         }
         InnerFolderCache.register("rar") { src, callback ->
             val file = InnerRarFile.createZipRegistryRar(src) {
                 InnerRarFile.fileFromStreamRar(src)
             }
-            callback(file, null)
+            callback.ok(file)
         }
         InnerFolderCache.register("gzip", InnerTarFile.Companion::readAsGZip)
         InnerFolderCache.register("tar", InnerTarFile.Companion::readAsGZip)
@@ -55,7 +55,7 @@ class UnpackPlugin : Plugin() {
         // register yaml generally for unity files?
         InnerFolderCache.registerFileExtension(ThumbsExt.unityExtensions) { it, c ->
             val f = UnityReader.readAsFolder(it) as? InnerFolder
-            c(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
+            c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
         }
     }
 

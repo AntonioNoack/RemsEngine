@@ -3,6 +3,7 @@ package me.anno.image.svg
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
+import me.anno.utils.structures.Callback
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.gradient.Formula
@@ -921,7 +922,7 @@ class SVGMesh {
             Attribute("aPadding", 1)
         )
 
-        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
             // Engine.requestShutdown()
             file.inputStream { it, exc ->
                 if (it != null) {
@@ -937,9 +938,9 @@ class SVGMesh {
                         prefab._sampleInstance = mesh
                         folder.createPrefabChild("Scene.json", prefab)
                         // todo create Images folder, where the svg is interpreted as an image :)
-                        callback(folder, null)
-                    } else callback(null, IOException("No contents could be parsed"))
-                } else callback(null, exc)
+                        callback.ok(folder)
+                    } else callback.err(IOException("No contents could be parsed"))
+                } else callback.err(exc)
             }
         }
     }

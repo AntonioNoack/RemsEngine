@@ -1,6 +1,7 @@
 package me.anno.image
 
 import me.anno.cache.ICacheData
+import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -154,7 +155,7 @@ abstract class Image(
 
     open fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
     }

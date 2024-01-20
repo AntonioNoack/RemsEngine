@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -17,7 +18,7 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, pr
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (src is GPUImage && (color == 0 || color == 0xffffff)) {
             val map = if (inverse) channel.uppercaseChar() else channel

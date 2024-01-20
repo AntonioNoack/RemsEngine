@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.utils.structures.Callback
 import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
 import me.anno.utils.strings.StringHelper.indexOf2
@@ -82,9 +83,9 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         return WebRef("$basePath/$name", emptyMap())
     }
 
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         thread(name = "WebRef") {
-            callback(inputStreamSync(), null)
+            callback.ok(inputStreamSync())
         }
     }
 

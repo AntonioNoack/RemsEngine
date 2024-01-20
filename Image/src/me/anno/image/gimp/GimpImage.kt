@@ -1,5 +1,6 @@
 package me.anno.image.gimp
 
+import me.anno.utils.structures.Callback
 import me.anno.image.Image
 import me.anno.image.ImageReader
 import me.anno.image.raw.ByteImage
@@ -156,15 +157,15 @@ class GimpImage {
             return rgba(nr, ng, nb, alpha)
         }
 
-        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
             file.readByteBuffer(false) { it, exc ->
                 if (it != null) {
                     readAsFolder(file, it, callback)
-                } else callback(null, exc)
+                } else callback.err(exc)
             }
         }
 
-        fun readAsFolder(file: FileReference, input: ByteBuffer, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, input: ByteBuffer, callback: Callback<InnerFolder>) {
             val info = readImage(input)
             ImageReader.readAsFolder(file) { folder, exc ->
                 if (folder != null) {
@@ -177,8 +178,8 @@ class GimpImage {
                             subFolder.createImageChild(layer.name + ".png", image)
                         }
                     }
-                    callback(folder, null)
-                } else callback(null, exc)
+                    callback.ok(folder)
+                } else callback.err(exc)
             }
         }
     }

@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
@@ -43,9 +44,8 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         base!!.createTexture(texture, sync, checkRedundancy, callback)
     }
-
 }

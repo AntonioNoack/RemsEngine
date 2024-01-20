@@ -1,12 +1,12 @@
 package me.anno.io.files.inner.temporary
 
+import me.anno.utils.structures.Callback
 import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.utils.structures.tuples.IntPair
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
 
 class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ext), ImageReadable {
 
@@ -26,13 +26,9 @@ class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ex
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference> = emptyList()
 
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(inputStreamSync(), null)
-    }
-
     override fun inputStreamSync() = ByteArrayInputStream(readBytesSync())
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes.value, null)
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(readBytesSync())
     }
 
     override fun readBytesSync(): ByteArray = bytes.value

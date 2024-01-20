@@ -131,13 +131,9 @@ object VideoCache : CacheSection("Videos") {
      * returned frames are guaranteed to be created
      * */
     fun getVideoFrame(
-        file: FileReference,
-        scale: Int,
-        index: Int,
-        bufferLength0: Int,
-        fps: Double,
-        timeout: Long,
-        async: Boolean
+        file: FileReference, scale: Int, index: Int,
+        bufferLength0: Int, fps: Double,
+        timeout: Long, async: Boolean
     ): GPUFrame? {
         if (index < 0) return null
         if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")

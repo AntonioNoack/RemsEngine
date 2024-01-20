@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -53,7 +54,7 @@ object TextureMapper {
 
     fun mapTexture(
         src: ITexture2D, dst: Texture2D, mapping: String, type: TargetType,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
         if (mapping.length != 4) throw IllegalArgumentException()
@@ -68,9 +69,9 @@ object TextureMapper {
                         flat01.draw(shader)
                     }
                 }
-                callback(dst, null)
+                callback.ok(dst)
             } else {
-                callback(null, IllegalStateException("Mapping failed, because src wasn't created"))
+                callback.err(IllegalStateException("Mapping failed, because src wasn't created"))
             }
         } else {
             GFX.addGPUTask(mapping, dst.width, dst.height) {

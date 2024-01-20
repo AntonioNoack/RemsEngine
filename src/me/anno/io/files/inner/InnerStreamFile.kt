@@ -22,7 +22,7 @@ class InnerStreamFile(
         compressedSize = size
     }
 
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(getStream(), null)
-    }
+    override fun inputStreamSync(): InputStream = getStream()
+    override fun readBytesSync(): ByteArray = inputStreamSync().readBytes()
+    override fun readTextSync(): String = readBytesSync().decodeToString()
 }

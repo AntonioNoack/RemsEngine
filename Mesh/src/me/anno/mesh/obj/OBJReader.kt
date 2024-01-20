@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
+import me.anno.utils.structures.Callback
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -465,10 +466,10 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJReader::class)
-        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
             file.inputStream { it, exc ->
-                if (it != null) callback(OBJReader(it, file).folder, exc)
-                else callback(null, exc)
+                if (it != null) callback.call(OBJReader(it, file).folder, exc)
+                else callback.err(exc)
             }
         }
 
@@ -479,7 +480,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 .trim()
             skipLine()
             if (path.startsWith("./")) path = path.substring(2)
-            val file = parent.getParent()!!.getChild(path)
+            val file = parent.getSibling(path)
             if (!file.exists) LOGGER.warn("Missing file $file")
             return file
         }

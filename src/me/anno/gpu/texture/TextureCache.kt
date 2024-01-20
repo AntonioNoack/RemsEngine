@@ -35,7 +35,7 @@ object TextureCache : CacheSection("Texture") {
         }
         return when {
             entry == null -> false
-            entry !is ImageToTexture -> true
+            entry !is TextureReader -> true
             entry.hasValue && entry.value == null -> true
             entry.value?.wasCreated == true -> true
             else -> false
@@ -65,7 +65,7 @@ object TextureCache : CacheSection("Texture") {
         }
         val imageData = getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
             generateImageData(it)
-        } as? ImageToTexture ?: return null
+        } as? TextureReader ?: return null
         if (!imageData.hasValue &&
             !asyncGenerator && !OS.isWeb
         ) {
@@ -76,7 +76,7 @@ object TextureCache : CacheSection("Texture") {
         return if (texture != null && texture.isCreated()) texture else null
     }
 
-    private fun generateImageData(file: FileReference) = ImageToTexture(file)
+    private fun generateImageData(file: FileReference) = TextureReader(file)
 
     fun getLateinitTexture(
         key: Any, timeout: Long, async: Boolean,

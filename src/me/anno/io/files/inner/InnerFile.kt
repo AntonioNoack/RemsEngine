@@ -1,5 +1,6 @@
 package me.anno.io.files.inner
 
+import me.anno.utils.structures.Callback
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -63,25 +64,25 @@ abstract class InnerFile(
         markAsModified()
     }
 
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         val bytes = data
         when {
-            size <= 0 -> callback(EmptyInputStream, null)
-            bytes != null -> callback(ByteArrayInputStream(bytes), null)
-            else -> getInputStream(callback)
+            size <= 0 -> callback.call(EmptyInputStream, null)
+            bytes != null -> callback.call(ByteArrayInputStream(bytes), null)
+            else -> callback.ok(inputStreamSync())
         }
     }
 
-    /**
-     * should return buffered inputstream in callback
-     * */
-    abstract fun getInputStream(callback: (InputStream?, Exception?) -> Unit)
+    override fun readBytes(callback: Callback<ByteArray>) {
+        callback.ok(data ?: readBytesSync())
+    }
 
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        val data = data
-        if (data != null) {
-            callback(data, null)
-        } else super.readBytes(callback)
+    override fun readBytesSync(): ByteArray {
+        return data ?: super.readBytesSync()
+    }
+
+    override fun readText(callback: Callback<String>) {
+        callback.ok(readTextSync())
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -137,8 +138,6 @@ abstract class InnerFile(
     }
 
     companion object {
-
-        // private val LOGGER = LogManager.getLogger(InnerFile::class)
 
         @JvmStatic
         fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {

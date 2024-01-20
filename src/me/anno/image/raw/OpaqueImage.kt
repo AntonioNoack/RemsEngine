@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -32,7 +33,7 @@ open class OpaqueImage(val src: Image) :
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (!src.hasAlphaChannel) {
             src.createTexture(texture, sync, checkRedundancy, callback)
@@ -77,11 +78,11 @@ open class OpaqueImage(val src: Image) :
                     if (sync && GFX.isGFXThread()) {
                         texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
-                        callback(texture, null)
+                        callback.ok(texture)
                     } else GFX.addGPUTask("OpaqueImage", width, height) {
                         texture.create(TargetType.UInt8x3, TargetType.UInt8x4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
-                        callback(texture, null)
+                        callback.ok(texture)
                     }
                 }
                 else -> super.createTexture(texture, sync, checkRedundancy, callback)

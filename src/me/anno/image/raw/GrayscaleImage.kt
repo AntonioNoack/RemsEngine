@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -15,13 +16,13 @@ open class GrayscaleImage(val src: Image) :
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) = createTexture(texture, sync, checkRedundancy, src, callback)
 
     private fun createTexture(
         texture: Texture2D, sync: Boolean,
         checkRedundancy: Boolean, src: Image,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val size = width * height
         if (src.numChannels == 1) {
@@ -35,12 +36,12 @@ open class GrayscaleImage(val src: Image) :
                 }
                 if (sync && GFX.isGFXThread()) {
                     texture.createMonochrome(bytes, checkRedundancy)
-                    callback(texture, null)
+                    callback.ok(texture)
                 } else {
                     if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                     GFX.addGPUTask("GrayscaleImage.IntImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
-                        callback(texture, null)
+                        callback.ok(texture)
                     }
                 }
             }
@@ -53,12 +54,12 @@ open class GrayscaleImage(val src: Image) :
                 }
                 if (sync && GFX.isGFXThread()) {
                     texture.createMonochrome(bytes, checkRedundancy)
-                    callback(texture, null)
+                    callback.ok(texture)
                 } else {
                     if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                     GFX.addGPUTask("GrayscaleImage.ByteImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
-                        callback(texture, null)
+                        callback.ok(texture)
                     }
                 }
             }

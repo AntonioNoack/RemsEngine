@@ -1,5 +1,6 @@
 package me.anno.io.files.inner
 
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -33,18 +34,15 @@ class InnerLinkFile(
         get() = link.isSomeKindOfDirectory
 
     override fun inputStreamSync(): InputStream = link.inputStreamSync()
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) =
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) =
         link.inputStream(lengthLimit, callback)
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) =
-        link.inputStream(Long.MAX_VALUE, callback)
 
     override fun readBytesSync(): ByteArray = link.readBytesSync()
     override fun readTextSync(): String = link.readTextSync()
     override fun readByteBufferSync(native: Boolean): ByteBuffer = link.readByteBufferSync(native)
-    override fun readText(callback: (String?, Exception?) -> Unit) = link.readText(callback)
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) = link.readBytes(callback)
-    override fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) =
+    override fun readText(callback: Callback<String>) = link.readText(callback)
+    override fun readBytes(callback: Callback<ByteArray>) = link.readBytes(callback)
+    override fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) =
         link.readByteBuffer(native, callback)
 
     override fun listChildren() = link.listChildren()

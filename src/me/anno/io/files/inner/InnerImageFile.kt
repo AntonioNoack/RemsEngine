@@ -38,27 +38,7 @@ class InnerImageFile(
     override fun readGPUImage(): Image = content
     override fun readSize(): IntPair = IntPair(content.width, content.height)
 
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes, null)
-    }
-
-    override fun readBytesSync(): ByteArray {
-        return bytes
-    }
-
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(readTextSync(), null)
-    }
-
-    override fun readTextSync(): String {
-        return bytes.decodeToString() // what are you doing? ;)
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(inputStreamSync(), null)
-    }
-
-    override fun inputStreamSync(): InputStream {
-        return ByteArrayInputStream(bytes)
-    }
+    override fun readBytesSync(): ByteArray = bytes
+    override fun readTextSync(): String = bytes.decodeToString() // what are you doing? ;)
+    override fun inputStreamSync(): InputStream = ByteArrayInputStream(bytes)
 }

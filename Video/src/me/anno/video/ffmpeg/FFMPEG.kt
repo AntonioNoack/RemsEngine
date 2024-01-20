@@ -13,13 +13,13 @@ object FFMPEG {
     var ffmpegPath = if (isInstalled) getReference("ffmpeg") else
         DefaultConfig["ffmpeg.path", OS.downloads.getChild("lib/ffmpeg/bin/ffmpeg.exe")]
     var ffprobePath = if (isInstalled) getReference("ffprobe") else
-        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getParent().getChild("ffprobe.exe")]
+        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getSibling("ffprobe.exe")]
 
     var ffmpegPathString = if (isInstalled) "ffmpeg" else
         getReference(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
             .absolutePath.replace('\\', '/')
     var ffprobePathString = if (isInstalled) "ffprobe" else
-        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getParent().getChild("ffprobe.exe")]
+        DefaultConfig["ffmpeg.probe.path", ffmpegPath.getSibling("ffprobe.exe")]
             .absolutePath.replace('\\', '/')
 
     val ffmpeg

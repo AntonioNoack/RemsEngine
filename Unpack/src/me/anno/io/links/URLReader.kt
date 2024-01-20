@@ -1,5 +1,6 @@
 package me.anno.io.links
 
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
@@ -8,9 +9,9 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import java.io.IOException
 
 object URLReader {
-    fun readURLAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+    fun readURLAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
         file.readLines(1024) { lines, exception ->
-            if (lines == null) callback(null, exception)
+            if (lines == null) callback.err(exception)
             else {
                 val files = ArrayList<FileReference>()
                 for (line in lines) {
@@ -40,8 +41,8 @@ object URLReader {
                         // create child & add it
                         InnerLinkFile(folder, key, child)
                     }
-                    callback(folder, null)
-                } else callback(null, IOException("No files were found in $file"))
+                    callback.ok(folder)
+                } else callback.err(IOException("No files were found in $file"))
             }
         }
     }

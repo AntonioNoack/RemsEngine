@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -43,11 +44,11 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (GFX.isGFXThread()) {
             frame.toTexture(texture)
-            callback(texture, null)
+            callback.ok(texture)
         } else GFX.addGPUTask("frame.toTexture", width, height) {
             createTexture(texture, sync, checkRedundancy, callback)
         }

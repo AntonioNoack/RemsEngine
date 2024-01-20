@@ -31,19 +31,6 @@ class InnerLazyByteFile(
         set(_) {}
 
     override fun readBytesSync() = content.value
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(content.value, null)
-    }
-
-    override fun readTextSync(): String {
-        return content.value.decodeToString()
-    }
-
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(readTextSync(), null)
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(ByteArrayInputStream(content.value), null)
-    }
+    override fun readTextSync(): String = readBytesSync().decodeToString()
+    override fun inputStreamSync(): InputStream = ByteArrayInputStream(readBytesSync())
 }

@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.utils.structures.Callback
 import me.anno.io.files.Reference.getReference
 import java.io.File
 import java.io.IOException
@@ -8,7 +9,7 @@ import java.net.URI
 
 object FileRootRef : FileReference("root") {
 
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) =
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) =
         throw IOException()
 
     override fun outputStream(append: Boolean) = throw IOException()

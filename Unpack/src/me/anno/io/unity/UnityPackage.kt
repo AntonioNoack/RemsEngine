@@ -37,7 +37,7 @@ object UnityPackage {
                     }
                 }
             }
-            callback(
+            callback.ok(
                 if (registry.size == 1) {
                     // only return the unity archive, if we found at least one valid entry
                     rawArchive
@@ -46,10 +46,10 @@ object UnityPackage {
                     // it would be really helpful, if we could read non-packaged unity files as well ->
                     // don't do it here, handle .mat files and such as Asset files
                     unityArchive
-                }, null
+                }
             )
         } catch (e: Exception) {
-            callback(rawArchive, e)
+            callback.call(rawArchive, e)
         }
     }
 

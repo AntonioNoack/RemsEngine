@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.ICacheData
+import me.anno.utils.structures.Callback
 import me.anno.engine.EngineBase
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceOrTimeout
@@ -110,7 +111,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an input stream;
      * should be buffered for better performance
      * */
-    abstract fun inputStream(lengthLimit: Long = Long.MAX_VALUE, callback: (it: InputStream?, exc: Exception?) -> Unit)
+    abstract fun inputStream(lengthLimit: Long = Long.MAX_VALUE, callback: Callback<InputStream>)
 
     /**
      * give access to an output stream;
@@ -119,22 +120,22 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Throws(IOException::class)
     abstract fun outputStream(append: Boolean = false): OutputStream
 
-    open fun readText(callback: (String?, Exception?) -> Unit) {
+    open fun readText(callback: Callback<String>) {
         readBytes { it, exc ->
-            callback(if (it != null) String(it) else null, exc)
+            callback.call(if (it != null) String(it) else null, exc)
         }
     }
 
-    open fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+    open fun readBytes(callback: Callback<ByteArray>) {
         inputStream { it, exc ->
             if (it != null) try {
                 val bytes = it.readBytes()
-                callback(bytes, null)
+                callback.call(bytes, null)
             } catch (e: Exception) {
-                callback(null, e)
+                callback.call(null, e)
             } finally {
                 it.close()
-            } else callback(null, exc)
+            } else callback.call(null, exc)
         }
     }
 
@@ -186,10 +187,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    open fun readByteBuffer(native: Boolean, callback: (ByteBuffer?, Exception?) -> Unit) {
+    open fun readByteBuffer(native: Boolean, callback: Callback<ByteBuffer>) {
         readBytes { bytes, exc ->
             if (bytes != null) {
-                callback(
+                callback.call(
                     if (native) {
                         val buffer = ByteBufferPool.allocateDirect(bytes.size)
                         buffer.put(bytes).flip()
@@ -198,16 +199,16 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                         ByteBuffer.wrap(bytes)
                     }, null
                 )
-            } else callback(null, exc)
+            } else callback.call(null, exc)
         }
     }
 
-    open fun readLines(lineLengthLimit: Int, callback: (itr: ReadLineIterator?, exc: Exception?) -> Unit) {
+    open fun readLines(lineLengthLimit: Int, callback: Callback<ReadLineIterator>) {
         inputStream { it, exc ->
             if (it != null) {
                 val reader = it.bufferedReader()
-                callback(ReadLineIterator(reader, lineLengthLimit), null)
-            } else callback(null, exc)
+                callback.call(ReadLineIterator(reader, lineLengthLimit), null)
+            } else callback.call(null, exc)
         }
     }
 

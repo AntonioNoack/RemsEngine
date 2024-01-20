@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -312,13 +313,9 @@ open class VideoCreator(
          * */
         @JvmStatic
         fun renderVideo(
-            w: Int,
-            h: Int,
-            fps: Double,
-            dst: FileReference,
-            numFrames: Long,
-            shutdown: Boolean,
-            getNextFrame: (callback: (ITexture2D?, Exception?) -> Unit) -> Unit,
+            w: Int, h: Int, fps: Double, dst: FileReference,
+            numFrames: Long, shutdown: Boolean,
+            getNextFrame: (callback: Callback<ITexture2D>) -> Unit,
             callback: (() -> Unit)? = null
         ) {
             val creator = VideoCreator(

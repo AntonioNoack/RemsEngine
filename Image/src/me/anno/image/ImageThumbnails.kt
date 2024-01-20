@@ -1,10 +1,11 @@
 package me.anno.image
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.ImageToTexture
+import me.anno.gpu.texture.TextureReader
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
@@ -25,7 +26,7 @@ object ImageThumbnails {
 
     fun generateJPGFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         JPGThumbnails.extractThumbnail(srcFile) { bytes ->
             if (bytes != null) {
@@ -41,7 +42,7 @@ object ImageThumbnails {
 
     fun generateTGAFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         srcFile.inputStream { it, exc ->
             if (it != null) {
@@ -56,7 +57,7 @@ object ImageThumbnails {
 
     fun generateICOFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         srcFile.inputStream { it, exc ->
             if (it != null) {
@@ -68,10 +69,10 @@ object ImageThumbnails {
 
     fun generateSVGFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
 
-        val buffer = SVGMeshCache[srcFile, ImageToTexture.imageTimeout, false]!!
+        val buffer = SVGMeshCache[srcFile, TextureReader.imageTimeout, false]!!
         val bounds = buffer.bounds!!
         val maxSize = max(bounds.maxX, bounds.maxY)
         val w = (size * bounds.maxX / maxSize).roundToInt()

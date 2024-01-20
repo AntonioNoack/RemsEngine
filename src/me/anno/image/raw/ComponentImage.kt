@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType.Companion.Float16x4
 import me.anno.gpu.framebuffer.TargetType.Companion.Float32x4
@@ -28,7 +29,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (src is GPUImage) {
             val map = if (inverse) channel.uppercaseChar() else channel
@@ -75,13 +76,13 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
             }
             if (sync && GFX.isGFXThread()) {
                 texture.createMonochrome(bytes, checkRedundancy)
-                callback(texture, null)
+                callback.ok(texture)
             } else {
                 if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                 GFX.addGPUTask("ComponentImage", width, height) {
                     if (!texture.isDestroyed) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
-                        callback(texture, null) // callback in both cases?...
+                        callback.ok(texture) // callback in both cases?...
                     } else LOGGER.warn("Image was already destroyed")
                 }
             }

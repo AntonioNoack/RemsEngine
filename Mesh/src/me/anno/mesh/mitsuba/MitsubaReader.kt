@@ -103,8 +103,8 @@ object MitsubaReader {
                     InnerPrefabFile("$absolutePath/$name", relativePath, folder, prefab)
                 }
                 stream.close()
-                callback(folder, null)
-            } else callback(null, exc)
+                callback.ok(folder)
+            } else callback.err(exc)
         }
     }
 
@@ -633,8 +633,8 @@ object MitsubaReader {
     fun readSceneAsFolder(file: FileReference, callback: InnerFolderCallback) {
         file.inputStream { it, exc ->
             if (it != null) {
-                callback(readSceneAsFolder(file, it), null)
-            } else callback(null, exc)
+                callback.ok(readSceneAsFolder(file, it))
+            } else callback.err(exc)
         }
     }
 }

@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.Build
+import me.anno.utils.structures.Callback
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
 import org.apache.logging.log4j.LogManager
@@ -20,10 +21,10 @@ class BundledRef(
         return zfd?.getChild(name) ?: parse("$absolutePath/$name")
     }
 
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         // needs to be the same package
         val stream = javaClass.classLoader.getResourceAsStream(resName)
-        callback(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)
+        callback.call(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)
     }
 
     override fun outputStream(append: Boolean): OutputStream {

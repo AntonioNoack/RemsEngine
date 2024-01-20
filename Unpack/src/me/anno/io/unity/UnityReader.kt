@@ -177,10 +177,10 @@ object UnityReader {
         if (child != InvalidRef) return child
         val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
         var isSubMesh = false
-        if (children?.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
+        if (children.size == 1 && name.length == "4300000.json".length && name.startsWith("43000") && name.endsWith(".json")) {
             isSubMesh = true
             val meshes = children.first().getChild("Meshes").listChildren()
-            if (meshes != null && meshes.size > 1) {
+            if (meshes.size > 1) {
                 val id = name.substring(0, name.length - 5).toInt() - 4300000
                 // find submesh
                 // todo find mesh by id... who defines the order?
@@ -190,13 +190,13 @@ object UnityReader {
                     LOGGER.info("$name was missing from mesh file, choose ${subMesh.nameWithoutExtension} based on $id from ${meshes.map { it.nameWithoutExtension }}")
                     return subMesh
                 } else LOGGER.warn("Submesh $id could not be found out of ${meshes.size}, from ${meshes.map { it.nameWithoutExtension }}")
-            } else if (meshes?.size == 1) {
+            } else if (meshes.size == 1) {
                 return meshes.first()
             } else {
                 LOGGER.warn("Could not find submeshes in $this")
             }
         }
-        val newChild = if (!children.isNullOrEmpty()) {
+        val newChild = if (children.isNotEmpty()) {
             getChildOrNull("100100000.json") ?: getChildOrNull("Scene.json") ?: children.first()
         } else null
         if (!isSubMesh && name != "2800000.json") {
@@ -204,7 +204,7 @@ object UnityReader {
             // 2800000 for textures,
             // 0 idk...
             // our logic is fine: Scene.json is being extracted here
-            LOGGER.warn("$name is missing from $this, chose ${newChild?.name}, only found ${children?.map { it.name }}")
+            LOGGER.warn("$name is missing from $this, chose ${newChild?.name}, only found ${children.map { it.name }}")
         }
         return newChild
     }
@@ -894,8 +894,8 @@ object UnityReader {
                 return
             }
             val children = objects.listChildren()
-            if (children == null || children.size <= 1) {
-                callback(children?.firstOrNull(), null)
+            if (children.size <= 1) {
+                callback(children.firstOrNull(), null)
                 return
             }
             val meta = project.getMeta(file)

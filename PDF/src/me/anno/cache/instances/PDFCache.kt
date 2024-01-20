@@ -105,8 +105,8 @@ object PDFCache : CacheSection("PDFCache") {
                     }
                 }
                 ref.returnInstance()
-                callback(folder, null)
-            } else callback(null, exc)
+                callback.ok(folder)
+            } else callback.err(exc)
         }
     }
 

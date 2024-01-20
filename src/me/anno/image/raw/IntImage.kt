@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
@@ -117,13 +118,13 @@ open class IntImage(
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         if (sync && GFX.isGFXThread()) {
             if (hasAlphaChannel) texture.createBGRA(cloneData(), checkRedundancy)
             else texture.createBGR(cloneData(), checkRedundancy)
-            callback(texture, null)
+            callback.ok(texture)
         } else {
             val data1 = Texture2D.bufferPool[data.size * 4, false, false]
             val dataI = data1.asIntBuffer()

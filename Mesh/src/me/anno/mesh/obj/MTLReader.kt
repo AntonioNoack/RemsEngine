@@ -1,6 +1,7 @@
 package me.anno.mesh.obj
 
 import me.anno.ecs.prefab.Prefab
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
@@ -153,7 +154,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
     companion object {
 
         fun readAsFolder(
-            file: FileReference, callback: (InnerFolder?, Exception?) -> Unit,
+            file: FileReference, callback: Callback<InnerFolder>,
             dstFolder: InnerFolder = InnerFolder(file)
         ) {
             file.inputStream { it, exc ->
@@ -161,8 +162,8 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                     val materials = MTLReader(file, it).materials
                     for ((name, material) in materials)
                         dstFolder.createPrefabChild("$name.json", material)
-                    callback(dstFolder, null)
-                } else callback(null, exc)
+                    callback.ok(dstFolder)
+                } else callback.err(exc)
             }
         }
 

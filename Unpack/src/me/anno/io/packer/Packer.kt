@@ -1,11 +1,11 @@
 package me.anno.io.packer
 
 import me.anno.Time
+import me.anno.utils.structures.Callback
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
-import me.anno.io.zip.GetStreamCallback
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1
@@ -130,12 +130,12 @@ object Packer {
     }
 
     @JvmStatic
-    private fun createZipFile(file: FileReference, callback: GetStreamCallback) {
-        return if (file is FileFileRef) callback.callback(ZipFile(file.file), null) else {
+    private fun createZipFile(file: FileReference, callback: Callback<ZipFile>) {
+        return if (file is FileFileRef) callback.ok(ZipFile(file.file)) else {
             file.readBytes { it, exc ->
                 if (it != null) {
-                    callback.callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
-                } else callback.callback(null, exc)
+                    callback.ok(ZipFile(SeekableInMemoryByteChannel(it)))
+                } else callback.err(exc)
             }
         }
     }
@@ -157,7 +157,7 @@ object Packer {
         var doneSize = 0L
         val zos = ZipOutputStream(dst.outputStream())
         val map = if (createMap) HashMap<FileReference, FileReference>(resources.size) else null
-        val getStream = { callback: GetStreamCallback ->
+        val getStream = { callback: Callback<ZipFile> ->
             createZipFile(dst, callback)
         }
         val absolute = dst.absolutePath

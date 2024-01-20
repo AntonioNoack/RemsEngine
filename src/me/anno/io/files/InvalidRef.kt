@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -10,7 +11,7 @@ object InvalidRef : FileReference("") {
 
     private val LOGGER = LogManager.getLogger(InvalidRef::class)
 
-    override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         throw FileNotFoundException("InvalidRef is no valid source")
     }
 

@@ -1,6 +1,7 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
+import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingColors
@@ -29,10 +30,11 @@ object ImageReader {
     private val LOGGER = LogManager.getLogger(ImageReader::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
-    var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) -> Unit)? = null
+    var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
+        null
 
     @JvmStatic
-    fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+    fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
 
         val folder = InnerFolder(file)
 
@@ -85,13 +87,13 @@ object ImageReader {
                                     folder.createImageChild("layer$index", layer)
                                 }
                                 it.close()
-                                callback(folder, null)
+                                callback.ok(folder)
                             } else {
                                 exc?.printStackTrace()
-                                callback(folder, null)
+                                callback.ok(folder)
                             }
                         }
-                    } else callback(folder, null)
+                    } else callback.ok(folder)
                 }
                 return // we're done, don't call callback twice
             } catch (e: ClassNotFoundException) {
@@ -101,7 +103,7 @@ object ImageReader {
             }
         }
 
-        callback(folder, null)
+        callback.ok(folder)
     }
 
     @JvmStatic
@@ -219,28 +221,28 @@ object ImageReader {
         return Maths.min(20, (meta.videoFrameCount - 1) / 3)
     }
 
-    private fun tryGeneric(file: FileReference, callback: ImageCallback) {
+    private fun tryGeneric(file: FileReference, callback: Callback<Image>) {
         file.inputStream { it, exc ->
             if (it != null) {
                 try {
                     val img = ImageIO.read(it) ?: throw IOException(file.toString())
                     it.close()
-                    callback(img.toImage(), null)
+                    callback.ok(img.toImage())
                 } catch (e: Exception) {
                     it.close()
                     file.inputStream { it2, exc2 ->
                         if (it2 != null) {
                             try {
-                                callback(Imaging.getBufferedImage(it2).toImage(), null)
+                                callback.call(Imaging.getBufferedImage(it2).toImage(), null)
                             } catch (e: Exception) {
-                                callback(null, e)
+                                callback.call(null, e)
                             } finally {
                                 it2.close()
                             }
-                        } else callback(null, exc2)
+                        } else callback.err(exc2)
                     }
                 }
-            } else callback(null, exc)
+            } else callback.err(exc)
         }
     }
 

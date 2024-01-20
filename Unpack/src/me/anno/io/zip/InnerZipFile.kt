@@ -1,8 +1,8 @@
 package me.anno.io.zip
 
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.*
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
@@ -16,7 +16,7 @@ import java.io.OutputStream
 class InnerZipFile(
     absolutePath: String,
     val zipSource: FileReference,
-    val getZipStream: (callback: GetStreamCallback) -> Unit,
+    val getZipStream: (callback: Callback<ZipFile>) -> Unit,
     relativePath: String,
     _parent: FileReference
 ) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
@@ -25,19 +25,19 @@ class InnerZipFile(
 
     override fun length(): Long = size
 
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         HeavyAccess.access(zipSource, object : IHeavyAccess<ZipFile> {
 
-            override fun openStream(source: FileReference, callback: (ZipFile?, Exception?) -> Unit) =
+            override fun openStream(source: FileReference, callback: Callback<ZipFile>) =
                 getZipStream(callback)
 
             override fun closeStream(source: FileReference, stream: ZipFile) = stream.close()
 
             override fun process(stream: ZipFile) {
                 val entry = stream.getEntry(relativePath)
-                callback(stream.getInputStream(entry).readBytes().inputStream(), null)
+                callback.ok(stream.getInputStream(entry).readBytes().inputStream())
             }
-        }) { callback(null, it) }
+        }) { callback.err(it) }
     }
 
     override fun outputStream(append: Boolean): OutputStream {
@@ -63,7 +63,7 @@ class InnerZipFile(
             zipFile: FileReference,
             entry: ZipArchiveEntry,
             zis: ZipFile,
-            getStream: (GetStreamCallback) -> Unit,
+            getStream: (Callback<ZipFile>) -> Unit,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
             val zipFileLocation = zipFile.absolutePath
@@ -81,21 +81,21 @@ class InnerZipFile(
             return file
         }
 
-        fun fileFromStreamV2(file: FileReference, callback: GetStreamCallback) {
+        fun fileFromStreamV2(file: FileReference, callback: Callback<ZipFile>) {
             return if (file is FileFileRef) {
-                callback.callback(ZipFile(file.file), null)
+                callback.ok(ZipFile(file.file))
             } else {
                 file.readBytes { it, exc ->
-                    if (it != null) callback.callback(ZipFile(SeekableInMemoryByteChannel(it)), null)
-                    else callback.callback(null, exc)
+                    if (it != null) callback.ok(ZipFile(SeekableInMemoryByteChannel(it)))
+                    else callback.err(exc)
                 }
             }
         }
 
         fun createZipRegistryV2(
             file0: FileReference,
-            callback: (InnerFolder?, Exception?) -> Unit,
-            getStream: (GetStreamCallback) -> Unit = { fileFromStreamV2(file0, it) }
+            callback: Callback<InnerFolder>,
+            getStream: (Callback<ZipFile>) -> Unit = { fileFromStreamV2(file0, it) }
         ) {
             val (file, registry) = createMainFolder(file0)
             var hasReadEntry = false
@@ -118,11 +118,11 @@ class InnerZipFile(
                             lookup.getOrPut(value.nameWithoutExtension) { value }
                             if (value is InnerFolder) value.lookup = lookup
                         }
-                        callback(file, null)
+                        callback.ok(file)
                     } else {
-                        callback(null, IOException("Zip was empty"))
+                        callback.err(IOException("Zip was empty"))
                     }
-                } else callback(null, exc)
+                } else callback.err(exc)
             }
             return
         }

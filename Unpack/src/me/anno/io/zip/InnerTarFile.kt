@@ -1,7 +1,7 @@
 package me.anno.io.zip
 
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
-import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.*
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
@@ -34,7 +34,7 @@ class InnerTarFile(
         override fun nextEntry(): ArchiveEntry? = file.nextEntry
     }
 
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         HeavyIterator.iterate(zipFile, object : IHeavyIterable<ArchiveEntry, ZipArchiveIterator, ByteArray> {
             override fun openStream(source: FileReference) = ZipArchiveIterator(getZipStream())
             override fun closeStream(source: FileReference, stream: ZipArchiveIterator) = stream.file.close()
@@ -46,7 +46,7 @@ class InnerTarFile(
                 index: Int, total: Int
             ): ByteArray {
                 val bytes = previous ?: stream.file.readBytes()
-                callback(ByteArrayInputStream(bytes), null)
+                callback.ok(ByteArrayInputStream(bytes))
                 return bytes
             }
         })
@@ -66,10 +66,10 @@ class InnerTarFile(
                 // only check if valid, later decode it, when required? may be expensive...
                 parent.inputStream { it, exc ->
                     if (it != null) {
-                        callback(createZipRegistryArchive(parent) {
+                        callback.ok(createZipRegistryArchive(parent) {
                             TarArchiveInputStream(GZIPInputStream(it))
-                        }, null)
-                    } else callback(null, exc)
+                        })
+                    } else callback.err(exc)
                 }
             }
         }

@@ -2,8 +2,6 @@ package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import java.io.IOException
-import java.io.InputStream
 
 class InnerByteFile(absolutePath: String, relativePath: String, parent: FileReference, content: ByteArray) :
     InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
@@ -22,9 +20,5 @@ class InnerByteFile(absolutePath: String, relativePath: String, parent: FileRefe
         data = content
         size = content.size.toLong()
         compressedSize = size
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        throw IOException("Missing data")
     }
 }

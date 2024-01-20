@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.utils.structures.Callback
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
@@ -92,7 +93,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("CompressedTexture", width, height) {
@@ -111,7 +112,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             texture.createdH = height
             // bytes per pixel isn't really correct, just a (bad) guess
             texture.afterUpload(false, 4, 4)
-            callback(texture, null)
+            callback.ok(texture)
         }
     }
 }

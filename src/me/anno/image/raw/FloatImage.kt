@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -8,8 +9,6 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.Color.black
-import me.anno.utils.pooling.ByteBufferPool
-import java.nio.FloatBuffer
 import kotlin.math.max
 
 class FloatImage(
@@ -61,15 +60,15 @@ class FloatImage(
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (sync) {
             texture.create(TargetType.Float32xI[numChannels - 1], data)
-            callback(texture, null)
+            callback.ok(texture)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
                 texture.create(TargetType.Float32xI[numChannels - 1], data)
-                callback(texture, null)
+                callback.ok(texture)
             }
         }
     }

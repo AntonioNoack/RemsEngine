@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
+import me.anno.utils.structures.Callback
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
@@ -321,7 +322,7 @@ open class Texture2D(
         afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
     }
 
-    fun create(image: Image, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
+    fun create(image: Image, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         width = image.width
         height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
@@ -341,7 +342,7 @@ open class Texture2D(
         height = 1
     }
 
-    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
+    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
         if (sync && isGFXThread()) {
             image.createTexture(this, true, checkRedundancy, callback)
         } else if (isGFXThread() && (width * height > 10_000)) {// large -> avoid the load and create it async
@@ -825,7 +826,7 @@ open class Texture2D(
         dataI: Buffer,
         data1: ByteBuffer?,
         numChannels: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val width = width
         val height = height
@@ -854,7 +855,7 @@ open class Texture2D(
                         )
                         // mark as non-finished again, if we're not done yet
                         if (y1 < height) wasCreated = false
-                        else callback(this, null)
+                        else callback.call(this, null)
                     }
                     if (y1 == height) bufferPool.returnBuffer(data1)
                 }
@@ -863,7 +864,7 @@ open class Texture2D(
             GFX.addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
-                    callback(this, null)
+                    callback.call(this, null)
                 } else LOGGER.warn("Image was already destroyed")
                 bufferPool.returnBuffer(data1)
             }

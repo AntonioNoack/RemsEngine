@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.mesh.vox.model.DenseI8VoxelModel
@@ -356,12 +357,12 @@ class VOXReader {
 
     companion object {
 
-        fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
             file.readByteBuffer(false) { it, exc ->
                 if (it != null) {
                     val reader = VOXReader().read(it)
-                    callback(readAsFolder(reader, file).first, null)
-                } else callback(null, exc)
+                    callback.ok(readAsFolder(reader, file).first)
+                } else callback.err(exc)
             }
         }
 

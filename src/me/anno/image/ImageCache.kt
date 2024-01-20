@@ -3,6 +3,7 @@ package me.anno.image
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.utils.structures.Callback
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.waitForGFXThread
@@ -12,13 +13,13 @@ import java.io.InputStream
 object ImageCache : CacheSection("Image") {
 
     val byteReaders = HashMap<String, (ByteArray) -> Image?>()
-    val fileReaders = HashMap<String, (FileReference, ImageCallback) -> Unit>()
+    val fileReaders = HashMap<String, (FileReference, Callback<Image>) -> Unit>()
     val streamReaders = HashMap<String, (InputStream) -> Image?>()
 
     fun registerReader(
         signature: String,
         byteReader: (ByteArray) -> Image?,
-        fileReader: (FileReference, ImageCallback) -> Unit,
+        fileReader: (FileReference, Callback<Image>) -> Unit,
         streamReader: (InputStream) -> Image?
     ) {
         byteReaders[signature] = byteReader
@@ -32,9 +33,9 @@ object ImageCache : CacheSection("Image") {
     ) {
         registerReader(signature, { bytes ->
             ByteArrayInputStream(bytes).use(streamReader)
-        }, { fileRef, c ->
+        }, { fileRef, callback ->
             fileRef.inputStream { input, e ->
-                c(input?.use { input1 ->
+                callback.call(input?.use { input1 ->
                     streamReader(input1)
                 }, e)
             }
@@ -46,7 +47,7 @@ object ImageCache : CacheSection("Image") {
     }
 
     fun unregister(vararg signatures: String) {
-        for(signature in signatures) {
+        for (signature in signatures) {
             byteReaders.remove(signature)
             fileReaders.remove(signature)
             streamReaders.remove(signature)

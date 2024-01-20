@@ -19,6 +19,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.utils.structures.Callback
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
@@ -232,7 +233,7 @@ object Thumbs {
         srcFile: FileReference,
         size: Int,
         key0: ThumbnailKey,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         // if larger texture exists in cache, use it and scale it down
         val idx = sizes.indexOf(size) + 1
@@ -253,7 +254,7 @@ object Thumbs {
         srcFile: FileReference,
         size: Int,
         tex: ITexture2D,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val (w, h) = scaleMax(tex.width, tex.height, size)
         if (w < 2 || h < 2) return // cannot generate texture anyway, no point in loading it
@@ -267,7 +268,7 @@ object Thumbs {
                 useFrame(newTex, 0) {
                     GFX.copy(tex)
                 }
-                callback(newTex, null)
+                callback.ok(newTex)
             }
         } else addGPUTask("Copy", size, size) {
             copyTexIfPossible(srcFile, size, tex, callback)
@@ -310,13 +311,13 @@ object Thumbs {
         srcFile: FileReference,
         checkRotation: Boolean,
         dst: Image,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
-        val rotation = if (checkRotation) ImageToTexture.getRotation(srcFile) else null
+        val rotation = if (checkRotation) TextureReader.getRotation(srcFile) else null
         val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
         dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
             if (tex is Texture2D) tex.rotation = rotation
-            callback(tex, exc)
+            callback.call(tex, exc)
         }
     }
 
@@ -326,7 +327,7 @@ object Thumbs {
         checkRotation: Boolean,
         dstKey: HDBKey,
         dst: Image,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (dstKey != InvalidKey) {
             val bos = ByteArrayOutputStream()
@@ -347,7 +348,7 @@ object Thumbs {
         src: Image,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val sw = src.width
         val sh = src.height
@@ -378,7 +379,7 @@ object Thumbs {
         withDepth: Boolean,
         renderer: Renderer = colorRenderer,
         flipY: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         w: Int, h: Int, render: () -> Unit
     ) {
         if (isGFXThread()) {
@@ -404,7 +405,7 @@ object Thumbs {
         withDepth: Boolean,
         renderer: Renderer,
         flipY: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         w: Int, h: Int,
         render: () -> Unit
     ) {
@@ -447,11 +448,11 @@ object Thumbs {
                 val texture = newBuffer.textures!![0]
                 newBuffer.destroyExceptTextures(false)
                 texture.rotation = if (flipY) flipYRot else null
-                callback(texture, null)
+                callback.ok(texture)
             } else {
                 val texture = renderTarget.textures!![0]
                 renderTarget.destroyExceptTextures(true)
-                callback(texture, null)
+                callback.ok(texture)
             }
         }
     }
@@ -463,7 +464,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         wantedTime: Double
     ) {
 
@@ -503,7 +504,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val data = waitUntilDefined(true) {
             PrefabCache[srcFile, true]
@@ -519,7 +520,7 @@ object Thumbs {
         dstFile: HDBKey,
         size: Int,
         scene: Entity,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
@@ -603,7 +604,7 @@ object Thumbs {
         dstFile: HDBKey,
         size: Int,
         collider: Collider,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         unused(srcFile)
         val cameraMatrix = createCameraMatrix(1f)
@@ -620,7 +621,7 @@ object Thumbs {
         dstFile: HDBKey,
         size: Int,
         mesh: Mesh,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
@@ -645,7 +646,7 @@ object Thumbs {
         dstFile: HDBKey,
         size: Int,
         comp: MeshComponentBase,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val mesh = comp.getMesh() as? Mesh ?: return
         mesh.checkCompleteness()
@@ -671,7 +672,7 @@ object Thumbs {
         dstFile: HDBKey,
         size: Int,
         comp: Renderable,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (comp is Component) {
             val entity = Entity()
@@ -691,7 +692,7 @@ object Thumbs {
         dstFile: HDBKey,
         material: Material,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         waitForTextures(material)
         renderToImage(
@@ -738,7 +739,7 @@ object Thumbs {
         dstFile: HDBKey,
         materials: List<FileReference>,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         waitForTextures(materials.mapNotNull { MaterialCache[it] })
         renderMultiWindowImage(
@@ -770,7 +771,7 @@ object Thumbs {
         // if false, the result will be rectangular
         changeSubFrameAspectRatio: Boolean,
         renderer0: Renderer,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         drawFunction: (i: Int, aspect: Float) -> Unit
     ) {
         val split = split(count)
@@ -805,7 +806,7 @@ object Thumbs {
         dstFile: HDBKey,
         skeleton: Skeleton,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
 
         // todo the transform can be different from the original...
@@ -833,7 +834,7 @@ object Thumbs {
         dstFile: HDBKey,
         animation: Animation,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val skeleton = SkeletonCache[animation.skeleton] ?: return
         val mesh = Mesh()
@@ -846,7 +847,7 @@ object Thumbs {
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         renderMultiWindowImage(srcFile, dstFile, count, size, true, simpleNormalRenderer, { it, e ->
-            callback(it, e)
+            callback.call(it, e)
             Texture2D.floatArrayPool.returnBuffer(meshVertices)
             mesh.destroy()
         }) { it, aspect ->
@@ -941,7 +942,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         when (asset) {
             is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
@@ -978,22 +979,22 @@ object Thumbs {
     private fun shallReturnIfExists(
         srcFile: FileReference,
         dstFile: ByteSlice?,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
     ): Boolean {
         dstFile ?: return false
         val image = ImageIO.read(dstFile.stream()) ?: return false
-        val rotation = ImageToTexture.getRotation(srcFile)
+        val rotation = TextureReader.getRotation(srcFile)
         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
             val texture = Texture2D(srcFile.name, image.toImage(), true)
             texture.rotation = rotation
-            callback(texture, null)
+            callback.ok(texture)
         }
         return true
     }
 
     private fun shallReturnIfExists(
         srcFile: FileReference, dstFile: HDBKey,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         callback1: (Boolean) -> Unit
     ) {
         hdb.get(dstFile, true) {
@@ -1006,7 +1007,7 @@ object Thumbs {
         src: Image,
         srcFile: FileReference,
         size0: Int,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         callback1: (Image) -> Unit
     ) {
         var size = size0
@@ -1031,7 +1032,7 @@ object Thumbs {
         srcFile: FileReference,
         size0: Int,
         hash: Long,
-        callback: (ITexture2D?, Exception?) -> Unit,
+        callback: Callback<ITexture2D>,
         callback1: (Image) -> Unit
     ) {
         var size = size0
@@ -1054,7 +1055,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generate(srcFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) {
+    private fun generate(srcFile: FileReference, size: Int, callback: Callback<ITexture2D>) {
         if (size < 3) return
         if (useCacheFolder) {
             srcFile.getFileHash { hash ->
@@ -1077,7 +1078,7 @@ object Thumbs {
 
     private fun checkHigherResolutions(
         srcFile: FileReference, size: Int, hash: Long,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ): Boolean {
         val idx = sizes.indexOf(size)
         var foundSolution = false
@@ -1089,13 +1090,13 @@ object Thumbs {
                     val image = ImageIO.read(it.stream())
                     if (image != null) {
                         // scale down (and save?)
-                        val rotation = ImageToTexture.getRotation(srcFile)
+                        val rotation = TextureReader.getRotation(srcFile)
                         val (w, h) = scaleMax(image.width, image.height, size)
                         val newImage = image.toImage().resized(w, h, false)
                         val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
                         newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
                             if (tex is Texture2D) tex.rotation = rotation
-                            callback(tex, exc)
+                            callback.call(tex, exc)
                         }
                         foundSolution = true
                     }
@@ -1107,16 +1108,16 @@ object Thumbs {
 
     @JvmStatic
     private val readerBySignature =
-        HashMap<String, (FileReference, HDBKey, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+        HashMap<String, (FileReference, HDBKey, Int, Callback<ITexture2D>) -> Unit>()
 
     @JvmStatic
     private val readerByExtension =
-        HashMap<String, (FileReference, HDBKey, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+        HashMap<String, (FileReference, HDBKey, Int, Callback<ITexture2D>) -> Unit>()
 
     @JvmStatic
     fun registerSignature(
         signature: String,
-        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) -> Unit
     ) {
         readerBySignature[signature] = reader
     }
@@ -1131,7 +1132,7 @@ object Thumbs {
     @JvmStatic
     fun registerExtension(
         extension: String,
-        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) -> Unit
     ) {
         readerByExtension[extension] = reader
     }
@@ -1153,7 +1154,7 @@ object Thumbs {
                     findScale(src, srcFile, size, callback) { dst ->
                         saveNUpload(srcFile, false, dstFile, dst, callback)
                     }
-                } else callback(null, exc)
+                } else callback.err(exc)
             }
         }
         registerSignature("png", ::generateImage)
@@ -1177,7 +1178,7 @@ object Thumbs {
                 if (link != null) {
                     val iconFile = link.iconPath ?: link.absolutePath
                     generate(getReference(iconFile), dstFile, size, callback)
-                } else callback(null, exc)
+                } else callback.err(exc)
             }
         }
         registerExtension("url") { srcFile, dstFile, size, callback ->
@@ -1209,7 +1210,7 @@ object Thumbs {
         )
         for (signature in ignored) {
             registerExtension(signature) { _, _, _, callback ->
-                callback(null, IgnoredException())
+                callback.err(IgnoredException())
             }
         }
 
@@ -1220,7 +1221,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
     }
@@ -1228,7 +1229,7 @@ object Thumbs {
     @JvmStatic
     private fun generate(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
 
         if (size < 3) return
@@ -1254,7 +1255,7 @@ object Thumbs {
                 "C:/pagefile.sys", "C:/hiberfil.sys",
                 "C:/DumpStack.log", "C:/DumpStack.log.tmp",
                 "C:/swapfile.sys" -> {
-                    callback(null, IOException("Cannot generate thumbnail"))
+                    callback.err(IOException("Cannot generate thumbnail"))
                 }
             }
         }
@@ -1294,7 +1295,7 @@ object Thumbs {
 
     private fun findIconLineInTxtLink(
         srcFile: FileReference, dstFile: HDBKey, size: Int, prefix: String,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         val lineLengthLimit = 1024
         srcFile.readLines(lineLengthLimit) { lines, exc ->
@@ -1316,7 +1317,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         generateSomething(
             PrefabCache.getPrefabInstance(srcFile),
@@ -1328,7 +1329,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         unused(dstFile)
         // generate font preview
@@ -1344,10 +1345,9 @@ object Thumbs {
             extraPadding = key.sizeInt / 2
         )
         if (texture is ITexture2D) {
-            if (texture is Texture2D)
-                waitUntil(true) { texture.wasCreated || texture.isDestroyed }
-            callback(texture, null)
-        }
+            waitUntil(true) { texture.wasCreated || texture.isDestroyed }
+            callback.ok(texture)
+        } else callback.call(null, null)
     }
 
     @JvmStatic
@@ -1355,7 +1355,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         unused(dstFile)
         // todo html preview???
@@ -1407,7 +1407,7 @@ object Thumbs {
                                 }
                             }
                             transform.identity()
-                            callback(tex, null)
+                            callback.ok(tex)
                         }
                     }
                 }
@@ -1420,7 +1420,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         // a small timeout, because we need that image shortly only
         val totalNanos = 30_000_000_000L
@@ -1452,7 +1452,7 @@ object Thumbs {
     @JvmStatic
     private fun generateSystemIcon(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         srcFile.toFile({
             try {

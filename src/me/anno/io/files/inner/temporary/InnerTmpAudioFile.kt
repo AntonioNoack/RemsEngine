@@ -4,7 +4,5 @@ import me.anno.audio.AudioReadable
 import java.io.InputStream
 
 abstract class InnerTmpAudioFile : InnerTmpFile("mp3"), AudioReadable {
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        throw NotImplementedError()
-    }
+    override fun inputStreamSync(): InputStream = throw NotImplementedError()
 }

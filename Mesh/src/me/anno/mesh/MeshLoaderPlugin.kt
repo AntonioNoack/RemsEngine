@@ -16,7 +16,7 @@ class MeshLoaderPlugin : Plugin() {
 
         // read as folder
         InnerFolderCache.register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh")) { it, c ->
-            c(AnimatedMeshesLoader.readAsFolder(it), null)
+            c.ok(AnimatedMeshesLoader.readAsFolder(it))
         }
         InnerFolderCache.register("blend", BlenderReader::readAsFolder)
         InnerFolderCache.register("obj", OBJReader.Companion::readAsFolder)

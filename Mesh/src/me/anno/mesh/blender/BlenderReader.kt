@@ -50,8 +50,8 @@ object BlenderReader {
     fun readAsFolder(ref: FileReference, callback: InnerFolderCallback) {
         ref.readByteBuffer(false) { it, exc ->
             if (it != null) {
-                callback(readAsFolder(ref, it), null)
-            } else callback(null, exc)
+                callback.ok(readAsFolder(ref, it))
+            } else callback.err( exc)
         }
     }
 

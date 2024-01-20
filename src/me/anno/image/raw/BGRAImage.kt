@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.utils.structures.Callback
 import me.anno.gpu.framebuffer.TargetType.Companion.Float16xI
 import me.anno.gpu.framebuffer.TargetType.Companion.Float32xI
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
@@ -36,7 +37,7 @@ class BGRAImage(val base: Image) :
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (ITexture2D?, Exception?) -> Unit
+        callback: Callback<ITexture2D>
     ) {
         if (base is GPUImage) {
             // if source has float precision, use that

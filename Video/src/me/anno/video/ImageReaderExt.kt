@@ -1,22 +1,23 @@
 package me.anno.video
 
-import me.anno.image.ImageCallback
+import me.anno.utils.structures.Callback
+import me.anno.image.Image
 import me.anno.image.ImageReader
 import me.anno.image.raw.GPUFrameImage
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.io.MediaMetadata
-import me.anno.io.files.Reference.getReference
 import java.io.IOException
 
 object ImageReaderExt {
-    fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) {
+    fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) {
         if (file is FileFileRef) {
             val meta = MediaMetadata.getMeta(file, false)
             if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-                callback(null, IOException("Meta for $file is missing video"))
+                callback.err(IOException("Meta for $file is missing video"))
             } else if (forGPU) {
                 FFMPEGStream.getImageSequenceGPU(
                     file, signature, meta.videoWidth, meta.videoHeight,
@@ -25,8 +26,8 @@ object ImageReaderExt {
                         val frame = frames.firstOrNull()
                         if (frame != null) {
                             Sleep.waitForGFXThread(true) { frame.isCreated || frame.isDestroyed }
-                            callback(GPUFrameImage(frame), null)
-                        } else callback(null, IOException("No frame was found"))
+                            callback.call(GPUFrameImage(frame), null)
+                        } else callback.err(IOException("No frame was found"))
                     }
                 )
             } else {
@@ -35,8 +36,8 @@ object ImageReaderExt {
                     ImageReader.frameIndex(meta), 1, meta.videoFPS,
                     meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
                         val frame = frames.firstOrNull()
-                        if (frame != null) callback(frame, null)
-                        else callback(null, IOException("No frame was found"))
+                        if (frame != null) callback.call(frame, null)
+                        else callback.err(IOException("No frame was found"))
                     }
                 )
             }
@@ -48,7 +49,7 @@ object ImageReaderExt {
                     tmp.writeBytes(bytes)
                     tryFFMPEG(getReference(tmp), signature, forGPU, callback)
                     tmp.delete()
-                } else callback(null, e)
+                } else callback.call(null, e)
             }
         }
     }

@@ -2,26 +2,20 @@ package me.anno.gpu.texture
 
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
+import me.anno.utils.InternalAPI
 import me.anno.gpu.GFX
 import me.anno.image.*
 import me.anno.image.raw.GPUImage
-import me.anno.image.raw.toImage
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
-import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache
-import org.apache.commons.imaging.Imaging
-import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager
-import java.awt.image.BufferedImage
-import java.io.IOException
-import java.io.InputStream
-import javax.imageio.ImageIO
 
-class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
+@InternalAPI
+class TextureReader(file: FileReference) : AsyncCacheData<ITexture2D>() {
 
     companion object {
 
@@ -29,7 +23,7 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(ImageToTexture::class)
+        private val LOGGER = LogManager.getLogger(TextureReader::class)
 
         // injected by ImagePlugin
         @JvmField
@@ -72,7 +66,7 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
                             texture.rotation = (image.texture as? Texture2D)?.rotation
                             texture.create(image, true, ::callback)
                         }
-                        null -> tryGetImage0(file, file.lcExtension)
+                        null -> LOGGER.warn("Null from ImageReader for $file")
                         else -> {
                             val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
                             texture.rotation = getRotation(file)
@@ -88,7 +82,7 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
         val meta = getMeta(file, false)
         if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {
-            LOGGER.warn("Cannot load $file using FFMPEG")
+            LOGGER.warn("Cannot load $file using VideoCache")
             value = null
         } else {
             val frame = Sleep.waitForGFXThreadUntilDefined(true) {
@@ -99,52 +93,5 @@ class ImageToTexture(file: FileReference) : AsyncCacheData<ITexture2D>() {
                 value = frame.toTexture()
             }
         }
-    }
-
-    private fun tryGetImage0(file: FileReference, fileExtension: String) {
-        // read metadata information from jpegs
-        // read the exif rotation header
-        // because some camera images are rotated incorrectly
-        if (fileExtension.getImportType() == "Video") {
-            tryUsingVideoCache(file)
-        } else tryGetImage1(file)
-    }
-
-    private fun tryGetImage1(file: FileReference) {
-        val image = tryGetImage(file)
-        if (image != null) {
-            val texture = Texture2D("i2t/bi/${file.name}", 1024, 1024, 1)
-            texture.rotation = getRotation(file)
-            texture.create(image, checkRedundancy = true, ::callback)
-        } else {
-            tryUsingVideoCache(file)
-        }
-    }
-
-    private fun tryGetImage(file: FileReference): Image? {
-        if (file is ImageReadable) return file.readGPUImage()
-        return tryGetImage(file, file.inputStreamSync())
-    }
-
-    private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
-        LOGGER.warn("tryGetImage($file)")
-        if (file is ImageReadable) return file.readGPUImage()
-        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-        val image = try {
-            ImageIO.read(stream)
-        } catch (e: Exception) {
-            null
-        } ?: try {
-            Imaging.getBufferedImage(stream)
-        } catch (e: ImagingException) {
-            onError(file, e)
-        } catch (e: IOException) {
-            onError(file, e)
-        } as? BufferedImage
-        return image?.toImage()
-    }
-
-    private fun onError(file: FileReference, e: Throwable) {
-        LOGGER.warn("Cannot read image from input $file, $e")
     }
 }

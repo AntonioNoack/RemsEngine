@@ -35,40 +35,15 @@ open class InnerLazyImageFile(
         BMPWriter.createBMP(readCPUImage())
     }
 
-    override fun readCPUImage(): Image {
-        return cpuImage.value
-    }
-
-    override fun readGPUImage(): Image {
-        return gpuImage()
-    }
+    override fun readCPUImage(): Image = cpuImage.value
+    override fun readGPUImage(): Image = gpuImage()
 
     override fun readSize(): IntPair {
         val image = cpuImage.value
         return IntPair(image.width, image.height)
     }
 
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(readBytesSync(), null)
-    }
-
-    override fun readBytesSync(): ByteArray {
-        return bytes
-    }
-
-    override fun readText(callback: (String?, Exception?) -> Unit) {
-        callback(readTextSync(), null)
-    }
-
-    override fun readTextSync(): String {
-        return bytes.decodeToString() // what are you doing? ;)
-    }
-
-    override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(inputStreamSync(), null)
-    }
-
-    override fun inputStreamSync(): InputStream {
-        return ByteArrayInputStream(bytes)
-    }
+    override fun readBytesSync(): ByteArray = bytes
+    override fun readTextSync(): String = bytes.decodeToString() // what are you doing? ;)
+    override fun inputStreamSync(): InputStream = ByteArrayInputStream(bytes)
 }

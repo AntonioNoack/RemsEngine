@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.IgnoredException
+import me.anno.utils.structures.Callback
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.register
@@ -52,13 +53,13 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun toFile(): File = file
 
-    override fun inputStream(lengthLimit: Long, callback: (InputStream?, Exception?) -> Unit) {
+    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         try {
-            callback(inputStreamSync(), null)
+            callback.ok(inputStreamSync())
         } catch (_: IgnoredException) {
-            callback(null, null)
+            callback.call(null, null)
         } catch (e: Exception) {
-            callback(null, e)
+            callback.err(e)
         }
     }
 
@@ -86,21 +87,21 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
     }
 
-    override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+    override fun readBytes(callback: Callback<ByteArray>) {
         try {
-            callback(file.readBytes(), null)
+            callback.ok(file.readBytes())
         } catch (e: Exception) {
-            callback(null, e)
+            callback.err(e)
         }
     }
 
     override fun readBytesSync() = file.readBytes()
 
-    override fun readText(callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: Callback<String>) {
         try {
-            callback(file.readText(), null)
+            callback.ok(file.readText())
         } catch (e: Exception) {
-            callback(null, e)
+            callback.err(e)
         }
     }
 

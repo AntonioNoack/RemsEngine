@@ -1,7 +1,7 @@
 package me.anno.image
 
 import me.anno.extensions.plugins.Plugin
-import me.anno.gpu.texture.ImageToTexture
+import me.anno.gpu.texture.TextureReader
 import me.anno.image.ImageThumbnails.generateICOFrame
 import me.anno.image.ImageThumbnails.generateJPGFrame
 import me.anno.image.ImageThumbnails.generateSVGFrame
@@ -76,7 +76,7 @@ class ImagePlugin : Plugin() {
         Thumbs.registerExtension("svg", ::generateSVGFrame)
 
         // rotating jpegs
-        ImageToTexture.findExifRotation = ExifOrientation::findRotation
+        TextureReader.findExifRotation = ExifOrientation::findRotation
     }
 
     override fun onDisable() {
@@ -86,6 +86,6 @@ class ImagePlugin : Plugin() {
         Thumbs.unregisterSignatures("qoi", "jpg", "ico")
         Thumbs.unregisterExtensions("tga", "ico", "tga/ico")
         MediaMetadata.unregister("gimp", "qoi", "ico", "gimp")
-        ImageToTexture.findExifRotation = null
+        TextureReader.findExifRotation = null
     }
 }

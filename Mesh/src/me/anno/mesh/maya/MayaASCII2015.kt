@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.structures.arrays.ExpandingIntArray
@@ -73,7 +74,7 @@ object MayaASCII2015 {
         }
     }
 
-    private fun read(file: FileReference, text: String, callback: (InnerFolder?, Exception?) -> Unit) {
+    private fun read(file: FileReference, text: String, callback: Callback<InnerFolder>) {
 
         val result = InnerFolder(file)
         val meshes = result.createChild("meshes", null) as InnerFolder
@@ -386,10 +387,10 @@ object MayaASCII2015 {
         finishNode()
 
         result.createPrefabChild("Scene.json", Prefab("Entity", scene.ref))
-        callback(result, null)
+        callback.ok(result)
     }
 
-    fun readAsFolder(source: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
+    fun readAsFolder(source: FileReference, callback: Callback<InnerFolder>) {
 
         // not supported by Assimp
         // println(AnimatedMeshesLoader.loadFile(file, defaultFlags))
@@ -413,7 +414,7 @@ object MayaASCII2015 {
             if (text != null) {
                 read(source, text, callback)
             } else {
-                callback(null, e)
+                callback.err(e)
             }
         }
     }
