@@ -4,12 +4,12 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
-import me.anno.image.raw.toImage
+import me.anno.images.BIImage.toImage
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import java.awt.image.BufferedImage

@@ -1,12 +1,10 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.FontManager
-import me.anno.maths.Maths
 import me.anno.fonts.Font
+import me.anno.fonts.FontStats.getTextLength
+import me.anno.maths.Maths
 import me.anno.utils.types.Strings.joinChars
-import java.awt.font.FontRenderContext
-import java.awt.font.TextLayout
 
 class CharacterOffsetCache(val font: Font) {
 
@@ -14,23 +12,17 @@ class CharacterOffsetCache(val font: Font) {
     private val charWidth = HashMap<Int, Double>()// |a|
     val charMesh = HashMap<Int, Mesh>() // triangles of a
 
-    private val awtFont = FontManager.getFont(font).awtFont
-    private val ctx = FontRenderContext(null, true, true)
     fun getOffset(previous: Int, current: Int): Double {
 
         fun getLength(str: String): Double {
             if (str.isEmpty()) return 0.0
             if (' ' in str) {
                 val lengthWithoutSpaces = getLength(str.replace(" ", ""))
-                val spacesLength = str.count { it == ' ' } * Maths.clamp(
-                    getLength("x"),
-                    1.0,
-                    awtFont.size.toDouble()
-                ) * 0.667
+                val spaceLength = Maths.clamp(getLength("x"), 1.0, font.size.toDouble()) * 0.667
+                val spacesLength = str.count { it == ' ' } * spaceLength
                 return lengthWithoutSpaces + spacesLength
             }
-            val bounds = TextLayout(str, awtFont, ctx).bounds
-            return bounds.maxX
+            return getTextLength(font, str)
         }
 
         fun getCharLength(char: Int): Double {

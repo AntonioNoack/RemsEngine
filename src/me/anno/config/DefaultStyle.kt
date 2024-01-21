@@ -32,7 +32,7 @@ object DefaultStyle {
     }
 
     fun initDefaults(){
-        val fontSize = clamp(Toolkit.getDefaultToolkit().screenSize.height / 80, 15, 60)
+        val fontSize = clamp(Toolkit.getDefaultToolkit().screenSize.height / 72, 15, 60)
 
         set("fontName", "Verdana")
         set("fontSize", fontSize)

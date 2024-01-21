@@ -1,14 +1,13 @@
 package me.anno.io.packer
 
 import me.anno.Time
-import me.anno.utils.structures.Callback
 import me.anno.image.ImageReadable
-import me.anno.image.raw.createBufferedImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -17,7 +16,6 @@ import org.apache.logging.log4j.LogManager
 import java.nio.file.attribute.FileTime
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import javax.imageio.ImageIO
 import kotlin.math.abs
 
 object Packer {
@@ -187,8 +185,7 @@ object Packer {
                     val originalWasJpeg = resource.absolutePath.contains(".jpg/", true) ||
                             resource.absolutePath.contains(".jpeg/", true)
                     val extension = if (originalWasJpeg) "jpg" else "png"
-                    val bi = resource.readCPUImage().createBufferedImage()
-                    ImageIO.write(bi, extension, zos)
+                    resource.readCPUImage().write(zos, extension, 0.9f)
                     doneSize += entry.size // is this available here???
                     reportProgress(doneSize, totalSize)
                 } else {

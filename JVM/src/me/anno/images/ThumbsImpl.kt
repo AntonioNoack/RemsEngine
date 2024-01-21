@@ -1,8 +1,8 @@
-package me.anno
+package me.anno.images
 
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
-import me.anno.image.raw.toImage
+import me.anno.images.BIImage.toImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
@@ -20,7 +20,7 @@ object ThumbsImpl {
         srcFile.useAsFile({
             try {
                 val shellFolder = javaClass.classLoader.loadClass("sun.awt.shell.ShellFolder")
-                val shellMethod = shellFolder.getMethod("getShellFolder", java.io.File::class.java)
+                val shellMethod = shellFolder.getMethod("getShellFolder", File::class.java)
                 // val sf = ShellFolder.getShellFolder(it)
                 val sf = shellMethod.invoke(null, it)
                 val iconMethod = shellFolder.getMethod("getIcon", Boolean::class.java)

@@ -10,5 +10,6 @@
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="module" module-name="KOML" />
+    <orderEntry type="module" module-name="JVM" />
   </component>
 </module>

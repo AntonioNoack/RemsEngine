@@ -3,8 +3,8 @@ package me.anno.input
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.EngineBase
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.controller.CalibrationProcedure
@@ -17,13 +17,11 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
-import me.anno.engine.EngineBase
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
-import java.awt.event.InputEvent
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import kotlin.math.abs
@@ -130,13 +128,7 @@ class Controller(val id: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMousePress(window, key)
         } else {
-            GFXBase.robot?.mousePress(
-                when (key) {
-                    Key.BUTTON_LEFT -> InputEvent.BUTTON1_MASK
-                    Key.BUTTON_RIGHT -> InputEvent.BUTTON2_MASK
-                    else -> InputEvent.BUTTON3_MASK
-                }
-            )
+            Output.systemMousePress(key)
         }
     }
 
@@ -144,13 +136,7 @@ class Controller(val id: Int) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMouseRelease(window, key)
         } else {
-            GFXBase.robot?.mouseRelease(
-                when (key) {
-                    Key.BUTTON_LEFT -> InputEvent.BUTTON1_MASK
-                    Key.BUTTON_RIGHT -> InputEvent.BUTTON2_MASK
-                    else -> InputEvent.BUTTON3_MASK
-                }
-            )
+            Output.systemMouseRelease(key)
         }
     }
 
@@ -393,7 +379,7 @@ class Controller(val id: Int) {
                         mouseWheelFract += dy
                         val mwf = mouseWheelFract.toInt() // round towards zero
                         if (mwf != 0) {
-                            GFXBase.robot?.mouseWheel(+mwf)
+                            Output.systemMouseWheel(mwf)
                             mouseWheelFract -= mwf
                         }
                     }

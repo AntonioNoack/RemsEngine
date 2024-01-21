@@ -2,21 +2,17 @@ package me.anno.gpu.framebuffer
 
 import me.anno.Time
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.image.raw.toImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.*
-import java.awt.Rectangle
-import java.awt.Toolkit
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.thread
@@ -24,10 +20,9 @@ import kotlin.concurrent.thread
 object Screenshots {
     private val LOGGER = LogManager.getLogger(Screenshots::class)
 
+    var takeSystemScreenshotImpl: (() -> Image?)? = null
     fun takeSystemScreenshot(): Image? {
-        val robot = GFXBase.robot ?: return null
-        val image = robot.createScreenCapture(Rectangle(Toolkit.getDefaultToolkit().screenSize))
-        return image.toImage()
+        return takeSystemScreenshotImpl?.invoke()
     }
 
     fun getPixels(

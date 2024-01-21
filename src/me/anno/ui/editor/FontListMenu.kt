@@ -44,7 +44,7 @@ object FontListMenu {
             fontList.sortByDescending { if (it.name == Menu.menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
         }
 
-        fontList += FontManager.fontList
+        fontList += FontManager.fontSet
             .filter { it != oldValue }
             .map { NameDesc(it) }
 

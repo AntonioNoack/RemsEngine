@@ -2,24 +2,18 @@ package me.anno.fonts
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.fonts.AWTFont.Companion.spaceBetweenLines
+import me.anno.fonts.FontStats.queryInstalledFonts
+import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.ceilDiv
-import me.anno.utils.Clock
-import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.awt.Font
-import java.awt.GraphicsEnvironment
-import java.util.*
 import kotlin.math.*
 
 object FontManager {
@@ -31,30 +25,17 @@ object FontManager {
 
     private const val textureTimeout = 10_000L
 
-    private val awtFonts = HashMap<FontKey, Font>()
-    private val fonts = HashMap<FontKey, AWTFont>()
-
-    val fontList by lazy {
-        val tick = Clock()
-        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        val fontNames = ge.getAvailableFontFamilyNames(Locale.ROOT).toList()
-        // 0.17s on Win 10, R5 2600, a few extra fonts
-        // this lag would not be acceptable :)
-        // worst-case-scenario: list too long, and no fonts are returned
-        // (because of that, the already used one is added)
-        tick.stop("getting the font list")
-        fontNames
-    }
+    private val fonts = HashMap<FontKey, TextGenerator>()
 
     val fontSet by lazy {
-        fontList.toSortedSet()
+        queryInstalledFonts().toSortedSet()
     }
 
     fun getFontSizeIndex(fontSize: Float): Int = max(0, round(100.0 * ln(fontSize)).toInt())
     fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
     fun limitWidth(
-        font: me.anno.fonts.Font,
+        font: Font,
         text: CharSequence,
         widthLimit: Int,
         heightLimit: Int
@@ -69,7 +50,7 @@ object FontManager {
         }
     }
 
-    fun limitHeight(font: me.anno.fonts.Font, heightLimit: Int): Int {
+    fun limitHeight(font: Font, heightLimit: Int): Int {
         val fontHeight = font.size // roughly, not exact!
         val spaceBetweenLines = spaceBetweenLines(fontHeight)
         // val height = (fontHeight + spaceBetweenLines) * lineCount - spaceBetweenLines
@@ -79,7 +60,7 @@ object FontManager {
     }
 
     fun limitHeight(
-        font: me.anno.fonts.Font,
+        font: Font,
         text: CharSequence,
         widthLimit2: Int,
         heightLimit: Int
@@ -104,7 +85,7 @@ object FontManager {
     }
 
     fun getSize(
-        font: me.anno.fonts.Font,
+        font: Font,
         text: CharSequence,
         widthLimit: Int,
         heightLimit: Int,
@@ -115,7 +96,7 @@ object FontManager {
     }
 
     fun getBaselineY(
-        font: me.anno.fonts.Font
+        font: Font
     ): Float {
         // val f = getFont(font)
         // why ever...
@@ -128,7 +109,7 @@ object FontManager {
     }
 
     fun getTextCacheKey(
-        font: me.anno.fonts.Font,
+        font: Font,
         text: String,
         widthLimit: Int,
         heightLimit: Int
@@ -151,14 +132,14 @@ object FontManager {
     }
 
     fun getTexture(
-        font: me.anno.fonts.Font, text: String,
+        font: Font, text: String,
         widthLimit: Int, heightLimit: Int, async: Boolean
     ): ITexture2D? {
         return getTexture(font, text, widthLimit, heightLimit, textureTimeout, async)
     }
 
     fun getTexture(
-        font: me.anno.fonts.Font, text: String,
+        font: Font, text: String,
         widthLimit: Int, heightLimit: Int,
         timeoutMillis: Long, async: Boolean
     ): ITexture2D? {
@@ -168,7 +149,7 @@ object FontManager {
         return getTexture(key, timeoutMillis, async)
     }
 
-    fun getASCIITexture(font: me.anno.fonts.Font): Texture2DArray {
+    fun getASCIITexture(font: Font): Texture2DArray {
         return TextCache.getEntry(font, textureTimeout, false) { key ->
             getFont(key).generateASCIITexture(false)
         } as Texture2DArray
@@ -194,61 +175,28 @@ object FontManager {
         } as? ITexture2D
     }
 
-    fun getFont(key: TextCacheKey): AWTFont =
+    fun getFont(key: TextCacheKey): TextGenerator =
         getFont(key.fontName, getAvgFontSize(key.fontSizeIndex()), key.isBold(), key.isItalic())
 
-    fun getFont(font: me.anno.fonts.Font): AWTFont = getFont(font.name, font.size, font.isBold, font.isItalic)
+    fun getFont(font: Font): TextGenerator =
+        getFont(font.name, font.size, font.isBold, font.isItalic)
 
-    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): AWTFont {
+    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): TextGenerator {
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        val averageFontSize = getAvgFontSize(fontSizeIndex)
-        return getFont(name, averageFontSize, fontSizeIndex, bold, italic)
+        return getFont(name, fontSizeIndex, bold, italic)
     }
 
-    private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int, bold: Boolean, italic: Boolean): AWTFont {
+    private fun getFont(
+        name: String,
+        fontSizeIndex: Int,
+        bold: Boolean,
+        italic: Boolean
+    ): TextGenerator {
         val key = FontKey(name, fontSizeIndex, bold, italic)
-        val font = fonts[key]
-        if (font != null) return font
-        val boldItalicStyle = (if (italic) Font.ITALIC else 0) or (if (bold) Font.BOLD else 0)
-        val font2 = AWTFont(
-            Font(name, fontSize, bold, italic),
-            awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize)
-            ?: throw RuntimeException("Font $name was not found")
-        )
-        fonts[key] = font2
-        return font2
-    }
-
-    private fun getDefaultFont(name: String): Font? {
-        val key = FontKey(name, Int.MIN_VALUE, bold = false, italic = false)
-        val cached = awtFonts[key]
-        if (cached != null) return cached
-        val font = if ('/' in name) {
-            var font: Font? = null
-            var hasFont = false
-            loadFont(getReference(name)) {
-                font = it
-                hasFont = true
-            }
-            waitUntil(true) { hasFont }
-            font
-        } else Font.decode(name)
-        awtFonts[key] = font ?: return null
-        return font
-    }
-
-    private fun loadFont(ref: FileReference, callback: (Font?) -> Unit) {
-        ref.inputStream { it, _ ->
-            if (it != null) {
-                it.use {
-                    // what is type1_font?
-                    val font = Font.createFont(Font.TRUETYPE_FONT, it)
-                    GraphicsEnvironment
-                        .getLocalGraphicsEnvironment()
-                        .registerFont(font)
-                    callback(font)
-                }
-            } else callback(null)
+        return fonts.getOrPut(key) {
+            getTextGenerator(key)
         }
     }
+
+    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 }

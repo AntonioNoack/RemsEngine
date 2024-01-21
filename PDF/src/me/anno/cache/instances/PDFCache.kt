@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
-import me.anno.image.raw.toImage
+import me.anno.images.BIImage.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback

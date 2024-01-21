@@ -13,8 +13,6 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.mixARGB
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 import kotlin.math.abs
 import kotlin.math.floor
 

@@ -13,7 +13,12 @@ import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
 
 object ContourImpl {
-    fun calculateContours(font: Font, text: CharSequence): List<Contour> {
+
+    fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): List<Contour> {
+        return calculateContours((FontManager.getFont(font) as AWTFont).awtFont, text)
+    }
+
+    private fun calculateContours(font: Font, text: CharSequence): List<Contour> {
 
         val contours = ArrayList<Contour>()
         var segments = ArrayList<EdgeSegment>()

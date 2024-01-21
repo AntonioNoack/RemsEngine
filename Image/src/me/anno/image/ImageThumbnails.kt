@@ -9,9 +9,9 @@ import me.anno.gpu.texture.TextureReader
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
-import me.anno.image.raw.toImage
 import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
+import me.anno.images.BIImage.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Color

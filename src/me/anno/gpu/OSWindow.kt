@@ -2,16 +2,15 @@ package me.anno.gpu
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
-import me.anno.engine.Events.addEvent
+import me.anno.input.Output
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.progress.ProgressBar
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback
-import org.lwjgl.glfw.GLFWKeyCallback
 import kotlin.math.abs
 
 /**
@@ -27,6 +26,9 @@ open class OSWindow(var title: String) {
         var defaultWidth = 800
         var defaultHeight = 700
     }
+
+    var positionX = 0
+    var positionY = 0
 
     var pointer = 0L
     var width = defaultWidth
@@ -54,9 +56,6 @@ open class OSWindow(var title: String) {
     var showFPS = true
 
     var needsRefresh = true
-
-    var keyCallback: GLFWKeyCallback? = null
-    var fsCallback: GLFWFramebufferSizeCallback? = null
 
     var shouldClose = false
 
@@ -132,6 +131,8 @@ open class OSWindow(var title: String) {
                 savedX = windowX[0]
                 savedY = windowY[0]
                 GLFW.glfwSetWindowMonitor(pointer, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate())
+                positionX = 0 // correct??
+                positionY = 0
             }
         } else {
             GLFW.glfwSetWindowMonitor(
@@ -139,6 +140,8 @@ open class OSWindow(var title: String) {
                 savedX, savedY, savedWidth, savedHeight,
                 GLFW.GLFW_DONT_CARE
             )
+            positionX = savedX
+            positionY = savedY
         }
         val width = intArrayOf(0)
         val height = intArrayOf(0)
@@ -150,21 +153,14 @@ open class OSWindow(var title: String) {
     }
 
     fun updateMouseTarget(): Boolean {
-        val robot = GFXBase.robot
         return if (mouseTargetX.isFinite() && mouseTargetY.isFinite()) {
             if (isInFocus &&
                 mouseTargetX in 0.0..(width - 1.0) &&
                 mouseTargetY in 0.0..(height - 1.0)
             ) {
                 GLFW.glfwSetCursorPos(pointer, mouseTargetX, mouseTargetY)
-            } else if (robot != null) {
-                val x = IntArray(1)
-                val y = IntArray(1)
-                GLFW.glfwGetWindowPos(pointer, x, y)
-                // this is broken, but I have no idea why :(
-                // when I click another window via window bottom bar, I loose control over the mouse with the controller
-                LOGGER.debug("Setting mouse to ${mouseTargetX}+${x[0]}, ${mouseTargetY}+${y[0]}")
-                robot.mouseMove(mouseTargetX.toInt() + x[0], mouseTargetY.toInt() + y[0])
+            } else {
+                Output.systemMouseMove(this, mouseTargetX.toInt(), mouseTargetY.toInt())
             }
             mouseTargetX = Double.NaN
             mouseTargetY = Double.NaN
@@ -208,11 +204,11 @@ open class OSWindow(var title: String) {
 
     open fun addCallbacks() {
         val window = pointer
-        keyCallback = GLFW.glfwSetKeyCallback(window) { window1, key, _, action, _ ->
+        GLFW.glfwSetKeyCallback(window) { window1, key, _, action, _ ->
             if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE)
                 GLFW.glfwSetWindowShouldClose(window1, true)
         }
-        fsCallback = GLFW.glfwSetFramebufferSizeCallback(window) { _, w, h ->
+        GLFW.glfwSetFramebufferSizeCallback(window) { _, w, h ->
             if (w > 0 && h > 0) {
                 addEvent {
                     if (w != width || h != height) {
@@ -222,6 +218,10 @@ open class OSWindow(var title: String) {
                     }
                 }
             }
+        }
+        GLFW.glfwSetWindowPosCallback(window) { _, x, y ->
+            positionX = x
+            positionY = y
         }
         GLFW.glfwSetWindowFocusCallback(window) { _, isInFocus0 -> isInFocus = isInFocus0 }
         GLFW.glfwSetWindowIconifyCallback(window) { _, isMinimized0 ->

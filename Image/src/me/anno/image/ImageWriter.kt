@@ -7,7 +7,6 @@ import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
-import me.anno.image.raw.write
 import me.anno.image.utils.GaussianBlur
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -27,6 +26,7 @@ import java.awt.Graphics2D
 import java.awt.Polygon
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -45,7 +45,7 @@ object ImageWriter {
     private fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
         val file = OS.desktop.getChild(name2)
-        file.getParent()?.tryMkdirs()
+        file.getParent().tryMkdirs()
         return file
     }
 
@@ -477,6 +477,8 @@ object ImageWriter {
 
             gfx.fillOval(px - 2, py - 2, 5, 5)
         }
-        bi.write(OS.desktop.getChild(name))
+        OS.desktop.getChild(name).outputStream().use {
+            ImageIO.write(bi, "png", it)
+        }
     }
 }

@@ -3,6 +3,7 @@ package me.anno.fonts
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.fonts.FontManager.spaceBetweenLines
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts.simpleChars
@@ -11,8 +12,8 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.image.raw.createFromBufferedImage
-import me.anno.image.raw.toImage
+import me.anno.images.BIImage.createFromBufferedImage
+import me.anno.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
@@ -30,11 +31,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
-
-    val name: String get() = awtFont.name
-    val size get() = awtFont.size
-    val style get() = awtFont.style
+class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGenerator {
 
     private val fontMetrics = run {
         val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
@@ -51,10 +48,6 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         return false
     }
 
-    private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
-
-    private fun createGroup(text: CharSequence): TextGroup = TextGroup(font, text, 0.0)
-
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
@@ -67,7 +60,7 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
      * so there are no awkward spaces between T and e
      * */
     private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, x: Float, y: Float) {
-        val group2 = group ?: createGroup(text)
+        val group2 = group ?: createGroup(font, text)
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for "I"s)
         // maybe we could implement detecting, which sections need int positions, and which don't...
@@ -89,7 +82,7 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         }
     }
 
-    fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
+    override fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
         return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
             val parts = splitParts(
@@ -100,22 +93,22 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
             val height = min(ceil(parts.height).toInt(), heightLimit)
             return GFXx2D.getSize(width, height)
         } else {
-            val baseWidth = getStringWidth(createGroup(text))
+            val baseWidth = getStringWidth(createGroup(font, text))
             val width = clamp(baseWidth.roundToInt() + 1, 0, GFX.maxTextureSize)
             val height = min(fontMetrics.height, GFX.maxTextureSize)
             GFXx2D.getSize(width, height)
         }
     }
 
-    fun generateTexture(
+    override fun generateTexture(
         text: CharSequence,
         fontSize: Float,
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,
-        textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24,
-        extraPadding: Int = 0
+        textColor: Int,
+        backgroundColor: Int,
+        extraPadding: Int
     ): ITexture2D? {
 
         if (text.isEmpty()) return null
@@ -126,7 +119,7 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
             )
         }
 
-        val group = createGroup(text)
+        val group = createGroup(font, text)
         val width = min(widthLimit, getStringWidth(group).roundToInt() + 1 + 2 * extraPadding)
 
         val lineCount = 1
@@ -173,11 +166,11 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         return texture
     }
 
-    fun generateASCIITexture(
+    override fun generateASCIITexture(
         portableImages: Boolean,
-        textColor: Int = -1,
-        backgroundColor: Int = 255 shl 24,
-        extraPadding: Int = 0
+        textColor: Int,
+        backgroundColor: Int,
+        extraPadding: Int
     ): Texture2DArray {
 
         val widthLimit = GFX.maxTextureSize
@@ -255,7 +248,7 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         val fallback = getFallback(fontSize)
         val fonts = ArrayList<AWTFont>(fallback.size + 1)
 
-        fonts += AWTFont(font, awtFont)
+        fonts += this
         fonts += fallback
 
         val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
@@ -398,7 +391,7 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
                         if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                         index1 = tmp1
                     } else {
-                        result += StringPart(currentX, currentY, chars.joinChars(index0, index1), 0f)
+                        result += StringPart(currentX, currentY, font, chars.joinChars(index0, index1), 0f)
                         currentX = nextX
                         widthF = max(widthF, currentX)
                         index0 = index1
@@ -462,8 +455,8 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height, 1)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
-        val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
-        if (prio) {
+        val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
+        if (hasPriority) {
             createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
         } else {
             GFX.addGPUTask("awt-font-v6", width, height) {
@@ -495,10 +488,10 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
 
         val y = exampleLayout.ascent
 
-        for (s in result) {
-            gfx.font = awtFont
-            // println("drawing string ${s.text} by layout at ${s.xPos}, ${s.yPos} + $y")
-            drawString(gfx, s.text, null, s.xPos, s.yPos + y)
+        for (part in result) {
+            gfx.font = (part.font as AWTFont).awtFont
+            // s.font != this when the character is unsupported, e.g., for emojis
+            (part.font as AWTFont).drawString(gfx, part.text, null, part.xPos, part.yPos + y)
         }
 
         gfx.dispose()
@@ -536,7 +529,14 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         texture.create(image.toImage(), sync = true)
     }
 
+    override fun toString(): String {
+        return font.toString()
+    }
+
     companion object {
+
+        private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
+        private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): TextGroup = TextGroup(font, text, 0.0)
 
         private val asciiStrings = Array(128) { it.toChar().toString() }
 
@@ -547,8 +547,6 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
             listOf(','.code, '.'.code)
         )
 
-        fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
-
         private val fallbackFontList = DefaultConfig[
             "ui.font.fallbacks",
             "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
@@ -558,7 +556,9 @@ class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
         private fun getFallback(size: Float): List<AWTFont> {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
-            val fonts = fallbackFontList.map { FontManager.getFont(it, size, bold = false, italic = false) }
+            val fonts = fallbackFontList.mapNotNull {
+                FontManager.getFont(it, size, bold = false, italic = false) as? AWTFont
+            }
             fallbackFonts[size] = fonts
             return fonts
         }

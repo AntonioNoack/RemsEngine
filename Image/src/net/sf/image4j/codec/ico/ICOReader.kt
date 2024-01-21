@@ -1,14 +1,14 @@
 package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
-import me.anno.image.raw.toImage
+import me.anno.images.BIImage.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.tuples.IntPair
+import net.sf.image4j.Utils
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
-import me.anno.utils.structures.CountingInputStream
-import net.sf.image4j.Utils
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
 import java.io.EOFException
@@ -108,7 +108,6 @@ object ICOReader {
                     // // read AND bitmap
                     // Image and = BMPDecoder.read(andHeader, in, andColorTable);
                     // this.img.add(and);
-
                 } else {
 
                     // replace the alpha with the next image
@@ -206,7 +205,6 @@ object ICOReader {
         }
 
         return bestLayer
-
     }
 
     /**
@@ -280,5 +278,4 @@ object ICOReader {
     }
 
     private const val MAX_SIZE = 1024 * 1024
-
 }

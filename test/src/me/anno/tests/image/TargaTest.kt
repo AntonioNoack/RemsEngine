@@ -1,11 +1,9 @@
 package me.anno.tests.image
 
-import me.anno.image.raw.createBufferedImage
 import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import javax.imageio.ImageIO
 
 fun main() {
     convert(OS.downloads)
@@ -30,9 +28,7 @@ fun convert(file: FileReference) {
             // LOGGER.info("dst: $dst, ${dst.name}")
             // LOGGER.info("dst.parent: ${dst.getParent()}")
             dst.getParent().mkdirs()
-            dst.outputStream().use {
-                ImageIO.write(image.createBufferedImage(), "png", it)
-            }
+            image.write(dst)
         }
     }
 }

@@ -1,9 +1,9 @@
 package me.anno.fonts.signeddistfields
 
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import org.joml.AABBf
-import java.awt.Font
 
 class Contour(val segments: ArrayList<EdgeSegment>) {
     val bounds = AABBf()
@@ -15,10 +15,6 @@ class Contour(val segments: ArrayList<EdgeSegment>) {
     }
 
     companion object {
-
-        fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): List<Contour> {
-            return calculateContours(FontManager.getFont(font).awtFont, text)
-        }
 
         var calculateContoursImpl: ((Font, CharSequence) -> List<Contour>)? = null
         fun calculateContours(font: Font, text: CharSequence): List<Contour> {

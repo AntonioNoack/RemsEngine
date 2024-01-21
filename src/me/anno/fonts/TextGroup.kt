@@ -5,8 +5,6 @@ import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
 import me.anno.fonts.mesh.TextMesh
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
-import java.awt.font.FontRenderContext
-import java.awt.font.TextLayout
 
 open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double) : TextDrawable() {
 
@@ -32,9 +30,7 @@ open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double
         offsets[codepoints.size] = getOffset(codepoints.last(), 32)
         offsets.accumulate()
 
-        val ctx = FontRenderContext(null, true, true)
-        val layout = TextLayout(".", FontManager.getFont(font).awtFont, ctx)
-        baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
+        baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / FontStats.getFontHeight(font)
         bounds.minX = 0f
         bounds.maxX = 0f
     }

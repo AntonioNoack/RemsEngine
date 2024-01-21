@@ -45,8 +45,6 @@ import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
-import java.awt.AWTException
-import java.awt.Robot
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -69,9 +67,6 @@ object GFXBase {
     @JvmStatic
     private var debugMsgCallback: Callback? = null
 
-    @JvmStatic
-    private var errorCallback: GLFWErrorCallback? = null
-
     @JvmField
     val glfwLock = Any()
 
@@ -89,14 +84,6 @@ object GFXBase {
 
     @JvmField
     var useSeparateGLFWThread = true
-
-    @JvmField
-    val robot = try {
-        Robot()
-    } catch (e: AWTException) {
-        e.printStackTrace()
-        null
-    }
 
     @JvmStatic
     fun run(title: String) {
@@ -133,12 +120,10 @@ object GFXBase {
                     windows.clear()
                 }
             }
-            debugMsgCallback?.free()
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             GLFW.glfwTerminate()
-            errorCallback?.free()
         }
     }
 
@@ -146,7 +131,7 @@ object GFXBase {
     fun initLWJGL(): Clock {
         if (!OS.isWeb) LOGGER.info("Using LWJGL Version " + Version.getVersion())
         val tick = Clock()
-        GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
+        GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
         tick.stop("Error callback")
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
         tick.stop("GLFW initialization")
@@ -252,7 +237,7 @@ object GFXBase {
         capabilities = GL.createCapabilities()
         GFXState.newSession()
         tick?.stop("OpenGL initialization")
-        debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
+        GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
         tick?.stop("Debugging Setup")
         // render first frames = render logo
         // the engine will still be loading,
@@ -589,10 +574,6 @@ object GFXBase {
         synchronized(glfwLock) {
             if (window.pointer != 0L) {
                 GLFW.glfwDestroyWindow(window.pointer)
-                window.keyCallback?.free()
-                window.keyCallback = null
-                window.fsCallback?.free()
-                window.fsCallback = null
                 window.pointer = 0L
             }
         }
