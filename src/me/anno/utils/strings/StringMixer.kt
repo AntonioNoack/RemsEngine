@@ -1,5 +1,6 @@
 package me.anno.utils.strings
 
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -117,8 +118,8 @@ object StringMixer {
     }
 
     private fun mixSpecial(a: String, b: String, f: Double, g: Double): String {
-        val aChars = a.codePoints().toList()
-        val bChars = b.codePoints().toList()
+        val aChars = a.codepoints()
+        val bChars = b.codepoints()
         val aLength = a.length
         val bLength = b.length
         if (aChars.size == bChars.size) {

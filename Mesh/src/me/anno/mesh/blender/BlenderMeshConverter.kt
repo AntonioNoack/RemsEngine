@@ -1,7 +1,7 @@
 package me.anno.mesh.blender
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.fonts.mesh.Triangulation
+import me.anno.mesh.Triangulation
 import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max

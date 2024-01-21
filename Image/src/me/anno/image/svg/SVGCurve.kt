@@ -1,6 +1,6 @@
 package me.anno.image.svg
 
-import me.anno.fonts.mesh.Triangulation
+import me.anno.mesh.Triangulation
 import me.anno.image.svg.gradient.Gradient1D
 import org.joml.Vector2f
 

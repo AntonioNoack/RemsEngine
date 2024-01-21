@@ -53,13 +53,9 @@ import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.graph.hdb.HierarchicalDatabase
-import me.anno.image.Image
-import me.anno.image.ImageCache
-import me.anno.image.ImageReadable
+import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
-import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
-import me.anno.image.raw.toImage
 import me.anno.io.ISaveable
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.config.ConfigBasics
@@ -67,6 +63,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerStreamFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
@@ -101,7 +98,6 @@ import org.joml.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import javax.imageio.ImageIO
 import kotlin.math.*
 
 /**
@@ -957,16 +953,20 @@ object Thumbs {
         }
     }
 
+    private fun readImage(bytes: ByteSlice?): Image? {
+        if (bytes == null) return null
+        val file = InnerStreamFile("", "", InvalidRef) { bytes.stream() }
+        return ImageReader.readImage(file, true).waitForGFX()
+    }
+
     private fun shallReturnIfExists(
-        srcFile: FileReference,
-        dstFile: ByteSlice?,
+        srcFile: FileReference, dstFile: ByteSlice?,
         callback: Callback<ITexture2D>,
     ): Boolean {
-        if (dstFile == null) return false
-        val image = ImageIO.read(dstFile.stream()) ?: return false
+        val image = readImage(dstFile) ?: return false
         val rotation = TextureReader.getRotation(srcFile)
         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-            val texture = Texture2D(srcFile.name, image.toImage(), true)
+            val texture = Texture2D(srcFile.name, image, true)
             texture.rotation = rotation
             callback.ok(texture)
         }
@@ -1066,14 +1066,14 @@ object Thumbs {
         for (i in idx + 1 until sizes.size) {
             val sizeI = sizes[i]
             val keyI = getCacheKey(srcFile, hash, sizeI)
-            hdb.get(keyI, false) {
-                if (it != null) {
-                    val image = ImageIO.read(it.stream())
+            hdb.get(keyI, false) { bytes ->
+                if (bytes != null) {
+                    val image = readImage(bytes)
                     if (image != null) {
                         // scale down (and save?)
                         val rotation = TextureReader.getRotation(srcFile)
                         val (w, h) = scaleMax(image.width, image.height, size)
-                        val newImage = image.toImage().resized(w, h, false)
+                        val newImage = image.resized(w, h, false)
                         val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
                         newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
                             if (tex is Texture2D) tex.rotation = rotation
@@ -1422,7 +1422,7 @@ object Thumbs {
                 }
                 // else nothing to do
                 else -> {
-                    LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
+                    LOGGER.info("ImageCache failed, importType '$importType' != getImportType for $srcFile")
                     generateTextImage(srcFile, dstFile, size, callback)
                 }
             }

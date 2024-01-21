@@ -1,19 +1,19 @@
 package me.anno.ui.input.components
 
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
+import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles1
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.streams.toList
 
 abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
 
@@ -125,12 +125,13 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
         val text = text
-        val chars = text.codePoints().toList()
+        val chars = text.codepoints().toList()
         val start = if (suggestion.start == 0) emptyList() else chars.subList(0, suggestion.start)
         val end = chars.subList(suggestion.end, chars.size)
-        this.text = (start + choice.codePoints().toList() + end).joinChars().toString()
+        val choiceCp = choice.codepoints()
+        this.text = (start + choiceCp.toList() + end).joinChars().toString()
         updateChars(true)
-        setCursor(start.size + choice.codePoints().toList().size) // set the cursor to after the edit
+        setCursor(start.size + choiceCp.size) // set the cursor to after the edit
     }
 
     abstract fun updateChars(notify: Boolean)
@@ -146,5 +147,4 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     override fun acceptsChar(char: Int): Boolean = true
 
     abstract val isShowingPlaceholder: Boolean
-
 }

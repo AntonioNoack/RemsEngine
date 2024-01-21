@@ -26,7 +26,7 @@ fun main() {
     val logger = LogManager.getLogger("SDFBenchmark")
 
     val roundEdges = false
-    val font = FontManager.getFont("Verdana", 8f, bold = false, italic = false).font
+    val font = FontManager.getFont("Verdana", 8f, bold = false, italic = false).awtFont
     val text = "Lorem Ipsum is simply text."
 
     Thread.sleep(8000)

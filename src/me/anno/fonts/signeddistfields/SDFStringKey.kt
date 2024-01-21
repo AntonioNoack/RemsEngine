@@ -1,5 +1,5 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.fonts.AWTFont
+import me.anno.ui.base.Font
 
-data class SDFStringKey(val font: AWTFont, val text: CharSequence, val roundCorners: Boolean)
+data class SDFStringKey(val font: Font, val text: CharSequence, val roundCorners: Boolean)

@@ -35,7 +35,6 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                     .replace("kotlin.concurrent", "kotlini.concurrent")
                     .replace("kotlin.test", "kotlini.test")
                     .replace("class.qualifiedName", "class.simpleName") // not supported :/
-                    .replace(".codePoints()", ".map { it.code }") // not supported :/
                     .replace("Character.toChars(this)", "charArrayOf(toChar())")
                     .replace("import kotlin.streams.toList", "// import kotlin.streams.toList")
                     .replace("GL11C", "OpenGL")

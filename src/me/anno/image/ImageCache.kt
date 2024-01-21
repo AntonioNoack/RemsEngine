@@ -3,54 +3,59 @@ package me.anno.image
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.utils.structures.Callback
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
-import me.anno.utils.Sleep.waitForGFXThread
+import me.anno.utils.structures.Callback
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 object ImageCache : CacheSection("Image") {
 
-    val byteReaders = HashMap<String, (ByteArray) -> Image?>()
+    val byteReaders = HashMap<String, (ByteArray, Callback<Image>) -> Unit>()
     val fileReaders = HashMap<String, (FileReference, Callback<Image>) -> Unit>()
-    val streamReaders = HashMap<String, (InputStream) -> Image?>()
+    val streamReaders = HashMap<String, (InputStream, Callback<Image>) -> Unit>()
 
     fun registerReader(
         signature: String,
-        byteReader: (ByteArray) -> Image?,
+        byteReader: (ByteArray, Callback<Image>) -> Unit,
         fileReader: (FileReference, Callback<Image>) -> Unit,
-        streamReader: (InputStream) -> Image?
+        streamReader: (InputStream, Callback<Image>) -> Unit
     ) {
-        byteReaders[signature] = byteReader
-        fileReaders[signature] = fileReader
-        streamReaders[signature] = streamReader
+        // todo keep lists instead, and try all until one succeeds
+        synchronized(this) {
+            byteReaders[signature] = byteReader
+            fileReaders[signature] = fileReader
+            streamReaders[signature] = streamReader
+        }
     }
 
     fun registerStreamReader(
         signature: String,
-        streamReader: (InputStream) -> Image?
+        streamReader: (InputStream, Callback<Image>) -> Unit
     ) {
-        registerReader(signature, { bytes ->
-            ByteArrayInputStream(bytes).use(streamReader)
+        registerReader(signature, { bytes, callback ->
+            streamReader(ByteArrayInputStream(bytes), callback)
         }, { fileRef, callback ->
             fileRef.inputStream { input, e ->
-                callback.call(input?.use { input1 ->
-                    streamReader(input1)
-                }, e)
+                if (input != null) streamReader(input, callback)
+                else callback.err(e)
             }
         }, streamReader)
     }
 
     init {
-        registerStreamReader("hdr") { HDRReader.read(it) }
+        registerStreamReader("hdr") { it, callback ->
+            callback.ok(HDRReader.read(it))
+        }
     }
 
     fun unregister(vararg signatures: String) {
-        for (signature in signatures) {
-            byteReaders.remove(signature)
-            fileReaders.remove(signature)
-            streamReaders.remove(signature)
+        synchronized(this) {
+            for (signature in signatures) {
+                byteReaders.remove(signature)
+                fileReaders.remove(signature)
+                streamReaders.remove(signature)
+            }
         }
     }
 
@@ -73,11 +78,9 @@ object ImageCache : CacheSection("Image") {
     operator fun get(file0: FileReference, timeout: Long, async: Boolean): Image? {
         if (file0 is ImageReadable) return file0.readCPUImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
-            val data = AsyncCacheData<Image?>()
-            ImageReader.readImage(file, data, false)
-            data
+            ImageReader.readImage(file, false)
         } as? AsyncCacheData<*> ?: return null
-        if (!async) waitForGFXThread(true) { data.hasValue }
+        if (!async) data.waitForGFX()
         return data.value as? Image
     }
 }

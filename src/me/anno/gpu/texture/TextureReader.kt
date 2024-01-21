@@ -2,14 +2,17 @@ package me.anno.gpu.texture
 
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
-import me.anno.utils.InternalAPI
 import me.anno.gpu.GFX
-import me.anno.image.*
+import me.anno.image.ImageCache
+import me.anno.image.ImageReadable
+import me.anno.image.ImageReader
+import me.anno.image.ImageTransform
 import me.anno.image.raw.GPUImage
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
@@ -57,10 +60,7 @@ class TextureReader(file: FileReference) : AsyncCacheData<ITexture2D>() {
             } else when (Signature.findNameSync(file)) {
                 "dds", "media" -> tryUsingVideoCache(file)
                 else -> {
-                    val async = AsyncCacheData<Image?>()
-                    ImageReader.readImage(file, async, true)
-                    Sleep.waitForGFXThread(true) { async.hasValue }
-                    when (val image = async.value) {
+                    when (val image = ImageReader.readImage(file, true).waitForGFX()) {
                         is GPUImage -> {
                             val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
                             texture.rotation = (image.texture as? Texture2D)?.rotation

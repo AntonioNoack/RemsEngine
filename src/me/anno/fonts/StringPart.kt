@@ -6,5 +6,5 @@ class StringPart(
     val codepointLength: Int = text.toString().codePointCount(0, text.length)
 ) {
     fun plus(dy: Float) = StringPart(xPos, yPos + dy, text, font, lineWidth, codepointLength)
-    override fun toString() = "{x=$xPos,y=$yPos,\"$text\",\"${font.font.name}\",w=$lineWidth,cpl=$codepointLength}"
+    override fun toString() = "{x=$xPos,y=$yPos,\"$text\",\"${font.awtFont.name}\",w=$lineWidth,cpl=$codepointLength}"
 }

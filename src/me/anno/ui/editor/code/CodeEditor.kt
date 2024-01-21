@@ -15,6 +15,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.engine.history.StringHistory
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.Font
@@ -490,7 +491,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         deleteSelectionInternal()
-        content.insert(cursor1.y, cursor1.x, data.codePoints())
+        content.insert(cursor1.y, cursor1.x, data.codepoints())
         for (i in data.indices) right(cursor1)
         cursor0.set(cursor1)
         onChangeText()
@@ -631,7 +632,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     private fun applySuggestion(textSection: TextSection, suggestion: Suggestion, choice: String) {
-        val cp = choice.codePoints().toList()
+        val cp = choice.codepoints()
         val si = textSection.startIndex
         val charIndex = si + suggestion.start
         // remove incorrect letters

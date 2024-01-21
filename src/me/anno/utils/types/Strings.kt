@@ -42,7 +42,16 @@ object Strings {
     }
 
     @JvmStatic
-    fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size, filter: (Int) -> Boolean): CharSequence {
+    fun IntArray.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
+        val builder = StringBuilder(endIndex - startIndex)
+        for (i in startIndex until endIndex) {
+            builder.append(get(i).joinChars0())
+        }
+        return builder
+    }
+
+    @JvmStatic
+    fun IntArray.joinChars(startIndex: Int = 0, endIndex: Int = size, filter: (Int) -> Boolean): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
             val char = get(i)

@@ -104,7 +104,13 @@ object FontManager {
         return data?.value as? Int ?: -1
     }
 
-    fun getSize(font: me.anno.ui.base.Font, text: CharSequence, widthLimit: Int, heightLimit: Int, async: Boolean): Int {
+    fun getSize(
+        font: me.anno.ui.base.Font,
+        text: CharSequence,
+        widthLimit: Int,
+        heightLimit: Int,
+        async: Boolean
+    ): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
         return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false), async)
     }
@@ -198,6 +204,7 @@ object FontManager {
         if (font != null) return font
         val boldItalicStyle = (if (italic) Font.ITALIC else 0) or (if (bold) Font.BOLD else 0)
         val font2 = AWTFont(
+            me.anno.ui.base.Font(name, fontSize, bold, italic),
             awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize)
             ?: throw RuntimeException("Font $name was not found")
         )

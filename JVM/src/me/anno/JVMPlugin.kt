@@ -1,8 +1,8 @@
 package me.anno
 
 import me.anno.extensions.plugins.Plugin
-import me.anno.image.Image
 import me.anno.input.Clipboard
+import me.anno.io.MediaMetadata
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.files.OpenFileExternally
 
@@ -22,6 +22,7 @@ class JVMPlugin : Plugin() {
         OpenFileExternally.openInStandardProgramImpl = OpenFileExternallyImpl::openInStandardProgram
         OpenFileExternally.editInStandardProgramImpl = OpenFileExternallyImpl::editInStandardProgram
         OpenFileExternally.openInExplorerImpl = OpenFileExternallyImpl::openInExplorer
-        Image.writeImageImpl = ImageImpl::writeImage
+        MediaMetadata.registerSignatureHandler(100, "ImageIO", MetadataImpl::readImageIOMetadata)
+        ImageImpl.register()
     }
 }

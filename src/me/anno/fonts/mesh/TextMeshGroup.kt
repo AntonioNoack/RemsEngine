@@ -2,8 +2,8 @@ package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshJoiner
-import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
+import me.anno.ui.base.Font
 import me.anno.utils.types.Strings.joinChars
 import org.joml.Matrix4x3f
 import kotlin.math.min
@@ -12,38 +12,35 @@ import kotlin.math.min
  * custom character-character alignment maps by font for faster calculation
  * */
 class TextMeshGroup(
-    font: AWTFont,
+    font: Font,
     text: CharSequence,
     charSpacing: Float,
-    forceVariableBuffer: Boolean,
-    debugPieces: Boolean = false
-) : TextGroup(
-    font, text, charSpacing.toDouble()
-) {
+    forceVariableBuffer: Boolean
+) : TextGroup(font, text, charSpacing.toDouble()) {
 
     init {
-        // ensure triangle buffers for all characters
-        val buffers = alignment.buffers
-        synchronized(buffers) {
+        // ensure meshes exist for all characters
+        val meshCache = meshCache
+        synchronized(meshCache) {
             for (char in codepoints) {
-                if (buffers[char] == null) {
-                    buffers[char] = TextMesh(font, char.joinChars().toString(), debugPieces).buffer
+                meshCache.getOrPut(char) {
+                    TextMesh(font, char.joinChars().toString()).mesh
                 }
             }
         }
     }
 
-    var mesh: Mesh? = null
+    var joinedMesh: Mesh? = null
 
     /**
      * better for the performance of long texts
      * */
     fun createJoinedMesh(dst: Mesh) {
-        val characters = alignment.buffers
-        this.mesh = object : MeshJoiner<Int>(false, false, false) {
+        val meshCache = meshCache
+        this.joinedMesh = object : MeshJoiner<Int>(false, false, false) {
             override fun getMesh(element: Int): Mesh {
                 val codepoint = codepoints[element]
-                return characters[codepoint]!!
+                return meshCache[codepoint]!!
             }
 
             override fun getTransform(element: Int, dst: Matrix4x3f) {
@@ -54,8 +51,8 @@ class TextMeshGroup(
     }
 
     fun getOrCreateMesh(): Mesh {
-        if (mesh == null) createJoinedMesh(Mesh())
-        return mesh!!
+        if (joinedMesh == null) createJoinedMesh(Mesh())
+        return joinedMesh!!
     }
 
     // are draw-calls always expensive??
@@ -75,16 +72,16 @@ class TextMeshGroup(
     }
 
     private fun drawSlowly(startIndex: Int, endIndex: Int, callback: DrawBufferCallback) {
-        val characters = alignment.buffers
+        val buffers = meshCache
         for (index in startIndex until min(endIndex, codepoints.size)) {
             val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
-            callback.draw(characters[codePoint]!!, null, offset)
+            callback.draw(buffers[codePoint]!!, null, offset)
         }
     }
 
     override fun destroy() {
-        mesh?.destroy()
-        mesh = null
+        joinedMesh?.destroy()
+        joinedMesh = null
     }
 }

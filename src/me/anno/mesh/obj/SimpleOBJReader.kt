@@ -1,7 +1,7 @@
 package me.anno.mesh.obj
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.mesh.Triangulation
+import me.anno.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.ExpandingFloatArray

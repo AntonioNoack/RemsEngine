@@ -1,5 +1,7 @@
 package me.anno.cache
 
+import me.anno.utils.Sleep
+
 open class AsyncCacheData<V> : ICacheData {
 
     var hasValue = false
@@ -13,6 +15,16 @@ open class AsyncCacheData<V> : ICacheData {
             }
             hasValue = true
         }
+
+    fun waitForGFX(): V? {
+        Sleep.waitForGFXThread(true) { hasValue }
+        return value
+    }
+
+    fun waitFor(): V? {
+        Sleep.waitUntil(true) { hasValue }
+        return value
+    }
 
     override fun destroy() {
         (value as? ICacheData)?.destroy()

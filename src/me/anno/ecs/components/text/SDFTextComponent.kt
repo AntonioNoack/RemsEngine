@@ -3,13 +3,13 @@ package me.anno.ecs.components.text
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
@@ -96,7 +96,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
-        val meshGroup = meshGroup ?: TextSDFGroup(FontManager.getFont(font), text, 0f)
+        val meshGroup = meshGroup ?: TextSDFGroup(font, text, 0.0)
         this.meshGroup = meshGroup
         val baseScale = meshGroup.baseScale * extraScale
         meshGroup.draw { _, sdfTexture, offset ->

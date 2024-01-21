@@ -1,49 +1,46 @@
 package me.anno.fonts
 
-import me.anno.fonts.mesh.AlignmentGroup.Companion.getAlignments
+import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.mesh.CharacterOffsetCache
+import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
 import me.anno.fonts.mesh.TextMesh
-import me.anno.fonts.mesh.TextRepBase
+import me.anno.ui.base.Font
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 
-open class TextGroup(
-    val font: AWTFont,
-    val text: CharSequence,
-    charSpacing: Double
-) : TextRepBase() {
+open class TextGroup(val font: Font, val text: CharSequence, charSpacing: Double) : TextDrawable() {
 
-    val alignment = getAlignments(font)
+    private val offsetCache: CharacterOffsetCache = getOffsetCache(font)
 
-    val codepoints: IntArray =
-        text.codePoints().toArray()
-
-    val offsets: DoubleArray
+    val codepoints: IntArray = text.codepoints()
+    val offsets: DoubleArray = DoubleArray(codepoints.size + 1)
     val baseScale: Double
 
     init {
 
-        val ctx = FontRenderContext(null, true, true)
-        offsets = DoubleArray(codepoints.size + 1)
+        fun getOffset(previous: Int, current: Int) =
+            offsetCache.getOffset(previous, current)
+
         var firstCodePoint = codepoints[0]
         if (firstCodePoint == '\t'.code || firstCodePoint == '\n'.code) firstCodePoint = ' '.code
         for (index in 1 until codepoints.size) {
             var secondCodePoint = codepoints[index]
             if (secondCodePoint == '\t'.code || secondCodePoint == '\n'.code) secondCodePoint = ' '.code
-            offsets[index] = charSpacing + getOffset(ctx, firstCodePoint, secondCodePoint)
+            offsets[index] = charSpacing + getOffset(firstCodePoint, secondCodePoint)
             firstCodePoint = secondCodePoint
         }
-        offsets[codepoints.size] = getOffset(ctx, codepoints.last(), 32)
+        offsets[codepoints.size] = getOffset(codepoints.last(), 32)
         offsets.accumulate()
 
-        val layout = TextLayout(".", font.font, ctx)
+        val ctx = FontRenderContext(null, true, true)
+        val layout = TextLayout(".", FontManager.getFont(font).awtFont, ctx)
         baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
         bounds.minX = 0f
         bounds.maxX = 0f
     }
 
-    private fun getOffset(ctx: FontRenderContext, previous: Int, current: Int) =
-        alignment.getOffset(ctx, previous, current)
+    val meshCache get() = offsetCache.charMesh
 
     override fun destroy() {
     }

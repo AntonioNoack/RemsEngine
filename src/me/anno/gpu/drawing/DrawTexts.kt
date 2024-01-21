@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -222,8 +223,7 @@ object DrawTexts {
             val textWidth = charWidth * text.length
             GFXx2D.getSize(textWidth, font.sizeInt)
         } else {
-            val font2 = FontManager.getFont(font)
-            val group = TextGroup(font2, text, 0.0)
+            val group = TextGroup(font, text, 0.0)
             val textWidth = group.offsets.last().toFloat()
             GFXx2D.getSize(textWidth.roundToInt(), font.sizeInt)
         }
@@ -284,7 +284,7 @@ object DrawTexts {
             }
 
             var fx = x + dx - charWidth // -charWidth for 0th iteration
-            val cp = text.codePoints().iterator()
+            val cp = text.codepoints().iterator()
 
             // to do: with more context like 4 or 5 characters, we could improve the layout even more
             var tex0: ITexture2D?
@@ -322,8 +322,7 @@ object DrawTexts {
             return GFXx2D.getSize(fx - (x + dx), font.sizeInt)
         } else {
 
-            val font2 = FontManager.getFont(font)
-            val group = TextGroup(font2, text, 0.0)
+            val group = TextGroup(font, text, 0.0)
 
             val textWidth = group.offsets.last().toFloat()
 
@@ -335,7 +334,7 @@ object DrawTexts {
             var index = 0
             val offsets = group.offsets
             val y2 = y + dyi
-            for (char in text.codePoints()) {
+            for (char in text.codepoints()) {
                 if (!Character.isWhitespace(char)) {
                     val txt = char.joinChars().toString()
                     val o0 = offsets[index++].toInt()
@@ -428,9 +427,8 @@ object DrawTexts {
             wx
         } else {
 
-            val font2 = FontManager.getFont(font)
             val text = key.text
-            val offsets = TextGroup(font2, text, 0.0).offsets
+            val offsets = TextGroup(font, text, 0.0).offsets
 
             val textWidth = offsets.last().toFloat()
 

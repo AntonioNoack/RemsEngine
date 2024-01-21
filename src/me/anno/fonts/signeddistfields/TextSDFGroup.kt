@@ -2,16 +2,18 @@ package me.anno.fonts.signeddistfields
 
 import me.anno.cache.CacheData
 import me.anno.fonts.AWTFont
+import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.texture.TextureCache
+import me.anno.ui.base.Font
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
 import me.anno.video.MissingFrameException
 
-class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
-    TextGroup(font, text, charSpacing.toDouble()) {
+class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
+    TextGroup(font, text, charSpacing) {
 
     // are draw-calls always expensive??
     // or buffer creation?

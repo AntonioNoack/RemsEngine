@@ -12,9 +12,9 @@ import me.anno.image.jpg.ExifOrientation
 import me.anno.image.qoi.QOIReader
 import me.anno.image.svg.SVGMesh
 import me.anno.image.tar.TGAReader
+import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.MediaMetadata
 import net.sf.image4j.codec.ico.ICOReader
 
 class ImagePlugin : Plugin() {
@@ -22,11 +22,21 @@ class ImagePlugin : Plugin() {
         super.onEnable()
 
         // image loading
-        ImageCache.registerStreamReader("tga") { TGAReader.read(it, false) }
-        ImageCache.registerStreamReader("gimp") { GimpImage.read(it) }
-        ImageCache.registerStreamReader("exr") { EXRReader.read(it) }
-        ImageCache.registerStreamReader("qoi") { QOIReader.read(it) }
-        ImageCache.registerStreamReader("ico") { ICOReader.read(it) }
+        ImageCache.registerStreamReader("tga") { it, callback ->
+            callback.ok(TGAReader.read(it, false))
+        }
+        ImageCache.registerStreamReader("gimp") { it, callback ->
+            callback.ok(GimpImage.read(it))
+        }
+        ImageCache.registerStreamReader("exr") { it, callback ->
+            callback.ok(EXRReader.read(it))
+        }
+        ImageCache.registerStreamReader("qoi") { it, callback ->
+            callback.ok(QOIReader.read(it))
+        }
+        ImageCache.registerStreamReader("ico") { it, callback ->
+            callback.ok(ICOReader.read(it))
+        }
 
         // image loading with extra details
         InnerFolderCache.register("gimp", GimpImage.Companion::readAsFolder)

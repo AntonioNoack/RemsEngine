@@ -2,7 +2,7 @@ package me.anno.fonts.signeddistfields.algorithm
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.AWTFont
-import me.anno.fonts.FontManager.getFont
+import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
@@ -31,8 +31,6 @@ import kotlin.math.max
 
 object SignedDistanceField {
 
-    // done: kind of optimize contours
-    // done: toggle depth manipulation of outlined-characters?
     // todo char spacing for joint strips
 
     class Contour(val segments: ArrayList<EdgeSegment>) {
@@ -49,10 +47,10 @@ object SignedDistanceField {
     val sdfResolution get() = DefaultConfig["rendering.signedDistanceFields.resolution", 1f]
 
     fun createTexture(font: me.anno.ui.base.Font, text: CharSequence, round: Boolean): TextSDF =
-        createTexture(getFont(font), text, round)
+        createTexture(FontManager.getFont(font), text, round)
 
     fun createTexture(font: AWTFont, text: CharSequence, round: Boolean): TextSDF =
-        createTexture(font.font, text, round)
+        createTexture(font.awtFont, text, round)
 
     fun calculateDistances(
         w: Int, h: Int,
@@ -120,14 +118,12 @@ object SignedDistanceField {
 
                 buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution + offset)
                 index++
-
             }
         }
 
         buffer.position(0)
 
         return buffer
-
     }
 
     fun calculateContours(font: Font, text: CharSequence): List<Contour> {
@@ -189,11 +185,9 @@ object SignedDistanceField {
             }
 
             path.next()
-
         }
 
         return contours
-
     }
 
     fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatBuffer? {
@@ -225,7 +219,6 @@ object SignedDistanceField {
         }
 
         return calculateDistances(w, h, minX, maxX, minY, maxY, contours, roundEdges)
-
     }
 
     fun createTexture(font: Font, text: CharSequence, roundEdges: Boolean): TextSDF {
@@ -269,7 +262,5 @@ object SignedDistanceField {
         val ox = (maxX + minX) * +sdfResolution / w
         val oy = (maxY + minY) * -sdfResolution / h // mirrored for OpenGL
         return TextSDF(tex, Vector2f(ox, oy))
-
     }
-
 }

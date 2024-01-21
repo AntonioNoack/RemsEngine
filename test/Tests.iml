@@ -32,5 +32,6 @@
     <orderEntry type="module" module-name="Unpack" />
     <orderEntry type="module" module-name="Image" />
     <orderEntry type="module" module-name="Video" />
+    <orderEntry type="module" module-name="JVM" />
   </component>
 </module>

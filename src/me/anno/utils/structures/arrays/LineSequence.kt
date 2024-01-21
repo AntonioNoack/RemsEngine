@@ -1,5 +1,6 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.fonts.Codepoints.codepoints
 import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
@@ -141,26 +142,9 @@ class LineSequence : IntSequence {
         }
     }
 
-    fun insert(lineIndex: Int, indexInLine: Int, sequence: IntSequence) {
+    fun insert(lineIndex: Int, indexInLine: Int, sequence: IntArray) {
         synchronized(this) {
             for (index in sequence.indices.reversed()) {
-                insert(lineIndex, indexInLine, sequence[index])
-            }
-        }
-    }
-
-    fun insert(lineIndex: Int, indexInLine: Int, sequence: IntStream) {
-        synchronized(this) {
-            val list = sequence.toList()
-            for (index in list.indices.reversed()) {
-                insert(lineIndex, indexInLine, list[index])
-            }
-        }
-    }
-
-    fun insert(lineIndex: Int, indexInLine: Int, sequence: List<Int>) {
-        synchronized(this) {
-            for (index in sequence.reversed().indices) {
                 insert(lineIndex, indexInLine, sequence[index])
             }
         }
@@ -235,7 +219,7 @@ class LineSequence : IntSequence {
 
     fun setText(text: CharSequence) {
         clear()
-        insert(0, 0, text.codePoints())
+        insert(0, 0, text.codepoints())
     }
 
     override fun toString(): String {

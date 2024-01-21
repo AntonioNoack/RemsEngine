@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
-import me.anno.fonts.mesh.Triangulation
+import me.anno.mesh.Triangulation
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d

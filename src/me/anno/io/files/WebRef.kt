@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.utils.structures.Callback
 import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
@@ -222,7 +223,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             if (input == null || input.all { allowedChars.get(it.code) })
                 return input
             val res = StringBuilder(input.length * 2)
-            for (cp in input.codePoints()) {
+            for (cp in input.codepoints()) {
                 if (allowedChars.get(cp)) {
                     res.append(cp.toChar())
                 } else {

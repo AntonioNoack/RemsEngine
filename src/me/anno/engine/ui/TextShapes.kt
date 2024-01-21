@@ -23,8 +23,7 @@ object TextShapes {
         transform: Matrix4x3d?
     ) {
         val mesh = textCache.getEntry(text, 10000, false) {
-            val font = FontManager.getFont(DefaultConfig.defaultFont)
-            TextMeshGroup(font, text, 0f, false, debugPieces = false)
+            TextMeshGroup(DefaultConfig.defaultFont, text, 0f, false)
                 .getOrCreateMesh()
         } as Mesh
         val matrix = MovingGrid.init()

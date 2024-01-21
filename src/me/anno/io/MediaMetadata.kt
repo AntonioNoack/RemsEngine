@@ -13,9 +13,7 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.formatTime
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 import java.io.InputStream
-import javax.imageio.ImageIO
 
 /**
  * Metadata for audio/video/images.
@@ -193,27 +191,6 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
                     dst.setImage(file.readSize())
                     true
                 } else false
-            }
-            registerSignatureHandler(100, "ImageIO") { file, signature, dst ->
-                when (signature) {
-                    "png", "jpg", "psd", "exr", "webp" -> {
-                        // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
-                        for (reader in ImageIO.getImageReadersBySuffix(signature)) {
-                            try {
-                                file.inputStreamSync().use { input: InputStream ->
-                                    reader.input = ImageIO.createImageInputStream(input)
-                                    dst.setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
-                                }
-                                break
-                            } catch (_: IOException) {
-                            } finally {
-                                reader.dispose()
-                            }
-                        }
-                        true
-                    }
-                    else -> false
-                }
             }
         }
     }

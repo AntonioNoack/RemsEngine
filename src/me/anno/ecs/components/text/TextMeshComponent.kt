@@ -1,7 +1,6 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.ui.base.Font
@@ -11,14 +10,14 @@ import me.anno.ui.base.components.AxisAlignment
 class TextMeshComponent : TextComponent {
 
     constructor() : super()
+
     @Suppress("unused")
     constructor(text: String, font: Font, alignment: AxisAlignment) : super(text, font, alignment)
     constructor(text: String, font: Font, alignment: AxisAlignment, widthLimit: Int) :
             super(text, font, alignment, widthLimit)
 
     override fun generateMesh(mesh: Mesh) {
-        val font = FontManager.getFont(this.font)
-        val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
+        val meshGroup = TextMeshGroup(font, text, 0f, false)
         meshGroup.createJoinedMesh(mesh)
         val bounds = mesh.getBounds()
         val scale = 2f / TextMesh.DEFAULT_LINE_HEIGHT

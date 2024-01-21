@@ -1,7 +1,6 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
-import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingColors
@@ -16,11 +15,8 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import org.apache.commons.imaging.Imaging
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
-import java.io.ByteArrayInputStream
-import java.io.IOException
-import javax.imageio.ImageIO
 
 /**
  * an easy interface to read any image as rgba and individual channels
@@ -162,7 +158,11 @@ object ImageReader {
         }
     }
 
-    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, forGPU: Boolean) {
+    fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {
+        return readImage(file, AsyncCacheData(), forGPU)
+    }
+
+    fun readImage(file: FileReference, data: AsyncCacheData<Image>, forGPU: Boolean): AsyncCacheData<Image> {
         if (file is ImageReadable) {
             data.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
         } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly
@@ -178,9 +178,10 @@ object ImageReader {
         } else Signature.findName(file) { signature ->
             readImage(file, data, signature, forGPU)
         }
+        return data
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray, forGPU: Boolean) {
+    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
@@ -192,11 +193,14 @@ object ImageReader {
             }
         } else {
             val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
-            data.value = if (reader != null) reader(bytes) else tryGeneric(file, bytes)
+            if (reader != null) reader(bytes) { it, e ->
+                data.value = it
+                e?.printStackTrace()
+            }
         }
     }
 
-    private fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?, forGPU: Boolean) {
+    private fun readImage(file: FileReference, data: AsyncCacheData<Image>, signature: String?, forGPU: Boolean) {
         val tryFFMPEG = tryFFMPEG
         if (shouldIgnore(signature)) {
             data.value = null
@@ -208,62 +212,13 @@ object ImageReader {
         } else {
             val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
             if (reader != null) reader(file) { it, e ->
-                e?.printStackTrace()
                 data.value = it
-            } else tryGeneric(file) { it, e ->
                 e?.printStackTrace()
-                data.value = it
             }
         }
     }
 
     fun frameIndex(meta: MediaMetadata): Int {
         return Maths.min(20, (meta.videoFrameCount - 1) / 3)
-    }
-
-    private fun tryGeneric(file: FileReference, callback: Callback<Image>) {
-        file.inputStream { it, exc ->
-            if (it != null) {
-                try {
-                    val img = ImageIO.read(it) ?: throw IOException(file.toString())
-                    it.close()
-                    callback.ok(img.toImage())
-                } catch (e: Exception) {
-                    it.close()
-                    file.inputStream { it2, exc2 ->
-                        if (it2 != null) {
-                            try {
-                                callback.call(Imaging.getBufferedImage(it2).toImage(), null)
-                            } catch (e: Exception) {
-                                callback.call(null, e)
-                            } finally {
-                                it2.close()
-                            }
-                        } else callback.err(exc2)
-                    }
-                }
-            } else callback.err(exc)
-        }
-    }
-
-    private fun tryGeneric(file: FileReference, bytes: ByteArray): Image? {
-        var image = try {
-            ImageIO.read(ByteArrayInputStream(bytes))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-        if (image == null) {
-            LOGGER.debug("ImageIO failed for {}", file)
-            try {
-                image = Imaging.getBufferedImage(bytes)
-            } catch (e: Exception) {
-                // e.printStackTrace()
-            }
-        }
-        if (image == null) {
-            LOGGER.debug("Imaging failed for {}", file)
-        }
-        return image?.toImage()
     }
 }

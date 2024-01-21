@@ -119,8 +119,6 @@ abstract class EngineBase(
             tick("Audio manager")
         }
 
-        ExtensionLoader.load()
-
         createUI()
     }
 
@@ -151,6 +149,11 @@ abstract class EngineBase(
         loadConfig()
 
         tick("config")
+
+        OfficialExtensions.register()
+        ExtensionLoader.load()
+
+        tick("extensions")
 
         if (runGraphics) {
             GFXBase.run(title)

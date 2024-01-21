@@ -31,7 +31,6 @@ import kotlin.streams.toList
 @Docs("Text panel with char-wise animation")
 open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
-
     @Docs("AnimTextPanel, which can be created with a lambda")
     class SimpleAnimTextPanel(
         text: String, style: Style,
@@ -90,11 +89,10 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
     var textGroup: TextGroup? = null
     fun getTextGroup(text: String): TextGroup {
-        val font2 = FontManager.getFont(font)
         val group1 = textGroup
-        if (group1 != null && group1.text == text && group1.font == font2)
+        if (group1 != null && group1.text == text && group1.font == font)
             return group1
-        val group2 = TextGroup(font2, text, 0.0)
+        val group2 = TextGroup(font, text, 0.0)
         textGroup = group2
         return group2
     }
@@ -339,7 +337,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             transform.scale(1f, 1f / a, 1f)
             transform.translate(-px, -py, 0f)
         }
-
     }
 
 }

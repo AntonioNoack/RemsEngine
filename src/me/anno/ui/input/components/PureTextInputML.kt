@@ -2,6 +2,9 @@ package me.anno.ui.input.components
 
 import me.anno.Time
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.dragged
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -10,9 +13,7 @@ import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
-import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -29,7 +30,6 @@ import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
-import kotlin.streams.toList
 
 // todo hovering over spell correction can reset the cursor (WTF), fix that
 open class PureTextInputML(style: Style) :
@@ -211,7 +211,7 @@ open class PureTextInputML(style: Style) :
                 override fun updateChars(notify: Boolean) {
                     // replace chars in main string...
                     // convert text back to lines
-                    lines[indexInParent] = text.codePoints().toList().toMutableList()
+                    lines[indexInParent] = text.codepoints().toMutableList()
                     this@PureTextInputML.update(true)
                 }
 
@@ -362,11 +362,12 @@ open class PureTextInputML(style: Style) :
         }
         for (lineIndex in textLines.indices) {
             val line = textLines[lineIndex]
-            if (lines.size <= lineIndex) lines += line.codePoints().toList().toMutableList()
-            else {
+            if (lines.size <= lineIndex) {
+                lines += line.codepoints().toMutableList()
+            } else {
                 val lineList = lines[lineIndex]
                 lineList.clear()
-                lineList.addAll(line.codePoints().toList())
+                lineList.addAll(line.codepoints().toList())
             }
         }
         update(notify)
@@ -417,7 +418,7 @@ open class PureTextInputML(style: Style) :
     fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
             lastChangeTime = Time.nanoTime
-            for (cp in insertion.codePoints()) {
+            for (cp in insertion.codepoints()) {
                 insert(cp, false)
             }
             update(true)

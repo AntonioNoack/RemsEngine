@@ -1,6 +1,5 @@
-package me.anno.fonts.mesh
+package me.anno.mesh
 
-import me.anno.mesh.Point
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2d
 import org.joml.Vector2f

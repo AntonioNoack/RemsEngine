@@ -1,40 +1,27 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.AWTFont
+import me.anno.fonts.FontManager
+import me.anno.fonts.TextDrawable
 import me.anno.gpu.buffer.Attribute
 import me.anno.maths.Maths.distance
-import me.anno.fonts.DefaultRenderingHints
-import me.anno.utils.OS
+import me.anno.mesh.Triangulation
+import me.anno.ui.base.Font
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
 import org.joml.AABBf
 import org.joml.Vector2f
-import java.awt.Color
-import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class TextMesh(
-    val font: AWTFont,
-    val text: String,
-    debugPieces: Boolean = false
-) : TextRepBase() {
+class TextMesh(val font: Font, val text: String) : TextDrawable() {
 
-    val name get() = "${font.name},${font.style}-$text"
-
-    private val debugImageSize = 1000
-    private fun ix(v: Vector2f) = (debugImageSize / 2 + (v.x - 4.8) * 80).toInt()
-    private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
-
-    val buffer = Mesh()
+    val mesh = Mesh()
 
     init {
 
@@ -47,7 +34,7 @@ class TextMesh(
         val ctx = FontRenderContext(null, true, true)
 
         val shape = GeneralPath()
-        val layout = TextLayout(text, font.font, ctx)
+        val layout = TextLayout(text, FontManager.getFont(font).awtFont, ctx)
 
         val outline = layout.getOutline(null)
         shape.append(outline, true)
@@ -167,19 +154,7 @@ class TextMesh(
         //  - large areas are outside
         //  - if there is overlap, the smaller one is inside, the larger outside
 
-        val img = if (debugPieces) BufferedImage(debugImageSize, debugImageSize, 1) else null
-        val gfx = img?.graphics as? Graphics2D
-        gfx?.setRenderingHints(DefaultRenderingHints.hints)
-
         fragments.sortByDescending { it.size }
-        gfx?.apply {
-            for (fragment in fragments) {
-                color = Color.RED
-                drawTriangles(gfx, 0, fragment.triangles)
-                color = Color.WHITE
-                drawOutline(gfx, fragment.ring)
-            }
-        }
 
         for (index1 in fragments.indices) {
             val fragment = fragments[index1]
@@ -213,13 +188,6 @@ class TextMesh(
         val outerFragments = fragments.filter { !it.isInside }
         // "found ${outerFragments.size} outer rings"
 
-        if (img != null) {
-            OS.desktop.getChild("text1.png").outputStream().use {
-                ImageIO.write(img, "png", it)
-            }
-        }
-
-        var wasChanged = false
         for (outer in outerFragments) {
             outer.apply {
                 if (needingRemoval.isNotEmpty()) {
@@ -229,22 +197,6 @@ class TextMesh(
                     }*/
                     needingRemoval.clear()
                     triangles = Triangulation.ringToTrianglesVec2f(ring)
-                    gfx?.apply {
-                        gfx.color = Color.GRAY
-                        drawTriangles(gfx, 0, triangles)
-                        gfx.color = Color.YELLOW
-                        drawOutline(gfx, ring)
-                    }
-                    wasChanged = true
-                }
-            }
-        }
-
-        if (wasChanged) {
-            gfx?.apply {
-                gfx.dispose()
-                OS.desktop.getChild("text2.png").outputStream().use {
-                    ImageIO.write(img, "png", it)
                 }
             }
         }
@@ -256,7 +208,7 @@ class TextMesh(
 
         val numVertices = triangles.size
         val positions = FloatArray(numVertices * 3)
-        buffer.positions = positions
+        mesh.positions = positions
 
         for (it in outerFragments) {
             bounds.union(it.bounds)
@@ -277,34 +229,6 @@ class TextMesh(
 
         bounds.minX += 0.5f
         bounds.maxX += 0.5f
-    }
-
-    private fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
-        for (i in pts.indices) {
-            val a = pts[i]
-            val b = if (i == 0) pts.last() else pts[i - 1]
-            gfx.drawLine(ix(a), iy(a), ix(b), iy(b))
-        }
-        gfx.color = Color.GRAY
-        for (i in pts.indices) {
-            val a = pts[i]
-            gfx.drawRect(ix(a), iy(a), 1, 1)
-            gfx.drawString("$i", ix(a), iy(a))
-        }
-    }
-
-    fun drawTriangles(gfx: Graphics2D, d: Int, triangles: List<Vector2f>) {
-        for (i in triangles.indices step 3) {
-            val a = triangles[i]
-            val b = triangles[i + 1]
-            val c = triangles[i + 2]
-            gfx.drawLine(ix(a) + d, iy(a) + d, ix(b) + d, iy(b) + d)
-            gfx.drawLine(ix(c) + d, iy(c) + d, ix(b) + d, iy(b) + d)
-            gfx.drawLine(ix(a) + d, iy(a) + d, ix(c) + d, iy(c) + d)
-            val center = avg(a, b, c)
-            gfx.drawRect(ix(center) + d, iy(center) + d, 1, 1)
-            gfx.drawString("${i / 3}", ix(center), iy(center))
-        }
     }
 
     class Fragment(val ring: MutableList<Vector2f>) {
@@ -329,14 +253,11 @@ class TextMesh(
 
     companion object {
 
-        // private val LOGGER = LogManager.getLogger(TextMesh::class)
-
         val attributes = listOf(
             Attribute("coords", 2)
         )
 
         const val DEFAULT_LINE_HEIGHT = 0.2f
-        // const val DEFAULT_FONT_HEIGHT = 100f
 
         private fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             for (inner in innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }) {
@@ -393,10 +314,10 @@ class TextMesh(
      * as this class is only used for generating the meshes
      * */
     override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
-        drawBuffer.draw(buffer, null, 0f)
+        drawBuffer.draw(mesh, null, 0f)
     }
 
     override fun destroy() {
-        buffer.destroy()
+        mesh.destroy()
     }
 }

@@ -11,6 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonReader
 import me.anno.language.Language
 import me.anno.engine.EngineBase
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.Sleep.sleepABit10
@@ -231,8 +232,7 @@ object Spellchecking : CacheSection("Spellchecking") {
             .replace("\n", "\\n")
         val limitChar = 127.toChar()
         if (lines.any { it > limitChar }) {
-            lines = lines.codePoints()
-                .toList().joinToString("") { escapeCodepoint(it) }
+            lines = lines.codepoints().joinToString("") { escapeCodepoint(it) }
         }
         return lines
     }

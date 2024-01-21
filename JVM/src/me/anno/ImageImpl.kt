@@ -1,8 +1,14 @@
 package me.anno
 
 import me.anno.image.Image
+import me.anno.image.ImageCache
 import me.anno.image.raw.createBufferedImage
+import me.anno.image.raw.toImage
+import me.anno.utils.structures.Callback
+import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.io.OutputStream
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
@@ -10,6 +16,16 @@ import javax.imageio.ImageWriteParam
 import javax.imageio.stream.MemoryCacheImageOutputStream
 
 object ImageImpl {
+
+    fun register() {
+        Image.writeImageImpl = ImageImpl::writeImage
+        for (signature in listOf("png", "jpg", "gif", "bmp", "webp")) { // todo is there more supported signatures?
+            ImageCache.registerStreamReader(signature) { it, callback ->
+                tryImageIO(it, callback)
+            }
+        }
+    }
+
     private val LOGGER = LogManager.getLogger(ImageImpl::class)
     fun writeImage(self: Image, dst: OutputStream, format: String, quality: Float) {
         val image = self.createBufferedImage()
@@ -30,6 +46,34 @@ object ImageImpl {
 
         if (!ImageIO.write(image, format, dst)) {
             LOGGER.warn("Couldn't find writer for $format")
+        }
+    }
+
+    private fun tryImageIO(it: InputStream, callback: Callback<Image>) {
+        val bytes = it.use { it.readBytes() }
+        tryImageIO(bytes) { img, _ ->
+            if (img != null) callback.ok(img)
+            else tryImaging(bytes, callback)
+        }
+    }
+
+    private fun tryImageIO(bytes: ByteArray, callback: Callback<Image>) {
+        try {
+            val img = ImageIO.read(ByteArrayInputStream(bytes))
+            if (img != null) {
+                callback.ok(img.toImage())
+            } else callback.err(null)
+        } catch (e: Exception) {
+            callback.err(e)
+        }
+    }
+
+    private fun tryImaging(bytes: ByteArray, callback: Callback<Image>) {
+        try {
+            val img = Imaging.getBufferedImage(ByteArrayInputStream(bytes))
+            callback.call(img.toImage(), null)
+        } catch (e: Exception) {
+            callback.err(e)
         }
     }
 }
