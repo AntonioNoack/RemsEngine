@@ -5,7 +5,12 @@ import me.anno.maths.Maths.mix
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 object Splines {
 
@@ -67,14 +72,12 @@ object Splines {
             n0a = n4a
             p0b = p4b
             n0b = n4b
-
         }
 
         result.add(pns[pns.size - 4])
         result.add(pns[pns.size - 2])
 
         return result
-
     }
 
     fun angle(p0: Vector3d, p1: Vector3d, p2: Vector3d): Double {
@@ -185,5 +188,4 @@ object Splines {
             }
         }
     }
-
 }

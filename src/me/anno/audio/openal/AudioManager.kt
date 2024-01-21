@@ -7,7 +7,12 @@ import me.anno.utils.Sleep.sleepABit
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
-import org.lwjgl.openal.ALC10.*
+import org.lwjgl.openal.ALC10.alcCloseDevice
+import org.lwjgl.openal.ALC10.alcCreateContext
+import org.lwjgl.openal.ALC10.alcDestroyContext
+import org.lwjgl.openal.ALC10.alcGetIntegerv
+import org.lwjgl.openal.ALC10.alcMakeContextCurrent
+import org.lwjgl.openal.ALC10.alcOpenDevice
 import org.lwjgl.openal.ALCCapabilities
 import org.lwjgl.openal.EXTDisconnect.ALC_CONNECTED
 import java.nio.ByteBuffer
@@ -150,7 +155,6 @@ object AudioManager {
         if (hasWarned) {
             LOGGER.info("Succeeded creating audio context")
         }
-
     }
 
     fun destroy() {
@@ -162,5 +166,4 @@ object AudioManager {
     }
 
     private val LOGGER = LogManager.getLogger(AudioManager::class)
-
 }

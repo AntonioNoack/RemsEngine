@@ -19,7 +19,6 @@ import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -28,9 +27,14 @@ import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture
-import me.anno.graph.render.effects.*
+import me.anno.graph.render.effects.BloomNode
+import me.anno.graph.render.effects.FXAANode
+import me.anno.graph.render.effects.GizmoNode
+import me.anno.graph.render.effects.SSAONode
+import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneNode

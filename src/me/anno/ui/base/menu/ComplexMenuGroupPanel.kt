@@ -4,7 +4,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
-import java.util.*
+import java.util.WeakHashMap
 
 /**
  * Panel for ComplexMenuGroup;

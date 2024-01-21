@@ -9,7 +9,11 @@ import me.anno.utils.search.BinarySearch.binarySearch
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.lwjgl.assimp.*
+import org.lwjgl.assimp.AINode
+import org.lwjgl.assimp.AINodeAnim
+import org.lwjgl.assimp.AIQuaternion
+import org.lwjgl.assimp.AIScene
+import org.lwjgl.assimp.AIVector3D
 import kotlin.math.max
 
 object AnimationLoader {

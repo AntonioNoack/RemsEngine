@@ -8,7 +8,10 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.utils.Color.white4
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame

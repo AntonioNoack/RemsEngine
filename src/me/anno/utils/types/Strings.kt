@@ -1,19 +1,19 @@
 package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.Font
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
 import me.anno.maths.Maths.fract
-import me.anno.fonts.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Ints.toIntOrDefault
-import java.util.*
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min

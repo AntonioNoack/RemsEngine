@@ -2,7 +2,11 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.EnvironmentMap
+import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.LightType
+import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState

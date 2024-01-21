@@ -8,22 +8,25 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.sdf.SDFCombiningFunctions.sdMax
 import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
-import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.UIColors.fireBrick
+import me.anno.ui.UIColors.mediumAquamarine
 import org.joml.AABBf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -205,10 +208,8 @@ class SDFHeightMap : SDFShape() {
             next(pos, if (hi > 0f) -1 else fireBrick)
             h0 = hi
         }
-
     }
 
     override val className: String
         get() = "SDFHeightMap"
-
 }

@@ -5,13 +5,17 @@ import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
 import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.engine.serialization.SerializedProperty
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector3d
 import kotlin.math.atan
 
 class SpotLight() : LightComponent(LightType.SPOT) {

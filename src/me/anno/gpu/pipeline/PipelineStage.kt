@@ -43,8 +43,14 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL46C.*
-import java.util.*
+import org.lwjgl.opengl.GL46C.GL_BYTE
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_INT
+import org.lwjgl.opengl.GL46C.GL_SHORT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
+import java.util.Arrays
 import kotlin.math.max
 import kotlin.math.min
 

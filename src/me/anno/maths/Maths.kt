@@ -4,7 +4,17 @@ import me.anno.Time
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.hypot
+import kotlin.math.ln
+import kotlin.math.pow
+import kotlin.math.round
+import kotlin.math.roundToInt
+import kotlin.math.sign
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 @Suppress("unused")

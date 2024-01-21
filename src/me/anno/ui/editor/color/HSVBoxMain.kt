@@ -7,7 +7,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
-import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.length
@@ -19,7 +18,15 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f, style: Style) :
     HSVBox(chooser, v0, du, dv, 1f, style, 5f, { x, y ->

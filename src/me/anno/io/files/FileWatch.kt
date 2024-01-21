@@ -8,7 +8,10 @@ import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardWatchEventKinds.*
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.StandardWatchEventKinds.OVERFLOW
 import java.nio.file.WatchKey
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -121,5 +124,4 @@ object FileWatch {
             }
         }
     }
-
 }

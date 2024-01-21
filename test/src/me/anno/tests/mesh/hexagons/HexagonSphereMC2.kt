@@ -6,6 +6,7 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
+import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
@@ -13,14 +14,13 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.engine.Events.addEvent
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.AABBd
 import org.joml.Vector3d
 import org.joml.Vector3f
-import java.util.*
+import java.util.Random
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -81,7 +81,6 @@ fun testFindingChunks(sphere: HexagonSphere) {
 
     val total = sphere.total.toFloat()
     println("${ok / total}/${w1 / total}/${w2 / total} ok/wrong-tri/wrong-chunk")
-
 }
 
 @Suppress("unused")
@@ -133,7 +132,6 @@ fun testFindingChunks2(sphere: HexagonSphere) {
     }
 
     image.write(desktop.getChild("chunk2.png"))
-
 }
 
 fun main() {
@@ -156,7 +154,6 @@ fun main() {
         it.renderer.far = it.renderer.radius * 1e5
         it.renderer.updateEditorCameraTransform()
     }
-
 }
 
 val worker = ProcessingGroup("worldGen", 4)

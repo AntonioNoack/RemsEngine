@@ -19,7 +19,10 @@ import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.structures.Callback
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.io.*
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.ByteBuffer
 
@@ -119,7 +122,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun readText(callback: Callback<String>) {
         readBytes { it, exc ->
-            callback.call(if (it != null) String(it) else null, exc)
+            callback.call(it?.decodeToString(), exc)
         }
     }
 
@@ -276,8 +279,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     @Throws(IOException::class)
     abstract fun length(): Long
-
-    fun toFile() = File(absolutePath.replace("!!", "/"))
 
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
         if (maxNumBackPaths < 1 && !absolutePath.startsWith(basePath.absolutePath)) return null

@@ -1,12 +1,18 @@
 package me.anno.io.files
 
 import me.anno.Build
-import me.anno.utils.structures.Callback
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.URI
 
 // internally in the JAR
@@ -19,7 +25,7 @@ class BundledRef(
 
     override fun getChild(name: String): FileReference {
         val zfd = zipFileForDirectory
-        return zfd?.getChild(name) ?: parse(appendPath(absolutePath,name))
+        return zfd?.getChild(name) ?: parse(appendPath(absolutePath, name))
     }
 
     override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {

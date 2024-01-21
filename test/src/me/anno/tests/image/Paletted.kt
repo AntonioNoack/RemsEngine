@@ -16,7 +16,7 @@ import me.anno.utils.OS.desktop
 import me.anno.video.formats.cpu.YUVFrames
 import org.joml.AABBf
 import org.joml.Vector3f
-import java.util.*
+import kotlin.random.Random
 
 /**
  * CCTweaked is a Minecraft mod like ComputerCraft.
@@ -156,7 +156,7 @@ fun main() {
 }
 
 fun testYUV2RGB() {
-    val rnd = Random()
+    val rnd = Random(System.nanoTime())
     var maxDist = 0f
     val bdx = AABBf()
     for (i in 0 until 1_000_000) {

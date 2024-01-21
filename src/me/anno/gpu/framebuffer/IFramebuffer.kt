@@ -2,8 +2,8 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -14,7 +14,15 @@ import me.anno.utils.Color.r01
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COLOR
+import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL46C.GL_STENCIL_BUFFER_BIT
+import org.lwjgl.opengl.GL46C.glClear
+import org.lwjgl.opengl.GL46C.glClearBufferfv
+import org.lwjgl.opengl.GL46C.glClearColor
+import org.lwjgl.opengl.GL46C.glClearDepth
+import org.lwjgl.opengl.GL46C.glClearStencil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -202,5 +210,4 @@ interface IFramebuffer {
             return Array(targetCount) { target }
         }
     }
-
 }

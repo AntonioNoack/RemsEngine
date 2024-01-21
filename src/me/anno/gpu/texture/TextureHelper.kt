@@ -7,7 +7,19 @@ import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_BORDER
+import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_EDGE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_ARRAY
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_3D
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_BORDER_COLOR
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_SWIZZLE_RGBA
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_R
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_S
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_T
+import org.lwjgl.opengl.GL46C.glTexParameterfv
+import org.lwjgl.opengl.GL46C.glTexParameteri
+import org.lwjgl.opengl.GL46C.glTexParameteriv
 
 object TextureHelper {
 

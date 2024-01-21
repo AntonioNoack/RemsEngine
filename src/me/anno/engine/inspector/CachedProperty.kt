@@ -1,6 +1,10 @@
 package me.anno.engine.inspector
 
-import me.anno.ecs.annotations.*
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Group
+import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.Order
+import me.anno.ecs.annotations.Range
 import me.anno.ui.input.EnumInput
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2

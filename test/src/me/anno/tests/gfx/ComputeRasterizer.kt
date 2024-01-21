@@ -2,8 +2,14 @@ package me.anno.tests.gfx
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -11,13 +17,21 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.buffer.*
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.DrawMode
+import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
@@ -37,7 +51,6 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes.flatCube
-import me.anno.engine.EngineBase
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
@@ -45,7 +58,12 @@ import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Vector2i
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector3i
 import kotlin.math.max
 import kotlin.math.min
 

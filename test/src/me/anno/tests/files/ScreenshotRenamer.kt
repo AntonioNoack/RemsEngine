@@ -3,7 +3,7 @@ package me.anno.tests.files
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.pictures
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 // Windows just names screenshots "Screenshot (<number>)" instead of something like the date
 // this is stupid, so let's correct it (until it's too late, and I lose their metadata

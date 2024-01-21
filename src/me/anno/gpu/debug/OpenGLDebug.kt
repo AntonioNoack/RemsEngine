@@ -1,6 +1,24 @@
 package me.anno.gpu.debug
 
-import org.lwjgl.opengl.KHRDebug.*
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SEVERITY_HIGH
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SEVERITY_LOW
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SEVERITY_MEDIUM
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SEVERITY_NOTIFICATION
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_API
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_APPLICATION
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_OTHER
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_SHADER_COMPILER
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_THIRD_PARTY
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_WINDOW_SYSTEM
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_ERROR
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_MARKER
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_OTHER
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_PERFORMANCE
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_POP_GROUP
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_PORTABILITY
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_PUSH_GROUP
+import org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR
 
 object OpenGLDebug {
 

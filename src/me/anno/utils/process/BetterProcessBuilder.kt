@@ -2,6 +2,7 @@ package me.anno.utils.process
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.OS
@@ -98,7 +99,7 @@ class BetterProcessBuilder(
             else it
         })
         val builder = ProcessBuilder(args)
-        builder.directory(OS.home.toFile())
+        builder.directory((OS.home as FileFileRef).file)
         return builder.start()
     }
 

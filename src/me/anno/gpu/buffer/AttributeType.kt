@@ -1,6 +1,14 @@
 package me.anno.gpu.buffer
 
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_BYTE
+import org.lwjgl.opengl.GL46C.GL_DOUBLE
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_INT
+import org.lwjgl.opengl.GL46C.GL_SHORT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 
 @Suppress("unused")
 enum class AttributeType(val byteSize: Int, val normalized: Boolean, val id: Int) {
@@ -22,5 +30,4 @@ enum class AttributeType(val byteSize: Int, val normalized: Boolean, val id: Int
     SINT8_NORM(1, true, GL_BYTE),
     SINT16_NORM(2, true, GL_SHORT),
     SINT32_NORM(4, true, GL_INT),
-
 }

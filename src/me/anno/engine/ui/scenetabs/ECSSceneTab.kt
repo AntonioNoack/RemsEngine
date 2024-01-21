@@ -2,7 +2,11 @@ package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.*
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.BoneData
+import me.anno.ecs.components.anim.Retargeting
+import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.IMesh
@@ -11,19 +15,18 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
-import me.anno.input.Input
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.engine.EngineBase
-import me.anno.input.Clipboard.setClipboardContent
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu

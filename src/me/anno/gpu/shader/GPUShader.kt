@@ -11,9 +11,53 @@ import me.anno.utils.OS
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix2f
+import org.joml.Matrix3f
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Planed
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4d
+import org.joml.Vector4f
+import org.joml.Vector4i
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_LINK_STATUS
+import org.lwjgl.opengl.GL46C.GL_PROGRAM
+import org.lwjgl.opengl.GL46C.GL_SHADER
+import org.lwjgl.opengl.GL46C.glAttachShader
+import org.lwjgl.opengl.GL46C.glCompileShader
+import org.lwjgl.opengl.GL46C.glCreateShader
+import org.lwjgl.opengl.GL46C.glDeleteProgram
+import org.lwjgl.opengl.GL46C.glGetProgramInfoLog
+import org.lwjgl.opengl.GL46C.glGetProgrami
+import org.lwjgl.opengl.GL46C.glGetShaderInfoLog
+import org.lwjgl.opengl.GL46C.glGetUniformLocation
+import org.lwjgl.opengl.GL46C.glObjectLabel
+import org.lwjgl.opengl.GL46C.glShaderSource
+import org.lwjgl.opengl.GL46C.glUniform1f
+import org.lwjgl.opengl.GL46C.glUniform1fv
+import org.lwjgl.opengl.GL46C.glUniform1i
+import org.lwjgl.opengl.GL46C.glUniform1iv
+import org.lwjgl.opengl.GL46C.glUniform2f
+import org.lwjgl.opengl.GL46C.glUniform2fv
+import org.lwjgl.opengl.GL46C.glUniform2i
+import org.lwjgl.opengl.GL46C.glUniform3f
+import org.lwjgl.opengl.GL46C.glUniform3fv
+import org.lwjgl.opengl.GL46C.glUniform3i
+import org.lwjgl.opengl.GL46C.glUniform4f
+import org.lwjgl.opengl.GL46C.glUniform4fv
+import org.lwjgl.opengl.GL46C.glUniform4i
+import org.lwjgl.opengl.GL46C.glUniformMatrix2fv
+import org.lwjgl.opengl.GL46C.glUniformMatrix3fv
+import org.lwjgl.opengl.GL46C.glUniformMatrix4fv
+import org.lwjgl.opengl.GL46C.glUniformMatrix4x3fv
+import org.lwjgl.opengl.GL46C.glUseProgram
 import java.nio.FloatBuffer
 
 /**
@@ -697,7 +741,9 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3f(name: String, v: Vector3f) = v3f(name, v.x, v.y, v.z)
     fun v3f(name: String, v: Vector3d) = v3f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     fun v4f(name: String, v: Vector4f) = v4f(name, v.x, v.y, v.z, v.w)
-    fun v4f(name: String, v: Planed) = v4f(name, v.dirX.toFloat(), v.dirY.toFloat(), v.dirZ.toFloat(), v.distance.toFloat())
+    fun v4f(name: String, v: Planed) =
+        v4f(name, v.dirX.toFloat(), v.dirY.toFloat(), v.dirZ.toFloat(), v.distance.toFloat())
+
     fun v4f(name: String, v: Quaternionf) = v4f(name, v.x, v.y, v.z, v.w)
     fun v4f(name: String, v: Quaterniond) = v4f(name, v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun v4f(name: String, v: Vector4d) =

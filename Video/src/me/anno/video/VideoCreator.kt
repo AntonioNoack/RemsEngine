@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.Engine
 import me.anno.Time
-import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -22,6 +21,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.structures.Callback
 import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
@@ -29,7 +29,7 @@ import me.anno.video.ffmpeg.FFMPEGEncodingType
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL11C
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -174,10 +174,10 @@ open class VideoCreator(
 
         buffer.position(0)
         setReadAlignment(width * 3)
-        glReadPixels(
+        GL11C.glReadPixels(
             0, 0, width, height,
-            if (withAlpha) GL_RGBA else GL_RGB,
-            GL_UNSIGNED_BYTE, buffer
+            if (withAlpha) GL11C.GL_RGBA else GL11C.GL_RGB,
+            GL11C.GL_UNSIGNED_BYTE, buffer
         )
         buffer.position(0)
 

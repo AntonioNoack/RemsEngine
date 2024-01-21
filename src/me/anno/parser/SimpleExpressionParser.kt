@@ -16,7 +16,6 @@ import me.anno.parser.Functions.functions5
 import me.anno.utils.structures.lists.CountingList
 import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import org.apache.logging.log4j.LogManager
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
@@ -224,7 +223,7 @@ object SimpleExpressionParser {
     }
 
     private fun MutableList<Any>.applyShortMultiplies(): Boolean {
-       for (i in 1 until size) {
+        for (i in 1 until size) {
             val a = this[i - 1] as? Double ?: continue
             val b = this[i] as? Double ?: continue
             this[i - 1] = a * b

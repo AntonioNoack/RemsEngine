@@ -12,7 +12,7 @@ import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
@@ -65,9 +65,9 @@ class ComputeShader(
         if (useShaderFileCache) {
             this.program = ShaderCache.createShader(source, null)
         } else {
-            val program = glCreateProgram()
-            /*val shader = */compile(name, program, GL_COMPUTE_SHADER, source)
-            glLinkProgram(program)
+            val program = GL46C.glCreateProgram()
+            /*val shader = */compile(name, program, GL46C.GL_COMPUTE_SHADER, source)
+            GL46C.glLinkProgram(program)
             postPossibleError(name, program, false, source)
             // glDeleteShader(shader)
             logShader(name, source)
@@ -122,13 +122,13 @@ class ComputeShader(
         @JvmStatic
         val stats by lazy {
             val tmp = IntArray(1)
-            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
+            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
             val sx = tmp[0]
-            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, tmp)
+            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, tmp)
             val sy = tmp[0]
-            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, tmp)
+            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, tmp)
             val sz = tmp[0]
-            glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, tmp)
+            GL46C.glGetIntegerv(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, tmp)
             val maxUnitsPerGroup = tmp[0]
             LOGGER.info("Max compute group count: $sx x $sy x $sz") // 65k³
             LOGGER.info("Max units per group: $maxUnitsPerGroup") // 1024
@@ -139,22 +139,22 @@ class ComputeShader(
         // todo can we dynamically create shaders for the cases that we need? probably best :)
         @JvmStatic
         fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
+            GL46C.glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
 
         @JvmStatic
         fun findFormat(format: Int) = when (format) {
-            GL_RGBA32F, GL_RGBA16F, GL_RG32F, GL_RG16F,
-            GL_R11F_G11F_B10F, GL_R32F, GL_R16F,
-            GL_RGBA32UI, GL_RGBA16UI,
-            GL_RGB10_A2UI, GL_RGBA8UI, GL_RG32UI,
-            GL_RG16UI, GL_RG8UI, GL_R32UI, GL_R16UI, GL_R8UI,
-            GL_RGBA32I, GL_RGBA16I, GL_RGBA8I,
-            GL_RG32I, GL_RG16I, GL_RG8I, GL_R32I,
-            GL_R16I, GL_R8I, GL_RGBA16, GL_RGB10_A2, GL_RGBA8,
-            GL_RG16, GL_RG8, GL_R16, GL_R8,
-            GL_RGBA16_SNORM, GL_RGBA8_SNORM, GL_RG16_SNORM, GL_RG8_SNORM,
-            GL_R16_SNORM, GL_R8_SNORM -> format
+            GL46C.GL_RGBA32F, GL46C.GL_RGBA16F, GL46C.GL_RG32F, GL46C.GL_RG16F,
+            GL46C.GL_R11F_G11F_B10F, GL46C.GL_R32F, GL46C.GL_R16F,
+            GL46C.GL_RGBA32UI, GL46C.GL_RGBA16UI,
+            GL46C.GL_RGB10_A2UI, GL46C.GL_RGBA8UI, GL46C.GL_RG32UI,
+            GL46C.GL_RG16UI, GL46C.GL_RG8UI, GL46C.GL_R32UI, GL46C.GL_R16UI, GL46C.GL_R8UI,
+            GL46C.GL_RGBA32I, GL46C.GL_RGBA16I, GL46C.GL_RGBA8I,
+            GL46C.GL_RG32I, GL46C.GL_RG16I, GL46C.GL_RG8I, GL46C.GL_R32I,
+            GL46C.GL_R16I, GL46C.GL_R8I, GL46C.GL_RGBA16, GL46C.GL_RGB10_A2, GL46C.GL_RGBA8,
+            GL46C.GL_RG16, GL46C.GL_RG8, GL46C.GL_R16, GL46C.GL_R8,
+            GL46C.GL_RGBA16_SNORM, GL46C.GL_RGBA8_SNORM, GL46C.GL_RG16_SNORM, GL46C.GL_RG8_SNORM,
+            GL46C.GL_R16_SNORM, GL46C.GL_R8_SNORM -> format
             // depth formats are not supported! bind a color texture instead, and transfer the data from and to it...
             0 -> throw IllegalArgumentException("Texture hasn't been created yet")
             else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
@@ -163,7 +163,7 @@ class ComputeShader(
         @JvmStatic
         fun bindBuffer1(slot: Int, buffer: OpenGLBuffer) {
             buffer.ensureBuffer()
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
+            GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
         }
 
         /**
@@ -171,12 +171,18 @@ class ComputeShader(
          * */
         @JvmStatic
         fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, findFormat(texture.internalFormat))
+            GL46C.glBindImageTexture(
+                slot, texture.pointer, 0, false,
+                layer, mode.code, findFormat(texture.internalFormat)
+            )
         }
 
         @JvmStatic
         fun bindTexture1(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
+            GL46C.glBindImageTexture(
+                slot, texture.pointer, 0, true,
+                0, mode.code, findFormat(texture.internalFormat)
+            )
         }
     }
 
@@ -186,7 +192,7 @@ class ComputeShader(
 
     fun runByGroups(widthGroups: Int, heightGroups: Int = 1, depthGroups: Int = 1) {
         if (lastProgram != program) {
-            glUseProgram(program)
+            GL46C.glUseProgram(program)
             lastProgram = program
         }
         val maxGroupSize = stats
@@ -196,7 +202,7 @@ class ComputeShader(
                         "(${maxGroupSize.joinToString(" x ")})"
             )
         }
-        glDispatchCompute(widthGroups, heightGroups, depthGroups)
+        GL46C.glDispatchCompute(widthGroups, heightGroups, depthGroups)
         // currently true, but that might change, if we just write to data buffers or similar
         Texture2D.wasModifiedInComputePipeline = true
     }

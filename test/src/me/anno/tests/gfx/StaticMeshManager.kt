@@ -5,11 +5,11 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView
 import me.anno.mesh.Shapes
-import me.anno.engine.EngineBase
 import me.anno.utils.Color
-import java.util.*
+import kotlin.random.Random
 
 fun main() {
 

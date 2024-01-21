@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.utils.structures.Callback
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
@@ -22,11 +21,10 @@ import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL13C.glCompressedTexImage2D
-import java.awt.image.BufferedImage
+import org.lwjgl.opengl.GL46C
 import java.io.InputStream
 
 fun main() {
@@ -100,7 +98,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             val tmp = Texture2D.bufferPool[data.size, false, false]
             tmp.put(data).flip()
             GFX.check()
-            glCompressedTexImage2D(texture.target, 0, format, width, height, 0, tmp)
+            GL46C.glCompressedTexImage2D(texture.target, 0, format, width, height, 0, tmp)
             GFX.check()
             Texture2D.bufferPool.returnBuffer(tmp)
             texture.internalFormat = format
@@ -192,8 +190,8 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
     val sx = input.readLE32F()
     val sy = input.readLE32F()
     val sz = input.readLE32F()
-    if (mode != GL_TRIANGLE_STRIP) throw NotImplementedError("mode: $mode, type: $type, wxh: ${texWidth}x${texHeight}, $px,$py,$pz,$sx,$sy,$sz")
-    if (type != GL_UNSIGNED_SHORT) throw NotImplementedError("type: $type")
+    if (mode != GL46C.GL_TRIANGLE_STRIP) throw NotImplementedError("mode: $mode, type: $type, wxh: ${texWidth}x${texHeight}, $px,$py,$pz,$sx,$sy,$sz")
+    if (type != GL46C.GL_UNSIGNED_SHORT) throw NotImplementedError("type: $type")
     val numElements = input.readLE32() / 2
     val elements = ShortArray(numElements) { input.readLE16().toShort() }
     // skip bytes if numElements is odd
@@ -222,9 +220,9 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
                 for (i in rem until 4) input.read()
             }
         }
-        if (components == 4 && dataType == GL_UNSIGNED_BYTE) {
+        if (components == 4 && dataType == GL46C.GL_UNSIGNED_BYTE) {
             comp4(mesh, offset, stride, data)
-        } else if (components == 2 && dataType == GL_UNSIGNED_SHORT) {
+        } else if (components == 2 && dataType == GL46C.GL_UNSIGNED_SHORT) {
             comp2(mesh, offset, stride, data, texWidth, texHeight)
         } else println("Unknown attribute! $index,$components,$dataType,$normalized,$stride,$offset, len: $dataLength")
     }

@@ -1,6 +1,10 @@
 package me.anno.gpu.pipeline
 
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer

@@ -1,6 +1,5 @@
 package me.anno.ui.editor.config
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -11,7 +10,13 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.FontListMenu.createFontInput
-import me.anno.ui.input.*
+import me.anno.ui.input.BooleanInput
+import me.anno.ui.input.ColorInput
+import me.anno.ui.input.FileInput
+import me.anno.ui.input.FloatInput
+import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberType
+import me.anno.ui.input.TextInput
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.rgba

@@ -5,9 +5,9 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import org.joml.Vector2f
 import org.the3deers.util.EarCut
-import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
 fun main() {
 
@@ -32,6 +32,4 @@ fun main() {
 
     val triangles = EarCut.earcut(data, 2)!!
     ImageWriter.writeTriangles(size, "triangulation.png", points.toList(), triangles.toIntArray())
-
-
 }

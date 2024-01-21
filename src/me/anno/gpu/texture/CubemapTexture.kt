@@ -14,7 +14,26 @@ import me.anno.maths.Maths
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
+import org.lwjgl.opengl.GL46C.GL_NONE
+import org.lwjgl.opengl.GL46C.GL_PIXEL_UNPACK_BUFFER
+import org.lwjgl.opengl.GL46C.GL_RGB
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_RGBA8
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_FUNC
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_MODE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_CUBE_MAP
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_CUBE_MAP_SEAMLESS
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_LOD_BIAS
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glGenerateMipmap
+import org.lwjgl.opengl.GL46C.glTexImage2D
+import org.lwjgl.opengl.GL46C.glTexParameterf
+import org.lwjgl.opengl.GL46C.glTexParameteri
 import java.nio.ByteBuffer
 import kotlin.math.PI
 

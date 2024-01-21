@@ -6,7 +6,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import org.apache.logging.log4j.LogManager
-import java.util.*
+import java.util.BitSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

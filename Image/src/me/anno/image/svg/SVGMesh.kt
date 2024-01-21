@@ -30,7 +30,16 @@ import org.joml.Vector2f
 import org.joml.Vector4f
 import org.the3deers.util.EarCut.pointInTriangle
 import java.io.IOException
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.cos
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 // todo create outline from svg? could be really nice to have :)
 

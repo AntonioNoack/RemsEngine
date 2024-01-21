@@ -11,6 +11,7 @@ import me.anno.engine.projects.Projects
 import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
@@ -306,7 +307,7 @@ interface WelcomeUI {
                     state = "error"
                     msg = translate("Root $dirNameEn does not exist!", "ui.project.rootMissing")
                 }
-                file.getParent()?.exists != true -> {
+                !file.getParent().exists -> {
                     state = "warning"
                     msg = translate("Parent $dirNameEn does not exist!", "ui.project.parentMissing")
                 }
@@ -314,12 +315,12 @@ interface WelcomeUI {
                     state = "error"
                     msg = translate("Invalid file name \"$invalidName\"", "ui.project.invalidFileName")
                 }
-                file.exists && file.listChildren()?.isNotEmpty() == true -> {
+                file.exists && file.listChildren().isNotEmpty() -> {
                     state = "warning"
                     msg = translate("Folder is not empty!", "ui.project.folderNotEmpty")
                 }
                 // check for read-write-access
-                file is InnerFile && !(file.toFile().run { canRead() && canWrite() }) -> {
+                file is FileFileRef && !(file.file.run { canRead() && canWrite() }) -> {
                     state = "error"
                     msg = translate("Cannot read/write in folder", "ui.project.readWriteFailed")
                 }

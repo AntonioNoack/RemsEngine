@@ -16,7 +16,9 @@ import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_LINE_SMOOTH
+import org.lwjgl.opengl.GL46C.glDisable
+import org.lwjgl.opengl.GL46C.glEnable
 import java.nio.ByteBuffer
 import kotlin.math.max
 

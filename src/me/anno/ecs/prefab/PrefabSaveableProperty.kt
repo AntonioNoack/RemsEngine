@@ -1,13 +1,18 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.inspector.IProperty
 import me.anno.engine.inspector.CachedProperty
+import me.anno.engine.inspector.IProperty
 import me.anno.maths.Maths.hasFlag
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 
 /**
  * IProperty for PrefabSaveables

@@ -10,7 +10,7 @@ import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdAgent
 import org.recast4j.detour.crowd.CrowdAgentParams
-import java.util.*
+import java.util.Random
 
 open class NavMeshAgent(
     meshData: MeshData,

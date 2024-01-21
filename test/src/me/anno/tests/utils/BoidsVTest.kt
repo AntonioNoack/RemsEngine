@@ -5,16 +5,20 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.engine.EngineBase
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.engine.EngineBase
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Vectors.normalToQuaternionY
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Quaternionf
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.random.Random
 
 // only a little faster,

@@ -16,7 +16,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f2
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL11C
 import kotlin.math.roundToInt
 
 fun main() {
@@ -123,7 +123,7 @@ fun main() {
                         }
                         // synchronize
                         setReadAlignment(4)
-                        glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+                        GL11C.glReadPixels(0, 0, 1, 1, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, pixels)
                         GFX.check()
                         val t1 = Time.nanoTime
                         // the first one may be an outlier

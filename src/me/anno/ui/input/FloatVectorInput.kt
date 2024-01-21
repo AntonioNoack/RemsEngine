@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
@@ -8,7 +9,6 @@ import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.pow
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
@@ -18,7 +18,16 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Planed
+import org.joml.Planef
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 import kotlin.math.max
 
 open class FloatVectorInput(

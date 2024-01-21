@@ -3,8 +3,19 @@ package me.anno.engine.ui.render
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
-import org.joml.*
-import kotlin.math.*
+import org.joml.AABBd
+import org.joml.Matrix3d
+import org.joml.Matrix4x3d
+import org.joml.Planed
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import kotlin.math.atan
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 @Suppress("unused")
 class Frustum {

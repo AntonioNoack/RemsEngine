@@ -28,7 +28,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.utils.Color.black
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.structures.tuples.IntPair
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_ONE
+import org.lwjgl.opengl.GL46C.GL_ONE_MINUS_SRC_ALPHA
+import org.lwjgl.opengl.GL46C.GL_ZERO
 
 /**
  * Weighted Blended Order-Independent Transparency by Morgan McGuire and Louis Bavoil

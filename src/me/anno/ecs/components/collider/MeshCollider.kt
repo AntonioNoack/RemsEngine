@@ -8,10 +8,10 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -19,7 +19,12 @@ import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.sqrt
 
 open class MeshCollider() : Collider() {

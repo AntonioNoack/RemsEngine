@@ -1,6 +1,5 @@
 package me.anno.tests.shader
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -9,6 +8,7 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.extensions.ExtensionLoader
@@ -38,17 +38,19 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.input.Input
 import me.anno.maths.Maths.pow
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberType
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3d
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.GL_POINT_SMOOTH
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.glDisable
+import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glPointSize
 import kotlin.math.max
 
 fun main() {

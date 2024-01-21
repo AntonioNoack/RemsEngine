@@ -1,6 +1,5 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ui.input.NumberType
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -11,9 +10,10 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.debug.TestEngine.Companion.testUI2
 import me.anno.ui.input.IntInput
-import java.util.*
+import me.anno.ui.input.NumberType
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
 fun main() {
 

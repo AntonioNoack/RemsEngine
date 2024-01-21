@@ -14,6 +14,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.raycast.RaycastSkeletal
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.TextShapes.drawTextMesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
@@ -24,11 +26,13 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
-import org.joml.*
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

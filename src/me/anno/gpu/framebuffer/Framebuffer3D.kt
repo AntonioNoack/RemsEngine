@@ -7,7 +7,16 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
+import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_3D
+import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
+import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
+import org.lwjgl.opengl.GL46C.glFramebufferTexture3D
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
 
 class Framebuffer3D(
     override var name: String,
@@ -138,7 +147,6 @@ class Framebuffer3D(
     }
 
     override fun bindDirectly(w: Int, h: Int) {
-
     }
 
     override fun destroy() {
@@ -242,5 +250,4 @@ class Framebuffer3D(
     override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         throw NotImplementedError()
     }
-
 }

@@ -6,7 +6,12 @@ import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
@@ -14,9 +19,26 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
+import org.lwjgl.opengl.GL46C.GL_BACK
+import org.lwjgl.opengl.GL46C.GL_BLEND
+import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.GL46C.GL_CULL_FACE
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRONT
 import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_NEGATIVE_ONE_TO_ONE
+import org.lwjgl.opengl.GL46C.GL_SCISSOR_TEST
+import org.lwjgl.opengl.GL46C.GL_STENCIL_TEST
+import org.lwjgl.opengl.GL46C.GL_ZERO_TO_ONE
+import org.lwjgl.opengl.GL46C.glClipControl
+import org.lwjgl.opengl.GL46C.glCullFace
+import org.lwjgl.opengl.GL46C.glDepthFunc
+import org.lwjgl.opengl.GL46C.glDepthMask
+import org.lwjgl.opengl.GL46C.glDepthRange
+import org.lwjgl.opengl.GL46C.glDisable
+import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import kotlin.test.assertNotEquals
 
 /**

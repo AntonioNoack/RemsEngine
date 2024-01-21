@@ -1,6 +1,10 @@
 package me.anno.bullet
 
-import me.anno.bullet.constraints.*
+import me.anno.bullet.constraints.ConeTwistConstraint
+import me.anno.bullet.constraints.GenericConstraint
+import me.anno.bullet.constraints.HingeConstraint
+import me.anno.bullet.constraints.PointConstraint
+import me.anno.bullet.constraints.SliderConstraint
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 @Suppress("unused")

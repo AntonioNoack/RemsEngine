@@ -19,7 +19,15 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Matrix3d
+import org.joml.Matrix4d
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL46C.glScissor
 import kotlin.math.abs
 

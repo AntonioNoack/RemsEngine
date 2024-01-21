@@ -3,16 +3,33 @@ package me.anno.ecs.components.mesh
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.gpu.texture.TextureCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix2f
+import org.joml.Matrix3f
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Planef
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4f
+import org.joml.Vector4i
 
 open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
 
@@ -169,5 +186,4 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
         if (name == "value" && value != null) this.value = value
         else super.readSomething(name, value)
     }
-
 }

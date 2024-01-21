@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -60,7 +60,7 @@ abstract class OpenGLBuffer(
             createNioBuffer()
         }
 
-        if (pointer == 0) pointer = glGenBuffers()
+        if (pointer == 0) pointer = GL46C.glGenBuffers()
         if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
 
         bindBuffer(type, pointer)
@@ -72,10 +72,10 @@ abstract class OpenGLBuffer(
         nio.limit(elementCount * stride)
         if (allowResize && locallyAllocated > 0 && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))) {
             // just keep the buffer
-            glBufferSubData(type, 0, nio)
+            GL46C.glBufferSubData(type, 0, nio)
         } else {
             locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            glBufferData(type, nio, usage.id)
+            GL46C.glBufferData(type, nio, usage.id)
         }
 
         GFX.check()
@@ -83,7 +83,7 @@ abstract class OpenGLBuffer(
 
         if (Build.isDebug) {
             DebugGPUStorage.buffers.add(this)
-            glObjectLabel(GL_BUFFER, pointer, name)
+            GL46C.glObjectLabel(GL46C.GL_BUFFER, pointer, name)
             GFX.check()
         }
     }
@@ -94,20 +94,20 @@ abstract class OpenGLBuffer(
 
         GFX.check()
 
-        if (pointer == 0) pointer = glGenBuffers()
+        if (pointer == 0) pointer = GL46C.glGenBuffers()
         if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
 
         bindBuffer(type, pointer)
 
         locallyAllocated = allocate(locallyAllocated, newLimit)
-        glBufferData(type, newLimit, usage.id)
+        GL46C.glBufferData(type, newLimit, usage.id)
 
         GFX.check()
         isUpToDate = true
 
         if (Build.isDebug) {
             DebugGPUStorage.buffers.add(this)
-            glObjectLabel(GL_BUFFER, pointer, name)
+            GL46C.glObjectLabel(GL46C.GL_BUFFER, pointer, name)
             GFX.check()
         }
     }
@@ -145,11 +145,11 @@ abstract class OpenGLBuffer(
         }
 
         GFX.check()
-        glBindBuffer(GL_COPY_READ_BUFFER, pointer)
-        glBindBuffer(GL_COPY_WRITE_BUFFER, toBuffer.pointer)
-        glCopyBufferSubData(
-            GL_COPY_READ_BUFFER,
-            GL_COPY_WRITE_BUFFER,
+        GL46C.glBindBuffer(GL46C.GL_COPY_READ_BUFFER, pointer)
+        GL46C.glBindBuffer(GL46C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+        GL46C.glCopyBufferSubData(
+            GL46C.GL_COPY_READ_BUFFER,
+            GL46C.GL_COPY_WRITE_BUFFER,
             from, to, size
         )
         GFX.check()
@@ -285,10 +285,10 @@ abstract class OpenGLBuffer(
         if (buffer > -1) {
             GFX.addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
-                glDeleteBuffers(buffer)
+                GL46C.glDeleteBuffers(buffer)
                 if (vao >= 0) {
                     bindVAO(0)
-                    glDeleteVertexArrays(vao)
+                    GL46C.glDeleteVertexArrays(vao)
                 }
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
@@ -317,7 +317,7 @@ abstract class OpenGLBuffer(
             val vao2 = if (useVAOs) vao else 0
             if (vao2 >= 0 && boundVAO != vao2) {
                 boundVAO = vao2
-                glBindVertexArray(vao2)
+                GL46C.glBindVertexArray(vao2)
             }
         }
 
@@ -325,14 +325,14 @@ abstract class OpenGLBuffer(
         // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
         var boundBuffers = IntArray(1)
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
-            val index = slot - GL_ARRAY_BUFFER
+            val index = slot - GL46C.GL_ARRAY_BUFFER
             if (index !in boundBuffers.indices) {
-                glBindBuffer(slot, buffer)
+                GL46C.glBindBuffer(slot, buffer)
             } else {
                 if (boundBuffers[index] != buffer || force) {
                     if (buffer < 0) throw IllegalArgumentException("Buffer is invalid!")
                     boundBuffers[index] = buffer
-                    glBindBuffer(slot, buffer)
+                    GL46C.glBindBuffer(slot, buffer)
                 }
             }
         }
@@ -345,7 +345,7 @@ abstract class OpenGLBuffer(
         fun onDestroyBuffer(buffer: Int) {
             for (index in boundBuffers.indices) {
                 if (buffer == boundBuffers[index]) {
-                    val slot = index + GL_ARRAY_BUFFER
+                    val slot = index + GL46C.GL_ARRAY_BUFFER
                     bindBuffer(slot, 0)
                 }
             }

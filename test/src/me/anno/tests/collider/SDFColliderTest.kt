@@ -2,15 +2,21 @@ package me.anno.tests.collider
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.collider.*
+import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.CapsuleCollider
+import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.ConeCollider
+import me.anno.ecs.components.collider.CylinderCollider
+import me.anno.ecs.components.collider.MeshCollider
+import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.image.ImageWriter
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
-import me.anno.utils.Color.rgba
 import me.anno.tests.LOGGER
+import me.anno.utils.Color.rgba
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f

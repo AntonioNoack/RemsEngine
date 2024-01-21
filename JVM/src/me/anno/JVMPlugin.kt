@@ -1,7 +1,11 @@
 package me.anno
 
 import me.anno.extensions.plugins.Plugin
-import me.anno.fonts.*
+import me.anno.fonts.AWTFont
+import me.anno.fonts.ContourImpl
+import me.anno.fonts.FontManager
+import me.anno.fonts.FontManagerImpl
+import me.anno.fonts.FontStats
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.images.ImageImpl

@@ -2,15 +2,20 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector2f
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sign
+import kotlin.math.sin
 
 class SDFStar : SDF2DShape() {
 
@@ -124,7 +129,5 @@ class SDFStar : SDF2DShape() {
                 "   return sdStar(p,an,acs,ecs);\n" +
                 "}\n" +
                 "float sdStar(vec2 p, vec2 a){ return sdStar(p,a.x,a.y); }\n"
-
     }
-
 }

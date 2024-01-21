@@ -53,8 +53,13 @@ import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LoggerImpl
 import org.joml.Vector3d
 import org.joml.Vector3f
-import java.util.*
-import kotlin.math.*
+import java.util.Random
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.sin
 
 // create an actual world, where we can walk around with other people
 // make the game logic as simple as possible, so it's easy to follow

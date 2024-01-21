@@ -4,7 +4,15 @@ import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.AnyToLong.getLong
-import org.joml.*
+import org.joml.Planed
+import org.joml.Planef
+import org.joml.Quaternionf
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 
 object Casting {
 
@@ -155,5 +163,4 @@ object Casting {
     }
 
     fun castToString(it: Any?) = it?.toString() ?: ""
-
 }

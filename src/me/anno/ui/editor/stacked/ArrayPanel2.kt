@@ -17,7 +17,6 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -27,7 +26,12 @@ import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import org.apache.logging.log4j.LogManager
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.log
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 
 /**
  * WIP, don't use!
@@ -346,7 +350,11 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
                         val clone: Any? = when (val value = values[index - 1]) {
                             is String, is Prefab, is FileReference -> value
                             is PrefabSaveable -> value.clone()
-                            is Saveable -> JsonStringReader.read(JsonStringWriter.toText(value, InvalidRef), InvalidRef, true)
+                            is Saveable -> JsonStringReader.read(
+                                JsonStringWriter.toText(value, InvalidRef),
+                                InvalidRef,
+                                true
+                            )
                             else -> value // may be incorrect
                         }
                         @Suppress("unchecked_cast")

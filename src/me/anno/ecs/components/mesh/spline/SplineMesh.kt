@@ -16,7 +16,11 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
  * spline meshes are parts of many simulator games, e.g. street building
@@ -364,7 +368,6 @@ class SplineMesh : ProceduralMesh() {
 
                     dirX0.set(dirX1)
                     dirY0.set(dirY1)
-
                 }
             }
             return createMesh(mesh, pos, nor, col)
@@ -508,13 +511,11 @@ class SplineMesh : ProceduralMesh() {
                     add(pos, nor, col, k++, p0a, p0b, p0, n0, c0, dirX0, dirY)
 
                     p0 = p1
-
                 }
 
                 p0a.set(p1a)
                 p0b.set(p1b)
                 dirX0.set(dirX1)
-
             }
             mesh.positions = pos
             mesh.normals = nor
@@ -543,7 +544,5 @@ class SplineMesh : ProceduralMesh() {
             dst.normals = dstNor
             dst.color0 = dstCol
         }
-
     }
-
 }

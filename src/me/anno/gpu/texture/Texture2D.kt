@@ -5,7 +5,6 @@ import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
-import me.anno.utils.structures.Callback
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
@@ -36,13 +35,112 @@ import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.FloatArrayPool
 import me.anno.utils.pooling.IntArrayPool
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
-import org.lwjgl.opengl.GL46C.*
-import java.nio.*
+import org.lwjgl.opengl.GL46C.GL_BGR
+import org.lwjgl.opengl.GL46C.GL_BGRA
+import org.lwjgl.opengl.GL46C.GL_BYTE
+import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
+import org.lwjgl.opengl.GL46C.GL_DOUBLE
+import org.lwjgl.opengl.GL46C.GL_FALSE
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_INT
+import org.lwjgl.opengl.GL46C.GL_NONE
+import org.lwjgl.opengl.GL46C.GL_ONE
+import org.lwjgl.opengl.GL46C.GL_PACK_ALIGNMENT
+import org.lwjgl.opengl.GL46C.GL_PIXEL_UNPACK_BUFFER
+import org.lwjgl.opengl.GL46C.GL_R16
+import org.lwjgl.opengl.GL46C.GL_R16F
+import org.lwjgl.opengl.GL46C.GL_R16I
+import org.lwjgl.opengl.GL46C.GL_R16UI
+import org.lwjgl.opengl.GL46C.GL_R32F
+import org.lwjgl.opengl.GL46C.GL_R32I
+import org.lwjgl.opengl.GL46C.GL_R32UI
+import org.lwjgl.opengl.GL46C.GL_R8
+import org.lwjgl.opengl.GL46C.GL_R8I
+import org.lwjgl.opengl.GL46C.GL_R8UI
+import org.lwjgl.opengl.GL46C.GL_RED
+import org.lwjgl.opengl.GL46C.GL_RED_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RG
+import org.lwjgl.opengl.GL46C.GL_RG16
+import org.lwjgl.opengl.GL46C.GL_RG16F
+import org.lwjgl.opengl.GL46C.GL_RG16I
+import org.lwjgl.opengl.GL46C.GL_RG16UI
+import org.lwjgl.opengl.GL46C.GL_RG32F
+import org.lwjgl.opengl.GL46C.GL_RG32I
+import org.lwjgl.opengl.GL46C.GL_RG32UI
+import org.lwjgl.opengl.GL46C.GL_RG8
+import org.lwjgl.opengl.GL46C.GL_RG8I
+import org.lwjgl.opengl.GL46C.GL_RG8UI
+import org.lwjgl.opengl.GL46C.GL_RGB
+import org.lwjgl.opengl.GL46C.GL_RGB16
+import org.lwjgl.opengl.GL46C.GL_RGB16F
+import org.lwjgl.opengl.GL46C.GL_RGB16I
+import org.lwjgl.opengl.GL46C.GL_RGB16UI
+import org.lwjgl.opengl.GL46C.GL_RGB32F
+import org.lwjgl.opengl.GL46C.GL_RGB32I
+import org.lwjgl.opengl.GL46C.GL_RGB32UI
+import org.lwjgl.opengl.GL46C.GL_RGB8
+import org.lwjgl.opengl.GL46C.GL_RGB8I
+import org.lwjgl.opengl.GL46C.GL_RGB8UI
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_RGBA16
+import org.lwjgl.opengl.GL46C.GL_RGBA16F
+import org.lwjgl.opengl.GL46C.GL_RGBA16I
+import org.lwjgl.opengl.GL46C.GL_RGBA16UI
+import org.lwjgl.opengl.GL46C.GL_RGBA32F
+import org.lwjgl.opengl.GL46C.GL_RGBA32I
+import org.lwjgl.opengl.GL46C.GL_RGBA32UI
+import org.lwjgl.opengl.GL46C.GL_RGBA8
+import org.lwjgl.opengl.GL46C.GL_RGBA8I
+import org.lwjgl.opengl.GL46C.GL_RGBA8UI
+import org.lwjgl.opengl.GL46C.GL_RGBA_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RGB_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RG_INTEGER
+import org.lwjgl.opengl.GL46C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.GL_SHORT
+import org.lwjgl.opengl.GL46C.GL_TEXTURE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE0
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_MULTISAMPLE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_FUNC
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_MODE
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_LOD_BIAS
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL46C.GL_TRUE
+import org.lwjgl.opengl.GL46C.GL_UNPACK_ALIGNMENT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
+import org.lwjgl.opengl.GL46C.glActiveTexture
+import org.lwjgl.opengl.GL46C.glBindTexture
+import org.lwjgl.opengl.GL46C.glDeleteTextures
+import org.lwjgl.opengl.GL46C.glFinish
+import org.lwjgl.opengl.GL46C.glFlush
+import org.lwjgl.opengl.GL46C.glGenTextures
+import org.lwjgl.opengl.GL46C.glGenerateMipmap
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import org.lwjgl.opengl.GL46C.glObjectLabel
+import org.lwjgl.opengl.GL46C.glPixelStorei
+import org.lwjgl.opengl.GL46C.glReadPixels
+import org.lwjgl.opengl.GL46C.glTexImage2D
+import org.lwjgl.opengl.GL46C.glTexImage2DMultisample
+import org.lwjgl.opengl.GL46C.glTexParameterf
+import org.lwjgl.opengl.GL46C.glTexParameteri
+import org.lwjgl.opengl.GL46C.glTexSubImage2D
+import java.nio.Buffer
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.DoubleBuffer
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
+import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 
 @Suppress("unused")
@@ -71,7 +169,8 @@ open class Texture2D(
 
     override var channels: Int = 0
 
-    override fun toString() = "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GFX.getName(internalFormat)})"
+    override fun toString() =
+        "Texture2D(\"$name\"@$pointer, $width x $height x $samples, ${GFX.getName(internalFormat)})"
 
     /**
      * Pseudo-Reference, such that ImageGPUCache[ref] = this;

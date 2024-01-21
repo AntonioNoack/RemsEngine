@@ -1,7 +1,11 @@
 package me.anno.tests.engine.light
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.CircleLight
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.RectangleLight
+import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry

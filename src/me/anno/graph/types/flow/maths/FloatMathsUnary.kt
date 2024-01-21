@@ -2,7 +2,33 @@ package me.anno.graph.types.flow.maths
 
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.acosh
+import kotlin.math.asin
+import kotlin.math.asinh
+import kotlin.math.atan
+import kotlin.math.atanh
+import kotlin.math.cbrt
+import kotlin.math.ceil
+import kotlin.math.cos
+import kotlin.math.cosh
+import kotlin.math.exp
+import kotlin.math.expm1
+import kotlin.math.floor
+import kotlin.math.ln
+import kotlin.math.ln1p
+import kotlin.math.log10
+import kotlin.math.log2
+import kotlin.math.pow
+import kotlin.math.round
+import kotlin.math.sin
+import kotlin.math.sinh
+import kotlin.math.sqrt
+import kotlin.math.tan
+import kotlin.math.tanh
+import kotlin.math.truncate
 
 enum class FloatMathsUnary(
     val id: Int, val glsl: String,
@@ -57,5 +83,4 @@ enum class FloatMathsUnary(
     companion object {
         val supportedUnaryVecTypes = entries.filter { it != EXP2 && it != EXP10 }
     }
-
 }

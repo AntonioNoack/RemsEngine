@@ -1,12 +1,13 @@
 package me.anno.tests.maths
 
+import me.anno.Time
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 fun calcRelativeDensity(rand: Float, rayX: Float): Float {
     // intersect sphere at (0,0) from (-1,0) to (rayX-1,rayY)
@@ -37,7 +38,7 @@ fun main() {
         val r = mix(0.000001f, 0.999999f, y / (ySamples - 1f))
         val a = 1f / r
 
-        val random = Random()
+        val random = Random(Time.nanoTime)
 
         // val minValue = cos(asin(randomness))
         val minValue = -1f // sqrt(max(0f, 1f - r * r))
@@ -82,10 +83,7 @@ fun main() {
                 simulatedV - analyticV
             )
         }
-
     }
 
     image.write(desktop.getChild("dist.png"))
-
-
 }

@@ -34,7 +34,11 @@ import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
-import me.anno.ui.input.*
+import me.anno.ui.input.EnumInput
+import me.anno.ui.input.FileInput
+import me.anno.ui.input.FloatInput
+import me.anno.ui.input.IntInput
+import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.Checkbox
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -42,11 +46,15 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning.unused
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.log2
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 

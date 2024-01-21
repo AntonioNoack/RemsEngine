@@ -16,7 +16,18 @@ import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
-import me.anno.mesh.blender.impl.*
+import me.anno.mesh.blender.impl.BAction
+import me.anno.mesh.blender.impl.BArmature
+import me.anno.mesh.blender.impl.BArmatureModifierData
+import me.anno.mesh.blender.impl.BBone
+import me.anno.mesh.blender.impl.BCamera
+import me.anno.mesh.blender.impl.BImage
+import me.anno.mesh.blender.impl.BLamp
+import me.anno.mesh.blender.impl.BMaterial
+import me.anno.mesh.blender.impl.BMesh
+import me.anno.mesh.blender.impl.BObject
+import me.anno.mesh.blender.impl.BObjectType
+import me.anno.mesh.blender.impl.BScene
 import me.anno.utils.Clock
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
@@ -51,7 +62,7 @@ object BlenderReader {
         ref.readByteBuffer(false) { it, exc ->
             if (it != null) {
                 callback.ok(readAsFolder(ref, it))
-            } else callback.err( exc)
+            } else callback.err(exc)
         }
     }
 
@@ -111,7 +122,12 @@ object BlenderReader {
         clock.stop("read meshes")
     }
 
-    private fun readAnimation(action: BAction, givenBones: List<Bone>, skeleton: FileReference, fps: Float): Animation? {
+    private fun readAnimation(
+        action: BAction,
+        givenBones: List<Bone>,
+        skeleton: FileReference,
+        fps: Float
+    ): Animation? {
         val curves = action.curves // animated values
         if (curves.any { it.path.startsWith("pose.bones[\"") }) {
 

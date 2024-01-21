@@ -4,10 +4,9 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 
 interface TextGenerator {
-    fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int
+    fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int
     fun generateTexture(
         text: CharSequence,
-        fontSize: Float,
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,

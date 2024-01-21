@@ -17,7 +17,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.fill
-import java.util.*
+import java.util.BitSet
 
 class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {

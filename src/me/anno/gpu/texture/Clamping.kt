@@ -2,7 +2,10 @@ package me.anno.gpu.texture
 
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_BORDER
+import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_EDGE
+import org.lwjgl.opengl.GL46C.GL_MIRRORED_REPEAT
+import org.lwjgl.opengl.GL46C.GL_REPEAT
 
 enum class Clamping(val id: Int, val naming: NameDesc, val mode: Int) {
     CLAMP(0, NameDesc("Clamp"), GL_CLAMP_TO_EDGE) {
@@ -24,6 +27,7 @@ enum class Clamping(val id: Int, val naming: NameDesc, val mode: Int) {
             return xi
         }
     },
+
     /**
      * good for text rendering, unfortunately not supported in WebGL :/
      * */

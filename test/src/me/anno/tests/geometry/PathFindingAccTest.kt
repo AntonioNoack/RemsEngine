@@ -29,8 +29,8 @@ import me.anno.tests.engine.light.setTranslateScaleInverse
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import org.apache.logging.log4j.LogManager
-import java.util.*
 import kotlin.math.abs
+import kotlin.random.Random
 
 /**
  * a test for accelerated path finding & example for a small and simple, Minecraft-like voxel world

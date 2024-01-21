@@ -9,7 +9,23 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
+import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
+import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
+import org.lwjgl.opengl.GL46C.glBindRenderbuffer
+import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
+import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
+import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
+import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
+import org.lwjgl.opengl.GL46C.glFramebufferTextureLayer
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
+import org.lwjgl.opengl.GL46C.glGenRenderbuffers
+import org.lwjgl.opengl.GL46C.glRenderbufferStorage
+import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 
 class FramebufferArray(
     override var name: String,

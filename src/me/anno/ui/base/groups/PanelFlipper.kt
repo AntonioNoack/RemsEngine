@@ -12,7 +12,11 @@ import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.types.Floats.toRadians
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 // like ViewFlipper in Android
 open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {

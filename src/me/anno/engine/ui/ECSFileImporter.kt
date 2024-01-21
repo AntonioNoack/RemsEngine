@@ -1,7 +1,11 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.Hierarchy
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
@@ -15,7 +19,7 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
     private val LOGGER = LogManager.getLogger(ECSFileImporter::class)
 
     override fun setName(element: ISaveable, name: String) {
-        when(element){
+        when (element) {
             is Prefab -> element["name"] = name
             is PrefabSaveable -> element.name = name
             is NamedSaveable -> element.name = name
@@ -33,7 +37,7 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
 
         parent!!
 
-        if(parent is PrefabSaveable){
+        if (parent is PrefabSaveable) {
             val inspector = PrefabInspector.currentInspector!!
             val path = parent.prefabPath
             val prefab = PrefabCache[file]
@@ -47,12 +51,10 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
                 }
             } else LOGGER.warn("Failed to import $file")
         } else LOGGER.warn("todo implement import of ${parent::class}")
-
     }
 
     // what is this used for?
     override fun createNode(parent: ISaveable?): ISaveable {
         return Entity(parent as? Entity)
     }
-
 }

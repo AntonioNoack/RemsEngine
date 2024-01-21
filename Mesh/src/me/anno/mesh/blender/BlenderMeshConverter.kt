@@ -1,11 +1,17 @@
 package me.anno.mesh.blender
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.mesh.Triangulation
 import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
-import me.anno.mesh.blender.impl.*
+import me.anno.mesh.Triangulation
+import me.anno.mesh.blender.impl.BInstantList
+import me.anno.mesh.blender.impl.BMaterial
+import me.anno.mesh.blender.impl.BMesh
+import me.anno.mesh.blender.impl.MDeformVert
+import me.anno.mesh.blender.impl.MLoop
+import me.anno.mesh.blender.impl.MLoopUV
+import me.anno.mesh.blender.impl.MPoly
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager

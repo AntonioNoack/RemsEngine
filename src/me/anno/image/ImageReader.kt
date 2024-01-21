@@ -6,7 +6,13 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingColors
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.raw.*
+import me.anno.image.raw.AlphaMaskImage
+import me.anno.image.raw.BGRAImage
+import me.anno.image.raw.ComponentImage
+import me.anno.image.raw.GPUImage
+import me.anno.image.raw.GrayscaleImage
+import me.anno.image.raw.IntImage
+import me.anno.image.raw.OpaqueImage
 import me.anno.io.MediaMetadata
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference

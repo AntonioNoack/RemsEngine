@@ -3,8 +3,7 @@ package me.anno.gpu.query
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.maths.Maths
-import org.lwjgl.opengl.GL46C.*
-import org.lwjgl.opengl.GL46C.glGetQueryObjecti64
+import org.lwjgl.opengl.GL46C
 import kotlin.math.max
 
 open class GPUQuery(
@@ -30,15 +29,15 @@ open class GPUQuery(
         var ids = ids
         if (ids == null) {
             ids = IntArray(cap)
-            glGenQueries(ids)
+            GL46C.glGenQueries(ids)
             frameCounter = -(Maths.random() * everyNthFrame).toInt() // randomness to spread out the load
             this.ids = ids
         }
-        glBeginQuery(target, ids[writeSlot.and(capM1)])
+        GL46C.glBeginQuery(target, ids[writeSlot.and(capM1)])
     }
 
     fun stop() {
-        glEndQuery(target)
+        GL46C.glEndQuery(target)
         update()
         writeSlot++
     }
@@ -64,7 +63,7 @@ open class GPUQuery(
         GFX.checkIsGFXThread()
         val ids = ids
         if (ids != null) {
-            glDeleteQueries(ids)
+            GL46C.glDeleteQueries(ids)
             this.ids = null
         }
     }
@@ -91,10 +90,10 @@ open class GPUQuery(
         // check if the next query is available
         if (readSlot < writeSlot) {
             val id = ids[readSlot.and(capM1)]
-            val available = glGetQueryObjecti(id, GL_QUERY_RESULT_AVAILABLE) != 0
+            val available = GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT_AVAILABLE) != 0
             if (available) {
-                lastResult = if (GFX.glVersion >= 33) glGetQueryObjecti64(id, GL_QUERY_RESULT)
-                else glGetQueryObjecti(id, GL_QUERY_RESULT).toLong()
+                lastResult = if (GFX.glVersion >= 33) GL46C.glGetQueryObjecti64(id, GL46C.GL_QUERY_RESULT)
+                else GL46C.glGetQueryObjecti(id, GL46C.GL_QUERY_RESULT).toLong()
                 if (lastResult == 0L) frameCounter = -everyNthFrame
                 weight++
                 sum += lastResult
@@ -104,5 +103,4 @@ open class GPUQuery(
     }
 
     override fun toString() = "$lastResult@$readSlot[$frameCounter]"
-
 }

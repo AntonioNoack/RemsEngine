@@ -2,7 +2,11 @@ package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.io.files.Reference.getReference

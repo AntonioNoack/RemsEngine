@@ -21,8 +21,8 @@ import org.joml.Planef
 import org.joml.Vector3d
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.*
 import kotlin.math.PI
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

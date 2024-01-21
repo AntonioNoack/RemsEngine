@@ -6,7 +6,7 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
-import java.util.*
+import java.util.BitSet
 import kotlin.math.max
 
 /**

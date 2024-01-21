@@ -17,7 +17,19 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.cross
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4d
+import org.joml.Vector4f
+import org.joml.Vector4i
 import kotlin.reflect.KProperty
 
 object PropertyTracking {

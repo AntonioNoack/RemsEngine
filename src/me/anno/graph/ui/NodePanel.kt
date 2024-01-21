@@ -2,6 +2,8 @@ package me.anno.graph.ui
 
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getBaselineY
 import me.anno.gpu.GFXState.useFrame
@@ -21,14 +23,12 @@ import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu.askName
@@ -40,7 +40,11 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 // todo show output value in tooltip on connector (for where it is easily computable without actions)
 // todo can we add debug-clamps?: input and output overrides for debugging...

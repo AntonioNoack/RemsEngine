@@ -1,6 +1,7 @@
 package me.anno.io.utils
 
 import com.sun.jna.platform.FileUtils
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -16,7 +17,9 @@ object TrashManager {
     fun moveToTrash(files: List<FileReference>): Boolean {
         val fileUtils: FileUtils = FileUtils.getInstance()
         return if (fileUtils.hasTrash()) {
-            val fileArray = files.map { it.toFile() }.toTypedArray()
+            val fileArray = files
+                .filterIsInstance<FileFileRef>()
+                .map { it.file }.toTypedArray()
             try {
                 fileUtils.moveToTrash(*fileArray)
                 true

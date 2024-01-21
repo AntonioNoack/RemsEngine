@@ -27,7 +27,12 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Semaphore
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.log2
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.round
 
 /**
  * not yet working!

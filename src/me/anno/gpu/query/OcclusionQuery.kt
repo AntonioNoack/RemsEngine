@@ -1,6 +1,6 @@
 package me.anno.gpu.query
 
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_SAMPLES_PASSED
 
 class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 4) : GPUQuery(Companion.target, everyNthFrame) {
 
@@ -18,5 +18,4 @@ class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 4) : GPUQuer
             val result = drawnSamples
             return result < 0 || result >= minSamples
         }
-
 }

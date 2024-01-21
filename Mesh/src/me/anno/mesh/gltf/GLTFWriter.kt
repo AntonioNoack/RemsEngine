@@ -1,7 +1,11 @@
 package me.anno.mesh.gltf
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -20,7 +24,11 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
 import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import kotlin.test.assertEquals

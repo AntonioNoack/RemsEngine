@@ -21,7 +21,12 @@ import me.anno.maths.Maths.min
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL46C.glFinish
+import org.lwjgl.opengl.GL46C.glFlush
+import org.lwjgl.opengl.GL46C.glGetTexImage
 import kotlin.math.abs
 
 object Reduction {
@@ -126,7 +131,6 @@ object Reduction {
             }
 
             srcTexture = dstFramebuffer.getTexture0()
-
         }
 
         GFX.check()
@@ -228,11 +232,8 @@ object Reduction {
             }
 
             srcTexture = dstFramebuffer.getTexture0()
-
         }
 
         GFX.check()
-
     }
-
 }

@@ -18,11 +18,11 @@ import me.anno.maths.Maths.min
 import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
-import java.util.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
+import kotlin.random.Random
 
 class FoxSpeedController : Component() {
 
@@ -103,7 +103,7 @@ fun main() {
 
     val foxCount = 1000
     var remainingFoxes = foxCount
-    val random = Random()
+    val random = Random(Time.nanoTime)
     var maxRadius = 1.0
     for (i in 0 until foxCount) {
         val dir = i.and(1) * 2 - 1

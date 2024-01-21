@@ -3,7 +3,7 @@ package me.anno.tests.bench
 import me.anno.Time
 import me.anno.tests.LOGGER
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 
 fun dot0(data: IntArray) = data.sum()

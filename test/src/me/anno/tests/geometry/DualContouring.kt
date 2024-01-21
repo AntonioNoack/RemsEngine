@@ -12,7 +12,11 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2f
 import org.joml.Vector2f.Companion.lengthSquared
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.round
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 fun dualContouringTest(): SDFComponent {
     val mesh = SDFHyperBBox()

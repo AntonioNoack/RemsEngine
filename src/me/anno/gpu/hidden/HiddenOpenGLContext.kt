@@ -6,7 +6,14 @@ import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_DECORATED
+import org.lwjgl.glfw.GLFW.GLFW_FALSE
+import org.lwjgl.glfw.GLFW.GLFW_VISIBLE
+import org.lwjgl.glfw.GLFW.glfwCreateWindow
+import org.lwjgl.glfw.GLFW.glfwDefaultWindowHints
+import org.lwjgl.glfw.GLFW.glfwInit
+import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
+import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil
@@ -69,7 +76,5 @@ object HiddenOpenGLContext {
         GFX.check()
 
         GFX.setupBasics(tick)
-
     }
-
 }

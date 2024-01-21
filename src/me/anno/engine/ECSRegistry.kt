@@ -2,16 +2,41 @@ package me.anno.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.anim.*
+import me.anno.ecs.components.anim.AnimMeshComponent
+import me.anno.ecs.components.anim.AnimationState
+import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.BoneAttachmentComponent
+import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.anim.Retargeting
+import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.graph.AnimController
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.FirstPersonController
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.camera.control.ThirdPersonController
-import me.anno.ecs.components.collider.*
-import me.anno.ecs.components.light.*
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.collider.CapsuleCollider
+import me.anno.ecs.components.collider.ConeCollider
+import me.anno.ecs.components.collider.ConvexCollider
+import me.anno.ecs.components.collider.CylinderCollider
+import me.anno.ecs.components.collider.MeshCollider
+import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.light.CircleLight
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.EnvironmentMap
+import me.anno.ecs.components.light.PlanarReflection
+import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.RectangleLight
+import me.anno.ecs.components.light.SpotLight
+import me.anno.ecs.components.mesh.BillboardTransformer
+import me.anno.ecs.components.mesh.ImagePlane
+import me.anno.ecs.components.mesh.LODMeshComponent
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.components.mesh.decal.DecalMaterial
 import me.anno.ecs.components.mesh.decal.DecalMeshComponent
 import me.anno.ecs.components.mesh.spline.PathProfile
@@ -40,7 +65,6 @@ import me.anno.graph.types.NodeLibrary
 import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
-import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.io.utils.StringMap
 import me.anno.ui.UIRegistry
@@ -133,15 +157,7 @@ object ECSRegistry {
         registerCustomClass(ThirdPersonController())
 
         // scripting
-        try {
-            val clazz = this::class.java.classLoader
-                .loadClass("me.anno.lua.LuaRegistry")
-            clazz.getMethod("init").invoke(null)
-        } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Lua was not found", e)
-        } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("Lua was not found", e)
-        }
+        initIfAvailable("me.anno.lua.LuaRegistry", "Lua")
 
         // ui, could be skipped for headless servers
         UIRegistry.init()

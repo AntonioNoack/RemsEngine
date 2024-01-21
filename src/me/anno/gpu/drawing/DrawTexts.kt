@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -15,14 +16,17 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.posSizeDraw
 import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.framebuffer.NullFramebuffer
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.ComputeShader
+import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.shader.GPUShader
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a

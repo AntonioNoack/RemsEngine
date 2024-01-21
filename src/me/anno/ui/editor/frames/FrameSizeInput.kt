@@ -3,12 +3,11 @@ package me.anno.ui.editor.frames
 import me.anno.config.DefaultConfig
 import me.anno.language.translation.NameDesc
 import me.anno.parser.SimpleExpressionParser.parseDouble
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.IntInput
-import me.anno.ui.Style
-import java.util.*
 
 /** input for width and height; offers presets and a custom input field; used in Rem's Studio */
 @Suppress("unused")

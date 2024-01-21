@@ -7,7 +7,7 @@ import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import java.util.*
+import java.util.BitSet
 
 @Suppress("UNUSED_PARAMETER")
 object ImageTracing {

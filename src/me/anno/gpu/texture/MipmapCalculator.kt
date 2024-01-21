@@ -12,7 +12,25 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
+import org.lwjgl.opengl.GL46C.GL_LINEAR
+import org.lwjgl.opengl.GL46C.GL_RED
+import org.lwjgl.opengl.GL46C.GL_RG
+import org.lwjgl.opengl.GL46C.GL_RGB
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
+import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
+import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
+import org.lwjgl.opengl.GL46C.glGenerateMipmap
+import org.lwjgl.opengl.GL46C.glTexImage2D
+import org.lwjgl.opengl.GL46C.glTexParameteri
+import org.lwjgl.opengl.GL46C.glViewport
 import java.nio.ByteBuffer
 import kotlin.math.max
 

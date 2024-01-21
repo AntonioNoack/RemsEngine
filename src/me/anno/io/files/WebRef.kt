@@ -3,10 +3,10 @@ package me.anno.io.files
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
-import me.anno.utils.structures.Callback
 import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
 import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import org.apache.logging.log4j.LogManager
@@ -18,7 +18,7 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.net.URLConnection
-import java.util.*
+import java.util.BitSet
 import kotlin.concurrent.thread
 import kotlin.math.min
 

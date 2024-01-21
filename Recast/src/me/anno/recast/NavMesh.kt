@@ -4,11 +4,9 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
-import me.anno.image.raw.IntImage
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.utils.OS.desktop
+import me.anno.engine.ui.LineShapes
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
@@ -16,7 +14,11 @@ import org.recast4j.detour.MeshData
 import org.recast4j.detour.NavMeshBuilder
 import org.recast4j.detour.NavMeshDataCreateParams
 import org.recast4j.detour.Poly
-import org.recast4j.recast.*
+import org.recast4j.recast.AreaModification
+import org.recast4j.recast.RecastBuilder
+import org.recast4j.recast.RecastBuilderConfig
+import org.recast4j.recast.RecastConfig
+import org.recast4j.recast.RecastConstants
 
 class NavMesh : Component() {
 
@@ -126,7 +128,6 @@ class NavMesh : Component() {
         p.buildBvTree = true
 
         return NavMeshBuilder.createNavMeshData(p)
-
     }
 
     /**
@@ -208,7 +209,6 @@ class NavMesh : Component() {
                         LineShapes.drawLine(entity, a, b)
                         LineShapes.drawLine(entity, b, c)
                         LineShapes.drawLine(entity, c, a)
-
                     }
                 } else {
                     // todo Use Poly if PolyDetail is unavailable
@@ -235,5 +235,4 @@ class NavMesh : Component() {
         dst.detailSampleDist = detailSampleDist
         dst.detailSampleMaxError = detailSampleMaxError
     }
-
 }

@@ -7,7 +7,13 @@ import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.cross
 import org.joml.Vector2i.Companion.length
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
 class Cannon(
     image: Image,

@@ -5,7 +5,7 @@ import me.anno.io.files.SignatureCache
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.files.Files.formatFileSize
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 enum class FileStatType(val alignment: AxisAlignment) {
     FILE_NAME(AxisAlignment.MIN) {

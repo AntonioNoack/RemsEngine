@@ -5,7 +5,11 @@ import me.anno.engine.ui.LineShapes
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -53,5 +57,4 @@ class RectCollider : Collider2d() {
     }
 
     override val className: String get() = "RectCollider"
-
 }

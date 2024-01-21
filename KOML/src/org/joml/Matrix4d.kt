@@ -2,7 +2,14 @@ package org.joml
 
 import org.joml.JomlMath.addSigns
 import org.joml.Runtime.f
-import kotlin.math.*
+import kotlin.math.acos
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 @Suppress("unused")
 open class Matrix4d {

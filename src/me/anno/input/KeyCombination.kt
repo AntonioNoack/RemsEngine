@@ -3,15 +3,15 @@ package me.anno.input
 import me.anno.utils.strings.StringHelper.distance
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW
 
 class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
 
     val hash = key.ordinal.shl(8) + modifiers * 6 + type.id
 
-    val isControl = (modifiers and GLFW_MOD_CONTROL) != 0
-    val isShift = (modifiers and GLFW_MOD_SHIFT) != 0
-    val isAlt = (modifiers and GLFW_MOD_ALT) != 0
+    val isControl = (modifiers and GLFW.GLFW_MOD_CONTROL) != 0
+    val isShift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
+    val isAlt = (modifiers and GLFW.GLFW_MOD_ALT) != 0
 
     val isWritingKey = !isControl && !isAlt && !(key == Key.KEY_SPACE && isShift)
 
@@ -62,8 +62,8 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
         }
 
         init {
-            for (c in 'a'..'z') put(GLFW_KEY_A + (c.code - 'a'.code), "$c")
-            for (c in '0'..'9') put(GLFW_KEY_0 + (c.code - '0'.code), "$c")
+            for (c in 'a'..'z') put(GLFW.GLFW_KEY_A + (c.code - 'a'.code), "$c")
+            for (c in '0'..'9') put(GLFW.GLFW_KEY_0 + (c.code - '0'.code), "$c")
             put(Key.KEY_SPACE, " ", "space")
             put(Key.KEY_ENTER, "\n", "enter")
             put(Key.KEY_BACKSPACE, "<--", "backspace")
@@ -91,7 +91,7 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             put(Key.KEY_RIGHT_BRACKET, "+", "rightBracket")
             put(Key.KEY_PAUSE, "pause")
             put(Key.KEY_GRAVE_ACCENT, "degrees", "^", "grave")
-            for (i in 1..25) put(GLFW_KEY_F1 - 1 + i, "f$i")
+            for (i in 1..25) put(GLFW.GLFW_KEY_F1 - 1 + i, "f$i")
             put(Key.KEY_KP_ADD, "kp+", "+")
             put(Key.KEY_KP_SUBTRACT, "kp-", "-")
             put(Key.KEY_KP_MULTIPLY, "kp*", "*")
@@ -106,7 +106,7 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             put(Key.BUTTON_BACK, "mouseBackward")
             for (i in 0..9) {
                 @Suppress("SpellCheckingInspection")
-                put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
+                put(GLFW.GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
             }
             put(Key.KEY_PRINT_SCREEN, "print", "printScreen")
             put(Key.KEY_MENU, "menu", "printMenu")
@@ -148,12 +148,12 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             var mods = 0
             if (modifiers != null) for (c in modifiers) {
                 when (c.lowercaseChar()) {
-                    'c' -> mods = mods or GLFW_MOD_CONTROL
-                    's' -> mods = mods or GLFW_MOD_SHIFT
-                    'a' -> mods = mods or GLFW_MOD_ALT
-                    'x' -> mods = mods or GLFW_MOD_SUPER
-                    'n' -> mods = mods or GLFW_MOD_NUM_LOCK
-                    'l' -> mods = mods or GLFW_MOD_CAPS_LOCK
+                    'c' -> mods = mods or GLFW.GLFW_MOD_CONTROL
+                    's' -> mods = mods or GLFW.GLFW_MOD_SHIFT
+                    'a' -> mods = mods or GLFW.GLFW_MOD_ALT
+                    'x' -> mods = mods or GLFW.GLFW_MOD_SUPER
+                    'n' -> mods = mods or GLFW.GLFW_MOD_NUM_LOCK
+                    'l' -> mods = mods or GLFW.GLFW_MOD_CAPS_LOCK
                     ' ' -> {
                     }
                     else -> LOGGER.warn("Unknown action modifier '$c'")

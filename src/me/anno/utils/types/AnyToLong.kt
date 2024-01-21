@@ -1,7 +1,12 @@
 package me.anno.utils.types
 
 import me.anno.utils.types.Ints.toLongOrDefault
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4f
+import org.joml.Vector4i
 
 object AnyToLong {
 

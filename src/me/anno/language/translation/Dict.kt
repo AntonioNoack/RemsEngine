@@ -9,7 +9,7 @@ import me.anno.ui.input.EnumInput
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
-import java.util.*
+import java.util.Locale
 
 object Dict {
 

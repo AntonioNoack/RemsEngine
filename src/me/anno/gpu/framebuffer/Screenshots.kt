@@ -12,9 +12,16 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_RED
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.glFinish
+import org.lwjgl.opengl.GL46C.glFlush
+import org.lwjgl.opengl.GL46C.glReadPixels
+import org.lwjgl.opengl.GL46C.glScissor
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 import kotlin.concurrent.thread
 
 object Screenshots {

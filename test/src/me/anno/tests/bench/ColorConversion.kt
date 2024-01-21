@@ -1,13 +1,13 @@
 package me.anno.tests.bench
 
-import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Clock
-import java.util.*
+import me.anno.utils.Color.convertABGR2ARGB
+import kotlin.random.Random
 
 fun main() {
     // checking the speed, whether the indirect calls make it slower
     // -> no, they don't :3, each turn just takes 0.20 ns (in both cases) -> ~0.8 ticks @ 3.9 GHz
-    val rnd = Random()
+    val rnd = Random(System.nanoTime())
     val data = IntArray(1024 * 1024) { rnd.nextInt() }
     val clock = Clock()
     clock.benchmark(50, 1000, data.size, "Direct") {

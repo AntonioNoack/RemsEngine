@@ -1,16 +1,20 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
 class SDFBlob : SDFShape() {
 
@@ -86,5 +90,4 @@ class SDFBlob : SDFShape() {
                 "   return l - 1.5 - $vx * cos(min(sqrt(1.01 - b / l)*(PI * 4.0), PI));" +
                 "}\n"
     }
-
 }

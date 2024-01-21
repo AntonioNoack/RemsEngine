@@ -1,7 +1,11 @@
 package me.anno.tests.network
 
 import me.anno.Engine
-import me.anno.network.*
+import me.anno.network.NetworkProtocol
+import me.anno.network.Protocol
+import me.anno.network.Server
+import me.anno.network.TCPClient
+import me.anno.network.UDPClient
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
 import java.net.InetAddress
@@ -67,5 +71,4 @@ fun main() {
     server.close()
 
     Engine.requestShutdown()
-
 }

@@ -12,6 +12,7 @@ import java.net.URL
 object OpenFileExternallyImpl {
 
     private val LOGGER = LogManager.getLogger(OpenFileExternallyImpl::class)
+    private fun FileReference.toFile() = File(absolutePath.replace("!!", "/"))
 
     private fun openInExplorer101(link: String): Boolean {
         return if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {

@@ -3,7 +3,7 @@ package me.anno.tests.assimp
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
-import java.util.*
+import java.util.BitSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -149,5 +149,4 @@ class TablePrinter {
                 kotlin.io.print(space)
         }
     }
-
 }

@@ -13,7 +13,10 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.DepthTransforms
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -31,7 +34,11 @@ import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
 fun main() {
 

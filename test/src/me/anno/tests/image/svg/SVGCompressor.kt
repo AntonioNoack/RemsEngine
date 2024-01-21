@@ -10,7 +10,11 @@ import me.anno.maths.Maths.sq
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix3x2f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 fun main() {
     // parse everything absolute
@@ -262,7 +266,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
                     applyTransform(tr, trI)
                 }
                 if (attr) {
-                    if(!group) bld.append("<g")
+                    if (!group) bld.append("<g")
                     attr(xml) { it != "transform" }
                     bld.append(">")
                 }

@@ -15,7 +15,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileReference
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL46C
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
@@ -82,7 +82,7 @@ abstract class FrameTask(
         // val t0 = Clock()
         pixels.position(0)
         Texture2D.setReadAlignment(width)
-        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels)
+        GL46C.glReadPixels(0, 0, width, height, GL46C.GL_RGB, GL46C.GL_UNSIGNED_BYTE, pixels)
         pixels.position(0)
         // t0.stop("read pixels"), 0.03s on RX 580, 1080p
 

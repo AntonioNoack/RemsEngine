@@ -9,24 +9,29 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.*
+import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.SceneView
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU
@@ -37,7 +42,6 @@ import me.anno.maths.noise.PerlinNoise
 import me.anno.sdf.SDFComposer.sdfConstants
 import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
 import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
-import me.anno.engine.EngineBase
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
@@ -47,7 +51,14 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.asin
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 class FoliageShader(
     var maxDensity: Float,

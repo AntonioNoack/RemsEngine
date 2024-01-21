@@ -16,14 +16,18 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.luaj.vm2.*
+import org.luaj.vm2.Globals
+import org.luaj.vm2.LuaError
+import org.luaj.vm2.LuaString
+import org.luaj.vm2.LuaThread
 import org.luaj.vm2.LuaThread.STATUS_DEAD
 import org.luaj.vm2.LuaThread.thread_orphan_check_interval
+import org.luaj.vm2.LuaValue
 import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
 import org.luaj.vm2.lib.jse.CoerceLuaToJava
 import org.luaj.vm2.lib.jse.JsePlatform
-import java.util.*
+import java.util.WeakHashMap
 
 /**
  * Uses https://github.com/luaj/luaj.

@@ -39,7 +39,12 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_DEPTH_TEST
+import org.lwjgl.opengl.GL46C.GL_MAX_SAMPLES
+import org.lwjgl.opengl.GL46C.GL_MULTISAMPLE
+import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glGetInteger
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.KHRDebug
@@ -271,14 +276,14 @@ object GFXBase {
             drawLogo(window0.width, window0.height, i == logoFrames - 1)
             GFX.check()
             GLFW.glfwSwapBuffers(window0.pointer)
-            val err = glGetError()
+            val err = GL46C.glGetError()
             if (err != 0)
                 LOGGER.warn("Got awkward OpenGL error from calling glfwSwapBuffers: ${getErrorTypeName(err)}")
             // GFX.check()
         }
         tick.stop("Render frame zero")
         if (isDebug) {
-            glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
+            GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
                 val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
                 if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2) {
                     val msg = message2 +
@@ -290,7 +295,7 @@ object GFXBase {
                     else LOGGER.warn(msg)
                 }
             }, 0)
-            glEnable(KHRDebug.GL_DEBUG_OUTPUT)
+            GL46C.glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }
         init2(tick)
     }
@@ -387,7 +392,7 @@ object GFXBase {
                             // works in reducing input latency by 1 frame 😊
                             // https://www.reddit.com/r/GraphicsProgramming/comments/tkpdhd/minimising_input_latency_in_opengl/
                             if (DefaultConfig["gpu.glFinishForLatency", OS.isWindows]) {
-                                glFinish()
+                                GL46C.glFinish()
                             }
                             window.updateVsync()
                         }

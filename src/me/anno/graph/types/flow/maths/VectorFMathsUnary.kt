@@ -1,6 +1,11 @@
 package me.anno.graph.types.flow.maths
 
-import org.joml.*
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 
 enum class VectorFMathsUnary(
     val id: Int, val glsl: String,
@@ -17,5 +22,4 @@ enum class VectorFMathsUnary(
     LENGTH_SQUARED(101, "dot(a,a)", { it.lengthSquared() }, { it.lengthSquared() }, { it.lengthSquared() },
         { it.lengthSquared() }, { it.lengthSquared() }, { it.lengthSquared() }),
     ;
-
 }

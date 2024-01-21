@@ -1,9 +1,7 @@
 package me.anno.gpu.blending
 
 import me.anno.language.translation.NameDesc
-import org.lwjgl.opengl.GL46C.*
-import org.lwjgl.opengl.GL46C.glBlendEquationSeparatei
-import org.lwjgl.opengl.GL46C.glBlendFuncSeparatei
+import org.lwjgl.opengl.GL46C
 
 // custom blend modes? only for the engine by programmers;
 // I don't think people in Rem's Studio or otherwise would/could use them well
@@ -12,11 +10,11 @@ class BlendMode(
     val id: String
 ) {
 
-    var src = GL_SRC_ALPHA
-    var dst = GL_ONE_MINUS_SRC_ALPHA
+    var src = GL46C.GL_SRC_ALPHA
+    var dst = GL46C.GL_ONE_MINUS_SRC_ALPHA
 
-    var srcAlpha = GL_ONE
-    var dstAlpha = GL_ONE_MINUS_SRC_ALPHA
+    var srcAlpha = GL46C.GL_ONE
+    var dstAlpha = GL46C.GL_ONE_MINUS_SRC_ALPHA
 
     var func = BlendFunc.ADD
     var funcAlpha = BlendFunc.ADD
@@ -45,23 +43,23 @@ class BlendMode(
             if (lastFunc != func || lastFuncAlpha != funcAlpha) {
                 lastFunc = func
                 lastFuncAlpha = funcAlpha
-                glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
+                GL46C.glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
             }
             if (lastMode !== this && (func.hasParams || funcAlpha.hasParams)) {
-                glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
+                GL46C.glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
                 lastMode = this
             }
         } else throw RuntimeException("UNSPECIFIED can't be applied!")
     }
 
     fun forceApply() {
-        glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
-        glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
+        GL46C.glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
+        GL46C.glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
     }
 
     fun forceApply(i: Int) {
-        glBlendEquationSeparatei(i, blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
-        glBlendFuncSeparatei(i, src, dst, srcAlpha, dstAlpha)
+        GL46C.glBlendEquationSeparatei(i, blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
+        GL46C.glBlendFuncSeparatei(i, src, dst, srcAlpha, dstAlpha)
     }
 
     fun cloneWithName(displayName: NameDesc, id: String): BlendMode {
@@ -83,7 +81,13 @@ class BlendMode(
         var lastFuncAlpha: BlendFunc? = null
         var lastMode: BlendMode? = null
 
-        val blendFuncModes = intArrayOf(GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_MIN, GL_MAX)
+        val blendFuncModes = intArrayOf(
+            GL46C.GL_FUNC_ADD,
+            GL46C.GL_FUNC_SUBTRACT,
+            GL46C.GL_FUNC_REVERSE_SUBTRACT,
+            GL46C.GL_MIN,
+            GL46C.GL_MAX
+        )
 
         /*
         DEFAULT("Default", 0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA),
@@ -99,14 +103,14 @@ class BlendMode(
         val DEFAULT = BlendMode(NameDesc("Default", "", "gpu.blendMode.default"), "*Blend")
 
         val ADD = BlendMode(NameDesc("Add", "", "gpu.blendMode.add"), "Add")
-            .set(GL_SRC_ALPHA, GL_ONE)
+            .set(GL46C.GL_SRC_ALPHA, GL46C.GL_ONE)
 
         val PURE_ADD = BlendMode(NameDesc("Pure Add", "", "gpu.blendMode.addPure"), "Pure Add")
-            .set(GL_ONE, GL_ONE)
+            .set(GL46C.GL_ONE, GL46C.GL_ONE)
 
         @Suppress("unused")
         val PURE_MUL = BlendMode(NameDesc("Pure Mul", "", "gpu.blendMode.addMul"), "Pure Mul")
-            .set(GL_DST_COLOR, GL_ZERO)
+            .set(GL46C.GL_DST_COLOR, GL46C.GL_ZERO)
 
         /*val ADD_MASK = BlendMode("Sub Mask", "Sub Mask")
             .set(GL_ONE, GL_ONE)
@@ -114,7 +118,7 @@ class BlendMode(
         // doesn't work
         @Suppress("unused")
         val SUB_ALPHA = BlendMode(NameDesc("Override Masking", "", "gpu.blendMode.override"), "Override Masking")
-            .set(GL_ONE, GL_ZERO, GL_SRC_ALPHA, GL_ZERO)
+            .set(GL46C.GL_ONE, GL46C.GL_ZERO, GL46C.GL_SRC_ALPHA, GL46C.GL_ZERO)
             .set(BlendFunc.ADD)
 
         @Suppress("unused")
@@ -124,21 +128,20 @@ class BlendMode(
         // a way to remove alpha from an image
         @Suppress("unused")
         val NO_ALPHA = BlendMode(NameDesc("No Alpha", "", "gpu.blendMode.noAlpha"), "No Alpha")
-            .set(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO)
+            .set(GL46C.GL_ONE, GL46C.GL_ZERO, GL46C.GL_ONE, GL46C.GL_ZERO)
             .set(BlendFunc.ADD)
 
         @Suppress("unused")
         val SUB_COLOR = ADD.cloneWithName(NameDesc("Sub Color", "", "gpu.blendMode.subColor"), "Subtract Color")
-            .set(GL_ONE, GL_ONE)
+            .set(GL46C.GL_ONE, GL46C.GL_ONE)
             .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 
         // a way to remove alpha from an image
         @Suppress("unused")
         val DST_ALPHA = BlendMode(NameDesc("Dst Alpha", "", "gpu.blendMode.dstAlpha"), "Dst Alpha")
-            .set(GL_ONE, GL_ZERO, GL_ZERO, GL_ONE)
+            .set(GL46C.GL_ONE, GL46C.GL_ZERO, GL46C.GL_ZERO, GL46C.GL_ONE)
             .set(BlendFunc.ADD)
 
         operator fun get(code: String) = blendModes[code] ?: INHERIT
     }
-
 }

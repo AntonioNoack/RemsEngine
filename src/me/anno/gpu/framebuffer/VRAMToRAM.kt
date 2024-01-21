@@ -12,7 +12,12 @@ import me.anno.image.raw.IntImage
 import me.anno.utils.Color
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_READ_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.glFinish
+import org.lwjgl.opengl.GL46C.glFlush
+import org.lwjgl.opengl.GL46C.glReadPixels
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -142,7 +147,5 @@ object VRAMToRAM {
         }
 
         Texture2D.bufferPool.returnBuffer(buffer)
-
     }
-
 }

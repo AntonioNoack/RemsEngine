@@ -82,11 +82,11 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         }
     }
 
-    override fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
-        if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
+    override fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
+        if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
         return if (text.containsSpecialChar() || (widthLimit in 0 until GFX.maxTextureSize)) {
             val parts = splitParts(
-                text, fontSize, 4f, 0f,
+                text, font.size, 4f, 0f,
                 widthLimit.toFloat(), heightLimit.toFloat()
             )
             val width = min(ceil(parts.width).toInt(), widthLimit)
@@ -102,7 +102,6 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
 
     override fun generateTexture(
         text: CharSequence,
-        fontSize: Float,
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,
@@ -112,9 +111,9 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
     ): ITexture2D? {
 
         if (text.isEmpty()) return null
-        if (text.containsSpecialChar() || widthLimit < text.length * fontSize * 2f) {
+        if (text.containsSpecialChar() || widthLimit < text.length * font.size * 2f) {
             return generateTextureV3(
-                text, fontSize, widthLimit, heightLimit, portableImages,
+                text, font.size, widthLimit, heightLimit, portableImages,
                 textColor, backgroundColor, extraPadding
             )
         }
@@ -130,7 +129,7 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         if (max(width, height) > GFX.maxTextureSize) {
             IllegalArgumentException(
                 "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
-                        "${text.length} chars, $lineCount lines, ${awtFont.name} $fontSize px, ${
+                        "${text.length} chars, $lineCount lines, ${awtFont.name} ${font.size} px, ${
                             text.toString().shorten(200)
                         }"
             ).printStackTrace()
@@ -146,20 +145,17 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         }
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
-        val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
-        if (prio) {
-            createImage(
-                texture,
-                width, height, portableImages,
-                textColor, backgroundColor, extraPadding, text, group
-            )
+        val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
+        val image = createImage(
+            width,
+            height, portableImages, textColor,
+            backgroundColor, extraPadding, text, group
+        )
+        if (hasPriority) {
+            texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
         } else {
             GFX.addGPUTask("awt-font-v5", width, height) {
-                createImage(
-                    texture,
-                    width, height, portableImages,
-                    textColor, backgroundColor, extraPadding, text, group
-                )
+                texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
             }
         }
 
@@ -182,8 +178,7 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         val height = min(heightLimit, fontMetrics.height + 2 * extraPadding)
 
         val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
-        val prio = GFX.isGFXThread()
-        if (prio) {
+        if (GFX.isGFXThread()) {
             createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
         } else {
             GFX.addGPUTask("awtAtlas", width, height) {
@@ -195,12 +190,10 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
     }
 
     private fun createImage(
-        texture: Texture2D,
-        width: Int, height: Int,
-        portableImages: Boolean,
-        textColor: Int, backgroundColor: Int,
-        extraPadding: Int, text: CharSequence, group: TextGroup?
-    ) {
+        width: Int, height: Int, portableImages: Boolean,
+        textColor: Int, backgroundColor: Int, extraPadding: Int,
+        text: CharSequence, group: TextGroup?,
+    ): BufferedImage {
         val image = BufferedImage(width, height, 1)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(awtFont, portableImages)
@@ -221,7 +214,7 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         // println("generating texture for '$text', size $fontSize with ascent $ascent")
         drawString(gfx, text, group, y)
         gfx.dispose()
-        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
+        return image
     }
 
     private val renderContext by lazy {

@@ -12,7 +12,11 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader

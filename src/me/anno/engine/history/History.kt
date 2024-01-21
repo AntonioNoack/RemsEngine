@@ -8,7 +8,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
-import java.util.*
+import java.util.LinkedList
 import kotlin.math.max
 
 abstract class History<V : Any> : Saveable() {

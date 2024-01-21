@@ -1,9 +1,14 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.TextSDFGroup
@@ -11,7 +16,6 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
 import me.anno.mesh.Shapes
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import org.joml.AABBd

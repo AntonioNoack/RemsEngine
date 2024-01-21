@@ -20,7 +20,15 @@ import me.anno.maths.Maths.sq
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_JOYSTICK_1
+import org.lwjgl.glfw.GLFW.GLFW_PRESS
+import org.lwjgl.glfw.GLFW.glfwGetGamepadState
+import org.lwjgl.glfw.GLFW.glfwGetJoystickAxes
+import org.lwjgl.glfw.GLFW.glfwGetJoystickButtons
+import org.lwjgl.glfw.GLFW.glfwGetJoystickGUID
+import org.lwjgl.glfw.GLFW.glfwGetJoystickName
+import org.lwjgl.glfw.GLFW.glfwJoystickIsGamepad
+import org.lwjgl.glfw.GLFW.glfwJoystickPresent
 import org.lwjgl.glfw.GLFWGamepadState
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer

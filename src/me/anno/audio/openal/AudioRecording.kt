@@ -4,7 +4,12 @@ import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
 import org.lwjgl.openal.ALC10
-import org.lwjgl.openal.ALC11.*
+import org.lwjgl.openal.ALC11.ALC_CAPTURE_SAMPLES
+import org.lwjgl.openal.ALC11.alcCaptureCloseDevice
+import org.lwjgl.openal.ALC11.alcCaptureOpenDevice
+import org.lwjgl.openal.ALC11.alcCaptureSamples
+import org.lwjgl.openal.ALC11.alcCaptureStart
+import org.lwjgl.openal.ALC11.alcCaptureStop
 import java.nio.ByteBuffer
 
 // alc = audio library context
@@ -37,17 +42,13 @@ class AudioRecording {
             // save the samples
             // alias save them to a file
             // or just send them to ffmpeg when rendering
-
         }
 
         alcCaptureStop(device)
         alcCaptureCloseDevice(device)
 
         ALBase.check()
-
-
     }
-
 }
 
 /**

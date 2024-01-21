@@ -3,7 +3,11 @@ package me.anno.image.hdr
 import me.anno.maths.Maths
 import java.io.DataOutputStream
 import java.io.OutputStream
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 object HDRWriter {
 

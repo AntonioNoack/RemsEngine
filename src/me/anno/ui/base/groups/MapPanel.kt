@@ -1,10 +1,10 @@
 package me.anno.ui.base.groups
 
 import me.anno.Time.deltaTime
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
@@ -17,7 +17,11 @@ import me.anno.ui.base.scrolling.ScrollbarX
 import me.anno.ui.base.scrolling.ScrollbarY
 import org.joml.Vector2d
 import org.joml.Vector3d
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.ln
 
 /** basis for simple 2d map controls with zoom-in/out and drag to move */
 abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, ScrollableY {

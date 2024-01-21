@@ -17,7 +17,11 @@ import me.anno.utils.structures.arrays.ExpandingDoubleArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.video.formats.cpu.YUVFrames
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 val matrix = Array(4) { ExpandingDoubleArray(100) }
 val vector = Array(4) { ExpandingDoubleArray(100) }

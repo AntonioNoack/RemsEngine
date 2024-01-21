@@ -1,11 +1,17 @@
 package me.anno.io.zip
 
-import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import me.anno.io.files.inner.*
+import me.anno.io.files.inner.HeavyIterator
+import me.anno.io.files.inner.IHeavyIterable
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream

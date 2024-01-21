@@ -1,14 +1,55 @@
 package me.anno.tests.openxr
 
 import org.lwjgl.PointerBuffer
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.openxr.*
+import org.lwjgl.opengl.GL46C
 import org.lwjgl.openxr.EXTHandTracking.XR_EXT_HAND_TRACKING_EXTENSION_NAME
 import org.lwjgl.openxr.EXTHandTracking.XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT
 import org.lwjgl.openxr.KHRCompositionLayerCylinder.XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME
 import org.lwjgl.openxr.KHRCompositionLayerDepth.XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME
-import org.lwjgl.openxr.KHROpenGLEnable.*
-import org.lwjgl.openxr.XR10.*
+import org.lwjgl.openxr.KHROpenGLEnable.XR_KHR_OPENGL_ENABLE_EXTENSION_NAME
+import org.lwjgl.openxr.KHROpenGLEnable.XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR
+import org.lwjgl.openxr.KHROpenGLEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR
+import org.lwjgl.openxr.KHROpenGLEnable.xrGetOpenGLGraphicsRequirementsKHR
+import org.lwjgl.openxr.XR10.XR_CURRENT_API_VERSION
+import org.lwjgl.openxr.XR10.XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY
+import org.lwjgl.openxr.XR10.XR_REFERENCE_SPACE_TYPE_LOCAL
+import org.lwjgl.openxr.XR10.XR_REFERENCE_SPACE_TYPE_STAGE
+import org.lwjgl.openxr.XR10.XR_REFERENCE_SPACE_TYPE_VIEW
+import org.lwjgl.openxr.XR10.XR_SESSION_STATE_UNKNOWN
+import org.lwjgl.openxr.XR10.XR_SUCCESS
+import org.lwjgl.openxr.XR10.XR_TYPE_EXTENSION_PROPERTIES
+import org.lwjgl.openxr.XR10.XR_TYPE_INSTANCE_CREATE_INFO
+import org.lwjgl.openxr.XR10.XR_TYPE_SESSION_CREATE_INFO
+import org.lwjgl.openxr.XR10.XR_TYPE_SYSTEM_GET_INFO
+import org.lwjgl.openxr.XR10.XR_TYPE_SYSTEM_PROPERTIES
+import org.lwjgl.openxr.XR10.XR_VERSION_MAJOR
+import org.lwjgl.openxr.XR10.XR_VERSION_MINOR
+import org.lwjgl.openxr.XR10.XR_VERSION_PATCH
+import org.lwjgl.openxr.XR10.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+import org.lwjgl.openxr.XR10.xrCreateInstance
+import org.lwjgl.openxr.XR10.xrCreateSession
+import org.lwjgl.openxr.XR10.xrEnumerateInstanceExtensionProperties
+import org.lwjgl.openxr.XR10.xrEnumerateReferenceSpaces
+import org.lwjgl.openxr.XR10.xrEnumerateViewConfigurationViews
+import org.lwjgl.openxr.XR10.xrGetInstanceProperties
+import org.lwjgl.openxr.XR10.xrGetSystem
+import org.lwjgl.openxr.XR10.xrGetSystemProperties
+import org.lwjgl.openxr.XR10.xrGetViewConfigurationProperties
+import org.lwjgl.openxr.XR10.xrResultToString
+import org.lwjgl.openxr.XrApplicationInfo
+import org.lwjgl.openxr.XrExtensionProperties
+import org.lwjgl.openxr.XrGraphicsBindingOpenGLWin32KHR
+import org.lwjgl.openxr.XrGraphicsRequirementsOpenGLKHR
+import org.lwjgl.openxr.XrInstance
+import org.lwjgl.openxr.XrInstanceCreateInfo
+import org.lwjgl.openxr.XrInstanceProperties
+import org.lwjgl.openxr.XrSession
+import org.lwjgl.openxr.XrSessionCreateInfo
+import org.lwjgl.openxr.XrSystemGetInfo
+import org.lwjgl.openxr.XrSystemHandTrackingPropertiesEXT
+import org.lwjgl.openxr.XrSystemProperties
+import org.lwjgl.openxr.XrViewConfigurationProperties
+import org.lwjgl.openxr.XrViewConfigurationView
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -156,8 +197,8 @@ fun initOpenXR() {
 
     // todo create desktop window with size of left eye?
 
-    println("Using OpenGL version ${glGetString(GL_VERSION)}")
-    println("Using OpenGL renderer ${glGetString(GL_RENDERER)}")
+    println("Using OpenGL version ${GL46C.glGetString(GL46C.GL_VERSION)}")
+    println("Using OpenGL renderer ${GL46C.glGetString(GL46C.GL_RENDERER)}")
 
     // todo init gl (?)
 

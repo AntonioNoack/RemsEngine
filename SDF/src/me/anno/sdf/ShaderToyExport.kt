@@ -8,8 +8,15 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.sdf.shapes.SDFShape
-import org.joml.*
-import java.util.*
+import org.joml.Planef
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4f
+import org.joml.Vector4i
+import java.util.BitSet
 import kotlin.math.max
 
 object ShaderToyExport {

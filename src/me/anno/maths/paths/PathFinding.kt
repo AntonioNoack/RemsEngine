@@ -3,7 +3,7 @@ package me.anno.maths.paths
 import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
-import java.util.*
+import java.util.PriorityQueue
 import kotlin.math.log2
 import kotlin.math.max
 

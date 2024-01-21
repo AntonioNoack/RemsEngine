@@ -5,7 +5,33 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
-import kotlin.math.*
+import kotlin.math.E
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.acosh
+import kotlin.math.asin
+import kotlin.math.asinh
+import kotlin.math.atan2
+import kotlin.math.atanh
+import kotlin.math.ceil
+import kotlin.math.cos
+import kotlin.math.cosh
+import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.hypot
+import kotlin.math.ln
+import kotlin.math.log
+import kotlin.math.log10
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.round
+import kotlin.math.sin
+import kotlin.math.sinh
+import kotlin.math.sqrt
+import kotlin.math.tan
 import kotlin.random.Random
 
 object Functions {

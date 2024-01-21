@@ -3,7 +3,11 @@ package me.anno.utils
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt

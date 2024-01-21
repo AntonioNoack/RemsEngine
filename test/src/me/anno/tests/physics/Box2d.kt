@@ -1,7 +1,11 @@
 package me.anno.tests.physics
 
 import me.anno.Time
-import me.anno.box2d.*
+import me.anno.box2d.Box2dPhysics
+import me.anno.box2d.CircleCollider
+import me.anno.box2d.Collider2d
+import me.anno.box2d.RectCollider
+import me.anno.box2d.Rigidbody2d
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
@@ -27,7 +31,7 @@ import org.jbox2d.dynamics.FixtureDef
 import org.jbox2d.dynamics.World
 import org.joml.Vector2f
 import org.joml.Vector3d
-import java.util.*
+import java.util.Random
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

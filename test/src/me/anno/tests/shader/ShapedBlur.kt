@@ -1,7 +1,6 @@
 package me.anno.tests.shader
 
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.sdf.shapes.SDFHeart
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress
@@ -15,11 +14,16 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.maths.Optimization
 import me.anno.network.ResetByteArrayOutputStream
+import me.anno.sdf.shapes.SDFHeart
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Vector2d
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.io.OutputStream
-import java.util.*
+import java.util.Random
 import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -269,7 +273,6 @@ fun main2() {
     println("$err, ${allSamplers.joinToString()}")
 
     sparseConvolve(kernels, true)
-
 }
 
 

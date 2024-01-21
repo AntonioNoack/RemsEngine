@@ -1,7 +1,9 @@
 package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
-import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.*
+import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.SLIDER_CONSTRAINT_DEF_DAMPING
+import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.SLIDER_CONSTRAINT_DEF_RESTITUTION
+import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.SLIDER_CONSTRAINT_DEF_SOFTNESS
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
@@ -212,5 +214,4 @@ class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolve
     }
 
     override val className: String get() = "SliderConstraint"
-
 }

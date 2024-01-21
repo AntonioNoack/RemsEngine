@@ -5,7 +5,15 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_BUFFER
+import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.glBufferData
+import org.lwjgl.opengl.GL46C.glBufferSubData
+import org.lwjgl.opengl.GL46C.glDeleteBuffers
+import org.lwjgl.opengl.GL46C.glDrawElements
+import org.lwjgl.opengl.GL46C.glDrawElementsInstanced
+import org.lwjgl.opengl.GL46C.glGenBuffers
+import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.system.MemoryUtil
 
 class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :

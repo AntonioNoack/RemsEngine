@@ -5,7 +5,7 @@ import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import java.util.*
+import kotlin.random.Random
 import kotlin.test.assertTrue
 
 class BoneByBoneTest {

@@ -12,7 +12,12 @@ import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
@@ -24,6 +29,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -48,13 +54,21 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.LateinitTexture
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureReader
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.graph.hdb.HierarchicalDatabase
-import me.anno.image.*
+import me.anno.image.Image
+import me.anno.image.ImageCache
+import me.anno.image.ImageReadable
+import me.anno.image.ImageReader
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
 import me.anno.io.ISaveable
 import me.anno.io.MediaMetadata.Companion.getMeta
@@ -74,7 +88,6 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
-import me.anno.fonts.Font
 import me.anno.utils.Color.black
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
@@ -94,11 +107,19 @@ import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import kotlin.math.*
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * creates and caches small versions of image and video resources

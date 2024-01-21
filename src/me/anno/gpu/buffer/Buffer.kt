@@ -9,10 +9,10 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
 
 abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUsage) :
-    OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
+    OpenGLBuffer(name, GL46C.GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
     constructor(name: String, attributes: List<Attribute>) : this(name, attributes, BufferUsage.STATIC)
 
@@ -27,7 +27,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     private fun ensureVAO() {
         if (useVAOs) {
-            if (vao <= 0) vao = glGenVertexArrays()
+            if (vao <= 0) vao = GL46C.glGenVertexArrays()
         }
     }
 
@@ -119,7 +119,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     }
 
     open fun unbind(shader: Shader) {
-        bindBuffer(GL_ARRAY_BUFFER, 0)
+        bindBuffer(GL46C.GL_ARRAY_BUFFER, 0)
         if (!useVAOs) {
             for (index in attributes.indices) {
                 val attr = attributes[index]
@@ -138,7 +138,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GFXState.bind()
-        glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
+        GL46C.glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
         unbind(shader)
     }
 
@@ -146,7 +146,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         ensureBuffer()
         bindInstanced(shader, null)
         GFXState.bind()
-        glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceCount)
+        GL46C.glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceCount)
         unbind(shader)
     }
 
@@ -174,7 +174,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     open fun draw(drawMode: DrawMode, first: Int, length: Int) {
         GFXState.bind()
-        glDrawArrays(drawMode.id, first, length)
+        GL46C.glDrawArrays(drawMode.id, first, length)
     }
 
     override fun destroy() {
@@ -184,10 +184,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         if (buffer > -1) {
             GFX.addGPUTask("Buffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
-                glDeleteBuffers(buffer)
+                GL46C.glDeleteBuffers(buffer)
                 if (vao >= 0) {
                     bindVAO(0)
-                    glDeleteVertexArrays(vao)
+                    GL46C.glDeleteVertexArrays(vao)
                 }
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
@@ -211,32 +211,32 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             return if (index > -1) {
                 val type = attr.type
                 if (attr.isNativeInt) {
-                    glVertexAttribIPointer(
+                    GL46C.glVertexAttribIPointer(
                         index, attr.components, type.id,
                         attr.stride, attr.offset.toLong()
                     )
                 } else {
-                    glVertexAttribPointer(
+                    GL46C.glVertexAttribPointer(
                         index, attr.components, type.id,
                         type.normalized, attr.stride, attr.offset.toLong()
                     )
                 }
-                glVertexAttribDivisor(index, instanceDivisor)
+                GL46C.glVertexAttribDivisor(index, instanceDivisor)
                 enable(index)
                 true
             } else false
         }
 
-        private fun enable(index: Int){
+        private fun enable(index: Int) {
             if (useVAOs || !enabledAttributes.hasFlag(1 shl index)) {
-                glEnableVertexAttribArray(index)
+                GL46C.glEnableVertexAttribArray(index)
                 enabledAttributes = enabledAttributes or (1 shl index)
             }
         }
 
-        private fun disable(index: Int){
+        private fun disable(index: Int) {
             if (useVAOs || enabledAttributes.hasFlag(1 shl index)) {
-                glDisableVertexAttribArray(index)
+                GL46C.glDisableVertexAttribArray(index)
                 enabledAttributes = enabledAttributes and (1 shl index).inv()
             }
         }
@@ -248,8 +248,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                 disable(index)
                 when (shader.attributes[index].type) {
                     GLSLType.V1B, GLSLType.V2B, GLSLType.V3B, GLSLType.V4B,
-                    GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> glVertexAttribI1i(index, 0)
-                    else -> glVertexAttrib1f(index, 0f)
+                    GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> GL46C.glVertexAttribI1i(index, 0)
+                    else -> GL46C.glVertexAttrib1f(index, 0f)
                 }
             }
         }

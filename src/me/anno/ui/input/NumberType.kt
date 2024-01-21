@@ -2,7 +2,16 @@ package me.anno.ui.input
 
 import me.anno.maths.Maths
 import me.anno.utils.types.Casting
-import org.joml.*
+import org.joml.Planed
+import org.joml.Planef
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
+import org.joml.Vector4f
 import kotlin.math.max
 
 class NumberType(

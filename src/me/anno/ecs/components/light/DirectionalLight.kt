@@ -9,7 +9,12 @@ import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 

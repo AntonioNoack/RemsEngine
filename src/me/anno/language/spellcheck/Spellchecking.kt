@@ -5,13 +5,13 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.installer.Installer
 import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonReader
 import me.anno.language.Language
-import me.anno.engine.EngineBase
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.Sleep.sleepABit10
@@ -23,10 +23,9 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.BufferedWriter
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
-import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
 

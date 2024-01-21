@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.ui.input.NumberType
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
@@ -24,23 +23,29 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.debug.DebugText
 import me.anno.engine.debug.DebugTriangle
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.engine.inspector.Inspectable
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatVectorInput
+import me.anno.ui.input.NumberType
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix3f
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Quaternionf
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.min
 import kotlin.math.sqrt
 

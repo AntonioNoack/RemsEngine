@@ -9,7 +9,7 @@ import me.anno.gpu.shader.builder.Varying
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -190,7 +190,7 @@ open class Shader(
                 val none = Variable(GLSLType.V1I, "")
                 for (i in attributes.indices) {
                     val attr = attributes[i]
-                    val loc = glGetAttribLocation(program, attr.name)
+                    val loc = GL46C.glGetAttribLocation(program, attr.name)
                     if (loc >= 0) {
                         while (loc >= attrs.size) attrs.add(none)
                         attrs[loc] = attr
@@ -203,28 +203,28 @@ open class Shader(
             program
         } else {
 
-            val program = glCreateProgram()
+            val program = GL46C.glCreateProgram()
             GFX.check()
             updateSession()
             GFX.check()
             /*val vertexShader = */
-            compile(name, program, GL_VERTEX_SHADER, vertexSource)
+            compile(name, program, GL46C.GL_VERTEX_SHADER, vertexSource)
 
             GFX.check()
 
             /*val fragmentShader = */
-            compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
+            compile(name, program, GL46C.GL_FRAGMENT_SHADER, fragmentSource)
 
             GFX.check()
 
             val attributes = attributes
             for (i in attributes.indices) {
-                glBindAttribLocation(program, i, attributes[i].name)
+                GL46C.glBindAttribLocation(program, i, attributes[i].name)
             }
 
             GFX.check()
 
-            glLinkProgram(program)
+            GL46C.glLinkProgram(program)
 
             GFX.check()
 

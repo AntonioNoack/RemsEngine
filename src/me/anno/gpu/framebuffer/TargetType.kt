@@ -3,7 +3,41 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.supportsF16Targets
 import me.anno.gpu.GFX.supportsF32Targets
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT16
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32F
+import org.lwjgl.opengl.GL46C.GL_FLOAT
+import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
+import org.lwjgl.opengl.GL46C.GL_INT
+import org.lwjgl.opengl.GL46C.GL_R16F
+import org.lwjgl.opengl.GL46C.GL_R16UI
+import org.lwjgl.opengl.GL46C.GL_R32F
+import org.lwjgl.opengl.GL46C.GL_R32UI
+import org.lwjgl.opengl.GL46C.GL_R8
+import org.lwjgl.opengl.GL46C.GL_RED
+import org.lwjgl.opengl.GL46C.GL_RED_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RG
+import org.lwjgl.opengl.GL46C.GL_RG16F
+import org.lwjgl.opengl.GL46C.GL_RG16UI
+import org.lwjgl.opengl.GL46C.GL_RG32F
+import org.lwjgl.opengl.GL46C.GL_RG32UI
+import org.lwjgl.opengl.GL46C.GL_RG8
+import org.lwjgl.opengl.GL46C.GL_RGB
+import org.lwjgl.opengl.GL46C.GL_RGB16F
+import org.lwjgl.opengl.GL46C.GL_RGB32F
+import org.lwjgl.opengl.GL46C.GL_RGB32UI
+import org.lwjgl.opengl.GL46C.GL_RGBA
+import org.lwjgl.opengl.GL46C.GL_RGBA16F
+import org.lwjgl.opengl.GL46C.GL_RGBA32F
+import org.lwjgl.opengl.GL46C.GL_RGBA32UI
+import org.lwjgl.opengl.GL46C.GL_RGBA8
+import org.lwjgl.opengl.GL46C.GL_RGBA_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RGB_INTEGER
+import org.lwjgl.opengl.GL46C.GL_RG_INTEGER
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
+import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 
 class TargetType(
     val name: String,
@@ -72,7 +106,5 @@ class TargetType(
         val UInt32x2 = TargetType("u32x2", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 8, 2, false)
         val UInt32x3 = TargetType("u32x3", GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT, 12, 3, false)
         val UInt32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, 4, false)
-
     }
-
 }

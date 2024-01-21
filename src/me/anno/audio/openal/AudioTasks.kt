@@ -2,7 +2,7 @@ package me.anno.audio.openal
 
 import me.anno.gpu.GFX.workQueue
 import me.anno.utils.structures.Task
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object AudioTasks {

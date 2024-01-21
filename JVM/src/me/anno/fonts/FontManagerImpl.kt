@@ -9,7 +9,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
 import java.awt.Font
 import java.awt.GraphicsEnvironment
-import java.util.*
+import java.util.Locale
 
 object FontManagerImpl {
 

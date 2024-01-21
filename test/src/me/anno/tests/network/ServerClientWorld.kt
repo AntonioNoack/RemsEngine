@@ -5,10 +5,12 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
-import me.anno.network.*
+import me.anno.network.NetworkProtocol
+import me.anno.network.Packet
+import me.anno.network.Protocol
+import me.anno.network.Server
+import me.anno.network.TCPClient
 import me.anno.network.packets.PingPacket
-import me.anno.engine.EngineBase
-import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList2D

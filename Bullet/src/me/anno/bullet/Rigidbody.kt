@@ -1,6 +1,10 @@
 package me.anno.bullet
 
-import com.bulletphysics.collision.dispatch.CollisionObject.*
+import com.bulletphysics.collision.dispatch.CollisionObject.ACTIVE_TAG
+import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_DEACTIVATION
+import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_SIMULATION
+import com.bulletphysics.collision.dispatch.CollisionObject.ISLAND_SLEEPING
+import com.bulletphysics.collision.dispatch.CollisionObject.WANTS_DEACTIVATION
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics.Companion.castB
@@ -9,12 +13,16 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.physics
 import me.anno.ecs.EntityQuery.hasComponent
-import me.anno.ecs.annotations.*
+import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.DebugWarning
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes
 import me.anno.maths.Maths.pow
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -452,5 +460,4 @@ open class Rigidbody : Component() {
         val collisionMatrix = ShortArray(16) { (1 shl it).toShort() }
         // val centerOfMassColor = Vector4f(1f, 0f, 0f, 1f)
     }
-
 }

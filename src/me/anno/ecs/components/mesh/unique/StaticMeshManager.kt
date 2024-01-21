@@ -3,7 +3,10 @@ package me.anno.ecs.components.mesh.unique
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType

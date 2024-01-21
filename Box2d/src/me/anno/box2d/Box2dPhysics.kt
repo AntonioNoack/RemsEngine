@@ -15,7 +15,11 @@ import org.jbox2d.collision.shapes.MassData
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Settings
 import org.jbox2d.common.Vec2
-import org.jbox2d.dynamics.*
+import org.jbox2d.dynamics.Body
+import org.jbox2d.dynamics.BodyDef
+import org.jbox2d.dynamics.BodyType
+import org.jbox2d.dynamics.FixtureDef
+import org.jbox2d.dynamics.World
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -179,9 +183,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             }
 
             return BodyWithScale(body, Vector3d(1.0))
-
         } else null
-
     }
 
     override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody2d, bodyWithScale: BodyWithScale<Body>) {
@@ -198,7 +200,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         }
 
         // todo constraints
-
     }
 
     override fun removeConstraints(entity: Entity) {
@@ -230,5 +231,4 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         private val LOGGER = LogManager.getLogger(Box2dPhysics::class)
         val vec2f = Stack { Vec2() }
     }
-
 }

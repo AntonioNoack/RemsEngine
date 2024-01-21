@@ -1,6 +1,12 @@
 package org.joml
 
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Suppress("unused")
 open class Quaternionf(
@@ -11,7 +17,7 @@ open class Quaternionf(
 ) {
 
     constructor() : this(0f, 0f, 0f, 1f)
-    constructor(x: Double, y: Double, z: Double, w: Double): this(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
+    constructor(x: Double, y: Double, z: Double, w: Double) : this(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
     constructor(source: Quaternionf) : this(source.x, source.y, source.z, source.w)
     constructor(source: Quaterniond) : this(source.x, source.y, source.z, source.w)
 

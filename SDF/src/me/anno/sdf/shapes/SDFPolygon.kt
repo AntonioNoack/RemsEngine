@@ -9,7 +9,12 @@ import me.anno.maths.Maths.length
 import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sign
+import kotlin.math.sin
 
 /**
  * Regular polygon, flat shape.

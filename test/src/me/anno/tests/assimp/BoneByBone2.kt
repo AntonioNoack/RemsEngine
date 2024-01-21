@@ -3,7 +3,12 @@ package me.anno.tests.assimp
 import me.anno.animation.LoopingState
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.*
+import me.anno.ecs.components.anim.AnimMeshComponent
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.AnimationState
+import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView

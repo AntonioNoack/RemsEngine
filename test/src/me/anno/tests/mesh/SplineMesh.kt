@@ -9,7 +9,11 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import org.joml.*
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

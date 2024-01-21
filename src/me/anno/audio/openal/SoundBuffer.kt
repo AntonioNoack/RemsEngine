@@ -6,8 +6,16 @@ import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.openal.AL10.*
-import org.lwjgl.stb.STBVorbis.*
+import org.lwjgl.openal.AL10.AL_FORMAT_MONO16
+import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
+import org.lwjgl.openal.AL10.alBufferData
+import org.lwjgl.openal.AL10.alDeleteBuffers
+import org.lwjgl.openal.AL10.alGenBuffers
+import org.lwjgl.stb.STBVorbis.stb_vorbis_close
+import org.lwjgl.stb.STBVorbis.stb_vorbis_get_info
+import org.lwjgl.stb.STBVorbis.stb_vorbis_get_samples_short_interleaved
+import org.lwjgl.stb.STBVorbis.stb_vorbis_open_memory
+import org.lwjgl.stb.STBVorbis.stb_vorbis_stream_length_in_samples
 import org.lwjgl.stb.STBVorbisInfo
 import org.newdawn.slick.openal.WaveData
 import java.nio.ByteBuffer
@@ -162,5 +170,4 @@ class SoundBuffer() : ICacheData {
                 .order(ByteOrder.nativeOrder())
         }
     }
-
 }

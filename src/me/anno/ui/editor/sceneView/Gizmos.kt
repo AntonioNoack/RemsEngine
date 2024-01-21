@@ -18,7 +18,11 @@ import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.PI
 
 object Gizmos {

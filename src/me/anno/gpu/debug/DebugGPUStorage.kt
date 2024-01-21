@@ -18,7 +18,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.ui.Panel
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
@@ -27,7 +26,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.Compare.ifSame
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C
 import kotlin.math.min
 
 /**
@@ -76,17 +75,15 @@ object DebugGPUStorage {
         }
 
         abstract fun drawTexture(x: Int, y: Int, w: Int, h: Int)
-
     }
 
     fun isDepthFormat(format: Int) = when (format) {
-        GL_DEPTH_COMPONENT16,
-        GL_DEPTH_COMPONENT24,
-        GL_DEPTH24_STENCIL8,
-        GL_DEPTH32F_STENCIL8,
-        GL_DEPTH_COMPONENT32,
-        GL_DEPTH_COMPONENT32F -> true
-
+        GL46C.GL_DEPTH_COMPONENT16,
+        GL46C.GL_DEPTH_COMPONENT24,
+        GL46C.GL_DEPTH24_STENCIL8,
+        GL46C.GL_DEPTH32F_STENCIL8,
+        GL46C.GL_DEPTH_COMPONENT32,
+        GL46C.GL_DEPTH_COMPONENT32F -> true
         else -> false
     }
 
@@ -118,7 +115,6 @@ object DebugGPUStorage {
 
         override fun getTooltipText(x: Float, y: Float) =
             "${tex.width} x ${tex.height} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
-
     }
 
     class TexturePanel3D(name: String, val tex: Texture3D) :
@@ -146,7 +142,6 @@ object DebugGPUStorage {
             else fract(Time.nanoTime / 5.0).toFloat()
             DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, false, isDepth)
         }
-
     }
 
     class TexturePanel2DA(name: String, val tex: Texture2DArray) :
@@ -178,7 +173,6 @@ object DebugGPUStorage {
                 tex, true, -1, false, isDepth
             )
         }
-
     }
 
     class TexturePanel3DC(name: String, val tex: CubemapTexture) :
@@ -192,7 +186,6 @@ object DebugGPUStorage {
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             DrawTextures.drawProjection(x, y, w, h, tex, false, -1, false, isDepth)
         }
-
     }
 
     fun openMenu() {
@@ -331,5 +324,4 @@ object DebugGPUStorage {
         )
         window1?.drawDirectly = true
     }
-
 }

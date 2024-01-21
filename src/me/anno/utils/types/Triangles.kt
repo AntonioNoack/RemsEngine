@@ -3,7 +3,10 @@ package me.anno.utils.types
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import org.joml.*
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -511,7 +514,6 @@ object Triangles {
 
         // left or right of all lines
         return sum == 0
-
     }
 
     fun Vector2d.isInsideTriangle(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
@@ -532,7 +534,6 @@ object Triangles {
 
         // left or right of all lines
         return sum == 0
-
     }
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
@@ -587,5 +588,4 @@ object Triangles {
 
     const val thirdD = 1.0 / 3.0
     const val thirdF = thirdD.toFloat()
-
 }

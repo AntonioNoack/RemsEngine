@@ -6,7 +6,13 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.joml.Vector4d
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * these are the easing functions from https://easings.net/
@@ -55,12 +61,10 @@ enum class Interpolation(
             val w3 = -e1 * x
 
             return dst.set(w0, w1, w2, w3)
-
         }
 
         // if only two points are known, a spline is a linear interpolator
         override fun getIn(x: Double): Double = x
-
     },
     LINEAR_BOUNDED(
         1, "/",
@@ -377,7 +381,5 @@ enum class Interpolation(
 
         @JvmStatic
         fun getType(code: Int): Interpolation = entries.firstOrNull { it.id == code } ?: SPLINE
-
     }
-
 }

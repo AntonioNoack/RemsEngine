@@ -8,15 +8,23 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.ui.render.*
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.Frustum
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
@@ -55,7 +63,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Planed
 import org.joml.Vector3d
-import java.util.*
+import java.util.Arrays
 import kotlin.math.max
 
 /**

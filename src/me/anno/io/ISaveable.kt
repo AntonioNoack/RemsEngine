@@ -3,16 +3,38 @@ package me.anno.io
 import me.anno.Build
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase
+import me.anno.engine.inspector.CachedReflections
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
-import me.anno.engine.inspector.CachedReflections
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Matrix2d
+import org.joml.Matrix2f
+import org.joml.Matrix3d
+import org.joml.Matrix3f
+import org.joml.Matrix3x2d
+import org.joml.Matrix3x2f
+import org.joml.Matrix4d
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Planed
+import org.joml.Planef
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2d
+import org.joml.Vector2f
+import org.joml.Vector2i
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector3i
+import org.joml.Vector4d
+import org.joml.Vector4f
+import org.joml.Vector4i
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -387,7 +409,5 @@ interface ISaveable {
             registerSuperClasses(entry.sampleInstance.javaClass)
             return entry
         }
-
     }
-
 }

@@ -3,7 +3,7 @@ package me.anno.engine
 import me.anno.Engine
 import me.anno.Time
 import me.anno.maths.Maths
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.PriorityBlockingQueue
 

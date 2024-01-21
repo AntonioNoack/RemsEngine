@@ -10,7 +10,12 @@ import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.nodes.BNode
 import me.anno.mesh.blender.impl.nodes.BNodeSocket
 import me.anno.mesh.blender.impl.nodes.BNodeTree
-import me.anno.mesh.blender.impl.values.*
+import me.anno.mesh.blender.impl.values.BNSVBoolean
+import me.anno.mesh.blender.impl.values.BNSVFloat
+import me.anno.mesh.blender.impl.values.BNSVInt
+import me.anno.mesh.blender.impl.values.BNSVRGBA
+import me.anno.mesh.blender.impl.values.BNSVVector
+import me.anno.mesh.blender.impl.values.BNSValue
 import me.anno.utils.Color.white4
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f

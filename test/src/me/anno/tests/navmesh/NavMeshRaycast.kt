@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.EngineBase
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -19,7 +20,6 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
-import me.anno.engine.EngineBase
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.documents
 import org.joml.Vector3d

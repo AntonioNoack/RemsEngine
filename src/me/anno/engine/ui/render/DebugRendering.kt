@@ -5,9 +5,12 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.getComponents
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.EnvironmentMap
+import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.LightComponentBase
+import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
-import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -15,6 +18,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.TriangleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures

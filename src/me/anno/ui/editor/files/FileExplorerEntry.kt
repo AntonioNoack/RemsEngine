@@ -14,7 +14,6 @@ import me.anno.engine.EngineBase
 import me.anno.engine.Events.addEvent
 import me.anno.engine.GFXSettings
 import me.anno.engine.ui.render.Renderers
-import me.anno.fonts.FontManager
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
@@ -29,14 +28,17 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Clipboard
-import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
 import me.anno.io.MediaMetadata.Companion.getMeta
@@ -97,7 +99,13 @@ import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.concurrent.thread
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sign
 
 // todo right click to get all meta information? (properties panel in windows)
 

@@ -9,8 +9,12 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.bvh.*
+import me.anno.maths.bvh.BLASBranch
+import me.anno.maths.bvh.BLASLeaf
+import me.anno.maths.bvh.BLASNode
+import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.RayTracing.intersectAABB
+import me.anno.maths.bvh.SplitMethod
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFTriangle.Companion.calculateDistSq
@@ -260,25 +264,25 @@ open class SDFMesh : SDFSmoothShape() {
 
                     val funcCode =
                         dataBuilder.toString() +
-                        funcCode
-                            .replace("#MAX_DEPTH", blas.maxDepth().toString())
-                            .replace("#PREPARE_TREE", "")
-                            .replace("#PREPARE_TRIS", "")
-                            .replace(
-                                "#LOAD_NODE", "" +
-                                        "vec4 d0 = Nodes#MESH_ID[nodeIndex*2u];\n" +
-                                        "vec4 d1 = Nodes#MESH_ID[nodeIndex*2u+1u];\n"
-                            )
-                            .replace(
-                                "#LOAD_TRI", "" +
-                                        // actual load
-                                        "vec3 p0 = Vertices#MESH_ID[index];\n" +
-                                        "vec3 p1 = Vertices#MESH_ID[index+1u];\n" +
-                                        "vec3 p2 = Vertices#MESH_ID[index+2u];\n" +
-                                        // index++
-                                        "index += 3u;" // "pixelsPerTriangle"/"multiplier"
-                            )
-                            .replace("#MESH_ID", meshId)
+                                funcCode
+                                    .replace("#MAX_DEPTH", blas.maxDepth().toString())
+                                    .replace("#PREPARE_TREE", "")
+                                    .replace("#PREPARE_TRIS", "")
+                                    .replace(
+                                        "#LOAD_NODE", "" +
+                                                "vec4 d0 = Nodes#MESH_ID[nodeIndex*2u];\n" +
+                                                "vec4 d1 = Nodes#MESH_ID[nodeIndex*2u+1u];\n"
+                                    )
+                                    .replace(
+                                        "#LOAD_TRI", "" +
+                                                // actual load
+                                                "vec3 p0 = Vertices#MESH_ID[index];\n" +
+                                                "vec3 p1 = Vertices#MESH_ID[index+1u];\n" +
+                                                "vec3 p2 = Vertices#MESH_ID[index+2u];\n" +
+                                                // index++
+                                                "index += 3u;" // "pixelsPerTriangle"/"multiplier"
+                                    )
+                                    .replace("#MESH_ID", meshId)
 
                     functions.add(funcCode)
                 }

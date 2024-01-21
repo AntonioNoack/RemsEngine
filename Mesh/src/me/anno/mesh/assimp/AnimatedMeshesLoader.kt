@@ -2,7 +2,11 @@ package me.anno.mesh.assimp
 
 import me.anno.animation.LoopingState
 import me.anno.ecs.Transform
-import me.anno.ecs.components.anim.*
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.AnimationState
+import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab
@@ -30,8 +34,20 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
-import org.joml.*
-import org.lwjgl.assimp.*
+import org.joml.Matrix3f
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.lwjgl.assimp.AIAnimMesh
+import org.lwjgl.assimp.AIAnimation
+import org.lwjgl.assimp.AIBone
+import org.lwjgl.assimp.AIMesh
+import org.lwjgl.assimp.AINode
+import org.lwjgl.assimp.AINodeAnim
+import org.lwjgl.assimp.AIScene
+import org.lwjgl.assimp.AIVertexWeight
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import kotlin.math.max

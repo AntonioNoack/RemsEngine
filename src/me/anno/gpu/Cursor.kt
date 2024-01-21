@@ -4,7 +4,16 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.GFXBase.imageToGLFW
 import me.anno.image.Image
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.GLFW_ARROW_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_CROSSHAIR_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_HAND_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_HRESIZE_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_IBEAM_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_RESIZE_ALL_CURSOR
+import org.lwjgl.glfw.GLFW.GLFW_VRESIZE_CURSOR
+import org.lwjgl.glfw.GLFW.glfwCreateCursor
+import org.lwjgl.glfw.GLFW.glfwCreateStandardCursor
+import org.lwjgl.glfw.GLFW.glfwSetCursor
 
 /**
  * What the cursor looks like, and a few default Cursors

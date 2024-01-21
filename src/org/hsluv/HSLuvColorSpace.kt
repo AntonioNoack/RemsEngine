@@ -6,7 +6,14 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * HSL, XYZ and HSLuv conversion from https://github.com/hsluv/hsluv-java
@@ -67,7 +74,6 @@ object HSLuvColorSpace {
         }
 
         return result
-
     }
 
     private fun intersectLineLine(lineAx: Double, lineAy: Double, lineBx: Double): Double {
@@ -94,7 +100,6 @@ object HSLuvColorSpace {
             val length = hypot(x, b1 + x * m1)
 
             min = min(min, length)
-
         }
 
         return min
@@ -219,7 +224,6 @@ object HSLuvColorSpace {
         val v = l13 * (varV - refV)
 
         return dst.set(l, u, v)
-
     }
 
     fun luvToXyz(src: Vector3d, dst: Vector3d = src): Vector3d {
@@ -258,7 +262,6 @@ object HSLuvColorSpace {
         }
 
         return dst.set(l, c, h)
-
     }
 
     fun lchToLuv(src: Vector3d, dst: Vector3d = src): Vector3d {
@@ -272,7 +275,6 @@ object HSLuvColorSpace {
         val v = sin(hRadians) * c
 
         return dst.set(l, u, v)
-
     }
 
     fun hsluvToLch(src: Vector3d, dst: Vector3d = src): Vector3d {
@@ -288,7 +290,6 @@ object HSLuvColorSpace {
         val c = max * 0.01 * s
 
         return dst.set(l, c, h)
-
     }
 
     fun lchToHsluv(src: Vector3d, dst: Vector3d): Vector3d {
@@ -344,5 +345,4 @@ object HSLuvColorSpace {
     fun rgbToHsluv(src: Vector3d, dst: Vector3d = src) = lchToHsluv(rgbToLch(src, dst), dst)
     fun hpluvToRgb(src: Vector3d, dst: Vector3d = src) = lchToRgb(hpluvToLch(src, dst), dst)
     fun rgbToHpluv(src: Vector3d, dst: Vector3d = src) = lchToHpluv(rgbToLch(src, dst), dst)
-
 }

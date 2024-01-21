@@ -7,7 +7,7 @@ import org.joml.Vector4f
 import java.nio.FloatBuffer
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
-import java.util.*
+import java.util.Locale
 import kotlin.math.PI
 
 object Floats {
@@ -213,5 +213,4 @@ object Floats {
                     ushr (126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
         }
     }
-
 }

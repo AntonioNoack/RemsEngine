@@ -8,7 +8,11 @@ import me.anno.cache.CacheSection
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.extensions.ExtensionLoader
-import me.anno.gpu.*
+import me.anno.gpu.Cursor
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
+import me.anno.gpu.GFXState
+import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
@@ -125,8 +129,8 @@ abstract class EngineBase(
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
         Engine.projectName = configName
-        ConfigBasics.configFolder = OS.home.getChild( ".config").getChild(configName)
-        ConfigBasics.cacheFolder = OS.home.getChild( ".cache").getChild(configName)
+        ConfigBasics.configFolder = OS.home.getChild(".config").getChild(configName)
+        ConfigBasics.cacheFolder = OS.home.getChild(".cache").getChild(configName)
     }
 
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {

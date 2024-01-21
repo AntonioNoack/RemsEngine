@@ -19,7 +19,13 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.round
 
 object MovingGrid {
 

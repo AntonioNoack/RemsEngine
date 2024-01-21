@@ -24,7 +24,11 @@ import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.white
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.sin
 
 // add terrain drawing systems
 //  - using our Sims sample?

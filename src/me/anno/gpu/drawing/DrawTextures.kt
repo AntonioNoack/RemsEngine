@@ -10,7 +10,14 @@ import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.shader.FlatShaders.flatShaderTextureArray
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureLib
 import me.anno.utils.Color.white4
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt

@@ -10,16 +10,19 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast.SKY
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.files.FileReference
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
 open class SkyboxBase : CollidingComponent(), Renderable {
 
@@ -47,6 +50,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         }
 
     val materials: List<FileReference>
+
     init {
         // rendering properties
         material.shader = defaultShaderBase

@@ -10,7 +10,11 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.InputStreams.skipN
-import java.io.*
+import java.io.EOFException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.PrintStream
 import kotlin.math.max
 
 // https://github.com/ImageMagick/ImageMagick/blob/80bd592dd20d4a1287842459ca3801c3ae3866cd/coders/jpeg.c

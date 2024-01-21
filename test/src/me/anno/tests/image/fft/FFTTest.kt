@@ -8,7 +8,11 @@ import me.anno.utils.Clock
 import me.anno.utils.Color.g
 import me.anno.utils.OS.desktop
 import org.jtransforms.fft.FloatFFT_2D
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ln
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.sqrt
 
 fun nextPowerOfTwo(i: Int): Int {
     return 1 shl (log2(i.toFloat()) + 0.75f).toInt()

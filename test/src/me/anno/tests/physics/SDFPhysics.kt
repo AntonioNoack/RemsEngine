@@ -16,7 +16,7 @@ import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import org.joml.Vector3d
-import java.util.*
+import java.util.Random
 
 fun main() {
 
@@ -116,5 +116,4 @@ fun main() {
 
     test1()
     test0()
-
 }

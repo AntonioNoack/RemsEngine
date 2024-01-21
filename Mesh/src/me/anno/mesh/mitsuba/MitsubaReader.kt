@@ -31,12 +31,20 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.skipN
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4x3f
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector3d
+import org.joml.Vector3f
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.InflaterInputStream
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan
+import kotlin.math.sign
+import kotlin.math.tan
 
 /**
  * reader for XML and serialized files of the Mitsuba Renderer

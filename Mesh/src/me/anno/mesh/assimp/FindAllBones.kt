@@ -3,7 +3,12 @@ package me.anno.mesh.assimp
 import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import org.joml.Matrix4x3f
-import org.lwjgl.assimp.*
+import org.lwjgl.assimp.AIAnimation
+import org.lwjgl.assimp.AIBone
+import org.lwjgl.assimp.AIMesh
+import org.lwjgl.assimp.AINode
+import org.lwjgl.assimp.AINodeAnim
+import org.lwjgl.assimp.AIScene
 
 fun findAllBones(
     aiScene: AIScene,

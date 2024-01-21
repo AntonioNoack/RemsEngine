@@ -3,7 +3,14 @@ package me.anno.tests.engine
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
 import me.anno.io.utils.StringMap
-import org.joml.*
+import org.joml.Matrix3d
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Quaterniond
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3i
 
 class TypeTestComponent : Component() {
 
@@ -60,5 +67,4 @@ class TypeTestComponent : Component() {
     var someRotDouble = Quaterniond(0.707, 0.0, 0.0, 0.707).normalize()
 
     override val className: String get() = "TypeTestComponent"
-
 }

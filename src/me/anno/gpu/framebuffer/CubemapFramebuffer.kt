@@ -9,7 +9,24 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
+import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
+import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
+import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
+import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
+import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
+import org.lwjgl.opengl.GL46C.glBindRenderbuffer
+import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
+import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
+import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
+import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
+import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
+import org.lwjgl.opengl.GL46C.glGenFramebuffers
+import org.lwjgl.opengl.GL46C.glGenRenderbuffers
+import org.lwjgl.opengl.GL46C.glRenderbufferStorage
+import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -285,5 +302,4 @@ class CubemapFramebuffer(
 
     override fun toString(): String =
         "FBCubemap[n=$name, i=$pointer, size=$size t=${targets.joinToString()} d=$depthBufferType]"
-
 }

@@ -3,6 +3,7 @@ package me.anno.build.web
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents
 
+var ctr = 0
 fun copy(src: List<FileReference>, dst: FileReference, path: String) {
     if (src.first().isDirectory) {
         dst.tryMkdirs()
@@ -19,6 +20,7 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
     } else {
         val srcI = src.first()
         if (srcI.lcExtension == "kt") {
+            ctr++
             val prevTxt = if (dst.exists) dst.readTextSync() else ""
             if (!prevTxt.contains("!ignore")) {
                 var txt = srcI.readTextSync()
@@ -78,4 +80,5 @@ fun main() {
             src.getChild("KOML/src")
         ), dst.getChild("src/jsMain/kotlin"), ""
     )
+    println("$ctr kotlin files total")
 }

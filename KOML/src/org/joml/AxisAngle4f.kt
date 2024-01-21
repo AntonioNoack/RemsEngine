@@ -1,6 +1,10 @@
 package org.joml
 
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class AxisAngle4f(
     @JvmField

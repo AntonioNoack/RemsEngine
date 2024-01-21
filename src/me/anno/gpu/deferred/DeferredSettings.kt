@@ -2,7 +2,11 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.MultiFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -13,7 +17,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
-import java.util.*
+import java.util.BitSet
 import kotlin.math.max
 
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {

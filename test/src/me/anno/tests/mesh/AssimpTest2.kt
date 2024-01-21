@@ -26,9 +26,22 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
-import org.lwjgl.assimp.*
-import org.lwjgl.assimp.Assimp.*
-import org.lwjgl.opengl.GL46C.*
+import org.lwjgl.assimp.AIColor4D
+import org.lwjgl.assimp.AIMaterial
+import org.lwjgl.assimp.AIMesh
+import org.lwjgl.assimp.AIString
+import org.lwjgl.assimp.AIVector3D
+import org.lwjgl.assimp.Assimp.AI_MATKEY_COLOR_AMBIENT
+import org.lwjgl.assimp.Assimp.AI_MATKEY_COLOR_DIFFUSE
+import org.lwjgl.assimp.Assimp.aiGetMaterialColor
+import org.lwjgl.assimp.Assimp.aiGetMaterialTexture
+import org.lwjgl.assimp.Assimp.aiImportFile
+import org.lwjgl.assimp.Assimp.aiTextureType_DIFFUSE
+import org.lwjgl.assimp.Assimp.aiTextureType_NONE
+import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.GL_STATIC_DRAW
+import org.lwjgl.opengl.GL46C.glGenBuffers
+import org.lwjgl.opengl.GL46C.nglBufferData
 import java.nio.IntBuffer
 
 // todo sims game with baked, high quality lighting

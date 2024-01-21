@@ -12,7 +12,14 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 // where should we move this class?
 /**

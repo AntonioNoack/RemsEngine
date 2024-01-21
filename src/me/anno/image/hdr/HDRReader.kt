@@ -1,7 +1,12 @@
 package me.anno.image.hdr
 
 import me.anno.image.raw.FloatImage
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.IOException
+import java.io.InputStream
 import kotlin.math.pow
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

@@ -7,6 +7,8 @@ import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
+import me.anno.engine.Events
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
@@ -27,8 +29,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
-import me.anno.engine.Events
-import me.anno.engine.EngineBase
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.structures.Task
@@ -39,9 +39,9 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C
-import org.lwjgl.opengl.GL46C.*
 import java.lang.reflect.Modifier
-import java.util.*
+import java.util.Queue
+import java.util.Stack
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 import kotlin.math.max
@@ -357,34 +357,34 @@ object GFX {
     @JvmStatic
     fun setupBasics(tick: Clock?) {
         glThread = Thread.currentThread()
-        LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
-        LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
+        LOGGER.info("OpenGL Version " + GL46C.glGetString(GL46C.GL_VERSION))
+        LOGGER.info("GLSL Version " + GL46C.glGetString(GL46C.GL_SHADING_LANGUAGE_VERSION))
         if (!OS.isWeb) {
             // these are not defined in WebGL
-            glVersion = glGetInteger(GL_MAJOR_VERSION) * 10 + glGetInteger(GL_MINOR_VERSION)
+            glVersion = GL46C.glGetInteger(GL46C.GL_MAJOR_VERSION) * 10 + GL46C.glGetInteger(GL46C.GL_MINOR_VERSION)
             LOGGER.info("OpenGL Version Id $glVersion")
         }
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
+        GL46C.glPixelStorei(GL46C.GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = GFXBase.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
-            val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+            val max = GL46C.glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         supportsDepthTextures = capabilities != null
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
-        maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
-        maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
-        maxBoundTextures = glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)
-        maxAttributes = glGetInteger(GL_MAX_VERTEX_ATTRIBS)
-        maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
-        maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
-        maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
-        maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
+        maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
+        maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
+        maxBoundTextures = GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_IMAGE_UNITS)
+        maxAttributes = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_ATTRIBS)
+        maxUniforms = GL46C.glGetInteger(GL46C.GL_MAX_UNIFORM_LOCATIONS)
+        maxColorAttachments = GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
+        maxSamples = max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
+        maxTextureSize = max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
         GPUShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
-        if (glVersion >= 43) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+        if (glVersion >= 43) OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Attributes: $maxAttributes")
@@ -538,8 +538,6 @@ object GFX {
 
         whiteTexture.bind(0)
 
-        glDisable(GL_CULL_FACE)
-
         check()
 
         resetFBStack()
@@ -589,7 +587,7 @@ object GFX {
         // assumes that the first access is indeed from the OpenGL thread
         if (isDebug) {
             checkIsGFXThread()
-            val error = glGetError()
+            val error = GL46C.glGetError()
             if (error != 0) {
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
@@ -603,7 +601,7 @@ object GFX {
         if (isDebug) {
             checkIsGFXThread()
             while (true) {
-                val error = glGetError()
+                val error = GL46C.glGetError()
                 if (error != 0) {
                     LOGGER.warn("GLException: ${getErrorTypeName(error)}")
                 } else break
@@ -614,22 +612,22 @@ object GFX {
     @JvmStatic
     fun getErrorTypeName(error: Int): String {
         return when (error) {
-            GL_INVALID_ENUM -> "invalid enum"
-            GL_INVALID_VALUE -> "invalid value"
-            GL_INVALID_OPERATION -> "invalid operation"
-            GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
-            GL_STACK_UNDERFLOW -> "stack underflow"
-            GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
-            GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
-            GL_CONTEXT_LOST -> "context lost"
+            GL46C.GL_INVALID_ENUM -> "invalid enum"
+            GL46C.GL_INVALID_VALUE -> "invalid value"
+            GL46C.GL_INVALID_OPERATION -> "invalid operation"
+            GL46C.GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
+            GL46C.GL_STACK_UNDERFLOW -> "stack underflow"
+            GL46C.GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
+            GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
+            GL46C.GL_CONTEXT_LOST -> "context lost"
             GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
-            GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
-            GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
-            GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
-            GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> "incomplete read buffer"
-            GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
-            GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
-            GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> "incomplete read buffer"
+            GL46C.GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
+            GL46C.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
+            GL46C.GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
             else -> getName(error)
         }
     }

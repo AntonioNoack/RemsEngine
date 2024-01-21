@@ -10,7 +10,11 @@ import me.anno.sdf.arrays.SDFArray2
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.random.SDFRandomRotation
 import me.anno.sdf.random.SDFRandomUV
-import me.anno.sdf.shapes.*
+import me.anno.sdf.shapes.SDFBox
+import me.anno.sdf.shapes.SDFCylinder
+import me.anno.sdf.shapes.SDFHeart
+import me.anno.sdf.shapes.SDFHeightMap
+import me.anno.sdf.shapes.SDFTorus
 import me.anno.sdf.uv.LinearUVMapper
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.toRadians

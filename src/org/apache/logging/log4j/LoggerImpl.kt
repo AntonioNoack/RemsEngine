@@ -3,7 +3,8 @@ package org.apache.logging.log4j
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.commons.logging.Log
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 import java.util.logging.Level
 
 open class LoggerImpl(val prefix: String?) : Logger, Log {

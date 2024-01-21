@@ -2,8 +2,8 @@ package me.anno.fonts
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.FontStats.getTextGenerator
+import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
@@ -14,7 +14,12 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import kotlin.math.*
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 object FontManager {
 
@@ -76,10 +81,9 @@ object FontManager {
     fun getSize(key: TextCacheKey, async: Boolean): Int {
         val data = TextSizeCache.getEntry(key, 100_000, async) {
             val awtFont = getFont(it)
-            val averageFontSize = getAvgFontSize(it.fontSizeIndex())
             val wl = if (it.widthLimit < 0) GFX.maxTextureSize else min(it.widthLimit, GFX.maxTextureSize)
             val hl = if (it.heightLimit < 0) GFX.maxTextureSize else min(it.heightLimit, GFX.maxTextureSize)
-            CacheData(awtFont.calculateSize(it.text, averageFontSize, wl, hl))
+            CacheData(awtFont.calculateSize(it.text, wl, hl))
         } as? CacheData<*>
         return data?.value as? Int ?: -1
     }
@@ -166,10 +170,9 @@ object FontManager {
         if (cacheKey.text.isBlank2()) return null
         return TextCache.getEntry(cacheKey, timeoutMillis, async) { key ->
             val font2 = getFont(key)
-            val averageFontSize = getAvgFontSize(key.fontSizeIndex())
             val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
             val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
-            val texture = font2.generateTexture(key.text, averageFontSize, wl, hl, key.isGrayscale())
+            val texture = font2.generateTexture(key.text, wl, hl, key.isGrayscale())
             if (texture == null) LOGGER.warn("Texture for '$key' was null")
             texture
         } as? ITexture2D

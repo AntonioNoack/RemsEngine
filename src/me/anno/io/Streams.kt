@@ -3,7 +3,11 @@ package me.anno.io
 import me.anno.Engine
 import me.anno.io.base.InvalidFormatException
 import me.anno.utils.Sleep.sleepShortly
-import java.io.*
+import java.io.BufferedReader
+import java.io.EOFException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.Reader
 import kotlin.concurrent.thread
 
 /**
@@ -237,5 +241,4 @@ object Streams {
                 throw InvalidFormatException("Magic incorrect")
         }
     }
-
 }

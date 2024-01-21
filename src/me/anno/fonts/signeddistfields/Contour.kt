@@ -1,11 +1,11 @@
 package me.anno.fonts.signeddistfields
 
 import me.anno.fonts.Font
-import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import org.joml.AABBf
 
-class Contour(val segments: ArrayList<EdgeSegment>) {
+class Contour(val segments: List<EdgeSegment>) {
+
     val bounds = AABBf()
     fun calculateBounds(): AABBf {
         bounds.clear()

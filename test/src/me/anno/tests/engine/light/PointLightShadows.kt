@@ -1,12 +1,13 @@
 package me.anno.tests.engine.light
 
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.mesh.Shapes.flatCube
-import java.util.*
+import kotlin.random.Random
 
 /**
  * Test the shadow of a point light properly;
@@ -28,7 +29,7 @@ fun main() {
     lightE.add(light)
 
     // spawn random cubes, so the shadow can fall on sth
-    val rnd = Random()
+    val rnd = Random(Time.nanoTime)
     val cubes = Entity("Cubes")
     for (i in 0 until 20) {
         val cube = Entity("Cube $i")
