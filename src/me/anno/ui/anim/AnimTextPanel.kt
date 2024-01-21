@@ -11,11 +11,10 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.Style

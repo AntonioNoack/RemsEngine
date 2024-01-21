@@ -6,7 +6,7 @@ import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.TextMeshComponent
 import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 
 /**

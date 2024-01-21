@@ -5,7 +5,7 @@ import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.maths.Maths.hasFlag
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.min
 

@@ -1,20 +1,18 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.fonts.FontManager
+import me.anno.fonts.Font
 import me.anno.fonts.TextDrawable
+import me.anno.fonts.signeddistfields.Contour.Companion.calculateContours
+import me.anno.fonts.signeddistfields.edges.CubicSegment
+import me.anno.fonts.signeddistfields.edges.LinearSegment
+import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.gpu.buffer.Attribute
-import me.anno.maths.Maths.distance
 import me.anno.mesh.Triangulation
-import me.anno.ui.base.Font
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
 import org.joml.AABBf
 import org.joml.Vector2f
-import java.awt.font.FontRenderContext
-import java.awt.font.TextLayout
-import java.awt.geom.GeneralPath
-import java.awt.geom.PathIterator
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -29,125 +27,32 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
         val quadAccuracy = 5f
         val cubicAccuracy = 5f
 
-        val fragments = ArrayList<Fragment>()
-
-        val ctx = FontRenderContext(null, true, true)
-
-        val shape = GeneralPath()
-        val layout = TextLayout(text, FontManager.getFont(font).awtFont, ctx)
-
-        val outline = layout.getOutline(null)
-        shape.append(outline, true)
-
-        val path = shape.getPathIterator(null)
-        var currentShape = ArrayList<Vector2f>()
-        var x = 0f
-        var y = 0f
-        val coordinates = FloatArray(6)
-        while (!path.isDone) {
-
-            val type = path.currentSegment(coordinates)
-
-            // y is mirrored, because y is up, not down in our 3D coordinate system
-            val x0 = +coordinates[0]
-            val y0 = -coordinates[1]
-
-            val x1 = +coordinates[2]
-            val y1 = -coordinates[3]
-
-            val x2 = +coordinates[4]
-            val y2 = -coordinates[5]
-
-            when (type) {
-                PathIterator.SEG_QUADTO -> {
-
-                    // b(m,n) = Bernstein Coefficient, or Pascal's Triangle * t^(m-n) * (1-t)^n
-                    fun quadAt(t: Float): Vector2f {
-                        val f = 1 - t
-                        val b20 = f * f
-                        val b21 = 2 * f * t
-                        val b22 = t * t
-                        return Vector2f(
-                            x * b20 + x0 * b21 + x1 * b22,
-                            y * b20 + y0 * b21 + y1 * b22
-                        )
+        val contours = calculateContours(font, text)
+        val fragments = ArrayList(contours.map {
+            val points = ArrayList<Vector2f>()
+            for (s in it.segments) {
+                val steps = when (s) {
+                    is QuadraticSegment -> {
+                        val length = s.p0.distance(s.p1) + s.p1.distance(s.p2)
+                        max(2, (quadAccuracy * length).roundToInt())
                     }
-
-                    val length = distance(x, y, x0, y0) + distance(x0, y0, x1, y1)
-                    val steps = max(2, (quadAccuracy * length).roundToInt())
-
-                    for (i in 0 until steps) {
-                        currentShape.add(quadAt(i.toFloat() / steps))
+                    is CubicSegment -> {
+                        val length = s.p0.distance(s.p1) + s.p1.distance(s.p2) + s.p2.distance(s.p3)
+                        max(3, (cubicAccuracy * length).roundToInt())
                     }
-
-                    // if(debugPieces) Logger.info("quad to $x0 $y0 $x1 $y1")
-
-                    x = x1
-                    y = y1
+                    is LinearSegment -> 1
+                    else -> throw NotImplementedError()
                 }
-                PathIterator.SEG_CUBICTO -> {
-
-                    fun cubicAt(t: Float): Vector2f {
-                        val f = 1 - t
-                        val b30 = f * f * f
-                        val b31 = 3 * f * f * t
-                        val b32 = 3 * f * t * t
-                        val b33 = t * t * t
-                        return Vector2f(
-                            x * b30 + x0 * b31 + x1 * b32 + x2 * b33,
-                            y * b30 + y0 * b31 + y1 * b32 + y2 * b33
-                        )
-                    }
-
-                    // if(debugPieces) LOGGER.info("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
-
-                    val length = distance(x, y, x0, y0) + distance(x0, y0, x1, y1) + distance(x1, y1, x2, y2)
-                    val steps = max(3, (cubicAccuracy * length).roundToInt())
-
-                    for (i in 0 until steps) {
-                        currentShape.add(cubicAt(i.toFloat() / steps))
-                    }
-
-                    x = x2
-                    y = y2
-                }
-                PathIterator.SEG_LINETO -> {
-
-                    // if(debugPieces) LOGGER.info("line $x $y to $x0 $y0")
-
-                    currentShape.add(Vector2f(x, y))
-                    // currentShape.add(rand2d(x, y))
-
-                    x = x0
-                    y = y0
-                }
-                PathIterator.SEG_MOVETO -> {
-
-                    if (currentShape.isNotEmpty()) throw RuntimeException("move to is only allowed after close or at the start...")
-
-                    // if(debugPieces) LOGGER.info("move to $x0 $y0")
-
-                    x = x0
-                    y = y0
-                }
-                PathIterator.SEG_CLOSE -> {
-
-                    // if(debugPieces) LOGGER.info("close")
-
-                    if (currentShape.size > 2) {
-                        // randomize the shapes to break up linear parts,
-                        // which can't be solved by our currently used triangulator
-                        // works <3
-                        fragments.add(Fragment(currentShape))
-                    }// else crazy...
-                    currentShape = ArrayList()
+                for (i in 0 until steps) {
+                    points.add(s.point(i.toFloat() / steps, Vector2f()))
                 }
             }
-
-            path.next()
-        }
-
-        if (path.windingRule != PathIterator.WIND_NON_ZERO) throw RuntimeException("Winding rule ${path.windingRule} not implemented")
+            // y is mirrored, because y is up, not down in our 3D coordinate system
+            for (point in points) {
+                point.y = -point.y
+            }
+            Fragment(points)
+        })
 
         // ignore the winding? just use our intuition?
         // intuition:
@@ -215,8 +120,7 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
         }
 
         // center the text, ignore the characters themselves
-
-        val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
+        val baseScale = DEFAULT_LINE_HEIGHT / font.size
         var i = 0
         for (point in triangles) {
             positions[i++] = point.x * baseScale

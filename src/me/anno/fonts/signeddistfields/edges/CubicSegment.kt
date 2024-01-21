@@ -33,13 +33,13 @@ class CubicSegment(
 
     override fun toString() = "[$p0 $p1 $p2 $p3]"
 
-    override fun point(param: Float, dst: Vector2f): Vector2f {
-        val b = 1f - param
+    override fun point(t: Float, dst: Vector2f): Vector2f {
+        val b = 1f - t
         val b2 = b * b
-        val pr2 = param * param
-        val aaa = pr2 * param
+        val pr2 = t * t
+        val aaa = pr2 * t
         val aab = 3f * pr2 * b
-        val abb = 3f * param * b2
+        val abb = 3f * t * b2
         val bbb = b * b2
         return dst.set(p0).mul(bbb)
             .add(p1.x * abb, p1.y * abb)
@@ -47,10 +47,10 @@ class CubicSegment(
             .add(p3.x * aaa, p3.y * aaa)
     }
 
-    override fun direction(param: Float, dst: Vector2f): Vector2f {
-        val b = 1f - param
-        val a2 = param * param
-        val ab2 = 2f * param * b
+    override fun direction(t: Float, dst: Vector2f): Vector2f {
+        val b = 1f - t
+        val a2 = t * t
+        val ab2 = 2f * t * b
         val b2 = b * b
         val f1 = b2 - ab2
         val f2 = ab2 - a2
@@ -59,8 +59,8 @@ class CubicSegment(
             .add(p2.x * f2, p2.y * f2)
             .add(p3.x * a2, p3.y * a2)
         if (dst.lengthSquared() == 0f) {
-            if (param == 0f) return dst.set(p2).sub(p0)
-            if (param == 1f) return dst.set(p3).sub(p1)
+            if (t == 0f) return dst.set(p2).sub(p0)
+            if (t == 1f) return dst.set(p3).sub(p1)
         }
         return dst
     }

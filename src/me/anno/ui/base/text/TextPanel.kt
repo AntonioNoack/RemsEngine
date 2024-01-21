@@ -22,7 +22,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a

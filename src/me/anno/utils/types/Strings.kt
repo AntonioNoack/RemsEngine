@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonWriterBase
 import me.anno.maths.Maths.fract
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList

@@ -18,7 +18,7 @@ import me.anno.engine.history.StringHistory
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
@@ -36,7 +36,6 @@ import me.anno.utils.types.Strings.joinChars
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.streams.toList
 
 // todo feedback, what the result of the code is / what compiler errors happened
 // todo also add execution button

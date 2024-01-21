@@ -1,6 +1,7 @@
 package me.anno.tests.bench
 
 import me.anno.Time
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
@@ -26,7 +27,7 @@ fun main() {
     val logger = LogManager.getLogger("SDFBenchmark")
 
     val roundEdges = false
-    val font = FontManager.getFont("Verdana", 8f, bold = false, italic = false).awtFont
+    val font = Font("Verdana", 8f, isBold = false, isItalic = false)
     val text = "Lorem Ipsum is simply text."
 
     Thread.sleep(8000)

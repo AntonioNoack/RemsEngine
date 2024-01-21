@@ -19,6 +19,7 @@ object Codepoints {
         return (high.code shl 10) + low.code - 56613888
     }
 
+    @Suppress("unused")
     fun CharSequence.needsCodepoints(): Boolean {
         for (i in 0 until length - 1) {
             if (isHighSurrogate(this[i]) && isLowSurrogate(this[i + 1])) {
@@ -28,7 +29,7 @@ object Codepoints {
         return false
     }
 
-    fun CharSequence.codepointsSize(): Int {
+    fun CharSequence.countCodepoints(): Int {
         var len = length
         for (i in 0 until length - 1) {
             if (isHighSurrogate(this[i]) && isLowSurrogate(this[i + 1])) {
@@ -39,7 +40,7 @@ object Codepoints {
     }
 
     fun CharSequence.codepoints(): IntArray {
-        val result = IntArray(codepointsSize())
+        val result = IntArray(countCodepoints())
         var ri = 0
         for (wi in result.indices) {
             result[wi] = if (ri + 1 < length &&

@@ -9,9 +9,9 @@ import kotlin.math.abs
 
 abstract class EdgeSegment {
 
-    abstract fun point(param: Float, dst: Vector2f): Vector2f
+    abstract fun point(t: Float, dst: Vector2f): Vector2f
 
-    abstract fun direction(param: Float, dst: Vector2f): Vector2f
+    abstract fun direction(t: Float, dst: Vector2f): Vector2f
 
     abstract fun length(): Float
 

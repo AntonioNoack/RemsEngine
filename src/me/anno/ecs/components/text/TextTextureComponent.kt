@@ -8,10 +8,9 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.Shapes
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.sign

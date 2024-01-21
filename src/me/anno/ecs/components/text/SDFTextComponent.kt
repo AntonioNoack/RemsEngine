@@ -11,7 +11,7 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
 import me.anno.mesh.Shapes
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import org.joml.AABBd

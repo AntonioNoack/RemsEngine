@@ -3,7 +3,7 @@ package me.anno.ecs.components.text
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 
 // todo MeshSpawner component for long texts?

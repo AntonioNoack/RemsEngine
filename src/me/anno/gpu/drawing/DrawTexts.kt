@@ -22,7 +22,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a

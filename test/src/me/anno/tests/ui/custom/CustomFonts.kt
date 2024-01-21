@@ -2,7 +2,7 @@ package me.anno.tests.ui.custom
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.OS.downloads

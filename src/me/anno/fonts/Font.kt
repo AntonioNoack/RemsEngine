@@ -1,6 +1,5 @@
-package me.anno.ui.base
+package me.anno.fonts
 
-import me.anno.fonts.FontManager
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.io.Saveable

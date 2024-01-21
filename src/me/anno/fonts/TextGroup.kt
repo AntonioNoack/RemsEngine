@@ -4,7 +4,6 @@ import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.fonts.mesh.CharacterOffsetCache.Companion.getOffsetCache
 import me.anno.fonts.mesh.TextMesh
-import me.anno.ui.base.Font
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

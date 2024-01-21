@@ -74,7 +74,7 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.utils.Color.black
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
@@ -1316,18 +1316,13 @@ object Thumbs {
         val text = "The quick\nbrown fox\njumps over\nthe lazy dog"
         val lineCount = 4
         val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
-        val font = FontManager.getFont(key)
-        val texture = font.generateTexture(
-            text, key.size, size * 2, size * 2,
-            portableImages = true,
-            textColor = 255 shl 24,
-            backgroundColor = -1,
-            extraPadding = key.sizeInt / 2
+        val texture = FontManager.getTexture(
+            key, text, size * 2, size * 2, 0, false
         )
-        if (texture is ITexture2D) {
-            waitUntil(true) { texture.wasCreated || texture.isDestroyed }
+        if (texture != null) {
+            waitUntil(true) { texture.wasCreated }
             callback.ok(texture)
-        } else callback.call(null, null)
+        } else callback.err(null)
     }
 
     @JvmStatic

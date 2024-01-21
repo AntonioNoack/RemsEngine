@@ -1,6 +1,8 @@
 package me.anno
 
 import me.anno.extensions.plugins.Plugin
+import me.anno.fonts.ContourImpl
+import me.anno.fonts.signeddistfields.Contour
 import me.anno.input.Clipboard
 import me.anno.io.MediaMetadata
 import me.anno.io.files.thumbs.Thumbs
@@ -23,6 +25,7 @@ class JVMPlugin : Plugin() {
         OpenFileExternally.editInStandardProgramImpl = OpenFileExternallyImpl::editInStandardProgram
         OpenFileExternally.openInExplorerImpl = OpenFileExternallyImpl::openInExplorer
         MediaMetadata.registerSignatureHandler(100, "ImageIO", MetadataImpl::readImageIOMetadata)
+        Contour.calculateContoursImpl = ContourImpl::calculateContours
         ImageImpl.register()
     }
 }

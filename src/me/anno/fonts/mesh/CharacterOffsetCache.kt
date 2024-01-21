@@ -3,7 +3,7 @@ package me.anno.fonts.mesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.FontManager
 import me.anno.maths.Maths
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.utils.types.Strings.joinChars
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

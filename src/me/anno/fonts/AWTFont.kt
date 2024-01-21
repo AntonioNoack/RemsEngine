@@ -30,7 +30,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class AWTFont(val font: me.anno.ui.base.Font, val awtFont: Font) {
+class AWTFont(val font: me.anno.fonts.Font, val awtFont: Font) {
 
     val name: String get() = awtFont.name
     val size get() = awtFont.size
@@ -398,7 +398,7 @@ class AWTFont(val font: me.anno.ui.base.Font, val awtFont: Font) {
                         if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                         index1 = tmp1
                     } else {
-                        result += StringPart(currentX, currentY, chars.joinChars(index0, index1), font, 0f)
+                        result += StringPart(currentX, currentY, chars.joinChars(index0, index1), 0f)
                         currentX = nextX
                         widthF = max(widthF, currentX)
                         index0 = index1
@@ -496,10 +496,9 @@ class AWTFont(val font: me.anno.ui.base.Font, val awtFont: Font) {
         val y = exampleLayout.ascent
 
         for (s in result) {
-            val font = s.font
-            gfx.font = font.awtFont
+            gfx.font = awtFont
             // println("drawing string ${s.text} by layout at ${s.xPos}, ${s.yPos} + $y")
-            font.drawString(gfx, s.text, null, s.xPos, s.yPos + y)
+            drawString(gfx, s.text, null, s.xPos, s.yPos + y)
         }
 
         gfx.dispose()

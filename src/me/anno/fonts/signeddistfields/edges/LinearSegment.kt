@@ -13,9 +13,9 @@ import kotlin.math.abs
 
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
-    override fun point(param: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, param)
+    override fun point(t: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, t)
 
-    override fun direction(param: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
+    override fun direction(t: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
 
     override fun length(): Float = p1.distance(p0)
 

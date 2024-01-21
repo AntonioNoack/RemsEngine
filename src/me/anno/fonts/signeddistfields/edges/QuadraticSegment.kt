@@ -23,20 +23,20 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
 
     override fun toString() = "[$p0 $p1 $p2]"
 
-    override fun point(param: Float, dst: Vector2f): Vector2f {
-        val f0 = sq(1f - param)
-        val f1 = 2f * (1f - param) * param
-        val f2 = param * param
-        return dst.set(p0).mul(f0)
+    override fun point(t: Float, dst: Vector2f): Vector2f {
+        val f0 = sq(1f - t)
+        val f1 = 2f * (1f - t) * t
+        val f2 = t * t
+        return p0.mul(f0, dst)
             .add(p1.x * f1, p1.y * f1)
             .add(p2.x * f2, p2.y * f2)
     }
 
-    override fun direction(param: Float, dst: Vector2f): Vector2f {
-        val b = 1f - param
+    override fun direction(t: Float, dst: Vector2f): Vector2f {
+        val b = 1f - t
         val b2 = b * b
-        val a2 = param * param
-        val ba = b - param
+        val a2 = t * t
+        val ba = b - t
         dst.set(p0).mul(-b2)
             .add(p1.x * ba, p1.y * ba)
             .add(p2.x * a2, p2.y * a2)

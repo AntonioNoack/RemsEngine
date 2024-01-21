@@ -2,7 +2,7 @@ package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 
 /**

@@ -10,7 +10,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

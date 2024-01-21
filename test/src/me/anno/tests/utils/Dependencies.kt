@@ -16,7 +16,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3

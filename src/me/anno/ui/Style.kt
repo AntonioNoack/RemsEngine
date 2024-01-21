@@ -2,7 +2,7 @@ package me.anno.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.io.utils.StringMap
-import me.anno.ui.base.Font
+import me.anno.fonts.Font
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color
 import org.apache.logging.log4j.LogManager
