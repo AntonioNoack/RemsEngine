@@ -100,6 +100,7 @@
       <element id="module-output" name="Image" />
       <element id="module-output" name="Unpack" />
       <element id="module-output" name="Video" />
+      <element id="module-output" name="JVM" />
     </root>
   </artifact>
 </component>
