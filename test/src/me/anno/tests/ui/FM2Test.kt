@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.fonts.FontManager
-import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
+import me.anno.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import java.awt.Color
 import java.awt.Graphics2D

@@ -5,6 +5,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.engine.EngineBase
+import me.anno.input.Clipboard.getClipboardContent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -90,7 +91,7 @@ open class URLInput(
                     openInStandardProgram.toMenu(this, files),
                     copyPath.toMenu(this, files),
                     MenuOption(pasteDesc) {
-                        val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
+                        val newValue = getReference(getClipboardContent()?.toString() ?: "")
                         setValue(newValue, true)
                     },
                 ) + extraRightClickOptions.map {

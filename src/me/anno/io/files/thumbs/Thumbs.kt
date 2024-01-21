@@ -98,14 +98,10 @@ import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
-import javax.swing.ImageIcon
-import javax.swing.filechooser.FileSystemView
-import kotlin.concurrent.thread
 import kotlin.math.*
 
 /**
@@ -966,7 +962,7 @@ object Thumbs {
         dstFile: ByteSlice?,
         callback: Callback<ITexture2D>,
     ): Boolean {
-        dstFile ?: return false
+        if (dstFile == null) return false
         val image = ImageIO.read(dstFile.stream()) ?: return false
         val rotation = TextureReader.getRotation(srcFile)
         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
@@ -1154,7 +1150,6 @@ object Thumbs {
         registerSignature("media") { srcFile, dstFile, size, callback ->
             generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
         }
-        registerSignature("exe", ::generateSystemIcon)
         registerExtension("txt", ::generateTextImage)
         registerExtension("html", ::generateTextImage)
         registerExtension("md", ::generateTextImage)
@@ -1432,35 +1427,5 @@ object Thumbs {
                 }
             }
         } else transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
-    }
-
-    @JvmStatic
-    private fun generateSystemIcon(
-        srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: Callback<ITexture2D>
-    ) {
-        srcFile.toFile({
-            try {
-                val shellFolder = javaClass.classLoader.loadClass("sun.awt.shell.ShellFolder")
-                val shellMethod = shellFolder.getMethod("getShellFolder", java.io.File::class.java)
-                // val sf = ShellFolder.getShellFolder(it)
-                val sf = shellMethod.invoke(null, it)
-                val iconMethod = shellFolder.getMethod("getIcon", Boolean::class.java)
-                // val icon = sf.getIcon(true)
-                val icon = iconMethod.invoke(sf, true) as java.awt.Image
-                ImageIcon(icon)
-            } catch (e: Exception) {
-                FileSystemView.getFileSystemView().getSystemIcon(it)
-            }
-        }, { icon, exc ->
-            if (icon != null) {
-                val image = BufferedImage(icon.iconWidth + 2, icon.iconHeight + 2, 2)
-                val gfx = image.createGraphics()
-                icon.paintIcon(null, gfx, 1, 1)
-                gfx.dispose()
-                // respect the size
-                transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
-            } else exc?.printStackTrace()
-        })
     }
 }

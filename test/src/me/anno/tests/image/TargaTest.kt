@@ -1,5 +1,6 @@
 package me.anno.tests.image
 
+import me.anno.image.raw.createBufferedImage
 import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.utils.OS

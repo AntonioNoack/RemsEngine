@@ -23,6 +23,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.engine.EngineBase
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
@@ -212,8 +213,8 @@ class ECSSceneTab(
                 openMenu(windowStack, listOf(
                     MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
                     MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
-                    MenuOption(NameDesc("Copy Path")) { Input.setClipboardContent(file.absolutePath) },
-                    MenuOption(NameDesc("Copy Name")) { Input.setClipboardContent(file.name) },
+                    MenuOption(NameDesc("Copy Path")) { setClipboardContent(file.absolutePath) },
+                    MenuOption(NameDesc("Copy Name")) { setClipboardContent(file.name) },
                     MenuOption(NameDesc("Clear History")) {
                         ECSSceneTabs.open(this, true)
                         val history = inspector.prefab.history

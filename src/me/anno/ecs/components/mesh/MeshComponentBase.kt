@@ -20,6 +20,7 @@ import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.base.menu.Menu
@@ -187,7 +188,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             val data = "Positions: $vertices\n" +
                     "Indices: ${mesh.indices?.toList()}"
             LOGGER.info(data)
-            Input.setClipboardContent(data)
+            setClipboardContent(data)
             Menu.msg(NameDesc("Pasted mesh to console and clipboard"))
         } else if (mesh != null) {
             Menu.msg(NameDesc("Missing positions"))

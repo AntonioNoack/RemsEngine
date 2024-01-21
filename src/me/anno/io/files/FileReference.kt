@@ -1,11 +1,9 @@
 package me.anno.io.files
 
 import me.anno.cache.ICacheData
-import me.anno.utils.structures.Callback
 import me.anno.engine.EngineBase
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceOrTimeout
-import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.thumbs.Thumbs
@@ -15,13 +13,12 @@ import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Tabs
-import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.awt.Desktop
 import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
@@ -280,10 +277,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @Throws(IOException::class)
     abstract fun length(): Long
 
-    open fun toFile() = File(absolutePath.replace("!!", "/"))
-
-    // fun length() = if (isInsideCompressed) zipFile?.size ?: 0L else file.length()
-    fun openInExplorer() = toFile().openInExplorer()
+    fun toFile() = File(absolutePath.replace("!!", "/"))
 
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
         if (maxNumBackPaths < 1 && !absolutePath.startsWith(basePath.absolutePath)) return null
@@ -322,27 +316,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             }
         }
         return null
-    }
-
-    fun openInStandardProgram() {
-        val parent = getParent()
-        if (parent is InnerFile) return parent.openInStandardProgram()
-        try {
-            Desktop.getDesktop().open(toFile())
-        } catch (e: Exception) {
-            LOGGER.warn(e)
-        }
-    }
-
-    fun editInStandardProgram() {
-        val parent = getParent()
-        if (parent is InnerFile) return parent.editInStandardProgram()
-        try {
-            Desktop.getDesktop().edit(toFile())
-        } catch (e: Exception) {
-            LOGGER.warn(e.message)
-            openInStandardProgram()
-        }
     }
 
     @Throws(IOException::class)
@@ -510,20 +483,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             element = element.getParent() ?: return false
         }
         return false
-    }
-
-    open fun <V> toFile(run: (File) -> V, callback: (V?, Exception?) -> Unit) {
-        val tmp = File.createTempFile(nameWithoutExtension, extension)
-        readBytes { bytes, exc ->
-            if (bytes != null) {
-                tmp.writeBytes(bytes)
-                val result = run(tmp)
-                tmp.deleteOnExit()
-                callback(result, null)
-            } else {
-                callback(null, exc)
-            }
-        }
     }
 
     fun printTree(depth: Int = 0) {

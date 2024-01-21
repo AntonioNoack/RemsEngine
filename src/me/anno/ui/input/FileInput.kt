@@ -9,6 +9,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
 import me.anno.engine.EngineBase
+import me.anno.input.Clipboard.getClipboardContent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -183,7 +184,7 @@ open class FileInput(
                     editInStandardProgram, copyPath,
                 ).map { it.toMenu(this, files) } + listOf(
                     MenuOption(pasteDesc) {
-                        val newValue = getReference(Input.getClipboardContent()?.toString() ?: "")
+                        val newValue = getReference(getClipboardContent()?.toString() ?: "")
                         setValue(newValue, true)
                     },
                 ) + extraRightClickOptions.map {

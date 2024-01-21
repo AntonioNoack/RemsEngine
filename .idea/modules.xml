@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/Bullet/Bullet.iml" filepath="$PROJECT_DIR$/Bullet/Bullet.iml" />
       <module fileurl="file://$PROJECT_DIR$/Engine.iml" filepath="$PROJECT_DIR$/Engine.iml" />
       <module fileurl="file://$PROJECT_DIR$/Image/Image.iml" filepath="$PROJECT_DIR$/Image/Image.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JVM/JVM.iml" filepath="$PROJECT_DIR$/JVM/JVM.iml" />
       <module fileurl="file://$PROJECT_DIR$/KOML/KOML.iml" filepath="$PROJECT_DIR$/KOML/KOML.iml" />
       <module fileurl="file://$PROJECT_DIR$/Lua/Lua.iml" filepath="$PROJECT_DIR$/Lua/Lua.iml" />
       <module fileurl="file://$PROJECT_DIR$/Mesh/Mesh.iml" filepath="$PROJECT_DIR$/Mesh/Mesh.iml" />

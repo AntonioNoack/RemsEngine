@@ -35,6 +35,7 @@ import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
+import me.anno.input.Clipboard
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
@@ -80,6 +81,9 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.files.OpenFileExternally.editInStandardProgram
+import me.anno.utils.files.OpenFileExternally.openInExplorer
+import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
@@ -626,8 +630,7 @@ open class FileExplorerEntry(
         drawBackground(x0, y0, x1, y1)
 
         val font0 = titlePanel.font
-        val font1 = FontManager.getFont(font0)
-        val fontSize = font1.actualFontSize
+        val fontSize = font0.size
 
         val x = x
         val y = y
@@ -766,24 +769,6 @@ open class FileExplorerEntry(
         return true
     }
 
-    fun editInStandardProgram(files: List<FileReference>) {
-        for (file in files) {
-            file.editInStandardProgram()
-        }
-    }
-
-    fun openInStandardProgram(files: List<FileReference>) {
-        for (file in files) {
-            file.openInStandardProgram()
-        }
-    }
-
-    fun openInExplorer(files: List<FileReference>) {
-        for (file in files) {
-            file.openInExplorer()
-        }
-    }
-
     fun findInFocusReferences(): List<FileReference> {
         val hits = ArrayList<FileReference>()
         hits.add(getReferenceOrTimeout(path))
@@ -828,7 +813,7 @@ open class FileExplorerEntry(
                 .filter { it.isInFocus }
                 .map { getReferenceOrTimeout(it.path) }
         } else listOf(getReferenceOrTimeout(path))
-        Input.copyFiles(files)
+        Clipboard.copyFiles(files)
         return null
     }
 

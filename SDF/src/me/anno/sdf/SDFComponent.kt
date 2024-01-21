@@ -19,10 +19,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.quatRot
-import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp

@@ -52,8 +52,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
     }
 
-    override fun toFile(): File = file
-
     override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
         try {
             callback.ok(inputStreamSync())
@@ -206,10 +204,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun toUri(): URI {
         return URI("file:/${absolutePath.replace(" ", "%20")}")
-    }
-
-    override fun <V> toFile(run: (File) -> V, callback: (V?, Exception?) -> Unit) {
-        callback(run(file), null)
     }
 
     override val isDirectory: Boolean

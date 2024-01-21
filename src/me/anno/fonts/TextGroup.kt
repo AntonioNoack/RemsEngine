@@ -7,9 +7,6 @@ import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 
-/**
- * custom character-character alignment maps by font for faster calculation
- * */
 open class TextGroup(
     val font: AWTFont,
     val text: CharSequence,

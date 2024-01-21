@@ -107,15 +107,6 @@ open class IntImage(
 
     override fun createIntImage() = this
 
-    override fun createBufferedImage(): BufferedImage {
-        val width = width
-        val height = height
-        val image = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
-        val dataBuffer = image.raster.dataBuffer as DataBufferInt
-        data.copyInto(dataBuffer.data)
-        return image
-    }
-
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
         callback: Callback<ITexture2D>

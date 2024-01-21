@@ -1,7 +1,13 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.showFPS
+import me.anno.engine.Events.addEvent
+import me.anno.engine.GFXSettings
 import me.anno.engine.projects.GameEngineProject
+import me.anno.engine.projects.ProjectHeader
+import me.anno.engine.projects.Projects
 import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -12,12 +18,6 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate
-import me.anno.engine.Events.addEvent
-import me.anno.engine.GFXSettings
-import me.anno.engine.projects.ProjectHeader
-import me.anno.engine.projects.Projects
-import me.anno.engine.EngineBase
-import me.anno.engine.EngineBase.Companion.showFPS
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -40,6 +40,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.OS
+import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.concurrent.thread
 
@@ -187,7 +188,9 @@ interface WelcomeUI {
                             "Opens that project", "ui.recentProjects.open"
                         )
                     ) { open() },
-                    MenuOption(openInExplorerDesc) { project.file.openInExplorer() },
+                    MenuOption(openInExplorerDesc) {
+                        openInExplorer(project.file)
+                    },
                     MenuOption(
                         NameDesc(
                             "Hide",

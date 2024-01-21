@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.AWTFont
 import me.anno.gpu.buffer.Attribute
 import me.anno.maths.Maths.distance
-import me.anno.ui.base.DefaultRenderingHints
+import me.anno.fonts.DefaultRenderingHints
 import me.anno.utils.OS
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg

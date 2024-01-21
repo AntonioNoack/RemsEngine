@@ -8,6 +8,7 @@ import me.anno.extensions.ExtensionLoader
 object OfficialExtensions {
     fun register() {
         val paths = listOf(
+            "res://jvm-ext.info",
             "res://pdf-ext.info",
             "res://box2d-ext.info",
             "res://bullet-ext.info",

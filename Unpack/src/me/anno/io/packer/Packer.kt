@@ -3,6 +3,7 @@ package me.anno.io.packer
 import me.anno.Time
 import me.anno.utils.structures.Callback
 import me.anno.image.ImageReadable
+import me.anno.image.raw.createBufferedImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache

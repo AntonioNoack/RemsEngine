@@ -1,12 +1,11 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
-import java.awt.image.BufferedImage
+import me.anno.utils.structures.Callback
 
 /**
  * when you don't want to store references in memory all the time, use this class
@@ -28,14 +27,6 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
         width = img.width
         height = img.height
         return img.getRGB(index)
-    }
-
-    override fun createBufferedImage(): BufferedImage {
-        return base!!.createBufferedImage()
-    }
-
-    override fun createBufferedImage(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): BufferedImage {
-        return base!!.createBufferedImage(dstWidth, dstHeight, allowUpscaling)
     }
 
     override fun createIntImage(): IntImage {

@@ -5,7 +5,7 @@ import me.anno.image.raw.write
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.paths.PathFinding
-import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
+import me.anno.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import org.joml.AABBf

@@ -87,10 +87,6 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         return tex.createImage(false, false)
     }
 
-    override fun createBufferedImage(): BufferedImage {
-        return createIntImage().createBufferedImage()
-    }
-
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
         callback: Callback<ITexture2D>

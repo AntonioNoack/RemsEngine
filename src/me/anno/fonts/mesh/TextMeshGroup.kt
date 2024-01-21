@@ -35,7 +35,9 @@ class TextMeshGroup(
 
     var mesh: Mesh? = null
 
-    // better for the performance of long texts
+    /**
+     * better for the performance of long texts
+     * */
     fun createJoinedMesh(dst: Mesh) {
         val characters = alignment.buffers
         this.mesh = object : MeshJoiner<Int>(false, false, false) {

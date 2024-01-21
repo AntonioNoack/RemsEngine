@@ -10,10 +10,6 @@ import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
 import me.anno.video.MissingFrameException
 
-/**
- * custom character-character alignment maps by font for faster calculation
- * */
-@Suppress("unused") // used in Rem's Studio, and still useful
 class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
     TextGroup(font, text, charSpacing.toDouble()) {
 

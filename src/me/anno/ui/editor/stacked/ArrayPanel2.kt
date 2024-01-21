@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.Saveable
@@ -302,7 +303,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     fun paste(index: Int) {
         // todo parse, then insert
         // todo when working, add paste options into general + item options
-        val clipboard = Input.getClipboardContent()
+        val clipboard = getClipboardContent()
         val parsed = TODO()
         insert(index, parsed)
     }

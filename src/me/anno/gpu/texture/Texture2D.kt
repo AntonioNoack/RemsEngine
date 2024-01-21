@@ -42,9 +42,6 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL46C.*
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
-import java.awt.image.DataBufferInt
 import java.nio.*
 import kotlin.concurrent.thread
 
@@ -351,117 +348,6 @@ open class Texture2D(
             }
         } else {
             image.createTexture(this, false, checkRedundancy, callback)
-        }
-    }
-
-    fun create(image: BufferedImage, sync: Boolean, checkRedundancy: Boolean): (() -> Unit)? {
-
-        width = image.width
-        height = image.height
-        wasCreated = false
-
-        // use the type to correctly create the image
-        val buffer = image.data.dataBuffer
-        when (image.type) {
-            BufferedImage.TYPE_INT_ARGB -> {
-                buffer as DataBufferInt
-                val data = buffer.data
-                if (sync && isGFXThread()) {
-                    createBGRA(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    switchRGB2BGR(data2)
-                    return {
-                        createRGBA(data2, checkRedundancy)
-                    }
-                }
-            }
-
-            BufferedImage.TYPE_INT_RGB -> {
-                buffer as DataBufferInt
-                val data = buffer.data
-                if (sync && isGFXThread()) {
-                    createBGR(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    switchRGB2BGR(data2)
-                    return {
-                        createRGB(data2, false)
-                    }
-                }
-            }
-
-            BufferedImage.TYPE_INT_BGR -> {
-                buffer as DataBufferInt
-                val data = buffer.data
-                // data is already in the correct format; no swizzling needed
-                if (sync && isGFXThread()) {
-                    createRGB(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    return {
-                        createRGB(data2, false)
-                    }
-                }
-            }
-
-            BufferedImage.TYPE_BYTE_GRAY -> {
-                buffer as DataBufferByte
-                val data = buffer.data
-                // data is already in the correct format; no swizzling needed
-                if (sync && isGFXThread()) {
-                    createMonochrome(data, checkRedundancy)
-                    return null
-                } else {
-                    val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    return {
-                        createMonochrome(data2, false)
-                    }
-                }
-            }
-
-            else -> {
-                val data = image.getRGB(0, 0, width, height, intArrayPool[width * height, false, false], 0, width)
-                val hasAlpha = image.hasAlphaChannel()
-                if (!hasAlpha) {
-                    // ensure opacity
-                    if (sync && isGFXThread()) {
-                        createBGR(data, checkRedundancy)
-                        intArrayPool.returnBuffer(data)
-                        return null
-                    } else {
-                        val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                        switchRGB2BGR(data2)
-                        val buffer2 = bufferPool[data2.size * 4, false, false]
-                        val buffer2i = buffer2.asIntBuffer()
-                        buffer2i.put(data2)
-                        buffer2i.flip()
-                        return {
-                            createRGB(buffer2i, checkRedundancy)
-                            intArrayPool.returnBuffer(data)
-                        }
-                    }
-                } else {
-                    if (sync && isGFXThread()) {
-                        createBGRA(data, checkRedundancy)
-                        intArrayPool.returnBuffer(data)
-                        return null
-                    } else {
-                        val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                        switchRGB2BGR(data2)
-                        val buffer2 = bufferPool[data2.size * 4, false, false]
-                        buffer2.asIntBuffer().put(data2)
-                        buffer2.position(0)
-                        return {
-                            createRGBA(buffer2, false)
-                            intArrayPool.returnBuffer(data)
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -1245,9 +1131,6 @@ open class Texture2D(
 
         @JvmField
         var wasModifiedInComputePipeline = false
-
-        @JvmStatic
-        fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
 
         @JvmField
         val bufferPool = ByteBufferPool(64)

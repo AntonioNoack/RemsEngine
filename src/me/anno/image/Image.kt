@@ -1,7 +1,6 @@
 package me.anno.image
 
 import me.anno.cache.ICacheData
-import me.anno.utils.structures.Callback
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -17,14 +16,9 @@ import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.Logging.hash32
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 import java.io.OutputStream
-import javax.imageio.IIOImage
-import javax.imageio.ImageIO
-import javax.imageio.ImageWriteParam
-import javax.imageio.stream.MemoryCacheImageOutputStream
 import kotlin.math.floor
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
@@ -52,21 +46,6 @@ abstract class Image(
         val height = height
         val data = IntArray(width * height)
         val image = IntImage(width, height, data, hasAlphaChannel)
-        var i = 0
-        val size = width * height
-        while (i < size) {
-            data[i] = getRGB(i)
-            i++
-        }
-        return image
-    }
-
-    open fun createBufferedImage(): BufferedImage {
-        val width = width
-        val height = height
-        val image = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
-        val dataBuffer = image.raster.dataBuffer as DataBufferInt
-        val data = dataBuffer.data
         var i = 0
         val size = width * height
         while (i < size) {
@@ -158,10 +137,6 @@ abstract class Image(
         callback: Callback<ITexture2D>
     ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
-    }
-
-    open fun createBufferedImage(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): BufferedImage {
-        return resized(dstWidth, dstHeight, allowUpscaling).createBufferedImage()
     }
 
     open fun resized(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): Image {
@@ -401,25 +376,7 @@ abstract class Image(
     }
 
     fun write(dst: OutputStream, format: String, quality: Float = 0.9f) {
-        val image = createBufferedImage()
-        if (format.equals("jpg", true) || format.equals("jpeg", true)) {
-            val writers = ImageIO.getImageWritersByFormatName("jpg")
-            if (writers.hasNext()) {
-                val writer = writers.next()
-                val params = writer.defaultWriteParam
-                params.compressionMode = ImageWriteParam.MODE_EXPLICIT
-                params.compressionQuality = quality
-                writer.output = MemoryCacheImageOutputStream(dst)
-                val outputImage = IIOImage(image, null, null)
-                writer.write(null, outputImage, params)
-                writer.dispose()
-                return
-            }
-        }
-
-        if (!ImageIO.write(image, format, dst)) {
-            LOGGER.warn("Couldn't find writer for $format")
-        }
+        writeImageImpl?.invoke(this, dst, format, quality)
     }
 
     override fun destroy() {}
@@ -473,6 +430,7 @@ abstract class Image(
     companion object {
 
         private val LOGGER = LogManager.getLogger(Image::class)
+        var writeImageImpl: ((Image, OutputStream, format: String, quality: Float) -> Unit)? = null
 
         @JvmStatic
         fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {

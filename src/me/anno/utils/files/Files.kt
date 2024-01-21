@@ -4,10 +4,8 @@ import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.OS
-import org.apache.logging.log4j.LogManager
-import java.awt.Desktop
-import java.io.File
-import java.util.*
+import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Floats.f2
 
 object Files {
 
@@ -174,8 +172,8 @@ object Files {
             if (v < divider) {
                 return "${
                     when (v) {
-                        in 0..9 -> "%.2f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
-                        in 10..99 -> "%.1f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
+                        in 0..9 -> (vSaved.toFloat() / divider).f2()
+                        in 10..99 -> (vSaved.toFloat() / divider).f1()
                         else -> v.toString()
                     }
                 } ${prefix}${suffix}B"
@@ -184,30 +182,7 @@ object Files {
         return "$v ${endings.last()}${suffix}B"
     }
 
-    fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren()?.filter {
+    fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren().filter {
         !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
-    } ?: emptyList()
-
-    fun File.openInExplorer() {
-        if (!exists()) {
-            parentFile?.openInExplorer() ?: LOGGER.warn("Cannot open file $this, as it does not exist!")
-        } else {
-            when {
-                OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
-                    OS.startProcess("explorer.exe", "/select,", absolutePath)
-                }
-                Desktop.isDesktopSupported() -> {
-                    val desktop = Desktop.getDesktop()
-                    desktop.open(if (isDirectory) this else this.parentFile ?: this)
-                }
-                OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
-                    OS.startProcess("xdg-open", absolutePath)
-                }
-                else -> LOGGER.warn("File.openInExplorer() is not implemented on that platform")
-            }
-        }
     }
-
-    private val LOGGER = LogManager.getLogger(Files::class)
-
 }

@@ -1,4 +1,4 @@
-package me.anno.input
+package me.anno
 
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable

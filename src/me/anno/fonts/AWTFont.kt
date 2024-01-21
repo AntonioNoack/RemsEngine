@@ -9,23 +9,21 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.image.raw.createFromBufferedImage
 import me.anno.image.raw.toImage
 import me.anno.maths.Maths.clamp
-import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
-import me.anno.utils.OS
+import me.anno.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
-import org.apache.logging.log4j.LogManager
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -38,9 +36,7 @@ class AWTFont(val font: Font) {
     val size get() = font.size
     val style get() = font.style
 
-    private val fontMetrics = if (OS.isWeb) {
-        WebFonts.getFontMetrics(font)
-    } else {
+    private val fontMetrics = run {
         val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
         unused.prepareGraphics(font, false)
         unused.fontMetrics
@@ -94,8 +90,6 @@ class AWTFont(val font: Font) {
             }
         }
     }
-
-    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
     fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
@@ -237,38 +231,22 @@ class AWTFont(val font: Font) {
         // println("generating texture for '$text', size $fontSize with ascent $ascent")
         drawString(gfx, text, group, y)
         gfx.dispose()
-        if (debugJVMResults) debug(image)
-        texture.create(image, sync = true, checkRedundancy = false)?.invoke()
-    }
-
-    fun debug(image: BufferedImage) {
-        OS.desktop.getChild("img").tryMkdirs()
-        OS.desktop.getChild("img/${ctr++}.png").outputStream().use {
-            if (!ImageIO.write(image, "png", it)) {
-                LOGGER.warn("Couldn't find writer for PNG format.")
-            }
-        }
+        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
     }
 
     private val renderContext by lazy {
         FontRenderContext(null, true, true)
     }
 
-    val exampleLayout by lazy {
+    private val exampleLayout by lazy {
         TextLayout("o", font, renderContext)
     }
 
-    val actualFontSize by lazy {
+    private val actualFontSize by lazy {
         exampleLayout.ascent + exampleLayout.descent
     }
 
-    @Suppress("unused")
-    val ascent by lazy { exampleLayout.ascent }
-
-    @Suppress("unused")
-    val descent by lazy { exampleLayout.descent }
-
-    fun splitParts(
+    private fun splitParts(
         text: CharSequence,
         fontSize: Float,
         relativeTabSize: Float,
@@ -314,7 +292,7 @@ class AWTFont(val font: Font) {
         return PartResult(parts, width, height, lineCount)
     }
 
-    fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
+    private fun getSupportLevel(fonts: List<AWTFont>, char: Int, lastSupportLevel: Int): Int {
         for (index in fonts.indices) {
             val font = fonts[index]
             if (font.font.canDisplay(char)) return index
@@ -528,8 +506,7 @@ class AWTFont(val font: Font) {
         }
 
         gfx.dispose()
-        if (debugJVMResults) debug(image)
-        texture.create(image, sync = true, checkRedundancy = false)?.invoke()
+        texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
     }
 
     private fun createASCIITexture(
@@ -560,33 +537,29 @@ class AWTFont(val font: Font) {
             y += dy
         }
         gfx.dispose()
-        if (debugJVMResults) debug(image)
         texture.create(image.toImage(), sync = true)
     }
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(AWTFont::class)
+        private val asciiStrings = Array(128) { it.toChar().toString() }
 
-        val asciiStrings = Array(128) { it.toChar().toString() }
-
-        val splittingOrder: List<Collection<Int>> = listOf(
+        private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),
             listOf('-'.code),
             listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.code }.toSortedSet(),
             listOf(','.code, '.'.code)
         )
 
-        const val debugJVMResults = false
+        fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
-        var ctr = 0
         private val fallbackFontList = DefaultConfig[
             "ui.font.fallbacks",
             "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
         ].split(',').mapNotNull { if (it.isBlank2()) null else it.trim() }
 
         private val fallbackFonts = HashMap<Float, List<AWTFont>>()
-        fun getFallback(size: Float): List<AWTFont> {
+        private fun getFallback(size: Float): List<AWTFont> {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
             val fonts = fallbackFontList.map { FontManager.getFont(it, size, bold = false, italic = false) }

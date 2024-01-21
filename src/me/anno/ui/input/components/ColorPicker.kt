@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths
@@ -115,7 +116,7 @@ class ColorPicker(
         // place color into this view
         callback(color)
         // place color into clipboard
-        Input.setClipboardContent(color.toHexColor())
+        setClipboardContent(color.toHexColor())
         // hide window
         windowStack.remove(window!!)
         if (ownsGPUData) {

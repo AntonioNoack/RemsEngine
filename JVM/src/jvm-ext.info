@@ -1,0 +1,4 @@
+plugin-name: JVM Classes
+author: Antonio Noack
+description: Does things that are exclusive to Java ports
+main-class: me.anno.JVMPlugin

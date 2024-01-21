@@ -616,20 +616,6 @@ object ShaderLib {
 
     fun createShader(
         shaderName: String,
-        vertexShader: String,
-        varyings: List<Variable>,
-        fragmentShader: String,
-        textures: List<String>,
-        vararg ignored: String
-    ): BaseShader {
-        val shader = BaseShader(shaderName, vertexShader, varyings, fragmentShader)
-        shader.setTextureIndices(textures)
-        shader.ignoreNameWarnings(ignored.toList())
-        return shader
-    }
-
-    fun createShader(
-        shaderName: String,
         vertexVariables: List<Variable>,
         vertexShader: String,
         varyings: List<Variable>,

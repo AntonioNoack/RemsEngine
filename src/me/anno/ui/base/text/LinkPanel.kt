@@ -1,15 +1,18 @@
 package me.anno.ui.base.text
 
 import me.anno.gpu.Cursor
-import me.anno.input.Input.setClipboardContent
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.Style
-import me.anno.utils.files.OpenInBrowser.openInBrowser
+import me.anno.utils.files.OpenFileExternally
 import java.net.URL
 
+/**
+ * represents a clickable link
+ * */
 open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChild("link")) {
 
     constructor(style: Style) : this("", style)
@@ -31,7 +34,7 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
     }
 
     fun open() {
-        URL(text).openInBrowser()
+        OpenFileExternally.openInBrowser(text)
     }
 
     override fun getCursor(): Cursor? = Cursor.hand

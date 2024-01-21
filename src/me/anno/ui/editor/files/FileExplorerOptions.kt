@@ -5,7 +5,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
-import me.anno.input.Input
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
@@ -20,6 +20,7 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu
+import me.anno.utils.files.OpenFileExternally
 import kotlin.math.max
 
 object FileExplorerOptions {
@@ -91,27 +92,21 @@ object FileExplorerOptions {
         FileExplorerEntry.rename(p.windowStack, p as? FileExplorer, files)
     }
     val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, files ->
-        for (file in files) {
-            file.openInExplorer()
-        }
+        OpenFileExternally.openInExplorer(files)
     }
     val openInStandardProgram = FileExplorerOption(openInStandardProgramDesc) { _, files ->
-        for (file in files) {
-            file.openInStandardProgram()
-        }
+        OpenFileExternally.openInStandardProgram(files)
     }
     val editInStandardProgram = FileExplorerOption(editInStandardProgramDesc) { _, files ->
-        for (file in files) {
-            file.editInStandardProgram()
-        }
+        OpenFileExternally.editInStandardProgram(files)
     }
     val copyPath = FileExplorerOption(copyPathDesc) { _, files ->
-        Input.setClipboardContent(files.joinToString {
+        setClipboardContent(files.joinToString {
             enquoteIfNecessary(it.absolutePath)
         })
     }
     val copyName = FileExplorerOption(copyNameDesc) { _, files ->
-        Input.setClipboardContent(files.joinToString {
+        setClipboardContent(files.joinToString {
             enquoteIfNecessary(it.name)
         })
     }

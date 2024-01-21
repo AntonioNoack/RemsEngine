@@ -9,12 +9,13 @@ import me.anno.engine.EngineBase.Companion.instance
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
+import me.anno.input.Clipboard.copyFiles
+import me.anno.input.Clipboard.getClipboardContent
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.io.ISaveable
-import me.anno.io.files.FileFileRef
-import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
@@ -28,26 +29,11 @@ import me.anno.ui.Window
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
-import me.anno.utils.Sleep
 import me.anno.utils.files.FileChooser
-import me.anno.utils.files.Files.findNextFile
-import me.anno.utils.structures.maps.BiMap
-import me.anno.utils.types.Strings.isArray
-import me.anno.utils.types.Strings.isName
-import me.anno.utils.types.Strings.isNumber
+import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
-import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor.*
-import java.awt.datatransfer.StringSelection
-import java.awt.datatransfer.UnsupportedFlavorException
-import java.awt.image.RenderedImage
-import java.io.File
-import java.io.OutputStream
-import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
-import javax.imageio.ImageIO
 import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
@@ -643,26 +629,6 @@ object Input {
         dragged = null
     }
 
-    fun empty(window: OSWindow) {
-        // LOGGER.info("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
-        window.windowStack.inFocus0?.onEmpty(window.mouseX, window.mouseY)
-    }
-
-    fun import() {
-        if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
-        FileChooser.selectFiles(
-            NameDesc("Import Files"), allowFiles = true,
-            allowFolders = false, allowMultiples = false, startFolder = lastFile,
-            toSave = false, filters = emptyList()
-        ) { files ->
-            val fileRef = files.firstOrNull()
-            if (fileRef != null) {
-                lastFile = fileRef
-                instance?.importFile(fileRef)
-            }
-        }
-    }
-
     fun copy(window: OSWindow) {
         val mouseX = window.mouseX
         val mouseY = window.mouseY
@@ -689,7 +655,7 @@ object Input {
                             val s = it.toString()
                             when {
                                 s.isEmpty() -> "\"\""
-                                isName(s) || isArray(s) || isNumber(s) -> s
+                                Strings.isName(s) || Strings.isArray(s) || Strings.isNumber(s) -> s
                                 else -> "\"${
                                     s.replace("\\", "\\\\").replace("\"", "\\\"")
                                 }\""
@@ -734,166 +700,36 @@ object Input {
         setClipboardContent(panel.onCopyRequested(mouseX, mouseY)?.toString())
     }
 
-    fun setClipboardContent(copied: String?) {
-        copied ?: return
-        val selection = StringSelection(copied)
-        Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
-    }
-
-    /**
-     * @return null, String or List<FileReference>
-     * */
-    fun getClipboardContent(): Any? {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        try {
-            val data = clipboard.getData(stringFlavor)
-            if (data is String) {
-                return data
-            }
-        } catch (_: UnsupportedFlavorException) {
-        }
-        try {
-            val data = clipboard.getData(javaFileListFlavor) as? List<*>
-            val data2 = data?.filterIsInstance<File>()
-            if (!data2.isNullOrEmpty()) {
-                return data2.map { getReference(it.absolutePath) }
-            }
-        } catch (_: UnsupportedFlavorException) {
-        }
-        try {
-            val data = clipboard.getData(imageFlavor) as RenderedImage
-            val folder = instance!!.getPersistentStorage()
-            val file0 = folder.getChild("PastedImage.png")
-            val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { out: OutputStream ->
-                if (!ImageIO.write(data, "png", out)) {
-                    LOGGER.warn("Couldn't find writer for PNG format")
-                }
-            }
-            LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
-            return listOf(file1)
-        } catch (_: UnsupportedFlavorException) {
-
-        } catch (e: ClassNotFoundException) {
-            e.printStackTrace()
-        }
-        return null
-    }
-
     fun paste(window: OSWindow, panel: Panel? = window.windowStack.inFocus0) {
         if (panel == null) return
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        /*val flavors = clipboard.availableDataFlavors
-        for(flavor in flavors){
-            val charset = flavor.getParameter("charset")
-            val repClass = flavor.representationClass
-
-        }*/
-        try {
-            val data = clipboard.getData(stringFlavor)
-            if (data is String) {
-                // LOGGER.info(data)
-                panel.onPaste(window.mouseX, window.mouseY, data, "")
-                return
+        val data = getClipboardContent() ?: return
+        when {
+            data is String -> panel.onPaste(window.mouseX, window.mouseY, data, "")
+            data is List<*> && data.firstOrNull() is FileReference -> {
+                panel.onPasteFiles(window.mouseX, window.mouseY, data.filterIsInstance<FileReference>())
             }
-        } catch (_: UnsupportedFlavorException) {
+            else -> LOGGER.warn("Unsupported paste-type: ${data::class}")
         }
-        /*try {
-            val data = clipboard.getData(getTextPlainUnicodeFlavor())
-            LOGGER.info("plain text data: $data")
-            if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
-            // return
-        } catch (e: UnsupportedFlavorException) {
-            LOGGER.info("Plain text flavor is not supported")
-        }
-        try {
-            val data = clipboard.getData(javaFileListFlavor)
-            LOGGER.info("file data: $data")
-            LOGGER.info((data as? List<*>)?.map { it?.javaClass })
-            if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
-            // return
-        } catch (e: UnsupportedFlavorException) {
-            LOGGER.info("File List flavor is not supported")
-        }*/
-        try {
-            val data = clipboard.getData(javaFileListFlavor) as? List<*>
-            val data2 = data?.filterIsInstance<File>()
-            if (!data2.isNullOrEmpty()) {
-                // LOGGER.info(data2)
-                panel.onPasteFiles(
-                    window.mouseX,
-                    window.mouseY,
-                    data2.map { copiedInternalFiles[it] ?: getReference(it.absolutePath) })
-                return
-                // return
-            }
-        } catch (_: UnsupportedFlavorException) {
-        }
-        try {
-            val image = clipboard.getData(imageFlavor) as RenderedImage
-            val folder = instance!!.getPersistentStorage()
-            val file0 = folder.getChild("PastedImage.png")
-            val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { out: OutputStream ->
-                if (!ImageIO.write(image, "png", out)) {
-                    LOGGER.warn("Couldn't find writer for PNG format")
-                }
-            }
-            LOGGER.info("Pasted image of size ${image.width} x ${image.height}, placed into $file1")
-            panel.onPasteFiles(window.mouseX, window.mouseY, listOf(file1))
-            return
-        } catch (_: UnsupportedFlavorException) {
-
-        } catch (e: ClassNotFoundException) {
-            e.printStackTrace()
-        }
-        /*try {
-            val data = clipboard.getData(DataFlavor.getTextPlainUnicodeFlavor())
-            LOGGER.info("plain text data: $data")
-        } catch (e: UnsupportedFlavorException) {
-        }*/
-        LOGGER.warn("Unsupported Data Flavor")
     }
 
-    /**
-     * is like calling "control-c" on those files
-     * */
-    fun copyFiles(files: List<FileReference>) {
-        LOGGER.info("Copying $files")
-        // we need this folder, when we have temporary copies,
-        // because just FileFileRef.createTempFile() changes the name,
-        // and we need the original file name
-        val tmpFolder = lazy {
-            val file = Files.createTempDirectory("tmp").toFile()
-            file.deleteOnExit()
-            file
-        }
-        val tmpFiles = files.map {
-            if (it is FileFileRef) it.file
-            else {
-                // create a temporary copy, that the OS understands
-                val tmp0 = copiedInternalFiles.reverse[it]
-                val ctr = AtomicInteger()
-                if (tmp0 != null) tmp0 else {
-                    val tmp = File(tmpFolder.value, it.name)
-                    copyHierarchy(it, getReference(tmp.absolutePath), { ctr.incrementAndGet() }, { ctr.decrementAndGet() })
-                    Sleep.waitUntil(true) { ctr.get() == 0 } // wait for all copying to complete
-                    copiedInternalFiles[tmp] = it
-                    tmp
-                }
-            }
-        }
-        copyFiles2(tmpFiles)
+    fun empty(window: OSWindow) {
+        // LOGGER.info("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
+        window.windowStack.inFocus0?.onEmpty(window.mouseX, window.mouseY)
     }
 
-    private val copiedInternalFiles = BiMap<File, FileReference>()
-
-    fun copyFiles2(files: List<File>) {
-        LOGGER.info("Copying $files")
-        Toolkit
-            .getDefaultToolkit()
-            .systemClipboard
-            .setContents(FileTransferable(files), null)
+    fun import() {
+        if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
+        FileChooser.selectFiles(
+            NameDesc("Import Files"), allowFiles = true,
+            allowFolders = false, allowMultiples = false, startFolder = lastFile,
+            toSave = false, filters = emptyList()
+        ) { files ->
+            val fileRef = files.firstOrNull()
+            if (fileRef != null) {
+                lastFile = fileRef
+                instance?.importFile(fileRef)
+            }
+        }
     }
 
     fun isKeyDown(key: Key): Boolean {

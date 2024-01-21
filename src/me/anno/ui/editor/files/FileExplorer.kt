@@ -5,7 +5,6 @@ import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -20,6 +19,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.engine.Events.addEvent
 import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -64,6 +64,9 @@ import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.files.OpenFileExternally.editInStandardProgram
+import me.anno.utils.files.OpenFileExternally.openInExplorer
+import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.History
@@ -587,9 +590,9 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
                             }
                         }
                     },
-                    MenuOption(openInExplorerDesc) { folder.openInExplorer() },
-                    MenuOption(openInStandardProgramDesc) { folder.openInStandardProgram() },
-                    MenuOption(editInStandardProgramDesc) { folder.editInStandardProgram() },
+                    MenuOption(openInExplorerDesc) { openInExplorer(folder) },
+                    MenuOption(openInStandardProgramDesc) { openInStandardProgram(folder) },
+                    MenuOption(editInStandardProgramDesc) { editInStandardProgram(folder) },
                     MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) },
                     MenuOption(copyNameDesc) { setClipboardContent(folder.name) },
                     menuSeparator1,

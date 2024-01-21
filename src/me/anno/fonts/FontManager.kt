@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.fonts.AWTFont.Companion.spaceBetweenLines
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
@@ -71,7 +72,7 @@ object FontManager {
 
     fun limitHeight(font: me.anno.ui.base.Font, heightLimit: Int): Int {
         val fontHeight = font.size // roughly, not exact!
-        val spaceBetweenLines = getFont(font).spaceBetweenLines(fontHeight)
+        val spaceBetweenLines = spaceBetweenLines(fontHeight)
         // val height = (fontHeight + spaceBetweenLines) * lineCount - spaceBetweenLines
         // val lineCount = ceil((heightLimit - spaceBetweenLines) / (fontHeight + spaceBetweenLines)).toInt()
         val effLineHeight = font.sizeInt + spaceBetweenLines
