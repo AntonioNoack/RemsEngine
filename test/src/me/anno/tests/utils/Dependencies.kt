@@ -142,10 +142,10 @@ fun main() {
     for (pck in packages.values) pck.depth = pck.path.count { it == '.' }
 
     // remove external dependencies
-    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
-    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
-    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
-    for (pck in packages.values) pck.children.removeIf { it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.dependencies.removeAll { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.dependencies.removeAll { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.dependencies.removeAll { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.children.removeAll { it.dependencies.isEmpty() }
 
     // traverse graph, and open/close children
     // draw each node as a circle

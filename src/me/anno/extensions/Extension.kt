@@ -80,7 +80,7 @@ abstract class Extension {
     fun unregisterListener(any: Any) {
         if (!isRunning) return
         for (data in listeners.values) {
-            data.removeIf { it.listener == any }
+            data.removeAll { it.listener == any }
         }
     }
 
@@ -98,5 +98,4 @@ abstract class Extension {
             }
         }
     }
-
 }

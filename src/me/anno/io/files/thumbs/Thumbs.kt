@@ -677,7 +677,7 @@ object Thumbs {
             entity.add(comp.clone() as Component)
             generateEntityFrame(srcFile, dstFile, size, entity, callback)
         } else {
-            LOGGER.warn("Cannot render ${comp.javaClass}")
+            LOGGER.warn("Cannot render ${comp::class}")
         }
     }
 

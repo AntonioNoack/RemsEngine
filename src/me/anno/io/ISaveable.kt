@@ -369,28 +369,20 @@ interface ISaveable {
         }
 
         @JvmStatic
-        fun <V : ISaveable> registerCustomClass(clazz: Class<V>): RegistryEntry {
-            val constructor = clazz.getConstructor()
+        fun <V : ISaveable> registerCustomClass(clazz: KClass<V>): RegistryEntry {
+            return registerCustomClass(null as String?, clazz)
+        }
+
+        @JvmStatic
+        fun <V : ISaveable> registerCustomClass(className: String?, clazz: KClass<V>): RegistryEntry {
+            val constructor = clazz.java.getConstructor()
             val sample = try {
                 constructor.newInstance()
             } catch (e: InstantiationException) {
                 throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
             }
             checkInstance(sample)
-            return register(sample.className, RegistryEntry(sample))
-        }
-
-        @JvmStatic
-        fun <V : ISaveable> registerCustomClass(clazz: KClass<V>): RegistryEntry {
-            return registerCustomClass(clazz.java)
-        }
-
-        @JvmStatic
-        fun registerCustomClass(className: String, clazz: Class<ISaveable>): RegistryEntry {
-            val constructor = clazz.getConstructor()
-            val sample = constructor.newInstance()
-            checkInstance(sample)
-            return register(className, RegistryEntry(sample))
+            return register(className ?: sample.className, RegistryEntry(sample))
         }
 
         private fun register(className: String, entry: RegistryEntry): RegistryEntry {

@@ -32,7 +32,7 @@ class CreeperWorld(val w: Int, val h: Int) {
 
     fun updatePixels() {
         synchronized(pixels) {
-            pixels.removeIf { pixel ->
+            pixels.removeAll { pixel ->
                 if (pixel.isFinished()) {
                     pixel.onFinish(this)
                     true

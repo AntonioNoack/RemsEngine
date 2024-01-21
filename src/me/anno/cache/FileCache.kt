@@ -101,7 +101,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
         var kept = 0
         var freed = 0L
         val children = cacheFolder.listChildren()
-        if (children != null) for (file in children) {
+        for (file in children) {
             if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > proxyValidityTimeout) {
                 freed += file.length()
                 file.delete()

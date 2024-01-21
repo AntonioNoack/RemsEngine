@@ -312,17 +312,17 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
             val updateInterval = 500 * MILLIS_TO_NANOS
             val time = Time.nanoTime / updateInterval
             synchronized(Unit) {
-                if (time == lastTime && lastString.isNotEmpty())
-                    return lastString
-                val calendar = Calendar.getInstance()
-                val seconds = calendar.get(Calendar.SECOND)
-                val minutes = calendar.get(Calendar.MINUTE)
-                val hours = calendar.get(Calendar.HOUR_OF_DAY)
-                lastTime = time
-                lastString = "%2d:%2d:%2d".format(hours, minutes, seconds)
-                    .replace(' ', '0')
-                return lastString
+                if (!(time == lastTime && lastString.isNotEmpty())) {
+                    val calendar = Calendar.getInstance()
+                    val seconds = calendar.get(Calendar.SECOND)
+                    val minutes = calendar.get(Calendar.MINUTE)
+                    val hours = calendar.get(Calendar.HOUR_OF_DAY)
+                    lastTime = time
+                    lastString = "%2d:%2d:%2d".format(hours, minutes, seconds)
+                        .replace(' ', '0')
+                }
             }
+            return lastString
         }
     }
 }

@@ -18,11 +18,11 @@ class ComparableStringBuilder(init: Int = 16) : CharSequence {
     }
 
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
-        return String(value, startIndex, endIndex)
+        return value.concatToString(startIndex, endIndex)
     }
 
     override fun toString(): String {
-        return String(value, 0, length)
+        return value.concatToString(0, length)
     }
 
     fun clear() {

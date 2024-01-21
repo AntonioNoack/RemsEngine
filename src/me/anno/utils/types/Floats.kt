@@ -1,10 +1,6 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
-import java.nio.FloatBuffer
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -12,38 +8,11 @@ import kotlin.math.PI
 
 object Floats {
 
-    @JvmStatic
-    fun FloatBuffer.put3(v: Vector2f) {
-        put(v.x)
-        put(v.y)
-    }
-
-    @JvmStatic
-    fun FloatBuffer.put3(v: Vector3f) {
-        put(v.x)
-        put(v.y)
-        put(v.z)
-    }
-
-    @JvmStatic
-    fun FloatBuffer.put3(v: Vector4f) {
-        put(v.x)
-        put(v.y)
-        put(v.z)
-        put(v.w)
-    }
-
     private const val piF180f = (PI / 180).toFloat()
     private const val x180fPif = (180 / PI).toFloat()
 
     const val piF180d = PI / 180.0
     private const val x180fPid = 180.0 / PI
-
-    @JvmStatic
-    fun Int.toDegrees() = this * x180fPif
-
-    @JvmStatic
-    fun Int.toRadians() = this * piF180f
 
     @JvmStatic
     fun Float.toDegrees() = this * x180fPif
@@ -58,76 +27,76 @@ object Floats {
     fun Double.toRadians() = this * piF180d
 
     @JvmStatic
-    fun Float.f6() = "%.6f".format(Locale.ENGLISH, this)
+    fun Float.f6(): String = "%.6f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f5() = "%.5f".format(Locale.ENGLISH, this)
+    fun Float.f5(): String = "%.5f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f4() = "%.4f".format(Locale.ENGLISH, this)
+    fun Float.f4(): String = "%.4f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f3() = "%.3f".format(Locale.ENGLISH, this)
+    fun Float.f3(): String = "%.3f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f2() = "%.2f".format(Locale.ENGLISH, this)
+    fun Float.f2(): String = "%.2f".format(Locale.ENGLISH, this)
 
     @JvmStatic
     fun Float.f1(): String = f1.format(this.toDouble())
 
     @JvmStatic
-    fun Double.f6() = "%.6f".format(Locale.ENGLISH, this)
+    fun Double.f6(): String = "%.6f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f5() = "%.5f".format(Locale.ENGLISH, this)
+    fun Double.f5(): String = "%.5f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f4() = "%.4f".format(Locale.ENGLISH, this)
+    fun Double.f4(): String = "%.4f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f3() = "%.3f".format(Locale.ENGLISH, this)
+    fun Double.f3(): String = "%.3f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f2() = "%.2f".format(Locale.ENGLISH, this)
+    fun Double.f2(): String = "%.2f".format(Locale.ENGLISH, this)
 
     @JvmStatic
     fun Double.f1(): String = f1.format(this)
 
     @JvmStatic
-    fun Float.f6s() = "% .6f".format(Locale.ENGLISH, this)
+    fun Float.f6s(): String = "% .6f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f5s() = "% .5f".format(Locale.ENGLISH, this)
+    fun Float.f5s(): String = "% .5f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f4s() = "% .4f".format(Locale.ENGLISH, this)
+    fun Float.f4s(): String = "% .4f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f3s() = "% .3f".format(Locale.ENGLISH, this)
+    fun Float.f3s(): String = "% .3f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f2s() = "% .2f".format(Locale.ENGLISH, this)
+    fun Float.f2s(): String = "% .2f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Float.f2x() = "% .2f".format(Locale.ENGLISH, this).replace("-0.00", " 0.00")
+    fun Float.f2x(): String = "% .2f".format(Locale.ENGLISH, this).replace("-0.00", " 0.00")
 
     @JvmStatic
     fun Float.f1s(): String = f1s.format(toDouble())
 
     @JvmStatic
-    fun Double.f6s() = "% .6f".format(Locale.ENGLISH, this)
+    fun Double.f6s(): String = "% .6f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f5s() = "% .5f".format(Locale.ENGLISH, this)
+    fun Double.f5s(): String = "% .5f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f4s() = "% .4f".format(Locale.ENGLISH, this)
+    fun Double.f4s(): String = "% .4f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f3s() = "% .3f".format(Locale.ENGLISH, this)
+    fun Double.f3s(): String = "% .3f".format(Locale.ENGLISH, this)
 
     @JvmStatic
-    fun Double.f2s() = "% .2f".format(Locale.ENGLISH, this)
+    fun Double.f2s(): String = "% .2f".format(Locale.ENGLISH, this)
 
     @JvmStatic
     fun Double.f1s(): String = f1s.format(this)
@@ -156,11 +125,11 @@ object Floats {
     @JvmStatic
     infix fun ClosedFloatingPointRange<Float>.step(step: Float): Iterator<Float> {
         return object : Iterator<Float> {
-            var next = start
-            override fun hasNext(): Boolean = next < endInclusive && (next + step) > next
+            var nextNumber = start
+            override fun hasNext(): Boolean = nextNumber < endInclusive && (nextNumber + step) > nextNumber
             override fun next(): Float {
-                val n = next
-                next += step
+                val n = nextNumber
+                nextNumber += step
                 return n
             }
         }

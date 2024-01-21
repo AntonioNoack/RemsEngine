@@ -15,7 +15,7 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
         val dstChildren = dst.listChildren()
         val dstNames = dstChildren.map { it.name }.filter { it !in srcChildren }
         if (dstNames.isNotEmpty()) {
-            println("Foreign files in $dst: $dstNames")
+            System.err.println("Foreign files in $dst: $dstNames")
         }
     } else {
         val srcI = src.first()
@@ -39,6 +39,18 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                     .replace("class.qualifiedName", "class.simpleName") // not supported :/
                     .replace("Character.toChars(this)", "charArrayOf(toChar())")
                     .replace("import kotlin.streams.toList", "// import kotlin.streams.toList")
+                    .replace(".javaClass", "::class")
+                    .replace("InterruptedException", "java.lang.InterruptedException")
+                    .replace(" Class<", " KClass<")
+                    .replace(".jvmName", ".simpleName")
+                    .replace("clazz.java.", "clazz.")
+                    .replace("System.err.println", "console.error")
+                    .replace("javaClass", "this::class")
+                    .replace("::class.java", "::class")
+                    .replace("System.gc()", "// System.gc()")
+                    .replace("times.binarySearch", "times.asList().binarySearch")
+                    .replace("content.binarySearch(", "content.asList().binarySearch(")
+                    .replace(".toSortedSet()", ".toSet()") // not supported
                     .replace("GL11C", "OpenGL")
                     .replace("GL15C", "OpenGL")
                     .replace("GL20C", "OpenGL")
@@ -52,14 +64,22 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                     .replace("GL43C", "OpenGL")
                     .replace("GL45C", "OpenGL")
                     .replace("GL46C", "OpenGL")
-                if ("sync1(" in txt) {
+                    .replace("GL14", "OpenGL")
+
+                fun importIf(condition: String, importName: String) {
+                    if (condition !in txt) return
+                    val statement = "import $importName"
+                    if (statement in txt) return
                     val i = txt.indexOf('\n')
-                    txt = txt.substring(0, i + 1) + "import sync1" + txt.substring(i)
+                    txt = txt.substring(0, i + 1) + statement + txt.substring(i)
                 }
-                if ("Thread." in txt) {
-                    val i = txt.indexOf('\n')
-                    txt = txt.substring(0, i + 1) + "import kotlini.concurrent.Thread" + txt.substring(i)
-                }
+
+                importIf("sync1(", "sync1")
+                importIf("Thread.", "kotlini.concurrent.Thread")
+                importIf(".format(", "java.lang.System.format")
+                importIf("KClass", "kotlin.reflect.KClass")
+                importIf("Runtime.getRuntime()", "java.lang.Runtime")
+
                 if (prevTxt != txt) {
                     dst.writeText(txt)
                 }

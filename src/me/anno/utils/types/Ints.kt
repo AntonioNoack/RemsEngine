@@ -50,7 +50,7 @@ object Ints {
         var limitBeforeMul = limitForMaxRadix
         var result = 0L
         for (i in start until length) {
-            val digit = Character.digit(this[i].code, radix)
+            val digit = digit(this[i], radix)
             if (digit < 0) return default
             if (result < limitBeforeMul) {
                 if (limitBeforeMul == limitForMaxRadix) {
@@ -68,5 +68,15 @@ object Ints {
         }
 
         return if (isNegative) result else -result
+    }
+
+    private fun digit(char: Char, radix: Int): Int {
+        val code = when (char) {
+            in '0'..'9' -> char.code - '0'.code
+            in 'A'..'Z' -> char.code - 'A'.code + 10
+            in 'a'..'z' -> char.code - 'a'.code + 10
+            else -> return -1
+        }
+        return if (code < radix) code else -1
     }
 }

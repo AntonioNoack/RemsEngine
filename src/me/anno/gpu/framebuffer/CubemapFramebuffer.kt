@@ -191,26 +191,6 @@ class CubemapFramebuffer(
         }
     }
 
-    /*fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
-        bindTextureI(0, offset, nearest, clamping)
-    }
-
-    fun bindTextureI(index: Int, offset: Int) {
-        bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-    }
-
-    fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
-        textures[index].bind(offset, nearest, clamping)
-    }
-
-    fun bindTextures(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
-        GFX.check()
-        for ((index, texture) in textures.withIndex()) {
-            texture.bind(offset + index, nearest, clamping)
-        }
-        GFX.check()
-    }*/
-
     override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         checkSession()
         textures[index].bind(offset, nearest, clamping)

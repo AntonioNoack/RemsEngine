@@ -89,7 +89,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                 }
                 !packet.canDropPacket -> {
                     // find slot in packets that we can take
-                    if (writingQueue.removeIf { it.canDropPacket }) {
+                    if (writingQueue.removeAll { it.canDropPacket }) {
                         writingQueue.add(packet)
                     } else {
                         val t0 = Time.nanoTime
