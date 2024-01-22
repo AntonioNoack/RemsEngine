@@ -10,8 +10,8 @@ import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.InputStreams.readNBytes2
-import org.lwjgl.openal.AL10.AL_FORMAT_MONO16
-import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
+import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
+import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
 import java.io.EOFException
 import java.io.InputStream
 import java.nio.ByteBuffer

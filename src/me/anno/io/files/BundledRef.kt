@@ -35,7 +35,7 @@ class BundledRef(
     }
 
     override fun outputStream(append: Boolean): OutputStream {
-        throw IllegalAccessException("Cannot write to internal files")
+        throw IOException("Cannot write to internal files")
     }
 
     override val exists by lazy {
@@ -80,15 +80,15 @@ class BundledRef(
     }
 
     override fun delete(): Boolean {
-        throw IllegalAccessException("Cannot write to internal files")
+        throw IOException("Cannot write to internal files")
     }
 
     override fun mkdirs(): Boolean {
-        throw IllegalAccessException("Cannot write to internal files")
+        throw IOException("Cannot write to internal files")
     }
 
     override fun renameTo(newName: FileReference): Boolean {
-        throw IllegalAccessException("Cannot write to internal files")
+        throw IOException("Cannot write to internal files")
     }
 
     private val cachedParent by lazy {

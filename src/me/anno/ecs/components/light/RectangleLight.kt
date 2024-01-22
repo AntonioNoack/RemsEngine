@@ -13,11 +13,7 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-class RectangleLight() : LightComponent(LightType.RECTANGLE) {
-
-    constructor(src: RectangleLight) : this() {
-        src.copyInto(this)
-    }
+class RectangleLight : LightComponent(LightType.RECTANGLE) {
 
     @Range(0.0, 1.0)
     var width = 0.1f
@@ -50,8 +46,6 @@ class RectangleLight() : LightComponent(LightType.RECTANGLE) {
     }
 
     override fun getLightPrimitive(): Mesh = smoothCube.front
-
-    override fun clone() = RectangleLight(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

@@ -3,6 +3,7 @@ package me.anno.bullet.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.build.web.copy
 import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
@@ -11,11 +12,7 @@ import org.joml.Vector3d
 import kotlin.math.PI
 
 // todo draw limits
-class GenericConstraint() : Constraint<Generic6DofConstraint>() {
-
-    constructor(base: GenericConstraint) : this() {
-        base.copyInto(this)
-    }
+class GenericConstraint : Constraint<Generic6DofConstraint>() {
 
     var linearLimitsAreInASpaceNotBSpace = true
         set(value) {
@@ -71,8 +68,6 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
         instance.setAngularUpperLimit(castB(upperAngleLimit))
         return instance
     }
-
-    override fun clone() = GenericConstraint(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

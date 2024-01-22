@@ -1,15 +1,16 @@
 package me.anno.audio
 
+import me.anno.audio.AudioCache.playbackSampleRate
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.streams.AudioStream
-import org.lwjgl.openal.AL10
+import org.lwjgl.openal.AL11
 
 interface AudioReadable {
 
     // these are mainly used as metadata
     val channels: Int get() = 1
-    val sampleCount: Long get() = 1_000_000_000L
-    val sampleRate: Int get() = 48000
+    val sampleCount: Long get() = 10_000_000_000L
+    val sampleRate: Int get() = playbackSampleRate
     val duration: Double get() = sampleCount.toDouble() / sampleRate
 
     val prefersBufferedSampling: Boolean get() = false
@@ -17,12 +18,10 @@ interface AudioReadable {
     // actual audio generation function
     fun getBuffer(start: Double, duration: Double, sampleRate: Int): SoundBuffer {
 
-        println("getting buffer $start, $duration, $sampleRate")
-
         // generate buffer :)
         val buffer = SoundBuffer()
         val bufferLength = (duration * sampleRate).toInt()
-        buffer.format = AL10.AL_FORMAT_MONO16
+        buffer.format = AL11.AL_FORMAT_MONO16
         val bytes = AudioStream.bufferPool[bufferLength * 2 * channels, false, true]
         val shorts = bytes.asShortBuffer()
         buffer.data0 = bytes

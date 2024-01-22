@@ -41,7 +41,6 @@ object PropertyTracking {
         property: KProperty<*>,
         style: Style
     ) {
-        // todo instead of adding this large button, add a small button left to it
         val getter = property.getter
         // when clicked, a tracking graph/plot is displayed (real time)
         val channels: List<Pair<(Any?) -> Double, Int>> = when (property.returnType.classifier) {

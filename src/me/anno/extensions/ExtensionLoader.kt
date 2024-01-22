@@ -121,7 +121,7 @@ object ExtensionLoader {
             it.join()
         }
         for (internal in internally) {
-            result.removeIf { it.uuid == internal.uuid }
+            result.removeAll { it.uuid == internal.uuid }
             result.add(internal)
         }
         return result
@@ -321,7 +321,7 @@ object ExtensionLoader {
         var uuid = ""
         var priority = 0.0
         var minVersion = 0
-        var maxVersion = Integer.MAX_VALUE
+        var maxVersion = Int.MAX_VALUE
         while (true) {
             val line = reader.readLine() ?: break
             val index = line.indexOf(':')

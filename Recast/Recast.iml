@@ -10,5 +10,6 @@
     <orderEntry type="library" name="Recast" level="project" />
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="module" module-name="KOML" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

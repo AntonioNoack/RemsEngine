@@ -82,7 +82,7 @@ object ClipboardImpl {
                 val ctr = AtomicInteger()
                 if (tmp0 != null) tmp0 else {
                     val tmp = File(tmpFolder.value, it.name)
-                    FileFileRef.copyHierarchy(
+                    copyHierarchy(
                         it,
                         Reference.getReference(tmp.absolutePath),
                         { ctr.incrementAndGet() },
@@ -97,5 +97,26 @@ object ClipboardImpl {
             .getDefaultToolkit()
             .systemClipboard
             .setContents(FileTransferable(tmpFiles), null)
+    }
+
+    fun copyHierarchy(
+        src: FileReference,
+        dst: FileReference,
+        started: (FileReference) -> Unit,
+        finished: (FileReference) -> Unit
+    ) {
+        if (src.isDirectory) {
+            dst.mkdirs()
+            started(src)
+            for (child in src.listChildren()) {
+                copyHierarchy(child, dst.getChild(child.name), started, finished)
+            }
+            finished(src)
+        } else {
+            started(src)
+            src.copyTo(dst) {
+                finished(src)
+            }
+        }
     }
 }

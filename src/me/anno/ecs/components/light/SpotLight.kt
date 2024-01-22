@@ -18,11 +18,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import kotlin.math.atan
 
-class SpotLight() : LightComponent(LightType.SPOT) {
-
-    constructor(src: SpotLight) : this() {
-        src.copyInto(this)
-    }
+class SpotLight : LightComponent(LightType.SPOT) {
 
     @Range(0.0, 100.0)
     var coneAngle = 1f
@@ -68,8 +64,6 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     override fun getLightPrimitive(): Mesh {
         return pyramidMesh
     }
-
-    override fun clone() = SpotLight(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

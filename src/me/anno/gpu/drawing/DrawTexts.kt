@@ -281,7 +281,7 @@ object DrawTexts {
             GFX.loadTexturesSync.push(true)
 
             fun getTexture(char: Int): ITexture2D? {
-                return if (!Character.isWhitespace(char)) {
+                return if (char > 0xffff || !char.toChar().isWhitespace()) {
                     val txt = char.joinChars().toString()
                     FontManager.getTexture(font, txt, -1, -1, false)
                 } else null
@@ -339,7 +339,7 @@ object DrawTexts {
             val offsets = group.offsets
             val y2 = y + dyi
             for (char in text.codepoints()) {
-                if (!Character.isWhitespace(char)) {
+                if (char > 0xffff || !char.toChar().isWhitespace()) {
                     val txt = char.joinChars().toString()
                     val o0 = offsets[index++].toInt()
                     val o1 = offsets[index].toInt()

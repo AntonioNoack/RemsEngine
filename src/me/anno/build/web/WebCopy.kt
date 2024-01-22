@@ -51,6 +51,12 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                     .replace("times.binarySearch", "times.asList().binarySearch")
                     .replace("content.binarySearch(", "content.asList().binarySearch(")
                     .replace(".toSortedSet()", ".toSet()") // not supported
+                    .replace("System.currentTimeMillis()", "kotlin.js.Date.now().toLong()")
+                    .replace(".qualifiedName!!", ".simpleName!!") // not supported
+                    .replace("StackOverflowError", "IllegalStateException")
+                    .replace("::class.name", "::class.simpleName")
+                    .replace("file is FileFileRef && !(file.file.run { canRead() && canWrite() })", "false")
+                    .replace("this::class.classLoader.loadClass(", "System.findClass(")
                     .replace("GL11C", "OpenGL")
                     .replace("GL15C", "OpenGL")
                     .replace("GL20C", "OpenGL")
@@ -79,6 +85,13 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                 importIf(".format(", "java.lang.System.format")
                 importIf("KClass", "kotlin.reflect.KClass")
                 importIf("Runtime.getRuntime()", "java.lang.Runtime")
+                importIf("System.", "java.lang.System")
+                importIf(".nextDown()", "java.lang.System.nextDown")
+                importIf(".toSortedMap()", "java.lang.System.toSortedMap")
+                importIf("NoClassDefFoundError", "java.lang.NoClassDefFoundError")
+                importIf("ClassNotFoundException", "java.lang.ClassNotFoundException")
+                importIf("InstantiationException", "java.lang.InstantiationException")
+                importIf("ThreadLocal", "java.lang.ThreadLocal")
 
                 if (prevTxt != txt) {
                     dst.writeText(txt)

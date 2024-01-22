@@ -26,7 +26,7 @@ class BetterProcessBuilder(
         isLowPriority: Boolean
     ) : this(program.absolutePath, ownArgumentCount, isLowPriority)
 
-    val args = ArrayList<String>(ownArgumentCount + 1 + (if (isLowPriority) 3 else 0))
+    private val args = ArrayList<String>(ownArgumentCount + 1 + (if (isLowPriority) 3 else 0))
 
     init {
         if (isLowPriority) {

@@ -2,19 +2,22 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.CullMode
-import me.anno.gpu.texture.Clamping
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.CullMode
+import me.anno.gpu.texture.Clamping
+import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.io.files.FileReference
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
-import me.anno.io.MediaMetadata.Companion.getMeta
 import kotlin.math.max
 
 // todo video plane? :D
-class ImagePlane(source: FileReference = InvalidRef) : ProceduralMesh() {
+class ImagePlane() : ProceduralMesh() {
+
+    constructor(source: FileReference) : this() {
+        this.source = source
+    }
 
     @SerializedProperty
     var async = false
@@ -39,7 +42,6 @@ class ImagePlane(source: FileReference = InvalidRef) : ProceduralMesh() {
     val material = Material()
 
     init {
-        material.diffuseMap = source
         material.clamping = Clamping.CLAMP
         material.cullMode = CullMode.BOTH
         materials = listOf(material.ref)
@@ -113,12 +115,6 @@ class ImagePlane(source: FileReference = InvalidRef) : ProceduralMesh() {
         pos[9] = x1
         pos[10] = y0
         mesh.invalidateGeometry()
-    }
-
-    override fun clone(): ImagePlane {
-        val clone = ImagePlane(source)
-        copyInto(clone)
-        return clone
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -38,7 +38,7 @@ object Logging {
                         lines.poll()
                     }
                     line = processMessage(line)
-                    lines.offer(line)
+                    lines.add(line)
                     line = ""
                 }
                 line.length < maxConsoleLineLength -> {

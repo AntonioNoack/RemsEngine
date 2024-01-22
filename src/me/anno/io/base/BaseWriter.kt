@@ -7,7 +7,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.utils.OS
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -36,7 +35,6 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import java.io.Serializable
-import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.full.memberProperties
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
@@ -528,38 +526,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
          * this would be developer-friendlier :)
          * at the same time, it causes issues, when old save files are read
          * */
-        val id = if (OS.isWeb) {
-            try { // Kotlin reflection not yet available
-                val field = value.javaClass
-                    .getDeclaredField("id")
-                field.isAccessible = true
-                field.get(value)
-            } catch (e: NoSuchFieldException) {
-                try {
-                    val method = value.javaClass
-                        .getDeclaredMethod("getId")
-                    method.isAccessible = true
-                    method.invoke(value)
-                } catch (e: NoSuchMethodError) {
-                    null
-                } catch (e: SecurityException) {
-                    null
-                } catch (e: IllegalArgumentException) {
-                    null
-                } catch (e: InvocationTargetException) {
-                    null
-                }
-            } catch (e: SecurityException) {
-                null
-            } catch (e: IllegalAccessException) {
-                null
-            }
-        } else {
-            value::class
-                .memberProperties
-                .firstOrNull { it.name == "id" }
-                ?.getter?.call(value)
-        }
+        val id = value::class
+            .memberProperties
+            .firstOrNull { it.name == "id" }
+            ?.getter?.call(value)
         if (id is Int) {
             writeInt(name, id, forceSaving)
         } else {
@@ -740,7 +710,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             // other
             is String -> writeStringArray2D(name, cast(value), forceSaving)
             is FileReference -> writeFileArray2D(name, cast(value), forceSaving)
-            else -> throw NotImplementedError("Writing 2d array of type ${sample1?.javaClass}, '$name'")
+            else -> throw NotImplementedError("Writing 2d array of type ${if (sample1 != null) sample1::class else null}, '$name'")
         }
     }
 

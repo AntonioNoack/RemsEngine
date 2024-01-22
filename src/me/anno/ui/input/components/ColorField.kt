@@ -119,7 +119,7 @@ class ColorField(
         return true
     }
 
-    override fun clone(): Panel = ColorField(this)
+    override fun clone(): ColorField = ColorField(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

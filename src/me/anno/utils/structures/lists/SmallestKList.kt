@@ -21,7 +21,7 @@ class SmallestKList<V>(val k: Int, val comparator: Comparator<V>) {
                 content.sortWith(comparator)
                 lastSmallest = content.last()
             }
-        } else if (comparator.compare(lastSmallest, element) < 0) {
+        } else if (comparator.compare(lastSmallest!!, element) < 0) {
             val content = content
             var index = content.binarySearch(element, comparator)
             if (index < 0) index = -1 - index

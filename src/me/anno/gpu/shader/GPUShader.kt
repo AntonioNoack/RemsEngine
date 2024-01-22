@@ -8,6 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -26,7 +27,6 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL46C.GL_LINK_STATUS
 import org.lwjgl.opengl.GL46C.GL_PROGRAM
 import org.lwjgl.opengl.GL46C.GL_SHADER
@@ -75,7 +75,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         /** how attributes are called; is attribute in WebGL */
         val attribute get() = "in" // if(OS.isWeb) "attribute" else "in"
 
-        private val matrixBuffer = BufferUtils.createFloatBuffer(16)
+        private val matrixBuffer = ByteBufferPool.allocateDirect(16 * 4).asFloatBuffer()
         private val identity2 = Matrix2f()
         private val identity3 = Matrix3f()
         private val identity4 = Matrix4f()

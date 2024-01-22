@@ -14,8 +14,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
 import org.joml.Vector3f
-import org.lwjgl.openal.AL10.AL_INVERSE_DISTANCE_CLAMPED
-import org.lwjgl.openal.AL10.alDistanceModel
+import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
+import org.lwjgl.openal.AL11.alDistanceModel
 import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL11.AL_LINEAR_DISTANCE_CLAMPED
 import kotlin.math.max

@@ -10,11 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 
 // todo draw limits
-class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolver.SliderConstraint>() {
-
-    constructor(base: SliderConstraint) : this() {
-        base.copyInto(this)
-    }
+class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.SliderConstraint>() {
 
     @Suppress("unused")
     @DebugProperty
@@ -189,8 +185,6 @@ class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolve
         setDamAng(instance, angularDamping)
         return instance
     }
-
-    override fun clone() = SliderConstraint(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

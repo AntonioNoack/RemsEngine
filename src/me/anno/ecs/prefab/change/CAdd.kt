@@ -54,12 +54,16 @@ class CAdd() : Change() {
 
     override fun clone(): CAdd {
         val clone = CAdd()
+        copyInto(clone)
+        return clone
+    }
+
+    fun copyInto(clone: CAdd) {
         clone.path = path
         clone.type = type
         clone.clazzName = clazzName
         clone.prefab = prefab
         clone.nameId = nameId
-        return clone
     }
 
     override fun save(writer: BaseWriter) {

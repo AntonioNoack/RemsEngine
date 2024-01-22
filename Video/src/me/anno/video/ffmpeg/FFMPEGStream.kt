@@ -323,7 +323,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
-        builder.args += arguments
+        builder.add(*arguments)
 
         val process = builder.start()
         process(process, *arguments)

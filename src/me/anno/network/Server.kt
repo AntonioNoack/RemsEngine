@@ -53,20 +53,18 @@ open class Server : Closeable {
 
     var shutdown = false
 
-    val nextRandomId = Random((Maths.random() * 1e16).toLong())
+    private val nextRandomId = Random((Maths.random() * 1e16).toLong())
+    private val clients = UnsafeArrayList<TCPClient>(1024)
+    private val hashedClients = Array<ArrayList<TCPClient>>(512) { ArrayList() }
+    private val protocols = HashMap<Int, Protocol>()
 
-    val clients = UnsafeArrayList<TCPClient>(1024)
-
-    val hashedClients = Array<ArrayList<TCPClient>>(512) { ArrayList() }
-
-    val protocols = HashMap<Int, Protocol>()
+    private var tcpSocket: ServerSocket? = null
+    private var udpSocket: DatagramSocket? = null
+    private val run get() = !shutdown && !Engine.shutdown
 
     fun register(protocol: Protocol) {
         protocols[protocol.bigEndianMagic] = protocol
     }
-
-    var tcpSocket: ServerSocket? = null
-    var udpSocket: DatagramSocket? = null
 
     override fun close() {
         synchronized(this) {
@@ -137,14 +135,12 @@ open class Server : Closeable {
         return true
     }
 
-    val run get() = !shutdown && !Engine.shutdown
-
     open fun createClient(clientSocket: Socket, protocol: Protocol, randomId: Int): TCPClient {
         return TCPClient(clientSocket, protocol, randomId)
     }
 
-    var usedIds = HashSet<Int>()
-    fun createRandomId(): Int {
+    private var usedIds = HashSet<Int>()
+    private fun createRandomId(): Int {
         var id = 0
         synchronized(usedIds) {
             while (id == 0 || id in usedIds) {
@@ -158,12 +154,11 @@ open class Server : Closeable {
         return id
     }
 
-    fun destroyRandomId(id: Int) {
+    private fun destroyRandomId(id: Int) {
         synchronized(usedIds) { usedIds.remove(id) }
     }
 
     open fun onClientConnected(client: TCPClient) {}
-
     open fun onClientDisconnected(client: TCPClient) {}
 
     var logRejections = true
@@ -279,10 +274,10 @@ open class Server : Closeable {
         }
     }
 
-    fun hash(client: TCPClient): Int = client.randomId and (hashedClients.size - 1)
-    fun hash(randomId: Int): Int = randomId and (hashedClients.size - 1)
+    private fun hash(client: TCPClient): Int = client.randomId and (hashedClients.size - 1)
+    private fun hash(randomId: Int): Int = randomId and (hashedClients.size - 1)
 
-    fun addClient(client: TCPClient) {
+    private fun addClient(client: TCPClient) {
         val cl = hashedClients[hash(client)]
         synchronized(cl) { cl.add(client) }
         synchronized(clients) { clients.add(client) }
@@ -306,7 +301,7 @@ open class Server : Closeable {
         return null
     }
 
-    inline fun forAllClients(run: (TCPClient) -> Unit) {
+    fun forAllClients(run: (TCPClient) -> Unit) {
         val clients = clients
         var size = clients.size
         var index = 0
@@ -326,7 +321,7 @@ open class Server : Closeable {
         }
     }
 
-    inline fun forAllClientsSync(run: (TCPClient) -> Unit) {
+    fun forAllClientsSync(run: (TCPClient) -> Unit) {
         val clients = clients
         synchronized(clients) {
             forAllClients(run)

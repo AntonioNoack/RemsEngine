@@ -40,6 +40,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.reflect.KClass
+import kotlin.reflect.full.superclasses
 
 /**
  * interface for everything that should be saveable;
@@ -296,16 +297,12 @@ interface ISaveable {
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
-        fun getClass(type: String): Class<out ISaveable>? {
+        fun getClass(type: String): KClass<out ISaveable>? {
             val instance = objectTypeRegistry[type]?.sampleInstance ?: return superTypeRegistry[type]
-            return instance.javaClass
+            return instance::class
         }
 
         fun getByClass(clazz: KClass<*>): RegistryEntry? {
-            return objectTypeByClass[clazz]
-        }
-
-        fun getByClass(clazz: Class<*>): RegistryEntry? {
             return objectTypeByClass[clazz]
         }
 
@@ -314,8 +311,8 @@ interface ISaveable {
         }
 
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
-        private val objectTypeByClass = HashMap<Any, RegistryEntry>()
-        private val superTypeRegistry = HashMap<String, Class<out ISaveable>>()
+        private val objectTypeByClass = HashMap<KClass<out ISaveable>, RegistryEntry>()
+        private val superTypeRegistry = HashMap<String, KClass<out ISaveable>>()
 
         fun checkInstance(instance0: ISaveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
@@ -330,12 +327,12 @@ interface ISaveable {
             }
         }
 
-        fun registerSuperClasses(clazz0: Class<out ISaveable>) {
+        fun registerSuperClasses(clazz0: KClass<out ISaveable>) {
             var clazz = clazz0
             while (true) {
-                superTypeRegistry[clazz.simpleName] = clazz
+                superTypeRegistry[clazz.simpleName!!] = clazz
                 @Suppress("unchecked_cast")
-                clazz = (clazz.superclass ?: break) as Class<out ISaveable>
+                clazz = (clazz.superclasses.firstOrNull() ?: break) as KClass<out ISaveable>
             }
         }
 
@@ -397,8 +394,7 @@ interface ISaveable {
             LOGGER.info("Registering {}", className)
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
-            objectTypeByClass[clazz.java] = entry
-            registerSuperClasses(entry.sampleInstance.javaClass)
+            registerSuperClasses(entry.sampleInstance::class)
             return entry
         }
     }

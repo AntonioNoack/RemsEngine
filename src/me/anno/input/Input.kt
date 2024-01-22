@@ -326,10 +326,12 @@ object Input {
 
     fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {
 
-        if (keysDown.isNotEmpty()) window.framesSinceLastInteraction = 0
+        if (keysDown.isNotEmpty()) {
+            window.framesSinceLastInteraction = 0
+        }
 
-        val dx: Float
-        val dy: Float
+        var dx: Float
+        var dy: Float
         synchronized(window) {
 
             dx = newX - window.mouseX

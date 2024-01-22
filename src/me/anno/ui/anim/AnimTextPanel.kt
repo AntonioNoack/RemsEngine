@@ -2,6 +2,7 @@ package me.anno.ui.anim
 
 import me.anno.Time
 import me.anno.ecs.annotations.Docs
+import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -82,7 +83,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         .map { line -> line.cpList() }
 
     fun String.cpList() = Pair(this,
-        codePoints().toList().map { char ->
+        codepoints().map { char ->
             TextCacheKey(char.joinChars().toString(), font)
         })
 

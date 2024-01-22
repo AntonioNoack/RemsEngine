@@ -3,16 +3,9 @@ package me.anno.ecs.prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.CachedProperty
 import me.anno.engine.inspector.IProperty
-import me.anno.maths.Maths.hasFlag
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2d
-import org.joml.Vector2f
-import org.joml.Vector3d
-import org.joml.Vector3f
-import org.joml.Vector4d
-import org.joml.Vector4f
 
 /**
  * IProperty for PrefabSaveables
@@ -48,36 +41,12 @@ class PrefabSaveableProperty(
     override fun set(panel: Panel?, value: Any?, mask: Int) {
         if (pi.prefab.isWritable) {
             (panel as? TextStyleable)?.isBold = true
-            val dim = when (value) {
-                is Vector2f, is Vector2d -> 2
-                is Vector3f, is Vector3d -> 3
-                is Vector4f, is Vector4d -> 4
-                else -> 0
+            for (instance in instances) {
+                PropertySetter.setPropertyRespectingMask(value, mask, property, instance)
+                pi.change(getPath(instance), instance, name, value)
             }
             // todo relative editing might be useful, too
             //  (e.g. for positions, calculate delta, for scale ratio)
-            if (mask != 0 && dim != 0 && !mask.hasFlag((1 shl dim) - 1)) {
-                // if mask != -1, and value is a Vector, respect that and only set the corresponding values
-                // todo  quaternions are a little special, we need to transfer them by euler angles
-                val names = listOf("x", "y", "z", "w")
-                val clazz = value!!.javaClass
-                val fields = names.subList(0, dim)
-                    .filterIndexed { index, _ -> mask.hasFlag(1 shl index) }
-                    .map { name -> clazz.getField(name) }
-                for (instance in instances) {
-                    val value1 = property[instance]
-                    for (field in fields) {
-                        field.set(value1, field.get(value))
-                    }
-                    property[instance] = value1
-                    pi.change(getPath(instance), instance, name, value1)
-                }
-            } else {
-                for (instance in instances) {
-                    property[instance] = value
-                    pi.change(getPath(instance), instance, name, value)
-                }
-            }
             pi.onChange(false)
         } else LOGGER.warn("Cannot modify ${pi.prefab.source}")
     }

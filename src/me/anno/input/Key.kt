@@ -1,8 +1,5 @@
 package me.anno.input
 
-import org.lwjgl.glfw.GLFW
-import java.lang.reflect.Modifier
-
 /**
  * list of all keycodes, baseline is GLFW (and ASCII), because that's our default platform
  * */
@@ -318,7 +315,6 @@ enum class Key(val id: Int) {
     }
 
     companion object {
-
         private val byId = arrayOfNulls<Key>(528)
 
         init {
@@ -329,18 +325,6 @@ enum class Key(val id: Int) {
 
         fun byId(i: Int): Key {
             return byId.getOrNull(i) ?: KEY_UNKNOWN
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // generates enum values
-            for (field in GLFW::class.java.fields) {
-                if (Modifier.isStatic(field.modifiers) &&
-                    field.name.startsWith("GLFW_KEY_")
-                ) {
-                    println("${field.name.substring(5)}(${field[null]}),")
-                }
-            }
         }
     }
 }

@@ -63,7 +63,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Planed
 import org.joml.Vector3d
-import java.util.Arrays
 import kotlin.math.max
 
 /**
@@ -386,7 +385,13 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     // todo fix deferred rendering for scenes with many lights
 
-    val lights = arrayOfNulls<LightRequest>(RenderView.MAX_FORWARD_LIGHTS)
+    val lights = ArrayList<LightRequest?>(RenderView.MAX_FORWARD_LIGHTS)
+
+    init {
+        for (i in 0 until RenderView.MAX_FORWARD_LIGHTS) {
+            lights.add(null)
+        }
+    }
 
     val center = Vector3d()
     private val lightList = SmallestKList<LightRequest>(16) { a, b ->
@@ -403,7 +408,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
     /**
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
      * */
-    fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<LightRequest?>): Int {
+    fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: ArrayList<LightRequest?>): Int {
         val lightStage = lightStage
         if (numberOfLights <= 0) return 0
         val size = lightStage.size
@@ -414,7 +419,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
                     lights[i] = lightStage[i]
                 }
                 // sort by type, and whether they have a shadow
-                Arrays.sort(lights, 0, size) { a, b ->
+                lights.subList(0, size).sortWith { a, b ->
                     val va = a!!.light
                     val vb = b!!.light
                     va.hasShadow.compareTo(vb.hasShadow).ifSame {
@@ -433,7 +438,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
                 lights[i] = smallest[i]
             }
             // sort by type, and whether they have a shadow
-            Arrays.sort(lights, 0, smallest.size) { a, b ->
+            lights.subList(0, smallest.size).sortWith { a, b ->
                 val va = a!!.light
                 val vb = b!!.light
                 va.hasShadow.compareTo(vb.hasShadow).ifSame {

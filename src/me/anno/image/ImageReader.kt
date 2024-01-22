@@ -23,17 +23,19 @@ import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
+import java.io.InputStream
 
 /**
  * an easy interface to read any image as rgba and individual channels
  * */
 object ImageReader {
 
-    private val LOGGER = LogManager.getLogger(ImageReader::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
     var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
         null
+
+    var readIcoLayers: ((InputStream) -> List<Image>)? = null
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
@@ -74,35 +76,27 @@ object ImageReader {
             else it
         }
 
-        if (file.lcExtension == "ico") {
-            try {
-                val icoReaderClass = this::class.java.classLoader
-                    .loadClass("net.sf.image4j.codec.ico.ICOReader")
-                val method = icoReaderClass.getMethod("readAllLayers", FileReference::class.java)
-                Signature.findName(file) { sign ->
-                    if (sign == null || sign == "ico") {
-                        file.inputStream { it, exc ->
-                            if (it != null) {
-                                val layers = method.invoke(null, it) as List<*>
-                                for (index in layers.indices) {
-                                    val layer = layers[index] as? Image ?: break
-                                    folder.createImageChild("layer$index", layer)
-                                }
-                                it.close()
-                                callback.ok(folder)
-                            } else {
-                                exc?.printStackTrace()
-                                callback.ok(folder)
+        val ric = readIcoLayers
+        if (file.lcExtension == "ico" && ric != null) {
+            Signature.findName(file) { sign ->
+                if (sign == null || sign == "ico") {
+                    file.inputStream { it, exc ->
+                        if (it != null) {
+                            val layers = ric(it)
+                            for (index in layers.indices) {
+                                val layer = layers[index] as? Image ?: break
+                                folder.createImageChild("layer$index", layer)
                             }
+                            it.close()
+                            callback.ok(folder)
+                        } else {
+                            exc?.printStackTrace()
+                            callback.ok(folder)
                         }
-                    } else callback.ok(folder)
-                }
-                return // we're done, don't call callback twice
-            } catch (e: ClassNotFoundException) {
-                LOGGER.warn("Can't find ICOReader to load layers for .ico file")
-            } catch (e: NoSuchMethodException) {
-                LOGGER.warn("Can't find ICOReader.readAllLayers to load layers for .ico file")
+                    }
+                } else callback.ok(folder)
             }
+            return // we're done, don't call callback twice
         }
 
         callback.ok(folder)

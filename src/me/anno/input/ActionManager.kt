@@ -7,7 +7,6 @@ import me.anno.gpu.OSWindow
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
-import me.anno.utils.OS
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
@@ -191,34 +190,18 @@ object ActionManager {
                 return true
             }
             // also check parent classes
-            if (OS.isWeb) { // Kotlin's reflection is not yet supported
-                var clazz: Class<*> = panel.javaClass
-                while (true) {
-                    val entry = ISaveable.getByClass(clazz)
-                    val className = entry?.sampleInstance?.className ?: clazz.simpleName
-                    if (className != null) {
-                        val actions1 = localActions[className, combination]
-                        if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
-                            return true
-                        }
+            var clazz: KClass<*> = panel::class
+            while (true) {
+                val entry = ISaveable.getByClass(clazz)
+                val className = entry?.sampleInstance?.className ?: clazz.simpleName
+                if (className != null) {
+                    val actions1 = localActions[className, combination]
+                    if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
+                        return true
                     }
-                    if (clazz == Panel::javaClass) break
-                    clazz = clazz.superclass ?: break
                 }
-            } else {
-                var clazz: KClass<*> = panel::class
-                while (true) {
-                    val entry = ISaveable.getByClass(clazz)
-                    val className = entry?.sampleInstance?.className ?: clazz.simpleName
-                    if (className != null) {
-                        val actions1 = localActions[className, combination]
-                        if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
-                            return true
-                        }
-                    }
-                    if (clazz == Panel::class) break
-                    clazz = clazz.superclasses.getOrNull(0) ?: break
-                }
+                if (clazz == Panel::class) break
+                clazz = clazz.superclasses.firstOrNull() ?: break
             }
             // and if nothing is found at all, check the universal list
             if (processActions(panel, x, y, dx, dy, isContinuous, globalActions, print)) {

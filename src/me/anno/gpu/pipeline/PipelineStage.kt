@@ -50,9 +50,6 @@ import org.lwjgl.opengl.GL46C.GL_SHORT
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
-import java.util.Arrays
-import kotlin.math.max
-import kotlin.math.min
 
 class PipelineStage(
     var name: String,
@@ -478,32 +475,30 @@ class PipelineStage(
     }
 
     var nextInsertIndex = 0
-    val drawRequests = ArrayList2<DrawRequest>()
+    val drawRequests = ResetArrayList<DrawRequest>()
 
-    class ArrayList2<V>(cap: Int = 16) {
+    class ResetArrayList<V>(cap: Int = 16) {
 
         var size = 0
-        private var content = arrayOfNulls<Any?>(cap)
 
-        fun resize(size: Int) {
-            val newSize = max(16, size)
-            val content = content
-            if (content.size != newSize) {
-                this.content = content.copyOf(newSize)
-                this.size = min(this.size, this.content.size)
+        private val content = ArrayList<V>(cap)
+
+        fun resize(newSize: Int) {
+            if (newSize > content.size) {
+                content.subList(newSize, content.size).clear()
+                content.trimToSize()
             }
         }
 
         fun add(element: V) {
-            if (size >= content.size) resize(content.size * 2)
-            content[size++] = element
+            if (size >= content.size) content.add(element)
+            else content[size] = element
+            size++
         }
 
-        @Suppress("unchecked_cast")
-        operator fun get(index: Int): V = content[index] as V
+        operator fun get(index: Int): V = content[index]
         fun sortWith(comp: Comparator<V>) {
-            @Suppress("unchecked_cast")
-            Arrays.sort(content, 0, size, comp as Comparator<Any?>)
+            content.subList(0, size).sortWith(comp)
         }
     }
 
@@ -719,7 +714,8 @@ class PipelineStage(
                 if (entity !== lastEntity ||
                     lastMesh !== mesh ||
                     lastShader !== shader ||
-                    lastComp?.javaClass != renderer.javaClass
+                    lastComp == null ||
+                    lastComp!!::class != renderer::class
                 ) {
                     val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                         renderer.defineVertexTransform(shader, entity, mesh)

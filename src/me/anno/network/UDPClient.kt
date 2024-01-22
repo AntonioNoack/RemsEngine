@@ -10,15 +10,15 @@ import java.net.InetAddress
 
 class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : Closeable {
 
-    val socket = DatagramSocket()
+    private val socket = DatagramSocket()
         .apply { soTimeout = timeoutMillis }
 
-    val buffer = ByteArray(NetworkProtocol.UDP.limit)
-    val datagramPacket = DatagramPacket(buffer, buffer.size, address, port)
-    val bos = ResetByteArrayOutputStream(buffer)
-    val dos = DataOutputStream(bos)
-    val bis = ResetByteArrayInputStream(buffer)
-    val dis = DataInputStream(bis)
+    private val buffer = ByteArray(NetworkProtocol.UDP.limit)
+    private val datagramPacket = DatagramPacket(buffer, buffer.size, address, port)
+    private val bos = ResetByteArrayOutputStream(buffer)
+    private val dos = DataOutputStream(bos)
+    private val bis = ResetByteArrayInputStream(buffer)
+    private val dis = DataInputStream(bis)
 
     fun send(server: Server?, client: TCPClient, protocol: Protocol, packet: Packet) {
         if (protocol.find(packet.bigEndianMagic) == null) throw UnregisteredPacketException(packet)
@@ -68,5 +68,4 @@ class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : 
     override fun close() {
         socket.close()
     }
-
 }

@@ -126,17 +126,11 @@ object FBStack : CacheSection("FBStack") {
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as FBKey3
-
-            if (width != other.width) return false
-            if (height != other.height) return false
-            if (!targetTypes.contentEquals(other.targetTypes)) return false
-            if (samples != other.samples) return false
-            if (depthBufferType != other.depthBufferType) return false
-
-            return true
+            return other is FBKey3 && width == other.width &&
+                    height == other.height &&
+                    samples == other.samples &&
+                    depthBufferType == other.depthBufferType &&
+                    targetTypes.contentEquals(other.targetTypes)
         }
 
         override fun hashCode(): Int {

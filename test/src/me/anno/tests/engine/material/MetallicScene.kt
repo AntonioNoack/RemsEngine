@@ -36,7 +36,8 @@ fun main() {
         sdfMaterials = listOf(redMetal.ref)
     })
     scene.add(Skybox())
-    scene.add(Entity("Image", ImagePlane(getReference("res://icon.png")).apply {
+    scene.add(Entity("Image", ImagePlane().apply {
+        material.diffuseMap = getReference("res://icon.png")
         // todo way to split transparency rendering into opaque + transparent?
         //  - opaque (a == 1)
         //  - transparent (0 < a < 1)

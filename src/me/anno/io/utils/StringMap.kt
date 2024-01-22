@@ -11,6 +11,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
+import me.anno.utils.structures.maps.Maps.removeIf
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import kotlin.concurrent.thread
@@ -156,7 +157,7 @@ open class StringMap(
     fun removeAll(keys: Collection<String>) {
         synchronized(this) {
             onSyncAccess()
-            val changed = map.entries.removeIf { it.key in keys }
+            val changed = map.removeIf { it.key in keys } > 0
             if (changed) wasChanged = true
         }
     }

@@ -1,9 +1,8 @@
 package me.anno.engine.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.language.translation.NameDesc
-import me.anno.utils.Color.mixARGB
 import me.anno.engine.EngineBase
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -18,9 +17,11 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
+import kotlin.reflect.KClass
 
 /**
  * input panel for drag-dropping references to instances in the same scene
@@ -28,7 +29,7 @@ import org.apache.logging.log4j.LogManager
 class SameSceneRefInput<Type : PrefabSaveable?>(
     title: String,
     visibilityKey: String,
-    val clazz: Class<*>,
+    val clazz: KClass<*>,
     value0: Type,
     style: Style
 ) : TitledListY(title, visibilityKey, style), InputPanel<Type>, TextStyleable {
@@ -90,7 +91,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             get() = getColor(super.effectiveTextColor, lastType)
     }.apply {
         padding.set(valueButton.padding)
-        setTooltip("Drag entities or components of matching type (${clazz.javaClass.simpleName}) here.")
+        setTooltip("Drag entities or components of matching type (${clazz.simpleName}) here.")
     }
 
     init {

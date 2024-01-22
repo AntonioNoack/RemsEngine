@@ -13,11 +13,7 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-class CircleLight() : LightComponent(LightType.CIRCLE) {
-
-    constructor(src: CircleLight) : this() {
-        src.copyInto(this)
-    }
+class CircleLight : LightComponent(LightType.CIRCLE) {
 
     @Range(0.0, 1.0)
     var radius = 0.1f
@@ -42,8 +38,6 @@ class CircleLight() : LightComponent(LightType.CIRCLE) {
     }
 
     override fun getLightPrimitive(): Mesh = smoothCube.front
-
-    override fun clone() = CircleLight(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

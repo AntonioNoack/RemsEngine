@@ -107,7 +107,11 @@ class CachedProperty(
             } else setter(instance, value)
             true
         } catch (e: Exception) {
-            LOGGER.error("Error setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$valueClass'")
+            LOGGER.error(
+                "Error setting property '$name' with value of class " +
+                        "'${if (value != null) value::class else null}' to instance of class '${instance::class}', " +
+                        "properties class: '$valueClass'"
+            )
             e.printStackTrace()
             false
         }
@@ -117,7 +121,7 @@ class CachedProperty(
         return try {
             getter(instance)
         } catch (e: Exception) {
-            LOGGER.error("Setting property '$name' of ${instance::class.jvmName}, but the properties class is '$valueClass'")
+            LOGGER.error("Setting property '$name' of ${instance::class}, but the properties class is '$valueClass'")
             e.printStackTrace()
             null
         }

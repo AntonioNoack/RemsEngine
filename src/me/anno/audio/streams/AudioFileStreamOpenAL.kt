@@ -12,11 +12,11 @@ import me.anno.audio.openal.SoundSource
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.openal.AL10.AL_BUFFERS_PROCESSED
-import org.lwjgl.openal.AL10.AL_FORMAT_MONO16
-import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
-import org.lwjgl.openal.AL10.alGetSourcei
-import org.lwjgl.openal.AL10.alSourceQueueBuffers
+import org.lwjgl.openal.AL11.AL_BUFFERS_PROCESSED
+import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
+import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
+import org.lwjgl.openal.AL11.alGetSourcei
+import org.lwjgl.openal.AL11.alSourceQueueBuffers
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong

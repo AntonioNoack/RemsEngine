@@ -14,7 +14,7 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.structures.tuples.ShortPair
 import me.anno.io.MediaMetadata
-import org.lwjgl.openal.AL10
+import org.lwjgl.openal.AL11
 import kotlin.math.max
 import kotlin.math.min
 
@@ -114,7 +114,7 @@ class AudioStreamRaw(
                     } else lastSoundBuffer!!
                     val data = soundBuffer.data!!
                     val localIndex = clamp((index - index0i).toInt(), 0, sliceSampleCount - 1)
-                    if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
+                    if (soundBuffer.format == AL11.AL_FORMAT_STEREO16) {
                         val arrayIndex0 = localIndex * 2 // for stereo
                         shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
                     } else {
@@ -158,7 +158,7 @@ class AudioStreamRaw(
 
                 val data = soundBuffer.data!!
                 val localIndex = (index % sliceSampleCount).toInt()
-                if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
+                if (soundBuffer.format == AL11.AL_FORMAT_STEREO16) {
                     val arrayIndex0 = localIndex * 2 // for stereo
                     shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
                 } else {

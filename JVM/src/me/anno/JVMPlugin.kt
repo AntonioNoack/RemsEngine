@@ -1,5 +1,6 @@
 package me.anno
 
+import com.sun.jna.platform.FileUtils
 import me.anno.extensions.plugins.Plugin
 import me.anno.fonts.AWTFont
 import me.anno.fonts.ContourImpl
@@ -13,15 +14,23 @@ import me.anno.images.MetadataImpl
 import me.anno.images.ThumbsImpl
 import me.anno.input.Clipboard
 import me.anno.io.MediaMetadata
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.thumbs.Thumbs
+import me.anno.io.utils.TrashManager
 import me.anno.utils.files.OpenFileExternally
+import org.apache.logging.log4j.LogManager
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
+import java.io.IOException
 
 // todo move all Java-exclusive things here as far as possible...
 //  (things that will be unavailable on Android/Web/KotlinNative)
 
 class JVMPlugin : Plugin() {
+    companion object {
+        private val LOGGER = LogManager.getLogger(JVMPlugin::class)
+    }
+
     override fun onEnable() {
         super.onEnable()
         Clipboard.setClipboardContentImpl = ClipboardImpl::setClipboardContent
@@ -48,6 +57,24 @@ class JVMPlugin : Plugin() {
             val ctx = FontRenderContext(null, true, true)
             val layout = TextLayout(".", (FontManager.getFont(font) as AWTFont).awtFont, ctx)
             (layout.ascent + layout.descent).toDouble()
+        }
+        TrashManager.moveToTrashImpl = { files ->
+            val fileUtils: FileUtils = FileUtils.getInstance()
+            if (fileUtils.hasTrash()) {
+                val fileArray = files
+                    .filterIsInstance<FileFileRef>()
+                    .map { it.file }.toTypedArray()
+                try {
+                    fileUtils.moveToTrash(*fileArray)
+                    true
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    false
+                }
+            } else {
+                LOGGER.warn("Trash is not available")
+                false
+            }
         }
     }
 }

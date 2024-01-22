@@ -5,7 +5,8 @@ import me.anno.ui.Panel
 /**
  * Panel type for CustomContainer: Library = Array<Type>.
  * */
-class CustomPanelType(val displayName: String, val constructor: () -> Panel) {
-    private val iName = lazy { constructor()::class.simpleName ?: "?" }
-    val internalName: String get() = iName.value
+class CustomPanelType(val displayName: String, val generator: () -> Panel) {
+    val internalName: String by lazy {
+        generator()::class.simpleName ?: "?"
+    }
 }

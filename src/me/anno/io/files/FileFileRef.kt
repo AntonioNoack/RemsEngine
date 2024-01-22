@@ -29,27 +29,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             while (p.endsWith('/')) p = p.substring(0, p.length - 1)
             return p
         }
-
-        fun copyHierarchy(
-            src: FileReference,
-            dst: FileReference,
-            started: (FileReference) -> Unit,
-            finished: (FileReference) -> Unit
-        ) {
-            if (src.isDirectory) {
-                dst.mkdirs()
-                started(src)
-                for (child in src.listChildren()) {
-                    copyHierarchy(child, dst.getChild(child.name), started, finished)
-                }
-                finished(src)
-            } else {
-                started(src)
-                src.copyTo(dst) {
-                    finished(src)
-                }
-            }
-        }
     }
 
     override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {

@@ -213,8 +213,7 @@ object ECSRegistry {
 
     fun initIfAvailable(clazzName: String, moduleName: String?) {
         try {
-            val clazz = this::class.java.classLoader
-                .loadClass(clazzName)
+            val clazz = this::class.java.classLoader.loadClass(clazzName)
             clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
             warnIfUnavailable(moduleName)

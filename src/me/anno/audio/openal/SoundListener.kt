@@ -1,11 +1,11 @@
 package me.anno.audio.openal
 
 import org.joml.Vector3f
-import org.lwjgl.openal.AL10.AL_ORIENTATION
-import org.lwjgl.openal.AL10.AL_POSITION
-import org.lwjgl.openal.AL10.AL_VELOCITY
-import org.lwjgl.openal.AL10.alListener3f
-import org.lwjgl.openal.AL10.alListenerfv
+import org.lwjgl.openal.AL11.AL_ORIENTATION
+import org.lwjgl.openal.AL11.AL_POSITION
+import org.lwjgl.openal.AL11.AL_VELOCITY
+import org.lwjgl.openal.AL11.alListener3f
+import org.lwjgl.openal.AL11.alListenerfv
 
 object SoundListener {
 

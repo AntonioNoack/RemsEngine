@@ -95,7 +95,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     private fun changeType() {
         val options = ArrayList<MenuOption>(library.typeList.size + 5)
         for (it in library.typeList) {
-            options.add(MenuOption(NameDesc(it.displayName, "", "")) { changeTo(it.constructor()) })
+            options.add(MenuOption(NameDesc(it.displayName, "", "")) { changeTo(it.generator()) })
         }
         val parent = parent
         val warningForLast = "Cannot remove root of custom UI hierarchy"
@@ -153,7 +153,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             val typeName = action.substring(prefix.length, action.lastIndex)
             val type = library.getType(typeName)
             if (type != null) {
-                changeTo(type.constructor())
+                changeTo(type.generator())
             } else {
                 changeType()
             }

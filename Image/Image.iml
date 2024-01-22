@@ -11,5 +11,6 @@
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="module" module-name="KOML" />
     <orderEntry type="module" module-name="JVM" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

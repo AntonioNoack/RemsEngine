@@ -57,7 +57,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     private var data = ByteBuffer.allocateDirect(65536)
     private val dataI = ByteArray(4096)
 
-    fun ensureCapacity(size: Int) {
+    private fun ensureCapacity(size: Int) {
         if (data.capacity() < size) {
             data = ByteBuffer.allocateDirect(max(size, data.capacity() * 2))
             LOGGER.debug("Resizing to ${size.toLong().formatFileSize()}")
@@ -148,7 +148,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         } else return null
     }
 
-    fun compile(key: Pair<String, String?>): Int {
+    private fun compile(key: Pair<String, String?>): Int {
         val (vs, fs) = key
         val program = glCreateProgram()
         // indices to find name

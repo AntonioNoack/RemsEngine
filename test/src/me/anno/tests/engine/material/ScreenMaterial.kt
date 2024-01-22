@@ -39,7 +39,7 @@ fun main() {
     // create image plane
     val mask = getReference("res://textures/RGBMask.png")
     val image = getReference("res://textures/dig8.png")
-    val plane = ImagePlane(image)
+    val plane = ImagePlane()
     plane.material.apply {
         shader = ScreenShader
         diffuseBase.set(0f, 0f, 0f, 1f)

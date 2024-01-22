@@ -361,7 +361,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             val data = getCopiedBytes(limit) ?: return null
             // if was copied on right side, use string, else concat values
             // todo also mark this as being copied, to we could drop it into other hex editors
-            return if (text) String(data) else {
+            return if (text) data.decodeToString() else {
                 val builder = StringBuilder(3 * data.size - 1)
                 val v0 = data[0].toInt()
                 builder.append(hex4(v0.shr(4)))

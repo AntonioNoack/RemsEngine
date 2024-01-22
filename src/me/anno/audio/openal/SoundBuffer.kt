@@ -6,11 +6,11 @@ import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
-import org.lwjgl.openal.AL10.AL_FORMAT_MONO16
-import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
-import org.lwjgl.openal.AL10.alBufferData
-import org.lwjgl.openal.AL10.alDeleteBuffers
-import org.lwjgl.openal.AL10.alGenBuffers
+import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
+import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
+import org.lwjgl.openal.AL11.alBufferData
+import org.lwjgl.openal.AL11.alDeleteBuffers
+import org.lwjgl.openal.AL11.alGenBuffers
 import org.lwjgl.stb.STBVorbis.stb_vorbis_close
 import org.lwjgl.stb.STBVorbis.stb_vorbis_get_info
 import org.lwjgl.stb.STBVorbis.stb_vorbis_get_samples_short_interleaved

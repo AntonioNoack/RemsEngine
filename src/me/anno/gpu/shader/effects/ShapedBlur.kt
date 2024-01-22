@@ -22,6 +22,7 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import kotlin.math.abs
 import kotlin.math.cos
@@ -46,13 +47,13 @@ object ShapedBlur {
             val name = input.read0String()
             if (name.isEmpty()) break
             val data = input.readNBytes2(input.readLE16(), true)
-            result[name] = lazy { decompress(data.inputStream()) }
+            result[name] = lazy { decompress(ByteArrayInputStream(data)) }
         }
         while (true) {
             val name = input.read0String()
             if (name.isEmpty()) break
             val data = input.readNBytes2(input.readLE16(), true)
-            result[name] = lazy { decompressGaussian(data.inputStream()) }
+            result[name] = lazy { decompressGaussian(ByteArrayInputStream(data)) }
         }
         return result
     }

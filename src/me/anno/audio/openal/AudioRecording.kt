@@ -2,8 +2,8 @@ package me.anno.audio.openal
 
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.BufferUtils
-import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
-import org.lwjgl.openal.ALC10
+import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
+import org.lwjgl.openal.ALC11
 import org.lwjgl.openal.ALC11.ALC_CAPTURE_SAMPLES
 import org.lwjgl.openal.ALC11.alcCaptureCloseDevice
 import org.lwjgl.openal.ALC11.alcCaptureOpenDevice
@@ -36,7 +36,7 @@ class AudioRecording {
             // parallely somehow play the audio...
             // this is kind of awkward...
 
-            ALC10.alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, infoBuffer)
+            ALC11.alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, infoBuffer)
             alcCaptureSamples(device, buffer, infoBuffer[0])
 
             // save the samples

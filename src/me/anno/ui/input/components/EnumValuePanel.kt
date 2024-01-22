@@ -24,7 +24,11 @@ class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) 
 
     override fun isKeyInput() = true
 
-    override fun clone() = EnumValuePanel(this)
+    override fun clone(): EnumValuePanel {
+        val clone = EnumValuePanel(text, owner, style)
+        copyInto(clone)
+        return clone
+    }
 
     override fun getCursor(): Cursor? {
         return if (owner.isInputAllowed) super.getCursor()
