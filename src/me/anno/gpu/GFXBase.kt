@@ -23,6 +23,8 @@ import me.anno.input.Input.mouseLockWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.SECONDS_TO_MILLIS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
@@ -376,7 +378,7 @@ object GFXBase {
             if (window.isInFocus ||
                 window.hasActiveMouseTargets() ||
                 neverStarveWindows ||
-                abs(window.lastUpdate - time) * GFX.idleFPS > SECONDS_TO_NANOS
+                abs(window.lastUpdate - time) * EngineBase.idleFPS > SECONDS_TO_NANOS
             ) {
                 window.lastUpdate = time
                 // this is hopefully ok (calling it async to other glfw stuff)
@@ -418,19 +420,21 @@ object GFXBase {
             if (window.shouldClose) close(window)
         }
 
-        if (windows.isNotEmpty() &&
-            windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() } &&
-            mayIdle && !OS.isWeb // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
-        ) {
-            // enforce 30 fps, because we don't need more
-            // and don't want to waste energy
-            val currentTime = Time.nanoTime
-            val waitingTime = 1000 / max(1, GFX.idleFPS) - (currentTime - lastTime) / 1000000
-            lastTime = currentTime
-            if (waitingTime > 0) try {
-                // wait does not work, causes IllegalMonitorState exception
-                Thread.sleep(waitingTime)
-            } catch (ignored: InterruptedException) {
+        if (mayIdle && !OS.isWeb) { // Browser must not wait, because it is slow anyway ^^, and we probably can't detect in-focus
+            val isIdle = windows.isNotEmpty() &&
+                    windows.none2 { (it.isInFocus && !it.isMinimized) || it.hasActiveMouseTargets() }
+            val maxFPS = if (isIdle) EngineBase.idleFPS else EngineBase.maxFPS
+            if (maxFPS > 0) {
+                // enforce X fps, because we don't need more
+                // and don't want to waste energy
+                val currentTime = Time.nanoTime
+                val waitingTime = SECONDS_TO_MILLIS / max(1, maxFPS) - (currentTime - lastTime) / MILLIS_TO_NANOS
+                if (waitingTime > 0) try {
+                    // wait does not work, causes IllegalMonitorState exception
+                    Thread.sleep(waitingTime)
+                } catch (ignored: InterruptedException) {
+                }
+                lastTime = Time.nanoTime
             }
         }
     }

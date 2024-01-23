@@ -9,7 +9,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 
 fun main() {
     testUI("ListStressTest-Y") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         val n = 100_000
         val list = PanelListY(style)
         list.allChildrenHaveSameSize = true

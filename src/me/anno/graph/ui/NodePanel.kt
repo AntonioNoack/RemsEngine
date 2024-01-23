@@ -82,8 +82,7 @@ class NodePanel(
         val inputs = node.inputs
         val outputs = node.outputs
 
-        lineCount = 1 + // title
-                max(inputs?.size ?: 0, outputs?.size ?: 0)
+        lineCount = 1 + max(inputs.size, outputs.size)// +1 is for title
 
         val baseTextSize = baseTextSize
         val baseTextSizeI4 = (baseTextSize * 4).toInt()
@@ -94,7 +93,7 @@ class NodePanel(
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
-        if (inputs != null) for (i in inputs.indices) {
+        for (i in inputs.indices) {
             val con = inputs[i]
             // add all needed new input fields
             val oldField = inputFields[con]
@@ -109,29 +108,21 @@ class NodePanel(
             val newFieldW = getSizeX(FontManager.getSize(font, con.name, -1, -1, false)) + baseTextSizeI4
             minW = if (newField != null) {
                 newField.calculateSize(w, minH)
-                val extra = if (outputs != null && i < outputs.size) {
+                val extra = if (i < outputs.size) {
                     getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
                 } else 0
                 max(minW, newFieldW + newField.minW + extra)
             } else {
-                val extra = if (outputs != null && i < outputs.size) {
+                val extra = if (i < outputs.size) {
                     getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
                 } else 0
                 max(minW, newFieldW + extra)
             }
-        } else if (inputFields.isNotEmpty()) {
-            // remove all input fields that are no longer needed
-            for ((_, panel) in inputFields) {
-                remove(panel)
-            }
-            inputFields.clear()
         }
 
-        if (outputs != null) {
-            for (i in (inputs?.size ?: 0) until outputs.size) {
-                val extra = getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
-                minW = max(minW, baseTextSizeI4 + extra)
-            }
+        for (i in inputs.size until outputs.size) {
+            val extra = getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+            minW = max(minW, baseTextSizeI4 + extra)
         }
 
         val minH0 = minH
@@ -191,7 +182,7 @@ class NodePanel(
         }
     }
 
-    private fun <V : NodeConnector> placeConnectors(connectors: Array<V>?, y: Int, x: Double) {
+    private fun <V : NodeConnector> placeConnectors(connectors: List<V>?, y: Int, x: Double) {
         connectors ?: return
         for ((index, con) in connectors.withIndex()) {
             con.position.set(x, gp.windowToCoordsY(y + (index + 1.5) * baseTextSize * (1.0 + lineSpacing)), 0.0)
@@ -307,15 +298,14 @@ class NodePanel(
 
         // to do generally, weights could be useful on either end (maybe?)
 
-        val inputs = node.inputs
-        if (inputs != null) for (con in inputs) {
+        for (con in node.inputs) {
             var dx = dxTxt
             val panel = inputFields[con]
             if (panel != null) dx += panel.width //+ baseTextSize.toInt()
             drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
         }
         val outputs = node.outputs
-        if (outputs != null) for (con in outputs) {
+        for (con in outputs) {
             drawConnector(con, baseTextSize, mouseX, mouseY, -dxTxt, dyTxt, font, textColor)
         }
 
@@ -386,7 +376,7 @@ class NodePanel(
         var bestDistance = radiusSq
         var bestCon: NodeConnector? = null
         val inputs = node.inputs
-        if (inputs != null) for (con in inputs) {
+        for (con in inputs) {
             val distance = con.position.distanceSquared(cx, cy, 0.0)
             if (distance < bestDistance) {
                 bestDistance = distance
@@ -394,7 +384,7 @@ class NodePanel(
             }
         }
         val outputs = node.outputs
-        if (outputs != null) for (con in outputs) {
+        for (con in outputs) {
             val distance = con.position.distanceSquared(cx, cy, 0.0)
             if (distance < bestDistance) {
                 bestDistance = distance
@@ -469,13 +459,11 @@ class NodePanel(
                 // check if we can add a connector, or remove one
                 // list of all known types
                 val input = connector is NodeInput
-                val idx = (if (input) node.inputs else node.outputs)?.indexOf(connector) ?: -1
+                val idx = (if (input) node.inputs else node.outputs).indexOf(connector)
                 val idx1 = idx + 1
                 val knownTypes = (gp.library.allNodes.map { it.first } + (gp.graph?.nodes ?: emptyList()))
                     .asSequence()
-                    .map { n ->
-                        (n.inputs?.map { it.type } ?: emptyList()) + (n.outputs?.map { it.type } ?: emptyList())
-                    }
+                    .map { n -> (n.inputs + n.outputs).map { it.type } }
                     .flatten()
                     .toHashSet()
                 val addableTypes = knownTypes.filter { type ->
@@ -489,30 +477,20 @@ class NodePanel(
                     // ask user what shall be done
                     openMenu(windowStack, addableTypes.map { typeI ->
                         MenuOption(NameDesc("Add $typeI Connector")) {
-                            if (input) node.inputs = addConnector(node.inputs, NodeInput(typeI, node, true), idx1)
-                            else node.outputs = addConnector(node.outputs, NodeOutput(typeI, node, true), idx1)
+                            if (input) node.inputs.add(idx1, NodeInput(typeI, node, true))
+                            else node.outputs.add(idx1, NodeOutput(typeI, node, true))
                             invalidateLayout()
                         }
                     } + (if (canRemove) listOf(
                         MenuOption(NameDesc("Remove Connector")) {
-                            if (input) node.inputs = removeConnector(node.inputs, idx)
-                            else node.outputs = removeConnector(node.outputs, idx)
+                            if (input) node.inputs.removeAt(idx)
+                            else node.outputs.removeAt(idx)
                             invalidateLayout()
                         }
                     ) else emptyList()))
                 } else super.onMouseClicked(x, y, button, long)
             } else super.onMouseClicked(x, y, button, long)
         } else super.onMouseClicked(x, y, button, long)
-    }
-
-    inline fun <reified V> addConnector(old: Array<V>?, new: V, idx: Int): Array<V> {
-        return if (old == null) arrayOf(new)
-        else (old.copyOfRange(0, idx) + new + old.copyOfRange(idx, old.size))
-    }
-
-    inline fun <reified V> removeConnector(old: Array<V>?, idx: Int): Array<V>? {
-        return if (old == null) null
-        else (old.copyOfRange(0, idx) + old.copyOfRange(idx + 1, old.size))
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {
@@ -566,11 +544,9 @@ class NodePanel(
                 // open new node menu, and then connect them automatically
                 gp.openNewNodeMenu(con0.type, con0 is NodeInput) {
                     val base = if (con0 is NodeInput) it.outputs else it.inputs
-                    if (base != null) {
-                        for (newCon in base) {
-                            if (connect(con0, newCon))
-                                break
-                        }
+                    for (newCon in base) {
+                        if (connect(con0, newCon))
+                            break
                     }
                 }
             }

@@ -29,7 +29,7 @@ object OpenFileExternallyImpl {
                 return true
             }
             OS.isLinux -> {
-                val browsers = arrayOf(
+                val browsers = listOf(
                     "epiphany", "firefox", "mozilla", "konqueror",
                     "netscape", "opera", "links", "lynx"
                 )

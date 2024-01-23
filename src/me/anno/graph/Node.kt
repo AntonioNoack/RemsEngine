@@ -31,8 +31,12 @@ abstract class Node() : PrefabSaveable() {
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
         if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name, got ${inputs.size} args")
         if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name, got ${outputs.size} args")
-        this.inputs = Array(inputs.size shr 1) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false) }
-        this.outputs = Array(outputs.size shr 1) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false) }
+        for (it in 0 until (inputs.size shr 1)) {
+            this.inputs.add(NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false))
+        }
+        for (it in 0 until (outputs.size shr 1)) {
+            this.outputs.add(NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false))
+        }
     }
 
     // make name final
@@ -50,8 +54,8 @@ abstract class Node() : PrefabSaveable() {
     // but we may zoom into other functions :)
     var layer = 0
 
-    var inputs: Array<NodeInput>? = null
-    var outputs: Array<NodeOutput>? = null
+    val inputs = ArrayList<NodeInput>()
+    val outputs = ArrayList<NodeOutput>()
 
     var color = 0
     var graph: Graph? = null
@@ -66,16 +70,15 @@ abstract class Node() : PrefabSaveable() {
     fun isConnected(): Boolean {
         val inputs = inputs
         val outputs = outputs
-        return (inputs != null && inputs.any { !it.isEmpty() }) ||
-                (outputs != null && outputs.any { !it.isEmpty() })
+        return inputs.any { !it.isEmpty() } || outputs.any { !it.isEmpty() }
     }
 
     fun getOutput(index: Int): Any? {
-        return outputs?.getOrNull(index)?.currValue
+        return outputs.getOrNull(index)?.currValue
     }
 
     fun setOutput(index: Int, value: Any?) {
-        val output = outputs!![index]
+        val output = outputs[index]
         output.currValue = value
         val graph = graph
         if (graph is FlowGraph) {
@@ -88,20 +91,20 @@ abstract class Node() : PrefabSaveable() {
     }
 
     fun getInputNode(i: Int, j: Int = 0): Node? {
-        return inputs?.get(i)?.others?.getOrNull(j)?.node
+        return inputs[i].others.getOrNull(j)?.node
     }
 
     fun getOutputNode(i: Int, j: Int = 0): Node? {
-        return outputs?.get(i)?.others?.getOrNull(j)?.node
+        return outputs[i].others.getOrNull(j)?.node
     }
 
     fun delete(graph: Graph?) {
         val inputs = inputs
-        if (inputs != null) for (con in inputs) {
+        for (con in inputs) {
             con.disconnectAll()
         }
         val outputs = outputs
-        if (outputs != null) for (con in outputs) {
+        for (con in outputs) {
             con.disconnectAll()
         }
         // todo you might not be allowed to delete this node
@@ -115,10 +118,10 @@ abstract class Node() : PrefabSaveable() {
         // if valid, just save connections and values (should be much slimmer :))
         val inputs = inputs
         val outputs = outputs
-        if (inputs == null || inputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
-            writer.writeObjectArray(this, "inputs", inputs)
-        if (outputs == null || outputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
-            writer.writeObjectArray(this, "outputs", outputs)
+        if (inputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
+            writer.writeObjectList(this, "inputs", inputs)
+        if (outputs.any { it.isCustom || it.currValue != null || it.others.isNotEmpty() })
+            writer.writeObjectList(this, "outputs", outputs)
         writer.writeInt("layer", layer)
         writer.writeVector3d("position", position)
     }
@@ -126,34 +129,34 @@ abstract class Node() : PrefabSaveable() {
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "inputs" -> {
-                val newbies = values.filterIsInstance<NodeInput>().toTypedArray()
-                val originals = this.inputs
+                val newbies = values.filterIsInstance<NodeInput>()
                 for (i in newbies.indices) {
                     val newbie = newbies[i]
                     newbie.node = this
-                    val original = originals?.getOrNull(i)
+                    val original = inputs.getOrNull(i)
                     if (original?.isCustom == false) {
                         newbie.name = original.name
                         newbie.type = original.type
                         newbie.description = original.description
                     }
                 }
-                this.inputs = newbies
+                inputs.clear()
+                inputs.addAll(newbies)
             }
             "outputs" -> {
-                val newbies = values.filterIsInstance<NodeOutput>().toTypedArray()
-                val originals = this.outputs
+                val newbies = values.filterIsInstance<NodeOutput>()
                 for (i in newbies.indices) {
                     val newbie = newbies[i]
                     newbie.node = this
-                    val original = originals?.getOrNull(i)
+                    val original = outputs.getOrNull(i)
                     if (original?.isCustom == false) {
                         newbie.name = original.name
                         newbie.type = original.type
                         newbie.description = original.description
                     }
                 }
-                this.outputs = newbies
+                outputs.clear()
+                outputs.addAll(newbies)
             }
             else -> super.readObjectArray(name, values)
         }
@@ -183,12 +186,12 @@ abstract class Node() : PrefabSaveable() {
 
     fun connectTo(outputIndex: Int, otherNode: Node, inputIndex: Int) {
 
-        val output = outputs!![outputIndex]
+        val output = outputs[outputIndex]
         // todo check if the node connector can have multiple outputs
         // flow only can have one,
         // values can have many
 
-        val input = otherNode.inputs!![inputIndex]
+        val input = otherNode.inputs[inputIndex]
         // todo check if the node connector can have multiple inputs
         // flow can have many,
         // values only can have one
@@ -198,7 +201,7 @@ abstract class Node() : PrefabSaveable() {
     }
 
     fun setInput(index: Int, value: Any?, validId: Int) {
-        val c = inputs!![index]
+        val c = inputs[index]
         c.lastValidId = validId
         c.currValue = value
     }

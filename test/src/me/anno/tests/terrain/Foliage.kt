@@ -296,7 +296,7 @@ fun main() {
         }
         scene.add(AllMeshComp(mesh0))
         scene.add(AllMeshComp(mesh1))
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
 
         list
     }

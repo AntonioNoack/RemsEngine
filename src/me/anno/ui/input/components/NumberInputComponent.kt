@@ -5,11 +5,12 @@ import me.anno.ui.Style
 import me.anno.ui.input.InputVisibility
 
 open class NumberInputComponent(val visibilityKey: String, style: Style) :
-    PureTextInput(style.getChild("deep")) {
+    PureTextInputML(style.getChild("deep")) {
 
     init {
         setResetListener { "0.0" }
         enableSpellcheck = false
+        lineLimit = 1
     }
 
     @Docs("Used in Rem's Studio")

@@ -8,10 +8,11 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.Style
+import me.anno.ui.input.components.PureTextInputML
 
 @Suppress("unused")
 open class TextInput(title: String, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :
-    PanelContainer(PureTextInput(style), Padding(), style), InputPanel<String>, TextStyleable {
+    PanelContainer(PureTextInput(style.getChild("deep")), Padding(), style), InputPanel<String>, TextStyleable {
 
     constructor(style: Style) : this("", "", true, style)
 
@@ -23,7 +24,7 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         setValue(value ?: "", false)
     }
 
-    val base: PureTextInput = child as PureTextInput
+    val base: PureTextInputML = child as PureTextInputML
     private var isSelectedListener: (() -> Unit)? = null
 
     init {
@@ -71,8 +72,8 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
     fun addKey(codePoint: Int) = base.addKey(codePoint)
     fun insert(insertion: String) = base.insert(insertion)
     fun insert(insertion: Int) = base.insert(insertion)
-    fun deleteBefore() = base.deleteBefore()
-    fun deleteAfter() = base.deleteAfter()
+    fun deleteBefore(force: Boolean) = base.deleteBefore(force)
+    fun deleteAfter(force: Boolean) = base.deleteAfter(force)
     fun ensureCursorBounds() = base.ensureCursorBounds()
     fun addChangeListener(listener: (text: String) -> Unit): TextInput {
         base.addChangeListener(listener)

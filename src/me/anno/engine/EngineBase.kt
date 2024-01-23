@@ -238,11 +238,6 @@ abstract class EngineBase(
         }
     }
 
-    /**
-     * prevents tearing, but also increase input-latency
-     * */
-    var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
-
     fun toggleVsync() {
         enableVSync = !enableVSync
     }
@@ -341,6 +336,18 @@ abstract class EngineBase(
     open val language get() = Language.get(Dict["en-US", "lang.spellcheck"])
 
     companion object {
+
+        @JvmStatic
+        var idleFPS by ConfigRef("ui.window.idleFPS", 10)
+
+        // todo respect this, <= 0 is unlimited
+        @JvmStatic
+        var maxFPS by ConfigRef("ui.window.maxFPS", 0)
+
+        /**
+         * prevents tearing, but also increase input-latency
+         * */
+        var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
 
         var instance: EngineBase? = null
 

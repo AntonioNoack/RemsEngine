@@ -250,7 +250,7 @@ fun main() {
     // we handle collisions ourselves
     comp.collisionMask = 0
     testSceneWithUI("FluidSim", scene) {
-        EngineBase.instance!!.enableVSync = true
+        EngineBase.enableVSync = true
         it.editControls = object : DraggingControls(it.renderer) {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {}
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

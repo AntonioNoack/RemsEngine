@@ -56,6 +56,6 @@ fun main() {
 
     scene.add(StaticMeshManager())
     SceneView.testSceneWithUI("StaticMeshManager", scene) {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
     }
 }

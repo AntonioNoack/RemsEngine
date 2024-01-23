@@ -86,9 +86,6 @@ object GFX {
     val someWindow // we also could choose the one closest to the mouse :)
         get() = focusedWindow ?: windows.firstOrNull() ?: firstWindow
 
-    @JvmStatic
-    var idleFPS by ConfigRef("ui.window.idleFPS", 10)
-
     @JvmField
     var supportsAnisotropicFiltering = false
 

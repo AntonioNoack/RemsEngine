@@ -201,7 +201,7 @@ fun main() {
     val updateInterval = 1f / 60f
     val image = IntArray(world.size)
     testUI3("Creeper World") {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
         val texture = Texture2D("tex", w, h, 1)
         var nextUpdate = 0L
         var tickIndex = 0

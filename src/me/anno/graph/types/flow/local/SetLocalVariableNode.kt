@@ -14,8 +14,8 @@ class SetLocalVariableNode(type: String = "?") :
     var type: String = type
         set(value) {
             field = value
-            inputs!![2].type = value
-            outputs!![1].type = value
+            inputs[2].type = value
+            outputs[1].type = value
             name = if (value == "?") "SetLocal"
             else "SetLocal $value"
         }

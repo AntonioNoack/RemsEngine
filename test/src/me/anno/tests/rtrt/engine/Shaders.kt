@@ -286,7 +286,7 @@ fun createTLASTextureComputeShader(bvh: TLASNode): Quad<ComputeShader, Texture2D
     )
 }
 
-fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, Array<ComputeBuffer>> {
+fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, List<ComputeBuffer>> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
     tlas.collectMeshes(uniqueMeshes)
@@ -323,5 +323,5 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, Array<Com
                 "}\n"
     )
 
-    return Pair(shader, arrayOf(triangles, blasNodes, tlasNodes.first, tlasNodes.second))
+    return Pair(shader, listOf(triangles, blasNodes, tlasNodes.first, tlasNodes.second))
 }

@@ -30,7 +30,7 @@ fun main() {
     mesh.materials = listOf(material.ref)
 
     testSceneWithUI("3DRTTex", mesh) {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
         val data = Texture3D("density", size.x, size.y, size.z)
         data.createMonochrome(densities)
         data.swizzleAlpha()

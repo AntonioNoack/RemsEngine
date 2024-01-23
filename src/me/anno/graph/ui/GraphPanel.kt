@@ -329,7 +329,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         for (i0 in nodes.indices) {
             val srcNode = nodes[i0]
             val outputs = srcNode.outputs
-            if (outputs != null) for (i1 in outputs.indices) {
+            for (i1 in outputs.indices) {
                 val nodeOutput = outputs[i1]
                 val outPosition = nodeOutput.position
                 val outColor = getTypeColor(nodeOutput)
@@ -594,9 +594,9 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 val original = focussedNodes.first()
                 val clone = original.clone()
                 val inputs = clone.inputs
-                if (inputs != null) for (input in inputs) input.others = emptyList()
+                for (input in inputs) input.others = emptyList()
                 val outputs = clone.outputs
-                if (outputs != null) for (output in outputs) output.others = emptyList()
+                for (output in outputs) output.others = emptyList()
                 clone.position.sub(center)
                 clone
             }
@@ -607,10 +607,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 for (node in cloned) {
                     node as Node
                     val inputs = node.inputs
-                    if (inputs != null) for (input in inputs)
+                    for (input in inputs)
                         input.others = input.others.filter { it.node in containedNodes }
                     val outputs = node.outputs
-                    if (outputs != null) for (output in outputs)
+                    for (output in outputs)
                         output.others = output.others.filter { it.node in containedNodes }
                     node.position.sub(center)
                 }

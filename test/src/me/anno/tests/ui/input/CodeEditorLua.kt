@@ -28,7 +28,7 @@ fun testCodeEditor(title: String, editor: CodeEditor) {
     disableRenderDoc()
     testUI2(title) {
 
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
 
         CodeEditor.registerActions()
 

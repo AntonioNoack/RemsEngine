@@ -14,8 +14,8 @@ class ValueNode private constructor(type: String, inputs: List<String>, outputs:
     var type: String = type
         set(value) {
             field = value
-            inputs!![0].type = value
-            outputs!![0].type = value
+            inputs[0].type = value
+            outputs[0].type = value
             name = value
         }
 

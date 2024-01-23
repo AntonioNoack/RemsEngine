@@ -1,5 +1,6 @@
 package me.anno.tests.ui
 
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
@@ -22,7 +23,7 @@ open class UITests {
     }
 
     fun press(key: Key, cp: Char? = null) {
-        Input.onKeyPressed(osWindow, key)
+        Input.onKeyPressed(osWindow, key, Time.nanoTime)
         Input.onKeyReleased(osWindow, key)
         if (cp != null) Input.onCharTyped(osWindow, cp.code, 0)
     }

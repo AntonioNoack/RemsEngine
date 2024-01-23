@@ -72,7 +72,7 @@ fun main() {
     val scene = PrefabCache[path]!!.getSampleInstance() as Entity
     testUI3("FrameGen") {
         DefaultConfig["debug.renderdoc.enabled"] = true
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         var interFrames = 2
         val renderPanel = object : Panel(style) {
 

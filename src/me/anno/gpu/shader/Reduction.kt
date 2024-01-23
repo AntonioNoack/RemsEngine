@@ -36,7 +36,7 @@ object Reduction {
         val startValue: Vector4f,
         val function: String,
         val normalize: Boolean,
-        val kotlinImpl: (sum: Vector4f, addend: Vector4f) -> Unit,
+        val cpuImpl: (sum: Vector4f, addend: Vector4f) -> Unit,
     ) {
         constructor(
             name: String, startValue: Float, function: String, normalize: Boolean,
@@ -149,7 +149,7 @@ object Reduction {
         glGetTexImage(target, 0, GL_RGBA, GL_FLOAT, buffer)
         GFX.check()
 
-        val impl = op.kotlinImpl
+        val impl = op.cpuImpl
 
         // performance shouldn't matter, because IO between CPU and GPU will be SLOW
         val remainingPixels = srcTexture.width * srcTexture.height

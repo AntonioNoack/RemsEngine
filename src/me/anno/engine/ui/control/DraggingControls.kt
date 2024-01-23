@@ -96,6 +96,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     init {
         val topLeft = PanelListX(style)
+        drawModeInput.alignmentY = AxisAlignment.CENTER
         topLeft.add(drawModeInput)
         topLeft.add(TextButton("Play", "Start the game", false, style)
             .addLeftClickListener { ECSSceneTabs.currentTab?.play() }

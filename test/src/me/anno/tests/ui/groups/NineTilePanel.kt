@@ -13,7 +13,7 @@ import me.anno.utils.Color.black
 fun main() {
     disableRenderDoc()
     testUI3("NineTilePanel") {
-        val alignments = arrayOf(
+        val alignments = listOf(
             AxisAlignment.MIN,
             AxisAlignment.CENTER,
             AxisAlignment.MAX,

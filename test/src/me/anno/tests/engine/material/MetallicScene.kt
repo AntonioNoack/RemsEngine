@@ -94,6 +94,6 @@ fun main() {
         }
     }
     testSceneWithUI("Metallic", scene) {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
     }
 }

@@ -12,7 +12,7 @@ import org.joml.Vector4f
 
 fun main() {
     testUI3("Batch Test") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         EngineBase.showFPS = true
         object : Panel(style) {
 

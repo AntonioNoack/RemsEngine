@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 
 fun main() {
     testUI("ListStressTest-XY") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         val listY = PanelListY(style)
         for (j in 0 until 100) {
             val list = PanelListX(style)

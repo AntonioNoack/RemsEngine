@@ -33,7 +33,7 @@ fun main() {
     // broken text input
     // testSceneWithUI(sample)
     testUI("PrefabTest") {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
         sample.prefabPath = Path.ROOT_PATH
         EditorState.prefabSource = sample.ref
         PrefabInspector.currentInspector = PrefabInspector(sample.ref)

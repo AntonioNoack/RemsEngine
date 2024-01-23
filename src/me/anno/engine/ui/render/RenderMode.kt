@@ -37,7 +37,6 @@ import me.anno.graph.render.scene.RenderSceneNode
 import me.anno.graph.types.FlowGraph
 import org.joml.Vector4f
 
-// todo remove all specific implementations in RenderView with RenderGraphs, as far as possible
 // todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(

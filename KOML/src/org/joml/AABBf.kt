@@ -541,7 +541,7 @@ class AABBf(
             val cz0 = centerZ - sz
             val dir = Vector3f(dx, dy, dz).normalize()
             val extends = Vector3f(deltaX, deltaY, deltaZ).mul(0.5f)
-            val ai01 = arrayOf(Vector3f(), Vector3f())
+            val ai01 = listOf(Vector3f(), Vector3f())
             for (axis in 0 until 3) {
 
                 val z = axis

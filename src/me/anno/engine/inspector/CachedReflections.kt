@@ -37,10 +37,6 @@ class CachedReflections(
         getDebugWarnings(clazz)
     )
 
-    val annotations =
-        if (OS.isWeb) clazz.java.annotations.toList()
-        else clazz.annotations
-
     val propertiesByClass by lazy {
         getPropertiesByDeclaringClass(clazz, allProperties)
     }
@@ -66,7 +62,10 @@ class CachedReflections(
         return try {
             property.set(self, value2)
         } catch (e: IllegalArgumentException) {
-            LOGGER.warn("$e for ${self.javaClass.name}.$name, it's ${value2?.javaClass?.name}")
+            LOGGER.warn(
+                "$e for ${self::class}.$name, " +
+                        "it's ${if (value2 != null) value2::class else null}"
+            )
             false
         }
     }
@@ -247,7 +246,7 @@ class CachedReflections(
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)
                         val serialize = serial != null || (isPublic && notSerial == null)
                         map[betterName] = saveField(
-                            getterMethod.declaringClass.kotlin, getterMethod.returnType.kotlin,
+                            getterMethod.declaringClass, getterMethod.returnType,
                             betterName, serial, serialize, annotations,
                             getterMethod::invoke, setterMethod::invoke
                         )
@@ -277,8 +276,8 @@ class CachedReflections(
                 null
             }
             return saveField(
-                field.declaringClass.kotlin,
-                field.type.kotlin, name, serial,
+                field.declaringClass,
+                field.type, name, serial,
                 serialize, annotations,
                 if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
                 else field::get,
@@ -287,8 +286,8 @@ class CachedReflections(
         }
 
         private fun saveField(
-            instanceClass: KClass<*>,
-            valueClass: KClass<*>,
+            instanceClass: Class<*>,
+            valueClass: Class<*>,
             name: String,
             serial: SerializedProperty?,
             serialize: Boolean,
@@ -297,11 +296,19 @@ class CachedReflections(
             setter: (instance: Any, value: Any?) -> Unit
         ): CachedProperty {
             // save the field
-            val forceSaving = serial?.forceSaving ?: (valueClass == Boolean::class)
+            val forceSaving = serial?.forceSaving ?: (valueClass == Boolean::class.java)
             return CachedProperty(
                 name, instanceClass, valueClass, serialize, forceSaving,
                 annotations, getter, setter
             )
+        }
+
+        fun getEnumId(value: Any): Int? {
+            return try {
+                value::class.java.getField("id").get(value) as? Int
+            } catch (ignored: NoSuchFieldException) {
+                null
+            }
         }
     }
 }

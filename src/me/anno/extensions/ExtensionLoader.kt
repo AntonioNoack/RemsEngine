@@ -192,9 +192,7 @@ object ExtensionLoader {
         if (clazz != null) {
             try {
                 // call with arguments??..., e.g. config or StudioBase or sth...
-                val ext = clazz.constructors
-                    .first { it.parameters.isEmpty() }
-                    .call() as? Extension
+                val ext = clazz.java.newInstance() as? Extension
                 ext?.setInfo(ex)
                 ext?.isRunning = true
                 return ext

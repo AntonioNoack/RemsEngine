@@ -24,7 +24,7 @@ interface ExpressionRenderer {
     var shader: Shader?
     val graph: Graph?
     val name: String
-    val inputs: Array<NodeInput>?
+    val inputs: List<NodeInput>
     var typeValues: HashMap<String, TypeValue>?
 
     fun getInput(index: Int): Any?
@@ -61,7 +61,7 @@ interface ExpressionRenderer {
                 val shader: Shader
 
                 init {
-                    val expr = expr(inputs!![1])
+                    val expr = expr(inputs[1])
                     defineLocalVars(builder)
                     val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +

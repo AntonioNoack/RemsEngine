@@ -131,44 +131,44 @@ abstract class GraphCompiler(val g: FlowGraph) {
         if (v != null) return v
         return when (n) {
             is GLSLExprNode -> {
-                val c = n.outputs!!.indexOf(out)
+                val c = n.outputs.indexOf(out)
                 val name = n.getShaderFuncName(c)
                 val func = typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
                 if (func != null) {
                     val inputs = n.inputs
-                    when (inputs?.size ?: 0) {
+                    when (inputs.size) {
                         0 -> "$name()"
-                        else -> "$name(${inputs!!.joinToString(",") { expr(it) }})"
+                        else -> "$name(${inputs.joinToString(",") { expr(it) }})"
                     }
                 } else name
             }
             is DotProductF2, is DotProductF3, is DotProductF4 -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val a = expr(inputs[0])
                 val b = expr(inputs[1])
                 "dot($a,$b)"
             }
             is CrossProductF3 -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val a = expr(inputs[0])
                 val b = expr(inputs[1])
                 "cross($a,$b)"
             }
             is CombineVector2f -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val a = expr(inputs[0])
                 val b = expr(inputs[1])
                 "vec2($a,$b)"
             }
             is CombineVector3f -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val a = expr(inputs[0])
                 val b = expr(inputs[1])
                 val c = expr(inputs[2])
                 "vec3($a,$b,$c)"
             }
             is CombineVector4f -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val a = expr(inputs[0])
                 val b = expr(inputs[1])
                 val c = expr(inputs[2])
@@ -176,14 +176,14 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 "vec4($a,$b,$c,$d)"
             }
             is SeparateVector2f, is SeparateVector3f, is SeparateVector4f -> {
-                val c = n.outputs!!.indexOf(out)
-                val a = expr(n.inputs!![0])
+                val c = n.outputs.indexOf(out)
+                val a = expr(n.inputs[0])
                 "($a).${"xyzw"[c]}"
             }
             is GetLocalVariableNode -> getLocalVarName(n.key, n.type)
             is SetLocalVariableNode -> getLocalVarName(n.key, n.type)
             is CompareNode -> {
-                val inputs = n.inputs!!
+                val inputs = n.inputs
                 val an = inputs[0]
                 val bn = inputs[1]
                 val a = expr(an)
@@ -191,22 +191,22 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 val symbol = n.compType.glslName
                 "($a)$symbol($b)"
             }
-            is ValueNode -> expr(n.inputs!![0])
+            is ValueNode -> expr(n.inputs[0])
             is TextureNode -> {
-                val uv = expr(n.inputs!![0])
+                val uv = expr(n.inputs[0])
                 val texName = textures.getOrPut(n.file) {
-                    val linear = constEval(n.inputs!![1]) == true
+                    val linear = constEval(n.inputs[1]) == true
                     // todo different color repeat modes in GLSL
                     Pair("tex1I${textures.size}", linear)
                 }.first
                 "texture($texName,$uv)"
             }
             is TextureNode2 -> {
-                val uv = expr(n.inputs!![1])
+                val uv = expr(n.inputs[1])
                 val input = out.others.firstOrNull() as? NodeInput
                 if (input != null) {
                     val texName = textures2.getOrPut(input) {
-                        val linear = constEval(n.inputs!![2]) == true
+                        val linear = constEval(n.inputs[2]) == true
                         val currValue = input.currValue
                         val useMS = currValue is Texture2D && currValue.samples > 1
                         // todo different color repeat modes in GLSL
@@ -222,9 +222,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 } else "vec4(1.0,0.0,1.0,1.0)"
             }
             is MovieNode -> {
-                val uv = expr(n.inputs!![0])
+                val uv = expr(n.inputs[0])
                 val texName = movies.getOrPut(n) {
-                    val linear = constEval(n.inputs!![1]) == true
+                    val linear = constEval(n.inputs[1]) == true
                     Pair("movI${movies.size}", linear)
                 }.first
                 "texture($texName,$uv)"
@@ -326,10 +326,10 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 val ki = k++
                 val body = n.getOutputNode(0)
                 if (body != null) {
-                    val startValue = expr(n.inputs!![1])
-                    val endValue = expr(n.inputs!![2])
-                    val step = expr(n.inputs!![3])
-                    val desc = expr(n.inputs!![4])
+                    val startValue = expr(n.inputs[1])
+                    val endValue = expr(n.inputs[2])
+                    val step = expr(n.inputs[3])
+                    val desc = expr(n.inputs[4])
                     builder.append(
                         "" +
                                 "bool d$ki=$desc;\n" +
@@ -347,9 +347,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
             }
             is WhileNode -> {
                 val body = n.getOutputNode(0)
-                val cc = constEval(n.inputs!![1])
+                val cc = constEval(n.inputs[1])
                 if (body != null && cc != false) {
-                    val cond = expr(n.inputs!![1])
+                    val cond = expr(n.inputs[1])
                     builder.append("while((")
                     builder.append(cond)
                     builder.append(") && (budget--)>0){\n")
@@ -360,11 +360,11 @@ abstract class GraphCompiler(val g: FlowGraph) {
             }
             is DoWhileNode -> {
                 val body = n.getOutputNode(0)
-                val cc = constEval(n.inputs!![1])
+                val cc = constEval(n.inputs[1])
                 if (body != null && cc != false) {
                     builder.append("do {")
                     createTree(body, depth + 1)
-                    val cond = expr(n.inputs!![1])
+                    val cond = expr(n.inputs[1])
                     builder.append("} while((\n")
                     builder.append(cond)
                     builder.append(") && (budget--)>0);\n")
@@ -375,11 +375,11 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 val tr = n.getOutputNode(0)
                 val fs = n.getOutputNode(1)
                 // constant eval if possible
-                when (constEval(n.inputs!![1])) {
+                when (constEval(n.inputs[1])) {
                     true -> createTree(tr, depth)
                     false -> createTree(fs, depth)
                     else -> {
-                        val cond = expr(n.inputs!![1])
+                        val cond = expr(n.inputs[1])
                         if (tr != null && fs != null) {
                             builder.append("if(")
                             builder.append(cond)
@@ -402,7 +402,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             }
             is SetLocalVariableNode -> {
                 if (n.type != "?") {
-                    val value = expr(n.inputs!![2])
+                    val value = expr(n.inputs[2])
                     builder.append(getLocalVarName(n.key, n.type))
                         .append("=").append(value).append(";\n")
                 }
@@ -528,7 +528,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 }
                 is MaterialReturnNode -> {
                     for (i in layers.indices) {
-                        if (!exportedLayers[i] && shallExport(layers[i], node.inputs!![i + 1])) {
+                        if (!exportedLayers[i] && shallExport(layers[i], node.inputs[i + 1])) {
                             exportedLayers[i] = true
                         }
                     }

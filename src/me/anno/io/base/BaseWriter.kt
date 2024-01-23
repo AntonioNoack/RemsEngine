@@ -2,6 +2,7 @@ package me.anno.io.base
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
+import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
@@ -35,7 +36,6 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import java.io.Serializable
-import kotlin.reflect.full.memberProperties
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -526,10 +526,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
          * this would be developer-friendlier :)
          * at the same time, it causes issues, when old save files are read
          * */
-        val id = value::class
-            .memberProperties
-            .firstOrNull { it.name == "id" }
-            ?.getter?.call(value)
+        val id = getEnumId(value)
         if (id is Int) {
             writeInt(name, id, forceSaving)
         } else {
@@ -613,7 +610,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is FileReference -> writeFileArray(name, toArray(value), forceSaving)
 
             // todo 2d stuff...
-            else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${sample?.javaClass}")
+            else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${if (sample != null) sample::class else null}")
         }
     }
 

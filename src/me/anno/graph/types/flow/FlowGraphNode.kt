@@ -15,7 +15,7 @@ abstract class FlowGraphNode : Node {
             super(name, inputs, outputs)
 
     fun getInput(index: Int): Any? {
-        return inputs!![index].getValue()
+        return inputs[index].getValue()
     }
 
     abstract fun execute(): NodeOutput?

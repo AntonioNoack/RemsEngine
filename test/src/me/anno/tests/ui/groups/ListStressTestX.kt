@@ -12,7 +12,7 @@ import me.anno.utils.Color.toHexString
 fun main() {
     disableRenderDoc()
     testUI("ListStressTest-X") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         val n = 100_000
         val list = PanelListX(style)
         list.allChildrenHaveSameSize = true

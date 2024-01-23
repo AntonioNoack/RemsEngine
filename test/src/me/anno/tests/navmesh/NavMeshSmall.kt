@@ -28,7 +28,7 @@ import kotlin.math.max
 fun main() {
     testUI("NavMeshSmall") {
 
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         ECSRegistry.initMeshes()
 
         val mask = 1 shl 16

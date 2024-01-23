@@ -106,9 +106,9 @@ interface WelcomeUI {
             quickSettings += BooleanInput(
                 "Enable Vsync",
                 "Recommended; false for debugging", "ui.settings.vSync",
-                studio.enableVSync, true, style
+                EngineBase.enableVSync, true, style
             ).setChangeListener {
-                studio.enableVSync = it
+                EngineBase.enableVSync = it
                 window.setVsyncEnabled(it)
             }
         } // else we cannot set vsync

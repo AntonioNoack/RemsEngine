@@ -9,7 +9,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
     testUI3("Scrollbar Overdraw") {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
         val main = ScrollPanelY(style)
         val list = main.child as PanelList
         for (i in 0 until 100) {

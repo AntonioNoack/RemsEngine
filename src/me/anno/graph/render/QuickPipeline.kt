@@ -38,9 +38,9 @@ class QuickPipeline {
     fun then(node: Node, extraInputs: Map<String, Any?>, extraOutputs: Map<String, List<String>>): QuickPipeline {
 
         // connect flow, if available
-        if (node.inputs?.firstOrNull()?.type == "Flow") {
+        if (node.inputs.firstOrNull()?.type == "Flow") {
             graph.nodes.lastOrNull {
-                it.outputs?.firstOrNull()?.type == "Flow"
+                it.outputs.firstOrNull()?.type == "Flow"
             }?.connectTo(0, node, 0)
         }
 
@@ -51,7 +51,7 @@ class QuickPipeline {
 
         // connect all inputs
         val inputs = node.inputs
-        if (inputs != null) for (i in inputs.indices) {
+        for (i in inputs.indices) {
             val input = inputs[i]
             if (input.type != "Flow") {
                 if (input.name in extraInputs) {
@@ -66,8 +66,7 @@ class QuickPipeline {
         }
 
         // register all outputs
-        val outputs = node.outputs
-        if (outputs != null) for (output in outputs) {
+        for (output in node.outputs) {
             if (output.type != "Flow") {
                 val mapping = extraOutputs[output.name]
                 if (mapping != null) {

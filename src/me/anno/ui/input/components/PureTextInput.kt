@@ -2,18 +2,8 @@ package me.anno.ui.input.components
 
 import me.anno.ui.Style
 
-open class PureTextInput(style: Style) : PureTextInputML(style.getChild("edit")) {
-
-    init {
-        lineLimit = 1
-    }
-
-    override fun clone(): PureTextInput {
-        val clone = PureTextInput(style)
-        copyInto(clone)
-        return clone
-    }
-
-    override val className: String get() = "PureTextInput"
-
+fun PureTextInput(style: Style): PureTextInputML {
+    val panel = PureTextInputML(style)
+    panel.lineLimit = 1
+    return panel
 }

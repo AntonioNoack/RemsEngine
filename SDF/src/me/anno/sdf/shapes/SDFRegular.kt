@@ -87,7 +87,7 @@ class SDFRegular : SDFSmoothShape() {
             return o.dot(x, y, z)
         }
 
-        private val constants = arrayOf(
+        private val constants = listOf(
             normalize(1f, 0f, 0f),
             normalize(0f, 1f, 0f),
             normalize(0f, 0f, 1f),

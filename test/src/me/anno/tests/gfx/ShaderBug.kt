@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import org.lwjgl.opengl.GL20C
+import org.lwjgl.opengl.GL46C
 
 fun main() {
     HiddenOpenGLContext.createOpenGL()
@@ -30,18 +30,18 @@ fun main() {
     println(fragment)
 
     fun compile(program: Int, type: Int, source: String) {
-        val shader = GL20C.glCreateShader(type)
-        GL20C.glShaderSource(shader, source)
-        GL20C.glCompileShader(shader)
-        GL20C.glAttachShader(program, shader)
-        val log = GL20C.glGetShaderInfoLog(shader)
+        val shader = GL46C.glCreateShader(type)
+        GL46C.glShaderSource(shader, source)
+        GL46C.glCompileShader(shader)
+        GL46C.glAttachShader(program, shader)
+        val log = GL46C.glGetShaderInfoLog(shader)
         if (log.isNotBlank()) throw RuntimeException(log)
     }
 
-    val program = GL20C.glCreateProgram()
-    compile(program, GL20C.GL_VERTEX_SHADER, vertex)
-    compile(program, GL20C.GL_FRAGMENT_SHADER, fragment)
-    GL20C.glLinkProgram(program)
-    val log = GL20C.glGetProgramInfoLog(program)
+    val program = GL46C.glCreateProgram()
+    compile(program, GL46C.GL_VERTEX_SHADER, vertex)
+    compile(program, GL46C.GL_FRAGMENT_SHADER, fragment)
+    GL46C.glLinkProgram(program)
+    val log = GL46C.glGetProgramInfoLog(program)
     if (log.isNotBlank()) throw RuntimeException(log) // crashes
 }

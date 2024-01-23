@@ -9,7 +9,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
     testUI3("List Stresstest 2d") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         val n = 100_000
         val list = PanelList2D(style)
         list.childWidth = 120

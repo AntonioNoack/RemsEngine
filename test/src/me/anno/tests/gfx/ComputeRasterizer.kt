@@ -666,6 +666,6 @@ fun computeRasterizer() {
         )
     }
     testSceneWithUI("Compute Rasterizer", scene) {
-        EngineBase.instance?.enableVSync = false // we want to go fast, so we need to measure performance
+        EngineBase.enableVSync = false // we want to go fast, so we need to measure performance
     }
 }

@@ -14,7 +14,7 @@ import me.anno.utils.OS
 fun main() {
     disableRenderDoc()
     testUI("Hex Editor") {
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         ActionManager.register("HexEditor.s.t.c", "Save")
         val list = PanelListX(DefaultConfig.style)
         val files = listOf(

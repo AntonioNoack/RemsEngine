@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.Time
 import me.anno.Time.nanoTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
@@ -159,6 +160,7 @@ object Input {
         }
 
         GLFW.glfwSetKeyCallback(window.pointer) { window1, key, scancode, action, mods ->
+            val time = nanoTime
             if (window1 != window.pointer) {
                 // touch events are hacked into GLFW for Windows 7+
                 window.framesSinceLastInteraction = 0
@@ -175,7 +177,7 @@ object Input {
             } else addEvent {
                 val key1 = Key.byId(key)
                 when (action) {
-                    GLFW.GLFW_PRESS -> onKeyPressed(window, key1)
+                    GLFW.GLFW_PRESS -> onKeyPressed(window, key1, time)
                     GLFW.GLFW_RELEASE -> onKeyReleased(window, key1)
                     GLFW.GLFW_REPEAT -> onKeyTyped(window, key1)
                 }
@@ -207,7 +209,7 @@ object Input {
         keyModState = mods
     }
 
-    fun onKeyPressed(window: OSWindow, key: Key) {
+    fun onKeyPressed(window: OSWindow, key: Key, nanoTime: Long) {
         window.framesSinceLastInteraction = 0
         keysDown[key] = nanoTime
         keysWentDown += key

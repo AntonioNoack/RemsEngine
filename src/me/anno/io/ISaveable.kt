@@ -372,9 +372,8 @@ interface ISaveable {
 
         @JvmStatic
         fun <V : ISaveable> registerCustomClass(className: String?, clazz: KClass<V>): RegistryEntry {
-            val constructor = clazz.java.getConstructor()
             val sample = try {
-                constructor.newInstance()
+                clazz.java.newInstance()
             } catch (e: InstantiationException) {
                 throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
             }

@@ -37,7 +37,7 @@ fun runFileExplorerTest() {
         UniformCacheSize = 0
         GFXBase.useSeparateGLFWThread = false
         testUI3("Engine in OpenGL") {
-            EngineBase.instance?.enableVSync = false
+            EngineBase.enableVSync = false
             EngineBase.showFPS = true
             FileExplorer(pictures, true, style)
         }

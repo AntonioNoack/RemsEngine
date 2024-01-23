@@ -15,7 +15,7 @@ fun main() {
     var lx = 0f
     var ly = 0f
     testDrawing("Latency") {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
         it.clear()
         val window = it.window!!
         val radius1 = length(window.mouseX - lx, window.mouseY - ly)

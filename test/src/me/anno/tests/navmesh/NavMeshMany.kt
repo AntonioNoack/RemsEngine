@@ -74,7 +74,7 @@ class AgentController1b(
 fun main() {
     testUI("NavMeshMany") {
 
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
         ECSRegistry.init()
 
         val mask = 1 shl 16

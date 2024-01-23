@@ -90,7 +90,7 @@ object VisualNovel {
     class QuestionNode() : StateNode("Question", listOf("String", "Question"), listOf("Int", "Result")) {
         constructor(question: String, options: List<String>) : this() {
             setInput(1, question)
-            inputs = inputs!! + options.map { NodeInput("String", this, true) }
+            inputs.addAll(options.map { NodeInput("String", this, true) })
             for (i in options.indices) {
                 setInput(i + 2, options[i])
             }
@@ -98,7 +98,7 @@ object VisualNovel {
 
         override fun onEnterState(oldState: StateNode?) {
             color = gold
-            val options = (2 until inputs!!.size).map { (getInput(it) ?: "").toString() }.filter { it.isNotBlank() }
+            val options = (2 until inputs.size).map { (getInput(it) ?: "").toString() }.filter { it.isNotBlank() }
             val shownText = (getInput(1) ?: "").toString() + "\n" +
                     options.withIndex().joinToString("") { (idx, it) -> "  [${idx + 1}] $it\n" }
             setText(shownText, options.size, this)

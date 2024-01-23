@@ -3,10 +3,8 @@ package me.anno.extensions
 import me.anno.extensions.events.Event
 import me.anno.extensions.events.EventHandler
 import java.lang.reflect.InvocationTargetException
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.memberFunctions
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 abstract class Extension {
 
@@ -24,11 +22,11 @@ abstract class Extension {
      * */
     var priority = 0.0
 
-    private val listeners = HashMap<KClass<*>, HashSet<ListenerData>>()
+    private val listeners = HashMap<Class<*>, HashSet<ListenerData>>()
 
     var isRunning = true
 
-    class ListenerData(val listener: Any, val method: KFunction<*>, val priority: Int) : Comparable<ListenerData> {
+    class ListenerData(val listener: Any, val method: Method, val priority: Int) : Comparable<ListenerData> {
         override fun compareTo(other: ListenerData): Int {
             return priority.compareTo(other.priority)
         }
@@ -58,16 +56,16 @@ abstract class Extension {
     fun registerListener(listener: Any): Int {
         if (!isRunning) return 0
         var ctr = 0
-        for (method in listener::class.memberFunctions) {
-            if (method.visibility == KVisibility.PUBLIC &&
-                !method.isAbstract
+        for (method in listener::class.java.methods) {
+            if (Modifier.isPublic(method.modifiers) &&
+                !Modifier.isAbstract(method.modifiers)
             ) {
                 val eventHandler = method.annotations
                     .firstOrNull { it is EventHandler } as? EventHandler
                 if (eventHandler != null) {
                     val types = method.parameters
                     if (types.size == 1) {
-                        val list = listeners.getOrPut(types[0].type as KClass<*>) { HashSet() }
+                        val list = listeners.getOrPut(types[0].type as Class<*>) { HashSet() }
                         list.add(ListenerData(listener, method, eventHandler.priority))
                         ctr++
                     }
@@ -86,10 +84,10 @@ abstract class Extension {
 
     fun onEvent(event: Event) {
         if (event.isCancelled) return
-        val listeners = listeners[event::class] ?: return
+        val listeners = listeners[event::class.java] ?: return
         for (data in listeners) {
             try {
-                data.method.call(data.listener, event)
+                data.method.invoke(data.listener, event)
                 if (event.isCancelled) {
                     break
                 }

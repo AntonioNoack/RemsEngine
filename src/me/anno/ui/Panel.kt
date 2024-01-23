@@ -27,7 +27,6 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -682,15 +681,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun forAllVisiblePanels(callback: (Panel) -> Unit) {
         if (canBeSeen) callback(this)
-    }
-
-    fun forAllPanels(array: ExpandingGenericArray<Panel>) {
-        array += this
-        if (this is PanelGroup) {
-            for (child in children) {
-                child.forAllPanels(array)
-            }
-        }
     }
 
     fun firstOfAll(predicate: (Panel) -> Boolean): Panel? {

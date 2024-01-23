@@ -509,7 +509,7 @@ object DrawTexts {
         } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
     }
 
-    fun drawText(
+    private fun drawText(
         x: Int, y: Int,
         textColor: Int, backgroundColor: Int,
         texture: ITexture2D,

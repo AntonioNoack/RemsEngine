@@ -5,19 +5,17 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
+import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.jvmName
 
 class CachedProperty(
     val name: String,
-    val instanceClass: KClass<*>,
-    val valueClass: KClass<*>,
+    val instanceClass: Class<*>,
+    val valueClass: Class<*>,
     val serialize: Boolean,
     val forceSaving: Boolean?,
     val annotations: List<Annotation>,
@@ -36,7 +34,7 @@ class CachedProperty(
         if (!valueClass.isInstance(value)) {
             if (value != null) {
                 // if we have two arrays of different types, convert them
-                val vcj = valueClass.java
+                val vcj = valueClass
                 val icj = value.javaClass
                 if (vcj.isArray && icj.isArray && value is Array<*>) {
                     // convert them
@@ -46,7 +44,7 @@ class CachedProperty(
                     return set(instance, newValue)
                 }
             }
-            throw IllegalArgumentException("Value is not instance of ${valueClass.java}")
+            throw IllegalArgumentException("Value is not instance of ${valueClass::class}")
         }
         return try {
             val oldValue = getter(instance)
@@ -71,12 +69,9 @@ class CachedProperty(
                 val newValue = when {
                     index != Int.MIN_VALUE -> {
                         // todo use hashmap or array or sth like that for ~O(1) lookup
-                        @Suppress("unchecked_cast")
-                        val idProperty = (oldValue::class as KClass<Any>)
-                            .memberProperties
-                            .firstOrNull { it.name == "id" }
-                        if (idProperty != null) {
-                            values.firstOrNull { idProperty.get(it) == index } ?: values[0]
+                        val oldId = getEnumId(oldValue)
+                        if (oldId != null) {
+                            values.firstOrNull { getEnumId(it) == oldId } ?: values[0]
                         } else values.getOrNull(index) ?: values[0]
                     }
                     value is String -> {
@@ -92,11 +87,10 @@ class CachedProperty(
                         val splitIndex = value.indexOf('/')
                         val ordinal = if (splitIndex < 0) -1 else value.substring(0, splitIndex).toInt()
                         val name = value.substring(splitIndex + 1)
-                        val idGetter = oldValue::class.memberProperties
-                            .firstOrNull { it.name == "id" }
+                        val idGetter = getEnumId(oldValue)
                         values.firstOrNull { it as Enum<*>; it.name == name }
                             ?: values.firstOrNull { it as Enum<*>; it.name.equals(name, true) }
-                            ?: (if (idGetter != null) values.firstOrNull { idGetter.call(it) == ordinal } else null)
+                            ?: (if (idGetter != null) values.firstOrNull { getEnumId(it) == ordinal } else null)
                             ?: (if (ordinal > -1) values.firstOrNull { it as Enum<*>; it.ordinal == ordinal } else null)
                             // as a last resort, we could try to use the Levenshtein distance
                             ?: throw RuntimeException("Could not find appropriate enum value for value '$value' and class ${oldValue::class}")
@@ -128,7 +122,7 @@ class CachedProperty(
     }
 
     override fun toString(): String {
-        return "$name: ${valueClass.jvmName}" +
+        return "$name: $valueClass" +
                 (if (serialize) ", serialize" else "") +
                 (if (forceSaving == true) ", force-saving" else "") +
                 (if (range != null) ", $range" else "") +
@@ -139,13 +133,16 @@ class CachedProperty(
 
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
-        private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
+        private fun hide(it: HideInInspector, name: String, clazz: Class<*>): (Any) -> Boolean {
             if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
             else {
-                @Suppress("unchecked_cast")
-                val getter1 = clazz.memberProperties
-                    .firstOrNull { p -> p.name == it.hideIfVariableIsTrue } as? KProperty1<Any, Boolean>
-                if (getter1 != null) return { instance -> getter1.invoke(instance) }
+                val getter1 = try {
+                    clazz.getMethod("get${it.hideIfVariableIsTrue.camelCaseToTitle()}")
+                } catch (e: NoSuchMethodException) {
+                    e.printStackTrace()
+                    null
+                }
+                if (getter1 != null) return { instance -> getter1.invoke(instance) == true }
                 else {
                     LOGGER.warn("Property ${it.hideIfVariableIsTrue} was not found to hide variable $name of $clazz")
                     return { _: Any -> false }

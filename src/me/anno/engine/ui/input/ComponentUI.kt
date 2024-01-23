@@ -1396,8 +1396,11 @@ object ComponentUI {
         }
     }
 
-    fun instanceOf(clazz: KClass<*>, parent: KClass<*>): Boolean {
-        if (clazz == parent) return true
-        return clazz.superclasses.any { instanceOf(it, parent) }
+    fun instanceOf(clazz: KClass<*>, tested: KClass<*>): Boolean {
+        var clazzI = clazz
+        while (true) {
+            if (clazzI == tested) return true
+            clazzI = clazzI.superclasses.firstOrNull() ?: return false
+        }
     }
 }

@@ -484,36 +484,42 @@ open class PureTextInputML(style: Style) :
         }
     }
 
-    fun deleteBefore() {
-        lastChangeTime = Time.nanoTime
-        if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
-            if (cursor1.x == 0) {
-                // join lines
-                val line0 = lines[cursor1.y - 1]
-                val joint = (line0 + lines[cursor1.y]).toMutableList()
-                lines[cursor1.y - 1] = joint
-                lines.removeAt(cursor1.y)
-                cursor1.set(line0.size, cursor1.y - 1)
-            } else {
-                // remove a char
-                lines[cursor1.y].removeAt(cursor1.x - 1)
-                cursor1.set(cursor1.x - 1, cursor1.y)
+    fun deleteBefore(force: Boolean) {
+        if (lastDelete != Time.lastTimeNanos || force) {
+            lastDelete = Time.lastTimeNanos
+            lastChangeTime = Time.nanoTime
+            if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
+                if (cursor1.x == 0) {
+                    // join lines
+                    val line0 = lines[cursor1.y - 1]
+                    val joint = (line0 + lines[cursor1.y]).toMutableList()
+                    lines[cursor1.y - 1] = joint
+                    lines.removeAt(cursor1.y)
+                    cursor1.set(line0.size, cursor1.y - 1)
+                } else {
+                    // remove a char
+                    lines[cursor1.y].removeAt(cursor1.x - 1)
+                    cursor1.set(cursor1.x - 1, cursor1.y)
+                }
+                cursor2.set(cursor1)
             }
-            cursor2.set(cursor1)
+            ensureCursorBounds()
+            update(true)
         }
-        ensureCursorBounds()
-        update(true)
     }
 
-    fun deleteAfter() {
-        if (lastDelete != Time.nanoTime) {
-            lastDelete = Time.nanoTime
+    fun deleteAfter(force: Boolean) {
+        if (lastDelete != Time.lastTimeNanos || force) {
+            lastDelete = Time.lastTimeNanos
             if (cursor1 != cursor2) {
                 deleteSelection()
                 update(true)
             } else {
+                val oldCursor = cursor1.hashCode()
                 moveRight()
-                deleteBefore()
+                if (oldCursor != cursor1.hashCode()) {
+                    deleteBefore(true)
+                }
             }
         }
     }
@@ -555,9 +561,13 @@ open class PureTextInputML(style: Style) :
                 // we can move right
                 CursorPosition(oldCursor.x + 1, oldCursor.y)
             }
-            else -> {
+            oldCursor.y < lines.lastIndex -> {
                 // we need to move down
                 CursorPosition(0, min(oldCursor.y + 1, lines.lastIndex))
+            }
+            else -> {
+                // we cannot move down
+                oldCursor
             }
         }
         if (isSelectingText) {
@@ -741,8 +751,8 @@ open class PureTextInputML(style: Style) :
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "DeleteAfter" -> if (isInputAllowed) deleteAfter()
-            "DeleteBefore" -> if (isInputAllowed) likeBackspaceKey()
+            "DeleteAfter" -> if (isInputAllowed) deleteAfter(false)
+            "DeleteBefore" -> if (isInputAllowed) deleteBefore(false)
             "DeleteSelection" -> if (isInputAllowed) deleteSelection()
             "MoveLeft" -> moveLeft()
             "MoveRight" -> moveRight()
@@ -763,16 +773,10 @@ open class PureTextInputML(style: Style) :
 
     override fun onBackSpaceKey(x: Float, y: Float) {
         if (!isInputAllowed) return
-        likeBackspaceKey()
+        deleteBefore(false)
     }
 
     private var lastDelete = 0L
-    private fun likeBackspaceKey() {
-        if (lastDelete != Time.lastTimeNanos) {
-            lastDelete = Time.lastTimeNanos
-            deleteBefore()
-        }
-    }
 
     override fun onEnterKey(x: Float, y: Float) {
         if (isInputAllowed && lines.size + 1 < lineLimit) {
@@ -787,7 +791,7 @@ open class PureTextInputML(style: Style) :
 
     override fun onDeleteKey(x: Float, y: Float) {
         if (!isInputAllowed) return
-        deleteAfter()
+        deleteAfter(false)
     }
 
     override fun clone(): PureTextInputML {

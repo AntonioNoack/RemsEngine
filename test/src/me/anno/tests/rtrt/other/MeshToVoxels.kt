@@ -293,7 +293,7 @@ fun main() {
     testUI("MeshToVoxels") {
 
         // to measure performance
-        EngineBase.instance?.enableVSync = false
+        EngineBase.enableVSync = false
 
         val renderer = attributeRenderers[DeferredLayerType.COLOR]
 

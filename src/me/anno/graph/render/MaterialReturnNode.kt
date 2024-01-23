@@ -8,7 +8,6 @@ import org.joml.Vector3f
 class MaterialReturnNode : ReturnNode(outputs) {
 
     init {
-        val inputs = inputs!!
         val layers = MaterialGraph.layers
         for (i in layers.indices) {
             val layer = layers[i]

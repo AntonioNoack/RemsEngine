@@ -41,7 +41,7 @@ fun main() {
         // without vsync (at 2000 fps): still 33ms lag (yellow ring)
         // without vsync, with glFinish() after glfwSwapBuffers(): 16-25ms lag (between green and yellow)
         // with Vsync and glFinish(): 2 frames input lag (yellow ring)
-        EngineBase.instance?.enableVSync = vsync
+        EngineBase.enableVSync = vsync
         it.clear()
         val window = it.window!!
         val mx = window.mouseX

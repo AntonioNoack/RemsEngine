@@ -72,7 +72,6 @@ class CompareNode(type: String = "?") :
     }
 
     override fun compute() {
-        val inputs = inputs!!
         val a = inputs[0].getValue()
         val b = inputs[1].getValue()
         val c = when (compType) {

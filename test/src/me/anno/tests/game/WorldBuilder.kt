@@ -58,7 +58,7 @@ fun main() {
 
         ECSRegistry.init()
 
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
 
         val list = CustomList(true, style)
 

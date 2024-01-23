@@ -77,8 +77,8 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     fun addKey(codePoint: Int) = base.addKey(codePoint)
     fun insert(insertion: String) = base.insert(insertion)
     fun insert(insertion: Int) = base.insert(insertion, true)
-    fun deleteBefore() = base.deleteBefore()
-    fun deleteAfter() = base.deleteAfter()
+    fun deleteBefore(force: Boolean) = base.deleteBefore(force)
+    fun deleteAfter(force: Boolean) = base.deleteAfter(force)
     fun ensureCursorBounds() = base.ensureCursorBounds()
     fun addChangeListener(listener: (text: String) -> Unit): TextInputML {
         base.addChangeListener(listener)

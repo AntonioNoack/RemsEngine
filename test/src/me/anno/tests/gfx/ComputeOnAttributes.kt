@@ -62,6 +62,6 @@ fun rotatingCube() {
     scene.add(comp)
     scene.add(MeshComponent(mesh))
     testSceneWithUI("Procedural GPU Mesh", scene) {
-        EngineBase.instance?.enableVSync = true
+        EngineBase.enableVSync = true
     }
 }
