@@ -2,7 +2,7 @@ package me.anno.config
 
 import me.anno.Engine.projectName
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap

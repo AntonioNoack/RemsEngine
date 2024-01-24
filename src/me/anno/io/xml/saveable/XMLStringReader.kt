@@ -1,6 +1,6 @@
 package me.anno.io.xml.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import org.apache.logging.log4j.LogManager
@@ -13,7 +13,7 @@ class XMLStringReader(val data: CharSequence) {
         private val LOGGER = LogManager.getLogger(XMLStringReader::class)
     }
 
-    val children = ArrayList<ISaveable>()
+    val children = ArrayList<Saveable>()
 
     init {
         val data1 = XMLReader().read(ByteArrayInputStream(data.toString().encodeToByteArray())) as XMLNode
@@ -24,8 +24,8 @@ class XMLStringReader(val data: CharSequence) {
         }
     }
 
-    fun readInstance(node: XMLNode): ISaveable? {
-        val instance = ISaveable.createOrNull(node.type)
+    fun readInstance(node: XMLNode): Saveable? {
+        val instance = Saveable.createOrNull(node.type)
         if (instance != null) {
             for ((name, typeValue) in node.attributes) {
                 val i0 = typeValue.indexOf(':')
@@ -79,7 +79,7 @@ class XMLStringReader(val data: CharSequence) {
         })
     }
 
-    private fun readValue(instance: ISaveable, name: String, type: String, value: String) {
+    private fun readValue(instance: Saveable, name: String, type: String, value: String) {
         when (type) {
             // todo implement all types
             "b" -> instance.readBoolean(name, value.equals("true", true) || value.equals("1", true))

@@ -353,8 +353,6 @@ open class Material : PrefabSaveable(), Renderable {
         dst.clamping = clamping
     }
 
-    override val className: String get() = "Material"
-
     companion object {
 
         // what is a good timeout???

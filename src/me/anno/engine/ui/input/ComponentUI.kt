@@ -34,7 +34,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpFile
@@ -326,7 +326,7 @@ object ComponentUI {
                     input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
                     return input
                 }
-                if (value is ISaveable) {
+                if (value is Saveable) {
                     return createISaveableInput(title, value, style, property)
                 }
                 return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
@@ -336,7 +336,7 @@ object ComponentUI {
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
     }
 
-    fun createISaveableInput(title: String, saveable: ISaveable, style: Style, property: IProperty<Any?>): Panel {
+    fun createISaveableInput(title: String, saveable: Saveable, style: Style, property: IProperty<Any?>): Panel {
         // if saveable is Inspectable, we could use the inspector as well :)
         // runtime: O(n²) where n is number of properties of that class
         // could be improved, but shouldn't matter
@@ -1157,7 +1157,7 @@ object ComponentUI {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
                         // todo find the class somehow...
-                        val clazz = ISaveable.getClass(type1) ?: throw IllegalStateException("Missing class $type1")
+                        val clazz = Saveable.getClass(type1) ?: throw IllegalStateException("Missing class $type1")
                         return SameSceneRefInput(title, visibilityKey, clazz, value, style)
                             .apply {
                                 property.init(this)
@@ -1196,7 +1196,7 @@ object ComponentUI {
                             })
                         }
                     }
-                    value is ISaveable && ISaveable.getClass(type0) != null -> {
+                    value is Saveable && Saveable.getClass(type0) != null -> {
                         return createISaveableInput(title, value, style, property)
                     }
                 }
@@ -1231,7 +1231,7 @@ object ComponentUI {
     fun getTypeFromSample(value: Any?): String? {
         value ?: return null
         return when (value) {
-            is ISaveable -> value.className
+            is Saveable -> value.className
             is Serializable -> value::class.simpleName
             else -> value::class.simpleName
         }
@@ -1267,7 +1267,7 @@ object ComponentUI {
                     return InvalidRef
                 }
                 try {// just try it, maybe it works :)
-                    ISaveable.create(type)
+                    Saveable.create(type)
                 } catch (e: Exception) {
                     LOGGER.warn("Unknown type $type for getDefault()")
                     null

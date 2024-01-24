@@ -10,7 +10,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.engine.serialization.NotSerializedProperty
@@ -847,7 +847,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         else super.readString(name, value)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         if (name == "tooltipPanel") tooltipPanel = value as? Panel
         else super.readObject(name, value)
     }
@@ -874,8 +874,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeString("tooltip", tooltip ?: "")
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
-
-    override val className: String get() = "Panel"
 
     companion object {
 

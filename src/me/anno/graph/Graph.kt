@@ -2,7 +2,7 @@ package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.render.NodeGroup
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -114,9 +114,7 @@ open class Graph : PrefabSaveable() {
         return ((srcType == "Flow") == (dstType == "Flow"))
     }
 
-    override val className: String get() = "Graph"
     override val approxSize get() = 1000
-    override fun isDefaultValue(): Boolean = false
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -124,7 +122,7 @@ open class Graph : PrefabSaveable() {
         writer.writeObjectList(null, "groups", groups)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "nodes" -> {
                 nodes.clear()

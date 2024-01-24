@@ -47,7 +47,6 @@ import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -537,14 +536,14 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         when (name) {
             "stages" -> stages.add(value as? PipelineStage ?: return)
             else -> super.readObject(name, value)
         }
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "stages" -> {
                 stages.clear()

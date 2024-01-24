@@ -5,7 +5,6 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
@@ -322,7 +321,7 @@ class Prefab : Saveable {
         }
     }
 
-    fun readAdds(values: Array<ISaveable?>) {
+    fun readAdds(values: Array<Saveable?>) {
         for (v in values) {
             if (v is CAdd) {
                 adds.getOrPut(v.path) { ArrayList() }.add(v)
@@ -330,7 +329,7 @@ class Prefab : Saveable {
         }
     }
 
-    fun readAdds(values: List<ISaveable?>) {
+    fun readAdds(values: List<Saveable?>) {
         for (v in values) {
             if (v is CAdd) {
                 adds.getOrPut(v.path) { ArrayList() }.add(v)
@@ -338,7 +337,7 @@ class Prefab : Saveable {
         }
     }
 
-    private fun readSets(values: Array<ISaveable?>) {
+    private fun readSets(values: Array<Saveable?>) {
         for (v in values) {
             if (v is CSet) {
                 val vName = v.name
@@ -349,7 +348,7 @@ class Prefab : Saveable {
         }
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "changes" -> {
@@ -362,7 +361,7 @@ class Prefab : Saveable {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "history" -> history = value as? ChangeHistory ?: return

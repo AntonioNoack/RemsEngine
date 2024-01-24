@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap

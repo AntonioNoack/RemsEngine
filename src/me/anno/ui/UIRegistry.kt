@@ -3,7 +3,7 @@ package me.anno.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.fonts.Font
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation

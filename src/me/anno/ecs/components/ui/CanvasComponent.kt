@@ -26,7 +26,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
 import me.anno.input.Key
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
@@ -265,7 +265,7 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
         writer.writeObjectList(this, "panels", windowStack.map { it.panel })
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "panels" -> {
                 windowStack.clear()

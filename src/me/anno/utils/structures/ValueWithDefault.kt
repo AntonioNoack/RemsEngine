@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 
 /**
@@ -17,7 +17,7 @@ class ValueWithDefault<V>(
 
     var wasSet = false
     val isSet get() = state != null && (state != default || wasSet)
-    fun write(writer: BaseWriter, self: ISaveable?, name: String) {
+    fun write(writer: BaseWriter, self: Saveable?, name: String) {
         if (isSet) {
             writer.writeSomething(self, name, state, true)
         }
@@ -41,11 +41,11 @@ class ValueWithDefault<V>(
     }
 
     companion object {
-        fun BaseWriter.writeMaybe(self: ISaveable?, name: String, value: ValueWithDefault<*>) {
+        fun BaseWriter.writeMaybe(self: Saveable?, name: String, value: ValueWithDefault<*>) {
             value.write(this, self, name)
         }
 
-        fun BaseWriter.writeMaybe(self: ISaveable?, name: String, value: ValueWithDefaultFunc<*>) {
+        fun BaseWriter.writeMaybe(self: Saveable?, name: String, value: ValueWithDefaultFunc<*>) {
             value.write(this, self, name)
         }
     }

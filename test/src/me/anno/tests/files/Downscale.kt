@@ -12,7 +12,7 @@ fun main() {
     LogManager.disableLogger("FFMPEGMetadata")
     LogManager.disableLogger("FFMPEGStream")
     LogManager.disableLogger("BetterProcessBuilder")
-    LogManager.disableLogger("ISaveable")
+    LogManager.disableLogger("Saveable")
     LogManager.disableLogger("Clock")
     LogManager.disableLogger("FrameReader")
     val src = getReference("C:/XAMPP/htdocs/anionoa/ico512")

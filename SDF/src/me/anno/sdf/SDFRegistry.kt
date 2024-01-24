@@ -3,7 +3,7 @@ package me.anno.sdf
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.gpu.shader.renderer.InheritedRenderer
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.sdf.arrays.SDFArray2
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid

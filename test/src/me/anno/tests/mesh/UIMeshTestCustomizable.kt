@@ -19,7 +19,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
@@ -43,7 +43,7 @@ class SimpleMeshTest(
 
     init {
         // for loading the mesh
-        if ("Mesh" !in ISaveable.objectTypeRegistry) ECSRegistry.initMeshes()
+        if ("Mesh" !in Saveable.objectTypeRegistry) ECSRegistry.initMeshes()
         rootEntity.add(MeshComponent(meshRef))
     }
 

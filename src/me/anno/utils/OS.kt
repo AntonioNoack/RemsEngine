@@ -13,8 +13,7 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 object OS {
 
-    @JvmField
-    val data: String? = System.getProperty("os.name")
+    private val data: String? = System.getProperty("os.name")
 
     @JvmField
     var isWindows = data != null && data.contains("windows", true)

@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.ecs.prefab.ChangeHistory
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -12,7 +12,7 @@ import me.anno.io.json.saveable.JsonStringWriter
  * */
 fun main() {
 
-    ISaveable.registerCustomClass(ChangeHistory())
+    Saveable.registerCustomClass(ChangeHistory())
 
     val hist = ChangeHistory()
     hist.put("hallo")

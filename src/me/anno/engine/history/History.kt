@@ -140,7 +140,6 @@ abstract class History<V : Any> : Saveable() {
     open fun saveCompressed(writer: BaseWriter, instance: V, previousInstance: V?): Boolean = false
 
     override val approxSize get() = 1_500_000_000
-    override fun isDefaultValue(): Boolean = false
 
     companion object {
         private val LOGGER = LogManager.getLogger(History::class)

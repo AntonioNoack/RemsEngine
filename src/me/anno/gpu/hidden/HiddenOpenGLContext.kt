@@ -17,6 +17,7 @@ import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil
+import kotlin.test.assertTrue
 
 /**
  * a class, which allows us to use OpenGL without visible window
@@ -49,7 +50,7 @@ object HiddenOpenGLContext {
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
         tick.stop("Error callback")
 
-        check(glfwInit()) { "Unable to initialize GLFW" }
+        assertTrue(glfwInit(), "Unable to initialize GLFW")
 
         tick.stop("GLFW initialization")
 

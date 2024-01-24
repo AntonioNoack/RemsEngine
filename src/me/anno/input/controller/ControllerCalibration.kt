@@ -1,7 +1,6 @@
 package me.anno.input.controller
 
 import me.anno.input.Controller.Companion.MAX_NUM_AXES
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import kotlin.math.abs
@@ -63,12 +62,10 @@ class ControllerCalibration() : Saveable() {
         }
     }
 
-    override val className: String get() = "ControllerCalibration"
-
     companion object {
         // this probably is never called, right?
         init {
-            ISaveable.registerCustomClass(ControllerCalibration())
+            registerCustomClass(ControllerCalibration())
         }
     }
 

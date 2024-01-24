@@ -2,7 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -133,7 +133,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         writer.writeObjectList(null, "children", children)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "children" -> {
                 val children = children

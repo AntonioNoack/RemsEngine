@@ -20,7 +20,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.Input
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
@@ -254,7 +254,7 @@ fun main() {
     val ui2 = CustomList(false, style)
     ui2.add(ScrollPanelY(object :
         ECSTreeView(style) {
-        override fun listSources(): List<ISaveable> {
+        override fun listSources(): List<Saveable> {
             return listOf(scene)
         }
     }.apply {

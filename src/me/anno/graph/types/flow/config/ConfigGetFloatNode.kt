@@ -12,8 +12,6 @@ class ConfigGetFloatNode(val config: StringMap = DefaultConfig) :
             getInput(1) as Float
     ]
 
-    override val className: String get() = "ConfigGetFloatNode"
-
     companion object {
         private val input = listOf("String", "Name", "Float", "Default")
         private val output = listOf("Float", "Value")

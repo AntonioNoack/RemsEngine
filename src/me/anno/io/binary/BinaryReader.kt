@@ -1,6 +1,6 @@
 package me.anno.io.binary
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.AABB32
 import me.anno.io.binary.BinaryTypes.AABB32_ARRAY
@@ -205,7 +205,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return readTypeName(input.readInt())
     }
 
-    override fun readObject(): ISaveable {
+    override fun readObject(): Saveable {
         val clazz = readTypeString()
         return readObject(clazz)
     }
@@ -220,7 +220,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
     private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
 
-    private fun readObjectOrNull(): ISaveable? {
+    private fun readObjectOrNull(): Saveable? {
         return when (val subType = input.read()) {
             OBJECT_IMPL -> readObject()
             OBJECT_PTR -> getByPointer(input.readInt(), true)
@@ -229,7 +229,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         }
     }
 
-    private fun readHomogeneousObjectArray(type: String): Array<ISaveable?> {
+    private fun readHomogeneousObjectArray(type: String): Array<Saveable?> {
         return readArray {
             when (val subType = input.read()) {
                 OBJECT_IMPL -> readObject(type)
@@ -240,7 +240,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         }
     }
 
-    fun readObject(clazz: String): ISaveable {
+    fun readObject(clazz: String): Saveable {
         val obj = getNewClassInstance(clazz)
         allInstances.add(obj)
         usingType(clazz) {

@@ -1,6 +1,6 @@
 package me.anno.io.xml.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -69,7 +69,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     abstract fun append(v: String)
 
     val simpleObjects = ArrayList<String>()
-    val objects = ArrayList<ISaveable>()
+    val objects = ArrayList<Saveable>()
 
     private fun escape(value: String): String {
         return if (value.all { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }) value
@@ -593,7 +593,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
+    override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {
         append("<pointer")
         if (name != null) {
             append(" name=\"${escape(name)}\"")
@@ -603,7 +603,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append("/>")
     }
 
-    override fun writeObjectImpl(name: String?, value: ISaveable) {
+    override fun writeObjectImpl(name: String?, value: Saveable) {
         append("<${value.className}")
         val size0 = objects.size
         value.save(this)
@@ -623,8 +623,8 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?, name: String, values: Array<V>?, force: Boolean
+    override fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?, name: String, values: Array<V>?, force: Boolean
     ) {
         if (force || values?.isNotEmpty() == true) {
             if (!values.isNullOrEmpty()) {
@@ -639,18 +639,18 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
         writeNullableObjectArray(self, name, values, force)
     }
 
-    override fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?, name: String, values: Array<Array<V>>, force: Boolean
+    override fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?, name: String, values: Array<Array<V>>, force: Boolean
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?, name: String, values: Array<V>, force: Boolean
+    override fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?, name: String, values: Array<V>, force: Boolean
     ) = writeNullableObjectArray(self, name, values, force)
 
     override fun writeListStart() {

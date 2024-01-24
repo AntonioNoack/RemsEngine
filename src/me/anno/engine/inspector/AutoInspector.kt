@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.inspector.InspectableProperty
 import me.anno.engine.ui.input.ComponentUI
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
@@ -24,7 +24,7 @@ object AutoInspector {
     fun inspect(instances: List<Inspectable>, list: PanelListY, style: Style) {
 
         val isWritable = true
-        val reflections = ISaveable.getReflections(instances.first())
+        val reflections = Saveable.getReflections(instances.first())
 
         // debug warnings
         for (warn in reflections.debugWarnings) {

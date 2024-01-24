@@ -11,7 +11,7 @@ import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
 import me.anno.graph.render.NodeGroup
 import me.anno.input.Key
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -603,7 +603,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             else -> {
                 // clone, but remove all external connections
                 val cloned = SaveableArray(focussedNodes).clone()
-                val containedNodes = HashSet<ISaveable?>(cloned)
+                val containedNodes = HashSet<Saveable?>(cloned)
                 for (node in cloned) {
                     node as Node
                     val inputs = node.inputs

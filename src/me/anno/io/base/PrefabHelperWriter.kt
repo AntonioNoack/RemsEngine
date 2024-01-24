@@ -3,7 +3,7 @@ package me.anno.io.base
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import org.joml.AABBd
@@ -273,9 +273,9 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
 
 
     override fun writeNull(name: String?) = write(name!!, null)
-    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) = write(name!!, value)
+    override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) = write(name!!, value)
 
-    override fun writeObjectImpl(name: String?, value: ISaveable) {
+    override fun writeObjectImpl(name: String?, value: Saveable) {
         if (value is PrefabSaveable) {
             writeObjectImpl(value)
             if (name != null) {
@@ -295,8 +295,8 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         }
     }
 
-    override fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?, name: String, values: Array<V>?, force: Boolean
+    override fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?, name: String, values: Array<V>?, force: Boolean
     ) {
         write(name, values)
         for (value in values ?: return) {
@@ -306,8 +306,8 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         }
     }
 
-    override fun <V : ISaveable> writeNullableObjectList(
-        self: ISaveable?,
+    override fun <V : Saveable> writeNullableObjectList(
+        self: Saveable?,
         name: String,
         values: List<V?>?,
         force: Boolean
@@ -322,12 +322,12 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
         writeNullableObjectArray(self, name, values, force)
     }
 
-    override fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?, name: String, values: Array<Array<V>>, force: Boolean
+    override fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?, name: String, values: Array<Array<V>>, force: Boolean
     ) {
         write(name, values)
         for (values1d in values) {
@@ -339,8 +339,8 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         }
     }
 
-    override fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?, name: String, values: Array<V>, force: Boolean
+    override fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?, name: String, values: Array<V>, force: Boolean
     ) {
         writeNullableObjectArray(self, name, values, force)
     }

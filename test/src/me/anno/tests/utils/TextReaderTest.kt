@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader

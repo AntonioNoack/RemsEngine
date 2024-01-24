@@ -2,7 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
@@ -299,13 +299,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
-            return ISaveable.getSample(className) as? PrefabSaveable
+            return Saveable.getSample(className) as? PrefabSaveable
                 ?: throw RuntimeException("No super instance was found for class '$className'")
         }
 
         fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {
             // registry over all options... / search the raw files + search all scripts? a bit much... maybe in the local folder?
-            val knownComponents = ISaveable.getInstanceOf(clazz)
+            val knownComponents = Saveable.getInstanceOf(clazz)
             return knownComponents.map {
                 Option(it.key.camelCaseToTitle(), "") {
                     val comp = it.value.generate() as PrefabSaveable

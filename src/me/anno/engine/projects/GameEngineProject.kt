@@ -263,6 +263,5 @@ class GameEngineProject() : NamedSaveable() {
         }
     }
 
-    override val className: String get() = "GameEngineProject"
     override val approxSize get() = 1_000_000
 }

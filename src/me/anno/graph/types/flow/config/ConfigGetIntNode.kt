@@ -12,8 +12,6 @@ class ConfigGetIntNode(val config: StringMap = DefaultConfig) :
             getInput(1) as Int
     ]
 
-    override val className: String get() = "ConfigGetIntNode"
-
     companion object {
         @JvmStatic
         private val input = listOf("String", "Name", "Int", "Default")

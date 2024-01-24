@@ -114,7 +114,7 @@ object Retargetings {
                 SkeletonCache[srcSkeleton]!!,
                 SkeletonCache[dstSkeleton]!!, prefab
             )
-            configReference.getParent()?.tryMkdirs()
+            configReference.getParent().tryMkdirs()
             configReference.writeText(JsonStringWriter.toText(prefab, workspace))
         } else if (prefab.clazzName != "Retargeting") {
             LOGGER.warn("Class mismatch for $configReference!")

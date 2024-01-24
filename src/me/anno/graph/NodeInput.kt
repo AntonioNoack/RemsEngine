@@ -146,6 +146,4 @@ class NodeInput : NodeConnector {
         }
         return currValue
     }
-
-    override val className: String get() = "NodeInput"
 }

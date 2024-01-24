@@ -110,8 +110,6 @@ class CompareNode(type: String = "?") :
         else super.readInt(name, value)
     }
 
-    override val className: String get() = "CompareNode"
-
     companion object {
         val outputs = listOf("Boolean", "Result")
     }

@@ -1,6 +1,6 @@
 package me.anno.tests.structures
 
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.utils.StringMap
 import org.junit.jupiter.api.Test

@@ -5,7 +5,7 @@ import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 
 fun main() {
-    LogManager.disableLogger("ISaveable")
+    LogManager.disableLogger("Saveable")
     val clock = Clock()
     ECSRegistry.init() // ~2s
     clock.stop("First Time")

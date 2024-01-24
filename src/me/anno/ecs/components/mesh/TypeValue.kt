@@ -38,7 +38,6 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
     }
 
     override fun toString() = "$type:$value"
-    override val className: String get() = "TypeValue"
 
     fun bind(shader: GPUShader, uniformName: String) {
         val location = when (type) {

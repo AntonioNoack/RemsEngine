@@ -1,10 +1,8 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.fonts.Codepoints.codepoints
-import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.streams.toList
 
 class LineSequence : IntSequence {
 

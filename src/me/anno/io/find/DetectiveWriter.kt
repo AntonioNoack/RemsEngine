@@ -1,6 +1,6 @@
 package me.anno.io.find
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import org.joml.AABBd
 import org.joml.AABBf
@@ -284,29 +284,29 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
         put(name, "null", null)
     }
 
-    override fun writeObjectImpl(name: String?, value: ISaveable) {
+    override fun writeObjectImpl(name: String?, value: Saveable) {
         // maybe... idk...
     }
 
-    override fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>?,
         force: Boolean
     ) = put(name, "Array<Object?>", values)
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) =
+    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) =
         put(name, "Array<Object>", values)
 
-    override fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?,
+    override fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?,
         name: String,
         values: Array<Array<V>>,
         force: Boolean
     ) = put(name, "Array<Array<Object>>", values)
 
-    override fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>,
         force: Boolean

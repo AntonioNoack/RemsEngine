@@ -6,7 +6,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.EngineBase
@@ -25,7 +25,7 @@ class ChangeHistory : StringHistory() {
 
     override fun apply(prev: String, curr: String) {
         if (prev == curr) return
-        if ("CAdd" !in ISaveable.objectTypeRegistry) {
+        if ("CAdd" !in Saveable.objectTypeRegistry) {
             ECSRegistry.init()
         }
 
@@ -82,8 +82,6 @@ class ChangeHistory : StringHistory() {
         }
         PropertyInspector.invalidateUI(major)
     }
-
-    override val className: String get() = "ChangeHistory"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ChangeHistory::class)

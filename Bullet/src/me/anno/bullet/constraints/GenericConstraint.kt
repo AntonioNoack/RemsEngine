@@ -3,7 +3,6 @@ package me.anno.bullet.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.linearmath.Transform
-import me.anno.build.web.copy
 import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range

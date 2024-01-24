@@ -72,8 +72,6 @@ class ImportedAnimation : Animation() {
         }
     }
 
-    override val className: String get() = "ImportedAnimation"
-
     companion object {
 
         @JvmStatic

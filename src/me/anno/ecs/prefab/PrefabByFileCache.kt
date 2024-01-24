@@ -4,7 +4,7 @@ import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.engine.ECSRegistry
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
@@ -13,18 +13,18 @@ import kotlin.reflect.KClass
 /**
  * base class for caches of types saved in Prefabs like Entities, Components, Materials, Skeletons, Animations and such
  * */
-abstract class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
+abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabByFileCache::class)
         fun ensureClasses() {
-            if ("Entity" !in ISaveable.objectTypeRegistry) {
+            if ("Entity" !in Saveable.objectTypeRegistry) {
                 LOGGER.warn("Please call ECSRegistry.init() yourself!")
                 ECSRegistry.initMeshes()
             }
         }
         fun ensureMeshClasses() {
-            if ("Entity" !in ISaveable.objectTypeRegistry) {
+            if ("Entity" !in Saveable.objectTypeRegistry) {
                 ECSRegistry.initMeshes()
             }
         }

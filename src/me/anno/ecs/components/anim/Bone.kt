@@ -72,7 +72,6 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         return parent.hasBoneInHierarchy(name, bones)
     }
 
-    override val className: String get() = "Bone"
     override val approxSize get() = 1
 
     override fun readInt(name: String, value: Int) {

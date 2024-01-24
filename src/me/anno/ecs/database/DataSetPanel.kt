@@ -2,7 +2,7 @@ package me.anno.ecs.database
 
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.input.ComponentUI
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.engine.inspector.CachedReflections
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
@@ -13,10 +13,10 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Booleans.toInt
 
 // todo move this to UI package, idk why it's here
-class DataSetPanel(values: List<ISaveable>, reflections: CachedReflections, firstIndex: Int, style: Style) :
+class DataSetPanel(values: List<Saveable>, reflections: CachedReflections, firstIndex: Int, style: Style) :
     TablePanel(reflections.serializedProperties.size + (firstIndex < Int.MAX_VALUE).toInt(), values.size + 1, style) {
 
-    constructor(values: List<ISaveable>, firstIndex: Int, style: Style) :
+    constructor(values: List<Saveable>, firstIndex: Int, style: Style) :
             this(values, values.first().getReflections(), firstIndex, style)
 
     init {

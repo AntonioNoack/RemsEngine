@@ -1,7 +1,8 @@
 package me.anno.io.config
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -22,7 +23,11 @@ object ConfigBasics {
     }
 
     fun save(file: FileReference, data: String): String {
-        val parentFile = file.getParent() ?: return data
+        if (file == InvalidRef) {
+            LOGGER.warn("Skipping writing to InvalidRef")
+            return data
+        }
+        val parentFile = file.getParent()
         if (!parentFile.exists) parentFile.tryMkdirs()
         val formatted = JsonFormatter.format(data)
         file.writeText(formatted)
@@ -56,7 +61,7 @@ object ConfigBasics {
         defaultValue: StringMap,
         saveIfMissing: Boolean
     ): StringMap {
-        ISaveable.registerCustomClass(StringMap())
+        Saveable.registerCustomClass(StringMap())
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
             JsonStringWriter.toText(defaultValue, workspace)
@@ -123,5 +128,4 @@ object ConfigBasics {
 
         return result
     }
-
 }

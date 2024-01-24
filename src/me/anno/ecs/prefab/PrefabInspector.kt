@@ -13,7 +13,7 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -193,7 +193,7 @@ class PrefabInspector(var reference: FileReference) {
 
         for (className in instances
             .map { it.className }
-            .filter { it !in ISaveable.objectTypeRegistry }
+            .filter { it !in Saveable.objectTypeRegistry }
             .toHashSet()
             .sorted()
         ) {
@@ -439,7 +439,7 @@ class PrefabInspector(var reference: FileReference) {
             list.add(object : StackPanel(
                 nicerName, "",
                 options, children, {
-                    it as ISaveable
+                    it as Saveable
                     Option(it.className.camelCaseToTitle(), "") { it }
                 }, style
             ) {

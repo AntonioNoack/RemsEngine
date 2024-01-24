@@ -1,6 +1,6 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -64,7 +64,7 @@ class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonR
          * parses a Json* formatted string
          * @param safely return current results on failure, else throws Exception
          * */
-        fun read(data: CharSequence, workspace: FileReference, safely: Boolean): List<ISaveable> {
+        fun read(data: CharSequence, workspace: FileReference, safely: Boolean): List<Saveable> {
             return read(data, workspace, "", safely)
         }
 
@@ -72,7 +72,7 @@ class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonR
          * parses a Json* formatted string
          * @param safely return current results on failure, else throws Exception
          * */
-        fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
+        fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
             val reader = JsonStringReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
@@ -89,18 +89,18 @@ class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonR
             return reader.sortedContent
         }
 
-        fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<ISaveable> {
+        fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<Saveable> {
             // buffered is very important and delivers an improvement of 5x
             return file.inputStreamSync().use { input: InputStream ->
                 read(input, workspace, file.absolutePath, safely)
             }
         }
 
-        fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<ISaveable> {
+        fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<Saveable> {
             return read(data, workspace, "", safely)
         }
 
-        fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
+        fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
             val reader = JsonStreamReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
@@ -135,7 +135,7 @@ class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonR
             return read(data, workspace, safely).firstInstanceOrNull<Type>()!!
         }
 
-        fun <V : ISaveable> clone(element: V): V? {
+        fun <V : Saveable> clone(element: V): V? {
             val clone = read(JsonStringWriter.toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
             @Suppress("unchecked_cast")
             return clone as? V

@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
 import me.anno.io.base.UnknownClassException
@@ -110,7 +110,7 @@ class CAdd() : Change() {
             }
             loadedPrefab.createInstance()
         } else {
-            when (val newInstance1 = ISaveable.createOrNull(clazzName)) {
+            when (val newInstance1 = Saveable.createOrNull(clazzName)) {
                 is PrefabSaveable -> newInstance1
                 null -> throw UnknownClassException(clazzName)
                 else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
@@ -165,7 +165,5 @@ class CAdd() : Change() {
         return hc
     }
 
-    override val className: String get() = "CAdd"
     override val approxSize get() = 10
-    override fun isDefaultValue(): Boolean = false
 }

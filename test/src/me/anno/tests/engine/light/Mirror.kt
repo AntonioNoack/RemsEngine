@@ -9,7 +9,7 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.utils.OS.documents
 import kotlin.math.PI
 

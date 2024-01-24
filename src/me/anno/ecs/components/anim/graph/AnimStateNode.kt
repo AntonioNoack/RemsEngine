@@ -138,6 +138,4 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         if (name == "progress") progress = value
         else super.readFloat(name, value)
     }
-
-    override val className: String get() = "AnimStateNode"
 }

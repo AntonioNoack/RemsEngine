@@ -2,7 +2,7 @@ package me.anno.graph.render
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.Node
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
@@ -42,7 +42,7 @@ class NodeGroup : PrefabSaveable() {
         }
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         if (name == "members") {
             members.clear()
             members.addAll(values.filterIsInstance<Node>())

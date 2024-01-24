@@ -5,7 +5,7 @@ import me.anno.bullet.constraints.GenericConstraint
 import me.anno.bullet.constraints.HingeConstraint
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.bullet.constraints.SliderConstraint
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 
 @Suppress("unused")
 object PhysicsRegistry {

@@ -1,6 +1,5 @@
 package me.anno.tests.structures
 
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -53,7 +52,7 @@ fun main() {
     val text = instance.toString()
     logger.info(text)
 
-    ISaveable.registerCustomClass("Test") { TestClass() }
+    Saveable.registerCustomClass("Test") { TestClass() }
     val copiedInstance = JsonStringReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
 

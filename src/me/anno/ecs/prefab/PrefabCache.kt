@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ScenePrefab
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
@@ -61,7 +61,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun getPrefabInstance(resource: FileReference?, async: Boolean) = getPrefabInstance(resource, maxPrefabDepth, async)
 
-    fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): ISaveable? {
+    fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): Saveable? {
         val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
@@ -125,7 +125,7 @@ object PrefabCache : CacheSection("Prefab") {
             throw StackOverflowError("Circular dependency in $prefab")
         }
         val depth1 = depth - 1
-        val instance = PrefabCache[prefab, depth1]?.createInstance(depth1) ?: ISaveable.create(clazz) as PrefabSaveable
+        val instance = PrefabCache[prefab, depth1]?.createInstance(depth1) ?: Saveable.create(clazz) as PrefabSaveable
         instance.prefabPath = Path.ROOT_PATH
         return instance
     }
@@ -136,7 +136,7 @@ object PrefabCache : CacheSection("Prefab") {
         return prefab
     }
 
-    fun loadJson(resource: FileReference?): ISaveable? {
+    fun loadJson(resource: FileReference?): Saveable? {
         return when (resource) {
             InvalidRef, null -> null
             is PrefabReadable -> resource.readPrefab()
@@ -157,14 +157,14 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    var unityReader: ((FileReference, (ISaveable?, Exception?) -> Unit) -> Unit)? = null
+    var unityReader: ((FileReference, (Saveable?, Exception?) -> Unit) -> Unit)? = null
 
-    private fun loadPrefab4(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
+    private fun loadPrefab4(file: FileReference, callback: (Saveable?, Exception?) -> Unit) {
         if (file is PrefabReadable) {
             callback(file.readPrefab(), null)
             return
         }
-        if ("Prefab" !in ISaveable.objectTypeRegistry) ECSRegistry.initPrefabs()
+        if ("Prefab" !in Saveable.objectTypeRegistry) ECSRegistry.initPrefabs()
         Signature.findName(file) { signature ->
             when (signature) {
                 "json" -> {
@@ -215,7 +215,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    private fun loadPrefabFromFolder(file: FileReference, callback: (ISaveable?, Exception?) -> Unit) {
+    private fun loadPrefabFromFolder(file: FileReference, callback: (Saveable?, Exception?) -> Unit) {
         val folder = InnerFolderCache.readAsFolder(file, false)
         if (folder != null) {
             val scene = folder.getChild("Scene.json") as? PrefabReadable

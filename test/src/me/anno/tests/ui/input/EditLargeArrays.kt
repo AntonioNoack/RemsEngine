@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.ui.input.AnyArrayPanel2
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.input.ComponentUI.writeTo
-import me.anno.io.ISaveable.Companion.getReflections
+import me.anno.io.Saveable.Companion.getReflections
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.inspector.InspectableProperty
 import me.anno.ui.debug.TestEngine.Companion.testUI3

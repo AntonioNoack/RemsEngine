@@ -3,7 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.engine.EngineBase
@@ -285,7 +285,7 @@ object Hierarchy {
             child.prefab?.source ?: InvalidRef
         )
         if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
-        val sample = ISaveable.getSample(child.className)!!
+        val sample = Saveable.getSample(child.className)!!
         for (pName in child.getReflections().serializedProperties.keys) {
             val value = child[pName]
             if (value != sample[pName]) {

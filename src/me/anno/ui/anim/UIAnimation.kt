@@ -38,6 +38,4 @@ abstract class UIAnimation(
     fun clone() = JsonStringReader.readFirst<UIAnimation>(
         JsonStringWriter.toText(this, EngineBase.workspace), EngineBase.workspace
     )
-
-    override val className: String get() = "UIAnimation"
 }

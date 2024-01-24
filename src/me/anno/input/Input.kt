@@ -16,7 +16,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
@@ -668,12 +668,12 @@ object Input {
                     setClipboardContent(data)
                 }
                 when (val first = inFocus0.onCopyRequested(mouseX, mouseY)) {
-                    is ISaveable -> {
-                        val saveables = ArrayList<ISaveable>()
+                    is Saveable -> {
+                        val saveables = ArrayList<Saveable>()
                         saveables.add(first)
                         for (panel in inFocus) {
                             if (panel !== inFocus0) {
-                                val ith = panel.onCopyRequested(mouseX, mouseY) as? ISaveable ?: continue
+                                val ith = panel.onCopyRequested(mouseX, mouseY) as? Saveable ?: continue
                                 saveables.add(ith)
                             }
                         }

@@ -389,11 +389,8 @@ class BoneByBoneAnimation() : Animation() {
         return dst
     }
 
-    override val className: String get() = "BoneByBoneAnimation"
-
     companion object {
 
-        private val LOGGER = LogManager.getLogger(BoneByBoneAnimation::class)
         private val f0 = FloatArray(0)
 
         fun fromImported(

@@ -9,8 +9,8 @@ import me.anno.graph.render.scene.RenderSceneNode0
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
-import me.anno.io.ISaveable
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.Style
 
 /**
@@ -25,7 +25,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
         library = RenderGraph.library
         for (it in library.allNodes) {
             val sample = it.first
-            if (sample.className !in ISaveable.objectTypeRegistry)
+            if (sample.className !in objectTypeRegistry)
                 registerCustomClass(sample)
         }
 

@@ -62,8 +62,8 @@ import me.anno.engine.projects.GameEngineProject
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.graph.types.NodeLibrary
-import me.anno.io.ISaveable
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.Reference
 import me.anno.io.utils.StringMap
@@ -144,7 +144,7 @@ object ECSRegistry {
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())
 
-        if ("Entity" !in ISaveable.objectTypeRegistry) initMeshes()
+        if ("Entity" !in Saveable.objectTypeRegistry) initMeshes()
 
         registerCustomClass(Transform())
         registerCustomClass(LocalPlayer())
@@ -225,7 +225,7 @@ object ECSRegistry {
     fun registerIfAvailable(clazzName: String, moduleName: String?) {
         try {
             val clazz = this::class.java.classLoader.loadClass(clazzName)
-            registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
+            registerCustomClass(clazz.getConstructor().newInstance() as Saveable)
         } catch (e: ClassNotFoundException) {
             warnIfUnavailable(moduleName)
         } catch (e: NoClassDefFoundError) {

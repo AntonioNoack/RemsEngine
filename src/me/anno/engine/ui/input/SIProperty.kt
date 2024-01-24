@@ -1,7 +1,7 @@
 package me.anno.engine.ui.input
 
 import me.anno.engine.inspector.IProperty
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.find.DetectiveWriter
 import me.anno.ui.Panel
@@ -32,12 +32,12 @@ import org.joml.Vector4f
 import org.joml.Vector4i
 
 /**
- * IProperty for ISaveable
+ * IProperty for Saveable
  * */
 class SIProperty<V>(
     val name: String,
     val type: String,
-    val saveable: ISaveable,
+    val saveable: Saveable,
     val startValue: V,
     val property: IProperty<Any?>,
     val detective: DetectiveWriter
@@ -100,7 +100,7 @@ class SIProperty<V>(
             is AABBf -> saveable.readAABBf(name, value)
             is AABBd -> saveable.readAABBd(name, value)
             is Map<*, *> -> saveable.readMap(name, value as Map<Any?, Any?>)
-            is ISaveable -> saveable.readObject(name, value)
+            is Saveable -> saveable.readObject(name, value)
             is Array<*> -> {
                 when (val generics = type.substring(type.indexOf('<') + 1, type.lastIndexOf('>'))) {
                     "String" -> saveable.readStringArray(name, value as Array<String>)
@@ -152,9 +152,9 @@ class SIProperty<V>(
     }
 
     override fun getDefault(): Any? {
-        // this will cause issues, if an ISaveable saves ISaveables inside, and we assume we can just use this value without copying
-        val sample = ISaveable.getInstanceOf(saveable::class)
-        return if (sample is ISaveable) {
+        // this will cause issues, if an Saveable saves ISaveables inside, and we assume we can just use this value without copying
+        val sample = Saveable.getInstanceOf(saveable::class)
+        return if (sample is Saveable) {
             sample.save(detective)
             detective.dst[name]?.second
         } else startValue

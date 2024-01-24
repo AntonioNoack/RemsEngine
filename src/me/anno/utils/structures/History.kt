@@ -1,6 +1,5 @@
 package me.anno.utils.structures
 
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 
@@ -58,7 +57,7 @@ class History<V> : Saveable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("index", index, true)
-        writer.writeObjectList(null, "values", values.filterIsInstance<ISaveable>())
+        writer.writeObjectList(null, "values", values.filterIsInstance<Saveable>())
     }
 
     override fun readInt(name: String, value: Int) {
@@ -68,7 +67,7 @@ class History<V> : Saveable {
         }
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "values" -> {
                 this.values.clear()
@@ -78,6 +77,4 @@ class History<V> : Saveable {
             else -> super.readObjectArray(name, values)
         }
     }
-
-    override val className: String get() = "History"
 }

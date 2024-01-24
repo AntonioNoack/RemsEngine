@@ -5,7 +5,7 @@ import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.utils.structures.maps.BiMap
@@ -39,14 +39,14 @@ import java.io.Serializable
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
-    val todoPointers = ArrayList<ISaveable>(256)
-    val todoPointersSet = HashSet<ISaveable>(256)
-    val pointers = BiMap<ISaveable, Int>(256)
+    val todoPointers = ArrayList<Saveable>(256)
+    val todoPointersSet = HashSet<Saveable>(256)
+    val pointers = BiMap<Saveable, Int>(256)
 
     /**
      * gets the pointer of a know value
      * */
-    fun getPointer(value: ISaveable) = pointers[value]
+    fun getPointer(value: Saveable) = pointers[value]
 
     open fun writeSomething(name: String, value: Any?, force: Boolean) {
         LOGGER.warn("Unknown class ${if (value != null) value::class else null} for serialization")
@@ -383,7 +383,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         workspace: FileReference = EngineBase.workspace
     ) = writeSomething(name, values, force)
 
-    fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {
+    fun writeObject(self: Saveable?, name: String?, value: Saveable?, force: Boolean = false) {
         when {
             value == null -> if (force) writeNull(name)
             force || !(canSkipDefaultValues && value.isDefaultValue()) -> {
@@ -409,11 +409,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     }
 
     abstract fun writeNull(name: String?)
-    abstract fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable)
-    abstract fun writeObjectImpl(name: String?, value: ISaveable)
+    abstract fun writePointer(name: String?, className: String, ptr: Int, value: Saveable)
+    abstract fun writeObjectImpl(name: String?, value: Saveable)
 
-    open fun <V : ISaveable> writeObjectList(
-        self: ISaveable?,
+    open fun <V : Saveable> writeObjectList(
+        self: Saveable?,
         name: String,
         values: List<V>?,
         force: Boolean = false
@@ -423,8 +423,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
-    open fun <V : ISaveable> writeNullableObjectList(
-        self: ISaveable?,
+    open fun <V : Saveable> writeNullableObjectList(
+        self: Saveable?,
         name: String,
         values: List<V?>?,
         force: Boolean = false
@@ -433,7 +433,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             @Suppress("unchecked_cast")
             writeNullableObjectArray(
                 self, name, if (values == null) emptyArray<Any>() as Array<V> else
-                    Array<ISaveable?>(values.size) { values[it] }, force
+                    Array<Saveable?>(values.size) { values[it] }, force
             )
         }
     }
@@ -441,8 +441,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     /**
      * saves an array of objects of different classes
      * */
-    abstract fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?,
+    abstract fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>?,
         force: Boolean = false
@@ -451,8 +451,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     /**
      * saves an array of objects of different classes
      * */
-    abstract fun <V : ISaveable> writeObjectArray(
-        self: ISaveable?,
+    abstract fun <V : Saveable> writeObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>?,
         force: Boolean = false
@@ -461,8 +461,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     /**
      * saves a 2d array of objects of different classes
      * */
-    abstract fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?,
+    abstract fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?,
         name: String,
         values: Array<Array<V>>,
         force: Boolean = false
@@ -472,14 +472,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
      * saves an array of objects of one single class
      * all elements are guaranteed to be of the same getClassName()
      * */
-    abstract fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?,
+    abstract fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>,
         force: Boolean = false
     )
 
-    fun generatePointer(obj: ISaveable, addToSorted: Boolean): Int {
+    fun generatePointer(obj: Saveable, addToSorted: Boolean): Int {
         val ptr = pointers.size + 1
         pointers[obj] = ptr
         if (addToSorted) {
@@ -489,7 +489,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         return ptr
     }
 
-    fun add(obj: ISaveable) {
+    fun add(obj: Saveable) {
         if (obj !in pointers) {
             generatePointer(obj, true)
         }
@@ -535,7 +535,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
-    fun writeSomething(self: ISaveable?, type: String, name: String, value: Any?, forceSaving: Boolean) {
+    fun writeSomething(self: Saveable?, type: String, name: String, value: Any?, forceSaving: Boolean) {
         when (type) {
             // todo all types
             // especially of interest: List<List<...>>, Array<Array<...>>, ...
@@ -543,7 +543,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
-    private fun write1DList(self: ISaveable?, name: String, value: List<*>, sample: Any?, forceSaving: Boolean) {
+    private fun write1DList(self: Saveable?, name: String, value: List<*>, sample: Any?, forceSaving: Boolean) {
         when (sample) {
 
             is Boolean -> writeBooleanArray(
@@ -606,7 +606,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is AABBd -> writeAABBdArray(name, toArray(value), forceSaving)
 
             // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
-            is ISaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
+            is Saveable -> writeObjectArray(self, name, toArray(value), forceSaving)
             is FileReference -> writeFileArray(name, toArray(value), forceSaving)
 
             // todo 2d stuff...
@@ -614,7 +614,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
-    private fun write1DArray(self: ISaveable?, name: String, value: Any, sample: Any?, forceSaving: Boolean) {
+    private fun write1DArray(self: Saveable?, name: String, value: Any, sample: Any?, forceSaving: Boolean) {
         when (sample) {
 
             is String -> writeStringArray(name, cast(value), forceSaving)
@@ -655,12 +655,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is PrefabSaveable -> {
                 @Suppress("UNCHECKED_CAST")
                 writeNullableObjectArray(
-                    self, name, value as Array<ISaveable?>, forceSaving
+                    self, name, value as Array<Saveable?>, forceSaving
                 )
             }
-            is ISaveable -> {
+            is Saveable -> {
                 @Suppress("UNCHECKED_CAST")
-                writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
+                writeNullableObjectArray(self, name, value as Array<Saveable?>, forceSaving)
             }
             is FileReference -> writeFileArray(name, cast(value), forceSaving)
             is Array<*> -> {
@@ -716,7 +716,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
      * if you know the type, please use one of the other functions,
      * because they may be faster
      * */
-    fun writeSomething(self: ISaveable?, name: String, value: Any?, forceSaving: Boolean) {
+    fun writeSomething(self: Saveable?, name: String, value: Any?, forceSaving: Boolean) {
         when (value) {
             // native types
             is Boolean -> writeBoolean(name, value, forceSaving)
@@ -730,7 +730,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Double -> writeDouble(name, value, forceSaving)
             is String -> writeString(name, value, forceSaving)
             // saveable
-            is ISaveable -> writeObject(self, name, value)
+            is Saveable -> writeObject(self, name, value)
             // lists & arrays
             is List<*> -> {
                 if (value.isNotEmpty()) {

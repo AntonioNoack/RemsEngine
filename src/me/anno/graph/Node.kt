@@ -3,7 +3,7 @@ package me.anno.graph
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.ui.GraphPanel
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -126,7 +126,7 @@ abstract class Node() : PrefabSaveable() {
         writer.writeVector3d("position", position)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "inputs" -> {
                 val newbies = values.filterIsInstance<NodeInput>()

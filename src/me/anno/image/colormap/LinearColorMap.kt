@@ -92,8 +92,6 @@ class LinearColorMap(
         }
     }
 
-    override val className: String get() = "LinearColorMap"
-
     companion object {
         const val negInfColor = 0xff7700 or black
         const val minColor = 0xff0000 or black

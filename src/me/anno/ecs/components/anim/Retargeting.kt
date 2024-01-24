@@ -429,6 +429,5 @@ class Retargeting : PrefabSaveable(), Renderable {
         }
     }
 
-    override val className: String get() = "Retargeting"
     override val approxSize get() = 20
 }

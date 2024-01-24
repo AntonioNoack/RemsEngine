@@ -5,7 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import kotlin.math.sin
 
 class TestComponent : Component() {

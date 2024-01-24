@@ -69,7 +69,7 @@ import me.anno.graph.types.flow.vector.SeparateVector2f
 import me.anno.graph.types.flow.vector.SeparateVector3f
 import me.anno.graph.types.flow.vector.SeparateVector4f
 import me.anno.graph.types.states.StateMachine
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
 

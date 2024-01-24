@@ -1,6 +1,5 @@
 package me.anno.ui.editor.code.codemirror
 
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.editor.code.tokenizer.TokenType
@@ -93,14 +92,11 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         }
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         if (name == "styles") {
             for (i in values.indices) {
                 styles[i] = values[i] as? LanguageStyle ?: continue
             }
         } else super.readObjectArray(name, values)
     }
-
-    override val className: String get() = "LanguageTheme"
-
 }

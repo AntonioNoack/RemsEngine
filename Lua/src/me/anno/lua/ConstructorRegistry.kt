@@ -1,6 +1,6 @@
 package me.anno.lua
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.lua.ScriptComponent.Companion.toLua
 import org.joml.AABBd
 import org.joml.AABBf
@@ -71,7 +71,7 @@ object ConstructorRegistry : LuaUserdata(Any()) {
     }
 
     override fun get(key: String): LuaValue {
-        val entry = ISaveable.objectTypeRegistry[key]
+        val entry = Saveable.objectTypeRegistry[key]
         if (entry != null) return LuaConstructor(entry.sampleInstance::class)
         val extra = extraRegistry[key]
         if (extra != null) return LuaConstructor(extra)

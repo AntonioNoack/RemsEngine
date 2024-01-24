@@ -1,6 +1,6 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseReader
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
@@ -63,7 +63,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
     abstract fun skipSpace(): Char
 
-    override fun readObject(): ISaveable {
+    override fun readObject(): Saveable {
         assertEquals(skipSpace(), '"')
         val firstProperty = readString()
         assertEquals(firstProperty, "class", "Expected first property to be 'class'")
@@ -205,7 +205,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    private fun propertyLoop(obj: ISaveable) {
+    private fun propertyLoop(obj: Saveable) {
         while (true) {
             when (val next = skipSpace()) {
                 ',' -> {// support for extra commas and comments after a comma
@@ -643,7 +643,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return m
     }
 
-    fun readProperty(obj: ISaveable) {
+    fun readProperty(obj: Saveable) {
         assertEquals(skipSpace(), '"')
         val typeName = readString()
         assertEquals(skipSpace(), ':')
@@ -801,7 +801,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
-    private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
+    private fun readProperty(obj: Saveable, typeName: String): Saveable {
         if (typeName == "class") {
             assertEquals(skipSpace(), '"')
             val clazz = readString()
@@ -938,7 +938,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             "R[]" -> obj.readFileArray(name, readArray("FileRef", InvalidRef) { readFile() })
             "R[][]" -> obj.readFileArray2D(name, readArray2D("FileRef", file0a) { readFile() })
             "*[]", "[]" -> {// array of mixed types
-                val elements = readArray("Any", { arrayOfNulls<ISaveable?>(it) },
+                val elements = readArray("Any", { arrayOfNulls<Saveable?>(it) },
                     { array, index ->
                         array[index] = when (val next = skipSpace()) {
                             'n' -> readNull()
@@ -952,7 +952,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             else -> {
                 if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
-                    val elements = readArray(type, { arrayOfNulls<ISaveable?>(it) },
+                    val elements = readArray(type, { arrayOfNulls<Saveable?>(it) },
                         { array, index ->
                             array[index] = when (val next = skipSpace()) {
                                 'n' -> readNull()
@@ -988,7 +988,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return obj
     }
 
-    private fun readPtr(next: Char): ISaveable? {
+    private fun readPtr(next: Char): Saveable? {
         tmpChar = next.code
         return getByPointer(readInt(), warnIfMissing = true)
     }
@@ -1000,9 +1000,9 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return null
     }
 
-    fun register(value: ISaveable) = register(value, getUnusedPointer())
+    fun register(value: Saveable) = register(value, getUnusedPointer())
 
-    private fun readObjectAndRegister(type: String): ISaveable {
+    private fun readObjectAndRegister(type: String): Saveable {
         val instance = getNewClassInstance(type)
         val firstChar = skipSpace()
         if (firstChar == '}') {

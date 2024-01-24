@@ -1,6 +1,6 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -1273,7 +1273,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         close(true)
     }
 
-    override fun writeObjectImpl(name: String?, value: ISaveable) {
+    override fun writeObjectImpl(name: String?, value: Saveable) {
         writeAttributeStart(value.className, name)
         open(false)
         if (name == null) {
@@ -1288,7 +1288,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         close(false)
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
         if (force || values?.isNotEmpty() == true) {
             if (values.isNullOrEmpty()) {
                 writeAttributeStart("*[]", name)
@@ -1313,8 +1313,8 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>?,
         force: Boolean
@@ -1343,15 +1343,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    private fun <V : ISaveable?> writeHeterogeneousArray(name: String, values: Array<V>) {
+    private fun <V : Saveable?> writeHeterogeneousArray(name: String, values: Array<V>) {
         writeAttributeStart("*[]", name)
         writeArray(values.size, values.size) {
             writeObject(null, null, values[it], true)
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?,
+    override fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?,
         name: String,
         values: Array<Array<V>>,
         force: Boolean
@@ -1363,14 +1363,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>,
         force: Boolean
     ) = writeNullableObjectArray(self, name, values, force)
 
-    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
+    override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {
         writeAttributeStart(className, name)
         append(ptr)
     }

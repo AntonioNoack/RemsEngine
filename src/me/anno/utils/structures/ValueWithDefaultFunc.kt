@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 
 /**
@@ -29,7 +29,7 @@ class ValueWithDefaultFunc<V>(
         state = null
     }
 
-    fun write(writer: BaseWriter, self: ISaveable?, name: String) {
+    fun write(writer: BaseWriter, self: Saveable?, name: String) {
         if (isSet) {
             writer.writeSomething(self, name, state, true)
         }

@@ -12,7 +12,7 @@ import me.anno.graph.render.compiler.MaterialGraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine
 
@@ -62,10 +62,10 @@ fun main() {
         }
         ge.library = MaterialGraph.library
         // register everything for copying
-        ISaveable.registerCustomClass(NodeInput())
-        ISaveable.registerCustomClass(NodeOutput())
+        Saveable.registerCustomClass(NodeInput())
+        Saveable.registerCustomClass(NodeOutput())
         for (element in ge.library.nodes) {
-            ISaveable.registerCustomClass(element)
+            Saveable.registerCustomClass(element)
         }
         ge.addChangeListener { _, isNodePositionChange ->
             if (!isNodePositionChange) {

@@ -1,6 +1,6 @@
 package me.anno.io.find
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.utils.structures.lists.Lists.pop
 import kotlin.test.assertEquals
 
@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 @Suppress("unused")
 object PropertyFinder {
 
-    fun getName(container: ISaveable, searched: ISaveable): String? {
+    fun getName(container: Saveable, searched: Saveable): String? {
         return try {
             val writer = FindNameWriter(searched)
             writer.add(container)
@@ -21,7 +21,7 @@ object PropertyFinder {
         }
     }
 
-    fun getValue(container: ISaveable, searched: String): ISaveable? {
+    fun getValue(container: Saveable, searched: String): Saveable? {
         return try {
             val writer = FindValueWriter(searched)
             writer.add(container)
@@ -33,11 +33,11 @@ object PropertyFinder {
     }
 
     class FoundNameThrowable(val name: String) : Throwable()
-    class FoundValueThrowable(val value: ISaveable) : Throwable()
+    class FoundValueThrowable(val value: Saveable) : Throwable()
 
     class FindNameWriter(private val searched: Any) : PartialWriter(false) {
         private val nameStack = ArrayList<String>()
-        override fun writeObjectImpl(name: String?, value: ISaveable) {
+        override fun writeObjectImpl(name: String?, value: Saveable) {
             if (searched === value && name != null) {
                 nameStack.add(name)
                 throw FoundNameThrowable(nameStack.joinToString("/"))
@@ -51,7 +51,7 @@ object PropertyFinder {
 
     class FindValueWriter(private val searched: String) : PartialWriter(false) {
         private val nameStack = ArrayList<String>()
-        override fun writeObjectImpl(name: String?, value: ISaveable) {
+        override fun writeObjectImpl(name: String?, value: Saveable) {
             if (name != null && searched.endsWith(name)) {
                 nameStack.add(name)
                 if (searched == nameStack.joinToString("/")) {

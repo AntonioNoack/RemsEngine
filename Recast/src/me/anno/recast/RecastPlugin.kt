@@ -1,7 +1,7 @@
 package me.anno.recast
 
 import me.anno.extensions.plugins.Plugin
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 
 class RecastPlugin : Plugin() {
     override fun onEnable() {

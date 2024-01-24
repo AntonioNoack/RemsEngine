@@ -7,7 +7,7 @@ import java.io.OutputStream
 import java.lang.reflect.Modifier
 
 /**
- * class to write non-ISaveable() as JSON; not used anywhere
+ * class to write non-Saveable() as JSON; not used anywhere
  * idk how correct/complete it is...
  * */
 object ObjectMapper {

@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -163,7 +163,7 @@ abstract class Component : PrefabSaveable() {
 
     companion object {
         fun create(type: String): Component {
-            return (ISaveable.createOrNull(type) ?: throw IllegalStateException("Missing $type")) as Component
+            return (Saveable.createOrNull(type) ?: throw IllegalStateException("Missing $type")) as Component
         }
     }
 

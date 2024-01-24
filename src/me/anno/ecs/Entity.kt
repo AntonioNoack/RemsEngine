@@ -29,7 +29,7 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
@@ -477,10 +477,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    override val className: String get() = "Entity"
-
-    override fun isDefaultValue(): Boolean = false
-
     private fun transformUpdate(keepWorldTransform: Boolean) {
         if (keepWorldTransform) {
             // if only local is present, calculate global first
@@ -754,7 +750,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         else super.readQuaterniond(name, value)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "children" -> {
                 internalChildren.clear()

@@ -8,17 +8,17 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileContentImporter
 import org.apache.logging.log4j.LogManager
 
-object ECSFileImporter : FileContentImporter<ISaveable>() {
+object ECSFileImporter : FileContentImporter<Saveable>() {
 
     private val LOGGER = LogManager.getLogger(ECSFileImporter::class)
 
-    override fun setName(element: ISaveable, name: String) {
+    override fun setName(element: Saveable, name: String) {
         when (element) {
             is Prefab -> element["name"] = name
             is PrefabSaveable -> element.name = name
@@ -27,12 +27,12 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
     }
 
     override fun import(
-        parent: ISaveable?,
+        parent: Saveable?,
         file: FileReference,
         useSoftLink: SoftLinkMode,
         doSelect: Boolean,
         depth: Int,
-        callback: (ISaveable) -> Unit
+        callback: (Saveable) -> Unit
     ) {
 
         parent!!
@@ -54,7 +54,7 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
     }
 
     // what is this used for?
-    override fun createNode(parent: ISaveable?): ISaveable {
+    override fun createNode(parent: Saveable?): Saveable {
         return Entity(parent as? Entity)
     }
 }

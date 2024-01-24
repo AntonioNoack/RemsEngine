@@ -1,7 +1,6 @@
 package me.anno.io.base
 
 import me.anno.Build
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -9,19 +8,19 @@ import java.io.IOException
 
 abstract class BaseReader {
 
-    private val withPtr = ArrayList<ISaveable>()
-    private val withoutPtr = ArrayList<ISaveable>()
+    private val withPtr = ArrayList<Saveable>()
+    private val withoutPtr = ArrayList<Saveable>()
 
-    val allInstances = ArrayList<ISaveable>()
+    val allInstances = ArrayList<Saveable>()
 
-    val sortedContent: List<ISaveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
+    val sortedContent: List<Saveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
     // for debugging
     var sourceName = ""
 
-    private val missingReferences = HashMap<Int, ArrayList<Pair<ISaveable, String>>>()
+    private val missingReferences = HashMap<Int, ArrayList<Pair<Saveable, String>>>()
 
-    fun getByPointer(ptr: Int, warnIfMissing: Boolean): ISaveable? {
+    fun getByPointer(ptr: Int, warnIfMissing: Boolean): Saveable? {
         val index = ptr - 1
         when {
             index in withPtr.indices -> return withPtr[index]
@@ -36,20 +35,20 @@ abstract class BaseReader {
         return null
     }
 
-    private fun setContent(ptr: Int, iSaveable: ISaveable) {
-        // LOGGER.info("SetContent($ptr, ${iSaveable.className})")
-        if (ptr < 0) withoutPtr.add(iSaveable)
+    private fun setContent(ptr: Int, Saveable: Saveable) {
+        // LOGGER.info("SetContent($ptr, ${Saveable.className})")
+        if (ptr < 0) withoutPtr.add(Saveable)
         else {
             // add missing instances
             val index = ptr - 1
             for (i in withPtr.size..index) {
                 withPtr.add(UnitSaveable)
             }
-            withPtr[index] = iSaveable
+            withPtr[index] = Saveable
         }
     }
 
-    fun register(value: ISaveable, ptr: Int) {
+    fun register(value: Saveable, ptr: Int) {
         if (ptr != 0) {
             setContent(ptr, value)
             val missingReferences = missingReferences[ptr]
@@ -61,7 +60,7 @@ abstract class BaseReader {
         } else LOGGER.warn("Got object with uuid 0: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: ISaveable, name: String, childPtr: Int) {
+    fun addMissingReference(owner: Saveable, name: String, childPtr: Int) {
         missingReferences
             .getOrPut(childPtr) { ArrayList() }
             .add(owner to name)
@@ -74,7 +73,7 @@ abstract class BaseReader {
         }
     }
 
-    abstract fun readObject(): ISaveable
+    abstract fun readObject(): Saveable
     abstract fun readAllInList()
 
     companion object {
@@ -94,8 +93,8 @@ abstract class BaseReader {
         fun error(msg: String): Nothing = throw InvalidFormatException("[BaseReader] $msg")
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
-        fun getNewClassInstance(className: String): ISaveable {
-            val type = ISaveable.objectTypeRegistry[className]
+        fun getNewClassInstance(className: String): Saveable {
+            val type = Saveable.objectTypeRegistry[className]
             if (type == null) {
                 if (Build.isDebug) debugInfo(className)
                 throw UnknownClassException(className)
@@ -108,7 +107,7 @@ abstract class BaseReader {
         fun debugInfo(className: String) {
             println(
                 "Looking for $className:${className.hashCode()}, " +
-                        "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
+                        "available: ${Saveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )
         }
     }

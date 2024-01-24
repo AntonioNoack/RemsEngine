@@ -4,7 +4,6 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import java.text.ParseException
@@ -36,7 +35,7 @@ abstract class Change : Saveable() {
         writer.writeObject(null, "path", path)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         if (name == "path" && value is Path) {
             path = value
         } else super.readObject(name, value)

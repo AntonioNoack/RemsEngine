@@ -1,7 +1,7 @@
 package me.anno.graph
 
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -103,7 +103,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
         else super.readBoolean(name, value)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         if (name == "node") node = value as? Node
         else super.readObject(name, value)
     }
@@ -118,7 +118,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
         else super.readString(name, value)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+    override fun readObjectArray(name: String, values: Array<Saveable?>) {
         when (name) {
             "others" -> others = values.filterIsInstance<NodeConnector>()
             else -> super.readObjectArray(name, values)

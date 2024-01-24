@@ -15,7 +15,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -42,14 +42,14 @@ import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-open class ECSTreeView(style: Style) : TreeView<ISaveable>(
-    ECSFileImporter as FileContentImporter<ISaveable>,
+open class ECSTreeView(style: Style) : TreeView<Saveable>(
+    ECSFileImporter as FileContentImporter<Saveable>,
     showSymbols = true, style
 ) {
 
     val inspector get() = currentInspector!!
 
-    override fun listSources(): List<ISaveable> {
+    override fun listSources(): List<Saveable> {
         val world = EditorState.prefab?.getSampleInstance()// ?: library.world
         return if (world != null) listOf(world) else emptyList()
     }
@@ -58,7 +58,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         return element is PrefabSaveable
     }
 
-    override fun addChild(element: ISaveable, child: Any, type: Char, index: Int): Boolean {
+    override fun addChild(element: Saveable, child: Any, type: Char, index: Int): Boolean {
         element as PrefabSaveable
         val prefab: Prefab
         val prefabPath: Path
@@ -84,7 +84,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         return true
     }
 
-    override fun fulfillsSearch(element: ISaveable, name: String, ttt: String?, search: Search): Boolean {
+    override fun fulfillsSearch(element: Saveable, name: String, ttt: String?, search: Search): Boolean {
         return if (element is NamedSaveable) {
             val builder = StringBuilder()
             builder.append(element.name)
@@ -95,7 +95,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         } else super.fulfillsSearch(element, name, ttt, search)
     }
 
-    override fun removeChild(parent: ISaveable, child: ISaveable) {
+    override fun removeChild(parent: Saveable, child: Saveable) {
         // todo somehow the window element cannot be removed
         // todo this generally is broken...
         if (parent is PrefabSaveable && child is PrefabSaveable) {
@@ -108,7 +108,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         } else throw NotImplementedError()
     }
 
-    override fun paste(hovered: ISaveable, original: ISaveable?, relativeY: Float, data: String) {
+    override fun paste(hovered: Saveable, original: Saveable?, relativeY: Float, data: String) {
         val type1 = findType(original, hovered) ?: ' '
         if (original != null && canBeMoved(hovered, original)) {
             LOGGER.info("Movable change")
@@ -257,11 +257,11 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         return hovered.prefabPath to index
     }
 
-    override fun removeRoot(root: ISaveable) {
+    override fun removeRoot(root: Saveable) {
         LOGGER.warn("Cannot remove root")
     }
 
-    override fun destroy(element: ISaveable) {
+    override fun destroy(element: Saveable) {
         if (element is PrefabSaveable) element.onDestroy()
     }
 
@@ -313,7 +313,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         }
     }
 
-    override fun getLocalColor(element: ISaveable, isHovered: Boolean, isInFocus: Boolean): Int {
+    override fun getLocalColor(element: Saveable, isHovered: Boolean, isInFocus: Boolean): Int {
 
         val isInFocus2 = isInFocus || (element is PrefabSaveable && element in EditorState.selection)
         // show a special color, if the current element contains something selected
@@ -352,7 +352,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         return color or black
     }
 
-    override fun getTooltipText(element: ISaveable): String {
+    override fun getTooltipText(element: Saveable): String {
         val maxLength = 100
         val warn = if (element is PrefabSaveable) getWarning(element) else null
         if (warn != null) return warn
@@ -366,7 +366,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         }
     }
 
-    override fun getChildren(element: ISaveable): List<ISaveable> {
+    override fun getChildren(element: Saveable): List<Saveable> {
         return if (element is PrefabSaveable) {
             val types = element.listChildTypes()
             when (types.length) {
@@ -384,11 +384,11 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         } else emptyList()
     }
 
-    override fun isCollapsed(element: ISaveable): Boolean {
+    override fun isCollapsed(element: Saveable): Boolean {
         return if (element is PrefabSaveable) element.isCollapsed else false
     }
 
-    override fun setCollapsed(element: ISaveable, collapsed: Boolean) {
+    override fun setCollapsed(element: Saveable, collapsed: Boolean) {
         if (element !is PrefabSaveable) return
         element.isCollapsed = collapsed
 
@@ -402,7 +402,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         invalidateLayout()
     }
 
-    override fun getDragType(element: ISaveable): String {
+    override fun getDragType(element: Saveable): String {
         return when (element) {
             is PrefabSaveable -> "PrefabSaveable"
             is Prefab -> "Prefab"
@@ -410,7 +410,7 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         }
     }
 
-    override fun stringifyForCopy(element: ISaveable): String {
+    override fun stringifyForCopy(element: Saveable): String {
         if (element !is PrefabSaveable) return element.toString()
         val tab = ECSSceneTabs.currentTab ?: return ""
         val root = tab.inspector.root
@@ -421,27 +421,27 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         }
     }
 
-    override fun getSymbol(element: ISaveable): String {
+    override fun getSymbol(element: Saveable): String {
         return if (isCollapsed(element) && getChildren(element).isNotEmpty()) "📁"
         else if (element is PrefabSaveable && element.root.prefab?.isWritable == false) "\uD83D\uDD12" // lock
         else "⚪"
     }
 
-    override fun getParent(element: ISaveable): ISaveable? {
+    override fun getParent(element: Saveable): Saveable? {
         return (element as? PrefabSaveable)?.parent
     }
 
-    override fun getName(element: ISaveable): String {
+    override fun getName(element: Saveable): String {
         element as PrefabSaveable
         val name = element.name
         return if (name.isBlank2()) element.className.camelCaseToTitle() else name
     }
 
-    override fun setName(element: ISaveable, name: String) {
+    override fun setName(element: Saveable, name: String) {
         ECSFileImporter.setName(element, name)
     }
 
-    override fun openAddMenu(parent: ISaveable) {
+    override fun openAddMenu(parent: Saveable) {
         parent as PrefabSaveable
         // temporary solution:
         val prefab = parent.prefab
@@ -482,13 +482,13 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         } else LOGGER.warn("Prefab is not writable!")
     }
 
-    override fun canBeInserted(parent: ISaveable, element: ISaveable, index: Int): Boolean {
+    override fun canBeInserted(parent: Saveable, element: Saveable, index: Int): Boolean {
         if (parent !is PrefabSaveable) return false
         if (parent.root.prefab?.isWritable == false) return false
         return parent.getOriginal().run { this == null || index >= children.size }
     }
 
-    override fun canBeRemoved(element: ISaveable): Boolean {
+    override fun canBeRemoved(element: Saveable): Boolean {
         if (element !is PrefabSaveable) {
             LOGGER.warn("Cannot remove, because not PrefabSaveable")
             return false
@@ -513,12 +513,12 @@ open class ECSTreeView(style: Style) : TreeView<ISaveable>(
         return parentPrefab != null
     }
 
-    override fun selectElements(elements: List<ISaveable>) {
+    override fun selectElements(elements: List<Saveable>) {
         ECSSceneTabs.refocus()
         EditorState.select(elements.filterIsInstance<PrefabSaveable>())
     }
 
-    override fun focusOnElement(element: ISaveable) {
+    override fun focusOnElement(element: Saveable) {
         selectElements(listOf(element))
         // focus on the element by inverting the camera transform and such...
         val windowStack = window!!.windowStack

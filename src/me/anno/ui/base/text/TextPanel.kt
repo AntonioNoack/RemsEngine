@@ -17,7 +17,7 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Key
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -385,7 +385,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         else super.readString(name, value)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         when (name) {
             "padding" -> padding = value as? Padding ?: return
             "font" -> font = value as? Font ?: return

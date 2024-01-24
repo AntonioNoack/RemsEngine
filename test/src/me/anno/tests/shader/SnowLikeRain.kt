@@ -14,7 +14,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.mesh.Shapes
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
@@ -79,7 +79,7 @@ fun main() {
         val scene = Entity("Scene")
         scene.add(MeshComponent(Shapes.flatCube.front))
         scene.add(snowControl)
-        ISaveable.registerCustomClass(SnowControl())
+        Saveable.registerCustomClass(SnowControl())
         list.add(SceneView.testScene(scene) {
             it.renderer.renderMode = mode
         }, 2f)

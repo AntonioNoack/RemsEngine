@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -94,7 +94,7 @@ class GLTFWriter(
         }
     }
 
-    private val nodes = ArrayList<ISaveable>()
+    private val nodes = ArrayList<Saveable>()
     private val children = ArrayList<List<Int>>()
 
     private fun add(entity: Entity): Int {
@@ -700,7 +700,7 @@ class GLTFWriter(
         writer.write(0)
     }
 
-    private fun collectNodes(scene: ISaveable) {
+    private fun collectNodes(scene: Saveable) {
         when (scene) {
             is Prefab -> {
                 collectNodes(scene.getSampleInstance())
@@ -717,7 +717,7 @@ class GLTFWriter(
         }
     }
 
-    fun write(scene: ISaveable, dst: FileReference) {
+    fun write(scene: Saveable, dst: FileReference) {
 
         collectNodes(scene)
 

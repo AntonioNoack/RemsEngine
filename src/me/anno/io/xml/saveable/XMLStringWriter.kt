@@ -1,6 +1,6 @@
 package me.anno.io.xml.saveable
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 
 /**
@@ -24,14 +24,14 @@ class XMLStringWriter(initialCapacity: Int, workspace: FileReference) : XMLWrite
 
     companion object {
 
-        fun toText(data: Collection<ISaveable>, workspace: FileReference): String {
+        fun toText(data: Collection<Saveable>, workspace: FileReference): String {
             val writer = XMLStringWriter(workspace)
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun toText(entry: ISaveable, workspace: FileReference): String {
+        fun toText(entry: Saveable, workspace: FileReference): String {
             val writer = XMLStringWriter(workspace)
             writer.add(entry)
             writer.writeAllInList()
@@ -39,7 +39,7 @@ class XMLStringWriter(initialCapacity: Int, workspace: FileReference) : XMLWrite
         }
 
         @Suppress("unused")
-        fun toBuilder(data: ISaveable, workspace: FileReference): StringBuilder {
+        fun toBuilder(data: Saveable, workspace: FileReference): StringBuilder {
             val writer = XMLStringWriter(workspace)
             writer.add(data)
             writer.writeAllInList()

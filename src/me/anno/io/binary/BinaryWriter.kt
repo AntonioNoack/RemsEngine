@@ -1,6 +1,6 @@
 package me.anno.io.binary
 
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.AABB32
 import me.anno.io.binary.BinaryTypes.AABB32_ARRAY
@@ -994,7 +994,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         else output.write(OBJECT_NULL)
     }
 
-    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
+    override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {
         if (name != null) writeAttributeStart(name, OBJECT_PTR)
         else output.write(OBJECT_PTR)
         output.writeInt(ptr)
@@ -1004,7 +1004,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeInt(-2)
     }
 
-    override fun writeObjectImpl(name: String?, value: ISaveable) {
+    override fun writeObjectImpl(name: String?, value: Saveable) {
         if (name != null) writeAttributeStart(name, OBJECT_IMPL)
         else output.write(OBJECT_IMPL)
         usingType(value.className) {
@@ -1064,7 +1064,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
         if (force || values?.isNotEmpty() == true) {
             if (!values.isNullOrEmpty()) {
                 val firstType = values.first().className
@@ -1083,8 +1083,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable?> writeNullableObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeNullableObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>?,
         force: Boolean
@@ -1107,8 +1107,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray2D(
-        self: ISaveable?,
+    override fun <V : Saveable> writeObjectArray2D(
+        self: Saveable?,
         name: String,
         values: Array<Array<V>>,
         force: Boolean
@@ -1121,14 +1121,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, values: List<V>?, force: Boolean) {
+    override fun <V : Saveable> writeObjectList(self: Saveable?, name: String, values: List<V>?, force: Boolean) {
         writeGenericList(name, values, force) {
             writeObject(null, null, it, true)
         }
     }
 
-    override fun <V : ISaveable?> writeHomogenousObjectArray(
-        self: ISaveable?,
+    override fun <V : Saveable?> writeHomogenousObjectArray(
+        self: Saveable?,
         name: String,
         values: Array<V>,
         force: Boolean

@@ -31,11 +31,12 @@ open class StringMap(
         map.putAll(data)
     }
 
-    var wasChanged = false
-    val map = HashMap<String, Any?>(capacity)
+    private var wasChanged = false
+    private val map = HashMap<String, Any?>(capacity)
 
     override val className: String get() = "SMap"
     override val approxSize get() = 1_000_000
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // avoid locking up the program up while waiting for IO
@@ -136,7 +137,7 @@ open class StringMap(
     }
 
     override fun putAll(from: Map<out String, Any?>) {
-        if (from.isEmpty() || from === this) return
+        if (from === this || from.isEmpty()) return
         synchronized(this) {
             wasChanged = true
             onSyncAccess()

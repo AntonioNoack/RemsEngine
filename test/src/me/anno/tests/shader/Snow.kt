@@ -40,7 +40,7 @@ import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
 import me.anno.ui.custom.CustomList

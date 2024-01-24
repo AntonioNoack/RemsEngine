@@ -126,8 +126,6 @@ class Skeleton : PrefabSaveable(), Renderable {
         dst.bones = ArrayList(bones)
     }
 
-    override val className: String get() = "Skeleton"
-
     companion object {
 
         private const val s = 0.14f

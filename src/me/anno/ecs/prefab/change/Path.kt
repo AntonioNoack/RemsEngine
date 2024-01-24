@@ -1,6 +1,5 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Booleans.toInt
@@ -197,7 +196,7 @@ class Path(
         writer.writeChar("type", type)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         when (name) {
             "parent" -> parent = value as? Path
             else -> super.readObject(name, value)
@@ -236,7 +235,6 @@ class Path(
         }
     }
 
-    override val className: String get() = "Path"
     override val approxSize get() = 1
     override fun isDefaultValue(): Boolean = this === ROOT_PATH
 

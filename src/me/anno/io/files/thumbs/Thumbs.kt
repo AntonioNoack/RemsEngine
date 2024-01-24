@@ -70,7 +70,7 @@ import me.anno.image.ImageReader
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
@@ -936,7 +936,7 @@ object Thumbs {
 
     @JvmStatic
     fun generateSomething(
-        asset: ISaveable?,
+        asset: Saveable?,
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,

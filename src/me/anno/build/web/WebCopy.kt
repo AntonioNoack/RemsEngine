@@ -4,13 +4,13 @@ import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents
 
 var ctr = 0
-fun copy(src: List<FileReference>, dst: FileReference, path: String) {
+fun build(src: List<FileReference>, dst: FileReference, path: String) {
     if (src.first().isDirectory) {
         dst.tryMkdirs()
         val srcChildren = src.map { it.listChildren() }.flatten().map { it.name }.toHashSet()
         for (srcI in srcChildren) {
             val srcII = src.map { it.getChild(srcI) }.filter { it.exists }
-            copy(srcII, dst.getChild(srcI), "$path/${srcI}")
+            build(srcII, dst.getChild(srcI), "$path/${srcI}")
         }
         val dstChildren = dst.listChildren()
         val dstNames = dstChildren.map { it.name }.filter { it !in srcChildren }
@@ -76,7 +76,7 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
                         "java.lang.reflect.Array.newInstance(array::class.componentType, size)",
                         "createArrayListOfNulls<Any>(size)"
                     )
-                    .replace("ArrayList<ISaveable?>(values.size) { values[it] }", "ArrayList<ISaveable?>(values)")
+                    .replace("ArrayList<Saveable?>(values.size) { values[it] }", "ArrayList<Saveable?>(values)")
                     .replace("GL11C", "OpenGL")
                     .replace("GL15C", "OpenGL")
                     .replace("GL20C", "OpenGL")
@@ -135,15 +135,45 @@ fun copy(src: List<FileReference>, dst: FileReference, path: String) {
     }
 }
 
+fun clear(src: List<FileReference>, dst: FileReference, path: String) {
+    if (src.first().isDirectory) {
+        dst.tryMkdirs()
+        val srcChildren = src.map { it.listChildren() }.flatten().map { it.name }.toHashSet()
+        for (srcI in srcChildren) {
+            val srcII = src.map { it.getChild(srcI) }.filter { it.exists }
+            clear(srcII, dst.getChild(srcI), "$path/${srcI}")
+        }
+        val dstChildren = dst.listChildren()
+        val dstNames = dstChildren.map { it.name }.filter { it !in srcChildren }
+        if (dstNames.isNotEmpty()) {
+            System.err.println("Foreign files in $dst: $dstNames")
+        }
+    } else {
+        val srcI = src.first()
+        if (srcI.lcExtension == "kt") {
+            ctr++
+            val prevTxt = if (dst.exists) dst.readTextSync() else ""
+            if (!prevTxt.contains("!ignore")) {
+                dst.delete()
+            } else println("Ignored $dst")
+        }// else ignored
+    }
+}
+
+val projects = documents.getChild("IdeaProjects")
+val src = projects.getChild("RemsEngine")
+val srcI = listOf(
+    src.getChild("src"),
+    src.getChild("KOML/src")
+)
+val dst = projects.getChild("RemsEngineWeb")
+val dstI = dst.getChild("src/jsMain/kotlin")
+
 fun main() {
-    val projects = documents.getChild("IdeaProjects")
-    val src = projects.getChild("RemsEngine")
-    val dst = projects.getChild("RemsEngineWeb")
-    copy(
-        listOf(
-            src.getChild("src"),
-            src.getChild("KOML/src")
-        ), dst.getChild("src/jsMain/kotlin"), ""
-    )
+    if (false) {
+        clear(srcI, dstI, "")
+    } else {
+        build(srcI, dstI, "")
+    }
     println("$ctr kotlin files total")
 }

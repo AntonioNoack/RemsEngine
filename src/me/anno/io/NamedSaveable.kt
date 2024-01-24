@@ -10,7 +10,6 @@ open class NamedSaveable : Saveable() {
     open var name = ""
     open var description = ""
 
-    override fun isDefaultValue(): Boolean = false
     override val approxSize get() = 10
 
     override fun save(writer: BaseWriter) {

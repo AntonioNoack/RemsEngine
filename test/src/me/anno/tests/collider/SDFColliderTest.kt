@@ -13,7 +13,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.image.ImageWriter
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
 import me.anno.tests.LOGGER
 import me.anno.utils.Color.rgba

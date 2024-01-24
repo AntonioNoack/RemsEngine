@@ -3,7 +3,7 @@ package me.anno.ecs.components.player
 import me.anno.ecs.Component
 import me.anno.ecs.components.camera.CameraState
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.utils.StringMap
 
@@ -26,7 +26,7 @@ open class Player : Component() {
         writer.writeObject(null, "persistent", persistentInfo)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObject(name: String, value: Saveable?) {
         if (name == "persistent") {
             if (value !is StringMap) return
             persistentInfo.clear()

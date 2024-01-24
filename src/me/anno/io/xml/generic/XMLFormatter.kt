@@ -1,7 +1,7 @@
 package me.anno.io.xml.generic
 
 import me.anno.engine.EngineBase
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.xml.saveable.XMLStringWriter
 import me.anno.utils.types.Strings
 import java.io.ByteArrayInputStream
@@ -15,7 +15,7 @@ object XMLFormatter {
                 indentation, lineBreakLength
             )
             is XMLNode -> format(v, indentation, lineBreakLength)
-            is ISaveable -> format(
+            is Saveable -> format(
                 XMLStringWriter.toText(v, EngineBase.workspace),
                 indentation, lineBreakLength
             )

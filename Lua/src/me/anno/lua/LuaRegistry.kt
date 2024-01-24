@@ -1,7 +1,7 @@
 package me.anno.lua
 
 import me.anno.config.DefaultConfig.style
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.lua.ui.LuaAnimTextPanel
 
 @Suppress("unused")

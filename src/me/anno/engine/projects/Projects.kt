@@ -3,7 +3,7 @@ package me.anno.engine.projects
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -16,7 +16,7 @@ object Projects {
 
     private val recentProjectCount by ConfigRef("ui.project.numRecent", 10)
     fun getRecentProjects(): ArrayList<ProjectHeader> {
-        ISaveable.registerCustomClass(GameEngineProject::class)
+        Saveable.registerCustomClass(GameEngineProject::class)
         val projects = ArrayList<ProjectHeader>()
         val usedFiles = HashSet<FileReference>()
         for (i in 0 until recentProjectCount) {
