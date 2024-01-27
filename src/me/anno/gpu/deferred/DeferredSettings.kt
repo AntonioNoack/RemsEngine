@@ -54,11 +54,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 .append('.').append(mapping).append(");\n")
         }
 
-        fun appendLayer(output: StringBuilder, defRR: String) {
+        fun appendLayer(output: StringBuilder, defRR: String?, useRandomness: Boolean) {
             output.append(textureName)
             output.append('.')
             output.append(mapping)
-            val useRandomRounding = when (type) {
+            val useRandomRounding = useRandomness && when (type) {
                 DeferredLayerType.CLICK_ID, DeferredLayerType.GROUP_ID -> false
                 else -> true
             }
@@ -190,35 +190,51 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         return shader
     }
 
-    fun appendLayerDeclarators(disabledLayers: BitSet?, uniforms: HashSet<Variable>) {
+    fun appendLayerDeclarators(disabledLayers: BitSet?, uniforms: HashSet<Variable>, useRandomness: Boolean) {
         val layers = storageLayers
-        uniforms.add(Variable(GLSLType.V1F, "defRRT"))
+        if (useRandomness) {
+            uniforms.add(Variable(GLSLType.V1F, "defRRT"))
+        }
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
                 val outVariable = Variable(GLSLType.V4F, type.name, VariableMode.OUT)
                 outVariable.slot = index
                 uniforms.add(outVariable)
-                uniforms.add(Variable(GLSLType.V2F, type.nameRR))
+                if (useRandomness) {
+                    uniforms.add(Variable(GLSLType.V2F, type.nameRR))
+                }
             }
         }
     }
 
-    fun appendLayerWriters(output: StringBuilder, disabledLayers: BitSet?) {
+    fun appendLayerWriters(
+        output: StringBuilder, disabledLayers: BitSet?,
+        useRandomness: Boolean, defined: Set<Variable>
+    ) {
         for (index in semanticLayers.indices) {
-            val defRR = "defRR$index"
-            output.append("float $defRR = random(0.001 * gl_FragCoord.xy + vec2($index.0,defRRT))-0.5;\n")
+            val defRR = if (useRandomness) "defRR$index" else null
+            if (useRandomness) {
+                output.append("float $defRR = random(0.001 * gl_FragCoord.xy + vec2($index.0,defRRT))-0.5;\n")
+            }
             val layer = semanticLayers[index]
             if (disabledLayers == null || !disabledLayers[layer.texIndex]) {
-                layer.appendLayer(output, defRR)
+                layer.appendLayer(output, defRR, useRandomness)
             }
         }
+        val hasAlpha = Variable(GLSLType.V1F, "finalAlpha") in defined
         for ((index, name, map) in emptySlots) {
             if (disabledLayers == null || !disabledLayers[index]) {
-                val value = when (map.length) {
-                    1 -> " = finalAlpha;\n"
-                    2 -> " = vec2(0.0,finalAlpha);\n"
-                    else -> " = vec3(0.0,0.0,finalAlpha);\n"
+                val value = if (hasAlpha) {
+                    when (map.length) {
+                        1 -> " = finalAlpha;\n"
+                        2 -> " = vec2(0.0,finalAlpha);\n"
+                        else -> " = vec3(0.0,0.0,finalAlpha);\n"
+                    }
+                } else when (map.length) {
+                    1 -> " = 1.0;\n"
+                    2 -> " = vec2(0.0,1.0);\n"
+                    else -> " = vec3(0.0,0.0,1.0);\n"
                 }
                 output.append(name).append('.').append(map).append(value)
             }

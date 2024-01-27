@@ -65,7 +65,7 @@ class RenderMode(
             "Default",
             QuickPipeline()
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
-                // .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())

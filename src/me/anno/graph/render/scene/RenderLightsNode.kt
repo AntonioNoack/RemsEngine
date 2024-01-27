@@ -69,7 +69,7 @@ class RenderLightsNode : RenderViewNode(
     }
 
     private val shaders =
-        arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.entries.size.shl(1)) // current number of shaders
+        arrayOfNulls<Pair<Shader, Map<String, TypeValue>>>(LightType.entries.size.shl(1)) // current number of shaders
 
     private fun getShader(type: LightType, isInstanced: Boolean): Shader {
         val id = type.ordinal.shl(1) + isInstanced.toInt()
@@ -82,8 +82,7 @@ class RenderLightsNode : RenderViewNode(
 
             init {
 
-                val sizes = intArrayOf(3, 1, 1, 1, 1, 1)
-                val names = arrayOf(
+                val types = arrayOf(
                     DeferredLayerType.NORMAL,
                     DeferredLayerType.METALLIC,
                     DeferredLayerType.ROUGHNESS,
@@ -92,19 +91,18 @@ class RenderLightsNode : RenderViewNode(
                     DeferredLayerType.DEPTH
                 )
 
-                val expressions = sizes.indices
+                val expressions = types.indices
                     .joinToString("") { i ->
-                        val nameI = names[i].glslName
+                        val nameI = types[i].glslName
                         val exprI = expr(inputs[firstInputIndex + i])
                         "$nameI = $exprI;\n"
                     } + "if(finalDepth > 1e38) discard;\n" // sky doesn't need lighting
 
                 defineLocalVars(builder)
 
-                val variables = sizes.indices.map { i ->
-                    val sizeI = sizes[i]
-                    val typeI = GLSLType.floats[sizeI - 1]
-                    val nameI = names[i].glslName
+                val variables = types.indices.map { i ->
+                    val typeI = GLSLType.floats[types[i].workDims - 1]
+                    val nameI = types[i].glslName
                     Variable(typeI, nameI, VariableMode.OUT)
                 } + typeValues.map { (k, v) -> Variable(v.type, k) } +
                         extraVariables +
@@ -142,7 +140,7 @@ class RenderLightsNode : RenderViewNode(
             }
 
             override val currentShader: Shader get() = shader
-        }.run { shader to typeValues }
+        }.finish()
 
         shaders[id] = shader1
         val (shader, typeValues) = shader1

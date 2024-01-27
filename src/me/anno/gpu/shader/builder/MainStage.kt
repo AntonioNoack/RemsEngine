@@ -250,7 +250,8 @@ class MainStage {
         disabledLayers: BitSet?,
         ditherMode: DitherMode,
         bridgeVariablesV2F: Map<Variable, Variable>,
-        bridgeVariablesI2F: Map<Variable, Variable>
+        bridgeVariablesI2F: Map<Variable, Variable>,
+        builder: ShaderBuilder,
     ): String {
 
         // set what is all defined
@@ -273,7 +274,7 @@ class MainStage {
                 uniforms.add(Variable(GLSLType.V4F, "BuildColor", VariableMode.OUT))
             } else {
                 // register all layers
-                settings.appendLayerDeclarators(disabledLayers, uniforms)
+                settings.appendLayerDeclarators(disabledLayers, uniforms, builder.useRandomness)
             }
             code.append('\n')
         }
@@ -477,7 +478,7 @@ class MainStage {
                         }
                     }
                 }
-                settings.appendLayerWriters(code, disabledLayers)
+                settings.appendLayerWriters(code, disabledLayers, builder.useRandomness, defined)
             }
         }
         code.append("}\n")

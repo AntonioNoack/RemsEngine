@@ -60,7 +60,7 @@ class CombineLightsNode : RenderViewNode(
         shader = null
     }
 
-    private var shader: Pair<Shader, HashMap<String, TypeValue>>? = null // current number of shaders
+    private var shader: Pair<Shader, Map<String, TypeValue>>? = null // current number of shaders
     private fun bindShader(skybox: CubemapTexture): Shader {
         val shader1 = shader ?: object : GraphCompiler(graph as FlowGraph) {
 
@@ -106,7 +106,7 @@ class CombineLightsNode : RenderViewNode(
             }
 
             override val currentShader: Shader get() = shader
-        }.run { shader to typeValues }
+        }.finish()
 
         shader = shader1
         val (shader2, typeValues) = shader1

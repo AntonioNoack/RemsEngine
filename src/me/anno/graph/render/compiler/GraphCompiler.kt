@@ -538,4 +538,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
         traverse(start)
         return exportedLayers
     }
+
+    fun finish(): Pair<Shader, Map<String, TypeValue>> {
+        return Pair(currentShader, typeValues)
+    }
 }

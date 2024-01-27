@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.utils.structures.lists.Lists.any2
 
 abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<String>) :
     ActionNode(name, inputs, outputs) {
@@ -27,8 +28,21 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
     }
 
     companion object {
-        fun isOutputUsed(output: NodeOutput): Boolean {
-            return output.others.isNotEmpty()
+        fun isOutputUsed(output: NodeOutput, maxDepth: Int = 10): Boolean {
+            // if is RenderSceneDeferredNode, its output needs to be used, too
+            return output.others.any2 { otherCon ->
+                // is used?
+                when (val intoNode = otherCon.node) {
+                    is RenderSceneDeferredNode -> {
+                        val di = intoNode.firstOutputIndex - intoNode.firstInputIndex
+                        val oi = intoNode.inputs.indexOf(otherCon) + di
+                        if (oi > 0 && maxDepth > 0) {
+                            isOutputUsed(intoNode.outputs[oi], maxDepth - 1)
+                        } else true
+                    }
+                    else -> true
+                }
+            }
         }
     }
 }

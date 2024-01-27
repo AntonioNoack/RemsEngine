@@ -34,6 +34,7 @@ class ShaderBuilder(val name: String) {
 
     var settings: DeferredSettings? = null
     var disabledLayers: BitSet? = null
+    var useRandomness = true
 
     var glslVersion = GPUShader.DefaultGLSLVersion
 
@@ -134,12 +135,12 @@ class ShaderBuilder(val name: String) {
         // create the code
         val vertCode = vertex.createCode(
             false, settings, disabledLayers,
-            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F
+            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
         )
         val attributes = vertex.attributes
         val fragCode = fragment.createCode(
             true, settings, disabledLayers,
-            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F
+            ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
         )
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariablesV2F && it !in bridgeVariablesI2F } +

@@ -1,14 +1,19 @@
 package me.anno.graph.render.scene
 
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -16,6 +21,9 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.render.compiler.GraphCompiler
+import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.ReturnNode
 
 class RenderSceneDeferredNode : RenderViewNode(
     "Render Scene",
@@ -29,17 +37,28 @@ class RenderSceneDeferredNode : RenderViewNode(
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Int", "Draw Sky", // -1 = before, 0 = don't, 1 = after
-    ) + listLayers(),
+    ) + ll0,
     // list all available deferred layers
-    listLayers()
+    ll1
 ) {
 
     companion object {
-        fun listLayers(): List<String> {
+        fun listLayers(type: String?): List<String> {
             return DeferredLayerType.values.map {
-                listOf("Texture", if (it.name == "Color") "Diffuse" else it.name)
+                listOf(
+                    type ?: when (it.workDims) {
+                        1 -> "Float"
+                        2 -> "Vector2f"
+                        3 -> "Vector3f"
+                        4 -> "Vector4f"
+                        else -> throw IllegalStateException()
+                    }, if (it.name == "Color") "Diffuse" else it.name
+                )
             }.flatten()
         }
+
+        val ll0 = listLayers(null)
+        val ll1 = listLayers("Texture")
     }
 
     val enabledLayers = ArrayList<DeferredLayerType>()
@@ -58,6 +77,8 @@ class RenderSceneDeferredNode : RenderViewNode(
     override fun invalidate() {
         settings = null
         framebuffer?.destroy()
+        shader?.first?.destroy()
+        shader = null
     }
 
     private var settings: DeferredSettings? = null
@@ -130,7 +151,7 @@ class RenderSceneDeferredNode : RenderViewNode(
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            defineInputs(framebuffer, settings!!)
+            defineInputs(framebuffer)
             if (drawSky == -1) {
                 pipeline.drawSky()
             }
@@ -156,15 +177,110 @@ class RenderSceneDeferredNode : RenderViewNode(
         }
     }
 
-    fun defineInputs(framebuffer: IFramebuffer, settings: DeferredSettings) {
-        // todo clear screen by input nodes
-        val prepassDepth = (getInput(inputs.lastIndex) as? Texture)?.tex
+    private var shader: Pair<Shader, Map<String, TypeValue>>? = null
+
+    val firstInputIndex = 10
+    val firstOutputIndex = 1
+
+    private fun getShader(): Shader {
+        val shader1 = shader ?: object : GraphCompiler(graph as FlowGraph) {
+
+            // not being used, as we only have an expression
+            override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
+
+            val shader: Shader
+
+            init {
+
+                // to do: filter for non-composite types
+                // only load what is given? -> yes :D
+
+                val types = DeferredLayerType.values.withIndex()
+                    .filter { (index, type) ->
+                        type != DeferredLayerType.DEPTH &&
+                                isOutputUsed(outputs[index + firstOutputIndex])
+                    }
+
+                val expressions = types.joinToString("") { (i, type) ->
+                    val nameI = type.glslName
+                    val exprI = expr(inputs[firstInputIndex + i])
+                    "$nameI = $exprI;\n"
+                }
+
+                defineLocalVars(builder)
+
+                extraVariables.add(Variable(GLSLType.V2F, "uv"))
+
+                val variables = types
+                    .filter { it.value != DeferredLayerType.DEPTH }
+                    .map { (_, type) ->
+                        val typeI = GLSLType.floats[type.workDims - 1]
+                        val nameI = type.glslName
+                        Variable(typeI, nameI, VariableMode.OUT)
+                    } + typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables
+
+                val builder = ShaderBuilder(name)
+                builder.addVertex(
+                    ShaderStage(
+                        "simple-triangle", listOf(
+                            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+                        ), "gl_Position = vec4(coords*2.0-1.0,0.0,1.0);\n" +
+                                "uv = coords;\n"
+                    )
+                )
+
+                builder.settings = settings
+                builder.useRandomness = false
+                builder.addFragment(
+                    ShaderStage("rsdn-expr", variables, expressions)
+                        .add(extraFunctions.toString())
+                )
+
+                shader = builder.create("rsdn")
+            }
+
+            override val currentShader: Shader get() = shader
+        }.finish()
+
+        shader = shader1
+        val (shader, typeValues) = shader1
+        shader.use()
+        for ((k, v) in typeValues) {
+            v.bind(shader, k)
+        }
+        return shader
+    }
+
+    private fun hasAnyInput(): Boolean {
+        for (i in 0 until ll0.size.shr(1)) {
+            if (!inputs[firstInputIndex + i].isEmpty()) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun defineInputs(framebuffer: IFramebuffer) {
+        val inputIndex = firstInputIndex + ll0.indexOf(DeferredLayerType.DEPTH.name).shr(1)
+        val prepassDepth = (getInput(inputIndex) as? Texture)?.tex
         if (prepassDepth != null) {
             GFX.copyColorAndDepth(blackTexture, prepassDepth)
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {
             framebuffer.clearColor(0, depth = true)
+        }
+        // if all inputs are null, we can skip this
+        if (hasAnyInput()) {
+            GFXState.useFrame(framebuffer) {
+                GFXState.depthMode.use(DepthMode.ALWAYS) {
+                    GFXState.depthMask.use(false) {
+                        val shader = getShader()
+                        flat01.draw(shader)
+                    }
+                }
+            }
         }
     }
 }

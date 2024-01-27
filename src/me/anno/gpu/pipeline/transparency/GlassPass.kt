@@ -30,8 +30,6 @@ import me.anno.utils.structures.maps.LazyMap
 /**
  * order-independent transparency for deferred rendering;
  * issue: glass panes are not tinted by panes before them
- *
- * todo this needs to be rendered separately: we must calculate SSAO and such before this
  * */
 class GlassPass : TransparentPass() {
 
@@ -39,11 +37,6 @@ class GlassPass : TransparentPass() {
     //  this would need a copy of the two buffers we write to
     // theoretically needs a search, again...
     // depends on normal
-
-    //
-    //   diffuse *= glass color       | diffuse *= [exp(sum(log(glassColor[i]))) = product(glassColor[i])]
-    //  emissive += glass reflection  | emissive += sum(glassReflection[i]) // times previous glass color...
-    //  depth stays the same
 
     companion object {
 
