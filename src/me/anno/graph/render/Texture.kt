@@ -9,7 +9,9 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.utils.Color.black4
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.white4
 import org.joml.Vector4f
@@ -31,8 +33,11 @@ class Texture private constructor(
     val mask get() = singleToVector[mapping]
 
     override fun toString(): String {
-        return if (tex == whiteTexture) if (color == white4) "white" else color.toHexColor()
-        else {
+        return if (tex == whiteTexture) {
+            if (color == white4) "white" else color.toHexColor()
+        } else if (tex == blackTexture || color == black4) {
+            "black"
+        } else {
             val base = if (tex is Texture2D) "${tex.width}x${tex.height}@${tex.pointer}"
             else "${tex.width}x${tex.height}}"
             val hasMap = mapping.isNotEmpty()

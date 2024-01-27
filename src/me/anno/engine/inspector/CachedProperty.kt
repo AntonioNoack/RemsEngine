@@ -24,7 +24,7 @@ class CachedProperty(
 ) {
 
     val range = annotations.firstInstanceOrNull<Range>()
-    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, valueClass) else null }
+    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, instanceClass) else null }
     val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
     val order = annotations.firstInstanceOrNull<Order>()?.index ?: 0
     val group = annotations.firstInstanceOrNull<Group>()?.name
@@ -132,18 +132,25 @@ class CachedProperty(
 
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
-        private fun hide(it: HideInInspector, name: String, clazz: Class<*>): (Any) -> Boolean {
+        private fun hide(it: HideInInspector, name: String, instanceClazz: Class<*>): (Any) -> Boolean {
             if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
             else {
                 val getter1 = try {
-                    clazz.getMethod("get${it.hideIfVariableIsTrue.camelCaseToTitle()}")
+                    val fieldName0 = it.hideIfVariableIsTrue
+                    instanceClazz.getMethod(
+                        if (fieldName0.startsWith("is")) fieldName0
+                        else "get${
+                            fieldName0.camelCaseToTitle()
+                                .replace(" ", "")
+                        }"
+                    )
                 } catch (e: NoSuchMethodException) {
                     e.printStackTrace()
                     null
                 }
                 if (getter1 != null) return { instance -> getter1.invoke(instance) == true }
                 else {
-                    LOGGER.warn("Property ${it.hideIfVariableIsTrue} was not found to hide variable $name of $clazz")
+                    LOGGER.warn("Property ${it.hideIfVariableIsTrue} was not found to hide variable $name of $instanceClazz")
                     return { _: Any -> false }
                 }
             }

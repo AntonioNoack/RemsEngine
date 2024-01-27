@@ -15,6 +15,9 @@ abstract class LightComponentBase : Component(), Renderable {
     @SerializedProperty
     var ditherMode = DitherMode.DITHER2X2
 
+    var needsUpdate1 = true
+    var autoUpdate = true
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -35,6 +38,8 @@ abstract class LightComponentBase : Component(), Renderable {
         super.copyInto(dst)
         dst as LightComponentBase
         dst.ditherMode = ditherMode
+        dst.autoUpdate = autoUpdate
+        dst.needsUpdate1 = needsUpdate1
     }
 
     open fun onVisibleUpdate(): Boolean = false

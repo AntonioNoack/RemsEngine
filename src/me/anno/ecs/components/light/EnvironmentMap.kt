@@ -54,9 +54,6 @@ class EnvironmentMap : LightComponentBase() {
     @NotSerializedProperty
     var texture: CubemapFramebuffer? = null
 
-    var needsUpdate1 = true
-    var autoUpdate = true
-
     var samples = 1
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

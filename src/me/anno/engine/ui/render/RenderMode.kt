@@ -318,11 +318,13 @@ class RenderMode(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(DepthOfFieldNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -332,11 +334,13 @@ class RenderMode(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -346,12 +350,14 @@ class RenderMode(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -361,7 +367,8 @@ class RenderMode(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(DepthTestNode())
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
@@ -370,11 +377,13 @@ class RenderMode(
         val FOG_TEST = RenderMode(
             "Fog Test",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(HeightExpFogNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -384,11 +393,13 @@ class RenderMode(
         val NIGHT_TEST = RenderMode(
             "Night Test",
             QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(NightNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))

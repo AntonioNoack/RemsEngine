@@ -85,6 +85,10 @@ abstract class InnerFile(
         callback.ok(readTextSync())
     }
 
+    override fun readTextSync(): String {
+        return readBytesSync().decodeToString()
+    }
+
     override fun outputStream(append: Boolean): OutputStream {
         throw IOException("Writing into zip files is not yet supported, '$absolutePath'")
     }

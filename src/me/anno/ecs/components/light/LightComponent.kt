@@ -74,9 +74,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     val hasShadow get() = shadowMapCascades > 0
 
-    var needsUpdate1 = true
-    var autoUpdate = true
-
     @HideInInspector
     @NotSerializedProperty
     var shadowTextures: IFramebuffer? = null
@@ -276,8 +273,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val pipeline by lazy {
             Pipeline(DeferredSettings(listOf())).apply {
                 defaultStage.maxNumberOfLights = 0
-                // all stages are the same
-                for (i in 0 until 15) stages.add(defaultStage)
             }
         }
     }

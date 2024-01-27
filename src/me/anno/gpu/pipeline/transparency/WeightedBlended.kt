@@ -163,7 +163,7 @@ class WeightedBlended : TransparentPass() {
                 GFXState.depthMask.use(false) {
                     val blend: Any = if (perTargetBlending) blend0s else blend2
                     GFXState.blendMode.use(blend) {
-                        drawTransparentStage(pipeline, stage)
+                        stage.draw(pipeline)
                     }
                 }
             }

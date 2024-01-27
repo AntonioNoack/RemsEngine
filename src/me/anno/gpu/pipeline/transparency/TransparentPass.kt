@@ -30,8 +30,4 @@ abstract class TransparentPass : ICacheData {
     }
 
     abstract fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl)
-
-    fun drawTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
-        stage.draw(pipeline)
-    }
 }

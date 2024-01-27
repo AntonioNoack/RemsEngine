@@ -110,7 +110,6 @@ fun createShapesScene(): Entity {
         place(SDFMesh().apply {
             name = "SDFMesh - ${type.name.upperSnakeCaseToTitle()}"
             meshFile = sampleMesh
-            normalEpsilon = 1e-5f
             smoothness = 0.01f
             technique = type
         }, Vector3f(20f + 5f * index, 0f, 10f))

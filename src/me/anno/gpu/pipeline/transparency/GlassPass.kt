@@ -114,7 +114,7 @@ class GlassPass : TransparentPass() {
             GFXState.depthMode.use(DepthMode.CLOSE) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                        drawTransparentStage(pipeline, stage)
+                        stage.draw(pipeline)
                     }
                 }
             }
