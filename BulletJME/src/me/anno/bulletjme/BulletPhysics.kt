@@ -42,13 +42,17 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
         val defaultShape = BoxCollisionShape(v(1.0, 1.0, 1.0))
     }
 
+    init {
+        synchronousPhysics = true
+    }
+
     var fixedStep = 0.0
     var maxSubSteps = 10
 
     val bulletInstance = PhysicsSpace(PhysicsSpace.BroadphaseType.DBVT)
 
     override fun updateGravity() {
-        bulletInstance.setGravity(Vector3f(gravity.x.toFloat(), gravity.y.toFloat(), gravity.z.toFloat()))
+        bulletInstance.setGravity(v(gravity))
     }
 
     override fun removeConstraints(entity: Entity) {
@@ -61,6 +65,8 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
         bodyWithScale: BodyWithScale<PhysicsRigidBody>
     ) {
         bulletInstance.addCollisionObject(bodyWithScale.body)
+        rigidbody.bulletInstance = bodyWithScale.body
+        registerNonStatic(entity, rigidbody.isStatic, bodyWithScale)
         // todo constraints
     }
 
@@ -171,7 +177,6 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
     }
 
     override fun createRigidbody(entity: Entity, src: Rigidbody): BodyWithScale<PhysicsRigidBody>? {
-
         val colliders = getValidComponents(entity, Collider::class)
             .filter { it.hasPhysics }.toList()
         return if (colliders.isNotEmpty()) {
@@ -209,6 +214,7 @@ open class BulletPhysics : Physics<Rigidbody, PhysicsRigidBody>(Rigidbody::class
     }
 
     override fun worldStepSimulation(step: Double) {
+        bulletInstance.setMaxSubSteps(maxSubSteps)
         bulletInstance.update(step.toFloat(), maxSubSteps)
     }
 

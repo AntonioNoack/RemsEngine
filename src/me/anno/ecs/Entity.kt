@@ -572,8 +572,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun addComponent(index: Int, component: Component) {
         if (index < 0 || index >= internalComponents.size) internalComponents.add(component)
         else internalComponents.add(index, component)
-        onChangeComponent(component)
         component.entity = this
+        onChangeComponent(component)
         setChildPath(component, index, 'c')
     }
 
@@ -582,7 +582,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             hasRenderables = hasComponent(MeshComponentBase::class, false) ||
                     hasComponent(LightComponentBase::class, false)
         }
-        val tmpAABB = JomlPools.aabbd.create().all()
+        val tmpAABB = JomlPools.aabbd.create().clear()
         val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
         if (fillsSpace) invalidateOwnAABB()
         if (component is MeshComponentBase || component is LightComponentBase || fillsSpace) {

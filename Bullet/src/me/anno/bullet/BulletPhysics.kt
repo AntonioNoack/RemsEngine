@@ -202,11 +202,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         rigidBodies[entity] = bodyWithScale
         rigidbody.bulletInstance = body
 
-        if (!rigidbody.isStatic) {
-            nonStaticRigidBodies[entity] = bodyWithScale
-        } else {
-            nonStaticRigidBodies.remove(entity)
-        }
+        registerNonStatic(entity, rigidbody.isStatic, bodyWithScale)
 
         val constraints = rigidbody.constraints
         for (i in constraints.indices) {

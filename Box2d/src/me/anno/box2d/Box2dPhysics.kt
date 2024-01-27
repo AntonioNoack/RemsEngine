@@ -193,11 +193,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         rigidbody.box2dInstance = body
         rigidBodies[entity] = bodyWithScale
 
-        if (body.fixtureList.density > 0f) {
-            nonStaticRigidBodies[entity] = bodyWithScale
-        } else {
-            nonStaticRigidBodies.remove(entity)
-        }
+        registerNonStatic(entity, !(body.fixtureList.density > 0f), bodyWithScale)
 
         // todo constraints
     }

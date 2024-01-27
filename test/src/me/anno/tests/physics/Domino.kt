@@ -123,10 +123,10 @@ fun main() {
             return domino
         }
 
-        val floorHalfSize = 5.0 * inch
+        val floorHalfSize = 50.0 * inch
         val floors = Entity("Floors")
         scene.add(floors)
-        val halfNumFloors = 0
+        val halfNumFloors = 1
         for (z in -halfNumFloors..halfNumFloors) {
             val floor = Entity()
             floor.add(Rigidbody().apply {
@@ -146,7 +146,7 @@ fun main() {
         // todo starting structure, and image support like in video
 
         val spacing = height * 0.7f
-        val di = 0 // ((floorHalfSize * (halfNumFloors * 2 + 1)) / spacing - 2).toInt()
+        val di = ((floorHalfSize * (halfNumFloors * 2 + 1)) / spacing - 2).toInt()
         for (i in -di until di) {
             add(0f, spacing * i)
         }

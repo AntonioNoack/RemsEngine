@@ -10,13 +10,13 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
-import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.engine.Events.addEvent
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.Logging.hash32
@@ -96,6 +96,30 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         nonStaticRigidBodies.clear()
     }
 
+    override fun onChangeStructure(entity: Entity) {
+        super.onChangeStructure(entity)
+        invalidateRecursively(entity)
+    }
+
+    fun registerNonStatic(entity: Entity, isStatic: Boolean, bodyWithScale: BodyWithScale<ExternalRigidBody>){
+        if (isStatic) {
+            nonStaticRigidBodies.remove(entity)
+        } else {
+            nonStaticRigidBodies[entity] = bodyWithScale
+        }
+    }
+
+    fun invalidateRecursively(entity: Entity) {
+        val rb = entity.getComponent(rigidComponentClass)
+        if (rb != null) {
+            getInit(entity)
+        } else {
+            for (child in entity.children) {
+                invalidateRecursively(child)
+            }
+        }
+    }
+
     open fun invalidate(entity: Entity) {
         if (printValidations) LOGGER.debug("Invalidated {}", hash32(this))
         invalidEntities.add(entity)
@@ -110,10 +134,12 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         invalidEntities.process2x({ entity ->
             remove(entity, false)
             removeConstraints(entity)
-        }, { entity ->
-            val rigidbody = addOrGet(entity)
-            entity.isPhysicsControlled = rigidbody != null
-        })
+        }, ::getInit)
+    }
+
+    private fun getInit(entity: Entity) {
+        val rigidbody = addOrGet(entity)
+        entity.isPhysicsControlled = rigidbody != null
     }
 
     abstract fun removeConstraints(entity: Entity)
