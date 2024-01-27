@@ -15,6 +15,7 @@ object UIColors {
     const val gold = 0xf8c522 or black // ~ gold
     const val blueishGray = 0x707fb0 or black
     const val darkOrange = 0xfc7100 or black // ~ dark orange
+    const val midOrange = 0xfc9144 or black
     const val deepPink = 0xdf199a or black // ~ deep pink
     const val paleGoldenRod = 0xebe496 or black // pale golden rod is close
     const val cornFlowerBlue = 0x819ef3 or black // ~ corn flower blue

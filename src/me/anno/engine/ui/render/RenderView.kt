@@ -59,8 +59,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.UIColors.cornFlowerBlue
-import me.anno.ui.UIColors.darkOrange
+import me.anno.ui.UIColors
 import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
@@ -237,7 +236,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val t1 = Time.nanoTime
         prepareDrawScene(width, height, aspectRatio, camera0, camera1, blending, true)
         val t2 = Time.nanoTime
-        FrameTimings.add(t2 - t1, darkOrange)
+        FrameTimings.add(t2 - t1, UIColors.midOrange)
 
         setRenderState()
         updatePipelineStage0(renderMode)
@@ -248,6 +247,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             RenderGraph.draw(this, this, renderGraph)
         } else {
             // we have to draw based on Renderer/RenderMode
+            // todo this forgetting to clear, which looks weird...
             val renderer = renderMode.renderer ?: DeferredRenderer
             val buffer = findBuffer(renderer)
             updateSkybox(renderer)
@@ -255,7 +255,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         val t3 = Time.nanoTime
-        FrameTimings.add(t3 - t1, cornFlowerBlue)
+        FrameTimings.add(t3 - t1, UIColors.cornFlowerBlue)
 
         if (world == null) {
             drawTextCenter("Scene Not Found!")
