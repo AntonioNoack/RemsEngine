@@ -96,7 +96,8 @@ object GFXState {
         lastBlendMode = newValue
     }
 
-    private fun bindDepthMode(newValue: DepthMode) {
+    private fun bindDepthMode() {
+        val newValue = depthMode.currentValue
         if (lastDepthMode == newValue) return
         glDepthFunc(newValue.id)
         val reversedDepth = newValue.reversedDepth
@@ -111,13 +112,15 @@ object GFXState {
         lastDepthMode = newValue
     }
 
-    private fun bindDepthMask(newValue: Boolean) {
+    fun bindDepthMask() {
+        val newValue = depthMask.currentValue
         if (lastDepthMask == newValue) return
         glDepthMask(newValue)
         lastDepthMask = newValue
     }
 
-    private fun bindCullMode(newValue: CullMode) {
+    private fun bindCullMode() {
+        val newValue = cullMode.currentValue
         if (lastCullMode == newValue) return
         when (newValue) {
             CullMode.BOTH -> {
@@ -137,9 +140,9 @@ object GFXState {
 
     fun bind() {
         bindBlendMode(blendMode.currentValue)
-        bindDepthMode(depthMode.currentValue)
-        bindDepthMask(depthMask.currentValue)
-        bindCullMode(cullMode.currentValue)
+        bindDepthMode()
+        bindDepthMask()
+        bindCullMode()
     }
 
     /**

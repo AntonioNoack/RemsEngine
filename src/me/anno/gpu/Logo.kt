@@ -84,7 +84,9 @@ object Logo {
                 useFrame(width, height, true, frame) {
                     success = drawLogo(shader)
                 }
-                frame.copyIfNeeded(NullFramebuffer)
+                useFrame(NullFramebuffer) {
+                    GFX.copy(frame)
+                }
             } else drawLogo(shader)
         }
 

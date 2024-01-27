@@ -442,8 +442,10 @@ object Thumbs {
                     srcFile.name, w, h, 1,
                     arrayOf(TargetType.UInt8x4), DepthBufferType.NONE
                 )
-                renderTarget.needsBlit = true
-                renderTarget.copyIfNeeded(newBuffer)
+                renderTarget.needsBlit = true // needed?
+                useFrame(newBuffer) {
+                    GFX.copy(renderTarget)
+                }
                 val texture = newBuffer.textures!![0]
                 newBuffer.destroyExceptTextures(false)
                 texture.rotation = if (flipY) flipYRot else null

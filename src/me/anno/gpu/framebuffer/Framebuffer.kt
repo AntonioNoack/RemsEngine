@@ -549,13 +549,6 @@ class Framebuffer(
         else super.getTextureIMS(index)
     }
 
-    fun resolve() {
-        if (withMultisampling) {
-            copyIfNeeded(ssBuffer!!)
-            GFX.check()
-        }
-    }
-
     fun destroyExceptTextures(deleteDepth: Boolean) {
         if (ssBuffer != null) {
             ssBuffer?.destroyExceptTextures(deleteDepth)

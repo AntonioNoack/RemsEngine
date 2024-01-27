@@ -258,14 +258,14 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefabPair(file: FileReference, lastModified: Long): FileReadPrefabData {
-        if (debugLoading) LOGGER.info("loading $file@$lastModified")
+        if (debugLoading) LOGGER.info("Loading $file@$lastModified")
         ensureClasses()
         val data = FileReadPrefabData(file)
         loadPrefab4(file) { loaded, e ->
             data.value = loaded
             if (loaded != null) FileWatch.addWatchDog(file)
             if (debugLoading) LOGGER.info(
-                "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${hash32(loaded)}"
+                "Loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${hash32(loaded)}"
             )
             e?.printStackTrace()
         }

@@ -4,7 +4,6 @@ import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.streams.AudioStream
-import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
 import me.anno.engine.Events
@@ -269,7 +268,9 @@ object GFX {
     }
 
     @JvmStatic
-    fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0MS())
+    fun copy(buffer: IFramebuffer) {
+        copy(buffer.getTexture0MS())
+    }
 
     @JvmStatic
     fun copy(src: ITexture2D) {

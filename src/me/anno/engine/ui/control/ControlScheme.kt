@@ -138,6 +138,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
     override fun onUpdate() {
         super.onUpdate()
         updateViewRotation()
+        renderView.editorCamera.fovY = settings.fovY
     }
 
     open fun updateViewRotation() {
