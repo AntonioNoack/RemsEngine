@@ -1,11 +1,12 @@
 package me.anno.gpu.pipeline.transparency
 
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl
 
 // todo implement Moment-Based Order-Independent Transparency by Cedric Münstermann
 class MomentBlended: TransparentPass() {
 
-    override fun blendTransparentStages(pipeline: Pipeline) {
+    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
         TODO("Not yet implemented")
     }
 

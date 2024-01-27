@@ -15,6 +15,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -141,7 +142,7 @@ class WeightedBlended : TransparentPass() {
         private val blend0s = arrayOf(BlendMode.PURE_ADD, blend0)
     }
 
-    override fun blendTransparentStages(pipeline: Pipeline) {
+    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
 
         val b0 = GFXState.currentBuffer
         val r0 = GFXState.currentRenderer
@@ -162,7 +163,7 @@ class WeightedBlended : TransparentPass() {
                 GFXState.depthMask.use(false) {
                     val blend: Any = if (perTargetBlending) blend0s else blend2
                     GFXState.blendMode.use(blend) {
-                        drawTransparentStages(pipeline)
+                        drawTransparentStage(pipeline, stage)
                     }
                 }
             }

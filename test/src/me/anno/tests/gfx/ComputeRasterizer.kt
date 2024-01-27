@@ -33,10 +33,10 @@ import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.shader.BufferCompute.createAccessors
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode

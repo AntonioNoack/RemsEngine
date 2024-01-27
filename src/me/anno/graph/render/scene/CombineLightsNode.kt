@@ -30,7 +30,7 @@ import me.anno.graph.types.flow.ReturnNode
 /**
  * combines diffuse, emissive, and light into a single, final color
  * */
-class CombineLightsNode : RenderSceneNode0(
+class CombineLightsNode : RenderViewNode(
     "Combine Lights",
     listOf(
         "Int", "Width",

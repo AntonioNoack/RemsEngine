@@ -1,11 +1,11 @@
 package me.anno.gpu.pipeline.transparency
 
 import me.anno.cache.ICacheData
-import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl
 
 abstract class TransparentPass : ICacheData {
 
@@ -29,49 +29,9 @@ abstract class TransparentPass : ICacheData {
         return tmp
     }
 
-    fun drawPipeline(pipeline: Pipeline, needsClear: Boolean, drawColoredSky: Boolean) {
-        if (GFXState.ditherMode.currentValue != DitherMode.DRAW_EVERYTHING) {
-            drawPipelineOpaque(pipeline)
-        } else {
-            if (!drawColoredSky && needsClear) {
-                GFXState.currentBuffer.clearColor(0)
-            }
-            drawOpaqueStages(pipeline)
-            if (drawColoredSky) {
-                pipeline.drawSky()
-            }
-            blendTransparentStages(pipeline)
-        }
-    }
+    abstract fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl)
 
-    fun drawPipelineOpaque(pipeline: Pipeline) {
-        // first only opaque, rest later?
-        val stages = pipeline.stages
-        for (i in stages.indices) {
-            val stage = stages[i]
-            val baseStage = if (stage.blendMode == null) stage else pipeline.defaultStage
-            baseStage.bindDraw(pipeline, stage)
-        }
-    }
-
-    fun drawOpaqueStages(pipeline: Pipeline) {
-        val stages = pipeline.stages
-        for (i in stages.indices) {
-            val stage = stages[i]
-            if (stage.blendMode == null) {
-                stage.bindDraw(pipeline)
-            }
-        }
-    }
-
-    abstract fun blendTransparentStages(pipeline: Pipeline)
-
-    fun drawTransparentStages(pipeline: Pipeline) {
-        val stages = pipeline.stages
-        for (i in stages.indices) {
-            val stage = stages[i]
-            if (stage.blendMode != null)
-                stage.draw(pipeline)
-        }
+    fun drawTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
+        stage.draw(pipeline)
     }
 }

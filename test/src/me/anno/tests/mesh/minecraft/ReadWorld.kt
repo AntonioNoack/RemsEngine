@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.LOGGER
@@ -330,7 +330,7 @@ fun main() {
     val materials = listOf(false, true).map { isTransparent ->
         listOf(Material().apply {
             if (isTransparent) {
-                pipelineStage = PipelineStage.TRANSPARENT_PASS
+                pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
                 metallicMinMax.set(1f)
                 roughnessMinMax.set(0f)
             }

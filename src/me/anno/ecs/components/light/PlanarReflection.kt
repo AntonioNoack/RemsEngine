@@ -11,6 +11,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -176,12 +177,14 @@ class PlanarReflection : LightComponentBase() {
 
             if (x1 > x0 && y1 > y0) {
                 useFrame(w, h, true, buffer, pbrRenderer) {
-                    GFXState.depthMode.use(DepthMode.CLOSE) {
-                        GFXState.scissorTest.use(true) {
-                            glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
-                            // todo why is the normal way to draw the sky failing its depth test?
-                            clearSky(pipeline)
-                            pipeline.draw(false)
+                    GFXState.ditherMode.use(ditherMode) {
+                        GFXState.depthMode.use(DepthMode.CLOSE) {
+                            GFXState.scissorTest.use(true) {
+                                glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
+                                // todo why is the normal way to draw the sky failing its depth test?
+                                clearSky(pipeline)
+                                pipeline.singlePassWithSky(false)
+                            }
                         }
                     }
                 }
@@ -238,6 +241,9 @@ class PlanarReflection : LightComponentBase() {
         dst as PlanarReflection
         dst.samples = samples
         dst.usesFP = usesFP
+        dst.bothSided = bothSided
+        dst.near = near
+        dst.far = far
     }
 
     override val className: String get() = "PlanarReflection"

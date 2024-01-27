@@ -3,7 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference

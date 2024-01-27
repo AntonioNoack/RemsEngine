@@ -11,14 +11,14 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.render.Texture
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 import org.joml.Vector4f
 import kotlin.math.min
 
 // todo integrate all useful effects from Three.js
 //  - https://threejs.org/examples/?q=post#webgl_postprocessing_pixel, specifically their edge and depth detection
 
-class OutlineEffectNode : RenderSceneNode0(
+class OutlineEffectNode : RenderViewNode(
     "OutlineEffect",
     listOf(
         "Int", "Width",

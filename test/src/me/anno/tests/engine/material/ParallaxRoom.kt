@@ -8,10 +8,9 @@ import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable

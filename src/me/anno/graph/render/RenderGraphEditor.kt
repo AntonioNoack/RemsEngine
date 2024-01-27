@@ -5,12 +5,10 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.graph.Node
 import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderGraphNode
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
-import me.anno.io.Saveable
-import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.Style
 
 /**
@@ -35,7 +33,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
                     when (node) {
                         is ShaderGraphNode -> node.invalidate()
                         is ExpressionRenderer -> node.invalidate()
-                        is RenderSceneNode0 -> node.invalidate()
+                        is RenderViewNode -> node.invalidate()
                     }
                 }
             }

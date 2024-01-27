@@ -7,9 +7,9 @@ import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
@@ -36,7 +36,7 @@ class InstancedTRSStack(capacity: Int = 64) :
 
     override fun draw1(
         pipeline: Pipeline,
-        stage: PipelineStage,
+        stage: PipelineStageImpl,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
     ): LongTriple {
@@ -59,7 +59,7 @@ class InstancedTRSStack(capacity: Int = 64) :
     }
 
     fun draw(
-        stage: PipelineStage,
+        stage: PipelineStageImpl,
         mesh: IMesh,
         material: Material,
         pipeline: Pipeline,
@@ -67,7 +67,7 @@ class InstancedTRSStack(capacity: Int = 64) :
         depth: Boolean
     ): Long {
 
-        val aabb = PipelineStage.tmpAABBd
+        val aabb = PipelineStageImpl.tmpAABBd
 
         mesh.ensureBuffer()
 
@@ -76,7 +76,7 @@ class InstancedTRSStack(capacity: Int = 64) :
         bindRandomness(shader)
 
         // update material and light properties
-        val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
+        val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
             initShader(shader, pipeline.applyToneMapping)
         }
@@ -95,7 +95,7 @@ class InstancedTRSStack(capacity: Int = 64) :
         GFX.check()
 
         // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-        val buffer = PipelineStage.instancedBufferSlim
+        val buffer = PipelineStageImpl.instancedBufferSlim
         // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
         val nioBuffer = buffer.nioBuffer!!
         // fill the data
@@ -169,7 +169,7 @@ class InstancedTRSStack(capacity: Int = 64) :
         }
     }
 
-    override fun size1(): Long {
-        return data.values.values.sumOf { it.size.toLong() }
+    override fun isEmpty(): Boolean {
+        return data.values.values.none { it.size > 0 }
     }
 }

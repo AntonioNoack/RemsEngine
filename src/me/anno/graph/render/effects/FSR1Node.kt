@@ -10,7 +10,7 @@ import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
+import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 
@@ -77,7 +77,7 @@ class FSR1Node : ActionNode(
         fun createPipeline(fraction: Float): FlowGraph {
             return QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())

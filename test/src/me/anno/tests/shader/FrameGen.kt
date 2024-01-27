@@ -304,7 +304,7 @@ fun main() {
 
                     useFrame(width, height, true, data1, renderer) {
                         data1.clearDepth()
-                        pipeline.draw()
+                        pipeline.singlePassWithSky(true)
                     }
 
                     // present the previous frame

@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -68,7 +68,7 @@ object FluidMeshShader : ECSMeshShader("fluid") {
         fluidMaterial.shader = FluidMeshShader
         fluidMaterial.shaderOverrides["heightTex"] = TypeValueV2(GLSLType.S2D) { sim.pressure.read }
         fluidMaterial.shaderOverrides["waveHeight"] = TypeValue(GLSLType.V1F, waveHeight)
-        fluidMaterial.pipelineStage = PipelineStage.TRANSPARENT_PASS
+        fluidMaterial.pipelineStage = PipelineStageImpl.TRANSPARENT_PASS
         fluidMaterial.metallicMinMax.set(1f)
         fluidMaterial.roughnessMinMax.set(0f)
         fluidMaterial.diffuseBase.w = 1f

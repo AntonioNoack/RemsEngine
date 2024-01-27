@@ -11,7 +11,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere
 

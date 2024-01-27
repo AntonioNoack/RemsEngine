@@ -6,7 +6,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.flow.actions.ActionNode
 
-abstract class RenderSceneNode0(name: String, inputs: List<String>, outputs: List<String>) :
+abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<String>) :
     ActionNode(name, inputs, outputs) {
 
     lateinit var renderView: RenderView

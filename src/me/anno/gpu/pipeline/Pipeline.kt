@@ -36,19 +36,17 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.PipelineStage.Companion.DECAL_PASS
-import me.anno.gpu.pipeline.PipelineStage.Companion.OPAQUE_PASS
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
-import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import me.anno.io.Saveable
-import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
@@ -56,7 +54,6 @@ import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.SmallestKList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -68,7 +65,7 @@ import kotlin.math.max
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
  * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
  * */
-class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
+class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var deferred: DeferredSettings? = deferred
         set(value) {
@@ -88,11 +85,11 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     @Type("List<PipelineStage>")
     @SerializedProperty
-    val stages = ArrayList<PipelineStage>()
+    val stages = ArrayList<PipelineStageImpl>()
 
     val lightStage = LightPipelineStage(deferred)
 
-    var defaultStage: PipelineStage = PipelineStage(
+    var defaultStage: PipelineStageImpl = PipelineStageImpl(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSE,
         true, CullMode.BOTH, pbrModelShader
     )
@@ -116,20 +113,19 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
     }
 
-    fun findStage(material: Material): PipelineStage {
-        val stage0 = material.pipelineStage
-        if (stage0 < 0) return defaultStage
+    fun findStage(material: Material): PipelineStageImpl {
+        val stage0 = material.pipelineStage.id
         while (stages.size <= stage0) {
             stages.add(
                 when (stages.size) {
-                    OPAQUE_PASS -> defaultStage
-                    TRANSPARENT_PASS -> PipelineStage(
+                    OPAQUE_PASS.id -> defaultStage
+                    TRANSPARENT_PASS.id -> PipelineStageImpl(
                         "transparent",
                         Sorting.BACK_TO_FRONT, 64,
                         BlendMode.DEFAULT, DepthMode.CLOSE, false, CullMode.BOTH,
                         pbrModelShader
                     )
-                    DECAL_PASS -> PipelineStage(
+                    DECAL_PASS.id -> PipelineStageImpl(
                         "decal", Sorting.NO_SORTING, 64,
                         null, DepthMode.FARTHER, false, CullMode.FRONT,
                         // todo default decal shader? :) would be nice :D
@@ -140,8 +136,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             )
         }
         return stages[stage0]
-        // todo analyse, whether the material has transparency, and if so,
-        // todo add it to the transparent pass
     }
 
     fun addMesh(mesh: IMesh, renderer: Component, entity: Entity) {
@@ -260,45 +254,31 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         transparentPass.destroy()
     }
 
-    fun hasTransparentPart(): Boolean {
-        return GFXState.currentRenderer.deferredSettings != null &&
-                stages.any2 { it.blendMode != null && it.size > 0 } &&
-                GFXState.currentBuffer.numTextures >= 2
-    }
-
-    fun draw(drawSky: Boolean = true) {
-        if (hasTransparentPart()) {
-            transparentPass.drawPipeline(this, true, drawSky)
-        } else {
-            var hasDrawnSky = !drawSky
-            for (i in stages.indices) {
-                val stage = stages[i]
-                if (stage.blendMode != null && !hasDrawnSky) {
-                    drawSky()
-                    hasDrawnSky = true
-                }
-                if (stage.size > 0) {
-                    stage.bindDraw(this)
-                }
-            }
-            if (!hasDrawnSky) {
+    fun singlePassWithSky(drawSky: Boolean) {
+        var hasDrawnSky = !drawSky
+        for (i in stages.indices) {
+            val stage = stages[i]
+            if (i > 0 && !hasDrawnSky) {
                 drawSky()
+                hasDrawnSky = true
             }
+            if (!stage.isEmpty()) {
+                stage.bindDraw(this)
+            }
+        }
+        if (!hasDrawnSky) {
+            drawSky()
         }
     }
 
-    fun drawWithoutSky(needsClear: Boolean) {
-        if (hasTransparentPart()) {
-            transparentPass.drawPipeline(this, needsClear, false)
-        } else {
-            if (needsClear) {
-                GFXState.currentBuffer.clearColor(0)
-            }
-            for (i in stages.indices) {
-                val stage = stages[i]
-                if (stage.size > 0) {
-                    stage.bindDraw(this)
-                }
+    fun singlePassWithoutSky(needsClear: Boolean) {
+        if (needsClear) {
+            GFXState.currentBuffer.clearColor(0)
+        }
+        for (i in stages.indices) {
+            val stage = stages[i]
+            if (!stage.isEmpty()) {
+                stage.bindDraw(this)
             }
         }
     }
@@ -522,40 +502,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
         return null
     }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeBoolean("applyToneMapping", applyToneMapping)
-        writer.writeObjectList(this, "stages", stages)
-    }
-
-    override fun readBoolean(name: String, value: Boolean) {
-        when (name) {
-            "applyToneMapping" -> applyToneMapping = value
-            else -> super.readBoolean(name, value)
-        }
-    }
-
-    override fun readObject(name: String, value: Saveable?) {
-        when (name) {
-            "stages" -> stages.add(value as? PipelineStage ?: return)
-            else -> super.readObject(name, value)
-        }
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        when (name) {
-            "stages" -> {
-                stages.clear()
-                stages.addAll(values.filterIsInstance<PipelineStage>())
-            }
-            else -> super.readObjectArray(name, values)
-        }
-    }
-
-    override val className: String get() = "Pipeline"
-    override val approxSize get() = 10
-    override fun isDefaultValue() = false
 
     companion object {
         private val LOGGER = LogManager.getLogger(Pipeline::class)

@@ -79,7 +79,7 @@ class SimpleMeshTest(
             else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)
-            pipeline.draw()
+            pipeline.singlePassWithSky(true)
         }
         if (msaa) {
             // if we changed the framebuffer, blit the result onto the target framebuffer

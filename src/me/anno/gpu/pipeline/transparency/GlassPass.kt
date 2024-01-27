@@ -17,6 +17,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -24,11 +25,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.maths.Maths.hasFlag
 import me.anno.utils.structures.maps.LazyMap
-import me.anno.utils.types.Booleans.toInt
 
 /**
  * order-independent transparency for deferred rendering;
@@ -52,13 +49,16 @@ class GlassPass : TransparentPass() {
 
         val GlassRenderer = object : Renderer(
             "glass", DeferredSettings(
-                listOf(DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE)
+                listOf(
+                    DeferredLayerType.COLOR,
+                    DeferredLayerType.EMISSIVE
+                )
             )
         ) {
             override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
                 val vars = pbrRenderer.getPixelPostProcessing(flags).first().variables.filter { !it.isOutput }
                 return listOf(
-                    ShaderStage(
+                    ShaderStage( // todo glass needs to be shadowed @sunlight
                         "glass",
                         vars + listOf(Variable(GLSLType.V1F, "IOR")), "" +
                                 colorToLinear +
@@ -66,10 +66,11 @@ class GlassPass : TransparentPass() {
                                 RendererLib.combineLightCode +
                                 RendererLib.skyMapCode +
                                 colorToSRGB +
+                                "float milkiness = 0.5 * finalRoughness;\n" +
                                 "float fresnel = fresnelSchlick(abs(dot(finalNormal,normalize(finalPosition))), gl_FrontFacing ? 1.0 / IOR : IOR);\n" +
-                                "finalEmissive = finalColor * finalAlpha * fresnel;\n" + // reflections
-                                "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
-                                ""
+                                "finalAlpha = mix(fresnel, 1.0, milkiness);\n" +
+                                "finalEmissive = finalColor * finalAlpha;\n" + // reflections
+                                "finalColor = -log(finalColor0) * finalAlpha;\n" // diffuse tinting
                     )
                         .add(fresnelSchlick)
                         .add(getReflectivity)
@@ -79,21 +80,17 @@ class GlassPass : TransparentPass() {
         }
 
         // override diffuseColor and finalEmissive in shader
-        val applyShader = LazyMap<Int, Shader> { bits ->
-            val diffuseSlot = bits.and(255)
-            val emissiveSlot = bits.ushr(8).and(255)
-            val multisampled = bits.hasFlag(1 shl 16)
+        val applyShader = LazyMap<Boolean, Shader> { multisampled ->
             val sampleType = if (multisampled) GLSLType.S2DMS else GLSLType.S2D
             Shader(
                 "applyGlass", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(sampleType, "diffuseSrcTex"),
-                    Variable(sampleType, "emissiveSrcTex"),
                     Variable(sampleType, "diffuseGlassTex"),
                     Variable(sampleType, "emissiveGlassTex"),
+                    Variable(sampleType, "surfaceGlassTex"),
                     Variable(GLSLType.V3F, "refX"),
                     Variable(GLSLType.V3F, "refY"),
-                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = diffuseSlot },
-                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = emissiveSlot },
+                    Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 ), "" +
                         (if (multisampled) "" +
                                 "#define getTex(s) texelFetch(s,uvi,gl_SampleID)\n" else
@@ -105,47 +102,38 @@ class GlassPass : TransparentPass() {
                         "   vec4 emissiveData = getTex(emissiveGlassTex);\n" +
                         "   float tr = clamp(diffuseData.a,0.0,1.0);\n" +
                         "   vec3 tint = exp(-diffuseData.rgb);\n" +
-                        "   diffuse = getTex(diffuseSrcTex);\n" +
-                        "   emissive = getTex(emissiveSrcTex);\n" +
-                        "   diffuse.rgb = diffuse.rgb * tint * (1.0-tr);\n" +
-                        "   emissive.rgb = emissive.rgb * tint * (1.0-tr) + emissiveData.rgb / (diffuseData.a + 0.01);\n" +
+                        "   vec4 diffuse = getTex(diffuseSrcTex);\n" +
+                        "   vec4 surface = getTex(surfaceGlassTex);\n" +
+                        "   result = vec4(diffuse.rgb * tint * (1.0-tr) +\n" +
+                        "       tint * tr +\n" +
+                        "       emissiveData.rgb / (diffuseData.a + 0.01), 1.0);\n" +
                         "}\n"
             )
         }
     }
 
-    override fun blendTransparentStages(pipeline: Pipeline) {
+    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
 
-        val b0 = GFXState.currentBuffer
+        val old = GFXState.currentBuffer
         val tmp = getFB(arrayOf(TargetType.Float16x4, TargetType.Float16x3))
-        useFrame(b0.width, b0.height, true, tmp, GlassRenderer) {
+        useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
             GFXState.depthMode.use(DepthMode.CLOSE) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                        drawTransparentStages(pipeline)
+                        drawTransparentStage(pipeline, stage)
                     }
                 }
             }
         }
 
-        val r0 = GFXState.currentRenderer
-
-        val s0 = r0.deferredSettings
-
-        val l0 = s0?.findLayer(DeferredLayerType.COLOR)
-        val l1 = s0?.findLayer(DeferredLayerType.EMISSIVE)
-
         renderPurely2 {
-            val diffuseSlot = l0?.texIndex ?: 0
-            val emissiveSlot = l1?.texIndex ?: 1
-            val bits = diffuseSlot or emissiveSlot.shl(8) or (tmp.samples > 1).toInt(1 shl 16)
-            val shader = applyShader[bits]
+            val multisampled = tmp.samples > 1
+            val shader = applyShader[multisampled]
             shader.use()
 
             // bind all textures
-            (s0?.findTextureMS(b0, l0) ?: whiteTexture).bindTrulyNearest(shader, "diffuseSrcTex")
-            (s0?.findTextureMS(b0, l1) ?: blackTexture).bindTrulyNearest(shader, "emissiveSrcTex")
+            old.getTextureIMS(0).bindTrulyNearest(shader, "diffuseSrcTex")
             tmp.getTextureIMS(0).bindTrulyNearest(shader, "diffuseGlassTex")
             tmp.getTextureIMS(1).bindTrulyNearest(shader, "emissiveGlassTex")
 

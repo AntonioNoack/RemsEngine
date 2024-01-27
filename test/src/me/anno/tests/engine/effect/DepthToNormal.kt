@@ -12,7 +12,7 @@ import me.anno.graph.render.effects.SSAONode
 import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
+import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.mesh.Shapes.flatCube
 import org.joml.Vector4f
 
@@ -21,7 +21,7 @@ fun main() {
     val D2NTest1 = RenderMode(
         "D2N Used",
         QuickPipeline()
-            .then(RenderSceneNode())
+            .then(RenderSceneDeferredNode())
             .then(DepthToNormalNode())
             .then(RenderLightsNode())
             .then(SSAONode())
@@ -37,7 +37,7 @@ fun main() {
     val D2NTest2 = RenderMode(
         "D2N Result",
         QuickPipeline()
-            .then(RenderSceneNode())
+            .then(RenderSceneDeferredNode())
             .then(DepthToNormalNode(), mapOf("Normal" to listOf("Color")))
             .finish()
     )

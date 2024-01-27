@@ -20,7 +20,7 @@ import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
@@ -155,7 +155,7 @@ class EnvironmentMap : LightComponentBase() {
                 clearSky(pipeline)
                 addDefaultLightsIfRequired(pipeline, root, null)
                 pipeline.bakedSkybox = RenderView.currentInstance?.pipeline?.bakedSkybox
-                pipeline.draw(false)
+                pipeline.singlePassWithSky(false)
             }
         }
         JomlPools.mat4f.sub(1)
@@ -176,7 +176,7 @@ class EnvironmentMap : LightComponentBase() {
         val pipeline by lazy {
             val pipeline = Pipeline(DeferredSettings(listOf()))
             // we may need a second stage for transparent stuff
-            pipeline.defaultStage = PipelineStage(
+            pipeline.defaultStage = PipelineStageImpl(
                 "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSE,
                 true, CullMode.BACK, ECSShaderLib.pbrModelShader
             )

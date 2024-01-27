@@ -45,7 +45,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
@@ -143,7 +143,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     private var entityBaseClickId = 0
 
     val pipeline = Pipeline(deferred)
-    private val stage0 = PipelineStage(
+    private val stage0 = PipelineStageImpl(
         "default",
         Sorting.NO_SORTING,
         MAX_FORWARD_LIGHTS,
@@ -205,9 +205,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val drawnPrimitives0 = PipelineStage.drawnPrimitives
-        val drawnInstances0 = PipelineStage.drawnInstances
-        val drawCalls0 = PipelineStage.drawCalls
+        val drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
+        val drawnInstances0 = PipelineStageImpl.drawnInstances
+        val drawCalls0 = PipelineStageImpl.drawCalls
 
         currentInstance = this
 
@@ -360,9 +360,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun drawDebugStats(drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
         val pbb = pushBetterBlending(true)
-        val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
-        val drawnInstances = PipelineStage.drawnInstances - drawnInstances0
-        val drawCalls = PipelineStage.drawCalls - drawCalls0
+        val drawnPrimitives = PipelineStageImpl.drawnPrimitives - drawnPrimitives0
+        val drawnInstances = PipelineStageImpl.drawnInstances - drawnInstances0
+        val drawCalls = PipelineStageImpl.drawCalls - drawCalls0
         val usesBetterBlending = DrawTexts.canUseComputeShader()
         drawSimpleTextCharByChar(
             x + 2, y + height + 1,
@@ -704,7 +704,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
 
             GFX.check()
-            pipeline.draw()
+            pipeline.singlePassWithSky(true)
             GFX.check()
 
         }

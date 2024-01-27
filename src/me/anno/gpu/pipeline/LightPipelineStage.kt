@@ -23,7 +23,7 @@ import me.anno.gpu.pipeline.LightShaders.countPerPixel
 import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -37,7 +37,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector4f
 
-class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
+class LightPipelineStage(var deferred: DeferredSettings?) {
 
     // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
     // https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html
@@ -211,9 +211,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
             }
         }
 
-        PipelineStage.drawnPrimitives += drawnPrimitives
-        PipelineStage.drawnInstances += drawnInstances
-        PipelineStage.drawCalls += drawCalls
+        PipelineStageImpl.drawnPrimitives += drawnPrimitives
+        PipelineStageImpl.drawnInstances += drawnInstances
+        PipelineStageImpl.drawCalls += drawCalls
 
         // draw instanced meshes
         if (instanced.isNotEmpty()) {
@@ -294,9 +294,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
             callCount++
         }
 
-        PipelineStage.drawnPrimitives += size * mesh.numPrimitives
-        PipelineStage.drawnInstances += size
-        PipelineStage.drawCalls += callCount
+        PipelineStageImpl.drawnPrimitives += size * mesh.numPrimitives
+        PipelineStageImpl.drawnInstances += size
+        PipelineStageImpl.drawCalls += callCount
     }
 
     operator fun get(index: Int): LightRequest {
@@ -336,6 +336,4 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         nonInstanced.listOfAll(dst)
         return dst.size
     }
-
-    override val approxSize get() = 5
 }

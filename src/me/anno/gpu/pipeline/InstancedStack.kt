@@ -12,14 +12,14 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
-import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
-import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBuffer
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferA
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferM
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferMA
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferSlim
-import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBuffer
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferA
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferM
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferMA
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferSlim
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -64,13 +64,13 @@ open class InstancedStack {
 
         val data = KeyTripleMap<IMesh, Material, Int, InstancedStack>(capacity)
 
-        override fun size1(): Long {
-            return data.values.values.sumOf { it.size.toLong() }
+        override fun isEmpty(): Boolean {
+            return data.values.values.all { it.isEmpty() }
         }
 
         override fun draw1(
             pipeline: Pipeline,
-            stage: PipelineStage,
+            stage: PipelineStageImpl,
             needsLightUpdateForEveryMesh: Boolean,
             time: Long,
             depth: Boolean
@@ -102,12 +102,12 @@ open class InstancedStack {
 
         private fun drawInstances(
             mesh: IMesh, material: Material, materialIndex: Int,
-            pipeline: Pipeline, stage: PipelineStage, needsLightUpdateForEveryMesh: Boolean,
+            pipeline: Pipeline, stage: PipelineStageImpl, needsLightUpdateForEveryMesh: Boolean,
             time: Long, instances: InstancedStack, depth: Boolean
         ): Int {
 
             val receiveShadows = true
-            val aabb = PipelineStage.tmpAABBd
+            val aabb = PipelineStageImpl.tmpAABBd
 
             mesh.ensureBuffer()
 
@@ -127,7 +127,7 @@ open class InstancedStack {
                 GFX.check()
 
                 // update material and light properties
-                val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
+                val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
                 if (previousMaterial == null) {
                     initShader(shader, pipeline.applyToneMapping)
                 }

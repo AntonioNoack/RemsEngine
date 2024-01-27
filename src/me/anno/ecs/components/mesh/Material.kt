@@ -11,6 +11,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
@@ -56,12 +57,9 @@ open class Material : PrefabSaveable(), Renderable {
             }
         }
 
-    // 0 = OPAQUE_PASS
-    // 1 = transparent
-    // 2 = decal
-    @Docs("For default usages look at [me.anno.gpu.pipeline.PipelineStage]")
+    @Docs("Decides when/how a mesh will be rendered. Most meshes should be rendered opaque")
     @SerializedProperty
-    var pipelineStage: Int = 0
+    var pipelineStage: PipelineStage = PipelineStage.OPAQUE
 
     @Docs("Shader override, by default is ECSShaderLib.pbrModelShader")
     @Type("BaseShader?")

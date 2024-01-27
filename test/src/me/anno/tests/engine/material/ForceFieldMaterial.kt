@@ -18,7 +18,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth

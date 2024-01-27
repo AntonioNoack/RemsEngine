@@ -25,8 +25,8 @@ import me.anno.graph.render.effects.ToneMappingNode
 import me.anno.graph.render.scene.BakeSkyboxNode
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderSceneDeferredNode
+import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.render.scene.UVNode
 import me.anno.graph.render.scene.UViNode
 import me.anno.graph.types.FlowGraph
@@ -68,7 +68,7 @@ object RenderGraph {
 
     val library = NodeLibrary(
         listOf(
-            { RenderSceneNode() },
+            { RenderSceneDeferredNode() },
             { ExprReturnNode() },
             { ShaderExprNode() },
             { ShaderGraphNode() },
@@ -114,12 +114,12 @@ object RenderGraph {
         .finish()
 
     val lights = QuickPipeline()
-        .then(RenderSceneNode())
+        .then(RenderSceneDeferredNode())
         .then(RenderLightsNode(), mapOf("Light" to listOf("Color")))
         .finish(mapOf("Apply Tone Mapping" to true))
 
     val combined = QuickPipeline()
-        .then(RenderSceneNode())
+        .then(RenderSceneDeferredNode())
         .then(RenderLightsNode())
         .then(SSAONode())
         .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
@@ -128,7 +128,7 @@ object RenderGraph {
 
     // todo sample with FSR1 node
     val combined1 = QuickPipeline()
-        .then(RenderSceneNode())
+        .then(RenderSceneDeferredNode())
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())
@@ -161,7 +161,7 @@ object RenderGraph {
         val nodes = graph.nodes
         for (i in nodes.indices) {
             when (val node = nodes[i]) {
-                is RenderSceneNode0 -> {
+                is RenderViewNode -> {
                     node.pipeline = renderView.pipeline
                     node.renderView = renderView
                 }

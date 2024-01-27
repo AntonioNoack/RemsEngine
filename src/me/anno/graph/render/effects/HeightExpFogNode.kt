@@ -23,12 +23,12 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
 
-class HeightExpFogNode : RenderSceneNode0(
+class HeightExpFogNode : RenderViewNode(
     "Height+Exp Fog",
     listOf(
         "Float", "Exp Fog Distance", // exp fog distance

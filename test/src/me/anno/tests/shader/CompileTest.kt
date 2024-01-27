@@ -30,7 +30,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.ui.UITests
 import me.anno.ui.editor.files.FileNames.toAllowedFilename

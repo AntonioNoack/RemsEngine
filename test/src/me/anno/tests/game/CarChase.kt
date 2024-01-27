@@ -21,6 +21,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.CullMode
 import me.anno.gpu.RenderDoc.disableRenderDoc
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -99,7 +100,7 @@ fun createUI(): Panel {
     val glassMaterial = Material()
     glassMaterial.diffuseBase.w = 0.7f
     glassMaterial.cullMode = CullMode.BOTH
-    glassMaterial.pipelineStage = 1
+    glassMaterial.pipelineStage = PipelineStage.TRANSPARENT
     glassMaterial.metallicMinMax.set(1f)
     glassMaterial.roughnessMinMax.set(0.1f)
     add(car1, carModelGlass, listOf(glassMaterial.ref))

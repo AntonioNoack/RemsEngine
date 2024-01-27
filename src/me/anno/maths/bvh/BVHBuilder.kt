@@ -3,10 +3,11 @@ package me.anno.maths.bvh
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.M4x3Delta.set4x3delta
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.log2i
+import me.anno.maths.Maths.max
 import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.search.Median.median
@@ -25,11 +26,13 @@ object BVHBuilder {
     // we could reduce the number of materials, and draw the materials sequentially with separate TLASes...
 
     fun buildTLAS(
-        scene: PipelineStage, // filled with meshes
-        cameraPosition: Vector3d, worldScale: Double, splitMethod: SplitMethod, maxNodeSize: Int
+        scene: PipelineStageImpl, // filled with meshes
+        cameraPosition: Vector3d, worldScale: Double,
+        splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode {
         val clock = Clock()
-        val objects = ArrayList<TLASLeaf>(scene.size.toInt())
+        val sizeGuess = scene.nextInsertIndex + scene.instanced.data.sumOf { it.size }
+        val objects = ArrayList<TLASLeaf>(max(sizeGuess, 16))
         // add non-instanced objects
         val dr = scene.drawRequests
         fun add(mesh: Mesh, blas: BLASNode, transform: Transform) {

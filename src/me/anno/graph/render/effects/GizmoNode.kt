@@ -15,9 +15,9 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.render.Texture
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 
-class GizmoNode : RenderSceneNode0(
+class GizmoNode : RenderViewNode(
     "Gizmos",
     listOf(
         "Int", "Width",

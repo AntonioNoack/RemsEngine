@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 

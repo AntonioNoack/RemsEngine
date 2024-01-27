@@ -5,10 +5,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 import java.util.WeakHashMap
 
-class OutlineEffectSelectNode : RenderSceneNode0(
+class OutlineEffectSelectNode : RenderViewNode(
     "OutlineEffectSelect", listOf(
         "Boolean", "Force Update"
     ), emptyList()

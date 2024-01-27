@@ -35,7 +35,7 @@ import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 /**
  * collects the lights within a scene
  * */
-class RenderLightsNode : RenderSceneNode0(
+class RenderLightsNode : RenderViewNode(
     "Render Lights",
     listOf(
         "Int", "Width",
@@ -69,7 +69,7 @@ class RenderLightsNode : RenderSceneNode0(
     }
 
     private val shaders =
-        arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.values().size.shl(1)) // current number of shaders
+        arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.entries.size.shl(1)) // current number of shaders
 
     private fun getShader(type: LightType, isInstanced: Boolean): Shader {
         val id = type.ordinal.shl(1) + isInstanced.toInt()
@@ -95,7 +95,7 @@ class RenderLightsNode : RenderSceneNode0(
                 val expressions = sizes.indices
                     .joinToString("") { i ->
                         val nameI = names[i].glslName
-                        val exprI = expr(inputs!![firstInputIndex + i])
+                        val exprI = expr(inputs[firstInputIndex + i])
                         "$nameI = $exprI;\n"
                     } + "if(finalDepth > 1e38) discard;\n" // sky doesn't need lighting
 

@@ -141,6 +141,8 @@ class NodeInput : NodeConnector {
             else -> {
                 if (type.startsWith("List<")) {
                     value as? List<*> ?: emptyList<Any>()
+                } else if (type.startsWith("Enum<")) {
+                    value as? Enum<*>
                 } else throw NotImplementedError("type $type needs to be implemented")
             }
         }

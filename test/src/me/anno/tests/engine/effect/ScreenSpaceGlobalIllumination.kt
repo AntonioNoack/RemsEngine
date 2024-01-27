@@ -9,7 +9,7 @@ import me.anno.graph.render.effects.SSAONode
 import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
+import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.OS.downloads
 
@@ -36,7 +36,7 @@ class ScreenSpaceGlobalIlluminationNode : ActionNode(
 val SSGIRenderMode = RenderMode(
     "SSGI",
     QuickPipeline()
-        .then(RenderSceneNode())
+        .then(RenderSceneDeferredNode())
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())

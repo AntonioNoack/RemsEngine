@@ -8,7 +8,7 @@ abstract class DrawableStack(val instanceData: MeshInstanceData) {
 
     fun draw0(
         pipeline: Pipeline,
-        stage: PipelineStage,
+        stage: PipelineStageImpl,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long,
         depth: Boolean
@@ -23,13 +23,12 @@ abstract class DrawableStack(val instanceData: MeshInstanceData) {
      * */
     abstract fun draw1(
         pipeline: Pipeline,
-        stage: PipelineStage,
+        stage: PipelineStageImpl,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long,
         depth: Boolean
     ): LongTriple
 
     abstract fun clear()
-
-    abstract fun size1(): Long
+    abstract fun isEmpty(): Boolean
 }

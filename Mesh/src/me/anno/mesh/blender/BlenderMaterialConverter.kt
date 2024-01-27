@@ -1,7 +1,7 @@
 package me.anno.mesh.blender
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.impl.BID

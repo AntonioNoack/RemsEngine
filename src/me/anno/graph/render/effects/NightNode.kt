@@ -21,13 +21,13 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.render.scene.RenderViewNode
 
 /**
  * cheap and easy night effect;
  * please use proper color grading, and don't forget to make the sky dark, too;
  * */
-class NightNode : RenderSceneNode0(
+class NightNode : RenderViewNode(
     "Night",
     listOf(
         "Float", "Strength",

@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.triangleVisRenderer
@@ -33,7 +34,8 @@ import me.anno.graph.render.effects.SmoothNormalsNode
 import me.anno.graph.render.effects.ToneMappingNode
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
+import me.anno.graph.render.scene.RenderSceneDeferredNode
+import me.anno.graph.render.scene.RenderSceneForwardNode
 import me.anno.graph.types.FlowGraph
 import org.joml.Vector4f
 
@@ -62,11 +64,13 @@ class RenderMode(
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                // .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -77,7 +81,7 @@ class RenderMode(
         val WITHOUT_POST_PROCESSING = RenderMode(
             "Without Post-Processing",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(CombineLightsNode(), mapOf("Apply Tone Mapping" to true), mapOf("Illuminated" to listOf("Color")))
                 .finish()
@@ -86,7 +90,7 @@ class RenderMode(
         val MSAA_DEFERRED = RenderMode(
             "MSAA Deferred",
             QuickPipeline()
-                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then1(RenderLightsNode(), mapOf("Samples" to 8))
                 .then(SSAONode())
                 .then1(CombineLightsNode(), mapOf("Samples" to 8))
@@ -137,7 +141,7 @@ class RenderMode(
         val LIGHT_SUM = RenderMode(
             "Light Sum",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode(), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -147,7 +151,7 @@ class RenderMode(
         val LIGHT_SUM_MSAA = RenderMode(
             "Light Sum MSAAx8",
             QuickPipeline()
-                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -159,7 +163,7 @@ class RenderMode(
         val SSAO = RenderMode(
             "SSAO",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
@@ -168,7 +172,7 @@ class RenderMode(
         val SSAO_MS = RenderMode(
             "SSAO MSAAx8",
             QuickPipeline()
-                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
@@ -177,7 +181,7 @@ class RenderMode(
         val SS_REFLECTIONS = RenderMode(
             "SS-Reflections",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then1(CombineLightsNode(), mapOf("Ambient Occlusion" to 1f))
@@ -199,11 +203,11 @@ class RenderMode(
                  * (optimization to only render what's needed),
                  * and then all other attributes;
                  * */
-                .then1(RenderSceneNode(), mapOf("Skybox Resolution" to 0))
+                .then1(RenderSceneDeferredNode(), mapOf("Skybox Resolution" to 0))
                 /**
                  * actual scene rendering
                  * */
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -223,7 +227,7 @@ class RenderMode(
         val FSR_MSAA_X4 = RenderMode(
             "FSR+MSAAx4", QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
-                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then1(RenderLightsNode(), mapOf("Samples" to 8))
                 .then(SSAONode())
                 .then1(CombineLightsNode(), mapOf("Samples" to 8))
@@ -242,7 +246,7 @@ class RenderMode(
             "Nearest 4x",
             QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -262,7 +266,7 @@ class RenderMode(
         val SHOW_AABB = RenderMode(
             "Show AABBs",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -277,7 +281,7 @@ class RenderMode(
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -301,7 +305,7 @@ class RenderMode(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -315,7 +319,7 @@ class RenderMode(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -329,7 +333,7 @@ class RenderMode(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -344,7 +348,7 @@ class RenderMode(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(DepthTestNode())
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
@@ -353,7 +357,7 @@ class RenderMode(
         val FOG_TEST = RenderMode(
             "Fog Test",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -367,7 +371,7 @@ class RenderMode(
         val NIGHT_TEST = RenderMode(
             "Night Test",
             QuickPipeline()
-                .then(RenderSceneNode())
+                .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())

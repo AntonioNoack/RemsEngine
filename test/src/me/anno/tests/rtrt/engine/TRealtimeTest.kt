@@ -10,7 +10,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
 import me.anno.language.translation.NameDesc
 import me.anno.maths.bvh.BVHBuilder
@@ -52,7 +52,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
 
     val source = sources[0]
     val pipeline = Pipeline(DeferredSettings(listOf(DeferredLayerType.COLOR)))
-    pipeline.defaultStage = PipelineStage(
+    pipeline.defaultStage = PipelineStageImpl(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
         CullMode.BOTH, ECSShaderLib.pbrModelShader
     )

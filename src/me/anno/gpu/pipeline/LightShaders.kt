@@ -20,7 +20,7 @@ import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars

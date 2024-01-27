@@ -87,9 +87,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
 
-    @SerializedProperty
-    var ditherMode = DitherMode.DITHER2X2
-
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -239,7 +236,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                     val root = rootOverride ?: entity.getRoot(Entity::class)
                     pipeline.fill(root)
                     result.clearColor(0, depth = true)
-                    pipeline.drawWithoutSky(false)
+                    pipeline.singlePassWithoutSky(false)
                 }
             }
         }

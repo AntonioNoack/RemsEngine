@@ -1,42 +1,46 @@
 package me.anno.graph.render.scene
 
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
-import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.SimpleRenderer
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
-import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 
-class RenderSceneNode : RenderSceneNode0(
+class RenderSceneDeferredNode : RenderViewNode(
     "Render Scene",
     listOf(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
-        "Int", "Stage Mask",
+        "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
         "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
-        "Texture", "Depth", // optional prepass
-    ),
+        "Int", "Draw Sky", // -1 = before, 0 = don't, 1 = after
+    ) + listLayers(),
     // list all available deferred layers
-    DeferredLayerType.values.map {
-        listOf("Texture", if (it.name == "Color") "Diffuse" else it.name)
-    }.flatten()
+    listLayers()
 ) {
+
+    companion object {
+        fun listLayers(): List<String> {
+            return DeferredLayerType.values.map {
+                listOf("Texture", if (it.name == "Color") "Diffuse" else it.name)
+            }.flatten()
+        }
+    }
 
     val enabledLayers = ArrayList<DeferredLayerType>()
 
@@ -44,11 +48,11 @@ class RenderSceneNode : RenderSceneNode0(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, -1) // stage mask
+        setInput(4, PipelineStage.OPAQUE) // stage mask
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
-        setInput(8, 256) // bake skybox
+        setInput(8, 0) // don't bake skybox
     }
 
     override fun invalidate() {
@@ -59,23 +63,12 @@ class RenderSceneNode : RenderSceneNode0(
     private var settings: DeferredSettings? = null
     lateinit var renderer: Renderer
 
-    override fun executeAction() {
-
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
-        if (width < 1 || height < 1 || samples < 1) return
-
-        // 0 is flow
-        // val stageId = getInput(4) as Int
-        // val sorting = getInput(5) as Int
-        // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getInput(7) == true
-
+    fun defineFramebuffer() {
         var settings = settings
+        val samples = getInput(3) as Int
         if (settings == null || framebuffer?.samples != samples) {
             enabledLayers.clear()
-            val outputs = outputs!!
+            val outputs = outputs
             for (i in 1 until outputs.size) {
                 if (isOutputUsed(outputs[i])) {
                     enabledLayers.add(DeferredLayerType.values[i - 1])
@@ -107,6 +100,21 @@ class RenderSceneNode : RenderSceneNode0(
             framebuffer?.destroy()
             framebuffer = settings.createBaseBuffer(name, samples)
         }
+    }
+
+    override fun executeAction() {
+
+        val width = getInput(1) as Int
+        val height = getInput(2) as Int
+        val samples = getInput(3) as Int
+        if (width < 1 || height < 1 || samples < 1) return
+
+        val stage = getInput(4) as PipelineStage
+        // val sorting = getInput(5) as Int
+        // val cameraIndex = getInput(6) as Int
+        val applyToneMapping = getInput(7) == true
+
+        defineFramebuffer()
 
         val framebuffer = framebuffer!!
 
@@ -117,23 +125,24 @@ class RenderSceneNode : RenderSceneNode0(
         val skyboxResolution = getInput(8) as Int
         pipeline.bakeSkybox(skyboxResolution)
 
-        val prepassDepth = ((getInput(9) as? Texture)?.tex as? Texture2D)?.owner
+        val drawSky = getInput(9) as Int
 
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            clearFramebuffer(framebuffer, prepassDepth)
-            pipeline.draw()
+            defineInputs(framebuffer, settings!!)
+            if (drawSky == -1) {
+                pipeline.drawSky()
+            }
+            pipeline.stages.getOrNull(stage.id)?.bindDraw(pipeline)
+            if (drawSky == 1) {
+                pipeline.drawSky()
+            }
             pipeline.defaultStage.depthMode = depthMode
             GFX.check()
         }
 
-        // todo there are special types for which we might need to apply lighting or combine other types
-        //  e.g. for forward-rendering :)
-
-        // todo only blit textures, where necessary (e.g. only metallic might have to be blitted)
-
-        val layers = settings.semanticLayers
+        val layers = settings!!.semanticLayers
         for (j in layers.indices) {
             val layer = layers[j]
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
@@ -147,18 +156,15 @@ class RenderSceneNode : RenderSceneNode0(
         }
     }
 
-    fun clearFramebuffer(framebuffer: IFramebuffer, prepassDepth: Framebuffer?) {
-        val color = 0
-        if (prepassDepth != null && // else wouldn't work well
-            prepassDepth.width == framebuffer.width &&
-            prepassDepth.height == framebuffer.height &&
-            prepassDepth.samples == framebuffer.samples
-        ) {
-            framebuffer.clearColor(color)
-            prepassDepth.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
-            pipeline.defaultStage.depthMode = DepthMode.EQUALS
+    fun defineInputs(framebuffer: IFramebuffer, settings: DeferredSettings) {
+        // todo clear screen by input nodes
+        val prepassDepth = (getInput(inputs.lastIndex) as? Texture)?.tex
+        if (prepassDepth != null) {
+            GFX.copyColorAndDepth(blackTexture, prepassDepth)
+            // todo we need a flag whether this is a prepass
+            // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {
-            framebuffer.clearColor(color, depth = true)
+            framebuffer.clearColor(0, depth = true)
         }
     }
 }

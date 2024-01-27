@@ -33,6 +33,7 @@ import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
@@ -70,8 +71,8 @@ import me.anno.image.ImageReader
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
-import me.anno.io.Saveable
 import me.anno.io.MediaMetadata.Companion.getMeta
+import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -576,10 +577,12 @@ object Thumbs {
             rv.setRenderState()
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
             // don't use EditorState
-            rv.pipeline.clear()
-            rv.pipeline.fill(scene)
-            rv.setRenderState()
-            rv.pipeline.drawWithoutSky(true)
+            GFXState.ditherMode.use(DitherMode.DITHER2X2) {
+                rv.pipeline.clear()
+                rv.pipeline.fill(scene)
+                rv.setRenderState()
+                rv.pipeline.singlePassWithoutSky(true)
+            }
         }
     }
 

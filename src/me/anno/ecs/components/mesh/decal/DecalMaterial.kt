@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths.hasFlag
@@ -67,7 +68,7 @@ class DecalMaterial : Material() {
         }
 
     init {
-        pipelineStage = 2
+        pipelineStage = PipelineStage.DECAL
         shader = getShader()
     }
 
