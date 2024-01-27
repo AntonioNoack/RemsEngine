@@ -608,7 +608,16 @@ class NodePanel(
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val con = getConnectorAt(x, y) ?: return null
-        return "${con.type}: ${con.currValue}"
+        return "${con.type}: ${
+            run {
+                val v = con.currValue
+                when { // more needed???
+                    v is IntArray && v.size < 16 -> v.toList()
+                    v is FloatArray && v.size < 16 -> v.toList()
+                    else -> v
+                }.toString()
+            }
+        }"
     }
 
     override fun getMultiSelectablePanel() = this

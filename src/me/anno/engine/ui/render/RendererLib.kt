@@ -9,19 +9,25 @@ import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 object RendererLib {
 
     val fresnelSchlick =  "" +
+            "#ifndef FRESNEL_SCHLICK\n" +
+            "#define FRESNEL_SCHLICK\n" +
             "float fresnelSchlick(float cosine, float ior) {\n" +
             "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
             "   r0 = r0 * r0;\n" +
             "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     val getReflectivity = "" +
+            "#ifndef GET_REFLECTIVITY\n" +
+            "#define GET_REFLECTIVITY\n" +
             "float getReflectivitySq(float roughness, float metallic){\n" +
             "   return max(mix(0.1,1.0,metallic),0.0) * max(0.0,1.0-roughness);\n" +
             "}\n" +
             "float getReflectivity(float roughness, float metallic){\n" +
             "   return sqrt(getReflectivitySq(roughness,metallic));\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     val skyMapCode = "" +
             // todo it would be nice, if we could search the reflectionMap using its depth

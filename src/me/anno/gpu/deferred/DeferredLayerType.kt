@@ -146,8 +146,8 @@ open class DeferredLayerType(
         val INDEX_OF_REFRACTION = DeferredLayerType("Index of Refraction", "finalIndexOfRefraction", 0)
 
         // ids / markers
-        val CLICK_ID = DeferredLayerType("ClickID", "clickId", 3, BufferQuality.LOW_8, false, 0, "finalId.xyz", "")
-        val GROUP_ID = DeferredLayerType("GroupID", "groupId", 1, BufferQuality.LOW_8, false, 0, "finalId.w", "")
+        val CLICK_ID = DeferredLayerType("ClickID", "clickId", 3, BufferQuality.LOW_8, false, 0, "finalId.xyz", "finalId.xyz=")
+        val GROUP_ID = DeferredLayerType("GroupID", "groupId", 1, BufferQuality.LOW_8, false, 0, "finalId.w", "finalId.w=")
         // val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
         val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 3, 0)

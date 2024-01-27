@@ -10,6 +10,8 @@ import me.anno.utils.OS
 import kotlin.math.PI
 
 fun main() {
+    // todo decals are currently broken :/, looks like a race-condition
+    // only works with MSAA... -> blit missing???
     val decal = Entity("Decal")
     decal.setPosition(1.0, 0.0, 0.0)
     decal.setRotation(0.0, PI / 2, 0.0)

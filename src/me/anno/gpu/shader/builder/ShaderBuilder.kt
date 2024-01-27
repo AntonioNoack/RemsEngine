@@ -82,7 +82,9 @@ class ShaderBuilder(val name: String) {
         val settings = settings
         val ditherMode = GFXState.ditherMode.currentValue
         if (settings != null) {
-            if (fragment.stages.isEmpty()) fragment.stages.add(ShaderStage("?", emptyList(), ""))
+            if (fragment.stages.isEmpty()) {
+                fragment.stages.add(ShaderStage("?", emptyList(), ""))
+            }
             val lastStage = fragment.stages.last()
             for (layer in settings.semanticLayers) {
                 val w2d = layer.type.workToData

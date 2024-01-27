@@ -1,10 +1,10 @@
 package me.anno.tests.structures
 
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
 
@@ -41,7 +41,6 @@ class TestClass : Saveable() {
             super.readSomething(name, value)
         }
     }
-
 }
 
 fun main() {
@@ -55,5 +54,4 @@ fun main() {
     Saveable.registerCustomClass("Test") { TestClass() }
     val copiedInstance = JsonStringReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
-
 }

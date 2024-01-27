@@ -58,6 +58,9 @@ class CachedReflections(
         val property = allProperties[name] ?: return false
         val value2 = if (value is Array<*> && property[self] is List<*>) {
             value.toList()
+        } else if (property.valueClass.isEnum && value is Int) {
+            val values = property.valueClass.enumConstants
+            values.firstOrNull { getEnumId(it) == value } ?: values.first()
         } else value
         return try {
             property.set(self, value2)
@@ -304,10 +307,15 @@ class CachedReflections(
         }
 
         fun getEnumId(value: Any): Int? {
+            // todo why is this not saved as an input for nodes when cloning???
             return try {
                 value::class.java.getField("id").get(value) as? Int
             } catch (ignored: NoSuchFieldException) {
-                null
+                try {
+                    value::class.java.getMethod("getId").invoke(value) as? Int
+                } catch (ignored: NoSuchMethodException) {
+                    null
+                }
             }
         }
     }

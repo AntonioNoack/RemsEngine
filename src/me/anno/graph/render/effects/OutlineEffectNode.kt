@@ -109,7 +109,7 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v4fs("fillColors", fillColors2)
                 shader.v1fs("groupIds", groupIds2)
                 shader.v1i("numGroups", numGroupsI)
-                shader.v4f("groupTexMask", ids.mask!!)
+                shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
                 color.bindTrulyNearest(0)
                 ids.tex.bindTrulyNearest(1)
                 GFX.flat01.draw(shader)

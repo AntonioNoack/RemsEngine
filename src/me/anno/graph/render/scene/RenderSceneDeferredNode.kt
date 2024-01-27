@@ -198,13 +198,23 @@ class RenderSceneDeferredNode : RenderViewNode(
                 val types = DeferredLayerType.values.withIndex()
                     .filter { (index, type) ->
                         type != DeferredLayerType.DEPTH &&
+                                !inputs[index + firstInputIndex].isEmpty() &&
                                 isOutputUsed(outputs[index + firstOutputIndex])
                     }
+
+                if (DeferredLayerType.CLICK_ID in types.map { it.value } ||
+                    DeferredLayerType.GROUP_ID in types.map { it.value }) {
+                    extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
+                }
 
                 val expressions = types.joinToString("") { (i, type) ->
                     val nameI = type.glslName
                     val exprI = expr(inputs[firstInputIndex + i])
-                    "$nameI = $exprI;\n"
+                    if ("." in type.workToData) {
+                        "$nameI = $exprI;\n"
+                    } else {
+                        "$nameI = $exprI;\n"
+                    }
                 }
 
                 defineLocalVars(builder)
@@ -212,7 +222,6 @@ class RenderSceneDeferredNode : RenderViewNode(
                 extraVariables.add(Variable(GLSLType.V2F, "uv"))
 
                 val variables = types
-                    .filter { it.value != DeferredLayerType.DEPTH }
                     .map { (_, type) ->
                         val typeI = GLSLType.floats[type.workDims - 1]
                         val nameI = type.glslName
