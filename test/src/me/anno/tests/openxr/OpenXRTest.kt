@@ -56,6 +56,10 @@ import java.nio.ByteOrder
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 
+/**
+ * not yet implemented really,
+ * because I'm missing testing hardware/software
+ * */
 fun main() {
     // https://learn.microsoft.com/en-us/windows/mixed-reality/develop/advanced-concepts/using-the-windows-mixed-reality-simulator
     // -> doesn't work with OpenGL nor Vulkan :/

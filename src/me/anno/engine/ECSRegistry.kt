@@ -68,11 +68,8 @@ import me.anno.io.SaveableArray
 import me.anno.io.files.Reference
 import me.anno.io.utils.StringMap
 import me.anno.ui.UIRegistry
-import org.apache.logging.log4j.LogManager
 
 object ECSRegistry {
-
-    private val LOGGER = LogManager.getLogger(ECSRegistry::class)
 
     @JvmField
     var hasBeenInited = false
@@ -156,9 +153,6 @@ object ECSRegistry {
         registerCustomClass(FirstPersonController())
         registerCustomClass(ThirdPersonController())
 
-        // scripting
-        initIfAvailable("me.anno.lua.LuaRegistry", "Lua")
-
         // ui, could be skipped for headless servers
         UIRegistry.init()
 
@@ -194,47 +188,11 @@ object ECSRegistry {
         // project
         registerCustomClass(GameEngineProject())
 
-        // physics
-        initIfAvailable("me.anno.bullet.PhysicsRegistry", "BulletPhysics")
-
-        // box2d
-        registerIfAvailable("me.anno.box2d.Box2dPhysics", "Box2d")
-        registerIfAvailable("me.anno.box2d.Rigidbody2d", null)
-
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
-        registerIfAvailable("me.anno.recast.NavMesh", "Recast")
-
-        initIfAvailable("me.anno.sdf.SDFRegistry", "SDF")
 
         NodeLibrary.registerClasses()
-    }
-
-    fun initIfAvailable(clazzName: String, moduleName: String?) {
-        try {
-            val clazz = this::class.java.classLoader.loadClass(clazzName)
-            clazz.getMethod("init").invoke(null)
-        } catch (e: ClassNotFoundException) {
-            warnIfUnavailable(moduleName)
-        } catch (e: NoClassDefFoundError) {
-            warnIfUnavailable(moduleName)
-        }
-    }
-
-    fun registerIfAvailable(clazzName: String, moduleName: String?) {
-        try {
-            val clazz = this::class.java.classLoader.loadClass(clazzName)
-            registerCustomClass(clazz.getConstructor().newInstance() as Saveable)
-        } catch (e: ClassNotFoundException) {
-            warnIfUnavailable(moduleName)
-        } catch (e: NoClassDefFoundError) {
-            warnIfUnavailable(moduleName)
-        }
-    }
-
-    private fun warnIfUnavailable(moduleName: String?) {
-        if (moduleName != null) LOGGER.warn("$moduleName module was not found")
     }
 
     @JvmStatic

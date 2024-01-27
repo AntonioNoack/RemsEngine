@@ -106,6 +106,9 @@ object PropertyTracking {
                 dynPanel = null
             }
         }
+        for (it in insertAfter.children) {
+            it.alignmentY = AxisAlignment.CENTER
+        }
         insertAfter.add(0, button)
     }
 }

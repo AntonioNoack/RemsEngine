@@ -1,7 +1,7 @@
 package me.anno.tests.sdf
 
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.sdf.SDFRegistry
+import me.anno.sdf.SDFPlugin
 import me.anno.sdf.shapes.SDFHeightMap
 import me.anno.utils.OS
 
@@ -12,6 +12,6 @@ fun main() {
         source = OS.pictures.getChild("Maps/Bricks.png")
         maxHeight = 0.1f
     }) {
-        it.renderer.renderMode = SDFRegistry.NumStepsRenderMode
+        it.renderer.renderMode = SDFPlugin.NumStepsRenderMode
     }
 }

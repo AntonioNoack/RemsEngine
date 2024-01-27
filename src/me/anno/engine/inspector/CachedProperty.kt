@@ -44,7 +44,6 @@ class CachedProperty(
                     return set(instance, newValue)
                 }
             }
-            throw IllegalArgumentException("Value is not instance of ${valueClass::class}")
         }
         return try {
             val oldValue = getter(instance)

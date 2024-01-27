@@ -188,13 +188,13 @@ object SDFComposer {
                                         "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
                                         "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
                                         "}\n"
-                                SDFRegistry.NumStepsRenderer -> showNumberOfSteps
+                                SDFPlugin.NumStepsRenderer -> showNumberOfSteps
                                 else -> {
                                     "" +
                                             "float distOnY = -localPos.y / localDir.y;\n" +
                                             "vec3 localHit = localPos + distOnY * localDir;\n" +
                                             // in this mode, just adding a plane might be best
-                                            (if (renderer == SDFRegistry.SDFOnYRenderer) {
+                                            (if (renderer == SDFPlugin.SDFOnYRenderer) {
                                                 "" +
                                                         "bool inPlane = all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz));\n" +
                                                         "if(((distOnY > 0.0 && distOnY < ray.x) || ray.y < 0.0) && inPlane){\n" +

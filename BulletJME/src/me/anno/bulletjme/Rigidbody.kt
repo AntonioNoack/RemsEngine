@@ -1,14 +1,8 @@
-package me.anno.bullet
+package me.anno.bulletjme
 
-import com.bulletphysics.collision.dispatch.CollisionObject.ACTIVE_TAG
-import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_DEACTIVATION
-import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_SIMULATION
-import com.bulletphysics.collision.dispatch.CollisionObject.ISLAND_SLEEPING
-import com.bulletphysics.collision.dispatch.CollisionObject.WANTS_DEACTIVATION
-import com.bulletphysics.dynamics.RigidBody
-import cz.advel.stack.Stack
-import me.anno.bullet.BulletPhysics.Companion.castB
-import me.anno.bullet.constraints.Constraint
+import com.jme3.bullet.objects.PhysicsRigidBody
+import com.jme3.math.Quaternion
+import com.jme3.math.Vector3f
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityPhysics.physics
@@ -41,12 +35,12 @@ open class Rigidbody : Component() {
 
     @DebugProperty
     @NotSerializedProperty
-    var bulletInstance: RigidBody? = null
+    var bulletInstance: PhysicsRigidBody? = null
 
-    @NotSerializedProperty
-    val constraints = ArrayList<Constraint<*>>()
+    // @NotSerializedProperty
+    // val constraints = ArrayList<Constraint<*>>()
 
-    @DebugProperty
+    /*@DebugProperty
     @NotSerializedProperty
     val bulletState: String
         get() = when (val s = bulletInstance?.activationState ?: -1) {
@@ -57,7 +51,7 @@ open class Rigidbody : Component() {
             DISABLE_SIMULATION -> "Disable Simulation"
             -1 -> "null"
             else -> s.toString()
-        }
+        }*/
 
     @DebugWarning
     @NotSerializedProperty
@@ -71,7 +65,7 @@ open class Rigidbody : Component() {
     fun activate() {
         val bi = bulletInstance
         if (bi == null) invalidatePhysics()
-        else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
+        else bi.applyCentralImpulse(Vector3f(0f, 10f * mass.toFloat(), 0f))
     }
 
     override var isEnabled: Boolean = true
@@ -90,7 +84,7 @@ open class Rigidbody : Component() {
         set(value) {
             field = value
             if (value) {
-                bulletInstance?.setGravity(castB(gravity))
+                bulletInstance?.setGravity(v(gravity))
             } else {
                 invalidateRigidbody() // it's complicated ^^
             }
@@ -100,8 +94,9 @@ open class Rigidbody : Component() {
     var gravity: Vector3d = Vector3d(gravity0)
         set(value) {
             field.set(value)
-            if (overrideGravity)
-                bulletInstance?.setGravity(castB(value))
+            if (overrideGravity) {
+                bulletInstance?.setGravity(v(value))
+            }
         }
 
     @Docs("How heavy it is; 0 means static")
@@ -112,12 +107,13 @@ open class Rigidbody : Component() {
                 if ((field > 0.0) != (value > 0.0)) {
                     invalidatePhysics()
                 } else {
-                    val bulletInstance = bulletInstance
+                    // todo fix
+                    /*val bulletInstance = bulletInstance
                     if (bulletInstance != null) {
                         val inertia = javax.vecmath.Vector3d()
                         bulletInstance.collisionShape.calculateLocalInertia(value, inertia)
                         bulletInstance.setMassProps(mass, inertia)
-                    }
+                    }*/
                 }
                 field = value
             }
@@ -146,7 +142,7 @@ open class Rigidbody : Component() {
     var restitution = 0.1
         set(value) {
             field = value
-            bulletInstance?.restitution = value
+            bulletInstance?.restitution = value.toFloat()
         }
 
     @Docs("Minimum velocity to count as standing still")
@@ -154,7 +150,7 @@ open class Rigidbody : Component() {
     var linearSleepingThreshold = 1.0
         set(value) {
             field = value
-            bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
+            bulletInstance?.setSleepingThresholds(value.toFloat(), angularSleepingThreshold.toFloat())
         }
 
     @Docs("Minimum angular velocity to count as standing still")
@@ -162,7 +158,7 @@ open class Rigidbody : Component() {
     var angularSleepingThreshold = 0.8
         set(value) {
             field = value
-            bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
+            bulletInstance?.setSleepingThresholds(linearSleepingThreshold.toFloat(), value.toFloat())
         }
 
     @Docs("Minimum time after which an object is marked as sleeping")
@@ -170,7 +166,7 @@ open class Rigidbody : Component() {
     var sleepingTimeThreshold = 0.0 // 4.0
         set(value) {
             field = value
-            bulletInstance?.deactivationTime = value
+            bulletInstance?.deactivationTime = value.toFloat()
         }
 
     @Docs("velocity in global space")
@@ -179,7 +175,7 @@ open class Rigidbody : Component() {
         get() {
             val bi = bulletInstance
             if (bi != null) {
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getLinearVelocity(tmp)
                 field.set(tmp.x, tmp.y, tmp.z)
             }
@@ -189,8 +185,7 @@ open class Rigidbody : Component() {
             field.set(value)
             val bi = bulletInstance
             if (bi != null) {
-                val tmp = Stack.borrowVec()
-                tmp.set(value.x, value.y, value.z)
+                val tmp = Vector3f(value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
                 bulletInstance?.setLinearVelocity(tmp)
             }
         }
@@ -203,7 +198,7 @@ open class Rigidbody : Component() {
             val tr = transform
             if (bi != null && tr != null) {
                 val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getLinearVelocity(tmp)
                 field.set(
                     t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z,
@@ -220,7 +215,7 @@ open class Rigidbody : Component() {
             val bi = bulletInstance
             return if (tr != null && bi != null) {
                 val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getLinearVelocity(tmp)
                 t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z
             } else 0.0
@@ -232,7 +227,7 @@ open class Rigidbody : Component() {
             val bi = bulletInstance
             return if (tr != null && bi != null) {
                 val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getLinearVelocity(tmp)
                 t.m10 * tmp.x + t.m11 * tmp.y + t.m12 * tmp.z
             } else 0.0
@@ -244,7 +239,7 @@ open class Rigidbody : Component() {
             val bi = bulletInstance
             return if (tr != null && bi != null) {
                 val t = tr.globalTransform
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getLinearVelocity(tmp)
                 t.m20 * tmp.x + t.m21 * tmp.y + t.m22 * tmp.z
             } else 0.0
@@ -256,7 +251,7 @@ open class Rigidbody : Component() {
         get() {
             val bi = bulletInstance
             if (bi != null) {
-                val tmp = Stack.borrowVec()
+                val tmp = Vector3f()
                 bulletInstance?.getAngularVelocity(tmp)
                 field.set(tmp.x, tmp.y, tmp.z)
             }
@@ -266,9 +261,7 @@ open class Rigidbody : Component() {
             field.set(value)
             val bi = bulletInstance
             if (bi != null) {
-                val tmp = Stack.borrowVec()
-                tmp.set(value.x, value.y, value.z)
-                bulletInstance?.setAngularVelocity(tmp)
+                bulletInstance?.setAngularVelocity(v(value.x, value.y, value.z))
             }
         }
 
@@ -284,7 +277,7 @@ open class Rigidbody : Component() {
     var friction = 0.1
         set(value) {
             field = value
-            bulletInstance?.friction = friction
+            bulletInstance?.friction = friction.toFloat()
         }
 
     @SerializedProperty
@@ -293,10 +286,11 @@ open class Rigidbody : Component() {
             field.set(value)
             val bi = bulletInstance
             if (bi != null) {
-                val trans = Stack.borrowTrans()
+                // todo implement this
+                /*val trans = Stack.borrowTrans()
                 trans.setIdentity()
                 trans.origin.set(value.x, value.y, value.z)
-                bi.setCenterOfMassTransform(trans)
+                bi.setCenterOfMassTransform(trans)*/
             }
         }
 
@@ -325,40 +319,35 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyTorque(x: Double, y: Double, z: Double) {
-        val v = Stack.borrowVec()
-        v.set(x, y, z)
-        bulletInstance?.applyTorque(v)
+        bulletInstance?.applyTorque(v(x, y, z))
     }
 
-    fun applyTorque(v: Vector3d) = applyTorque(v.x, v.y, v.z)
+    fun applyTorque(v: Vector3d) {
+        applyTorque(v.x, v.y, v.z)
+    }
 
     /**
      * applies a force centrally, so it won't rotate the object
      * must be called onPhysicsUpdate()
      * */
     fun applyForce(x: Double, y: Double, z: Double) {
-        val v = Stack.borrowVec()
-        v.set(x, y, z)
-        bulletInstance?.applyCentralForce(v)
+        bulletInstance?.applyCentralForce(v(x, y, z))
     }
 
     /**
      * applies a force centrally, so it won't rotate the object
      * must be called on physics update
      * */
-    fun applyForce(force: Vector3d) = applyForce(force.x, force.y, force.z)
+    fun applyForce(force: Vector3d) {
+        applyForce(force.x, force.y, force.z)
+    }
 
     /**
      * applies a force and torque
      * must be called onPhysicsUpdate()
      * */
     fun applyForce(px: Double, py: Double, pz: Double, x: Double, y: Double, z: Double) {
-        val relPos = Stack.newVec()
-        relPos.set(px, py, pz)
-        val force = Stack.newVec()
-        force.set(x, y, z)
-        bulletInstance?.applyForce(force, relPos)
-        Stack.subVec(2)
+        bulletInstance?.applyForce(v(x, y, z), v(px, py, pz))
     }
 
     /**
@@ -373,9 +362,7 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyImpulse(x: Double, y: Double, z: Double) {
-        val impulse = Stack.borrowVec()
-        impulse.set(x, y, z)
-        bulletInstance?.applyCentralImpulse(impulse)
+        bulletInstance?.applyCentralImpulse(v(x, y, z))
     }
 
     /**
@@ -389,12 +376,7 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyImpulse(px: Double, py: Double, pz: Double, x: Double, y: Double, z: Double) {
-        val relPos = Stack.newVec()
-        relPos.set(px, py, pz)
-        val impulse = Stack.newVec()
-        impulse.set(x, y, z)
-        bulletInstance?.applyImpulse(impulse, relPos)
-        Stack.subVec(2)
+        bulletInstance?.applyImpulse(v(x, y, z), v(px, py, pz))
     }
 
     /**
@@ -409,9 +391,7 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
-        val impulse = Stack.borrowVec() // is reused by method
-        impulse.set(x, y, z)
-        bulletInstance?.applyTorqueImpulse(impulse)
+        bulletInstance?.applyTorqueImpulse(v(x, y, z))
     }
 
     /**
@@ -425,7 +405,7 @@ open class Rigidbody : Component() {
      * must be called onPhysicsUpdate()
      * */
     fun applyGravity() {
-        bulletInstance?.applyGravity()
+        bulletInstance?.applyCentralForce(v(gravity))
     }
 
     override fun onDrawGUI(all: Boolean) {
@@ -453,6 +433,17 @@ open class Rigidbody : Component() {
 
     companion object {
         val gravity0 = Vector3d(0.0, -9.81, 0.0)
+        fun v(v: Vector3d): Vector3f {
+            return Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+        }
+
+        fun v(x: Double, y: Double, z: Double): Vector3f {
+            return Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
+        }
+
+        fun q(x: Double, y: Double, z: Double, w: Double): Quaternion {
+            return Quaternion(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
+        }
 
         // todo define some kind of matrix
         // todo this would need to be a) standardized

@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.config.DefaultConfig.style
+import me.anno.fonts.Font
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves
@@ -10,13 +11,12 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
-import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
-import me.anno.fonts.Font
+import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
@@ -45,7 +45,7 @@ class Package(val name: String) {
 // find project parts visually, which could be extracted
 fun main() {
 
-    val source = documents.getChild("IdeaProjects/VideoStudio/src")
+    val source = documents.getChild("IdeaProjects/RemsEngine/src")
 
     val ignoredPaths = listOf(
         "kotlin.",
@@ -159,15 +159,15 @@ fun main() {
             var hoveredDist = 0f
             var hoveredPck: Package? = null
 
-            fun place(pck: Package, x: Float, y: Float, a0: Float, r0: Float) {
+            fun place(pck: Package, x: Float, y: Float, angle0: Float, radius0: Float) {
                 // draw circle
                 pck.px = x
                 pck.py = y
                 if (pck.dependencies.isEmpty()) {
                     pck.r = 0f
                     return
-                } else pck.r = r0
-                val radius = r0 * 0.5f
+                } else pck.r = radius0
+                val radius = radius0 * 0.5f
                 if (radius < 1f) return
                 val window = window!!
                 val dist = sq(x - window.mouseX, y - window.mouseY)
@@ -177,11 +177,11 @@ fun main() {
                 }
                 if (!pck.isCollapsed && pck.children.isNotEmpty()) {
                     val children = pck.children
-                    val r1 = r0 * 2f / max(2, children.size)
+                    val r1 = radius0 * 2f / (2f + children.size)
                     val da = if (children.size == 1) 0f else TAUf / children.size
                     for (ci in children.indices) {
-                        val a1 = a0 + (ci + 0.5f) * da
-                        place(children[ci], x + cos(a1) * r0, y + sin(a1) * r0, a1, r1)
+                        val a1 = angle0 + (ci + 0.5f) * da
+                        place(children[ci], x + cos(a1) * radius0, y + sin(a1) * radius0, a1, r1)
                     }
                 }
             }

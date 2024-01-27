@@ -12,6 +12,7 @@ object OfficialExtensions {
             "res://pdf-ext.info",
             "res://box2d-ext.info",
             "res://bullet-ext.info",
+            "res://bullet-jme-ext.info",
             "res://recast-ext.info",
             "res://sdf-ext.info",
             "res://lua-ext.info",
