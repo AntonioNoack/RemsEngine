@@ -2,6 +2,7 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
@@ -26,22 +27,16 @@ class Camera : Component() {
 
     var far = 5000.0
 
-    /**
-     * the fov when perspective, in degrees
-     * */
+    @Docs("the fov when perspective, in degrees")
     var fovY = 90f
 
-    /**
-     * the fov when orthographic, in base units
-     * */
+    @Docs("the fov when orthographic, in base units")
     var fovOrthographic = 5f
 
     val bloomStrength = 0.001f
     val bloomOffset = 0f
 
-    /**
-     * offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²
-     * */
+    @Docs("offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²")
     var center = Vector2f()
 
     @DebugAction

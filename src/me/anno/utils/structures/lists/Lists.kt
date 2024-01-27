@@ -593,4 +593,17 @@ object Lists {
     fun BitSet.fill(value: Boolean) {
         for (i in 0 until size()) set(i, value)
     }
+
+    @JvmStatic
+    fun <V> List<List<V>>.flattenWithSeparator(separator: V): List<V> {
+        val result = ArrayList<V>(size + sumOf { it.size })
+        if (isNotEmpty()) {
+            result.addAll(first())
+        }
+        for (i in 1 until size) {
+            result.add(separator)
+            result.addAll(this[i])
+        }
+        return result
+    }
 }

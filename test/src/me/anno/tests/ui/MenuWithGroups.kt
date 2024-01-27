@@ -2,6 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
@@ -15,6 +16,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
  * a test for menus with multiple layers (groups)
  * */
 fun main() {
+    disableRenderDoc()
     testUI3("Menu With Groups") {
         val list = PanelListY(DefaultConfig.style)
         fun option(name: String): ComplexMenuOption {

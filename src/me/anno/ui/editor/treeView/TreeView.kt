@@ -2,12 +2,12 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.Dict
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -30,12 +30,17 @@ abstract class TreeView<V : Any>(
 
     val list = child as PanelListY
     val sample get() = list.children.getOrNull(1) as TreeViewEntryPanel<*>
-    val searchPanel = TextInput(Dict["Search Term", "ui.general.searchTerm"], "", false, style)
+    val searchPanel = TextInput(
+        Dict["Search Term", "ui.general.searchTerm"], "",
+        false, style.getChild("deep")
+    )
 
     init {
         alwaysShowShadowY = true
         list.add(searchPanel)
         list.makeBackgroundTransparent()
+        val padLR = 4
+        searchPanel.padding.add(padLR, 0, padLR, 0)
         searchPanel.addChangeListener {
             search = if (it.isBlank2()) null else Search(it)
             needsTreeUpdate = true

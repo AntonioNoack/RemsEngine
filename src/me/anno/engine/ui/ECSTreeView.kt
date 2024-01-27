@@ -13,15 +13,15 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
+import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.menuSeparator1
@@ -39,6 +39,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.flatten
+import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -459,13 +460,12 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                 MenuOption(NameDesc("Reset all changes (except transform)")) {
                     LogManager.enableLogger("Hierarchy")
                     Hierarchy.resetPrefabExceptTransform(prefab!!, parent.prefabPath, true)
-                }.setEnabled(prefab != null),
-                menuSeparator1
+                }.setEnabled(prefab != null)
             )
             val types = parent.listChildTypes()
             openMenu(
                 windowStack,
-                extraOptions + types.map { type ->
+                (listOf(extraOptions) + types.map { type ->
                     (parent.getOptionsByType(type) ?: emptyList())
                         .map { option ->
                             val title = option.title
@@ -475,9 +475,10 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                                 addChild(parent, prefab1, type, -1)
                             }
                         }
-                }
-                    .flatten()
-                    .sortedBy { it.title }
+                        .sortedBy { it.title }
+                })
+                    .filter { it.isNotEmpty() }
+                    .flattenWithSeparator(menuSeparator1)
             )
         } else LOGGER.warn("Prefab is not writable!")
     }

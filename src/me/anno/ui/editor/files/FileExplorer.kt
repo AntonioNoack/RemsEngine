@@ -3,23 +3,23 @@ package me.anno.ui.editor.files
 import me.anno.Time
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
+import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Input
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
+import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
-import me.anno.engine.Events.addEvent
-import me.anno.engine.EngineBase.Companion.workspace
-import me.anno.input.Clipboard.setClipboardContent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -159,7 +159,10 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     open fun onDoubleClick(file: FileReference) {}
 
-    val searchBar = TextInput(Dict["Search Term", "ui.general.searchTerm"], "", false, style)
+    val searchBar = TextInput(
+        Dict["Search Term", "ui.general.searchTerm"], "", false,
+        style.getChild("deep")
+    )
     var searchDepth = 3
     var isValid = 0f
 
@@ -317,6 +320,9 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         this += topBar
         topBar += pathPanel
 
+        val padLR = 4
+        pathPanel.padding.add(padLR, 0, padLR, 0)
+        searchBar.padding.add(padLR, 0, padLR, 0)
         pathPanel.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
             openMenu(windowStack, NameDesc("Options"),

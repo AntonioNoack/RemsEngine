@@ -387,7 +387,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             }
             isSelected && Input.isMiddleDown -> {
                 // move camera
-                val fovYRadians = renderView.editorCamera.fovY
+                val fovYRadians = renderView.editorCamera.fovY.toRadians()
                 val speed = tan(fovYRadians * 0.5) * renderView.radius / height
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
@@ -410,7 +410,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                  **/
                 // for that transform dx,dy into global space,
                 // and then update the local space
-                val fovYRadians = renderView.editorCamera.fovY
+                val fovYRadians = renderView.editorCamera.fovY.toRadians()
                 val speed = tan(fovYRadians * 0.5) / height
                 val camTransform = camera.transform!!.globalTransform
                 val offset = JomlPools.vec3d.create()
