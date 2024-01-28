@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.ui.UIColors.magenta
 import me.anno.utils.Color.black
@@ -74,7 +75,7 @@ object TextureLib {
                 when (creationData) {
                     is ByteArray -> createRGBA(Array(6) { creationData }.toList())
                     "depth" -> {
-                        create(TargetType.DEPTH16)
+                        create(if (GFX.supportsDepthTextures) TargetType.DEPTH32F else TargetType.Float32x1)
                         depthFunc = DepthMode.CLOSER
                     }
                     else -> throw IllegalArgumentException()
@@ -140,7 +141,7 @@ object TextureLib {
                 when (creationData) {
                     is ByteArray -> createRGBA(creationData)
                     "depth" -> {
-                        create(TargetType.DEPTH16)
+                        create(if (GFX.supportsDepthTextures) TargetType.DEPTH32F else TargetType.Float32x1)
                         depthFunc = DepthMode.CLOSER
                     }
                     else -> throw IllegalArgumentException()

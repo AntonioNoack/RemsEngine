@@ -180,7 +180,7 @@ object Reduction {
                         "#define reduce(a,b) ${op.function}\n" +
                         "void main(){\n" +
                         "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
-                        "   ivec2 inSize = ivec2(textureSize(src, 0));\n" +
+                        "   ivec2 inSize = textureSize(src, 0);\n" +
                         "   ivec2 uv0 = uv * $reduction, uv1 = min(uv0 + $reduction, inSize);\n" +
                         "   vec4 result = $v0;\n" +
                         // strided access is more efficient on GPUs, so iterate over y

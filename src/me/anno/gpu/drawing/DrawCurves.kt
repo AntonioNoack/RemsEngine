@@ -13,6 +13,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.types.Buffers.skip
 import java.nio.ByteBuffer
 import kotlin.math.hypot
 
@@ -21,14 +22,14 @@ object DrawCurves {
 
     val lineBatch = object : Batch(
         "lineBatch", flat11x2, listOf(
-            Attribute("pi0", 2),
-            Attribute("pi1", 2),
+            Attribute("pi0", 4),
+            Attribute("tsf", 3),
             Attribute("ci0", AttributeType.UINT8_NORM, 4),
             Attribute("ci1", AttributeType.UINT8_NORM, 4),
             Attribute("bg0", AttributeType.UINT8_NORM, 4),
-            Attribute("thickness0", 1),
-            Attribute("smoothness0", 1),
-            Attribute("flatEnds", 1),
+            // alignment correction to 32-bytes
+            Attribute("pad0", 1),
+            Attribute("pad1", 1),
         )
     ) {
         private val lineBatchShader = Shader(
@@ -36,25 +37,26 @@ object DrawCurves {
                 Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "posSize"),
                 Variable(GLSLType.M4x4, "transform"),
-                Variable(GLSLType.V1F, "thickness0", VariableMode.ATTR),
-                Variable(GLSLType.V1F, "smoothness0", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "pi0", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "tsf", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "ci0", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "ci1", VariableMode.ATTR),
                 Variable(GLSLType.V4F, "bg0", VariableMode.ATTR),
-                Variable(GLSLType.V1F, "flatEnds", VariableMode.ATTR),
-            ) + vars(VariableMode.ATTR, "i", 2),  // control points of cubic bezier curve, [0,1]²
+            ),  // control points of cubic bezier curve, [0,1]²
             "" +// we need to use a high-def mesh here
                     "vec2 rot90(vec2 v){ return vec2(-v.y, v.x); }\n" +
                     "void main(){\n" +
-                    "   thickness = thickness0;\n" +
-                    "   smoothness = smoothness0;\n" +
+                    "   p0 = pi0.xy;c0 = ci0;\n" +
+                    "   p1 = pi0.zw;c1 = ci1;\n" +
+                    "   thickness = tsf.x;\n" +
+                    "   smoothness = tsf.y;\n" +
                     "   backgroundColor = bg0;\n" +
-                    "   float extrusion = thickness0 + smoothness0;\n" +
-                    "   float tScale = flatEnds != 0.0 ? 1.0 : 1.0 + extrusion * 2.0 / length(pi1-pi0);\n" + // at least for lines...
+                    "   float extrusion = thickness + smoothness;\n" +
+                    "   float tScale = tsf.z != 0.0 ? 1.0 : 1.0 + extrusion * 2.0 / length(p1-p0);\n" + // at least for lines...
                     "   t = .5 + (coords.x-.5) * tScale;\n" +
                     "   float dt = 0.01;\n" +
-                    "   vec2 p1x = mix(pi0,pi1,t);\n" +
-                    "   uv = p1x + rot90(normalize(pi1-pi0)) * coords.y * extrusion;\n" +
-                    "   p0 = pi0;c0 = ci0;\n" +
-                    "   p1 = pi1;c1 = ci1;\n" +
+                    "   vec2 p1x = mix(p0,p1,t);\n" +
+                    "   uv = p1x + rot90(normalize(p1-p0)) * coords.y * extrusion;\n" +
                     "   gl_Position = matMul(transform, vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "}",
             listOf(
@@ -63,7 +65,11 @@ object DrawCurves {
                 Variable(GLSLType.V4F, "backgroundColor"),
                 Variable(GLSLType.V1F, "thickness"),
                 Variable(GLSLType.V1F, "smoothness"),
-            ) + vars(VariableMode.IN, "", 2),
+                Variable(GLSLType.V2F, "p0"),
+                Variable(GLSLType.V2F, "p1"),
+                Variable(GLSLType.V4F, "c0"),
+                Variable(GLSLType.V4F, "c1"),
+            ),
             emptyList(),
             parametricFShader("return mix(p0,p1,t)", 2)
         )
@@ -149,14 +155,6 @@ object DrawCurves {
         )
     }
 
-    private fun vars(type: VariableMode, x: String, numParams: Int): List<Variable> {
-        return (0 until numParams).map {
-            Variable(GLSLType.V2F, "p$x$it", type)
-        } + (0 until numParams).map {
-            Variable(GLSLType.V4F, "c$x$it", type)
-        }
-    }
-
     val lineShader = parametricShader("line", "return s*p0+t*p1", 2)
     val quadraticBezierShader = parametricShader("quadraticBezier", "return (s*s)*p0+(2.0*s*t)*p1+(t*t)*p2", 3)
     val cubicBezierShader = parametricShader("cubicBezier", "return (s*s*s)*p0+(3.0*s*t)*(p1*s+p2*t)+(t*t*t)*p3", 4)
@@ -189,8 +187,9 @@ object DrawCurves {
             val data = lineBatch.data
             data.putFloat(x0).putFloat(y0)
             data.putFloat(x1).putFloat(y1)
-            data.putRGBA(c0).putRGBA(c1).putRGBA(background and 0xffffff)
             data.putFloat(thickness).putFloat(smoothness).putFloat(if (flatEnds) 1f else 0f)
+            data.putRGBA(c0).putRGBA(c1).putRGBA(background and 0xffffff)
+            data.skip(8) // padding for 32-byte alignment
             lineBatch.next()
         } else {
             GFX.check()
@@ -487,5 +486,4 @@ object DrawCurves {
         sum += hypot(x4 - ax, y4 - ay)
         return sum
     }
-
 }

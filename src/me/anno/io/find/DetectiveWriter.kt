@@ -280,8 +280,9 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     ) = put(name, "Array<Array<FileReference>>", values)
 
     override fun writeNull(name: String?) {
-        name ?: return
-        put(name, "null", null)
+        if (name != null) {
+            put(name, "null", null)
+        }
     }
 
     override fun writeObjectImpl(name: String?, value: Saveable) {

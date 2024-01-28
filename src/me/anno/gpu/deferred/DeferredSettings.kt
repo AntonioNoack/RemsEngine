@@ -41,8 +41,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 if (sampleVariableName != null) {
                     fragment.append(" = texelFetch(").append(texName)
                     // texture will be sampler2DMS, so no lod is used as parameter
-                    fragment.append(", ivec2(textureSize(").append(texName)
-                    fragment.append(")*").append(uv)
+                    fragment.append(", ivec2(vec2(textureSize(").append(texName)
+                    fragment.append("))*").append(uv)
                     fragment.append("), ").append(sampleVariableName).append(");\n")
                 } else {
                     fragment.append(" = texture(").append(texName)

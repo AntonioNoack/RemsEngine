@@ -398,7 +398,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun writeFile(value: FileReference?, workspace: FileReference) {
-        if (value == null || value == InvalidRef) append("null")
+        if (value == null || value == InvalidRef) writeString("")
         else writeString(value.toLocalPath(workspace.nullIfUndefined() ?: this.workspace))
     }
 
@@ -419,7 +419,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         name: String, values: Array<Array<FileReference>>,
         force: Boolean, workspace: FileReference
     ) {
-        writeArray2D(name, values, force, "R[][]") {
+        writeArray2D(name, values, force, REFERENCE.array2d) {
             writeFile(it, workspace)
         }
     }

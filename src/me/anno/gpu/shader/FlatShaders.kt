@@ -28,7 +28,7 @@ object FlatShaders {
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main() {\n" +
                 "   vec4 sum = vec4(0.0);\n" +
-                "   ivec2 uvi = ivec2(textureSize(tex) * uv);\n" +
+                "   ivec2 uvi = ivec2(vec2(textureSize(tex)) * uv);\n" +
                 "   for(int i=0;i<samples;i++) sum += texelFetch(tex, uvi, i);\n" +
                 "   result = (alpha / float(samples)) * sum;\n" +
                 "}"
@@ -48,7 +48,7 @@ object FlatShaders {
             ), "" +
                     (if (colorMS || depthMS) "" +
                             "vec4 getColor1(sampler2DMS tex, int srcSamples){\n" +
-                            "   ivec2 uvi = ivec2(textureSize(tex) * uv);\n" +
+                            "   ivec2 uvi = ivec2(vec2(textureSize(tex)) * uv);\n" +
                             "   if(srcSamples > targetSamples){\n" +
                             "       vec4 sum = vec4(0.0);\n" +
                             "       int ctr = 0;\n" +

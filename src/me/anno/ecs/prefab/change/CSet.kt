@@ -36,11 +36,13 @@ class CSet() : Change() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // special handling, to save a little space by omitting "name": and "value":
-        val value = value
-        if (value is PrefabSaveable) {
-            writer.writeObject(null, name, value.prefabPath)
-        } else {
-            writer.writeSomething(null, name, value, true)
+        if (name.isNotBlank()) {
+            val value = value
+            if (value is PrefabSaveable) {
+                writer.writeObject(null, name, value.prefabPath)
+            } else {
+                writer.writeSomething(null, name, value, true)
+            }
         }
     }
 
