@@ -60,6 +60,7 @@ open class FileInput(
         // base.tooltip = f0.absolutePath
         base.apply {
             alignmentX = AxisAlignment.CENTER
+            alignmentY = AxisAlignment.CENTER
             addChangeListener {
                 val gf = it.toGlobalFile()
                 this@FileInput.changeListener(gf)

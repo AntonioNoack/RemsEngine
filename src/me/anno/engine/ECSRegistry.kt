@@ -137,6 +137,7 @@ object ECSRegistry {
         hasBeenInited = true
 
         Reference.registerStatic(ScenePrefab)
+        DefaultAssets.init()
 
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())

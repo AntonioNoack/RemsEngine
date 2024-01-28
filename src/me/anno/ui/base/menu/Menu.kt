@@ -345,6 +345,7 @@ object Menu {
         var searchPanel: TextInput? = null
 
         // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
+        // todo when searching, look into ComplexMenuGroups, too
         val needsSearch = panels.size >= DefaultConfig["ui.search.minItems", 5]
         val originalOrder = HashMap<Panel, Int>()
         if (needsSearch) {

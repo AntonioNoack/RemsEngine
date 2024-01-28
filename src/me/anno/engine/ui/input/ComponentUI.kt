@@ -26,6 +26,7 @@ import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
+import me.anno.engine.DefaultAssets
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.AssetImport
@@ -1359,6 +1360,11 @@ object ComponentUI {
         val indexedAssets = ECSSceneTabs.project?.assetIndex?.get(type1)
         if (indexedAssets != null) {
             createCategory("In Project", indexedAssets.toList())
+        }
+
+        val staticAssets = DefaultAssets.assets[type1]
+        if (staticAssets != null) {
+            createCategory("Default", staticAssets.toList())
         }
 
         createCategory("Temporary (Debug Only)", InnerTmpFile.findPrefabs(type1))
