@@ -20,9 +20,8 @@ fun main() {
     testUI3("Menu With Groups") {
         val list = PanelListY(DefaultConfig.style)
         fun option(name: String): ComplexMenuOption {
-            return ComplexMenuOption(name, "", true) { _, _ ->
+            return ComplexMenuOption(name, "", true) {
                 list += TextPanel(name, DefaultConfig.style)
-                true
             }
         }
         list += TextButton("Open UI", DefaultConfig.style)

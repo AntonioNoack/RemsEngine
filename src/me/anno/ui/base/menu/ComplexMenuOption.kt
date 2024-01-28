@@ -1,14 +1,16 @@
 package me.anno.ui.base.menu
 
-import me.anno.input.Key
-
+import me.anno.language.translation.NameDesc
 
 class ComplexMenuOption(
     title: String,
     description: String,
     isEnabled: Boolean,
-    /**
-     * action shall return true if the menu is to be closed
-     * */
-    val action: (button: Key, long: Boolean) -> Boolean
-) : ComplexMenuEntry(title, description, isEnabled)
+    val action: () -> Unit
+) : ComplexMenuEntry(title, description, isEnabled) {
+    constructor(title: NameDesc, action: () -> Unit) :
+            this(title.name, title.desc, true, action)
+
+    constructor(title: NameDesc, isEnabled: Boolean, action: () -> Unit) :
+            this(title.name, title.desc, isEnabled, action)
+}

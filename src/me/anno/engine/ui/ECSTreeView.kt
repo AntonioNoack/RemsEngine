@@ -4,7 +4,13 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityStats.totalNumComponents
 import me.anno.ecs.EntityStats.totalNumEntities
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.LightComponentBase
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.physics.Physics
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
@@ -24,11 +30,13 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.menu.ComplexMenuGroup
+import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu.menuSeparator1
-import me.anno.ui.base.menu.Menu.openMenu
-import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.menu.Menu.openComplexMenu
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
@@ -37,7 +45,6 @@ import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.types.Strings.isBlank2
@@ -319,7 +326,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         val isInFocus2 = isInFocus || (element is PrefabSaveable && element in EditorState.selection)
         // show a special color, if the current element contains something selected
 
-        val isIndirectlyInFocus = !isInFocus2 && EditorState.selection.any2 {
+        val isIndirectlyInFocus = !isInFocus2 && EditorState.selection.any {
             it is PrefabSaveable && it.anyInHierarchy { p -> p === element }
         }
 
@@ -453,34 +460,44 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             //  undo all deletions
             //  duplicate
             val extraOptions = listOf(
-                MenuOption(NameDesc("Reset all changes")) {
+                ComplexMenuOption(NameDesc("Reset all changes"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")
                     Hierarchy.resetPrefab(prefab!!, parent.prefabPath, true)
-                }.setEnabled(prefab != null),
-                MenuOption(NameDesc("Reset all changes (except transform)")) {
+                },
+                ComplexMenuOption(NameDesc("Reset changes excl. transform"), prefab != null) {
                     LogManager.enableLogger("Hierarchy")
                     Hierarchy.resetPrefabExceptTransform(prefab!!, parent.prefabPath, true)
-                }.setEnabled(prefab != null)
+                }
             )
             val types = parent.listChildTypes()
-            openMenu(
-                windowStack,
+            openComplexMenu(
+                windowStack, NameDesc(""),
                 (listOf(extraOptions) + types.map { type ->
                     (parent.getOptionsByType(type) ?: emptyList())
-                        .map { option ->
-                            val title = option.title
-                            MenuOption(NameDesc(title)) {
-                                val sample = (option.value0 ?: option.generator()) as PrefabSaveable
-                                val prefab1 = Prefab(sample.className)
-                                addChild(parent, prefab1, type, -1)
+                        .groupBy(::getMenuGroup)
+                        .map { (group, options) ->
+                            if (options.size > 1) {
+                                ComplexMenuGroup("Add $group", "", true,
+                                    options.map { optionToMenu(parent, it, type) })
+                            } else {
+                                optionToMenu(parent, options.first(), type)
                             }
                         }
-                        .sortedBy { it.title }
+                        .sortedBy { groupOrder[it.title] ?: it.title }
                 })
                     .filter { it.isNotEmpty() }
-                    .flattenWithSeparator(menuSeparator1)
+                    .flattenWithSeparator(menuSeparator1.toComplex())
             )
         } else LOGGER.warn("Prefab is not writable!")
+    }
+
+    private fun optionToMenu(parent: Saveable, option: Option, type: Char): ComplexMenuOption {
+        val title = option.title
+        return ComplexMenuOption(NameDesc("Add $title")) {
+            val sample = option.getSample() as PrefabSaveable
+            val prefab1 = Prefab(sample.className)
+            addChild(parent, prefab1, type, -1)
+        }
     }
 
     override fun canBeInserted(parent: Saveable, element: Saveable, index: Int): Boolean {
@@ -567,5 +584,29 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
+
+        private fun getMenuGroup(option: Option): String {
+            val sample = option.getSample() as PrefabSaveable
+            return getMenuGroup(sample)
+        }
+
+        private val groupOrder = listOf(
+            "Light", "Mesh", "Material",
+            "Text", "SDF", "Collider", "Physics", "Other"
+        ).withIndex().associate { it.value to it.index.toString() }
+
+        private fun getMenuGroup(sample: Saveable): String {
+            val clazz = sample.className
+            return when {
+                clazz.startsWith("SDF") -> "SDF"
+                sample is LightComponentBase || sample is Skybox -> "Light"
+                clazz.startsWith("Text") -> "Text"
+                sample is MeshComponentBase -> "Mesh"
+                sample is Material -> "Material"
+                sample is CollidingComponent -> "Collider"
+                sample is Physics<*, *> -> "Physics"
+                else -> "Other"
+            }
+        }
     }
 }

@@ -18,4 +18,5 @@ class Option private constructor(
         title, tooltipText, null, generator
     )
 
+    fun getSample(): Inspectable = value0 ?: generator()
 }

@@ -24,6 +24,7 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.white
 import me.anno.utils.strings.StringHelper.levenshtein
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -152,6 +153,19 @@ object Menu {
         button.padding.right = padding
     }
 
+    @Suppress("unused")
+    fun openComplexMenu(
+        windowStack: WindowStack, title: NameDesc,
+        options: List<ComplexMenuEntry>
+    ): Window? {
+        return openComplexMenu(
+            windowStack,
+            windowStack.mouseXi - paddingX,
+            windowStack.mouseYi - paddingY,
+            title, options
+        )
+    }
+
     fun openComplexMenu(
         windowStack: WindowStack,
         x: Int, y: Int, title: NameDesc,
@@ -206,14 +220,14 @@ object Menu {
                     if (magicIndex >= 0) {
                         val char = name[magicIndex].lowercaseChar()
                         extraKeyListeners[char] = {
-                            if (action(Key.BUTTON_LEFT, false)) {
-                                close(button)
-                                true
-                            } else false
+                            action()
+                            close(button)
+                            true
                         }
                     }
-                    button.addOnClickListener { _, _, _, mouseButton, long ->
-                        if (action(mouseButton, long)) {
+                    button.addOnClickListener { _, _, _, key, long ->
+                        if (key == Key.BUTTON_LEFT && !long) {
+                            action()
                             close(button)
                             true
                         } else false
@@ -225,6 +239,9 @@ object Menu {
                     lateinit var button: ComplexMenuGroupPanel
                     val magicIndex = addFastActionLetters(name)
                     button = ComplexMenuGroupPanel(option, magicIndex, { close(button) }, style)
+                    if (!list.size.hasFlag(1)) { // add soft stripes
+                        button.backgroundColor = mixARGB(button.backgroundColor, button.textColor, 0.07f)
+                    }
                     if (magicIndex >= 0) {
                         val char = name[magicIndex].lowercaseChar()
                         extraKeyListeners[char] = {
@@ -258,8 +275,6 @@ object Menu {
         panels: List<Panel>,
         extraKeyListeners: Map<Char, () -> Boolean> = emptyMap(),
     ): Window? {
-        // GFX.updateMousePosition()
-        // windowStack.updateMousePosition(window)
         return openMenuByPanels(
             windowStack,
             windowStack.mouseXi - paddingX,

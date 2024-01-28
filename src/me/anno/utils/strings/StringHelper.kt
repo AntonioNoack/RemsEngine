@@ -73,7 +73,6 @@ object StringHelper {
     fun String.splitCamelCase(titlecase: Boolean = false): String {
         return replace('_', ' ') // snake case replacements
             .splitCamelCaseI(titlecase)
-            // .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
             .replace("    ", " ")
             .replace("  ", " ")
             .replace("  ", " ")
@@ -86,8 +85,14 @@ object StringHelper {
         builder.append(if (titlecase) this[0].uppercase() else this[0])
         for (i in 1 until length) {
             val c = this[i]
-            if (this[i - 1] in 'a'..'z' && c in 'A'..'Z') {
-                builder.append(' ')
+            if (c in 'A'..'Z') {
+                if (this[i - 1] in 'a'..'z') {
+                    // MeshComponent -> Mesh_Component
+                    builder.append(' ')
+                } else if (i + 1 < length && this[i - 1] in 'A'..'Z' && this[i + 1] in 'a'..'z') {
+                    // SDFMesh -> SDF_Mesh
+                    builder.append(' ')
+                }
             }
             builder.append(c)
         }

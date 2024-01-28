@@ -1,7 +1,10 @@
 package me.anno.ui.base.menu
 
+import me.anno.fonts.keys.TextCacheKey
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
 import java.util.WeakHashMap
@@ -11,7 +14,7 @@ import java.util.WeakHashMap
  * acceptably good solution, hover-ability would be better
  * */
 class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val close: () -> Unit, style: Style) :
-    TextPanel("${data.title} →", style) {
+    TextPanel(data.title, style) {
 
     init {
         addLeftClickListener {
@@ -34,13 +37,11 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
                 entry.title, entry.description, entry.isEnabled, entry.children.map {
                     entryWithCloseListener(it)
                 })
-
             is ComplexMenuOption -> ComplexMenuOption(
                 entry.title, entry.description, entry.isEnabled
-            ) { button, long ->
-                val shallClose = entry.action(button, long)
-                if (shallClose) close()
-                shallClose
+            ) {
+                entry.action()
+                close()
             }
         }
     }
@@ -68,6 +69,10 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        DrawTexts.drawText( // draw arrow right-aligned
+            x + width - padding.right, y, font, TextCacheKey("→", font), textColor, backgroundColor,
+            AxisAlignment.MAX, AxisAlignment.MIN
+        )
         if (magicIndex in text.indices) {
             underline(magicIndex, magicIndex + 1)
         }
