@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.EngineBase.Companion.shiftSlowdown
+import me.anno.input.Clipboard
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -32,6 +33,7 @@ import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 import kotlin.math.max
@@ -143,6 +145,8 @@ open class ColorInput(
                 val window = GFX.activeWindow!!
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
+                    MenuOption(NameDesc("Copy #rrggbb")) { Clipboard.setClipboardContent(value.toARGB().toHexColor()) },
+                    MenuOption(NameDesc("Copy Vector")) { Clipboard.setClipboardContent(value.toString()) },
                     MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
                     MenuOption(NameDesc("Pick Color")) {
                         pickColor(windowStack, style) { color ->

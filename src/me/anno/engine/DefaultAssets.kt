@@ -11,9 +11,11 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 
 /**
  * some assets that are guaranteed to be always available;
@@ -28,6 +30,7 @@ object DefaultAssets {
     init {
         registerMeshes()
         registerMaterials()
+        registerTextures()
     }
 
     private fun registerMeshes() {
@@ -40,14 +43,18 @@ object DefaultAssets {
         register("meshes/IcoSphere.json", "Mesh", icoSphere.ref)
         val plane = PlaneModel.createPlane()
         register("meshes/PlaneY.json", "Mesh", plane.ref)
-        register("materials/Default.json", "Material", defaultMaterial.ref)
     }
 
     private fun registerMaterials() {
+        register("materials/Default.json", "Material", defaultMaterial.ref)
         val mirror = Material()
         mirror.roughnessMinMax.set(0f)
         mirror.metallicMinMax.set(1f)
         register("materials/Mirror.json", "Material", mirror.ref)
+        val golden = Material.diffuse(0xf5ba6c.withAlpha(255))
+        golden.roughnessMinMax.set(0.2f)
+        golden.metallicMinMax.set(1f)
+        register("material/Golden.json", "Material", golden.ref)
         val glass = Material()
         glass.diffuseBase.w = 0.5f
         glass.roughnessMinMax.set(0f)
@@ -58,6 +65,14 @@ object DefaultAssets {
         val emissive = Material()
         emissive.emissiveBase.set(10f)
         register("materials/Emissive.json", "Material", emissive.ref)
+        val uvDebug = Material()
+        uvDebug.diffuseMap = getReference("res://textures/UVChecker.png")
+        register("materials/UVDebug.json", "Material", uvDebug.ref)
+    }
+
+    private fun registerTextures() {
+        register("textures/UVChecker.png", "Texture", getReference("res://textures/UVChecker.png"))
+        register("textures/Icon.png", "Texture", getReference("res://icon.png"))
     }
 
     fun register(name: String, type: String, file: FileReference) {
