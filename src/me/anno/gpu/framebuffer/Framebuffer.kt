@@ -196,7 +196,7 @@ class Framebuffer(
         ensure()
 
         if (da != null) {
-            val dtp = da.depthTexture?.pointer ?: da.internalDepthRenderbuffer
+            val dtp = (if(GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.internalDepthRenderbuffer
             if (dtp != depthAttachedPtr) {
                 throw IllegalStateException(
                     "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
@@ -287,11 +287,11 @@ class Framebuffer(
             }
             DepthBufferType.ATTACHMENT -> {
                 val da = depthAttachment ?: throw IllegalStateException("Depth Attachment was not found in $name, null")
-                if (da.depthTexture == null) {
+                if (da.depthTexture == null && da.internalDepthRenderbuffer == 0) {
                     da.ensure()
                     bindFramebuffer(GL_FRAMEBUFFER, pointer)
                 }
-                var texPointer = da.depthTexture?.pointer
+                var texPointer = if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null
                 if (texPointer == null) {
                     texPointer = da.internalDepthRenderbuffer
                     if (texPointer == 0) throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
@@ -299,7 +299,6 @@ class Framebuffer(
                 } else {
                     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
                 }
-                // println("set attached depth ptr to $texPointer")
                 depthAttachedPtr = texPointer
             }
             DepthBufferType.INTERNAL -> {

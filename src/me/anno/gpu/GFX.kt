@@ -368,16 +368,17 @@ object GFX {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
-        supportsDepthTextures = capabilities != null
+        val debugLimitedGPUs = false
+        supportsDepthTextures = !debugLimitedGPUs && capabilities != null
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_IMAGE_UNITS)
         maxAttributes = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_ATTRIBS)
         maxUniforms = GL46C.glGetInteger(GL46C.GL_MAX_UNIFORM_LOCATIONS)
-        maxColorAttachments = GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
-        maxSamples = max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
-        maxTextureSize = max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
+        maxColorAttachments = if (debugLimitedGPUs) 1 else GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
+        maxSamples = if (debugLimitedGPUs) 1 else max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
+        maxTextureSize = if(debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
         GPUShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
         if (glVersion >= 43) OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")

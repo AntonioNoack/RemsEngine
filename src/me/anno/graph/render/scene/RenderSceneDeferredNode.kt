@@ -260,7 +260,6 @@ class RenderSceneDeferredNode : RenderViewNode(
                     )
 
                     shader = builder.create("rsdn-${outputs.joinToString { it.value.name }}")
-                    shader.printCode()
                 }
 
                 override val currentShader: Shader get() = shader
