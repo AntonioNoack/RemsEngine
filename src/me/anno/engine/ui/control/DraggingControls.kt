@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -58,8 +59,6 @@ import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
-
-// todo bug: materials cannot be dropped properly
 
 // todo select a bunch of assets, make it a collection,
 //  and draw them using a brush, for foliage
@@ -586,6 +585,18 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     ) {
         val ci = PrefabInspector.currentInspector!!
         val path = ci.addNewChild(root, type, prefab)!!
+        setTransform(ci, path, position, rotation, scale)
+        val sample = Hierarchy.getInstanceAt(ci.root, path)
+        if (sample != null) results.add(sample)
+    }
+
+    fun setTransform(
+        ci: PrefabInspector,
+        path: Path,
+        position: Any?,
+        rotation: Any?,
+        scale: Any?
+    ) {
         var hasValidTransform = true
         if (position != null) {
             hasValidTransform = false
@@ -604,8 +615,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             ci.prefab.invalidateInstance() // todo fix: hack
             // todo sometimes dragging snaps wayyy too much... parent transform incorrect?
         }
-        val sample = Hierarchy.getInstanceAt(ci.root, path)
-        if (sample != null) results.add(sample)
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
@@ -619,6 +628,22 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         for (file in files) {
             val prefab = PrefabCache[file] ?: continue
             val dropPosition = findDropPosition(file, Vector3d())
+            fun posRotSca(root: Entity, sampleInstance: Entity?): Triple<Vector3d, Quaterniond, Vector3d> {
+                val newTransform = Matrix4x3d()
+                    .translationRotateScale(
+                        dropPosition,
+                        dropRotation,
+                        dropScale,
+                    )
+                // we need to remove parent transform from this one
+                Matrix4x3d(root.transform.globalTransform)
+                    .invert().mul(newTransform, newTransform)
+                if (sampleInstance != null) newTransform.mul(sampleInstance.transform.globalTransform)
+                val position = newTransform.getTranslation(Vector3d())
+                val rotation = newTransform.getUnnormalizedRotation(Quaterniond())
+                val scale = newTransform.getScale(Vector3d())
+                return Triple(position, rotation, scale)
+            }
             when (val sampleInstance = prefab.getSampleInstance()) {
                 is Material -> {
                     when (hovComponent) {
@@ -681,20 +706,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     }
                     root = root ?: world
                     if (root is Entity) {
-                        val newTransform = Matrix4x3d()
-                            .translationRotateScale(
-                                dropPosition,
-                                dropRotation,
-                                dropScale,
-                            )
-                        // we need to remove parent transform from this one
-                        Matrix4x3d(root.transform.globalTransform)
-                            .invert().mul(newTransform, newTransform)
-                        newTransform.mul(sampleInstance.transform.globalTransform)
-                        val position = newTransform.getTranslation(Vector3d())
-                        val rotation = newTransform.getUnnormalizedRotation(Quaterniond())
-                        val scale = newTransform.getScale(Vector3d())
-                        addToParent(prefab, root, 'e', position, rotation, scale, results)
+                        val (pos, rot, sca) = posRotSca(root, sampleInstance)
+                        addToParent(prefab, root, 'e', pos, rot, sca, results)
                         // TreeViews need to be updated
                         for (window in GFX.windows) {
                             for (window1 in window.windowStack) {
@@ -709,13 +722,22 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     this, prefab, hovEntity, hovComponent,
                     dropPosition, dropRotation, dropScale, results
                 )
-                // todo if is Renderable & Component, add helper entity to define position
                 is Component -> {
                     val entity = hovEntity ?: renderView.getWorld() as? Entity
                     if (entity != null) {
-                        val path = ci.addNewChild(entity, 'c', prefab)!!
-                        val sample = Hierarchy.getInstanceAt(ci.root, path)
-                        if (sample != null) results.add(sample)
+                        if (sampleInstance is Renderable) {
+                            // if is Renderable & Component, add helper entity to define position
+                            val helperEntity = ci.addNewChild(entity, 'e', "Entity")
+                            val (pos, rot, sca) = posRotSca(entity, null)
+                            setTransform(ci, helperEntity, pos, rot, sca)
+                            val path = ci.addNewChild(helperEntity, 'c', prefab.clazzName, prefab.source)
+                            val sample = Hierarchy.getInstanceAt(ci.root, path)!!
+                            results.add(sample)
+                        } else {
+                            val path = ci.addNewChild(entity, 'c', prefab)!!
+                            val sample = Hierarchy.getInstanceAt(ci.root, path)
+                            if (sample != null) results.add(sample)
+                        }
                     } else {
                         LOGGER.warn("Entity is null")
                         // this can happen when we paste a file

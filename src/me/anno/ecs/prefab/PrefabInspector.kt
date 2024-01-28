@@ -484,6 +484,14 @@ class PrefabInspector(var reference: FileReference) {
         return this.prefab.add(parent.prefabPath, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
     }
 
+    fun addNewChild(parent: PrefabSaveable, type: Char, clazz: String): Path {
+        return this.prefab.add(parent.prefabPath, type, clazz, Path.generateRandomId(), InvalidRef)
+    }
+
+    fun addNewChild(parent: Path, type: Char, clazz: String, source: FileReference): Path {
+        return this.prefab.add(parent, type, clazz, Path.generateRandomId(), source)
+    }
+
     fun save() {
         if (reference == InvalidRef) throw IllegalStateException("Prefab doesn't have source!!")
         if (reference.exists) {
