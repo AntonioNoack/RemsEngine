@@ -2,15 +2,15 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.Saveable
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.NamedSaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
-import me.anno.engine.inspector.Inspectable
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -137,6 +137,17 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             }
         }
     }
+
+    override val listOfAll: Sequence<PrefabSaveable>
+        get() = sequence {
+            yield(this@PrefabSaveable)
+            for (type in listChildTypes()) {
+                val children = getChildListByType(type)
+                for (i in children.indices) {
+                    yieldAll(children[i].listOfAll)
+                }
+            }
+        }
 
     // e.g., "ec" for child entities + child components
     open fun listChildTypes(): String = ""

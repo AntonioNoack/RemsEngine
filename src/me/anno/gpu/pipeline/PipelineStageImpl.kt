@@ -16,6 +16,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.buffer16x256
@@ -38,7 +39,6 @@ import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -529,6 +529,8 @@ class PipelineStageImpl(
     }
 
     private fun bind(draw: () -> Unit) {
+        val blendMode = if (GFXState.ditherMode.currentValue == DitherMode.DITHER2X2) null
+        else this.blendMode
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {
@@ -818,6 +820,6 @@ class PipelineStageImpl(
         return (material.shader ?: defaultShader).value
     }
 
-    fun clone() = PipelineStageImpl(name, sorting, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
-
+    fun clone() =
+        PipelineStageImpl(name, sorting, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
 }

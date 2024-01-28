@@ -24,6 +24,7 @@ import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -450,48 +451,57 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {
-
-        // pipeline should already be filled
-        val ws = windowStack
-        val buffer = FBStack["click", ws.width, ws.height, 4, true, 1, DepthBufferType.INTERNAL]
-
-        val diameter = 5
-
-        val px2 = px.toInt() - x
-        val py2 = py.toInt() - y
-
         val world = getWorld()
+        if (world != null) {
 
-        val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
-            buffer.clearColor(0, true)
-            drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false)
-            drawGizmos(drawGridLines = false, drawDebug)
-        }
+            // refill is necessary when shadows are calculated,
+            // because that overrides clickIds
+            pipeline.clear()
+            pipeline.resetClickId()
+            pipeline.fill(world)
 
-        for (idx in ids.indices) {
-            ids[idx] = ids[idx] and 0xffffff
-        }
+            val ws = windowStack
+            val buffer = FBStack["click", ws.width, ws.height, 4, true, 1, DepthBufferType.INTERNAL]
 
-        // todo some clicks work on SDFSphere, others don't... why???
-        val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
-            buffer.clearDepth()
-            drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false)
-            drawGizmos(drawGridLines = false, drawDebug)
-        }
+            val diameter = 5
 
-        val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
-        val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
-        val clicked = if (clickedId == 0 || world == null) null
-        else pipeline.findDrawnSubject(clickedId, world)
-        if (false) {
-            LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
-            val ids2 = world?.listOfAll
-                ?.filterIsInstance<Component>()
-                ?.filter { it is Renderable }
-                ?.joinToString { it.clickId.toString(16) }
-            LOGGER.info("Available: $ids2")
-        }
-        return Pair(clicked as? Entity, clicked as? Component)
+            val px2 = px.toInt() - x
+            val py2 = py.toInt() - y
+
+            val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
+                GFXState.ditherMode.use(DitherMode.DITHER2X2) {
+                    buffer.clearColor(0, true)
+                    drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false)
+                }
+            }
+
+            for (idx in ids.indices) {
+                ids[idx] = ids[idx] and 0xffffff
+            }
+
+            // todo some clicks work on SDFSphere, others don't... why???
+            val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
+                GFXState.ditherMode.use(DitherMode.DITHER2X2) {
+                    buffer.clearDepth()
+                    drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false)
+                }
+            }
+
+            val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
+            val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
+            val clicked = if (clickedId == 0) null
+            else pipeline.findDrawnSubject(clickedId, world)
+            if (true) {
+                LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
+                val ids2 = world.listOfAll
+                    .filterIsInstance<Component>()
+                    .filter { it is Renderable }
+                    .map { it.clickId.toString(16) }
+                    .toList()
+                LOGGER.info("Available: $ids2")
+            }
+            return Pair(clicked as? Entity, clicked as? Component)
+        } else return Pair(null, null)
     }
 
     fun prepareDrawScene(

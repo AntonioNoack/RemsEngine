@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.EntityPhysics.invalidateRigidbody
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -55,7 +56,6 @@ abstract class Component : PrefabSaveable() {
     var gfxId = 0
         private set
 
-    @HideInInspector
     @NotSerializedProperty
     var clickId: Int
         get() = gfxId and 0xffffff

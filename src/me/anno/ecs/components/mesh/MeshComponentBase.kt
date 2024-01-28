@@ -24,6 +24,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.base.menu.Menu
+import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d

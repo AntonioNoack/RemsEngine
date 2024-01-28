@@ -59,6 +59,8 @@ import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
 
+// todo bug: materials cannot be dropped properly
+
 // todo select a bunch of assets, make it a collection,
 //  and draw them using a brush, for foliage
 
@@ -724,7 +726,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     LOGGER.warn("Unknown type ${sampleInstance.className}")
                 }
             }
-            LOGGER.info("pasted $file")
+            LOGGER.info("Pasted $file")
         }
         if (results.isNotEmpty()) {
             dragged = null

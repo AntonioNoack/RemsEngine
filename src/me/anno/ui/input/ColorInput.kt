@@ -267,7 +267,7 @@ open class ColorInput(
                 }
                 var wasFullscreen = false
                 fun resetFullscreen() {
-                    if (windowX != null && !wasFullscreen && windowX.isFullscreen()) {
+                    if (!wasFullscreen && windowX.isFullscreen()) {
                         windowX.toggleFullscreen()
                     }
                 }
@@ -280,10 +280,8 @@ open class ColorInput(
                     Window(colorPicker, false, windowStack)
                         .addClosingListener(::resetFullscreen)
                 )
-                if (windowX != null) {
-                    wasFullscreen = windowX.isFullscreen()
-                    if (!wasFullscreen) windowX.toggleFullscreen()
-                }
+                wasFullscreen = windowX.isFullscreen()
+                if (!wasFullscreen) windowX.toggleFullscreen()
             }
         }
     }
