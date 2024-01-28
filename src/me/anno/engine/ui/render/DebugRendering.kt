@@ -43,6 +43,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
@@ -302,7 +303,7 @@ object DebugRendering {
     ) {
 
         val layers = deferred.storageLayers
-        val size = layers.size + 2 /* 1 for light, 1 for depth */
+        val size = layers.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
         val (rows, cols) = view.findRowsCols(size)
 
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
@@ -325,7 +326,7 @@ object DebugRendering {
             var color = white
             var applyToneMapping = false
             val texture = when (index) {
-                size - 2 -> {
+                size - (1 + GFX.supportsDepthTextures.toInt()) -> {
                     // draw the light buffer as the last stripe
                     color = (0x22 * 0x10101) or Color.black
                     applyToneMapping = true
@@ -363,14 +364,14 @@ object DebugRendering {
         renderer: Renderer, buffer: IFramebuffer, light: IFramebuffer, deferred: DeferredSettings
     ) {
 
-        val size = deferred.layerTypes.size + 2 /* 1 for light, 1 for depth */
+        val size = deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
         val (rows, cols) = view.findRowsCols(size)
 
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
         view.drawGizmos(buffer, true)
 
-        val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, light)
+        val depthTex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+        view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask!!, light)
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
@@ -395,7 +396,7 @@ object DebugRendering {
             var applyTonemapping = false
             var color = white
             when (index) {
-                size - 2 -> {
+                size - (1 + GFX.supportsDepthTextures.toInt()) -> {
                     texture = light.getTexture0()
                     val exposure = 0x22 // same as RenderMode.LIGHT_SUM.ToneMappingNode.Inputs[Exposure]
                     color = (exposure * 0x10101).withAlpha(255)

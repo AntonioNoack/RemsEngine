@@ -64,13 +64,13 @@ import me.anno.ui.UIColors
 import me.anno.ui.UIColors.paleGoldenRod
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
-import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -132,14 +132,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     val baseNBuffer1 = deferred.createBaseBuffer("DeferredBuffers-main", 1)
     private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
-    private val depthType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, depthType)
-    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, depthType)
+    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
+    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, DepthBufferType.TEXTURE)
 
     private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", arrayOf(TargetType.Float16x4))
     private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", arrayOf(TargetType.Float16x4))
 
-    private val clock = Clock()
     private var entityBaseClickId = 0
 
     val pipeline = Pipeline(deferred)
@@ -324,9 +322,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         var aspect = width.toFloat() / height
 
         val layers = deferred.storageLayers
-        val size = when (renderMode) {
-            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 2 /* 1 for light, 1 for depth */
-            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 2 /* 1 for light, 1 for depth */
+        val size = when (renderMode) { /* 1 for light, 1 for depth */
+            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1 + GFX.supportsDepthTextures.toInt()
+            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt()
             else -> 1
         }
 

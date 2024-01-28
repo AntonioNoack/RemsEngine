@@ -105,7 +105,7 @@ abstract class BaseReader {
         }
 
         fun debugInfo(className: String) {
-            println(
+            LOGGER.info(
                 "Looking for $className:${className.hashCode()}, " +
                         "available: ${Saveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )

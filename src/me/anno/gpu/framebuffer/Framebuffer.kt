@@ -231,10 +231,6 @@ class Framebuffer(
         }
     }
 
-    val usesCRBs = false // samples > 1
-    // if you need multi-sampled textures, write me :) ->
-    // lol, I need them myself for MSAA x deferred rendering 😂
-
     private fun checkDepthTextureSupport() {
         if (!GFX.supportsDepthTextures &&
             (depthBufferType == DepthBufferType.TEXTURE ||
@@ -502,7 +498,7 @@ class Framebuffer(
     fun checkIsComplete() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException(
+            throw IllegalStateException(
                 "Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}, " +
                         "$width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType, ${depthAttachment?.samples}"
             )

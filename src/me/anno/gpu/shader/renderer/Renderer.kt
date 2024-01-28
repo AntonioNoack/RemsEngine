@@ -22,6 +22,12 @@ import me.anno.io.files.Reference.getReference
  * */
 open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
 
+    class SplitRenderer(name: String, settings: DeferredSettings,val base: Renderer) : Renderer(name, settings) {
+        override fun getVertexPostProcessing(flags: Int) = base.getVertexPostProcessing(flags)
+        override fun getPixelPostProcessing(flags: Int) = base.getPixelPostProcessing(flags)
+        override fun uploadDefaultUniforms(shader: Shader) = base.uploadDefaultUniforms(shader)
+    }
+
     constructor(name: String): this(name, null)
 
     open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
@@ -33,11 +39,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
         if (deferredSettings == null) return this
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
-            object : Renderer("$name/$index/$spliceSize", settings) {
-                override fun getVertexPostProcessing(flags: Int) = this@Renderer.getVertexPostProcessing(flags)
-                override fun getPixelPostProcessing(flags: Int) = this@Renderer.getPixelPostProcessing(flags)
-                override fun uploadDefaultUniforms(shader: Shader) = this@Renderer.uploadDefaultUniforms(shader)
-            }
+            SplitRenderer("$name/$index/$spliceSize", settings, this)
         }
     }
 

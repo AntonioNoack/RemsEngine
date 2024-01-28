@@ -25,17 +25,6 @@ class MultiFramebuffer(
     depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
-    constructor(
-        name: String, w: Int, h: Int, samples: Int,
-        targetCount: Int,
-        fpTargets: Boolean,
-        depthBufferType: DepthBufferType
-    ) : this(
-        name, w, h, samples, if (fpTargets)
-            Array(targetCount) { TargetType.Float32x4 } else
-            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
-    )
-
     val targetsI: Array<Framebuffer>
     val div = max(1, GFX.maxColorAttachments)
 

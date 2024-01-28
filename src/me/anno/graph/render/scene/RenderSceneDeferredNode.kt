@@ -11,6 +11,7 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -24,6 +25,7 @@ import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
+import me.anno.utils.structures.lists.Lists.any2
 
 class RenderSceneDeferredNode : RenderViewNode(
     "Render Scene",
@@ -77,8 +79,8 @@ class RenderSceneDeferredNode : RenderViewNode(
     override fun invalidate() {
         settings = null
         framebuffer?.destroy()
-        shader?.first?.destroy()
-        shader = null
+        for ((_, v) in shaders) v.first.destroy()
+        shaders.clear()
     }
 
     private var settings: DeferredSettings? = null
@@ -177,82 +179,94 @@ class RenderSceneDeferredNode : RenderViewNode(
         }
     }
 
-    private var shader: Pair<Shader, Map<String, TypeValue>>? = null
+    private val shaders = HashMap<Renderer, Pair<Shader, Map<String, TypeValue>>>()
 
     val firstInputIndex = 10
     val firstOutputIndex = 1
 
-    private fun getShader(): Shader {
-        val shader1 = shader ?: object : GraphCompiler(graph as FlowGraph) {
-
-            // not being used, as we only have an expression
-            override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
-
-            val shader: Shader
-
-            init {
-
-                // to do: filter for non-composite types
-                // only load what is given? -> yes :D
-
-                val types = DeferredLayerType.values.withIndex()
-                    .filter { (index, type) ->
-                        type != DeferredLayerType.DEPTH &&
-                                !inputs[index + firstInputIndex].isEmpty() &&
-                                isOutputUsed(outputs[index + firstOutputIndex])
-                    }
-
-                if (DeferredLayerType.CLICK_ID in types.map { it.value } ||
-                    DeferredLayerType.GROUP_ID in types.map { it.value }) {
-                    extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
-                }
-
-                val expressions = types.joinToString("") { (i, type) ->
-                    val nameI = type.glslName
-                    val exprI = expr(inputs[firstInputIndex + i])
-                    if ("." in type.workToData) {
-                        "$nameI = $exprI;\n"
-                    } else {
-                        "$nameI = $exprI;\n"
-                    }
-                }
-
-                defineLocalVars(builder)
-
-                extraVariables.add(Variable(GLSLType.V2F, "uv"))
-
-                val variables = types
-                    .map { (_, type) ->
-                        val typeI = GLSLType.floats[type.workDims - 1]
-                        val nameI = type.glslName
-                        Variable(typeI, nameI, VariableMode.OUT)
-                    } + typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables
-
-                val builder = ShaderBuilder(name)
-                builder.addVertex(
-                    ShaderStage(
-                        "simple-triangle", listOf(
-                            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-                            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-                        ), "gl_Position = vec4(coords*2.0-1.0,0.0,1.0);\n" +
-                                "uv = coords;\n"
-                    )
-                )
-
-                builder.settings = settings
-                builder.useRandomness = false
-                builder.addFragment(
-                    ShaderStage("rsdn-expr", variables, expressions)
-                        .add(extraFunctions.toString())
-                )
-
-                shader = builder.create("rsdn")
+    fun getOutputs(): List<IndexedValue<DeferredLayerType>> {
+        return DeferredLayerType.values.withIndex()
+            .filter { (index, _) ->
+                !inputs[index + firstInputIndex].isEmpty() &&
+                        isOutputUsed(outputs[index + firstOutputIndex])
             }
+    }
 
-            override val currentShader: Shader get() = shader
-        }.finish()
+    private fun bindShader(): Shader {
+        val renderer = GFXState.currentRenderer
+        val shader1 = shaders.getOrPut(renderer) {
+            object : GraphCompiler(graph as FlowGraph) {
 
-        shader = shader1
+                // not being used, as we only have an expression
+                override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
+
+                val shader: Shader
+
+                init {
+
+                    // to do: filter for non-composite types
+                    // only load what is given? -> yes :D
+
+                    val output0 = getOutputs()
+                    val outputs = renderer.deferredSettings!!.semanticLayers.toList()
+                        .map { tt -> output0.first { it.value == tt.type } }
+
+                    if (DeferredLayerType.CLICK_ID in outputs.map { it.value } ||
+                        DeferredLayerType.GROUP_ID in outputs.map { it.value }) {
+                        extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
+                    }
+
+                    var expressions = outputs.joinToString("") { (i, type) ->
+                        val nameI = type.glslName
+                        val exprI = expr(inputs[firstInputIndex + i])
+                        if ("." in type.workToData) {
+                            "$nameI = $exprI;\n"
+                        } else {
+                            "$nameI = $exprI;\n"
+                        }
+                    }
+
+                    if (outputs.any2 { it.value == DeferredLayerType.DEPTH }) {
+                        expressions += "gl_FragDepth = depthToRaw(finalDepth);\n"
+                    }
+
+                    defineLocalVars(builder)
+
+                    extraVariables.add(Variable(GLSLType.V2F, "uv"))
+
+                    val variables = outputs
+                        .map { (_, type) ->
+                            val typeI = GLSLType.floats[type.workDims - 1]
+                            val nameI = type.glslName
+                            Variable(typeI, nameI, VariableMode.OUT)
+                        } + typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables
+
+                    val builder = ShaderBuilder(name)
+                    builder.addVertex(
+                        ShaderStage(
+                            "simple-triangle", listOf(
+                                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                                Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+                            ), "gl_Position = vec4(coords*2.0-1.0,0.0,1.0);\n" +
+                                    "uv = coords;\n"
+                        )
+                    )
+
+                    builder.settings = renderer.deferredSettings
+                    builder.useRandomness = false
+                    builder.addFragment(
+                        ShaderStage("rsdn-expr", variables, expressions)
+                            .add(extraFunctions.toString())
+                    )
+
+                    shader = builder.create("rsdn-${outputs.joinToString { it.value.name }}")
+                    shader.printCode()
+                }
+
+                override val currentShader: Shader get() = shader
+            }.finish()
+        }
+
         val (shader, typeValues) = shader1
         shader.use()
         for ((k, v) in typeValues) {
@@ -282,10 +296,11 @@ class RenderSceneDeferredNode : RenderViewNode(
         }
         // if all inputs are null, we can skip this
         if (hasAnyInput()) {
-            GFXState.useFrame(framebuffer) {
+            GFXState.useFrame(framebuffer, renderer) {
                 GFXState.depthMode.use(DepthMode.ALWAYS) {
                     GFXState.depthMask.use(false) {
-                        val shader = getShader()
+                        val shader = bindShader()
+                        bindDepthToPosition(shader)
                         flat01.draw(shader)
                     }
                 }
