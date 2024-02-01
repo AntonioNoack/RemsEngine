@@ -132,8 +132,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     val baseNBuffer1 = deferred.createBaseBuffer("DeferredBuffers-main", 1)
     private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
-    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
-    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, DepthBufferType.TEXTURE)
+    private val depthType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
+    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, depthType)
+    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, depthType)
 
     private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", arrayOf(TargetType.Float16x4))
     private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", arrayOf(TargetType.Float16x4))
@@ -952,7 +953,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         fun addDefaultLightsIfRequired(pipeline: Pipeline, world: PrefabSaveable?, rv: RenderView?) {
             // todo when we have our directional lights within the skybox somehow, remove this
-            if (pipeline.lightStage.size <= 0) {
+            if (pipeline.lightStage.size <= 0 ) {
                 // also somehow calculate the required bounds, and calculate shadows for the default sun
                 val bounds = when (world) {
                     is Entity -> world.getBounds()
@@ -963,8 +964,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                     }
                     else -> null
                 }
-                // todo this raises the draw calls by a factor of 16. why????
-                if (rv != null && false && Input.isShiftDown) {
+                if (rv != null && Input.isShiftDown && false) {
                     if (bounds == null || bounds.isEmpty() || bounds.volume > 1e38) {
                         defaultSun.shadowMapCascades = 0
                         defaultSun.onUpdate()
@@ -983,7 +983,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         defaultSun.onUpdate()
                         defaultSun.rootOverride = null
                         rv.setRenderState() // camera position needs to be reset
-                        println("drawing shadows at ${Time.gameTime}")
                     }
                 }
                 defaultSun.fill(pipeline, defaultSunEntity, 0)

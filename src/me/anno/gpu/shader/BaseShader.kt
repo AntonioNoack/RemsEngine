@@ -147,7 +147,7 @@ open class BaseShader(
         }
 
     open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
-        renderer.uploadDefaultUniforms(shader)
+        renderer.bind(shader)
     }
 
     fun ignoreNameWarnings(names: Collection<String>): BaseShader {

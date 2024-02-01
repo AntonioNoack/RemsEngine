@@ -287,7 +287,7 @@ class Framebuffer(
             }
             DepthBufferType.ATTACHMENT -> {
                 val da = depthAttachment ?: throw IllegalStateException("Depth Attachment was not found in $name, null")
-                if (da.depthTexture == null && da.internalDepthRenderbuffer == 0) {
+                if (da.session != GFXState.session || (da.depthTexture == null && da.internalDepthRenderbuffer == 0)) {
                     da.ensure()
                     bindFramebuffer(GL_FRAMEBUFFER, pointer)
                 }

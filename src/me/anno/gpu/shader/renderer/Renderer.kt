@@ -25,7 +25,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
     class SplitRenderer(name: String, settings: DeferredSettings,val base: Renderer) : Renderer(name, settings) {
         override fun getVertexPostProcessing(flags: Int) = base.getVertexPostProcessing(flags)
         override fun getPixelPostProcessing(flags: Int) = base.getPixelPostProcessing(flags)
-        override fun uploadDefaultUniforms(shader: Shader) = base.uploadDefaultUniforms(shader)
+        override fun bind(shader: Shader) = base.bind(shader)
     }
 
     constructor(name: String): this(name, null)
@@ -33,7 +33,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
     open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
     open fun getPixelPostProcessing(flags: Int): List<ShaderStage> = emptyList()
 
-    open fun uploadDefaultUniforms(shader: Shader) {}
+    open fun bind(shader: Shader) {}
 
     fun split(index: Int, spliceSize: Int): Renderer {
         if (deferredSettings == null) return this
@@ -152,8 +152,8 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             )
         ) {
             private val uvCheckerSource = getReference("res://textures/UVChecker.png")
-            override fun uploadDefaultUniforms(shader: Shader) {
-                super.uploadDefaultUniforms(shader)
+            override fun bind(shader: Shader) {
+                super.bind(shader)
                 val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
                 checkerTex.bind(shader, "checkerTex", Filtering.LINEAR, Clamping.REPEAT)
             }

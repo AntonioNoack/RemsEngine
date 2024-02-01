@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.engine.EngineBase
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -27,7 +28,6 @@ import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
-import me.anno.engine.EngineBase
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
@@ -197,16 +197,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
     open fun drawGizmos() {
     }
 
-    /*override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        super.onKeyTyped(x, y, key)
-        if (isSelected) {
-            super.onKeyTyped(x, y, key)
-            if (key in '1'.code..'9'.code) {
-                view.selectedAttribute = key - '1'.code
-            }
-        }
-    }*/
-
     fun invalidateInspector() {
         for (window in windowStack) {
             for (panel in window.panel.listOfVisible) {
@@ -334,8 +324,10 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
                     rotateCamera(dy, dx, 0f)
 
                     // zoom in/out
-                    val r = Touch.getZoomFactor()
-                    zoom(r * r * sign(r))// power 1 is too slow
+                    val zoomFactor = Touch.getZoomFactor()
+                    zoom(zoomFactor)// power 1 is too slow
+
+                    println("Zooming by $zoomFactor, rotating $dx,$dy")
 
                     Touch.updateAll()
                 }
@@ -346,10 +338,11 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
                     val dx = Touch.avgDeltaX() * speed
                     val dy = Touch.avgDeltaY() * speed
-                    if (Input.isShiftDown)
+                    if (Input.isShiftDown) {
                         moveCamera(dx, -dy, 0.0)
-                    else
+                    } else {
                         moveCamera(dx, 0.0, dy)
+                    }
 
                     // zoom in/out
                     val r = Touch.getZoomFactor()

@@ -368,8 +368,9 @@ object GFX {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
+        // todo when we set that, depth regarding glass pass is not-copied, and sun-shadow is broken...
         val debugLimitedGPUs = false
-        supportsDepthTextures = !debugLimitedGPUs && capabilities != null
+        supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)

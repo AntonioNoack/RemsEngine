@@ -21,8 +21,8 @@ import me.anno.maths.Maths.min
 class MultiFramebuffer(
     name: String,
     w: Int, h: Int,
-    samples: Int, targets: Array<TargetType>,
-    depthBufferType: DepthBufferType
+    samples: Int, val targets: Array<TargetType>,
+    val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     val targetsI: Array<Framebuffer>
@@ -44,11 +44,6 @@ class MultiFramebuffer(
             Framebuffer(
                 "$name/$targetIndex", w, h, samples,
                 Array(targetIndex1 - targetIndex0) { targets[targetIndex0 + it] },
-                /*if (targetIndex == 0) depthBufferType
-                else when (depthBufferType) {
-                    DepthBufferType.NONE -> DepthBufferType.NONE
-                    else -> DepthBufferType.ATTACHMENT
-                }*/
                 depthBufferType
             )
         }
@@ -157,4 +152,8 @@ class MultiFramebuffer(
                 target.depthTexture = value
             }
         }
+
+    override fun toString(): String {
+        return "Multi(\"$name\", $width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType)"
+    }
 }

@@ -65,7 +65,7 @@ class Touch(var x: Float, var y: Float) {
                     val cly = touches.values.sumOf { it.lastY.toDouble() } / size
                     val d0 = touches.values.sumOf { length(it.x - cx, it.y - cy) } / size
                     val d1 = touches.values.sumOf { length(it.lastX - clx, it.lastY - cly) } / size
-                    if (d0 > 0f && d1 > 0f) (d0 / d1).toFloat() else 0f
+                    if (d0 > 0f && d1 > 0f) (d0 / d1).toFloat() else 1f
                 }
             }
         }

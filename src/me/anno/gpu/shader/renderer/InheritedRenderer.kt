@@ -9,7 +9,7 @@ open class InheritedRenderer(
 ) : Renderer(name, renderer.deferredSettings) {
     override fun getVertexPostProcessing(flags: Int): List<ShaderStage> = renderer.getVertexPostProcessing(flags)
     override fun getPixelPostProcessing(flags: Int): List<ShaderStage> = renderer.getPixelPostProcessing(flags)
-    override fun uploadDefaultUniforms(shader: Shader) {
-        renderer.uploadDefaultUniforms(shader)
+    override fun bind(shader: Shader) {
+        renderer.bind(shader)
     }
 }
