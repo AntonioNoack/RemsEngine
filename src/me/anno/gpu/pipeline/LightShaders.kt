@@ -6,7 +6,6 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
-import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -21,7 +20,7 @@ import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -93,7 +92,7 @@ object LightShaders {
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
         (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(3)
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
-        skybox.bind(shader.getTextureIndex("skybox"), Filtering.LINEAR)
+        skybox.bind(shader, "reflectionMap", Filtering.LINEAR, skybox.clamping)
         ssao.bindTrulyNearest(shader, "occlusionTex")
         light.bindTrulyNearestMS(shader.getTextureIndex("lightTex"))
         combineLighting1(shader, applyToneMapping)
@@ -101,7 +100,7 @@ object LightShaders {
 
     fun combineLighting1(shader: Shader, applyToneMapping: Boolean) {
         shader.v1b("applyToneMapping", applyToneMapping)
-        bindDepthToPosition(shader)
+        bindDepthUniforms(shader)
         flat01.draw(shader)
     }
 
@@ -130,7 +129,7 @@ object LightShaders {
         "combineLight-f", listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
-            Variable(GLSLType.SCube, "skybox"),
+            Variable(GLSLType.SCube, "reflectionMap"),
             Variable(GLSLType.V3F, "finalNormal"),
             Variable(GLSLType.V1F, "finalMetallic"),
             Variable(GLSLType.V1F, "finalRoughness"),
@@ -304,7 +303,7 @@ object LightShaders {
                 Variable(GLSLType.V4F, "data2").flat(), // only if with shadows
                 // light maps for shadows
                 // - spotlights, directional lights
-                Variable(GLSLType.S2DAShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
+                Variable(GLSLType.S2DAShadow, "shadowMapPlanar", 1),
                 // - point lights
                 Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
                 Variable(GLSLType.V1B, "receiveShadows"),

@@ -358,7 +358,6 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
-                .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()

@@ -190,7 +190,7 @@ class SnowNode : ActionNode(
             shader.v1f("density", snowControl.density)
             shader.v1f("elongation", 1f / snowControl.elongation)
             shader.v4f("worldRotation", snowControl.worldRotation)
-            DepthTransforms.bindDepthToPosition(shader)
+            DepthTransforms.bindDepthUniforms(shader)
             flat01.draw(shader)
         }
         setOutput(1, Texture(result.getTexture0()))

@@ -89,7 +89,7 @@ interface ExpressionRenderer {
         GFXState.useFrame(w, h, false, buffer) {
             GFXState.renderPurely {
                 shader.use()
-                DepthTransforms.bindDepthToPosition(shader)
+                DepthTransforms.bindDepthUniforms(shader)
                 val tv = typeValues
                 if (tv != null) {
                     for ((k, v) in tv) {

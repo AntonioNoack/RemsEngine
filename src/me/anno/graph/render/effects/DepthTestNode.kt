@@ -28,7 +28,7 @@ class DepthTestNode : ActionNode(
             shader.use()
             shader.v1f("worldScale", RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
-            DepthTransforms.bindDepthToPosition(shader)
+            DepthTransforms.bindDepthUniforms(shader)
             depth.bindTrulyNearest(shader, "depthTex")
             SimpleBuffer.flat01.draw(shader)
         }

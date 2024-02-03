@@ -281,7 +281,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun updatePipelineStage0(renderMode: RenderMode) {
-        setClearDepth()
+        stage0.depthMode = depthMode
         stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
         stage0.sorting = Sorting.FRONT_TO_BACK
         stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
@@ -486,7 +486,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 }
             }
 
-            val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
+            val clickedIdBGR = Screenshots.getClosestId(
+                diameter, ids, depths,
+                if (inverseDepth != GFX.supportsClipControl) -10 else +10
+            )
             val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
             val clicked = if (clickedId == 0) null
             else pipeline.findDrawnSubject(clickedId, world)
@@ -563,8 +566,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             val n: Float
             val f: Float
             // todo some devices may not support 01-range, so make this optional
-            val range01 = reverseDepth
-            if (reverseDepth) {
+            val range01 = inverseDepth
+            if (range01) {
                 // range is 0 .. 1
                 n = scaledNear.toFloat()
                 f = scaledFar.toFloat()
@@ -685,15 +688,16 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         entityBaseClickId = pipeline.lastClickId
     }
 
-    private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
+    private val inverseDepth get() = renderMode == RenderMode.INVERSE_DEPTH
 
-    fun setClearDepth() {
-        stage0.depthMode = depthMode
-    }
-
-    private val depthMode
-        get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
-        else if (reverseDepth) DepthMode.CLOSE else DepthMode.FORWARD_CLOSE
+    private val depthMode: DepthMode
+        get() = if (GFX.supportsClipControl) {
+            if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
+            else if (inverseDepth) DepthMode.FAR else DepthMode.CLOSE
+        } else {
+            if (renderMode == RenderMode.NO_DEPTH) DepthMode.FORWARD_ALWAYS
+            else if (inverseDepth) DepthMode.FORWARD_FAR else DepthMode.FORWARD_CLOSE
+        }
 
     fun drawScene(
         w: Int, h: Int,
@@ -707,8 +711,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         useFrame(w, h, changeSize, dst, renderer) {
 
             Frame.bind()
+            val depthMode = depthMode
             GFXState.depthMode.use(depthMode) {
-                setClearDepth()
+                stage0.depthMode = depthMode
                 dst.clearDepth()
             }
 
@@ -953,7 +958,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         fun addDefaultLightsIfRequired(pipeline: Pipeline, world: PrefabSaveable?, rv: RenderView?) {
             // todo when we have our directional lights within the skybox somehow, remove this
-            if (pipeline.lightStage.size <= 0 ) {
+            if (pipeline.lightStage.size <= 0) {
                 // also somehow calculate the required bounds, and calculate shadows for the default sun
                 val bounds = when (world) {
                     is Entity -> world.getBounds()

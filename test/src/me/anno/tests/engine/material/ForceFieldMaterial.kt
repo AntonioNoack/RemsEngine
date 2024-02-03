@@ -19,7 +19,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
@@ -51,7 +51,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
         shader.v1f("uvScroll", (Time.gameTime * 0.17) % 1.0)
-        bindDepthToPosition(shader)
+        bindDepthUniforms(shader)
         var depth = findDepthTexture(GFXState.framebuffer.currentValue)
         if (depth == null) println("no depth was found!")
         if (Input.isShiftDown && depth is Framebuffer) { // todo we probably need to do this in some environments, don't we?

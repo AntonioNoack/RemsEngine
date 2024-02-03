@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -148,7 +149,7 @@ abstract class FrameTask(
                     if (!needsMoreSources) {
                         partialFrame.bindTrulyNearest(0)
                         GFXState.blendMode.use(BlendMode.PURE_ADD) {
-                            GFXState.depthMode.use(DepthMode.ALWAYS) {
+                            GFXState.depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }

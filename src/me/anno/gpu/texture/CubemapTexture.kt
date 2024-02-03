@@ -254,10 +254,12 @@ open class CubemapTexture(
         set(value) {
             if (field != value) {
                 field = value
-                bindBeforeUpload()
-                val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
-                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
-                if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                if (GFX.supportsDepthTextures) {
+                    bindBeforeUpload()
+                    val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
+                    if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                }
             }
         }
 

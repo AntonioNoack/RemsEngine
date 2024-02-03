@@ -5,7 +5,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.min
@@ -74,7 +74,7 @@ class DecalMaterial : Material() {
 
     override fun bind(shader: GPUShader) {
         super.bind(shader)
-        bindDepthToPosition(shader)
+        bindDepthUniforms(shader)
         // bind textures
         val buffer = GFXState.currentBuffer
         val sett = GFXState.currentRenderer.deferredSettings

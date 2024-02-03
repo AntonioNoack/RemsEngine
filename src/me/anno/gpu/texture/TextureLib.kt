@@ -40,7 +40,8 @@ object TextureLib {
                     )
                     "depth" -> {
                         create(TargetType.DEPTH16)
-                        depthFunc = DepthMode.CLOSER
+                        depthFunc = if (GFX.supportsClipControl) DepthMode.CLOSER
+                        else DepthMode.FORWARD_CLOSER
                     }
                     else -> throw IllegalArgumentException()
                 }

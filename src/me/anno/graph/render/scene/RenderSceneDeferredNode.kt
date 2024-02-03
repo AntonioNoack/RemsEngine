@@ -2,16 +2,16 @@ package me.anno.graph.render.scene
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -296,10 +296,10 @@ class RenderSceneDeferredNode : RenderViewNode(
         // if all inputs are null, we can skip this
         if (hasAnyInput()) {
             GFXState.useFrame(framebuffer, renderer) {
-                GFXState.depthMode.use(DepthMode.ALWAYS) {
+                GFXState.depthMode.use(alwaysDepthMode) {
                     GFXState.depthMask.use(false) {
                         val shader = bindShader()
-                        bindDepthToPosition(shader)
+                        bindDepthUniforms(shader)
                         flat01.draw(shader)
                     }
                 }

@@ -32,6 +32,7 @@ import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
@@ -216,7 +217,7 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
     }
 
     fun render(width: Int, height: Int) {
-        GFXState.depthMode.use(DepthMode.ALWAYS) {
+        GFXState.depthMode.use(alwaysDepthMode) {
             GFXState.blendMode.use(BlendMode.DEFAULT) {
                 GFXState.cullMode.use(CullMode.BOTH) {
                     val rv = RenderView.currentInstance!!

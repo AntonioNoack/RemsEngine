@@ -116,7 +116,6 @@ object Renderers {
                         Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
-                        Variable(GLSLType.SCube, "skybox"),
                         // light maps for shadows
                         // - spotlights, directional lights
                         Variable(GLSLType.S2DAShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
@@ -356,6 +355,7 @@ object Renderers {
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
             Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),
+            Variable(GLSLType.V1B, "reverseDepth"),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
         val shaderCode = when (type) {
@@ -366,12 +366,14 @@ object Renderers {
                     "finalResult.rgb += 0.5;\n"
             DeferredLayerType.NORMAL, DeferredLayerType.TANGENT, DeferredLayerType.BITANGENT ->
                 "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
-            DeferredLayerType.DEPTH ->
-                "float depth = gl_FragCoord.z;\n" +
-                        "#ifdef CUSTOM_DEPTH\n" +
-                        "   depth = gl_FragDepth;\n" +
-                        "#endif\n" +
-                        "finalResult = vec4(vec3(fract(log2(max(depth, 1e-36)))),1.0);\n"
+            DeferredLayerType.DEPTH -> "" +
+                    "float depth = gl_FragCoord.z;\n" +
+                    "#ifdef CUSTOM_DEPTH\n" +
+                    "   depth = gl_FragDepth;\n" +
+                    "#endif\n" +
+                    "float depth1 = reverseDepth ? depth : 1.0 - depth;\n" +
+                    "float color = fract(log2(max(depth1, reverseDepth ? 1.0e-36 : 0.8e-7)));\n" +
+                    "finalResult = vec4(vec3(color),1.0);\n"
             else -> {
                 val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
                 else ""

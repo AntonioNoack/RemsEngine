@@ -111,7 +111,7 @@ class CombineLightsNode : RenderViewNode(
         shader = shader1
         val (shader2, typeValues) = shader1
         shader2.use()
-        skybox.bind(shader2, "skybox", Filtering.LINEAR, Clamping.CLAMP)
+        skybox.bind(shader2, "reflectionMap", Filtering.LINEAR, Clamping.CLAMP)
         for ((k, v) in typeValues) {
             v.bind(shader2, k)
         }

@@ -4,7 +4,7 @@ import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -248,7 +248,7 @@ object ScreenSpaceReflections {
             shader.v4f("depthMask", depthMask)
             shader.v4f("metallicMask", metallicMask)
             shader.v4f("roughnessMask", roughnessMask)
-            bindDepthToPosition(shader)
+            bindDepthUniforms(shader)
             illuminated.bind(shader, "finalIlluminated", n, c)
             roughness.bind(shader, "finalRoughness", n, c)
             metallic.bind(shader, "finalMetallic", n, c)

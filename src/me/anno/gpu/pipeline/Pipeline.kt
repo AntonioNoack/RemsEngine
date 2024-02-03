@@ -27,6 +27,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
@@ -127,8 +128,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                     )
                     DECAL_PASS.id -> PipelineStageImpl(
                         "decal", Sorting.NO_SORTING, 64,
-                        null, DepthMode.FARTHER, false, CullMode.FRONT,
-                        // todo default decal shader? :) would be nice :D
+                        null,
+                        if (GFX.supportsClipControl) DepthMode.FARTHER
+                        else DepthMode.FORWARD_FARTHER, false, CullMode.FRONT,
                         pbrModelShader
                     )
                     else -> defaultStage.clone()

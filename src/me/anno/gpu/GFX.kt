@@ -338,7 +338,9 @@ object GFX {
     fun copyNoAlpha(samples: Int = 1) {
         check()
         blendMode.use(BlendMode.DST_ALPHA) {
-            depthMode.use(DepthMode.ALWAYS) {
+            val depthModeI = if (supportsClipControl) DepthMode.ALWAYS
+            else DepthMode.FORWARD_ALWAYS
+            depthMode.use(depthModeI) {
                 val shader = if (samples > 1) copyShaderMS else copyShader
                 shader.use()
                 shader.v1i("samples", samples)
@@ -379,7 +381,7 @@ object GFX {
         maxUniforms = GL46C.glGetInteger(GL46C.GL_MAX_UNIFORM_LOCATIONS)
         maxColorAttachments = if (debugLimitedGPUs) 1 else GL46C.glGetInteger(GL46C.GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = if (debugLimitedGPUs) 1 else max(1, GL46C.glGetInteger(GL46C.GL_MAX_SAMPLES))
-        maxTextureSize = if(debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
+        maxTextureSize = if (debugLimitedGPUs) 1024 else max(256, GL46C.glGetInteger(GL46C.GL_MAX_TEXTURE_SIZE))
         GPUShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
         if (glVersion >= 43) OcclusionQuery.target = GL46C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")

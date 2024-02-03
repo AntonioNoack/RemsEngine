@@ -41,7 +41,7 @@ object TextureHelper {
             tmp[1] = borderColor.g01()
             tmp[2] = borderColor.b01()
             tmp[3] = borderColor.a01()
-            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, tmp)
+            glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, tmp)
         }
     }
 

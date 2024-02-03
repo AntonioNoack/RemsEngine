@@ -89,7 +89,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
-        GFXState.depthMode.use(DepthMode.CLOSE) {
+        GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
                 result.draw(resolution, Renderer.nothingRenderer) { side ->
                     result.clearColor(0, depth = true)

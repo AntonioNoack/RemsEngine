@@ -79,7 +79,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     var shadowTextures: IFramebuffer? = null
 
     @SerializedProperty
-    var depthFunc = DepthMode.CLOSE
+    var depthFunc = if(GFX.supportsClipControl) DepthMode.CLOSE
+    else DepthMode.FORWARD_CLOSE
 
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
@@ -207,7 +208,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
         val tmpPos = JomlPools.vec3d.create().set(position)
-        GFXState.depthMode.use(DepthMode.CLOSE) {
+        GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
                 result.draw(renderer) { i ->
                     if (i > 0) { // reset position and rotation

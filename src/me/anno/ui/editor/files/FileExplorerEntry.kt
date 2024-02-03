@@ -383,7 +383,9 @@ open class FileExplorerEntry(
                     val tmp =
                         FBStack["tmp", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
-                        GFXState.depthMode.use(DepthMode.CLOSE) {
+                        val depthMode = if(GFX.supportsClipControl) DepthMode.CLOSE
+                        else DepthMode.FORWARD_CLOSE
+                        GFXState.depthMode.use(depthMode) {
                             tmp.clearColor(backgroundColor, true)
                             Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
@@ -397,7 +399,9 @@ open class FileExplorerEntry(
                         Renderers.simpleNormalRenderer
                     ) {
                         // todo clip to correct area
-                        GFXState.depthMode.use(DepthMode.CLOSE) {
+                        val depthMode = if(GFX.supportsClipControl) DepthMode.CLOSE
+                        else DepthMode.FORWARD_CLOSE
+                        GFXState.depthMode.use(depthMode) {
                             GFXState.currentBuffer.clearDepth()
                             Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }

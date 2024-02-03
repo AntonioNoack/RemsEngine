@@ -24,6 +24,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
@@ -184,7 +185,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     override fun drawGizmos() {
-        GFXState.depthMode.use(DepthMode.ALWAYS) {
+        GFXState.depthMode.use(alwaysDepthMode) {
             GFXState.depthMask.use(false) {
                 drawGizmos2()
             }

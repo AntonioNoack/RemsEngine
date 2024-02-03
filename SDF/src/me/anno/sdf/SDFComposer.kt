@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -268,7 +268,7 @@ object SDFComposer {
 
             shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
 
-            bindDepthToPosition(shader)
+            bindDepthUniforms(shader)
         }
     }
 

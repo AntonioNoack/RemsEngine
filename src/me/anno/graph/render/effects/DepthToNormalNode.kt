@@ -6,7 +6,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -45,7 +45,7 @@ class DepthToNormalNode : ActionNode(
             shader.use()
             shader.v4f("depthMask", depth.mask!!)
             depthTex.bindTrulyNearest(0)
-            bindDepthToPosition(shader)
+            bindDepthUniforms(shader)
             flat01.draw(shader)
         }
         setOutput(1, Texture.texture(result, 0, "rg", DeferredLayerType.NORMAL))

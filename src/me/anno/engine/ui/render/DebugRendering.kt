@@ -414,7 +414,7 @@ object DebugRendering {
                     GFXState.useFrame(tmp) {
                         val shader = Renderers.attributeEffects[layer to settings]!!
                         shader.use()
-                        DepthTransforms.bindDepthToPosition(shader)
+                        DepthTransforms.bindDepthUniforms(shader)
                         settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
                         SimpleBuffer.flat01.draw(shader)
                     }

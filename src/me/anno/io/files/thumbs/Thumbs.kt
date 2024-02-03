@@ -38,7 +38,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -425,7 +424,9 @@ object Thumbs {
             }
             useFrame(w, h, false, renderTarget, renderer) {
                 if (withDepth) {
-                    depthMode.use(DepthMode.CLOSE) {
+                    val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
+                    else DepthMode.FORWARD_CLOSE
+                    GFXState.depthMode.use(depthMode) {
                         renderTarget.clearColor(0, true)
                         render()
                     }

@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -89,7 +89,7 @@ class HeightExpFogNode : RenderViewNode(
                 depth.bindTrulyNearest(shader, "depthTex")
                 (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
                     .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
-                bindDepthToPosition(shader)
+                bindDepthUniforms(shader)
                 flat01.draw(shader)
             }
             setOutput(1, Texture(result.getTexture0()))

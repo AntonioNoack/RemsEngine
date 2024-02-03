@@ -116,25 +116,29 @@ class GlassPass : TransparentPass() {
                         (if (multisampled) ");\n" else ",0);\n") +
                         (if (multisampled) "" +
                                 "ivec2 uvi = ivec2(uv*resolution);\n" else "") +
-                        // todo skip all this, if we don't look at glass
                         "   vec4 diffuseData = getTex(diffuseGlassTex);\n" +
-                        "   vec4 emissiveData = getTex(emissiveGlassTex);\n" +
-                        "   float tr = clamp(diffuseData.a,0.0,1.0);\n" +
-                        "   vec3 tint = exp(-diffuseData.rgb);\n" +
-                        "   vec4 surface = getTex(surfaceGlassTex);\n" +
-                        "   float normFactor = 1.0 / (diffuseData.a + 0.01);\n" +
-                        "   vec2 normalData = getTex(normalGlassTex).xy;\n" +
+                        // skip all calculations, if we don't look at glass
+                        "   if(diffuseData.a <= 0.0){\n" +
+                        "       result = getTex(diffuseSrcTex);\n" +
+                        "   } else {\n" +
+                        "       vec4 emissiveData = getTex(emissiveGlassTex);\n" +
+                        "       float tr = clamp(diffuseData.a,0.0,1.0);\n" +
+                        "       vec3 tint = exp(-diffuseData.rgb);\n" +
+                        "       vec4 surface = getTex(surfaceGlassTex);\n" +
+                        "       float normFactor = 1.0 / (diffuseData.a + 0.01);\n" +
+                        "       vec2 normalData = getTex(normalGlassTex).xy;\n" +
                         // only a part is refracted -> mix it in -> how much?
-                        "   vec2 refractUV = -normalData * emissiveData.a * normFactor;\n" +
-                        "   vec3 diffuse = vec3(\n" +
-                        "       getTexD(diffuseSrcTex, refractUV * 560.0).r," +
-                        "       getTexD(diffuseSrcTex, refractUV * 570.0).g," +
-                        "       getTexD(diffuseSrcTex, refractUV * 580.0).b" +
-                        "   );\n" +
+                        "       vec2 refractUV = -normalData * emissiveData.a * normFactor;\n" +
+                        "       vec3 diffuse = vec3(\n" +
+                        "           getTexD(diffuseSrcTex, refractUV * 560.0).r," +
+                        "           getTexD(diffuseSrcTex, refractUV * 570.0).g," +
+                        "           getTexD(diffuseSrcTex, refractUV * 580.0).b" +
+                        "       );\n" +
                         // todo mix in linear space
-                        "   result = vec4(diffuse * tint * (1.0-tr) +\n" +
-                        "       tint * tr +\n" +
-                        "       emissiveData.rgb * normFactor, 1.0);\n" +
+                        "       result = vec4(diffuse * tint * (1.0-tr) +\n" +
+                        "           tint * tr +\n" +
+                        "           emissiveData.rgb * normFactor, 1.0);\n" +
+                        "   }\n" +
                         "}\n"
             )
         }
@@ -146,7 +150,9 @@ class GlassPass : TransparentPass() {
         val tmp = getFB(arrayOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
-            GFXState.depthMode.use(DepthMode.CLOSE) {
+            val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
+            else DepthMode.FORWARD_CLOSE
+            GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
                         stage.draw(pipeline)
@@ -157,7 +163,7 @@ class GlassPass : TransparentPass() {
 
         // because we use fraction, we no longer copy 1:1, so we need a backup
         val copy = FBStack["glass-copy", old.width, old.height, 3, true, old.samples, DepthBufferType.NONE]
-        useFrame(copy){
+        useFrame(copy) {
             GFX.copy(old)
         }
 

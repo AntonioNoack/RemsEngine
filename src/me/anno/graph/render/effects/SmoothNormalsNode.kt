@@ -1,7 +1,7 @@
 package me.anno.graph.render.effects
 
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -123,7 +123,7 @@ class SmoothNormalsNode : ActionNode(
             if (radius <= 0.5f) return false
             // input = output, so copy normal to avoid data races
             val tmp = FBStack["tmpNormal", dst.width, dst.height, TargetType.Float16x3, 1, DepthBufferType.NONE]
-            GFXState.depthMode.use(DepthMode.ALWAYS) {
+            GFXState.depthMode.use(alwaysDepthMode) {
                 GFXState.useFrame(tmp) {
                     val shader = unpackShader
                     shader.use()
@@ -136,7 +136,7 @@ class SmoothNormalsNode : ActionNode(
                     shader.use()
                     shader.v1f("radius", 0.5f + radius)
                     shader.v1b("normalZW", normalZW)
-                    DepthTransforms.bindDepthToPosition(shader)
+                    DepthTransforms.bindDepthUniforms(shader)
                     tmp.getTexture0().bindTrulyNearest(shader, "normalTex")
                     normal.bindTrulyNearest(shader, "baseTex")
                     depth.bindTrulyNearest(shader, "depthTex")

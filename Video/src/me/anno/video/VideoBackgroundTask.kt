@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
@@ -147,7 +148,7 @@ abstract class VideoBackgroundTask(
                     if (!needsMoreSources) {
                         partialFrame.bindTrulyNearest(0)
                         blendMode.use(BlendMode.PURE_ADD) {
-                            depthMode.use(DepthMode.ALWAYS) {
+                            depthMode.use(alwaysDepthMode) {
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }

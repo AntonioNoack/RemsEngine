@@ -46,7 +46,7 @@ object RendererLib {
             // depends on metallic & roughness
             // todo why does the LOD look to be well-chosen, although I have done nothing?
             "vec3 sampleSkyboxForAmbient(vec3 dir, float reflectivity) {\n" +
-            "   return (1.0 - reflectivity) * texture(skybox, -${cubemapsAreLeftHanded} * dir).rgb;\n" +
+            "   return (1.0 - reflectivity) * texture(reflectionMap, -${cubemapsAreLeftHanded} * dir).rgb;\n" +
             "}\n"
 
     val lightCode = "" +

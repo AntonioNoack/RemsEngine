@@ -8,7 +8,7 @@ import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -256,7 +256,7 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val shader = if (depth is Texture2D && depth.samples > 1) occlusionShaderMS else occlusionShader
             shader.use()
-            bindDepthToPosition(shader)
+            bindDepthUniforms(shader)
             // bind all textures
             if (lastSamples != samples) { // || Input.isShiftDown
                 // generate random kernel

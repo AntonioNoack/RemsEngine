@@ -6,6 +6,7 @@ import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.GFXState.useFrame
@@ -159,7 +160,9 @@ class WeightedBlended : TransparentPass() {
         useFrame(b0.width, b0.height, true, tmp, renderer) {
             if (perTargetBlending) tmp.clearColor(clear0)
             else tmp.clearColor(black)
-            GFXState.depthMode.use(DepthMode.CLOSE) {
+            val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
+            else DepthMode.FORWARD_CLOSE
+            GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(false) {
                     val blend: Any = if (perTargetBlending) blend0s else blend2
                     GFXState.blendMode.use(blend) {

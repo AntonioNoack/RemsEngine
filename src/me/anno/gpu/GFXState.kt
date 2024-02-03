@@ -19,6 +19,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
@@ -34,7 +35,6 @@ import org.lwjgl.opengl.GL46C.glClipControl
 import org.lwjgl.opengl.GL46C.glCullFace
 import org.lwjgl.opengl.GL46C.glDepthFunc
 import org.lwjgl.opengl.GL46C.glDepthMask
-import org.lwjgl.opengl.GL46C.glDepthRange
 import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
@@ -47,6 +47,8 @@ import kotlin.test.assertNotEquals
  * all functions feature rendering-callbacks, so you can change settings without having to worry about the previously set state by your caller
  * */
 object GFXState {
+
+    private val LOGGER = LogManager.getLogger(GFXState::class)
 
     var session = 0
         private set
@@ -101,13 +103,10 @@ object GFXState {
         if (lastDepthMode == newValue) return
         glDepthFunc(newValue.id)
         val reversedDepth = newValue.reversedDepth
-        if (lastDepthMode?.reversedDepth != reversedDepth) {
-            if (supportsClipControl) {
-                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
-            } else {
-                // does this work??
-                glDepthRange(0.0, 1.0)
-            }
+        if (lastDepthMode?.reversedDepth != reversedDepth && supportsClipControl) {
+            glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+        } else if (reversedDepth) {
+            LOGGER.warn("Reversed depth is not supported (because it's pointless without glClipControl")
         }
         lastDepthMode = newValue
     }
@@ -173,7 +172,7 @@ object GFXState {
     // val renderer = SecureStack(Renderer.colorRenderer)
 
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
-    val depthMode = SecureStack(DepthMode.ALWAYS)
+    val depthMode = SecureStack(alwaysDepthMode)
     val depthMask = SecureStack(true)
 
     /**
@@ -215,7 +214,7 @@ object GFXState {
      * */
     fun <V> renderPurely(render: () -> V): V {
         return blendMode.use(null) {
-            depthMode.use(DepthMode.ALWAYS, render)
+            depthMode.use(alwaysDepthMode, render)
         }
     }
 
@@ -225,7 +224,7 @@ object GFXState {
     fun <V> renderPurely2(render: () -> V): V {
         return blendMode.use(null) {
             depthMask.use(false) {
-                depthMode.use(DepthMode.ALWAYS, render)
+                depthMode.use(alwaysDepthMode, render)
             }
         }
     }
@@ -235,9 +234,11 @@ object GFXState {
      * */
     fun <V> renderDefault(render: () -> V): V {
         return blendMode.use(BlendMode.DEFAULT) {
-            depthMode.use(DepthMode.ALWAYS, render)
+            depthMode.use(alwaysDepthMode, render)
         }
     }
+
+    val alwaysDepthMode get() = if (supportsClipControl) DepthMode.ALWAYS else DepthMode.FORWARD_ALWAYS
 
     // maximum expected depth for OpenGL operations
 // could be changed, if needed...

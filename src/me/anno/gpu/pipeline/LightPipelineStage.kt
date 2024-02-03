@@ -11,8 +11,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.CullMode
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.M4x3Delta.m4x3x
 import me.anno.gpu.blending.BlendMode
@@ -24,13 +24,12 @@ import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
-import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Matrix4f
@@ -46,7 +45,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     var visualizeLightCount = false
 
-    var depthMode = DepthMode.ALWAYS
+    var depthMode = alwaysDepthMode
     var blendMode = BlendMode.ADD
     var writeDepth = false
     var cullMode = CullMode.BACK
@@ -106,7 +105,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         val target = GFXState.currentBuffer
         shader.v2f("invScreenSize", 1f / target.width, 1f / target.height)
         bindNullDepthTextures(shader)
-        bindDepthToPosition(shader)
+        bindDepthUniforms(shader)
     }
 
     fun getShader(type: LightType, isInstanced: Boolean): Shader {
@@ -224,7 +223,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 instanced.forEachType { lights, size, type ->
                     val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {
-                        GFXState.depthMode.use(DepthMode.ALWAYS) {
+                        GFXState.depthMode.use(alwaysDepthMode) {
                             drawBatches(depthTexture, lights, size, type, shader)
                         }
                     } else drawBatches(depthTexture, lights, size, type, shader)

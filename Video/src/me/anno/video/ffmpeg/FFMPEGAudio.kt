@@ -10,18 +10,22 @@ import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.InputStreams.readNBytes2
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
 import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
-import java.io.EOFException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 
-class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, val length: Double) :
+class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, val duration: Double) :
     FFMPEGStream(file, false) {
     // audio should be fast -> not limited
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FFMPEGAudio::class)
+    }
 
     override fun process(process: Process, vararg arguments: String) {
         // ("starting process for audio $sampleRate x $length")
@@ -40,7 +44,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
             out.close()
         }
         process.inputStream.useBuffered().use { input: InputStream ->
-            val frameCount = (sampleRate * length).toInt()
+            val frameCount = (sampleRate * duration).toInt()
             input.mark(1)
             if (input.read() >= 0) {
                 input.reset()
@@ -53,8 +57,10 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
                     )
                     result.value = buffer
                 } catch (_: IgnoredException) {
+                    result.value = null
                 }
             } else {// EOF
+                LOGGER.warn("No data was available for $file")
                 result.value = null
             }
         }
@@ -76,11 +82,8 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
                 if (shorts.order() == ByteOrder.LITTLE_ENDIAN) {// fast path
                     input.readNBytes2(size, bytes, false)
                 } else {// if our program is ever executed on a big endian machine
-                    try {
-                        for (i in 0 until sampleCount) {
-                            shorts.put(input.readLE16().toShort())
-                        }
-                    } catch (ignored: EOFException) {
+                    for (i in 0 until sampleCount) {
+                        shorts.put(input.readLE16().toShort())
                     }
                 }
 
@@ -94,11 +97,8 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
                 if (shorts.order() == ByteOrder.LITTLE_ENDIAN) {// fast path
                     input.readNBytes2(size, bytes, false)
                 } else {// if our program is ever executed on a big endian machine
-                    try {
-                        for (i in 0 until sampleCount) {
-                            shorts.put(input.readLE16().toShort())
-                        }
-                    } catch (ignored: EOFException) {
+                    for (i in 0 until sampleCount) {
+                        shorts.put(input.readLE16().toShort())
                     }
                 }
 

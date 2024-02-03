@@ -10,9 +10,8 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
-import me.anno.gpu.DepthMode
-import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -178,7 +177,7 @@ class PlanarReflection : LightComponentBase() {
             if (x1 > x0 && y1 > y0) {
                 useFrame(w, h, true, buffer, pbrRenderer) {
                     GFXState.ditherMode.use(ditherMode) {
-                        GFXState.depthMode.use(DepthMode.CLOSE) {
+                        GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
                             GFXState.scissorTest.use(true) {
                                 glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
                                 // todo why is the normal way to draw the sky failing its depth test?
@@ -272,7 +271,7 @@ class PlanarReflection : LightComponentBase() {
         private val tmpAABB = AABBf()
 
         fun clearSky(pipeline: Pipeline) {
-            GFXState.depthMode.use(DepthMode.ALWAYS) {
+            renderPurely {
                 pipeline.drawSky0()
                 GFXState.currentBuffer.clearDepth()
             }
