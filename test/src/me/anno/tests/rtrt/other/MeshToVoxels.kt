@@ -28,6 +28,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.engine.EngineBase
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
@@ -35,6 +36,7 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
+import kotlin.math.PI
 import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -101,7 +103,7 @@ fun meshToSeparatedVoxels(
     fun drawMesh() {
         for (i in 0 until mesh.numMaterials) {
             // find shader
-            val material = MaterialCache[mesh.materials.getOrNull(i)] ?: defaultMaterial
+            val material = Pipeline.getMaterial(null, mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
             // bind & prepare shader

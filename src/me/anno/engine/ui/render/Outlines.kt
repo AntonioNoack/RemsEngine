@@ -12,6 +12,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -102,8 +103,7 @@ object Outlines {
             useFrame(whiteRenderer) {
                 val cullMode = if (mesh is Mesh && mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
                 GFXState.cullMode.use(cullMode) {
-                    val matRef = comp.materials.firstOrNull() ?: mesh.materials.firstOrNull()
-                    val material = MaterialCache[matRef, false] ?: defaultMaterial
+                    val material = Pipeline.getMaterial(comp.materials, mesh.materials, 0)
                     val baseShader = material.shader ?: pbrModelShader
                     val animated = comp.hasAnimation
                     if (!material.isDoubleSided) GFXState.animated.use(animated) {

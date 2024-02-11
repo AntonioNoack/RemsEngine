@@ -19,14 +19,14 @@ abstract class TransparentPass : ICacheData {
     }
 
     fun getFB(targets: Array<TargetType>): IFramebuffer {
-        val b0 = GFXState.currentBuffer
-        val tmp = if (lastK === b0) lastV!! else run {
+        val base = GFXState.currentBuffer
+        val result = if (lastK === base) lastV!! else run {
             lastV?.destroy()
-            b0.attachFramebufferToDepth("transparent", targets)
+            base.attachFramebufferToDepth("transparent", targets)
         }
-        lastV = tmp
-        lastK = b0
-        return tmp
+        lastV = result
+        lastK = base
+        return result
     }
 
     abstract fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl)

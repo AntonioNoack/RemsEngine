@@ -65,7 +65,7 @@ object UVCorrection {
         // weight them by triangle area
         var normalContrast = 0.0
         var invertedContrast = 0.0
-        for (meshFile in meshes ?: emptyList()) {
+        for (meshFile in meshes) {
             meshFile as InnerPrefabFile
             val mesh = meshFile.prefab.getSampleInstance() as Mesh
             val pos = mesh.positions

@@ -91,7 +91,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
-                result.draw(resolution, Renderer.nothingRenderer) { side ->
+                result.draw(resolution, renderer) { side ->
                     result.clearColor(0, depth = true)
                     setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                     rotateForCubemap(rot3.identity(), side)

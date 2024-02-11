@@ -2,11 +2,11 @@ package me.anno.mesh.gltf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.Prefab
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.Saveable
@@ -458,9 +458,8 @@ class GLTFWriter(
             mesh.helperMeshes
         } else null
 
-        fun getMaterial(i: Int): Material? {
-            val materialRef = materialOverrides.getOrNull(0)?.nullIfUndefined() ?: mesh.materials.getOrNull(i)
-            return MaterialCache[materialRef]
+        fun getMaterial(i: Int): Material {
+            return   Pipeline.getMaterial(materialOverrides, mesh.materials, i)
         }
 
         if (helpers != null) {
@@ -481,15 +480,13 @@ class GLTFWriter(
         writer.endObject() // mesh
     }
 
-    private fun writeMesh1(indices: IntArray?, material: Material?, writeMeshAttributes: () -> Unit) {
+    private fun writeMesh1(indices: IntArray?, material: Material, writeMeshAttributes: () -> Unit) {
         writer.beginObject()
         writer.attr("mode")
         writer.write(4) // triangles
 
-        if (material != null) {
-            writer.attr("material")
-            writer.write(materials.getOrPut(material) { materials.size })
-        }
+        writer.attr("material")
+        writer.write(materials.getOrPut(material) { materials.size })
 
         if (indices != null) {
             writer.attr("indices")

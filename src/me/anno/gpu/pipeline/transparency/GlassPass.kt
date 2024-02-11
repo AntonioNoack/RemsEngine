@@ -146,6 +146,8 @@ class GlassPass : TransparentPass() {
 
     override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
 
+        // todo baked ambient occlusion is somehow put into depth buffer, when we split FBs
+
         val old = GFXState.currentBuffer
         val tmp = getFB(arrayOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {

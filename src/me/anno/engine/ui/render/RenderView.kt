@@ -239,6 +239,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         FrameTimings.add(t2 - t1, UIColors.midOrange)
 
         setRenderState()
+        pipeline.superMaterial = renderMode.superMaterial
         updatePipelineStage0(renderMode)
 
         val renderGraph = renderMode.renderGraph

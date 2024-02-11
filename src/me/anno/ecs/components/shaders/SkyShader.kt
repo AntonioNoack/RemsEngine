@@ -79,6 +79,9 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
     }
 
     override fun getSkyColor(): String {
+        // todo define night stars somehow...
+        //  how do we get a natural looking star distribution?
+        //  -> make sky rendering into multiple parts, so we can use particle systems? :)
         // https://github.com/shff/opengl_sky/blob/master/main.c
         return "" +
                 "float fbm(vec3); float fbm(vec2);\n" + // imports

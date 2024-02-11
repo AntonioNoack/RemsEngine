@@ -1,5 +1,6 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
@@ -37,14 +38,15 @@ import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.render.scene.RenderSceneForwardNode
 import me.anno.graph.types.FlowGraph
+import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
-// todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(
     val name: String,
     val renderer: Renderer? = null,
     val renderGraph: FlowGraph? = null,
+    val superMaterial: Material? = null
 ) {
 
     constructor(renderer: Renderer) : this(renderer.name, renderer, null)
@@ -52,6 +54,7 @@ class RenderMode(
     constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph)
     constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
     constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph)
+    constructor(name: String, material: Material) : this(name, null, DEFAULT.renderGraph, material)
 
     init {
         values.add(this)
@@ -64,7 +67,10 @@ class RenderMode(
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -81,7 +87,10 @@ class RenderMode(
         val WITHOUT_POST_PROCESSING = RenderMode(
             "Without Post-Processing",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
@@ -92,7 +101,10 @@ class RenderMode(
         val MSAA_DEFERRED = RenderMode(
             "MSAA Deferred",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL, "Samples" to 8))
                 .then1(RenderLightsNode(), mapOf("Samples" to 8))
                 .then(SSAONode())
@@ -232,7 +244,10 @@ class RenderMode(
         val FSR_MSAA_X4 = RenderMode(
             "FSR+MSAAx4", QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then1(RenderLightsNode(), mapOf("Samples" to 8))
                 .then(SSAONode())
@@ -253,7 +268,10 @@ class RenderMode(
             "Nearest 4x",
             QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -275,7 +293,10 @@ class RenderMode(
         val SHOW_AABB = RenderMode(
             "Show AABBs",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -292,7 +313,10 @@ class RenderMode(
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -318,7 +342,10 @@ class RenderMode(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -334,7 +361,10 @@ class RenderMode(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -350,7 +380,10 @@ class RenderMode(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
@@ -366,7 +399,10 @@ class RenderMode(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(DepthTestNode())
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
@@ -376,7 +412,10 @@ class RenderMode(
         val FOG_TEST = RenderMode(
             "Fog Test",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -392,7 +431,10 @@ class RenderMode(
         val NIGHT_TEST = RenderMode(
             "Night Test",
             QuickPipeline()
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1))
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -404,6 +446,37 @@ class RenderMode(
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
+
+        val ALL_GLASS = RenderMode("All Glass", Material().apply {
+            pipelineStage = PipelineStage.TRANSPARENT
+            metallicMinMax.set(1f)
+            roughnessMinMax.set(0f)
+            enableVertexColors = false
+        })
+
+        val ALL_SILVER = RenderMode("All Silver", Material().apply {
+            metallicMinMax.set(1f)
+            roughnessMinMax.set(0f)
+            diffuseBase.set(0.9f, 0.9f, 0.9f, 1f)
+            enableVertexColors = false
+        })
+
+        val ALL_STEEL = RenderMode("All Steel", Material().apply {
+            metallicMinMax.set(1f)
+            roughnessMinMax.set(0.2f)
+            diffuseBase.set(0.3f, 0.3f, 0.3f, 1f)
+            enableVertexColors = false
+        })
+
+        val ALL_GOLDEN = RenderMode("All Golden", Material.diffuse(0xf5ba6c.withAlpha(255)).apply {
+            roughnessMinMax.set(0.2f)
+            metallicMinMax.set(1f)
+            enableVertexColors = false
+        })
+
+        val ALL_WHITE = RenderMode("All White", Material().apply {
+            enableVertexColors = false
+        })
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
 

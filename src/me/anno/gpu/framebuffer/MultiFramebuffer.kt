@@ -94,8 +94,7 @@ class MultiFramebuffer(
     val withMultisampling get() = samples > 1
 
     override fun getTextureIMS(index: Int): ITexture2D {
-        return if (withMultisampling) targetsI[index / div].getTextureIMS(index % div)
-        else getTextureI(index)
+        return targetsI[index / div].getTextureIMS(index % div)
     }
 
     override fun bindTrulyNearestMS(offset: Int) {

@@ -43,6 +43,11 @@ open class Shader(
             LOGGER.warn("Shader '$shaderName' should use Variables")
         }
         if (attributes.size > GFX.maxAttributes) {
+            // when this happens, try to find a way to compact your data more,
+            // or we'll have to find a way how we can bind buffers with per-index access,
+            // or use textures for that...
+            // my RTX 3070 has a limit of 16, my phone (Honor 10) has a limit of 8,
+            // so 8 is probably a reasonable lower limit
             throw IllegalArgumentException(
                 "Cannot use more than ${GFX.maxAttributes} attributes" +
                         " in $name, given: ${attributes.map { it.name }}"

@@ -69,7 +69,7 @@ object FlatShaders {
                             "}\n" else "") +
                     "void main() {\n" +
                     "   result = getColor${it shr 1}(colorTex, colorSamples);\n" +
-                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples).x;\n" +
+                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples).x;\n" + // todo is this [-1,1] or [0,1]?
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")

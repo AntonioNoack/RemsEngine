@@ -18,6 +18,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.query.OcclusionQuery
+import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
@@ -318,13 +319,9 @@ object GFX {
         shader.v1i("colorSamples", colorSamples)
         shader.v1i("depthSamples", depthSamples)
         shader.v1i("targetSamples", GFXState.currentBuffer.samples)
+        bindDepthUniforms(shader)
         flat01.draw(shader)
         check()
-    }
-
-    @JvmStatic
-    fun copyNoAlpha(buffer: IFramebuffer) {
-        copyNoAlpha(buffer.getTexture0())
     }
 
     @JvmStatic
@@ -370,9 +367,10 @@ object GFX {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
-        // todo when we set that, depth regarding glass pass is not-copied, and sun-shadow is broken...
+        // todo when we set that, depth regarding glass pass is copied from baked-ambient-occlusion, which is weird...
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
+        // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...
         supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         maxVertexUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = GL46C.glGetInteger(GL46C.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)

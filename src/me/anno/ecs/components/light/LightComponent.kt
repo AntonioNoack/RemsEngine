@@ -10,10 +10,12 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -206,7 +208,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val result = shadowTextures as FramebufferArray
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
-        val renderer = Renderer.nothingRenderer
         val tmpPos = JomlPools.vec3d.create().set(position)
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
@@ -270,6 +271,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     }
 
     companion object {
+
+        val renderer = rawAttributeRenderers[DeferredLayerType.DEPTH]
+
         @JvmStatic
         val pipeline by lazy {
             Pipeline(DeferredSettings(listOf())).apply {

@@ -607,7 +607,7 @@ fun computeRasterizer() {
             numPrimitives: Int,
         ) {
             val pipeline = RenderView.currentInstance!!.pipeline // meh; todo is there a better way to get the pipeline?
-            val material = MaterialCache[mesh.materials.getOrNull(materialIndex), Material.defaultMaterial]
+            val material = Pipeline.getMaterial(null, mesh.materials, materialIndex)
             material.bind(shader)
             initShader(shader, false)
             bindRandomness(shader)

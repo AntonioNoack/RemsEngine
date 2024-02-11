@@ -83,6 +83,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var ignoredEntity: Entity? = null // e.g. for environment maps
     var ignoredComponent: Component? = null
+    var superMaterial: Material? = null
 
     @Type("List<PipelineStage>")
     @SerializedProperty
@@ -148,8 +149,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
+        val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
-            val material = getMaterial(materialOverrides, materials, index)
+            val material = getMaterial(superMaterial, materialOverrides, materials, index)
             val stage = findStage(material)
             stage.add(renderer, mesh, entity, material, index)
         }
@@ -163,8 +165,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     fun addMeshInstanced(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
+        val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
-            val material = getMaterial(materialOverrides, materials, index)
+            val material = getMaterial(superMaterial, materialOverrides, materials, index)
             val stage = findStage(material)
             stage.addInstanced(mesh, renderer, entity, material, index)
         }
@@ -305,7 +308,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
         allAABB.all()
         for (i in 0 until mesh.numMaterials) {
-            val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
+            val material = getMaterial(sky.materials, mesh.materials, i)
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
             initShader(shader, applyToneMapping)
@@ -506,7 +509,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(Pipeline::class)
+
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = Thumbs.sphereMesh
@@ -518,6 +523,24 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         ): Material {
             val ref = getMaterialRef(materialOverrides, materials, index)
             return MaterialCache[ref, defaultMaterial]
+        }
+
+        fun getMaterial(
+            materialOverride: Material?,
+            materialOverrides: List<FileReference>?,
+            materials: List<FileReference>,
+            index: Int
+        ): Material {
+            val mat1 = getMaterial(materialOverrides, materials, index)
+            return getMaterial(materialOverride, mat1)
+        }
+
+        fun getMaterial(
+            materialOverride: Material?,
+            material: Material,
+        ): Material {
+            return if (materialOverride != null && material.shader == null) materialOverride
+            else material
         }
 
         fun getMaterialRef(

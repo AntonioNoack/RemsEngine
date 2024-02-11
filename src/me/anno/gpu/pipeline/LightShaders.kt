@@ -94,7 +94,7 @@ object LightShaders {
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
         skybox.bind(shader, "reflectionMap", Filtering.LINEAR, skybox.clamping)
         ssao.bindTrulyNearest(shader, "occlusionTex")
-        light.bindTrulyNearestMS(shader.getTextureIndex("lightTex"))
+        light.getTexture0MS().bindTrulyNearest(shader, "lightTex")
         combineLighting1(shader, applyToneMapping)
     }
 
