@@ -44,9 +44,11 @@ class SetLocalVariableNode(type: String = "?") :
         writer.writeString("type", type)
     }
 
-    override fun readString(name: String, value: String) {
-        if (name == "type") type = value
-        else super.readString(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "type" -> type = value as? String ?: return
+            else -> super.setProperty(name, value)
+        }
     }
 
     companion object {

@@ -9,13 +9,14 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
+import me.anno.utils.types.AnyToFloat
 import org.joml.Matrix4x3f
 
 /**
@@ -61,7 +62,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
 
     fun getMappedAnimation(skel: FileReference): Animation? {
-        if(skel == skeleton) return this
+        if (skel == skeleton) return this
         val dstSkel = SkeletonCache[skel] ?: throw IllegalStateException("Missing Skeleton $skel for retargeting")
         return AnimationCache.getMappedAnimation(this, dstSkel)
     }
@@ -189,24 +190,11 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         writer.writeFile("skeleton", skeleton)
     }
 
-    override fun readDouble(name: String, value: Double) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "duration" -> duration = value.toFloat()
-            else -> super.readDouble(name, value)
-        }
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "duration" -> duration = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
-    override fun readFile(name: String, value: FileReference) {
-        when (name) {
-            "skeleton" -> skeleton = value
-            else -> super.readFile(name, value)
+            "duration" -> duration = AnyToFloat.getFloat(value, 0f)
+            "skeleton" -> skeleton = value as? FileReference ?: InvalidRef
+            else -> super.setProperty(name, value)
         }
     }
 

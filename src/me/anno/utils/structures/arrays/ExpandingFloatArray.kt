@@ -46,17 +46,11 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         writer.writeFloatArray("values", array)
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "size" -> size = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readFloatArray(name: String, values: FloatArray) {
-        when (name) {
-            "values" -> array = values
-            else -> super.readFloatArray(name, values)
+            "size" -> size = value as? Int ?: return
+            "values" -> array = value as? FloatArray ?: return
+            else -> super.setProperty(name, value)
         }
     }
 

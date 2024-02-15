@@ -4,11 +4,11 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
+import me.anno.engine.inspector.Inspectable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.inspector.Inspectable
 
 /**
  * represents how animations shall be played;
@@ -26,25 +26,6 @@ class AnimationState(
 ) : Saveable(), Inspectable {
 
     constructor() : this(InvalidRef, 0f, 0f, 1f, LoopingState.PLAY_LOOP)
-
-    override fun readFile(name: String, value: FileReference) {
-        if (name == "source") source = value
-        else super.readFile(name, value)
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "weight" -> weight = value
-            "progress" -> progress = value
-            "speed" -> speed = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        if (name == "repeat") repeat = LoopingState.getState(value)
-        else super.readInt(name, value)
-    }
 
     private var lastDt = 0f
     private var lastTime = 0L
@@ -80,6 +61,17 @@ class AnimationState(
         writer.writeFloat("progress", progress, true)
         writer.writeFloat("speed", speed, true)
         writer.writeEnum("repeat", repeat)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "source" -> source = value as? FileReference ?: InvalidRef
+            "weight" -> weight = value as? Float ?: return
+            "progress" -> progress = value as? Float ?: return
+            "speed" -> speed = value as? Float ?: return
+            "repeat" -> repeat = LoopingState.getState(value as? Int ?: return)
+            else -> super.setProperty(name, value)
+        }
     }
 
     fun clone(): AnimationState {

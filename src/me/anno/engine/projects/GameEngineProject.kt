@@ -122,7 +122,7 @@ class GameEngineProject() : NamedSaveable() {
         val lastSceneRef = lastScene.toGlobalFile(location)
         if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
-            lastSceneRef.getParent()?.tryMkdirs()
+            lastSceneRef.getParent().tryMkdirs()
             lastSceneRef.writeText(JsonStringWriter.toText(prefab, InvalidRef))
             LOGGER.warn("Wrote new scene to $lastScene")
         }
@@ -220,46 +220,17 @@ class GameEngineProject() : NamedSaveable() {
         // location doesn't really need to be saved
     }
 
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "lastScene" -> lastScene = value
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "maxIndexDepth" -> maxIndexDepth = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readFile(name: String, value: FileReference) {
-        when (name) {
-            "lastScene" -> lastScene = value.absolutePath
-            else -> super.readFile(name, value)
-        }
-    }
-
-    override fun readStringArray(name: String, values: Array<String>) {
-        when (name) {
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "lastScene" -> lastScene = value as? String ?: (value as? FileReference)?.absolutePath ?: return
+            "maxIndexDepth" -> maxIndexDepth = value as? Int ?: return
             "openTabs" -> {
+                val values = value as? Array<*> ?: return
                 openTabs.clear()
-                openTabs.addAll(values)
+                openTabs.addAll(values.filterIsInstance<String>())
+                openTabs.addAll(values.filterIsInstance<FileReference>().map { it.toLocalPath(location) })
             }
-            else -> super.readStringArray(name, values)
-        }
-    }
-
-    override fun readFileArray(name: String, values: Array<FileReference>) {
-        when (name) {
-            "openTabs" -> {
-                openTabs.clear()
-                openTabs.addAll(values
-                    .filter { it.exists }
-                    .map { it.toLocalPath(location) })
-            }
-            else -> super.readFileArray(name, values)
+            else-> super.setProperty(name, value)
         }
     }
 

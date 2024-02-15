@@ -29,20 +29,19 @@ class ScaleAnimation(
         child.height += (padding.height * strength).toInt()
     }
 
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "centerX" -> centerX = value
-            "centerY" -> centerY = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFloat("centerX", centerX)
         writer.writeFloat("centerY", centerY)
     }
 
-    override val className: String get() = "UIScaleAnimation"
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "centerX" -> centerX = value as? Float ?: return
+            "centerY" -> centerY = value as? Float ?: return
+            else -> super.setProperty(name, value)
+        }
+    }
 
+    override val className: String get() = "UIScaleAnimation"
 }

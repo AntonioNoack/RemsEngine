@@ -1,8 +1,8 @@
 package me.anno.graph
 
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.io.Saveable
 import me.anno.io.NamedSaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
@@ -98,30 +98,14 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
         }
     }
 
-    override fun readBoolean(name: String, value: Boolean) {
-        if (name == "custom") isCustom = value
-        else super.readBoolean(name, value)
-    }
-
-    override fun readObject(name: String, value: Saveable?) {
-        if (name == "node") node = value as? Node
-        else super.readObject(name, value)
-    }
-
-    override fun readSomething(name: String, value: Any?) {
-        if (name == "value") currValue = value
-        else super.readSomething(name, value)
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "type") type = value
-        else super.readString(name, value)
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "others" -> others = values.filterIsInstance<NodeConnector>()
-            else -> super.readObjectArray(name, values)
+            "custom" -> isCustom = value == true
+            "value" -> currValue = value
+            "node" -> node = value as? Node
+            "type" -> type = value as? String ?: return
+            "others" -> others = (value as? Array<*> ?: return).filterIsInstance<NodeConnector>()
+            else -> super.setProperty(name, value)
         }
     }
 }

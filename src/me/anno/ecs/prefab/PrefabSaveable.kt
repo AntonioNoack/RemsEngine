@@ -103,11 +103,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         writer.writeBoolean("nonCollapsed", !isCollapsed, false)
     }
 
-    override fun readBoolean(name: String, value: Boolean) {
-        when (name) {
-            "isCollapsed" -> isCollapsed = value
-            "nonCollapsed" -> isCollapsed = !value
-            else -> super.readBoolean(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "isCollapsed" -> isCollapsed = value == true
+            "nonCollapsed" -> isCollapsed = value != true
+            else -> super.setProperty(name, value)
         }
     }
 

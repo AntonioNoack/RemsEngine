@@ -196,17 +196,12 @@ class Path(
         writer.writeChar("type", type)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
             "parent" -> parent = value as? Path
-            else -> super.readObject(name, value)
-        }
-    }
-
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "name" -> this.nameId = value
+            "name" -> nameId = value as? String ?: return
             "v" -> {
+                if (value !is String) return
                 if (value.isEmpty()) {
                     parent = null // we're root now
                 } else {
@@ -217,21 +212,9 @@ class Path(
                     type = path.type
                 }
             }
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "index" -> index = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readChar(name: String, value: Char) {
-        when (name) {
-            "type" -> type = value
-            else -> super.readChar(name, value)
+            "index" -> index = value as? Int ?: return
+            "type" -> type = value as? Char ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
@@ -240,7 +223,6 @@ class Path(
 
     companion object {
 
-        val FALSE = Throwable()
         val EXIT = Throwable()
 
         val ROOT_PATH = Path(null, "", 0, ' ')

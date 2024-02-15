@@ -21,20 +21,13 @@ class MorphTarget(name: String, var positions: FloatArray, var weight: Float = 0
         writer.writeFloat("weight", weight)
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "weight" -> weight = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
-    override fun readFloatArray(name: String, values: FloatArray) {
-        when (name) {
-            "positions" -> positions = values
-            else -> super.readFloatArray(name, values)
+            "weight" -> weight = value as? Float ?: return
+            "positions" -> positions = value as? FloatArray ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
     override val approxSize get() = 5
-
 }

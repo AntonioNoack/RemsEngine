@@ -351,13 +351,6 @@ class Transform() : Saveable() {
         return x * x + y * y + z * z
     }
 
-    override fun readMatrix4x3d(name: String, value: Matrix4x3d) {
-        when (name) {
-            "local" -> setLocal(value)
-            else -> super.readMatrix4x3d(name, value)
-        }
-    }
-
     private fun calculateGlobalTransform(parent: Transform?) {
         checkTransform(localTransform)
         if (parent == null) {
@@ -462,6 +455,13 @@ class Transform() : Saveable() {
         super.save(writer)
         // global doesn't need to be saved, as it can be reconstructed
         writer.writeMatrix4x3d("local", localTransform)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "local" -> setLocal(value as? Matrix4x3d ?: return)
+            else -> super.setProperty(name, value)
+        }
     }
 
     override val approxSize get() = 1

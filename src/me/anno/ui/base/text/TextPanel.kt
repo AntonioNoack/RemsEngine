@@ -4,6 +4,7 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.fonts.Font
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
@@ -17,12 +18,10 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Key
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a
@@ -362,34 +361,18 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         writer.writeBoolean("instantTextLoading", instantTextLoading)
     }
 
-    override fun readBoolean(name: String, value: Boolean) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "disableCopy" -> disableCopy = value
-            "breaksIntoMultiline" -> breaksIntoMultiline = value
-            "instantTextLoading" -> instantTextLoading = value
-            else -> super.readBoolean(name, value)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "textColor" -> textColor = value
-            "focusTextColor" -> focusTextColor = value
-            "focusBackground" -> focusBackground = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "text") text = value
-        else super.readString(name, value)
-    }
-
-    override fun readObject(name: String, value: Saveable?) {
-        when (name) {
+            "disableCopy" -> disableCopy = value == true
+            "breaksIntoMultiline" -> breaksIntoMultiline = value == true
+            "instantTextLoading" -> instantTextLoading = value == true
+            "textColor" -> textColor = value as? Int ?: return
+            "focusTextColor" -> focusTextColor = value as? Int ?: return
+            "focusBackground" -> focusBackground = value as? Int ?: return
+            "text" -> text = value as? String ?: return
             "padding" -> padding = value as? Padding ?: return
             "font" -> font = value as? Font ?: return
-            else -> super.readObject(name, value)
+            else -> super.setProperty(name, value)
         }
     }
 

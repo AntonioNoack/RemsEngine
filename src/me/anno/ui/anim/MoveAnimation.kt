@@ -28,16 +28,6 @@ class MoveAnimation(
         child.y += (padding.height * mix(srcY, dstY, strength)).toInt() - padding.top
     }
 
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "srcX" -> srcX = value
-            "srcY" -> srcY = value
-            "dstX" -> dstX = value
-            "dstY" -> dstY = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFloat("srcX", srcX)
@@ -46,6 +36,15 @@ class MoveAnimation(
         writer.writeFloat("dstY", dstY)
     }
 
-    override val className: String get() = "UIMoveAnimation"
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "srcX" -> srcX = value as? Float ?: return
+            "srcY" -> srcY = value as? Float ?: return
+            "dstX" -> dstX = value as? Float ?: return
+            "dstY" -> dstY = value as? Float ?: return
+            else -> super.setProperty(name, value)
+        }
+    }
 
+    override val className: String get() = "UIMoveAnimation"
 }

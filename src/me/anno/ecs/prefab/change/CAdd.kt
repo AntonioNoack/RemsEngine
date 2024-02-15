@@ -74,26 +74,13 @@ class CAdd() : Change() {
         writer.writeString("prefab", prefab.toString())
     }
 
-    override fun readChar(name: String, value: Char) {
-        when (name) {
-            "type" -> type = value
-            else -> super.readChar(name, value)
-        }
-    }
-
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "className", "class" -> clazzName = value
-            "prefab" -> prefab = value.toGlobalFile()
-            "name", "id" -> this.nameId = value
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readFile(name: String, value: FileReference) {
-        when (name) {
-            "prefab" -> prefab = value
-            else -> super.readFile(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "type" -> type = value as? Char ?: return
+            "className", "class" -> clazzName = value as? String ?: return
+            "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
+            "name", "id" -> nameId = value as? String ?: return
+            else -> super.setProperty(name, value)
         }
     }
 

@@ -1,10 +1,9 @@
 package me.anno.graph.render
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.graph.Node
-import me.anno.io.Saveable
-import me.anno.io.base.BaseWriter
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.graph.Node
+import me.anno.io.base.BaseWriter
 import org.joml.Vector3d
 
 class NodeGroup : PrefabSaveable() {
@@ -29,23 +28,17 @@ class NodeGroup : PrefabSaveable() {
         writer.writeObjectList(null, "members", members)
     }
 
-    override fun readInt(name: String, value: Int) {
-        if (name == "color") color = value
-        else super.readInt(name, value)
-    }
-
-    override fun readVector3d(name: String, value: Vector3d) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "position" -> position.set(value)
-            "extends" -> extends.set(value)
-            else -> super.readVector3d(name, value)
+            "color" -> color = value as? Int ?: return
+            "position" -> position.set(value as? Vector3d ?: return)
+            "extends" -> extends.set(value as? Vector3d ?: return)
+            "members" -> {
+                val values = value as? Array<*> ?: return
+                members.clear()
+                members.addAll(values.filterIsInstance<Node>())
+            }
+            else -> super.setProperty(name, value)
         }
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        if (name == "members") {
-            members.clear()
-            members.addAll(values.filterIsInstance<Node>())
-        } else super.readObjectArray(name, values)
     }
 }

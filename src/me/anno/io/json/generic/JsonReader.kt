@@ -178,7 +178,7 @@ open class JsonReader(val data: InputStream) {
                     val name = readString(false)
                     assertEquals(skipSpace(), ':')
                     if (filter == null || filter(name)) {
-                        obj[name] = readSomething(skipSpace(), filter)
+                        obj[name] = setProperty(skipSpace(), filter)
                     } else skipSomething()
                     next = skipSpace()
                 }
@@ -206,7 +206,7 @@ open class JsonReader(val data: InputStream) {
         }
     }
 
-    fun readSomething(next: Char, filter: ((String) -> Boolean)? = null): Any? {
+    fun setProperty(next: Char, filter: ((String) -> Boolean)? = null): Any? {
         return when (next) {
             in '0'..'9', '.', '+', '-' -> {
                 putBack(next)
@@ -273,7 +273,7 @@ open class JsonReader(val data: InputStream) {
             when (next) {
                 ']' -> return obj
                 ',' -> {}
-                else -> obj.add(readSomething(next))
+                else -> obj.add(setProperty(next))
             }
             next = skipSpace()
         }

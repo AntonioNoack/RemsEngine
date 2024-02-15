@@ -46,19 +46,13 @@ class ControllerCalibration() : Saveable() {
         writer.writeFloatArray("center", center)
     }
 
-    override fun readBoolean(name: String, value: Boolean) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "isCalibrated" -> isCalibrated = value
-            else -> super.readBoolean(name, value)
-        }
-    }
-
-    override fun readFloatArray(name: String, values: FloatArray) {
-        when (name) {
-            "dead" -> deadZone = values
-            "scale" -> scale = values
-            "center" -> center = values
-            else -> super.readFloatArray(name, values)
+            "isCalibrated" -> isCalibrated = value == true
+            "dead" -> deadZone = value as? FloatArray ?: return
+            "scale" -> scale = value as? FloatArray ?: return
+            "center" -> center = value as? FloatArray ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
@@ -68,5 +62,4 @@ class ControllerCalibration() : Saveable() {
             registerCustomClass(ControllerCalibration())
         }
     }
-
 }

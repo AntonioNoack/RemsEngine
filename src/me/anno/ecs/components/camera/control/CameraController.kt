@@ -84,13 +84,6 @@ abstract class CameraController : Component(), InputListener {
         writer.writeObject(null, "camera", camera)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
-        when (name) {
-            "camera" -> camera = value as? Camera
-            else -> super.readObject(name, value)
-        }
-    }
-
     /**
      * can prevent velocities from being applied, e.g., when running against a wall (like in Digital Campus)
      * */

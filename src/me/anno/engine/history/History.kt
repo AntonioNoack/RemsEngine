@@ -97,21 +97,15 @@ abstract class History<V : Any> : Saveable() {
         )
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "nextInsertIndex" -> nextInsertIndex = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readSomething(name: String, value: Any?) {
-        when (name) {
+            "nextInsertIndex" -> nextInsertIndex = value as? Int ?: return
             "state" -> states.add(filter(value) ?: return)
             "states" -> {
                 states.clear()
                 states.addAll((value as Array<*>).mapNotNull { filter(it) })
             }
-            else -> super.readSomething(name, value)
+            else -> super.setProperty(name, value)
         }
     }
 

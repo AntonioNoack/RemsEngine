@@ -18,9 +18,9 @@ class EnumSerializationTest : Saveable() {
         saveSerializableProperties(writer)
     }
 
-    override fun readSomething(name: String, value: Any?) {
+    override fun setProperty(name: String, value: Any?) {
         if (!readSerializableProperty(name, value)) {
-            super.readSomething(name, value)
+            super.setProperty(name, value)
         }
     }
 

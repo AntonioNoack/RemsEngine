@@ -2,7 +2,6 @@ package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.render.NodeGroup
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -80,17 +79,11 @@ open class Graph : PrefabSaveable() {
             }
             if (nodes1.add(node)) {
                 add(node)
-                val inputs = node.inputs
-                if (inputs != null) {
-                    for (c in inputs) {
-                        process(c)
-                    }
+                for (c in node.inputs) {
+                    process(c)
                 }
-                val outputs = node.outputs
-                if (outputs != null) {
-                    for (c in outputs) {
-                        process(c)
-                    }
+                for (c in node.outputs) {
+                    process(c)
                 }
             }
         }
@@ -122,17 +115,19 @@ open class Graph : PrefabSaveable() {
         writer.writeObjectList(null, "groups", groups)
     }
 
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
             "nodes" -> {
+                val values = value as? Array<*> ?: return
                 nodes.clear()
                 nodes.addAll(values.filterIsInstance<Node>())
             }
             "groups" -> {
+                val values = value as? Array<*> ?: return
                 groups.clear()
                 groups.addAll(values.filterIsInstance<NodeGroup>())
             }
-            else -> super.readObjectArray(name, values)
+            else -> super.setProperty(name, value)
         }
     }
 

@@ -126,9 +126,10 @@ abstract class Node() : PrefabSaveable() {
         writer.writeVector3d("position", position)
     }
 
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        when (name) {
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
             "inputs" -> {
+                val values = value as? Array<*> ?: return
                 val newbies = values.filterIsInstance<NodeInput>()
                 for (i in newbies.indices) {
                     val newbie = newbies[i]
@@ -144,6 +145,7 @@ abstract class Node() : PrefabSaveable() {
                 inputs.addAll(newbies)
             }
             "outputs" -> {
+                val values = value as? Array<*> ?: return
                 val newbies = values.filterIsInstance<NodeOutput>()
                 for (i in newbies.indices) {
                     val newbie = newbies[i]
@@ -158,21 +160,9 @@ abstract class Node() : PrefabSaveable() {
                 outputs.clear()
                 outputs.addAll(newbies)
             }
-            else -> super.readObjectArray(name, values)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "layer" -> layer = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readVector3d(name: String, value: Vector3d) {
-        when (name) {
-            "position" -> position.set(value)
-            else -> super.readVector3d(name, value)
+            "layer" -> layer = value as? Int ?: return
+            "position" -> position.set(value as? Vector3d ?: return)
+            else -> super.setProperty(name, value)
         }
     }
 
@@ -243,10 +233,8 @@ abstract class Node() : PrefabSaveable() {
         dst.color = color
         val si = inputs
         val di = dst.inputs
-        if (si != null && di != null) {
-            for (i in 0 until min(si.size, di.size)) {
-                di[i].currValue = si[i].currValue
-            }
+        for (i in 0 until min(si.size, di.size)) {
+            di[i].currValue = si[i].currValue
         }
     }
 }

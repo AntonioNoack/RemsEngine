@@ -13,28 +13,31 @@ abstract class StringHistory : History<String>() {
     private var deltaStart = 0
     private var deltaEnd = 0
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
             "s0", "a" -> {
+                if (value !is Int) return
                 deltaStart = value
                 deltaEnd = value
             }
-            "s1", "b" -> deltaEnd = value
+            "s1", "b" -> {
+                if (value !is Int) return
+                deltaEnd = value
+            }
             "t0", "c" -> {
+                if (value !is Int) return
                 deltaStart = value
                 deltaEnd = 0
             }
-            else -> super.readInt(name, value)
+            "ds", "d" -> {
+                if (value !is String) return
+                val previous = states.last()
+                // if deltaEnd == 0, they will have the same length
+                if (deltaEnd == 0) deltaEnd = deltaStart + value.length
+                states.add(previous.substring(0, deltaStart) + value + previous.substring(deltaEnd))
+            }
+            else -> super.setProperty(name, value)
         }
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "ds" || name == "d") {
-            val previous = states.last()
-            // if deltaEnd == 0, they will have the same length
-            if (deltaEnd == 0) deltaEnd = deltaStart + value.length
-            states.add(previous.substring(0, deltaStart) + value + previous.substring(deltaEnd))
-        } else super.readString(name, value)
     }
 
     override fun saveCompressed(writer: BaseWriter, instance: String, previousInstance: String?): Boolean {
@@ -73,5 +76,4 @@ abstract class StringHistory : History<String>() {
     }
 
     override fun filter(v: Any?): String? = v as? String
-
 }

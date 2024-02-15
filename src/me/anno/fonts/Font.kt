@@ -91,24 +91,6 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
     override fun toString() =
         "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}"
 
-    override fun readFloat(name: String, value: Float) {
-        if (name == "size") size = value
-        else super.readFloat(name, value)
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "name") this.name = value
-        else super.readString(name, value)
-    }
-
-    override fun readBoolean(name: String, value: Boolean) {
-        when (name) {
-            "isBold" -> isBold = value
-            "isItalic" -> isItalic = value
-            else -> super.readBoolean(name, value)
-        }
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("name", name)
@@ -117,4 +99,13 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
         writer.writeBoolean("isItalic", isItalic)
     }
 
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "name" -> this.name = value as? String ?: return
+            "size" -> size = value as? Float ?: return
+            "isBold" -> isBold = value == true
+            "isItalic" -> isItalic = value == true
+            else -> super.setProperty(name, value)
+        }
+    }
 }

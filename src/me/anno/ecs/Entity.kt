@@ -737,39 +737,32 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         writer.writeObjectList(this, "components", components)
     }
 
-    override fun readVector3d(name: String, value: Vector3d) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "position" -> transform.localPosition = value
-            "scale" -> transform.localScale = value
-            else -> super.readVector3d(name, value)
-        }
-    }
-
-    override fun readQuaterniond(name: String, value: Quaterniond) {
-        if (name == "rotation") transform.localRotation = value
-        else super.readQuaterniond(name, value)
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        when (name) {
+            "position" -> transform.localPosition = value as? Vector3d ?: return
+            "scale" -> transform.localScale = value as? Vector3d ?: return
+            "rotation" -> transform.localRotation = value as? Quaterniond ?: return
             "children" -> {
+                val values = value as? Array<*> ?: return
                 internalChildren.clear()
                 internalChildren.ensureCapacity(values.size)
-                for (value in values) {
-                    if (value is Entity) {
-                        addChild(value)
+                for (valueI in values) {
+                    if (valueI is Entity) {
+                        addChild(valueI)
                     }
                 }
             }
             "components" -> {
+                val values = value as? Array<*> ?: return
                 internalComponents.clear()
                 internalComponents.ensureCapacity(values.size)
-                for (value in values) {
-                    if (value is Component) {
-                        addComponent(value)
+                for (valueI in values) {
+                    if (valueI is Component) {
+                        addComponent(valueI)
                     }
                 }
             }
+            else -> super.setProperty(name, value)
         }
     }
 

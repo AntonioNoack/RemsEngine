@@ -22,23 +22,15 @@ abstract class ConfigEntry : Saveable() {
         writer.writeString("comment", comment)
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "version" -> version = value
-            else -> super.readInt(name, value)
+            "version" -> version = value as? Int ?: return
+            "id" -> id = value as? String ?: return
+            "name" -> this.name = value as? String ?: return
+            "description" -> description = value as? String ?: return
+            "group" -> group = value as? String ?: return
+            "comment" -> comment = value as? String ?: return
+            else -> super.setProperty(name, value)
         }
     }
-
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "id" -> id = value
-            "name" -> this.name = value
-            "description" -> description = value
-            "group" -> group = value
-            "comment" -> comment = value
-            else -> super.readString(name, value)
-        }
-    }
-
-
 }

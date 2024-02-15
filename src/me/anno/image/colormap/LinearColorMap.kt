@@ -3,8 +3,8 @@ package me.anno.image.colormap
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.Color.black
-import me.anno.utils.Color.mixARGBRandomly
 import me.anno.utils.Color.hasAlpha
+import me.anno.utils.Color.mixARGBRandomly
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -72,23 +72,17 @@ class LinearColorMap(
         writer.writeFloat("max", max)
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "negInfColor" -> negInfColor = value
-            "minColor" -> minColor = value
-            "zeroColor" -> zeroColor = value
-            "maxColor" -> maxColor = value
-            "posInfColor" -> posInfColor = value
-            "nanColor" -> nanColor = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "min" -> min = value
-            "max" -> max = value
-            else -> super.readFloat(name, value)
+            "negInfColor" -> negInfColor = value as? Int ?: return
+            "minColor" -> minColor = value as? Int ?: return
+            "zeroColor" -> zeroColor = value as? Int ?: return
+            "maxColor" -> maxColor = value as? Int ?: return
+            "posInfColor" -> posInfColor = value as? Int ?: return
+            "nanColor" -> nanColor = value as? Int ?: return
+            "min" -> min = value as? Float ?: return
+            "max" -> max = value as? Float ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
@@ -100,5 +94,4 @@ class LinearColorMap(
         const val posInfColor = 0xffff77 or black
         val default = LinearColorMap(0f, 1f, negInfColor, minColor, black, maxColor, posInfColor, nanColor)
     }
-
 }

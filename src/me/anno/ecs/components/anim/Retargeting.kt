@@ -407,25 +407,15 @@ class Retargeting : PrefabSaveable(), Renderable {
         }
     }
 
-    override fun readFile(name: String, value: FileReference) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "srcSkeleton" -> srcSkeleton = value
-            "dstSkeleton" -> dstSkeleton = value
-            else -> super.readFile(name, value)
-        }
-    }
-
-    override fun readStringArray(name: String, values: Array<String>) {
-        when (name) {
-            "dstBoneIndexToSrcName" -> dstBoneIndexToSrcName = values
-            else -> super.readStringArray(name, values)
-        }
-    }
-
-    override fun readQuaternionfArray(name: String, values: Array<Quaternionf>) {
-        when (name) {
-            "dstBoneRotations" -> dstBoneRotations = values
-            else -> super.readQuaternionfArray(name, values)
+            "srcSkeleton" -> srcSkeleton = value as? FileReference ?: InvalidRef
+            "dstSkeleton" -> dstSkeleton = value as? FileReference ?: InvalidRef
+            "dstBoneIndexToSrcName" -> dstBoneIndexToSrcName =
+                (value as? Array<*>)?.filterIsInstance<String>()?.toTypedArray()
+            "dstBoneRotations" -> dstBoneRotations =
+                (value as? Array<*>)?.filterIsInstance<Quaternionf>()?.toTypedArray()
+            else -> super.setProperty(name, value)
         }
     }
 

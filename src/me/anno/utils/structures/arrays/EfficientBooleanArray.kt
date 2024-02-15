@@ -15,8 +15,8 @@ class EfficientBooleanArray(var size: Int) : Saveable() {
 
     constructor() : this(0)
 
-    constructor(size: Int, value: Boolean): this(size){
-        if(value){
+    constructor(size: Int, value: Boolean) : this(size) {
+        if (value) {
             for (i in values.indices) {
                 values[i] = -1
             }
@@ -25,7 +25,7 @@ class EfficientBooleanArray(var size: Int) : Saveable() {
 
     constructor(size: Int, filler: (index: Int) -> Boolean) : this(size) {
         for (i in 0 until size) {
-            if(filler(i)){
+            if (filler(i)) {
                 this[i] = true
             }
         }
@@ -49,17 +49,11 @@ class EfficientBooleanArray(var size: Int) : Saveable() {
         writer.writeIntArray("values", values)
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "size" -> size = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readIntArray(name: String, values: IntArray) {
-        when (name) {
-            "values" -> this.values = values
-            else -> super.readIntArray(name, values)
+            "size" -> size = value as? Int ?: return
+            "values" -> values = value as? IntArray ?: return
+            else -> super.setProperty(name, value)
         }
     }
 

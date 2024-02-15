@@ -11,13 +11,15 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -30,9 +32,6 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
-import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
@@ -266,19 +265,19 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
         writer.writeObjectList(this, "panels", windowStack.map { it.panel })
     }
 
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
             "panels" -> {
+                val values = value as? Array<*> ?: return
                 windowStack.clear()
                 windowStack.addAll(
-                    values.filterIsInstance<Panel>()
-                        .map {
-                            it.parent = this
-                            Window(it, isTransparent, windowStack, it.x, it.y)
-                        }
+                    values.filterIsInstance<Panel>().map {
+                        it.parent = this
+                        Window(it, isTransparent, windowStack, it.x, it.y)
+                    }
                 )
             }
-            else -> super.readObjectArray(name, values)
+            else -> super.setProperty(name, value)
         }
     }
 

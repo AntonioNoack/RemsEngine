@@ -47,21 +47,14 @@ abstract class MSG0Packet : Packet {
         writer.writeString("message", message)
     }
 
-    override fun readLong(name: String, value: Long) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "sender" -> sender = value
-            "receiver" -> receiver = value
-            else -> super.readLong(name, value)
+            "sender" -> sender = value as? Long ?: return
+            "receiver" -> receiver = value as? Long ?: return
+            "senderName" -> senderName = value as? String ?: return
+            "receiverName" -> receiverName = value as? String ?: return
+            "message" -> message = value as? String ?: return
+            else -> super.setProperty(name, value)
         }
     }
-
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "senderName" -> senderName = value
-            "receiverName" -> receiverName = value
-            "message" -> message = value
-            else -> super.readString(name, value)
-        }
-    }
-
 }

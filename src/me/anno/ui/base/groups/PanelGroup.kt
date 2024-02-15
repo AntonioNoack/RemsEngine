@@ -133,16 +133,17 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         writer.writeObjectList(null, "children", children)
     }
 
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
             "children" -> {
+                val values = value as? Array<*> ?: return
                 val children = children
                 if (children is MutableList) {
                     children.clear()
                     children.addAll(values.filterIsInstance<Panel>())
                 }
             }
-            else -> super.readObjectArray(name, values)
+            else -> super.setProperty(name, value)
         }
     }
 

@@ -49,7 +49,7 @@ open class StringMap(
         }
     }
 
-    override fun readSomething(name: String, value: Any?) {
+    override fun setProperty(name: String, value: Any?) {
         if (name != "notice") synchronized(this) {
             onSyncAccess()
             map[name] = value

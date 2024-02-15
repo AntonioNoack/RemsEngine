@@ -26,12 +26,15 @@ open class Player : Component() {
         writer.writeObject(null, "persistent", persistentInfo)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
-        if (name == "persistent") {
-            if (value !is StringMap) return
-            persistentInfo.clear()
-            persistentInfo.putAll(value)
-        } else super.readObject(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "persistent" -> {
+                if (value !is StringMap) return
+                persistentInfo.clear()
+                persistentInfo.putAll(value)
+            }
+            else -> super.setProperty(name, value)
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -45,5 +48,4 @@ open class Player : Component() {
     }
 
     override val className: String get() = "Player"
-
 }

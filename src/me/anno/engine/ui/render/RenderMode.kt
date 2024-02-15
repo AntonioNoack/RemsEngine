@@ -64,6 +64,7 @@ class RenderMode(
 
         val values = ArrayList<RenderMode>()
 
+        // todo glass shadows are missing :/
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
@@ -477,6 +478,8 @@ class RenderMode(
         val ALL_WHITE = RenderMode("All White", Material().apply {
             enableVertexColors = false
         })
+
+        // todo render mode / post-processing for anime outlines
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
 

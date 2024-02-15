@@ -158,28 +158,16 @@ class BoneByBoneAnimation() : Animation() {
         writer.writeFloatArray("scales", scales ?: f0)
     }
 
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "boneCount" -> boneCount = value
-            "frameCount" -> frameCount = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readMatrix4x3f(name: String, value: Matrix4x3f) {
-        when (name) {
-            "globalTransform" -> globalTransform.set(value)
-            "globalInvTransform" -> globalInvTransform.set(value)
-            else -> super.readMatrix4x3f(name, value)
-        }
-    }
-
-    override fun readFloatArray(name: String, values: FloatArray) {
-        when (name) {
-            "rootMotion" -> translations = values
-            "rotations" -> rotations = values
-            "scales" -> scales = values
-            else -> super.readFloatArray(name, values)
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "boneCount" -> boneCount = value as? Int ?: return
+            "frameCount" -> frameCount = value as? Int ?: return
+            "globalTransform" -> globalTransform.set(value as? Matrix4x3f ?: return)
+            "globalInvTransform" -> globalInvTransform.set(value as? Matrix4x3f ?: return)
+            "rootMotion" -> translations = value as? FloatArray
+            "rotations" -> rotations = value as? FloatArray
+            "scales" -> scales = value as? FloatArray
+            else -> super.setProperty(name, value)
         }
     }
 

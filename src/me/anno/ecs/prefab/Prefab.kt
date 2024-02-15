@@ -304,68 +304,38 @@ class Prefab : Saveable {
         writer.writeObject(null, "history", history)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun setProperty(name: String, value: Any?) {
         if (!isWritable) throw ImmutablePrefabException(source)
-        when (name) {
-            "prefab" -> prefab = value.toGlobalFile()
-            "className", "class" -> clazzName = value
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readFile(name: String, value: FileReference) {
-        if (!isWritable) throw ImmutablePrefabException(source)
-        when (name) {
-            "prefab" -> prefab = value
-            else -> super.readFile(name, value)
-        }
-    }
-
-    fun readAdds(values: Array<Saveable?>) {
-        for (v in values) {
-            if (v is CAdd) {
-                adds.getOrPut(v.path) { ArrayList() }.add(v)
-            }
-        }
-    }
-
-    fun readAdds(values: List<Saveable?>) {
-        for (v in values) {
-            if (v is CAdd) {
-                adds.getOrPut(v.path) { ArrayList() }.add(v)
-            }
-        }
-    }
-
-    private fun readSets(values: Array<Saveable?>) {
-        for (v in values) {
-            if (v is CSet) {
-                val vName = v.name
-                if (vName != null) {
-                    sets[v.path, vName] = v.value
-                }
-            }
-        }
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        if (!isWritable) throw ImmutablePrefabException(source)
-        when (name) {
-            "changes" -> {
-                readAdds(values)
-                readSets(values)
-            }
-            "adds" -> readAdds(values)
-            "sets" -> readSets(values)
-            else -> super.readObjectArray(name, values)
-        }
-    }
-
-    override fun readObject(name: String, value: Saveable?) {
-        if (!isWritable) throw ImmutablePrefabException(source)
-        when (name) {
+        when(name){
+            "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
+            "className", "class" -> clazzName = value as? String ?: return
             "history" -> history = value as? ChangeHistory ?: return
-            else -> super.readObject(name, value)
+            "changes" -> {
+                val values = value as? Array<*> ?: return
+                readAdds(values.filterIsInstance<CAdd>())
+                readSets(values.filterIsInstance<CSet>())
+            }
+            "adds" -> {
+                val values = value as? Array<*> ?: return
+                readAdds(values.filterIsInstance<CAdd>())
+            }
+            "sets" -> {
+                val values = value as? Array<*> ?: return
+                readSets(values.filterIsInstance<CSet>())
+            }
+            else -> super.setProperty(name, value)
+        }
+    }
+
+    fun readAdds(values: List<CAdd>) {
+        for (v in values) {
+            adds.getOrPut(v.path) { ArrayList() }.add(v)
+        }
+    }
+
+    fun readSets(values: List<CSet>) {
+        for (v in values) {
+            sets[v.path, v.name] = v.value
         }
     }
 

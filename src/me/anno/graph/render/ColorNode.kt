@@ -36,8 +36,10 @@ class ColorNode : ComputeNode("Color", emptyList(), listOf("Vector4f", "Color", 
         writer.writeVector4f("value", value)
     }
 
-    override fun readVector4f(name: String, value: Vector4f) {
-        if (name == "value") this.value.set(value)
-        else super.readVector4f(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "value" -> this.value.set(value as? Vector4f ?: return)
+            else -> super.setProperty(name, value)
+        }
     }
 }

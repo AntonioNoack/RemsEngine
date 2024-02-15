@@ -134,8 +134,10 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         writer.writeFloat("progress", progress)
     }
 
-    override fun readFloat(name: String, value: Float) {
-        if (name == "progress") progress = value
-        else super.readFloat(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "progress" -> progress = value as? Float ?: return
+            else -> super.setProperty(name, value)
+        }
     }
 }

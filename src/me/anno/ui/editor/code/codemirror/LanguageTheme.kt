@@ -55,48 +55,38 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         writer.writeColor("cursor", cursorColor)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "name" -> this.name = value
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "background", "bg" -> backgroundColor = value
-            "numbersColor", "nCol" -> numbersColor = value
-            "numbersOddBG", "nBG0", "nBG", "nBG1" -> numbersBGColor = value
-            "numbersLineColor", "nLCol" -> numbersLineColor = value
-            "selectedBG", "selBG" -> selectedBGColor = value
-            "selectedLineBG", "selLBG" -> selectedLineBGColor = value
-            "cursorColor", "cursor" -> cursorColor = value
-            "matchingBracketColor", "mbc" -> matchingBracketColor = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readIntArray(name: String, values: IntArray) {
-        when (name) {
+            "name" -> this.name = value as? String ?: return
+            "background", "bg" -> backgroundColor = value as? Int ?: return
+            "numbersColor", "nCol" -> numbersColor = value as? Int ?: return
+            "numbersOddBG", "nBG0", "nBG", "nBG1" -> numbersBGColor = value as? Int ?: return
+            "numbersLineColor", "nLCol" -> numbersLineColor = value as? Int ?: return
+            "selectedBG", "selBG" -> selectedBGColor = value as? Int ?: return
+            "selectedLineBG", "selLBG" -> selectedLineBGColor = value as? Int ?: return
+            "cursorColor", "cursor" -> cursorColor = value as? Int ?: return
+            "matchingBracketColor", "mbc" -> matchingBracketColor = value as? Int ?: return
             "styles" -> {
-                for (i in 0 until min(values.size, styles.size)) {
-                    styles[i] = LanguageStyle(values[i])
+                when (value) {
+                    is IntArray -> {
+                        for (i in 0 until min(value.size, styles.size)) {
+                            styles[i] = LanguageStyle(value[i])
+                        }
+                    }
+                    is Array<*> -> {
+                        for (i in value.indices) {
+                            styles[i] = value[i] as? LanguageStyle ?: continue
+                        }
+                    }
                 }
             }
             "s" -> {
+                val values = value as? IntArray ?: return
                 for (i in 0 until min(values.size, styles.size)) {
                     styles[i].decode(values[i])
                 }
             }
-            else -> super.readIntArray(name, values)
+            else -> super.setProperty(name, value)
         }
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        if (name == "styles") {
-            for (i in values.indices) {
-                styles[i] = values[i] as? LanguageStyle ?: continue
-            }
-        } else super.readObjectArray(name, values)
     }
 }

@@ -21,8 +21,8 @@ class CompareNode(type: String = "?") :
     var type: String = type
         set(value) {
             field = value
-            inputs!![0].type = value
-            inputs!![1].type = value
+            inputs[0].type = value
+            inputs[1].type = value
             name = if (value == "?") "Compare"
             else "Compare $value"
         }
@@ -97,17 +97,18 @@ class CompareNode(type: String = "?") :
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("type", type)
-        writer.writeEnum("type2", compType)
+        writer.writeEnum("compType", compType)
     }
 
-    override fun readString(name: String, value: String) {
-        if (name == "type") type = value
-        else super.readString(name, value)
-    }
-
-    override fun readInt(name: String, value: Int) {
-        if (name == "type2") compType = Mode.entries.getOrNull(value) ?: compType
-        else super.readInt(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "type" -> type = value as? String ?: return
+            "compType", "type2" -> {
+                if (value !is Int) return
+                compType = Mode.entries.getOrNull(value) ?: compType
+            }
+            else -> super.setProperty(name, value)
+        }
     }
 
     companion object {

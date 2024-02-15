@@ -816,42 +816,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         dst.backgroundRadius = backgroundRadius
     }
 
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "x" -> x = value
-            "y" -> y = value
-            "w" -> width = value
-            "h" -> height = value
-            "minW" -> minW = value
-            "minH" -> minH = value
-            "visibility" -> isVisible = value != 0
-            "alignmentX" -> alignmentX = AxisAlignment.find(value) ?: alignmentX
-            "alignmentY" -> alignmentY = AxisAlignment.find(value) ?: alignmentY
-            "background" -> backgroundColor = value
-            "backgroundOutline" -> backgroundOutlineColor = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "weight" -> weight = value
-            "backgroundRadius" -> backgroundRadius = value
-            "backgroundOutlineThickness" -> backgroundOutlineThickness = value
-            else -> super.readFloat(name, value)
-        }
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "tooltip") tooltip = value.ifEmpty { null }
-        else super.readString(name, value)
-    }
-
-    override fun readObject(name: String, value: Saveable?) {
-        if (name == "tooltipPanel") tooltipPanel = value as? Panel
-        else super.readObject(name, value)
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("x", x)
@@ -873,6 +837,28 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
         writer.writeString("tooltip", tooltip ?: "")
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "weight" -> weight = value as? Float ?: return
+            "backgroundRadius" -> backgroundRadius = value as? Float ?: return
+            "backgroundOutlineThickness" -> backgroundOutlineThickness = value as? Float ?: return
+            "tooltip" -> tooltip = (value as? String)?.ifEmpty { null } ?: return
+            "tooltipPanel" -> tooltipPanel = value as? Panel
+            "x" -> x = value as? Int ?: return
+            "y" -> y = value as? Int ?: return
+            "w" -> width = value as? Int ?: return
+            "h" -> height = value as? Int ?: return
+            "minW" -> minW = value as? Int ?: return
+            "minH" -> minH = value as? Int ?: return
+            "visibility" -> isVisible = value == true
+            "alignmentX" -> alignmentX = AxisAlignment.find(value as? Int ?: return) ?: alignmentX
+            "alignmentY" -> alignmentY = AxisAlignment.find(value as? Int ?: return) ?: alignmentY
+            "background" -> backgroundColor = value as? Int ?: return
+            "backgroundOutline" -> backgroundOutlineColor = value as? Int ?: return
+            else -> super.setProperty(name, value)
+        }
     }
 
     companion object {

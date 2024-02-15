@@ -3,6 +3,7 @@ package me.anno.ui.anim
 import me.anno.Time
 import me.anno.ecs.annotations.Docs
 import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
@@ -15,10 +16,9 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
-import me.anno.fonts.Font
+import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
-import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
 import me.anno.utils.pooling.JomlPools
@@ -26,7 +26,6 @@ import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.round
 import kotlin.math.roundToInt
-import kotlin.streams.toList
 
 @Docs("Text panel with char-wise animation")
 open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
@@ -164,7 +163,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                 h = GFXx2D.getSizeY(size)
                 if (!key.text.isBlank2()) {
                     val texture = FontManager.getTexture(key, false)
-                    if (texture != null &&  texture.wasCreated) {
+                    if (texture != null && texture.wasCreated) {
                         texture.bindTrulyNearest(0)
                         val x2 = fx + (charWidth - texture.width) / 2
                         if (resetTransform) transform.set(backup)
@@ -187,7 +186,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             GFX.loadTexturesSync.pop()
 
             totalWidth = fx - (x + dxi)
-
         } else {
 
             val group = getTextGroup(text.first)
@@ -228,7 +226,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             }
 
             totalWidth = textWidth.roundToInt()
-
         }
 
         transform.set(backup)
@@ -248,23 +245,15 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         writer.writeLong("periodMillis", periodMillis)
     }
 
-    override fun readBoolean(name: String, value: Boolean) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "resetTransform" -> resetTransform = value
-            "autoRedraw" -> autoRedraw = value
-            "disableSubpixels" -> disableSubpixels = value
-            else -> super.readBoolean(name, value)
+            "resetTransform" -> resetTransform = value == true
+            "autoRedraw" -> autoRedraw = value == true
+            "disableSubpixels" -> disableSubpixels = value == true
+            "lineSpacing" -> lineSpacing = value as? Float ?: return
+            "periodMillis" -> periodMillis = value as? Long ?: return
+            else -> super.setProperty(name, value)
         }
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        if (name == "lineSpacing") lineSpacing = value
-        else super.readFloat(name, value)
-    }
-
-    override fun readLong(name: String, value: Long) {
-        if (name == "periodMillis") periodMillis = value
-        else super.readLong(name, value)
     }
 
     override val className: String get() = "AnimTextPanel"
@@ -338,5 +327,4 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
             transform.translate(-px, -py, 0f)
         }
     }
-
 }

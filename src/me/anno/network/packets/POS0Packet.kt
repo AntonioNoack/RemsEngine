@@ -66,29 +66,17 @@ open class POS0Packet : Packet {
         writer.writeFloat("vz", vz)
     }
 
-    override fun readDouble(name: String, value: Double) {
-        when (name) {
-            "px" -> px = value
-            "py" -> py = value
-            "pz" -> pz = value
-            else -> super.readDouble(name, value)
-        }
-    }
-
-    override fun readLong(name: String, value: Long) {
-        when (name) {
-            "entity" -> entity = value
-            "time" -> localTime = value
-            else -> super.readLong(name, value)
-        }
-    }
-
-    override fun readFloat(name: String, value: Float) {
-        when (name) {
-            "vx" -> vx = value
-            "vy" -> vy = value
-            "vz" -> vz = value
-            else -> super.readFloat(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "px" -> px = value as? Double ?: return
+            "py" -> py = value as? Double ?: return
+            "pz" -> pz = value as? Double ?: return
+            "entity" -> entity = value as? Long ?: return
+            "time" -> entity = value as? Long ?: return
+            "vx" -> vx = value as? Float ?: return
+            "vy" -> vy = value as? Float ?: return
+            "vz" -> vz = value as? Float ?: return
+            else -> super.setProperty(name, value)
         }
     }
 

@@ -32,14 +32,13 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
         writer.writeInt("sizeY", sizeY)
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "sizeX" -> sizeX = value
-            "sizeY" -> sizeY = value
-            else -> super.readInt(name, value)
+            "sizeX" -> sizeX = value as? Int ?: return
+            "sizeY" -> sizeY = value as? Int ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
     override val className: String get() = "SizeLimitingContainer"
-
 }

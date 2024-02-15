@@ -29,6 +29,17 @@ open class LanguageStyle(
         writer.writeBoolean("italic", italic, false)
     }
 
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "color" -> color = value as? Int ?: return
+            "squiggles" -> squiggles = value == true
+            "underlined" -> underlined = value == true
+            "bold" -> bold = value == true
+            "italic" -> italic = value == true
+            else -> super.setProperty(name, value)
+        }
+    }
+
     fun encode(): Int {
         return color.and(0xffffff) + (squiggles.toInt(8) + underlined.toInt(4) + bold.toInt(2)
                 + italic.toInt(1)).shl(24)
@@ -40,23 +51,6 @@ open class LanguageStyle(
         underlined = v.and(1 shl 26) > 0
         bold = v.and(1 shl 25) > 0
         italic = v.and(1 shl 24) > 0
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "color" -> color = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readBoolean(name: String, value: Boolean) {
-        when (name) {
-            "squiggles" -> squiggles = value
-            "underlined" -> underlined = value
-            "bold" -> bold = value
-            "italic" -> italic = value
-            else -> super.readBoolean(name, value)
-        }
     }
 
     fun isSimple() = !bold && !italic && !squiggles && !underlined

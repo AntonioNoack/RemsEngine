@@ -82,25 +82,25 @@ class XMLStringReader(val data: CharSequence) {
     private fun readValue(instance: Saveable, name: String, type: String, value: String) {
         when (type) {
             // todo implement all types
-            "b" -> instance.readBoolean(name, value.equals("true", true) || value.equals("1", true))
-            "i" -> instance.readInt(name, value.toInt())
-            "i[]" -> instance.readIntArray(
+            "b" -> instance.setProperty(name, value.equals("true", true) || value.equals("1", true))
+            "i" -> instance.setProperty(name, value.toInt())
+            "i[]" -> instance.setProperty(
                 name, a1(value, { IntArray(it) }, { vs, i, v -> vs[i] = v.toInt() })
             )
-            "l" -> instance.readLong(name, value.toLong())
-            "l[]" -> instance.readLongArray(
+            "l" -> instance.setProperty(name, value.toLong())
+            "l[]" -> instance.setProperty(
                 name, a1(value, { LongArray(it) }, { vs, i, v -> vs[i] = v.toLong() })
             )
-            "f" -> instance.readFloat(name, value.toFloat())
-            "f[]" -> instance.readFloatArray(
+            "f" -> instance.setProperty(name, value.toFloat())
+            "f[]" -> instance.setProperty(
                 name, a1(value, { FloatArray(it) }, { vs, i, v -> vs[i] = v.toFloat() })
             )
-            "d" -> instance.readDouble(name, value.toDouble())
-            "d[]" -> instance.readDoubleArray(
+            "d" -> instance.setProperty(name, value.toDouble())
+            "d[]" -> instance.setProperty(
                 name, a1(value, { DoubleArray(it) }, { vs, i, v -> vs[i] = v.toDouble() })
             )
-            "S" -> instance.readString(name, value)
-            "S[]" -> instance.readStringArray(
+            "S" -> instance.setProperty(name, value)
+            "S[]" -> instance.setProperty(
                 name, a1(value, { Array(it) { "" } }, { vs, i, v -> vs[i] = v })
             ) // todo unescape commas
             else -> LOGGER.warn("Unknown type {}", type)

@@ -38,9 +38,11 @@ open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
         writer.writeString("reason", reason)
     }
 
-    override fun readString(name: String, value: String) {
-        if (name == "reason") reason = value
-        else super.readString(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "reason" -> reason = value as? String ?: return
+            else -> super.setProperty(name, value)
+        }
     }
 
     override val className: String get() = "ClosePacket"
@@ -48,5 +50,4 @@ open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
     companion object {
         private val LOGGER = LogManager.getLogger(ClosePacket::class)
     }
-
 }

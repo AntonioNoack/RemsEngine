@@ -1,9 +1,9 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.mesh.Triangulation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.clamp
+import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
@@ -169,29 +169,20 @@ class PathProfile() : Saveable() {
         writer.writeIntArray("colors", colors.toIntArray())
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "width" -> width = value
-            else -> super.readFloat(name, value)
+            "width" -> width = value as? Float ?: return
+            "flatShading" -> flatShading = value == true
+            "isClosed" -> isClosed = value == true
+            "positions" -> {
+                val values = value as? Array<*> ?: return
+                positions = values.filterIsInstance<Vector2f>()
+            }
+            "colors" -> {
+                val values = value as? IntArray ?: return
+                colors = values.toList()
+            }
+            else -> super.setProperty(name, value)
         }
     }
-
-    override fun readBoolean(name: String, value: Boolean) {
-        when (name) {
-            "flatShading" -> flatShading = value
-            "isClosed" -> isClosed = false
-            else -> super.readBoolean(name, value)
-        }
-    }
-
-    override fun readVector2fArray(name: String, values: Array<Vector2f>) {
-        if (name == "positions") positions = values.toList()
-        else super.readVector2fArray(name, values)
-    }
-
-    override fun readIntArray(name: String, values: IntArray) {
-        if (name == "colors") colors = values.toList()
-        else super.readIntArray(name, values)
-    }
-
 }

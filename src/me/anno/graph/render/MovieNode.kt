@@ -1,13 +1,14 @@
 package me.anno.graph.render
 
+import me.anno.ecs.annotations.Type
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.FileInput
-import me.anno.ui.Style
 import org.joml.Vector2f
 import org.joml.Vector4f
 
@@ -24,6 +25,7 @@ class MovieNode : CalculationNode(
         setInput(2, 0f)
     }
 
+    @Type("Texture/Reference")
     var file: FileReference = InvalidRef
 
     override fun calculate(): Vector4f {
@@ -40,12 +42,13 @@ class MovieNode : CalculationNode(
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFile("textures/fileExplorer", file)
+        writer.writeFile("file", file)
     }
 
-    override fun readFile(name: String, value: FileReference) {
-        if (name == "textures/fileExplorer") file = value
-        else super.readFile(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "file" -> file = value as? FileReference ?: InvalidRef
+            else -> super.setProperty(name, value)
+        }
     }
-
 }

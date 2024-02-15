@@ -1,8 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
@@ -13,6 +10,9 @@ import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
+import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -31,6 +31,7 @@ import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Strings.iff
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
@@ -423,12 +424,8 @@ object Renderers {
                                 3 -> "data"
                                 else -> "data.rgb;\n"
                             } + ";\n" +
-                            (if (type.highDynamicRange) {
-                                "color /= (1.0+abs(color));\n"
-                            } else "") +
-                            (if (type == DeferredLayerType.MOTION) {
-                                "color += 0.5;\n"
-                            } else "") +
+                            "color /= (1.0+abs(color));\n".iff(type.highDynamicRange) +
+                            "color += 0.5;\n".iff(type == DeferredLayerType.MOTION) +
                             "   result = vec4(color, 1.0);\n" +
                             "}"
                 )

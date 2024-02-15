@@ -18,12 +18,11 @@ open class NamedSaveable : Saveable() {
         writer.writeString("desc", description)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "name" -> this.name = value
-            "desc", "description" -> this.description = value
-            else -> super.readString(name, value)
+            "name" -> this.name = value as? String ?: return
+            "desc", "description" -> this.description = value as? String ?: return
+            else -> super.setProperty(name, value)
         }
     }
-
 }

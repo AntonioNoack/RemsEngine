@@ -2,7 +2,6 @@ package me.anno.network
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.network.Protocol.Companion.convertMagic
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
@@ -69,7 +68,6 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
     }
 
     open fun onReceive(server: Server?, client: TCPClient) {
-
     }
 
     open fun onReceiveUDP(server: Server?, client: TCPClient, sendResponse: (packet: Packet) -> Unit) {
@@ -104,9 +102,11 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
         writer.writeInt("magic", bigEndianMagic)
     }
 
-    override fun readInt(name: String, value: Int) {
-        if (name == "magic") bigEndianMagic = value
-        else super.readInt(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "magic" -> bigEndianMagic = value as? Int ?: return
+            else -> super.setProperty(name, value)
+        }
     }
 
     companion object {
@@ -119,5 +119,4 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
         @JvmField
         var debugPackets = false
     }
-
 }

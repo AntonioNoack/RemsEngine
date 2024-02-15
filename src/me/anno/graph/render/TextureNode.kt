@@ -66,12 +66,13 @@ class TextureNode : CalculationNode(
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFile("textures/fileExplorer", file)
+        writer.writeFile("file", file)
     }
 
-    override fun readFile(name: String, value: FileReference) {
-        if (name == "textures/fileExplorer") file = value
-        else super.readFile(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "file" -> file = value as? FileReference ?: InvalidRef
+            else -> super.setProperty(name, value)
+        }
     }
-
 }

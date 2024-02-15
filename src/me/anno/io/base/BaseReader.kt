@@ -54,7 +54,7 @@ abstract class BaseReader {
             val missingReferences = missingReferences[ptr]
             if (missingReferences != null) {
                 for ((obj, name) in missingReferences) {
-                    obj.readObject(name, value)
+                    obj.setProperty(name, value)
                 }
             }
         } else LOGGER.warn("Got object with uuid 0: $value, it will be ignored")

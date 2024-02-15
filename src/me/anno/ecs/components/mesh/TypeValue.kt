@@ -176,13 +176,14 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
         writer.writeSomething(this, "value", value, true)
     }
 
-    override fun readInt(name: String, value: Int) {
-        if (name == "type") type = GLSLType.entries.firstOrNull { it.id == value } ?: type
-        else super.readInt(name, value)
-    }
-
-    override fun readSomething(name: String, value: Any?) {
-        if (name == "value" && value != null) this.value = value
-        else super.readSomething(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "value" -> this.value = value ?: return
+            "type" -> {
+                if (value !is Int) return
+                type = GLSLType.entries.firstOrNull { it.id == value } ?: type
+            }
+            else -> super.setProperty(name, value)
+        }
     }
 }

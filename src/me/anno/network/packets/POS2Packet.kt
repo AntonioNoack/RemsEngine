@@ -15,7 +15,7 @@ open class POS2Packet : POS1Packet {
     override val size: Int = super.size + 4 * 4
     override val constantSize: Boolean = true
 
-    // second rotation, e.g. for body
+    // second rotation, e.g., for body
     var sx = 0f
     var sy = 0f
     var sz = 0f
@@ -45,16 +45,15 @@ open class POS2Packet : POS1Packet {
         writer.writeFloat("sw", sw)
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "sx" -> sx = value
-            "sy" -> sy = value
-            "sz" -> sz = value
-            "sw" -> sw = value
-            else -> super.readFloat(name, value)
+            "sx" -> sx = value as? Float ?: return
+            "sy" -> sy = value as? Float ?: return
+            "sz" -> sz = value as? Float ?: return
+            "sw" -> sw = value as? Float ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
     override val className: String get() = "POS2Packet"
-
 }

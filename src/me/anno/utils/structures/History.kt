@@ -60,21 +60,16 @@ class History<V> : Saveable {
         writer.writeObjectList(null, "values", values.filterIsInstance<Saveable>())
     }
 
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "index" -> index = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        when (name) {
+    override fun setProperty(name: String, value: Any?) {
+        when(name){
+            "index" -> index = value as? Int ?: return
             "values" -> {
+                val values = value as? Array<*> ?: return
                 this.values.clear()
                 @Suppress("unchecked_cast")
                 this.values.addAll(values.toList() as List<V>)
             }
-            else -> super.readObjectArray(name, values)
+            else -> super.setProperty(name, value)
         }
     }
 }

@@ -35,20 +35,22 @@ abstract class Change : Saveable() {
         writer.writeObject(null, "path", path)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
-        if (name == "path" && value is Path) {
-            path = value
-        } else super.readObject(name, value)
-    }
-
-    override fun readString(name: String, value: String) {
-        if (name == "path") {
-            try {
-                path = Path.fromString(value)
-            } catch (e: ParseException) {
-                super.readString(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "path" -> {
+                when (value) {
+                    is Path -> path = value
+                    is String -> {
+                        try {
+                            path = Path.fromString(value)
+                        } catch (e: ParseException) {
+                            super.setProperty(name, value)
+                        }
+                    }
+                    // else ignored
+                }
             }
-        } else super.readString(name, value)
+            else -> super.setProperty(name, value)
+        }
     }
-
 }

@@ -15,7 +15,7 @@ open class POS1Packet : POS0Packet {
     override val size: Int = super.size + 4 * 4
     override val constantSize: Boolean = true
 
-    // rotation quaternion, e.g. for head
+    // rotation quaternion, e.g.. for head
     var rx = 0f
     var ry = 0f
     var rz = 0f
@@ -45,16 +45,15 @@ open class POS1Packet : POS0Packet {
         writer.writeFloat("rw", rw)
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "rx" -> rx = value
-            "ry" -> ry = value
-            "rz" -> rz = value
-            "rw" -> rw = value
-            else -> super.readFloat(name, value)
+            "rx" -> rx = value as? Float ?: return
+            "ry" -> ry = value as? Float ?: return
+            "rz" -> rz = value as? Float ?: return
+            "rw" -> rw = value as? Float ?: return
+            else -> super.setProperty(name, value)
         }
     }
 
     override val className: String get() = "POS1Packet"
-
 }

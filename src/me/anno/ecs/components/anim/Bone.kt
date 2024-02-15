@@ -74,23 +74,6 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     override val approxSize get() = 1
 
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "id" -> id = value
-            "parentId" -> parentId = value
-            else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readMatrix4x3f(name: String, value: Matrix4x3f) {
-        when (name) {
-            "bindPose" -> setBindPose(value)
-            "relativeTransform" -> relativeTransform.set(value)
-            "originalTransform" -> originalTransform.set(value)
-            else -> super.readMatrix4x3f(name, value)
-        }
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("id", id)
@@ -98,6 +81,17 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         writer.writeMatrix4x3f("bindPose", bindPose)
         writer.writeMatrix4x3f("relativeTransform", relativeTransform)
         writer.writeMatrix4x3f("originalTransform", originalTransform)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "id" -> id = value as? Int ?: return
+            "parentId" -> parentId = value as? Int ?: return
+            "bindPose" -> setBindPose(value as? Matrix4x3f ?: return)
+            "relativeTransform" -> relativeTransform.set(value as? Matrix4x3f ?: return)
+            "originalTransform" -> originalTransform.set(value as? Matrix4x3f ?: return)
+            else -> super.setProperty(name, value)
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {

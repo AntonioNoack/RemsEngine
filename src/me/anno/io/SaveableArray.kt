@@ -13,16 +13,20 @@ class SaveableArray() : Saveable(), MutableList<Saveable> {
         values.addAll(children)
     }
 
-    override fun readObjectArray(name: String, values: Array<Saveable?>) {
-        if (name == "values") {
-            this.values.clear()
-            this.values.addAll(values.filterNotNull())
-        } else super.readObjectArray(name, values)
-    }
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObjectList(null, "values", values, false)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "values" -> {
+                val values = value as? Array<*> ?: return
+                this.values.clear()
+                this.values.addAll(values.filterIsInstance<Saveable>())
+            }
+            else -> super.setProperty(name, value)
+        }
     }
 
     override val size = values.size
@@ -60,5 +64,4 @@ class SaveableArray() : Saveable(), MutableList<Saveable> {
     fun clone(): SaveableArray {
         return JsonStringReader.readFirst(JsonStringWriter.toText(this as Saveable, InvalidRef), InvalidRef, false)
     }
-
 }

@@ -9,10 +9,10 @@ import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(
@@ -84,9 +84,14 @@ abstract class MathNode<V : Enum<V>>(
         writer.writeEnum("type", type)
     }
 
-    override fun readInt(name: String, value: Int) {
-        if (name == "type") type = data.byId[value] ?: type
-        else super.readInt(name, value)
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "type" -> {
+                if (value !is Int) return
+                type = data.byId[value] ?: type
+            }
+            else -> super.setProperty(name, value)
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -95,5 +100,4 @@ abstract class MathNode<V : Enum<V>>(
         dst as MathNode<V>
         dst.type = type
     }
-
 }
