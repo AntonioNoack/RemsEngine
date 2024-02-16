@@ -30,6 +30,8 @@ class HierarchyTests {
 
     @BeforeEach
     fun init() {
+        OfficialExtensions.register()
+        ExtensionLoader.load()
         ECSRegistry.init()
     }
 

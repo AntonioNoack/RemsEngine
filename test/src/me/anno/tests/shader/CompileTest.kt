@@ -22,10 +22,12 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.AutoTileableShader
 import me.anno.ecs.components.shaders.PlanarShader
 import me.anno.ecs.components.shaders.Skybox
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -125,6 +127,8 @@ class CompileTest {
 
     @Test
     fun runTest() {
+        OfficialExtensions.register()
+        ExtensionLoader.load()
         HiddenOpenGLContext.createOpenGL()
         val printResults = false
         val dst = desktop.getChild("CompileTest")

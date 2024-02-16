@@ -47,8 +47,10 @@ class CSet() : Change() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        this.name = name
-        this.value = value
+        if (name != "path" || value !is Path) {
+            this.name = name
+            this.value = value
+        } else super.setProperty(name, value)
     }
 
     override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {

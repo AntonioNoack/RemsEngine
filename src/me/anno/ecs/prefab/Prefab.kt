@@ -5,12 +5,12 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -306,21 +306,13 @@ class Prefab : Saveable {
 
     override fun setProperty(name: String, value: Any?) {
         if (!isWritable) throw ImmutablePrefabException(source)
-        when(name){
+        when (name) {
             "prefab" -> prefab = (value as? String)?.toGlobalFile() ?: (value as? FileReference) ?: InvalidRef
             "className", "class" -> clazzName = value as? String ?: return
             "history" -> history = value as? ChangeHistory ?: return
-            "changes" -> {
+            "adds", "sets", "changes" -> {
                 val values = value as? Array<*> ?: return
                 readAdds(values.filterIsInstance<CAdd>())
-                readSets(values.filterIsInstance<CSet>())
-            }
-            "adds" -> {
-                val values = value as? Array<*> ?: return
-                readAdds(values.filterIsInstance<CAdd>())
-            }
-            "sets" -> {
-                val values = value as? Array<*> ?: return
                 readSets(values.filterIsInstance<CSet>())
             }
             else -> super.setProperty(name, value)

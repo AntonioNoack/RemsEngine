@@ -60,7 +60,9 @@ object FileWatch {
                     Pair(key, if (neverDisable) null else ArrayList())
                 }.second?.add(original)
             }
-        } else addWatchDog(file.getParent() ?: return, original)
+        } else if (file != FileRootRef && file != InvalidRef) {
+            addWatchDog(file.getParent(), original)
+        }
     }
 
     private fun removeWatchDog(file: FileReference, original: FileReference) {
@@ -83,7 +85,9 @@ object FileWatch {
                     }
                 }
             }
-        } else removeWatchDog(file.getParent() ?: return, original)
+        } else if (file != FileRootRef && file != InvalidRef) {
+            removeWatchDog(file.getParent(), original)
+        }
     }
 
     init {

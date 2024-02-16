@@ -36,6 +36,13 @@ class AutoRefTest {
         val asFile = InnerTmpTextFile(asText, "json")
 
         val prefab = PrefabCache[asFile]!!
+
+        println(scene.prefab!!.adds)
+        println(prefab.adds)
+
+        println(scene.prefab!!.sets)
+        println(prefab.sets)
+
         prefab.invalidateInstance()
         compare(scene, prefab.createInstance() as Entity)
 
