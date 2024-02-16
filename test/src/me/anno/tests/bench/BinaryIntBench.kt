@@ -24,8 +24,11 @@ fun main() {
             writer.writeIntArray("x", x!!)
         }
 
-        override fun readIntArray(name: String, values: IntArray) {
-            x = values
+        override fun setProperty(name: String, value: Any?) {
+           when(name){
+               "x" -> x = value as? IntArray
+               else -> super.setProperty(name, value)
+           }
         }
     }
     registerCustomClass(TestClass())

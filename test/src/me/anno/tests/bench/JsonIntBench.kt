@@ -42,8 +42,8 @@ fun main() {
 
         lateinit var asInts: IntArray
         JsonStringReader(asText, InvalidRef).readProperty(object : Saveable() {
-            override fun readIntArray(name: String, values: IntArray) {
-                asInts = values
+            override fun setProperty(name: String, value: Any?) {
+                asInts = value as? IntArray ?: return super.setProperty(name, value)
             }
 
             override fun isDefaultValue(): Boolean = false
@@ -58,7 +58,5 @@ fun main() {
                 throw Exception()
             }
         }
-
     }
-
 }

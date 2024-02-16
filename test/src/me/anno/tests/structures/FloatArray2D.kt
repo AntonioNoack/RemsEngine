@@ -18,10 +18,12 @@ fun main() {
     val reader = JsonStringReader(writer.toString(), InvalidRef)
     reader.readProperty(object : Saveable() {
 
-        override fun readFloatArray2D(name: String, values: Array<FloatArray>) {
+        override fun setProperty(name: String, value: Any?) {
+            val values = value as? Array<*> ?: return
             logger.info(
                 "$name: ${
                     values.joinToString(",", "[", "]") { fa ->
+                        fa as FloatArray
                         fa.joinToString(",", "[", "]") { it.toInt().toString() }
                     }
                 }"
@@ -37,6 +39,4 @@ fun main() {
     mesh.positions = FloatArray(18) { it.toFloat() % 5f }
     mesh.indices = IntArray(10) { it }
     logger.info(JsonStringWriter.toText(mesh, InvalidRef))
-
-
 }
