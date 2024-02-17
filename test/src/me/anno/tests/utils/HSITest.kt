@@ -1,22 +1,29 @@
 package me.anno.tests.utils
 
-import me.anno.ui.editor.color.spaces.LinearHSI
-import me.anno.tests.LOGGER
+import me.anno.ui.editor.color.spaces.HSI
 import org.joml.Vector3f
+import org.junit.jupiter.api.Test
 import kotlin.random.Random
+import kotlin.test.assertTrue
 
-fun main() {
-    // todo HSI is just broken...
-    val space = LinearHSI
-    val random = Random(1234)
-    val rgb = Vector3f()
-    for (i in 0 until 1000) {
-        rgb.x = random.nextFloat()
-        rgb.y = random.nextFloat()
-        rgb.z = random.nextFloat()
-        val internal = space.fromRGB(rgb)
-        val rgb2 = space.toRGB(internal)
-        val error = rgb.distance(rgb2)
-        if (error > 1e-3f) LOGGER.info("$rgb -> $internal -> $rgb2")
+class HSITest {
+    @Test
+    fun testHSIInvertibility() {
+        val space = HSI
+        val random = Random(1234)
+        val srcRGB = Vector3f()
+        val tmp0 = Vector3f()
+        val tmp1 = Vector3f()
+        for (i in 0 until 1000) {
+            srcRGB.set(
+                random.nextFloat(),
+                random.nextFloat(),
+                random.nextFloat()
+            )
+            val internal = space.fromRGB(srcRGB, tmp0)
+            val dstRGB = space.toRGB(internal, tmp1)
+            val error = srcRGB.distance(dstRGB)
+            assertTrue(error < 1e-3f)
+        }
     }
 }

@@ -12,11 +12,10 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
-import me.anno.ui.editor.color.spaces.LinearHSI
+import me.anno.ui.editor.color.spaces.HSI
 import me.anno.ui.input.ColorInput.Companion.pickColor
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
@@ -292,7 +291,7 @@ open class ColorChooser(
         init {
             HSLuv.toString()
             HSV.toString()
-            LinearHSI.toString()
+            HSI.toString()
         }
     }
 }

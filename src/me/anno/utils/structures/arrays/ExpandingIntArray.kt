@@ -29,6 +29,10 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
         size = 0
     }
 
+    fun removeLast(): Int {
+        return array[--size]
+    }
+
     fun add(value: Int) = plusAssign(value)
 
     fun ensureExtra(delta: Int) {
