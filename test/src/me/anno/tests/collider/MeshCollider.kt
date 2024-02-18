@@ -7,12 +7,17 @@ import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.extensions.ExtensionLoader
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS
 import org.joml.Quaterniond
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     ECSRegistry.init()
 

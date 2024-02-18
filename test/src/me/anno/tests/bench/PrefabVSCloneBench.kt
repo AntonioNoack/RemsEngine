@@ -1,12 +1,19 @@
 package me.anno.tests.bench
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     // 0.114s vs 0.723s for 10k instances, so .clone() is 7x faster than setting properties using reflections
     // -> usable slowdown :)
     Build.isShipped = true // 20% faster, because validation of duplicate names is skipped
@@ -20,4 +27,5 @@ fun main() {
         prefab.invalidateInstance()
         prefab.getSampleInstance() // has to create a new instance from CAdd+CSet, because we invalidated it
     }
+    Engine.requestShutdown()
 }

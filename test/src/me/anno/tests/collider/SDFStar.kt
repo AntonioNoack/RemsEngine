@@ -1,5 +1,7 @@
 package me.anno.tests.collider
 
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.sdf.shapes.SDFStar
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
@@ -9,6 +11,10 @@ import kotlin.math.sign
 
 /** 2d sdf test */
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     val size = 512
     val star = SDFStar()
     star.scale = size * 0.3f

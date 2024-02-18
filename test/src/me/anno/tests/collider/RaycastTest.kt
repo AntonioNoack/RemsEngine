@@ -2,7 +2,9 @@ package me.anno.tests.collider
 
 import me.anno.Engine
 import me.anno.ecs.components.collider.Collider
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQueryLocal
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -60,6 +62,10 @@ fun renderCollider(b: Collider, name: String = b.name.ifBlank { b.className }) {
 }
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     for (shape in testShapes.filter { it.name == "Monkey" }) {
         renderCollider(shape)
     }

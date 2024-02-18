@@ -1,5 +1,7 @@
 package me.anno.tests.geometry
 
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.utils.types.Triangles
@@ -7,6 +9,10 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     testSubCrossDot()
     testTriangleTest()
 }

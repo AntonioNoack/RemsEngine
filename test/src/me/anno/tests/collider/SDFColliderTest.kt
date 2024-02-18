@@ -11,7 +11,9 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQueryLocal
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
@@ -137,6 +139,10 @@ fun renderSDF(collider: Collider, name: String) {
 }
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     for (shape in testShapes) {
         var name = shape.name
         if (name.isEmpty()) name = shape.className

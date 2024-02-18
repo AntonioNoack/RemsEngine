@@ -1,11 +1,11 @@
 package me.anno.tests.audio
 
+import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.formatTime
-import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.nio.ShortBuffer
 import kotlin.math.abs
@@ -13,7 +13,6 @@ import kotlin.math.pow
 
 // a try to find all GTA V deaths... works less than ideal...
 fun main() {
-
     val sourceFile = downloads.getChild("gtav_mirrorworld.m4a")
     val findStart = 16 * 60 + 53.0
     val findEnd = 16 * 60 + 56.0
@@ -82,6 +81,4 @@ fun main() {
             println("max ${(recentMax / cross0).f3()} at ${(recentMaxTime / (2.0 * sampleRate)).formatTime(0)}")
         }
     }
-
-
 }

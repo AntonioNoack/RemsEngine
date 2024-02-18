@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
@@ -37,11 +36,13 @@ class AutoRefTest {
 
         val prefab = PrefabCache[asFile]!!
 
-        println(scene.prefab!!.adds)
-        println(prefab.adds)
+        if (false) {
+            println(scene.prefab!!.adds)
+            println(prefab.adds)
 
-        println(scene.prefab!!.sets)
-        println(prefab.sets)
+            println(scene.prefab!!.sets)
+            println(prefab.sets)
+        }
 
         prefab.invalidateInstance()
         compare(scene, prefab.createInstance() as Entity)

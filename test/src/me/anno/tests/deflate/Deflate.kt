@@ -8,7 +8,7 @@ fun main(){
     val src = getReference("C:/XAMPP/htdocs/zip/linux.zip")
     val data = src.listChildren()[0].readBytesSync()
 
-    val dst = src.getParent()!!.getChild("linux.pk")
+    val dst = src.getParent().getChild("linux.pk")
     val out = DeflaterOutputStream(dst.outputStream())
     out.write(data)
     out.finish()

@@ -1,5 +1,7 @@
 package me.anno.tests.geometry
 
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
@@ -9,6 +11,8 @@ import org.joml.AABBf
 import kotlin.math.sqrt
 
 fun main() {
+    OfficialExtensions.register()
+    ExtensionLoader.load()
     val values = FloatArray(sx * sy) {
         val xi = it % sx
         val yi = it / sx

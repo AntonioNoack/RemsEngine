@@ -3,11 +3,17 @@ package me.anno.tests.collider
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.documents
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     val scene = Entity("Monkey")
     val mesh = documents.getChild("redMonkey.glb")
     scene.add(MeshCollider(mesh))

@@ -9,12 +9,18 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
 fun main() {
-    LogManager.enableLogger("AnimatedMeshesLoader")
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
     ECSRegistry.init()
+
+    LogManager.enableLogger("AnimatedMeshesLoader")
     val project = OS.documents.getChild("RemsEngine/YandereSim")
     EngineBase.workspace = project
     val animFiles = project.getChild("Characters/anim-files/Walking.fbx")

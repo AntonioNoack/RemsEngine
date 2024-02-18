@@ -1,6 +1,8 @@
 package me.anno.tests.bench
 
 import me.anno.Time
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
@@ -23,18 +25,17 @@ fun toBytes(data: FloatBuffer): ByteArray {
 
 fun main() {
 
+    OfficialExtensions.register()
+    ExtensionLoader.load()
+
     val logger = LogManager.getLogger("SDFBenchmark")
 
     val roundEdges = false
     val font = Font("Verdana", 8f, isBold = false, isItalic = false)
     val text = "Lorem Ipsum is simply text."
 
-    Thread.sleep(8000)
-
     val t0 = Time.nanoTime
-
     val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
-
     val t1 = Time.nanoTime
     logger.info("Used ${((t1 - t0) * 1e-9)}s")
 

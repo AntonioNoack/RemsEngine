@@ -1,5 +1,7 @@
 package me.anno.tests.geometry
 
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.maths.LinearRegression.findPolynomialCoefficients
 import me.anno.utils.types.Floats.f2
@@ -9,6 +11,9 @@ import org.joml.Vector2d
 import org.joml.Vector2f
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     /**
      * - foliage can be animated by shearing, but that makes the straws longer
@@ -41,7 +46,7 @@ fun main() {
     val tx = ArrayList<Vector2f>()
     val ty = ArrayList<Vector2f>()
 
-    for (i in 0..314/2) {
+    for (i in 0..314 / 2) {
         val angle = i / 100f
         val sol = testCurvature2(steps, length, angle)
         println("${angle.f2()} ${sol.x.f5()} ${sol.y.f5()}")
@@ -58,8 +63,7 @@ fun main() {
     // draw x and y as a relation to angle, as well as y in relation to x
     val size = 512
     val th = 5
-    ImageWriter.writeImageCurve(size, size, true, 0, -1, th, xy, "foliage/me.anno.tests.getXy.png")
+    ImageWriter.writeImageCurve(size, size, true, 0, -1, th, xy, "foliage/xy.png")
     ImageWriter.writeImageCurve(size, size, true, 0, -1, th, tx, "foliage/tx.png")
     ImageWriter.writeImageCurve(size, size, true, 0, -1, th, ty, "foliage/ty.png")
-
 }

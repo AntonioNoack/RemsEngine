@@ -376,7 +376,10 @@ abstract class Image(
     }
 
     fun write(dst: OutputStream, format: String, quality: Float = 0.9f) {
-        writeImageImpl?.invoke(this, dst, format, quality)
+        val wim = writeImageImpl
+        if (wim != null) {
+            wim(this, dst, format, quality)
+        } else LOGGER.warn("Missing Image Writer")
     }
 
     override fun destroy() {}

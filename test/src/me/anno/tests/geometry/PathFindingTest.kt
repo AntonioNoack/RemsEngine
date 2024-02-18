@@ -1,6 +1,8 @@
 package me.anno.tests.geometry
 
 import me.anno.Time
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.paths.PathFinding
@@ -125,6 +127,9 @@ fun forwardV2x2(from: TestNode, callback: (TestNode, Double) -> Unit) {
 }
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     // 1) testing the implementation
     // 2) benchmarking it
