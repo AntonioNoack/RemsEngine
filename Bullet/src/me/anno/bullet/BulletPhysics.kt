@@ -264,7 +264,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 // LOGGER.debug("- ${it.prefabPath}")
             }
         }
-        val rigid2 = entity.rigidbodyComponent
+        val rigid2 = entity.getComponent(Rigidbody::class, false)
         if (rigid2 != null) {
             for (c in rigid2.constraints) {
                 val bi = c.bulletInstance

@@ -6,6 +6,9 @@ import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.utils.OS.downloads
 import java.io.File
 
+// todo constraints
+// todo vehicles
+
 @Suppress("unused")
 class BulletJMEMod : Mod() {
     companion object {

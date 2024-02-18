@@ -89,8 +89,15 @@ class BulletDebugDraw : IDebugDraw() {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        putRelativeLine(from, to, cam, worldScale, color.x, color.y, color.z)
-        // Grid.drawLine(stack, toColor(color), toLocal(from), toLocal(to))
+        LineBuffer.putRelativeLine(
+            from.x, from.y, from.z,
+            to.x, to.y, to.z,
+            cam, worldScale,
+            LineBuffer.vToByte(color.x),
+            LineBuffer.vToByte(color.y),
+            LineBuffer.vToByte(color.z),
+            LineBuffer.vToByte(1.0)
+        )
     }
 
 }
