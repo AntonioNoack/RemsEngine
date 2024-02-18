@@ -4,8 +4,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.strings.StringHelper.smallCaps
+import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.smallCaps
 
 fun main() {
     println("polyGeneLubricants".camelCaseToTitle())

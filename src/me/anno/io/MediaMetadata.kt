@@ -9,7 +9,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.formatTime
 import org.apache.logging.log4j.LogManager

@@ -3,13 +3,12 @@ package me.anno.tests.mesh
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.mesh.Shapes
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 
 /**
  * tests a mode, where a lot more meshes are supported by limiting their transform, and therefore reducing bandwidth
@@ -34,7 +33,7 @@ fun main() {
             for (tr in transforms) run(mesh, null, tr)
         }
 
-        override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray): Boolean {
+        override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList): Boolean {
             return if (Input.isShiftDown) {
                 val data = run(mesh, null)
                 data.ensureExtra(transforms.size * 8)

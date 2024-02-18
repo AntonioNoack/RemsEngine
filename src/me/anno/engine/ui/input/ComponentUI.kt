@@ -79,7 +79,7 @@ import me.anno.ui.input.TextInputML
 import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToFloat

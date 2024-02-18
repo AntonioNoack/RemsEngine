@@ -1,17 +1,16 @@
 package me.anno.mesh.vox.meshing
 
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
-import org.joml.Vector3i
 
 class VoxelMeshBuildInfo(
     // input
     val palette: IntArray?,
     // output
-    val vertices: ExpandingFloatArray,
-    val colors: ExpandingIntArray?,
-    val normals: ExpandingFloatArray?
+    val vertices: FloatArrayList,
+    val colors: IntArrayList?,
+    val normals: FloatArrayList?
 ) {
 
     var nx = 0

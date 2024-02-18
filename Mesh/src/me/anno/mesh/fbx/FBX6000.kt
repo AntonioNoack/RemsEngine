@@ -7,8 +7,8 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
 import me.anno.utils.structures.CountingInputStream
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.pop
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
@@ -145,9 +145,9 @@ object FBX6000 {
                 when (val type = (obj["MappingInformationType"] as? List<*>)?.first()) {
                     "ByPolygonVertex" -> {
                         val size = indices.size * 2
-                        val positions2 = ExpandingFloatArray(size * 3)
-                        val normals2 = ExpandingFloatArray(size * 3)
-                        val uvs2 = if (uvs1 != null) ExpandingFloatArray(size * 2) else null
+                        val positions2 = FloatArrayList(size * 3)
+                        val normals2 = FloatArrayList(size * 3)
+                        val uvs2 = if (uvs1 != null) FloatArrayList(size * 2) else null
                         val positions1 = positions0.map { it.toFloat() }.toFloatArray()
                         val normals1 = normals0.map { it.toFloat() }.toFloatArray()
                         var i0 = 0
@@ -185,7 +185,7 @@ object FBX6000 {
                         val size = indices.size * 2
                         val positions1 = positions0.map { it.toFloat() }.toFloatArray()
                         val normals1 = normals0.map { it.toFloat() }.toFloatArray()
-                        val indices2 = ExpandingIntArray(size)
+                        val indices2 = IntArrayList(size)
                         var i0 = 0
                         for (i in 2 until indices.size) {
                             val idx = indices[i]

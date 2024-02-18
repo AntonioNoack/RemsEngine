@@ -3,7 +3,7 @@ package me.anno.maths.geometry
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -65,8 +65,8 @@ object MarchingCubes {
         threshold: Float,
         bounds: AABBf,
         makeBordersUniform: Boolean,
-        dst: ExpandingFloatArray = ExpandingFloatArray(255)
-    ): ExpandingFloatArray {
+        dst: FloatArrayList = FloatArrayList(255)
+    ): FloatArrayList {
 
         // the values on the edge need to be enforced to have the same sign
         val wh = w * h
@@ -104,7 +104,7 @@ object MarchingCubes {
 
         // there is at max 1 point per edge & they will always be on edges
 
-        val edges = ExpandingFloatArray(12 * 3)
+        val edges = FloatArrayList(12 * 3)
 
         val invX = 1f / (w - 1f)
         val invY = 1f / (h - 1f)
@@ -149,8 +149,8 @@ object MarchingCubes {
         v100: Float, v101: Float, v110: Float, v111: Float,
         px: Float, py: Float, pz: Float,
         sx: Float, sy: Float, sz: Float,
-        edges: ExpandingFloatArray,
-        dst: ExpandingFloatArray
+        edges: FloatArrayList,
+        dst: FloatArrayList
     ) {
 
         val b0 = v000 >= 0f

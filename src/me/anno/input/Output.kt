@@ -1,6 +1,7 @@
 package me.anno.input
 
 import me.anno.gpu.OSWindow
+import me.anno.utils.InternalAPI
 
 object Output {
 
@@ -12,21 +13,25 @@ object Output {
         }
     }
 
+    @InternalAPI
     var systemMousePressImpl: ((Key) -> Unit)? = null
     fun systemMousePress(key: Key) {
         systemMousePressImpl?.invoke(key)
     }
 
+    @InternalAPI
     var systemMouseReleaseImpl: ((Key) -> Unit)? = null
     fun systemMouseRelease(key: Key) {
         systemMouseReleaseImpl?.invoke(key)
     }
 
+    @InternalAPI
     var systemMouseWheelImpl: ((Int) -> Unit)? = null
     fun systemMouseWheel(delta: Int) {
         systemMouseWheelImpl?.invoke(delta)
     }
 
+    @InternalAPI
     var systemMouseMoveImpl: ((OSWindow, Int, Int) -> Unit)? = null
     fun systemMouseMove(window: OSWindow, xInWindow: Int, yInWindow: Int) {
         systemMouseMoveImpl?.invoke(window, xInWindow, yInWindow)

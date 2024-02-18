@@ -1,30 +1,34 @@
 package me.anno
 
 import com.sun.jna.platform.FileUtils
+import me.anno.audio.openal.AudioManager
 import me.anno.extensions.plugins.Plugin
-import me.anno.fonts.AWTFont
 import me.anno.fonts.ContourImpl
-import me.anno.fonts.FontManager
 import me.anno.fonts.FontManagerImpl
-import me.anno.fonts.FontStats
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.images.ImageImpl
 import me.anno.images.MetadataImpl
 import me.anno.images.ThumbsImpl
-import me.anno.input.Clipboard
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.utils.TrashManager
-import me.anno.utils.files.OpenFileExternally
+import me.anno.language.spellcheck.Spellchecking
+import me.anno.ui.editor.files.FileExplorer
+import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
-import java.awt.font.FontRenderContext
-import java.awt.font.TextLayout
 import java.io.IOException
+import java.lang.management.ManagementFactory
+import javax.sound.sampled.AudioSystem
 
 // todo move all Java-exclusive things here as far as possible...
 //  (things that will be unavailable on Android/Web/KotlinNative)
+//  - ServerSockets (?)
+//  - OpenAL (?)
+//  - getReference()-Implementation?
+//  - Extension discovery?? -> hard to do as an extension...
 
 class JVMPlugin : Plugin() {
     companion object {
@@ -33,48 +37,43 @@ class JVMPlugin : Plugin() {
 
     override fun onEnable() {
         super.onEnable()
-        Clipboard.setClipboardContentImpl = ClipboardImpl::setClipboardContent
-        Clipboard.getClipboardContentImpl = ClipboardImpl::getClipboardContent
-        Clipboard.copyFilesImpl = ClipboardImpl::copyFiles
+        LOGGER.info("Process ID: ${getProcessID()}")
+        ClipboardImpl.register()
         Thumbs.registerSignature("exe", ThumbsImpl::generateSystemIcon)
-        OpenFileExternally.openInBrowserImpl = OpenFileExternallyImpl::openInBrowser
-        OpenFileExternally.openInStandardProgramImpl = OpenFileExternallyImpl::openInStandardProgram
-        OpenFileExternally.editInStandardProgramImpl = OpenFileExternallyImpl::editInStandardProgram
-        OpenFileExternally.openInExplorerImpl = OpenFileExternallyImpl::openInExplorer
+        OpenFileExternallyImpl.register()
         MediaMetadata.registerSignatureHandler(100, "ImageIO", MetadataImpl::readImageIOMetadata)
         Screenshots.takeSystemScreenshotImpl = AWTRobot::takeScreenshot
         Contour.calculateContoursImpl = ContourImpl::calculateContours
         ImageImpl.register()
         AWTRobot.register()
-        FontStats.getTextGeneratorImpl = FontManagerImpl::getTextGenerator
-        FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
-        FontStats.getTextLengthImpl = { font, text ->
-            val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
-            val ctx = FontRenderContext(null, true, true)
-            TextLayout(text, awtFont, ctx).bounds.maxX
-        }
-        FontStats.getFontHeightImpl = { font ->
-            val ctx = FontRenderContext(null, true, true)
-            val layout = TextLayout(".", (FontManager.getFont(font) as AWTFont).awtFont, ctx)
-            (layout.ascent + layout.descent).toDouble()
-        }
-        TrashManager.moveToTrashImpl = { files ->
-            val fileUtils: FileUtils = FileUtils.getInstance()
-            if (fileUtils.hasTrash()) {
-                val fileArray = files
-                    .filterIsInstance<FileFileRef>()
-                    .map { it.file }.toTypedArray()
-                try {
-                    fileUtils.moveToTrash(*fileArray)
-                    true
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    false
-                }
-            } else {
-                LOGGER.warn("Trash is not available")
+        FontManagerImpl.register()
+        FileWatchImpl.register()
+        Spellchecking.checkImpl = SpellcheckingImpl::check
+        AudioManager.audioDeviceHash = { AudioSystem.getMixerInfo()?.size ?: -1 }
+        TrashManager.moveToTrashImpl = this::moveToTrash
+        FileExplorer.createLink = FileExplorerImpl::createLink
+    }
+
+    private fun getProcessID(): Int {
+        return ManagementFactory.getRuntimeMXBean().name.split("@")[0].toIntOrDefault(-1)
+    }
+
+    private fun moveToTrash(files: List<FileReference>): Boolean {
+        val fileUtils: FileUtils = FileUtils.getInstance()
+        return if (fileUtils.hasTrash()) {
+            val fileArray = files
+                .filterIsInstance<FileFileRef>()
+                .map { it.file }.toTypedArray()
+            try {
+                fileUtils.moveToTrash(*fileArray)
+                true
+            } catch (e: IOException) {
+                e.printStackTrace()
                 false
             }
+        } else {
+            LOGGER.warn("Trash is not available")
+            false
         }
     }
 }

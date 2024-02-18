@@ -15,8 +15,8 @@ import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.strings.StringHelper.shorten2Way
+import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 

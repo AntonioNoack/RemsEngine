@@ -4,8 +4,8 @@ import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.max
 import kotlin.math.min
 
@@ -93,12 +93,12 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         return h
     }
 
-    val xs = ExpandingIntArray(sizeX)
-    val ys = ExpandingIntArray(sizeY)
+    val xs = IntArrayList(sizeX)
+    val ys = IntArrayList(sizeY)
 
     // weights along x/y-axis
-    val wxs = ExpandingFloatArray(sizeX)
-    val wys = ExpandingFloatArray(sizeY)
+    val wxs = FloatArrayList(sizeX)
+    val wys = FloatArrayList(sizeY)
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

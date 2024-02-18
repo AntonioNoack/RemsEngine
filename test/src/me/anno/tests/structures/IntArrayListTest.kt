@@ -1,13 +1,13 @@
 package me.anno.tests.structures
 
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class ExpandingIntArrayTest {
+class IntArrayListTest {
     @Test
     fun test() {
-        val list = ExpandingIntArray(16)
+        val list = IntArrayList(16)
         list.add(1)
         list.add(2)
         list.add(3)

@@ -12,7 +12,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.ColorParsing
 import me.anno.utils.OS
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.Strings.titlecase
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.memberProperties
 

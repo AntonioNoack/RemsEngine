@@ -4,7 +4,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -54,8 +53,8 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
-import me.anno.utils.strings.StringHelper.titlecase
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.types.Strings.titlecase
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
@@ -175,9 +174,9 @@ fun Mesh.createUniqueIndices() {
     val pos = positions!!
     val nor = normals!!
     val uv = uvs!!
-    val newPos = ExpandingFloatArray(pos.size)
-    val newNor = ExpandingFloatArray(nor.size)
-    val newUVs = ExpandingFloatArray(uv.size)
+    val newPos = FloatArrayList(pos.size)
+    val newNor = FloatArrayList(nor.size)
+    val newUVs = FloatArrayList(uv.size)
     forEachTriangleIndex { ai, bi, ci ->
         for (i in intArrayOf(ai, bi, ci)) {
             val x = pos[i * 3]

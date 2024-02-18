@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.utils.strings.StringHelper.distance
+import me.anno.utils.types.Strings.distance
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW

@@ -43,8 +43,8 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
 import me.anno.utils.types.Strings.isBlank2

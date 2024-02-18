@@ -13,7 +13,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties

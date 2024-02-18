@@ -15,6 +15,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
+import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
@@ -433,6 +434,8 @@ abstract class Image(
     companion object {
 
         private val LOGGER = LogManager.getLogger(Image::class)
+
+        @InternalAPI
         var writeImageImpl: ((Image, OutputStream, format: String, quality: Float) -> Unit)? = null
 
         @JvmStatic

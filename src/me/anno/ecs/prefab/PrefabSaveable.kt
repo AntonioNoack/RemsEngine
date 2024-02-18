@@ -15,7 +15,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass

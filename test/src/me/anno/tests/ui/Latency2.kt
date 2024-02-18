@@ -16,7 +16,7 @@ import me.anno.ui.debug.TestEngine
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
-import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
+import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 
 // compare this with browsers like Chrome and
 // https://humanbenchmark.com/tests/reactiontime

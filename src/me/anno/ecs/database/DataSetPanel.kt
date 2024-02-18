@@ -9,7 +9,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Booleans.toInt
 
 // todo move this to UI package, idk why it's here

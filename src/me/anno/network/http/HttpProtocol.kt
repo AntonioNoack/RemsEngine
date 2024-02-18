@@ -5,7 +5,7 @@ import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.utils.Warning.unused
-import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Ints.toIntOrDefault
 import java.io.IOException

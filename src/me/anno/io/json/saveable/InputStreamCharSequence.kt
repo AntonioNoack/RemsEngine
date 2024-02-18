@@ -49,5 +49,4 @@ class InputStreamCharSequence(val input: InputStream, length: Int) : CharSequenc
         while (++index < length) builder.append(get(index))
         return builder.toString()
     }
-
 }

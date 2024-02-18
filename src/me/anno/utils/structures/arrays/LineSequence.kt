@@ -10,14 +10,14 @@ class LineSequence : IntSequence {
 
     override val length get() = indexTable.last() - 1
 
-    private var lines = ArrayList<ExpandingIntArray>()
-    private val indexTable = ExpandingIntArray(16)
+    private var lines = ArrayList<IntArrayList>()
+    private val indexTable = IntArrayList(16)
 
     var maxLineLength = 0
         private set
 
     init {
-        lines.add(ExpandingIntArray(16))
+        lines.add(IntArrayList(16))
         indexTable.add(0)
         indexTable.add(1)
     }
@@ -124,7 +124,7 @@ class LineSequence : IntSequence {
             val oldBuilder = lines[lineIndex]
             if (char == '\n'.code) {
                 // split line
-                val newBuilder = ExpandingIntArray(16)
+                val newBuilder = IntArrayList(16)
                 newBuilder.add(oldBuilder, indexInLine)
                 oldBuilder.removeBetween(indexInLine, oldBuilder.size)
                 lines.add(lineIndex + 1, newBuilder)
@@ -202,7 +202,7 @@ class LineSequence : IntSequence {
                     oldBuilder = lines[lineIndex]
                     oldBuilder.clear()
                 } else {
-                    oldBuilder = ExpandingIntArray(16)
+                    oldBuilder = IntArrayList(16)
                     lines.add(oldBuilder)
                 }
             } else {

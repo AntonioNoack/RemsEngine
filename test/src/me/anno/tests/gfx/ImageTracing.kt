@@ -61,13 +61,13 @@ object ImageTracing {
                     }
 
                     // a full curve was found -> turn into points & lines
-                    edgeToPoint(edge.getValue(0), w, pixels, p)
+                    edgeToPoint(edge[0], w, pixels, p)
                     moveTo(p[0], p[1], ops, data)
                     run {
                         var k = 1
                         val l2 = edge.size
                         while (k < l2) {
-                            edgeToPoint(edge.getValue(k), w, pixels, p)
+                            edgeToPoint(edge[k], w, pixels, p)
                             lineTo(p[0], p[1], ops, data)
                             k++
                         }
@@ -77,8 +77,8 @@ object ImageTracing {
                     var k = 0
                     val l3 = edge.size - 1
                     while (k < l3) {
-                        edgeToPoint(edge.getValue(k), w, pixels, p)
-                        edgeToPoint(edge.getValue(k + 1), w, pixels, p2)
+                        edgeToPoint(edge[k], w, pixels, p)
+                        edgeToPoint(edge[k + 1], w, pixels, p2)
                         for (m in 0 until s * 2) {
                             val f = m / (s * 2 - 1f)
                             val px = (mix(p[0], p2[0], f) * s).toInt()

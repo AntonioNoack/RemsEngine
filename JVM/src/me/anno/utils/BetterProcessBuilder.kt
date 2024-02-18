@@ -1,11 +1,10 @@
-package me.anno.utils.process
+package me.anno.utils
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
-import me.anno.utils.OS
+import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread
@@ -35,7 +34,7 @@ class BetterProcessBuilder(
                     // task: test whether this works
                     // -> seems to work in WSL :)
                     // -20 .. +19, 0 = user_space, < 0 = super, > 0 = lower
-                    val niceness = clamp(DefaultConfig["cpu.linux.subprocess-niceness", 10], -20, 19)
+                    val niceness = Maths.clamp(DefaultConfig["cpu.linux.subprocess-niceness", 10], -20, 19)
                     if (niceness > 0) {
                         args += "nice"
                         args += "-n"

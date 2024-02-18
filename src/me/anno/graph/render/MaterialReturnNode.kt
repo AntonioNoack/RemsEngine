@@ -1,7 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.ReturnNode
-import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
+import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import org.joml.Vector2f
 import org.joml.Vector3f
 

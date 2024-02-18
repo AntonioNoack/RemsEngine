@@ -2,7 +2,7 @@ package me.anno.video.ffmpeg
 
 import me.anno.Time
 import me.anno.io.utils.StringMap
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

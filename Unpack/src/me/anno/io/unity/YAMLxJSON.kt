@@ -2,7 +2,7 @@ package me.anno.io.unity
 
 import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader
-import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.types.Strings.indexOf2
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f

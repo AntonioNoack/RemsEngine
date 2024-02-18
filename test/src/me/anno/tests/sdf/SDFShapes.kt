@@ -30,7 +30,7 @@ import me.anno.sdf.shapes.SDFStairs
 import me.anno.sdf.shapes.SDFStar
 import me.anno.sdf.shapes.SDFTorus
 import me.anno.sdf.shapes.SDFTriangle
-import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
+import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 

@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.OnEdgeCalculator
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.fill
 import org.joml.AABBf
 import org.joml.Matrix3f
@@ -24,7 +24,7 @@ import kotlin.math.sqrt
 class TriTerrain : Component(), CustomEditMode {
 
     // could be local, but that would mean a lot more complex calculations
-    val positions = ExpandingFloatArray(512)
+    val positions = FloatArrayList(512)
     private val removedPositions = HashSet<Int>()
 
     val init = RegularTerrainInit(32, 100f)

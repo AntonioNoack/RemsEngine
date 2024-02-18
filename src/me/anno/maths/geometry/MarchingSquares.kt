@@ -2,7 +2,7 @@ package me.anno.maths.geometry
 
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -169,8 +169,8 @@ object MarchingSquares {
     @Suppress("unused")
     fun march(
         w: Int, h: Int, values: FloatArray, threshold: Float, bounds: AABBf,
-        dst: ExpandingFloatArray = ExpandingFloatArray(256)
-    ): ExpandingFloatArray {
+        dst: FloatArrayList = FloatArrayList(256)
+    ): FloatArrayList {
 
         // the values on the edge must be enforced to have the same sign
         val firstValue = values[0]
@@ -198,7 +198,7 @@ object MarchingSquares {
 
         // there is at max 1 point per edge & they will always be on edges
 
-        val edges = ExpandingFloatArray(8)
+        val edges = FloatArrayList(8)
 
         for (y in 0 until h - 1) {
             var index = y * w

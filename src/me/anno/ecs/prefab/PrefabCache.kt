@@ -21,7 +21,7 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.Logging.hash32
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass

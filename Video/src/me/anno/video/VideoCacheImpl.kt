@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.cache.CacheSection
 import me.anno.io.files.Signature
 import me.anno.maths.Maths
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.io.MediaMetadata
 import org.apache.logging.log4j.LogManager

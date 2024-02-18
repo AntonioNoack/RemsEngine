@@ -8,7 +8,6 @@ import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Input
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
@@ -67,7 +66,6 @@ import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.hpc.UpdatingTask
-import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -519,58 +517,24 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     fun createLinksInto(files: List<FileReference>, folder: FileReference) {
         val progress = GFX.someWindow.addProgressBar("Creating Links", "Files", files.size.toDouble())
-        var tmp: FileReference? = null
-        loop@ for (file in files) {
-            if (progress.isCancelled) break
-            when {
-                OS.isWindows -> {
-                    val newFile = findNextFile(folder, file, "lnk", 1, '-', 1)
-                    if (tmp == null) tmp = FileFileRef.createTempFile("create-link", ".ps1")
-                    tmp.writeText(
-                        "" + // param ( [string]$SourceExe, [string]$DestinationPath )
-                                "\$WshShell = New-Object -comObject WScript.Shell\n" +
-                                "\$Shortcut = \$WshShell.CreateShortcut(\"${newFile.absolutePath}\")\n" +
-                                "\$Shortcut.TargetPath = \"${file.absolutePath}\"\n" +
-                                "\$Shortcut.Save()"
-                    )
-                    // PowerShell.exe -ExecutionPolicy Unrestricted -command "C:\temp\TestPS.ps1"
-                    val builder = BetterProcessBuilder("PowerShell.exe", 16, false)
-                    builder.add("-ExecutionPolicy")
-                    builder.add("Unrestricted")
-                    builder.add("-command")
-                    builder.add(tmp.absolutePath)
-                    builder.startAndPrint().waitFor()
-                    invalidate()
-                    progress.progress += 1.0
-                }
-                OS.isLinux || OS.isMacOS -> {
-                    val newFile = findNextFile(folder, file, 1, '-', 1)
-                    // create symbolic link
-                    // ln -s target_file link_name
-                    val builder = BetterProcessBuilder("ln", 3, false)
-                    builder.add("-s") // symbolic link
-                    builder.add(file.absolutePath)
-                    builder.add(newFile.absolutePath)
-                    builder.startAndPrint()
-                    invalidate()
-                    progress.progress += 1.0
-                }
-                OS.isAndroid -> {
-                    LOGGER.warn("Unsupported OS for creating links.. how would you do that?")
-                    progress.cancel(true)
-                    break@loop
-                }
-                else -> {
-                    LOGGER.warn("Unknown OS, don't know how to create links")
-                    progress.cancel(true)
-                    break@loop
-                }
+        val createLink = createLink
+        if (createLink != null) {
+            var tmp: FileReference? = null
+            loop@ for (dst in files) {
+                if (progress.isCancelled) break
+                val src = findNextFile(folder, dst, "lnk", 1, '-', 1)
+                tmp = createLink(src, dst, tmp)
+                invalidate()
+                progress.progress += 1.0
             }
-        }
-        progress.finish()
-        try {
-            tmp?.delete()
-        } catch (_: Exception) {
+            progress.finish()
+            try {
+                tmp?.delete()
+            } catch (_: Exception) {
+            }
+        } else {
+            LOGGER.warn("Don't know how to create links")
+            progress.cancel(false)
         }
     }
 
@@ -759,6 +723,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     companion object {
 
         var rightClickedFiles: Set<FileReference> = emptySet()
+
+        var createLink: ((src: FileReference, dst: FileReference, tmp: FileReference?) -> FileReference?)? = null
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorer::class)

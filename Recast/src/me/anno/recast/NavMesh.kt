@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import org.recast4j.detour.MeshData
@@ -149,7 +149,7 @@ class NavMesh : Component() {
                 // todo Use Poly if PolyDetail is unavailable
             }
         }
-        val fal = ExpandingFloatArray(triCount * 3)
+        val fal = FloatArrayList(triCount * 3)
         for (i in 0 until header.polyCount) {
             val p = data.polygons[i]
             if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue

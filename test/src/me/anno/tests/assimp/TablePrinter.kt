@@ -1,6 +1,6 @@
 package me.anno.tests.assimp
 
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import java.util.BitSet
@@ -11,7 +11,7 @@ class TablePrinter {
 
     val builder = StringBuilder()
     val columns = ArrayList<ArrayList<List<String>>>()
-    val offsets = ExpandingIntArray(8)
+    val offsets = IntArrayList(8)
 
     val colTitles = ArrayList<List<String>>()
     val colTitleCentered = BitSet(0)

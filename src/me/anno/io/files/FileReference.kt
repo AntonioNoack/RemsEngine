@@ -13,7 +13,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Tabs
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.structures.Callback
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

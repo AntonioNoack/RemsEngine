@@ -1,6 +1,8 @@
 package me.anno.tests.ui
 
 import me.anno.Engine
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -10,6 +12,9 @@ import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     HiddenOpenGLContext.createOpenGL()
 
@@ -51,5 +56,4 @@ fun main() {
     image.getTexture0().write(desktop.getChild("mono.png"), true)
 
     Engine.requestShutdown()
-
 }

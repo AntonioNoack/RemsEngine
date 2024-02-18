@@ -1,6 +1,6 @@
 package me.anno.io.yaml
 
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.Strings.titlecase
 import java.io.BufferedReader
 import java.io.IOException
 

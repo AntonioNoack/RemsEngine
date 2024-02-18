@@ -4,10 +4,10 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 @Suppress("unused")
-open class ExpandingByteArray(private val initCapacity: Int) {
+open class ByteArrayList(private val initCapacity: Int) {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(ExpandingByteArray::class)
+        private val LOGGER = LogManager.getLogger(ByteArrayList::class)
     }
 
     var size = 0
@@ -33,7 +33,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         array!![size++] = src
     }
 
-    fun addUnsafe(src: ExpandingByteArray, startIndex: Int, length: Int) {
+    fun addUnsafe(src: ByteArrayList, startIndex: Int, length: Int) {
         src.array?.copyInto(array!!, size, startIndex, length)
         size += length
     }
@@ -43,7 +43,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         addUnsafe(src, srcStartIndex, length)
     }
 
-    fun addAll(src: ExpandingByteArray, startIndex: Int, length: Int) {
+    fun addAll(src: ByteArrayList, startIndex: Int, length: Int) {
         if (length == 0) return
         ensureExtra(length)
         addUnsafe(src, startIndex, length)

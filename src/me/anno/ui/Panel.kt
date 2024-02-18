@@ -26,7 +26,7 @@ import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Tabs
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs

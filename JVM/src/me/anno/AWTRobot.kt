@@ -20,6 +20,7 @@ object AWTRobot {
     }
 
     private val LOGGER = LogManager.getLogger(AWTRobot::class)
+
     fun register() {
         Output.systemMousePressImpl = { key ->
             robot?.mousePress(Output.keyToRobot(key))

@@ -13,7 +13,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
+import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(
     val data: MathNodeData<V>,

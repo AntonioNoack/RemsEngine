@@ -87,7 +87,7 @@ import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.strings.StringHelper.setNumber
+import me.anno.utils.types.Strings.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType

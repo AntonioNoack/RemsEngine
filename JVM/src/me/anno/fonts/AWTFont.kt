@@ -15,11 +15,11 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.images.BIImage.createFromBufferedImage
 import me.anno.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
-import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.shorten
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
@@ -31,7 +31,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGenerator {
+class AWTFont(
+    val font: me.anno.fonts.Font, // used in Rem's Studio
+    val awtFont: Font
+) : TextGenerator {
 
     private val fontMetrics = run {
         val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
@@ -221,7 +224,8 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         FontRenderContext(null, true, true)
     }
 
-    private val exampleLayout by lazy {
+    // used in Rem's Studio
+    val exampleLayout by lazy {
         TextLayout("o", awtFont, renderContext)
     }
 
@@ -229,7 +233,8 @@ class AWTFont(private val font: me.anno.fonts.Font, val awtFont: Font) : TextGen
         exampleLayout.ascent + exampleLayout.descent
     }
 
-    private fun splitParts(
+    // used in Rem's Studio
+    fun splitParts(
         text: CharSequence,
         fontSize: Float,
         relativeTabSize: Float,

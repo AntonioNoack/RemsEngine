@@ -20,7 +20,7 @@ import me.anno.gpu.pipeline.InstancedStack
 import me.anno.gpu.pipeline.InstancedStaticStack
 import me.anno.gpu.pipeline.InstancedTRSStack
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -228,7 +228,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
-    open fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray) = false
+    open fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();

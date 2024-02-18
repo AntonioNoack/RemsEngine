@@ -1,8 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.maths.Maths.ceilDiv
-import me.anno.maths.Maths.hasFlag
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import kotlin.random.Random
 
@@ -26,7 +25,7 @@ fun main() {
     var sum = 0
     val total = 1000
     val field = BooleanArray(sx * sy)
-    val tasks = ExpandingIntArray(64)
+    val tasks = IntArrayList(64)
     val random = Random(System.nanoTime())
     val fieldI = LongArray(ceilDiv(sx, 64) * sy)
     val reachedI = LongArray(fieldI.size)
@@ -79,7 +78,7 @@ fun fill(random: Random, fieldI: LongArray, sx: Int, sy: Int) {
 /**
  * check if the top is connected to the bottom over set fields
  * */
-fun isConnectedCustomStack(field: BooleanArray, sx: Int, sy: Int, stack: ExpandingIntArray): Boolean {
+fun isConnectedCustomStack(field: BooleanArray, sx: Int, sy: Int, stack: IntArrayList): Boolean {
     stack.clear()
     val goal = sx * (sy - 1)
     var isFinished = false
@@ -149,7 +148,7 @@ fun LongArray.getOrZero(i: Int): Long {
     return if (i in indices) this[i] else 0L
 }
 
-fun isConnectedBitMasks(fieldI: LongArray, reachedI: LongArray, sx: Int, sy: Int, stack: ExpandingIntArray): Boolean {
+fun isConnectedBitMasks(fieldI: LongArray, reachedI: LongArray, sx: Int, sy: Int, stack: IntArrayList): Boolean {
 
     reachedI.fill(0L)
     stack.clear()

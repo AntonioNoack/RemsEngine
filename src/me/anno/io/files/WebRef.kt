@@ -5,7 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
-import me.anno.utils.strings.StringHelper.indexOf2
+import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault

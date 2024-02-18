@@ -1,6 +1,7 @@
 package me.anno
 
 import me.anno.engine.EngineBase
+import me.anno.input.Clipboard
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
@@ -22,6 +23,12 @@ object ClipboardImpl {
 
     private val LOGGER = LogManager.getLogger(ClipboardImpl::class)
     private val copiedInternalFiles = BiMap<File, FileReference>()
+
+    fun register() {
+        Clipboard.setClipboardContentImpl = ClipboardImpl::setClipboardContent
+        Clipboard.getClipboardContentImpl = ClipboardImpl::getClipboardContent
+        Clipboard.copyFilesImpl = ClipboardImpl::copyFiles
+    }
 
     fun setClipboardContent(copied: String) {
         val selection = StringSelection(copied)

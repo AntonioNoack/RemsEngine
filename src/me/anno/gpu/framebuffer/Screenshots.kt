@@ -10,6 +10,7 @@ import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
+import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_FLOAT
@@ -27,6 +28,7 @@ import kotlin.concurrent.thread
 object Screenshots {
     private val LOGGER = LogManager.getLogger(Screenshots::class)
 
+    @InternalAPI
     var takeSystemScreenshotImpl: (() -> Image?)? = null
     fun takeSystemScreenshot(): Image? {
         return takeSystemScreenshotImpl?.invoke()

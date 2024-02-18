@@ -14,8 +14,8 @@ import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
@@ -49,19 +49,19 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
     private val defaultSize2 = clamp(pow(file.length().toDouble(), 0.66).toInt(), 64, 1 shl 20)
 
     private var lastMaterial: FileReference = InvalidRef
-    private val positions = ExpandingFloatArray(3 * defaultSize1)
-    private val normals = ExpandingFloatArray(3 * defaultSize1)
-    private val uvs = ExpandingFloatArray(2 * defaultSize1)
+    private val positions = FloatArrayList(3 * defaultSize1)
+    private val normals = FloatArrayList(3 * defaultSize1)
+    private val uvs = FloatArrayList(2 * defaultSize1)
 
-    private val facePositions = ExpandingFloatArray(3 * defaultSize2)
-    private val faceNormals = ExpandingFloatArray(3 * defaultSize2)
-    private val faceUVs = ExpandingFloatArray(2 * defaultSize2)
+    private val facePositions = FloatArrayList(3 * defaultSize2)
+    private val faceNormals = FloatArrayList(3 * defaultSize2)
+    private val faceUVs = FloatArrayList(2 * defaultSize2)
 
     private var numPositions = 0
     private var numUVs = 0
     private var numNormals = 0
 
-    private val points = ExpandingIntArray(256)
+    private val points = IntArrayList(256)
 
     private fun putPoint(p: Point) {
         facePositions += p.position

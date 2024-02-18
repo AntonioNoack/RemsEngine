@@ -23,7 +23,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 

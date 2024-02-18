@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
-import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -102,7 +102,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner() {
         }
     }
 
-    override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray): Boolean {
+    override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> FloatArrayList): Boolean {
         val list = run(birdMesh, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {

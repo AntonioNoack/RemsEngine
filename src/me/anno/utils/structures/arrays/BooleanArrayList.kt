@@ -1,37 +1,62 @@
 package me.anno.utils.structures.arrays
 
-import kotlin.math.max
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 
-class BooleanArrayList(val capacity: Int, val defaultValue: Boolean = false) {
+/**
+ * more efficient Boolean Array,
+ * up to 8x more efficient
+ * slower access
+ * less thread-save
+ *
+ * todo how does it compare to BitSet?
+ * */
+class BooleanArrayList(var size: Int) : Saveable() {
 
-    private val buffers = ArrayList<EfficientBooleanArray>()
-    var size = 0
+    constructor() : this(0)
 
-    operator fun get(index: Int) = buffers[index / capacity][index % capacity]
-    operator fun get(index: Int, defaultValue: Boolean): Boolean {
-        val buffer = buffers.getOrNull(index / capacity) ?: return defaultValue
-        return buffer[index % capacity]
-    }
-
-    operator fun plusAssign(value: Boolean) {
-        val index = size % capacity
-        if (index == 0) addBuffer()
-        buffers.last()[index] = value
-        size++
-    }
-
-    private fun addBuffer() {
-        buffers.add(EfficientBooleanArray(capacity, defaultValue))
-    }
-
-    operator fun set(index: Int, value: Boolean) {
-        val bufferIndex = index / capacity
-        for (i in buffers.size..bufferIndex) {
-            addBuffer()
+    constructor(size: Int, value: Boolean) : this(size) {
+        if (value) {
+            for (i in values.indices) {
+                values[i] = -1
+            }
         }
-        val localIndex = index % capacity
-        buffers[bufferIndex][localIndex] = value
-        size = max(index + 1, size)
     }
 
+    constructor(size: Int, filler: (index: Int) -> Boolean) : this(size) {
+        for (i in 0 until size) {
+            if (filler(i)) {
+                this[i] = true
+            }
+        }
+    }
+
+    private var values = LongArray((size + 63) shr 6)
+    operator fun get(index: Int) = values[index shr 6].and(1L shl (index and 63)) != 0L
+    operator fun set(index: Int, value: Boolean) {
+        val arrIndex = index shr 6
+        val subIndex = index and 63
+        if (value) {
+            values[arrIndex] = values[arrIndex] or (1L shl subIndex)
+        } else {
+            values[arrIndex] = values[arrIndex] and (1L shl subIndex).inv()
+        }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("size", size)
+        writer.writeLongArray("values", values)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        when (name) {
+            "size" -> size = value as? Int ?: return
+            "values" -> values = value as? LongArray ?: return
+            else -> super.setProperty(name, value)
+        }
+    }
+
+    override val className: String get() = "BoolArray"
+    override val approxSize get() = 1
 }

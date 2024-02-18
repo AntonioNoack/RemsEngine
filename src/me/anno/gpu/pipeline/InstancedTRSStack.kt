@@ -11,8 +11,8 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.maths.Maths
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
 
@@ -26,8 +26,8 @@ class InstancedTRSStack(capacity: Int = 64) :
 
     class Data {
         val size get() = posSizeRot.size ushr 3
-        val posSizeRot = ExpandingFloatArray(256)
-        val gfxIds = ExpandingIntArray(16)
+        val posSizeRot = FloatArrayList(256)
+        val gfxIds = IntArrayList(16)
         fun clear() {
             posSizeRot.clear()
             gfxIds.clear()

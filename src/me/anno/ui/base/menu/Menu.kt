@@ -25,7 +25,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
-import me.anno.utils.strings.StringHelper.levenshtein
+import me.anno.utils.types.Strings.levenshtein
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min

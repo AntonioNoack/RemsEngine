@@ -6,8 +6,8 @@ import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.IsSolid
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -128,9 +128,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         // guess the number of required points
         val vertexPointGuess = max(countBlocks() * 3, 18)
 
-        val vertices = ExpandingFloatArray(vertexPointGuess)
-        val colors = ExpandingIntArray(vertexPointGuess / 3 + 1)
-        val normals = ExpandingFloatArray(vertexPointGuess)
+        val vertices = FloatArrayList(vertexPointGuess)
+        val colors = IntArrayList(vertexPointGuess / 3 + 1)
+        val normals = FloatArrayList(vertexPointGuess)
 
         val info = VoxelMeshBuildInfo(palette, vertices, colors, normals)
 

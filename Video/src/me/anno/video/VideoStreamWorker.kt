@@ -4,7 +4,7 @@ import me.anno.cache.IgnoredException
 import me.anno.io.files.Signature
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.utils.types.InputStreams.skipN
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGStream

@@ -4,8 +4,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
@@ -14,12 +14,12 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
 
     val mesh = Mesh()
 
-    private val positions = ExpandingFloatArray(256 * 3)
-    private val facePositions = ExpandingFloatArray(256 * 3)
+    private val positions = FloatArrayList(256 * 3)
+    private val facePositions = FloatArrayList(256 * 3)
 
     private var numPositions = 0
 
-    private val points = ExpandingIntArray(256)
+    private val points = IntArrayList(256)
 
     private fun putPoint(index: Int) {
         facePositions.addAll(positions, points[index], 3)

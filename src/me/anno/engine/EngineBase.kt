@@ -59,10 +59,6 @@ abstract class EngineBase(
     constructor(title: String, versionNumber: Int, needsAudio: Boolean) :
             this(title, Strings.filterAlphaNumeric(title), versionNumber, null, needsAudio)
 
-    init {
-        LOGGER.info("Process ID: ${OS.getProcessID()}")
-    }
-
     /**
      * version of program as string,
      * x.yy.zz

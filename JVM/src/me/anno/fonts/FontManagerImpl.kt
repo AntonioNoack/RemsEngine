@@ -9,11 +9,20 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import java.awt.font.FontRenderContext
+import java.awt.font.TextLayout
 import java.util.Locale
 
 object FontManagerImpl {
 
     private val awtFonts = HashMap<FontKey, Font>()
+
+    fun register() {
+        FontStats.getTextGeneratorImpl = FontManagerImpl::getTextGenerator
+        FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
+        FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
+        FontStats.getFontHeightImpl = FontManagerImpl::getTextHeight
+    }
 
     fun getTextGenerator(key: FontKey): TextGenerator {
         val name = key.name
@@ -36,6 +45,18 @@ object FontManagerImpl {
         // (because of that, the already used one is added)
         tick.stop("getting the font list")
         return fontNames
+    }
+
+    fun getTextLength(font: me.anno.fonts.Font, text: String): Double {
+        val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
+        val ctx = FontRenderContext(null, true, true)
+        return TextLayout(text, awtFont, ctx).bounds.maxX
+    }
+
+    fun getTextHeight(font: me.anno.fonts.Font): Double {
+        val ctx = FontRenderContext(null, true, true)
+        val layout = TextLayout(".", (FontManager.getFont(font) as AWTFont).awtFont, ctx)
+        return (layout.ascent + layout.descent).toDouble()
     }
 
     private fun getDefaultFont(name: String): Font? {

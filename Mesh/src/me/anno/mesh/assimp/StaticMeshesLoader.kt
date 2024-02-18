@@ -19,7 +19,7 @@ import me.anno.io.xml.generic.XMLWriter
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
-import me.anno.utils.strings.StringHelper.distance
+import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager

@@ -20,8 +20,8 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Triangles
@@ -77,9 +77,9 @@ fun interface IndexMap {
 
 var useMeshPools = false
 
-val positions = ThreadLocal2 { ExpandingFloatArray(8192) }
-val normals = ThreadLocal2 { ExpandingFloatArray(8192) }
-val colors = ThreadLocal2 { ExpandingIntArray(8192) }
+val positions = ThreadLocal2 { FloatArrayList(8192) }
+val normals = ThreadLocal2 { FloatArrayList(8192) }
+val colors = ThreadLocal2 { IntArrayList(8192) }
 
 val uv6 = arrayOf(
     Vector2f(1f, 0.75f),

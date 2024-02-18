@@ -38,8 +38,8 @@ import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.strings.StringHelper.shorten2Way
+import me.anno.utils.types.Strings.camelCaseToTitle
+import me.anno.utils.types.Strings.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2

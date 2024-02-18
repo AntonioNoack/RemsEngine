@@ -12,8 +12,8 @@ import me.anno.mesh.blender.impl.MDeformVert
 import me.anno.mesh.blender.impl.MLoop
 import me.anno.mesh.blender.impl.MLoopUV
 import me.anno.mesh.blender.impl.MPoly
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
@@ -176,8 +176,8 @@ object BlenderMeshConverter {
     fun fillInBones(
         boneWeights: BInstantList<MDeformVert>, vi: Int,
         bestBones: IntArray, bestWeights: FloatArray,
-        boneIndices2: ExpandingIntArray,
-        boneWeights2: ExpandingFloatArray,
+        boneIndices2: IntArrayList,
+        boneWeights2: FloatArrayList,
         numVertexGroups: Int
     ) {
         addBoneWeights(boneWeights, vi, bestBones, bestWeights, numVertexGroups)
@@ -206,11 +206,11 @@ object BlenderMeshConverter {
         prefab: Prefab,
     ) {
 
-        val positions2 = ExpandingFloatArray(vertexCount * 3)
-        val normals2 = if (normals != null) ExpandingFloatArray(vertexCount * 3) else null
-        val uvs2 = ExpandingFloatArray(vertexCount * 2)
-        val boneIndices2 = if (boneWeights != null) ExpandingIntArray(vertexCount * 4) else null
-        val boneWeights2 = if (boneWeights != null) ExpandingFloatArray(vertexCount * 4) else null
+        val positions2 = FloatArrayList(vertexCount * 3)
+        val normals2 = if (normals != null) FloatArrayList(vertexCount * 3) else null
+        val uvs2 = FloatArrayList(vertexCount * 2)
+        val boneIndices2 = if (boneWeights != null) IntArrayList(vertexCount * 4) else null
+        val boneWeights2 = if (boneWeights != null) FloatArrayList(vertexCount * 4) else null
 
         var uvIndex = 0
         var matIndex = 0
@@ -375,7 +375,7 @@ object BlenderMeshConverter {
         prefab: Prefab
     ) {
         // indexed, simple
-        val indices = ExpandingIntArray(polygons.size * 3)
+        val indices = IntArrayList(polygons.size * 3)
         var matIndex = 0
         for (i in polygons.indices) {
             val polygon = polygons[i]
@@ -447,8 +447,8 @@ object BlenderMeshConverter {
         prefab["indices"] = indices.toIntArray()
         if (boneWeights != null) {
             val vertexCount = positions.size / 3
-            val boneIndices2 = ExpandingIntArray(vertexCount * 4)
-            val boneWeights2 = ExpandingFloatArray(vertexCount * 4)
+            val boneIndices2 = IntArrayList(vertexCount * 4)
+            val boneWeights2 = FloatArrayList(vertexCount * 4)
             val bestBones = IntArray(4)
             val bestWeights = FloatArray(4)
             for (i in 0 until vertexCount) {

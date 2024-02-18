@@ -1,114 +1,113 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.utils.types.Strings.joinChars
+import me.anno.cache.ICacheData
+import me.anno.utils.pooling.IntArrayPool
+import me.anno.utils.search.BinarySearch
 import me.anno.utils.types.Strings.joinChars0
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
-class IntArrayList(val capacity: Int) : List<Int> {
+open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : List<Int>, ICacheData {
 
-    private val buffers = ArrayList<IntArray>()
+    companion object {
+        private val LOGGER = LogManager.getLogger(IntArrayList::class)
+    }
 
     override var size = 0
-        private set
 
-    override operator fun get(index: Int) = buffers[index / capacity][index % capacity]
+    var array = alloc(initCapacity)
 
-    /** better: no conversion to Java object ... */
-    fun getValue(index: Int) = buffers[index / capacity][index % capacity]
-    fun getUnsafe(index: Int) = buffers[index / capacity][index % capacity]
+    val capacity get() = array.size
 
-    fun inc(index: Int) {
-        buffers[index / capacity][index % capacity]++
-    }
-
-    fun dec(index: Int) {
-        buffers[index / capacity][index % capacity]++
-    }
-
-    operator fun plusAssign(value: Int) {
-        val bufferIndex = size / capacity
-        if (bufferIndex >= buffers.size) buffers.add(IntArray(capacity))
-        buffers[bufferIndex][size % capacity] = value
-        size++
-    }
-
-    fun add(value: Int) {
-        plusAssign(value)
-    }
-
-    fun addAll(values: Collection<Int>) {
-        for (v in values) add(v)
-    }
-
-    fun add(index: Int, value: Int) {
-        // make space for element
-        add(0)
-        for (i in size - 2 downTo index) {
-            set(i + 1, get(i))
-        }
-        set(index, value)
-    }
-
-    fun removeAt(index: Int) {
-        if (index < 0 || index >= size) throw IndexOutOfBoundsException()
-        // copy elements from end to here, then reduce size
-        size--
-        for (i in index until size) {
-            setUnsafe(i, get(i + 1))
-        }
-    }
-
-    fun setUnsafe(index: Int, element: Int) {
-        buffers[index / capacity][index % capacity] = element
-    }
-
-    operator fun set(index: Int, element: Int) {
-        val bufferIndex = index / capacity
-        while (bufferIndex >= buffers.size) buffers.add(IntArray(capacity))
-        buffers[bufferIndex][index % capacity] = element
-        size = max(index + 1, size)
-    }
-
-    override fun subList(fromIndex: Int, toIndex: Int): List<Int> {
-        if (fromIndex == 0 && toIndex == size) return this
-        val list = ArrayList<Int>(toIndex - fromIndex)
-        // could be optimized
-        for (i in fromIndex until toIndex) list.add(get(i))
-        return list
-    }
-
-    fun toList() = subList(0, size)
-
-    fun toIntArray(): IntArray {
-        val dst = IntArray(size)
-        for (i in 0 until (size + capacity - 1) / capacity) {
-            val src = buffers[i]
-            val offset = i * capacity
-            src.copyInto(dst, offset, 0, min(capacity, size - offset))
-        }
-        return dst
+    fun alloc(size: Int): IntArray {
+        return if (pool != null) pool[size, true, false] else IntArray(size)
     }
 
     fun clear() {
         size = 0
     }
 
-    inline fun joinToString(
-        separator: String = ",",
-        prefix: String = "",
-        suffix: String = "",
-        transform: (Int) -> String
-    ): String {
-        val result = StringBuilder(prefix.length + suffix.length + size * 10)
-        result.append(prefix)
-        // could be optimized
-        for (i in 0 until size) {
-            if (i > 0) result.append(separator)
-            result.append(transform(get(i)))
+    fun removeLast(): Int {
+        return array[--size]
+    }
+
+    fun add(value: Int) = plusAssign(value)
+
+    fun ensureExtra(delta: Int) {
+        ensureCapacity(size + delta)
+    }
+
+    fun ensureCapacity(requestedSize: Int) {
+        val array = array
+        if (requestedSize >= array.size) {
+            val suggestedSize = max(array.size * 2, 16)
+            val newSize = max(suggestedSize, requestedSize)
+            val newArray = try {
+                IntArray(newSize)
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
+                throw e
+            }
+            array.copyInto(newArray)
+            this.array = newArray
         }
-        result.append(suffix)
-        return result.toString()
+    }
+
+    fun skip(delta: Int) {
+        ensureExtra(delta)
+        size += delta
+    }
+
+    fun inc(position: Int) {
+        val array = array
+        array[position]++
+    }
+
+    fun dec(position: Int) {
+        val array = array
+        array[position]--
+    }
+
+    fun add(index: Int, value: Int) {
+        ensureCapacity(size + 1)
+        val array = array
+        array.copyInto(array, index + 1, index, size)
+        array[index] = value
+        size++
+    }
+
+    fun add(values: List<Int>, index0: Int = 0, index1: Int = values.size) {
+        var size = size
+        val length = index1 - index0
+        ensureCapacity(size + length)
+        val array = array
+        for (index in index0 until index1) {
+            array[size++] = values[index]
+        }
+        this.size = size
+    }
+
+    fun addUnsafe(src: IntArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
+        src.copyInto(array, size, startIndex, startIndex + length)
+        size += length
+    }
+
+    @Suppress("unused")
+    fun addUnsafe(src: IntArrayList, startIndex: Int, length: Int) {
+        addUnsafe(src.array, startIndex, length)
+    }
+
+    fun add(v: IntArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
+        ensureExtra(length)
+        addUnsafe(v, srcStartIndex, length)
+    }
+
+    fun add(values: IntArrayList, srcStartIndex: Int = 0, length: Int = values.size - srcStartIndex) {
+        if (length < 0) throw IllegalArgumentException()
+        if (length == 0) return
+        ensureExtra(length)
+        addUnsafe(values.array, srcStartIndex, length)
     }
 
     fun joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
@@ -121,65 +120,161 @@ class IntArrayList(val capacity: Int) : List<Int> {
         return builder
     }
 
-    override fun contains(element: Int): Boolean {
-        for (index in 0 until size) {
-            if (get(index) == element) return true
-        }
-        return false
+    fun removeAt(index: Int): Int {
+        val array = array
+        val value = array[index]
+        removeBetween(index, index + 1)
+        return value
     }
 
-    override fun containsAll(elements: Collection<Int>): Boolean {
-        if (elements.isEmpty()) return true
-        if (isEmpty()) return false
-        val contained = elements.toHashSet()
-        if (contained.size > size) return false
-        for (i in 0 until size) {
-            contained.remove(get(i))
-            if (contained.isEmpty()) return true
-        }
-        return false
+    fun removeBetween(index0: Int, index1: Int) {
+        val length = index1 - index0
+        array.copyInto(array, index0, index1, size)
+        size -= length
+    }
+
+    operator fun set(index: Int, value: Int) {
+        array[index] = value
+    }
+
+    fun last() = array[size - 1]
+
+    override operator fun get(index: Int) = array[index]
+    fun getOrNull(index: Int) = array.getOrNull(index)
+
+    @Suppress("unused")
+    fun addUnsafe(x: Int) {
+        array[size++] = x
+    }
+
+    @Suppress("unused")
+    fun addUnsafe(x: Int, y: Int) {
+        val array = array
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        this.size = size
+    }
+
+    fun add(x: Int, y: Int, z: Int) {
+        ensureCapacity(size + 3)
+        val array = array
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
+        this.size = size
+    }
+
+    @Suppress("unused")
+    fun addUnsafe(x: Int, y: Int, z: Int) {
+        val array = array
+        var size = size
+        array[size++] = x
+        array[size++] = y
+        array[size++] = z
+        this.size = size
+    }
+
+    operator fun plusAssign(value: Int) {
+        ensureCapacity(size + 1)
+        array[size++] = value
+    }
+
+    override fun isEmpty(): Boolean = size <= 0
+
+    override fun contains(element: Int): Boolean {
+        return indexOf(element) >= 0
     }
 
     override fun indexOf(element: Int): Int {
-        for (index in 0 until size) {
-            if (get(index) == element) return index
+        val array = array
+        for (i in indices) {
+            if (array[i] == element) return i
         }
         return -1
-    }
-
-    override fun isEmpty() = size <= 0
-
-    override fun iterator(): Iterator<Int> {
-        return listIterator()
     }
 
     override fun lastIndexOf(element: Int): Int {
-        for (index in size - 1 downTo 0) {
-            if (get(index) == element) {
-                return index
-            }
+        val array = array
+        for (i in size - 1 downTo 0) {
+            if (array[i] == element) return i
         }
         return -1
     }
 
-    override fun listIterator(): ListIterator<Int> {
-        return listIterator(0)
-    }
-
+    override fun iterator() = listIterator()
     override fun listIterator(index: Int): ListIterator<Int> {
+        val array = array
         return object : ListIterator<Int> {
-            private var idx = index
-            override fun hasNext() = idx < size
-            override fun hasPrevious() = idx > 0
-            override fun next() = get(idx++)
-            override fun nextIndex() = idx
-            override fun previous() = get(--idx)
-            override fun previousIndex() = idx - 1
+            var i = index
+            override fun hasNext(): Boolean = i < size
+            override fun next(): Int = array[i++]
+            override fun previous(): Int = array[--i]
+            override fun nextIndex(): Int = i
+            override fun previousIndex(): Int = i - 1
+            override fun hasPrevious(): Boolean = i > 0
         }
     }
 
-    override fun toString(): String {
-        return (0 until size).joinToString(",", "[", "]") { this[it].toString() }
+    override fun subList(fromIndex: Int, toIndex: Int): List<Int> {
+        val array = array
+        return IntArray(toIndex - fromIndex) { array[fromIndex + it] }.toList()
     }
 
+    @Suppress("unused")
+    fun binarySearch(element: Int): Int {
+        return BinarySearch.binarySearch(size) { index ->
+            this[index].compareTo(element)
+        }
+    }
+
+    override fun containsAll(elements: Collection<Int>): Boolean {
+        for (e in elements) {
+            if (!contains(e))
+                return false
+        }
+        return true
+    }
+
+
+    fun toIntArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toIntArray(size, canReturnSelf, exact)
+
+    fun toIntArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): IntArray {
+        val array = array
+        if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
+            return array
+        val value = alloc(size1)
+        array.copyInto(value, 0, 0, min(size, size1))
+        return value
+    }
+
+    override fun listIterator(): ListIterator<Int> {
+        return object : ListIterator<Int> {
+            var nextIndex = 0
+            override fun hasNext(): Boolean = nextIndex < size
+            override fun hasPrevious(): Boolean = nextIndex > 0
+            override fun next(): Int = get(nextIndex++)
+            override fun nextIndex(): Int = nextIndex
+            override fun previous(): Int = get(--nextIndex)
+            override fun previousIndex(): Int = nextIndex - 1
+        }
+    }
+
+    override fun destroy() {
+        pool?.returnBuffer(array)
+        size = 0
+    }
+
+    override fun toString(): String {
+        val builder = StringBuilder(size * 4)
+        builder.append('[')
+        if (isNotEmpty()) builder.append(this[0])
+        for (i in 1 until size) {
+            builder.append(',')
+            builder.append(this[i])
+        }
+        builder.append(']')
+        return builder.toString()
+    }
 }

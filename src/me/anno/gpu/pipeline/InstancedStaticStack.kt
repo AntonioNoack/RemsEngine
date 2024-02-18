@@ -11,7 +11,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
 
@@ -28,7 +28,7 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
         val size get() = data.size
         val data = ArrayList<StaticBuffer>()
         val attr = ArrayList<Map<String, TypeValue>>()
-        val clickIds = ExpandingIntArray(16)
+        val clickIds = IntArrayList(16)
 
         fun clear() {
             data.clear()

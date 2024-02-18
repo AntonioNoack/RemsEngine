@@ -2,7 +2,6 @@ package me.anno.utils.files
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
@@ -108,7 +107,7 @@ object Files {
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
         if (!reference.exists) return reference
-        val parent = reference.getParent() ?: return InvalidRef
+        val parent = reference.getParent()
         val name = reference.nameWithoutExtension
         val extension = reference.extension
         val newName = findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
@@ -125,7 +124,7 @@ object Files {
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
         if (!reference.exists) return reference.name
-        val parent = reference.getParent() ?: return reference.name
+        val parent = reference.getParent()
         val name = reference.nameWithoutExtension
         val extension = reference.extension
         return findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)

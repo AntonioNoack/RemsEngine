@@ -17,11 +17,12 @@ import org.lwjgl.openal.ALCCapabilities
 import org.lwjgl.openal.EXTDisconnect.ALC_CONNECTED
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import javax.sound.sampled.AudioSystem
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
 object AudioManager {
+
+    var audioDeviceHash: () -> Int = { 0 }
 
     // var cameraMatrix = Matrix4f()
     // var soundSourceMap = HashMap<String, SoundSource>()
@@ -77,7 +78,7 @@ object AudioManager {
     }
 
     private var lastCheckedTime = 0L
-    private var lastDeviceConfig = 0
+    private var lastDeviceHash = 0
     private val queryBuffer = intArrayOf(0)
     private fun checkIsDestroyed() {
         // to do detect if the primary audio device was changed by the user?
@@ -90,23 +91,20 @@ object AudioManager {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often
-            val audioDevices = AudioSystem.getMixerInfo()
+            val hash = audioDeviceHash()
             // val t1 = Time.nanoTime
-            if (audioDevices.isNotEmpty()) {
-                val currentConfig = audioDevices.size
-                if (currentConfig != lastDeviceConfig) {
-                    LOGGER.info("Devices changed -> Reconnecting")
-                    val needsReconnect = lastDeviceConfig != 0
-                    lastDeviceConfig = currentConfig
-                    if (needsReconnect) reconnect()
-                    return
-                } else {
-                    // maybe it died anyways?...
-                    alcGetIntegerv(device, ALC_CONNECTED, queryBuffer)
-                    if (queryBuffer[0] == 0) {
-                        LOGGER.warn("Audio playing device disconnected")
-                        reconnect()
-                    }
+            if (hash != lastDeviceHash) {
+                LOGGER.info("Devices changed -> Reconnecting")
+                val needsReconnect = lastDeviceHash != 0
+                lastDeviceHash = hash
+                if (needsReconnect) reconnect()
+                return
+            } else {
+                // maybe it died anyways?...
+                alcGetIntegerv(device, ALC_CONNECTED, queryBuffer)
+                if (queryBuffer[0] == 0) {
+                    LOGGER.warn("Audio playing device disconnected")
+                    reconnect()
                 }
             }
         }

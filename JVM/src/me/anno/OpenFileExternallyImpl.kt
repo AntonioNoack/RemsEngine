@@ -2,6 +2,7 @@ package me.anno
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFile
+import me.anno.utils.BetterProcessBuilder
 import me.anno.utils.OS
 import me.anno.utils.files.OpenFileExternally
 import org.apache.logging.log4j.LogManager
@@ -13,6 +14,13 @@ object OpenFileExternallyImpl {
 
     private val LOGGER = LogManager.getLogger(OpenFileExternallyImpl::class)
     private fun FileReference.toFile() = File(absolutePath.replace("!!", "/"))
+
+    fun register() {
+        OpenFileExternally.openInBrowserImpl = OpenFileExternallyImpl::openInBrowser
+        OpenFileExternally.openInStandardProgramImpl = OpenFileExternallyImpl::openInStandardProgram
+        OpenFileExternally.editInStandardProgramImpl = OpenFileExternallyImpl::editInStandardProgram
+        OpenFileExternally.openInExplorerImpl = OpenFileExternallyImpl::openInExplorer
+    }
 
     private fun openInExplorer101(link: String): Boolean {
         return if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -90,14 +98,18 @@ object OpenFileExternallyImpl {
         } else {
             when {
                 OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
-                    OS.startProcess("explorer.exe", "/select,", self.absolutePath)
+                    val builder = BetterProcessBuilder(null, 3, true)
+                    builder.add("explorer.exe", "/select,", self.absolutePath)
+                    builder.start()
                 }
                 Desktop.isDesktopSupported() -> {
                     val desktop = Desktop.getDesktop()
                     desktop.open(if (self.isDirectory) self else self.parentFile ?: self)
                 }
                 OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
-                    OS.startProcess("xdg-open", self.absolutePath)
+                    val builder = BetterProcessBuilder(null, 2, true)
+                    builder.add("xdg-open", self.absolutePath)
+                    builder.start()
                 }
                 else -> LOGGER.warn("File.openInExplorer() is not implemented on that platform")
             }

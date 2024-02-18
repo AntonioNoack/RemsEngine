@@ -3,7 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.cache.IgnoredException
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
-import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException

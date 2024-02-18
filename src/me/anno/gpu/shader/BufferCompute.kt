@@ -3,7 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.Strings.titlecase
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Strings.iff
 

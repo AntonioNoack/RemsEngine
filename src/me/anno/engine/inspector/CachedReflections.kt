@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.DebugWarning
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.utils.OS
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
 import java.lang.reflect.Field
 import java.lang.reflect.Method

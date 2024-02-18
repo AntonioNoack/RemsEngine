@@ -19,8 +19,8 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
 import me.anno.utils.Warning.unused
 import me.anno.utils.structures.Callback
-import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -259,8 +259,8 @@ class SVGMesh {
         if (totalPointCount > 0) {
             val mesh = Mesh()
             this.mesh = mesh
-            val positions = ExpandingFloatArray(totalPointCount * 3)
-            val colors = ExpandingIntArray(totalPointCount)
+            val positions = FloatArrayList(totalPointCount * 3)
+            val colors = IntArrayList(totalPointCount)
             for (curve in curves) {
                 val triangles = curve.triangles
                 if (triangles.isEmpty()) continue

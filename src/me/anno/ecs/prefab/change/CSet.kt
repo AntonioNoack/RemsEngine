@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.strings.StringHelper.shorten2Way
+import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 
 /**

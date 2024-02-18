@@ -10,7 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
@@ -305,7 +305,7 @@ object MayaASCII2015 {
                                 // face count
                                 node as Mesh
                                 // -s is the number of "f", -ch of "f" and "mu"
-                                val indices = ExpandingIntArray(64)
+                                val indices = IntArrayList(64)
                                 // val colon = key.indexOf(':')
                                 // val start = key.substring(3, colon).toInt()
                                 // else we have a problem, and need to join multiple indices sections...

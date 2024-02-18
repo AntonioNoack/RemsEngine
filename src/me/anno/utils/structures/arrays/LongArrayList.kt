@@ -3,7 +3,7 @@ package me.anno.utils.structures.arrays
 import kotlin.math.max
 
 @Suppress("unused")
-open class ExpandingLongArray(private val initCapacity: Int) {
+open class LongArrayList(private val initCapacity: Int) {
 
     var size = 0
 

@@ -1,6 +1,5 @@
 package me.anno.utils.files
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
@@ -89,7 +88,7 @@ object FileChooser {
                 val text = if (selected.size == 1) {
                     selected.first().toLocalPath()
                 } else {
-                    "${selected.first().getParent()?.toLocalPath()}: " +
+                    "${selected.first().getParent().toLocalPath()}: " +
                             selected.joinToString("; ") { it.name }
                 }
                 when (filesList) {

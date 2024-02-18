@@ -13,8 +13,8 @@ import me.anno.utils.Color.r01
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
-import me.anno.utils.structures.arrays.ExpandingDoubleArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.DoubleArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.video.formats.cpu.YUVFrames
 import kotlin.math.abs
@@ -23,8 +23,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-val matrix = Array(4) { ExpandingDoubleArray(100) }
-val vector = Array(4) { ExpandingDoubleArray(100) }
+val matrix = Array(4) { DoubleArrayList(100) }
+val vector = Array(4) { DoubleArrayList(100) }
 
 var polyBetter = 0
 var avgBetter = 0
@@ -198,7 +198,7 @@ class Cluster(val id: Int) {
     }
 }
 
-val todo = ExpandingIntArray(4096)
+val todo = IntArrayList(4096)
 fun check(x: Int, y: Int, call: (x: Int, y: Int, callback: (Int, Int) -> Unit) -> Unit) {
     val todo = todo
     todo.clear()

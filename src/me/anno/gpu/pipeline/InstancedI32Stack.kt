@@ -11,7 +11,7 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
-import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
 import org.joml.Matrix4x3d
@@ -30,8 +30,8 @@ open class InstancedI32Stack(
     class Data {
 
         val size get() = data.size
-        val data = ExpandingIntArray(256)
-        val metadata = ExpandingIntArray(16)
+        val data = IntArrayList(256)
+        val metadata = IntArrayList(16)
         val matrices = ArrayList<Matrix4x3d>() // transform for a group of meshes
 
         fun clear() {
@@ -40,7 +40,7 @@ open class InstancedI32Stack(
             matrices.clear()
         }
 
-        fun start(gfxId: Int, matrix: Matrix4x3d): ExpandingIntArray {
+        fun start(gfxId: Int, matrix: Matrix4x3d): IntArrayList {
             // we only need to mark a new section, when the matrix or gfx id changes
             if (metadata.isEmpty() || gfxId != metadata.last() || matrices.last() != matrix) {
                 metadata.add(data.size)
