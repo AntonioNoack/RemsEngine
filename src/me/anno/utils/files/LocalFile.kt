@@ -8,9 +8,13 @@ import me.anno.utils.OS
 
 object LocalFile {
 
+    private fun String.unifySlashes(): String {
+        return if ('\\' in this) replace('\\', '/') else this
+    }
+
     fun checkIsChild(fileStr: String, parent: FileReference?, pathName: String): String? {
         parent ?: return null
-        var parentStr = parent.toString().replace('\\', '/')
+        var parentStr = parent.toString().unifySlashes()
         if (!parentStr.endsWith('/')) {
             parentStr += '/'
         }
@@ -20,7 +24,7 @@ object LocalFile {
     }
 
     fun String.toLocalPath(workspace: FileReference = EngineBase.workspace): String {
-        val fileStr = replace('\\', '/')
+        val fileStr = unifySlashes()
         if (fileStr.contains("://")) return fileStr
         return checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
             ?: checkIsChild(fileStr, ConfigBasics.cacheFolder, "\$CACHE\$")
@@ -36,7 +40,7 @@ object LocalFile {
     }
 
     fun String.toGlobalFile(workspace: FileReference = EngineBase.workspace): FileReference {
-        val fileStr = if ('\\' in this) replace('\\', '/') else this
+        val fileStr = unifySlashes()
         val i1 = fileStr.lastIndexOf("$/")
         if (i1 < 0) return getReference(fileStr)
         val i0 = fileStr.lastIndexOf("$", i1 - 1)

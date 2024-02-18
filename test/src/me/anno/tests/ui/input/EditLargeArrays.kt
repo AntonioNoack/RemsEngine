@@ -8,12 +8,13 @@ import me.anno.engine.ui.input.ComponentUI.writeTo
 import me.anno.io.Saveable.Companion.getReflections
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
-// todo some content seems to be missing / invisible: with base >= 15
+// some content seems to be missing / invisible: with base >= 15
+// -> cannot reproduce it -> probably solved
 
 fun main() {
     testUI3("Edit Huge Arrays") {
         class Data : Inspectable {
-            var data = IntArray(43) { it }
+            var data = IntArray(4030) { it }
         }
 
         val instance = Data()
@@ -26,7 +27,7 @@ fun main() {
                 property[instance] = values.writeTo(value)
             }
         }.apply {
-            base = 4
+            base = 16
             setValues(value.toList())
         }
     }

@@ -4,10 +4,10 @@ package me.anno.maths
 object Permutations {
 
     fun <T> generatePermutations(elements: List<T>, onNextPermutation: (List<T>) -> Unit) {
-        generatePermutations2(elements.toMutableList(), onNextPermutation)
+        generatePermutationsMut(elements.toMutableList(), onNextPermutation)
     }
 
-    fun <T> generatePermutations2(elements: MutableList<T>, onNextPermutation: (List<T>) -> Unit) {
+    fun <T> generatePermutationsMut(elements: MutableList<T>, onNextPermutation: (List<T>) -> Unit) {
 
         // Wikipedia https://en.wikipedia.org/wiki/Heap%27s_algorithm
         // c is an encoding of the stack state. c[k] encodes the for-loop counter for when generate(k+1, A) is called
@@ -37,7 +37,5 @@ object Permutations {
                 stack[stackPointer++] = 0
             }
         }
-
     }
-
 }
