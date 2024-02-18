@@ -3,10 +3,14 @@ package me.anno.io
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.extensions.plugins.Plugin
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
+import me.anno.io.links.LNKReader
 import me.anno.io.links.URLReader
+import me.anno.io.links.WindowsShortcut
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.Inner7zFile
 import me.anno.io.zip.InnerRarFile
@@ -45,12 +49,18 @@ class UnpackPlugin : Plugin() {
         InnerFolderCache.register("gzip", InnerTarFile.Companion::readAsGZip)
         InnerFolderCache.register("tar", InnerTarFile.Companion::readAsGZip)
 
-        // todo register windows lnk
-        //  then remove all windows-lnk specific code
-        //  then check whether the stuff still works
-
-        // register windows url
+        // Windows and Linux links
+        InnerFolderCache.register("lnk", LNKReader::readLNKAsFolder)
         InnerFolderCache.register("url", URLReader::readURLAsFolder)
+
+        Thumbs.registerExtension("lnk") { srcFile, dstFile, size, callback ->
+            WindowsShortcut.get(srcFile) { link, exc ->
+                if (link != null) {
+                    val iconFile = link.iconPath ?: link.absolutePath
+                    Thumbs.generate(getReference(iconFile), dstFile, size, callback)
+                } else callback.err(exc)
+            }
+        }
 
         // register yaml generally for unity files?
         InnerFolderCache.registerFileExtension(ThumbsExt.unityExtensions) { it, c ->

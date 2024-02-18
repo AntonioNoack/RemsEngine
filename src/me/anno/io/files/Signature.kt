@@ -290,7 +290,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("json", 0, "{"),
             Signature("sims", 0, "DBPF"),
             // windows link file
-            Signature("lnk", 0, 0x4c),
+            Signature("lnk", 0, byteArrayOf(0x4c, 0, 0, 0)),
             // window url file
             Signature("url", 0, "[InternetShortcut]")
         ).apply {

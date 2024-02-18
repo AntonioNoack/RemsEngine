@@ -399,7 +399,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     private fun writeFile(value: FileReference?, workspace: FileReference) {
         if (value == null || value == InvalidRef) writeString("")
-        else writeString(value.toLocalPath(workspace.nullIfUndefined() ?: this.workspace))
+        else writeString(value.toLocalPath(workspace.ifUndefined(this.workspace)))
     }
 
     override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {

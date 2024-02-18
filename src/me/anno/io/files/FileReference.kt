@@ -3,12 +3,10 @@ package me.anno.io.files
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
-import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
@@ -436,41 +434,17 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath.toLocalPath(workspace)
     }
 
-    val windowsLnk: Lazy<WindowsShortcut?> = lazy {
-        try {
-            if (lcExtension == "lnk" && WindowsShortcut.isPotentialValidLink(this)) {
-                WindowsShortcut.getSync(this)
-            } else null
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    open val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value
+    open val isSomeKindOfDirectory get() = isDirectory || isPacked.value
 
     val isPacked = lazy {
         !isDirectory && isSerializedFolder()
     }
 
     open fun listChildren(): List<FileReference> {
-        val link = windowsLnk.value
-        if (link == null) {
-            val folder = InnerFolderCache.readAsFolder(this, false)
-            if (folder is InnerFolder) return folder.listChildren()
-            if (folder != null) return listOf(folder)
-            return emptyList()
-        }
-        // if the file is not a directory, then list the parent?
-        // todo mark this child somehow?...
-        val abs = link.absolutePath ?: return emptyList()
-        val str = abs.replace('\\', '/')
-        val ref = getReferenceOrTimeout(str)
-        return listOf(
-            if (link.isDirectory) {
-                ref.getParent().ifUndefined(ref)
-            } else ref
-        )
+        val folder = InnerFolderCache.readAsFolder(this, false)
+        if (folder is InnerFolder) return folder.listChildren()
+        if (folder != null) return listOf(folder)
+        return emptyList()
     }
 
     open fun nullIfUndefined(): FileReference? = this

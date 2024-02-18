@@ -86,7 +86,6 @@ import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.unityExtensions
 import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
-import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black
 import me.anno.utils.OS
@@ -1180,14 +1179,6 @@ object Thumbs {
         registerExtension("txt", ::generateTextImage)
         registerExtension("html", ::generateTextImage)
         registerExtension("md", ::generateTextImage)
-        registerExtension("lnk") { srcFile, dstFile, size, callback ->
-            WindowsShortcut.get(srcFile) { link, exc ->
-                if (link != null) {
-                    val iconFile = link.iconPath ?: link.absolutePath
-                    generate(getReference(iconFile), dstFile, size, callback)
-                } else callback.err(exc)
-            }
-        }
         registerExtension("url") { srcFile, dstFile, size, callback ->
             // try to read the url, and redirect to the icon
             findIconLineInTxtLink(srcFile, dstFile, size, "IconFile=", callback)
@@ -1234,10 +1225,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generate(
-        srcFile: FileReference, dstFile: HDBKey, size: Int,
-        callback: Callback<ITexture2D>
-    ) {
+    fun generate(srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) {
 
         if (size < 3) return
 

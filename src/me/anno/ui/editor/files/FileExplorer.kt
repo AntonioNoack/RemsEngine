@@ -13,7 +13,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -660,32 +659,20 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     fun switchTo(folder: FileReference?) {
         folder ?: return
-        val windowsLink = folder.windowsLnk.value
-        when {
-            windowsLink != null -> {
-                val dst = getReferenceOrTimeout(windowsLink.absolutePath)
-                if (dst.exists) {
-                    switchTo(dst)
-                } else {
-                    switchTo(folder.getParent())
+        if (GFX.isGFXThread() && !OS.isWeb) {
+            loading = Time.nanoTime
+            invalidateDrawing()
+            thread(name = "switchTo($folder)") {
+                try {
+                    switchTo1(folder)
+                } catch (_: IgnoredException) {
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
+                loading = 0L
+                addEvent { invalidateDrawing() }
             }
-            GFX.isGFXThread() && !OS.isWeb -> {
-                loading = Time.nanoTime
-                invalidateDrawing()
-                thread(name = "switchTo($folder)") {
-                    try {
-                        switchTo1(folder)
-                    } catch (_: IgnoredException) {
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    loading = 0L
-                    addEvent { invalidateDrawing() }
-                }
-            }
-            else -> switchTo1(folder)
-        }
+        } else switchTo1(folder)
     }
 
     private fun switchTo1(folder: FileReference) {

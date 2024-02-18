@@ -25,8 +25,8 @@ class Inner7zFile(
     val zipFile: FileReference,
     val getZipStream: () -> SevenZFile,
     relativePath: String,
-    _parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+    parent: FileReference
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     override var signature: Signature? = null
 

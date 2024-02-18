@@ -1,7 +1,8 @@
-package me.anno.io.utils
+package me.anno.io.links
 
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.hasFlag
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.IOException
 import java.io.InputStream
@@ -151,35 +152,13 @@ class WindowsShortcut(data: ByteArray) {
          * */
         private const val maxLength = 1 shl 16
 
-        fun get(file: FileReference, callback: (WindowsShortcut?, Exception?) -> Unit) {
+        fun get(file: FileReference, callback: Callback<WindowsShortcut>) {
             file.inputStream { it, exc ->
                 if (it != null) {
                     val data = it.readNBytes2(maxLength, false)
-                    callback(WindowsShortcut(data), null)
-                } else callback(null, exc)
+                    callback.ok(WindowsShortcut(data))
+                } else callback.err(exc)
             }
-        }
-
-        fun getSync(file: FileReference): WindowsShortcut {
-            val it = file.inputStreamSync()
-            val data = it.readNBytes2(maxLength, false)
-            return WindowsShortcut(data)
-        }
-
-        /**
-         * Provides a quick test to see if this could be a valid link
-         * If you try to instantiate a new WindowShortcut, and the link is not valid,
-         * Exceptions may be thrown and Exceptions are extremely slow to generate,
-         * therefore any code needing to loop through several files should first check this.
-         *
-         * @param file the potential link
-         * @return true if it may be a link, false otherwise
-         * @throws IOException if an IOException is thrown while reading from the file
-         */
-        @JvmStatic
-        fun isPotentialValidLink(file: FileReference): Boolean {
-            if (file.lcExtension != "lnk" || file.isDirectory || file.length() < 0x64) return false
-            return file.inputStreamSync().use { fis: InputStream -> isMagicPresent(fis.readNBytes2(32, false)) }
         }
 
         @JvmStatic

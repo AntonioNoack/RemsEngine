@@ -23,8 +23,8 @@ class InnerZipFile(
     val zipSource: FileReference,
     val getZipStream: (callback: Callback<ZipFile>) -> Unit,
     relativePath: String,
-    _parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+    parent: FileReference
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     override var signature: Signature? = null
 

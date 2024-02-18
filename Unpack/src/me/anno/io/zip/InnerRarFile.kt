@@ -18,8 +18,8 @@ import java.io.IOException
 class InnerRarFile(
     absolutePath: String,
     relativePath: String,
-    _parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+    parent: FileReference
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     override var signature: Signature? = null
 

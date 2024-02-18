@@ -20,8 +20,8 @@ import kotlin.math.abs
 
 object Packer {
 
-    // todo remove unnecessary classes, if possible
-    //  e.g. we only need a few image formats,
+    // remove unnecessary classes, if possible
+    //  e.g., we only need a few image formats,
     // we don't need pdf etc. (except we export an editor), ...
 
     //////////////////////////////////////////
@@ -65,8 +65,6 @@ object Packer {
 
 
     private val LOGGER = LogManager.getLogger(Packer::class)
-
-    // todo apply this to our engine
 
     // in a game, there are assets, so
     // todo - we need to pack assets

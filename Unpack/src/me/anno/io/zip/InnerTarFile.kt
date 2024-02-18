@@ -28,9 +28,9 @@ class InnerTarFile(
     val zipFile: FileReference,
     val getZipStream: () -> ArchiveInputStream,
     relativePath: String,
-    _parent: FileReference,
+    parent: FileReference,
     val readingPath: String = relativePath
-) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     override var signature: Signature? = null
 

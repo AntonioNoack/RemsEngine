@@ -1,15 +1,15 @@
 package me.anno.extensions
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
 import me.anno.extensions.mods.Mod
 import me.anno.extensions.mods.ModManager
 import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.EngineBase
+import me.anno.io.files.Reference.getReference
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
@@ -62,7 +62,6 @@ object ExtensionLoader {
 
         // first mods, then plugins
         PluginManager.enable(plugins)
-
     }
 
     @JvmStatic
@@ -87,21 +86,14 @@ object ExtensionLoader {
                         addAllFromFolder(it, threads, extInfos0, maxDepth - 1)
                     } else LOGGER.warn("Ignored $it, because it's too deep")
                 } else {
-                    val windowsLink = it.windowsLnk.value
-                    if (windowsLink != null) {
-                        if (maxDepth > 0) {
-                            addAllFromFolder(getReference(windowsLink.absolutePath), threads, extInfos0, maxDepth - 1)
-                        } else LOGGER.warn("Ignored $it by $it, because it's too deep")
-                    } else {
-                        val name = it.name
-                        if (!name.startsWith(".") && it.lcExtension == "jar") {
-                            threads += thread(name = "ExtensionLoader::getInfos($it)") {
-                                val info = loadInfoFromZip(it)
-                                // (check if compatible???)
-                                if (info != null && checkExtensionRequirements(info)) {
-                                    synchronized(extInfos0) {
-                                        extInfos0 += info
-                                    }
+                    val name = it.name
+                    if (!name.startsWith(".") && it.lcExtension == "jar") {
+                        threads += thread(name = "ExtensionLoader::getInfos($it)") {
+                            val info = loadInfoFromZip(it)
+                            // (check if compatible???)
+                            if (info != null && checkExtensionRequirements(info)) {
+                                synchronized(extInfos0) {
+                                    extInfos0 += info
                                 }
                             }
                         }
@@ -382,5 +374,4 @@ object ExtensionLoader {
 
     @JvmStatic
     private val LOGGER = LogManager.getLogger(ExtensionLoader::class)
-
 }

@@ -44,7 +44,7 @@ object LocalFile {
         return when (fileStr.substring(i0 + 1, i1)) {
             "CONFIG" -> ConfigBasics.configFolder
             "CACHE" -> ConfigBasics.cacheFolder
-            "WORKSPACE" -> workspace.nullIfUndefined() ?: EngineBase.workspace
+            "WORKSPACE" -> workspace.ifUndefined(EngineBase.workspace)
             "DOWNLOADS" -> OS.downloads
             "DOCUMENTS" -> OS.documents
             "PICTURES" -> OS.pictures

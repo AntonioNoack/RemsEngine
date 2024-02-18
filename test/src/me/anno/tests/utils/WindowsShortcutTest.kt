@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.io.files.Reference.getReference
+import me.anno.io.links.WindowsShortcut
 import me.anno.tests.LOGGER
 
 fun main() {
@@ -19,7 +20,7 @@ fun main() {
     )
     for (name in names) {
         val file = getReference(name)
-        val link = file.windowsLnk.value!!
+        val link = WindowsShortcut(file.readBytesSync())
         LOGGER.info(
             "------ $name -----\n" +
                     "getRealFilename: ${link.absolutePath}\n" +

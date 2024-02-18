@@ -561,7 +561,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun formatFile(value: FileReference?, workspace: FileReference): String {
-        return (value ?: InvalidRef).toLocalPath(workspace.nullIfUndefined() ?: this.workspace)
+        return (value ?: InvalidRef).toLocalPath(workspace.ifUndefined(this.workspace))
     }
 
     override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
