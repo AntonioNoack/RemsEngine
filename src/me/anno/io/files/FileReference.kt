@@ -115,7 +115,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an output stream;
      * should be buffered for better performance
      * */
-    @Throws(IOException::class)
     abstract fun outputStream(append: Boolean = false): OutputStream
 
     open fun readText(callback: Callback<String>) {
@@ -137,7 +136,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Throws(IOException::class)
     open fun inputStreamSync(): InputStream {
         var e: Exception? = null
         var d: InputStream? = null
@@ -149,7 +147,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @Throws(IOException::class)
     open fun readBytesSync(): ByteArray {
         var e: Exception? = null
         var d: ByteArray? = null
@@ -161,7 +158,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @Throws(IOException::class)
     open fun readTextSync(): String {
         var e: Exception? = null
         var d: String? = null
@@ -173,7 +169,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @Throws(IOException::class)
     open fun readByteBufferSync(native: Boolean): ByteBuffer {
         var e: Exception? = null
         var d: ByteBuffer? = null
@@ -210,7 +205,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Throws(IOException::class)
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         var e: Exception? = null
         var d: ReadLineIterator? = null
@@ -222,7 +216,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @Throws(IOException::class)
     open fun writeFile(
         file: FileReference,
         progress: (delta: Long, total: Long) -> Unit,
@@ -246,12 +239,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Throws(IOException::class)
     fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
         writeFile(file, { _, _ -> }, callback)
     }
 
-    @Throws(IOException::class)
     open fun writeText(text: String) {
         val os = outputStream()
         val wr = OutputStreamWriter(os)
@@ -260,14 +251,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         os.close()
     }
 
-    @Throws(IOException::class)
     open fun writeBytes(bytes: ByteArray) {
         val os = outputStream()
         os.write(bytes)
         os.close()
     }
 
-    @Throws(IOException::class)
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
         val pos = bytes.position()
@@ -275,7 +264,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         writeBytes(byte2)
     }
 
-    @Throws(IOException::class)
     abstract fun length(): Long
 
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
@@ -317,10 +305,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return null
     }
 
-    @Throws(IOException::class)
     abstract fun delete(): Boolean
 
-    @Throws(IOException::class)
     abstract fun mkdirs(): Boolean
 
     fun tryMkdirs(): Boolean {
@@ -332,12 +318,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @Throws(IOException::class)
     open fun deleteOnExit() {
         deleteRecursively()
     }
 
-    @Throws(IOException::class)
     open fun deleteRecursively(): Boolean {
         return delete()
     }
@@ -363,7 +347,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
 
-    @Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
     fun copyTo(

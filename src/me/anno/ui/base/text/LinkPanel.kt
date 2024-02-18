@@ -8,7 +8,6 @@ import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.files.OpenFileExternally
-import java.net.URL
 
 /**
  * represents a clickable link
@@ -16,9 +15,6 @@ import java.net.URL
 open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChild("link")) {
 
     constructor(style: Style) : this("", style)
-
-    @Suppress("unused")
-    constructor(link: URL, style: Style) : this(link.toString(), style)
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when (button) {

@@ -4,9 +4,6 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 
-/**
- * todo we currently save data as JSON, but it might be nice to also be able to save it as XML and YAML
- * */
 class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {
 
     constructor(workspace: FileReference) : this(32, workspace)
@@ -80,8 +77,5 @@ class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWri
             writer.writeAllInList()
             return writer.data
         }
-
     }
-
-
 }

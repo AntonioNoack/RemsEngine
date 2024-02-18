@@ -1,4 +1,6 @@
 package me.anno.ecs.annotations
 
-// @Button
-annotation class DebugAction()
+/**
+ * adding this annotation to a function inside a Component will add a clickable-button to the UI
+ * */
+annotation class DebugAction

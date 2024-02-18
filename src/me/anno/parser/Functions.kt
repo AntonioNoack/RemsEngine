@@ -36,22 +36,20 @@ import kotlin.random.Random
 
 object Functions {
 
+    private fun isDefined(functions: Map<String, Any?>, name: String, lcName: String): Boolean {
+        return (functions[name] ?: functions[lcName]) != null
+    }
+
     fun onUnknownFunction(name: String, paramString: String): Throwable {
         val lcName = name.lowercase()
-        val f0 = functions0[name] ?: functions0[lcName]
-        val f1 = functions1[name] ?: functions1[lcName]
-        val f2 = functions2[name] ?: functions2[lcName]
-        val f3 = functions3[name] ?: functions3[lcName]
-        val f4 = functions4[name] ?: functions4[lcName]
-        val f5 = functions5[name] ?: functions5[lcName]
         return RuntimeException(
             "Unknown function $name($paramString)" + when {
-                f0 != null -> ", did you mean $name()?"
-                f1 != null -> ", did you mean $name(x)?"
-                f2 != null -> ", did you mean $name(x,y)?"
-                f3 != null -> ", did you mean $name(x,y,z)?"
-                f4 != null -> ", did you mean $name(x,y,z,w)?"
-                f5 != null -> ", did you mean $name(a,b,c,d,e)?"
+                isDefined(functions0, name, lcName) -> ", did you mean $name()?"
+                isDefined(functions1, name, lcName) -> ", did you mean $name(x)?"
+                isDefined(functions2, name, lcName) -> ", did you mean $name(x,y)?"
+                isDefined(functions3, name, lcName) -> ", did you mean $name(x,y,z)?"
+                isDefined(functions4, name, lcName) -> ", did you mean $name(x,y,z,w)?"
+                isDefined(functions5, name, lcName) -> ", did you mean $name(a,b,c,d,e)?"
                 else -> ""
             }
         )

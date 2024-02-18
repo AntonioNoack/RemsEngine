@@ -1,13 +1,15 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
+import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
@@ -18,9 +20,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.engine.Events.addEvent
-import me.anno.engine.inspector.Inspectable
-import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -38,11 +37,11 @@ import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
-import me.anno.utils.types.Strings.camelCaseToTitle
-import me.anno.utils.types.Strings.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
@@ -317,7 +316,7 @@ class PrefabInspector(var reference: FileReference) {
             /* for (param in action.parameters) {
                      param.kind
             } */
-            val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
+            val title = action.name.camelCaseToTitle()
             val button = TextButton(title, style)
                 .addLeftClickListener {
                     // could become a little heavy....

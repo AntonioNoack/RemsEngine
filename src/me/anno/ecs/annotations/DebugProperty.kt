@@ -1,4 +1,6 @@
 package me.anno.ecs.annotations
 
-// done tracked property: shows the current value
-annotation class DebugProperty()
+/**
+ * add this to fields to make them be shown and constantly-updated in the UI
+ * */
+annotation class DebugProperty

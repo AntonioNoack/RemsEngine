@@ -22,6 +22,7 @@ class Clock(
     var firstTime = Time.nanoTime
     var lastTime = firstTime
 
+    @Suppress("unused")
     val timeSinceStart get() = (Time.nanoTime - firstTime) * 1e-9
 
     fun start() {

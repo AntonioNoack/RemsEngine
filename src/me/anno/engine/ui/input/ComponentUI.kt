@@ -1,7 +1,5 @@
 package me.anno.engine.ui.input
 
-import me.anno.ecs.annotations.ListType
-import me.anno.ecs.annotations.MapType
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Range.Companion.maxByte
 import me.anno.ecs.annotations.Range.Companion.maxDouble
@@ -25,8 +23,8 @@ import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.EngineBase
 import me.anno.engine.DefaultAssets
+import me.anno.engine.EngineBase
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.AssetImport
@@ -79,12 +77,12 @@ import me.anno.ui.input.TextInputML
 import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
-import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -279,7 +277,7 @@ object ComponentUI {
 
             // collections and maps
             is Array<*> -> {
-                val arrayType = getArrayType(property, value.iterator(), name) ?: return null
+                val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
                         property.set(this, values.writeTo(value))
@@ -288,7 +286,7 @@ object ComponentUI {
             }
 
             is List<*> -> {
-                val arrayType = getArrayType(property, value.iterator(), name) ?: return null
+                val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
                         property.set(this, values)
@@ -297,7 +295,7 @@ object ComponentUI {
             }
 
             is Set<*> -> {
-                val arrayType = getArrayType(property, value.iterator(), name) ?: return null
+                val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
                         property.set(this, values.toSet())
@@ -306,9 +304,8 @@ object ComponentUI {
             }
 
             is Map<*, *> -> {
-                val annotation = property.annotations.firstInstanceOrNull<MapType>()
-                val keyType = annotation?.keyType ?: getType(value.keys.iterator(), name) ?: return null
-                val valueType = annotation?.valueType ?: getType(value.values.iterator(), name) ?: return null
+                val keyType = getType(value.keys.iterator(), name) ?: return null
+                val valueType = getType(value.values.iterator(), name) ?: return null
                 return object : AnyMapPanel(title, visibilityKey, keyType, valueType, style) {
                     override fun onChange() {
                         property.set(this, values.associate { it.first to it.second }.toMutableMap())
@@ -1222,8 +1219,8 @@ object ComponentUI {
     // get what type it is
     // if we were using a language, which doesn't discard type information at runtime, we would not have this
     // issue
-    fun getArrayType(property: IProperty<Any?>, value: Iterator<Any?>, warnName: String? = null): String? {
-        var arrayType = property.annotations.firstInstanceOrNull<ListType>()?.valueType
+    fun getArrayType(value: Iterator<Any?>, warnName: String? = null): String? {
+        var arrayType: String? = null
         while (arrayType == null && value.hasNext()) arrayType = getTypeFromSample(value.next())
         if (warnName != null && arrayType == null) warnDetectionIssue(warnName)
         return arrayType
