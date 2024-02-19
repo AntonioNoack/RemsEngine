@@ -7,6 +7,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+// todo this probably should be moved elsewhere... isn't used in the engine currently at all...
 object Clipping {
 
     fun check(v0: Vector4f, axis1: Vector4f, axis2: Vector4f, getValue: (Vector4f) -> Float): Vector4f? {
@@ -15,27 +16,23 @@ object Clipping {
         val val1p = getValue(axis1)
         val val2p = getValue(axis2)
         // decide, which one is better... is this important? idk...
-        if ((val0 > 1f && val1p > 1f) || (val0 < -1f && val1p < -1f)) return lerpMaybe(v0, axis2, val0, val2p, getValue)
-        if ((val0 > 1f && val2p > 1f) || (val0 < -1f && val2p < -1f)) return lerpMaybe(v0, axis1, val0, val1p, getValue)
+        if ((val0 > 1f && val1p > 1f) || (val0 < -1f && val1p < -1f)) return lerpMaybe(v0, axis2, val0, val2p)
+        if ((val0 > 1f && val2p > 1f) || (val0 < -1f && val2p < -1f)) return lerpMaybe(v0, axis1, val0, val1p)
         val v1IsBetter = abs(val1p - val0) > abs(val2p - val0)
         return if (v1IsBetter) {
-            lerpMaybe(v0, axis1, val0, val1p, getValue)
+            lerpMaybe(v0, axis1, val0, val1p)
         } else {
-            lerpMaybe(v0, axis2, val0, val2p, getValue)
+            lerpMaybe(v0, axis2, val0, val2p)
         }
     }
 
-    inline fun lerpMaybe(
-        v0: Vector4f, v1: Vector4f, val0: Float, val1: Float,
-        @Suppress("UNUSED_PARAMETER") getValue: (Vector4f) -> Float
-    ): Vector4f? {
+    fun lerpMaybe(v0: Vector4f, v1: Vector4f, val0: Float, val1: Float): Vector4f? {
         if ((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
         val cuttingPoint = if (val0 < 0f) -1f else 1f
         // linear combination, such that the new value is cuttingPoint
         val d1 = abs(val0 - cuttingPoint)
         val d2 = abs(val1 - cuttingPoint)
         return Vector4f(v0).lerp(v1, d1 / (d1 + d2))
-        // ("${v0.print()} ${v1.print()} -> ${result.print()} ($val0 $val1 -> ${getValue(result)})")
     }
 
     fun getPoint(matrix: Matrix4f, x: Float, y: Float, z: Float = 0f): Vector4f? {
@@ -79,10 +76,7 @@ object Clipping {
             if (v.z <= +1f) allPositive = false
         }
 
-        if (allNegative || allPositive) return false
-
-        return true
-
+        return !(allNegative || allPositive)
     }
 
     fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): FloatPair? {
@@ -122,19 +116,13 @@ object Clipping {
             }
 
             return true
-
         }
 
         if (!checkAll { it.x } || !checkAll { it.y } || !checkAll { it.z }) return null
-
-        // ("${v00.print()} ${v01.print()} ${v10.print()} ${v11.print()}")
 
         val minZ = min(min(v00.z, v01.z), min(v10.z, v11.z))
         val maxZ = max(min(v00.z, v01.z), min(v10.z, v11.z))
 
         return FloatPair(minZ, maxZ)
-
     }
-
-
 }

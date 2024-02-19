@@ -81,7 +81,6 @@ import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer
@@ -89,6 +88,7 @@ import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.setNumber
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
@@ -863,7 +863,7 @@ open class FileExplorerEntry(
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        println("${Tabs.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
+        println("${Strings.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
     }
 
     override val className: String get() = "FileEntry"

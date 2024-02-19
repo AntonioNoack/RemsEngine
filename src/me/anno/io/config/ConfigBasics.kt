@@ -16,7 +16,7 @@ object ConfigBasics {
     private val LOGGER = LogManager.getLogger(ConfigBasics::class)
 
     var configFolder = home.getChild(".config/RemsEngine")
-    var cacheFolder = configFolder
+    var cacheFolder = home.getChild(".cache/RemsEngine")
 
     fun getConfigFile(localFileName: String): FileReference {
         return configFolder.getChild(localFileName)
@@ -93,7 +93,7 @@ object ConfigBasics {
 
         fun addIfNewest(entry: ConfigEntry): Boolean {
             val id = entry.id
-            return if (id != null) {
+            return if (id.isNotBlank()) {
                 val old = newestEntries[id]
                 if (old != null) {
                     if (entry.version > old.version) {

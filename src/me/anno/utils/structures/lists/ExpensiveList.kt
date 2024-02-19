@@ -44,6 +44,7 @@ class ExpensiveList<V>(val length: Int, val generator: (Int) -> V) : List<V> {
 
     override fun toString() = List(length) { index -> this[index] }.toString()
 
+    @Suppress("unused")
     fun findInsertIndex(comparator: (V) -> Int): Int {
         val index = binarySearch(comparator)
         return if (index < 0) -1 - index else index

@@ -1,6 +1,6 @@
 package me.anno.io.xml.generic
 
-import me.anno.utils.Tabs
+import me.anno.utils.types.Strings
 
 class XMLNode(val type: String) {
 
@@ -16,7 +16,7 @@ class XMLNode(val type: String) {
     operator fun contains(key: String): Boolean = key in attributes
 
     fun toString(depth: Int): String {
-        val tabs = Tabs.spaces(depth * 2)
+        val tabs = Strings.spaces(depth * 2)
         return if (children.isEmpty()) {
             "$tabs<$type ${attributes.entries.joinToString(" ") { "${it.key}=\"${it.value}\"" }}/>" +
                     if (depth == 0) "" else "\n"
@@ -29,6 +29,7 @@ class XMLNode(val type: String) {
 
     override fun toString() = toString(0)
 
+    @Suppress("unused")
     fun deepClone(): XMLNode {
         val clone = XMLNode(type)
         clone.attributes.putAll(attributes)

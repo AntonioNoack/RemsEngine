@@ -125,24 +125,21 @@ abstract class EngineBase(
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
         Engine.projectName = configName
+        instance = this
         ConfigBasics.configFolder = OS.home.getChild(".config").getChild(configName)
         ConfigBasics.cacheFolder = OS.home.getChild(".cache").getChild(configName)
     }
 
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {
 
+        setupNames()
+
+        Logging.setup()
+
         if (Engine.shutdown) {
             LOGGER.warn("Engine restart is experimental!")
             Engine.cancelShutdown()
         }
-
-        instance = this
-
-        setupNames()
-
-        tick("run")
-
-        Logging.setup()
 
         tick("logging")
 

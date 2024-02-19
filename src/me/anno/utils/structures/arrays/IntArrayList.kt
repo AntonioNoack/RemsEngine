@@ -8,13 +8,13 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
-open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : List<Int>, ICacheData {
+open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(IntArrayList::class)
     }
 
-    override var size = 0
+    var size = 0
 
     var array = alloc(initCapacity)
 
@@ -139,7 +139,7 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
 
     fun last() = array[size - 1]
 
-    override operator fun get(index: Int) = array[index]
+    operator fun get(index: Int) = array[index]
     fun getOrNull(index: Int) = array.getOrNull(index)
 
     @Suppress("unused")
@@ -181,21 +181,21 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
         array[size++] = value
     }
 
-    override fun isEmpty(): Boolean = size <= 0
+    fun isEmpty(): Boolean = size <= 0
 
-    override fun contains(element: Int): Boolean {
+    fun contains(element: Int): Boolean {
         return indexOf(element) >= 0
     }
 
-    override fun indexOf(element: Int): Int {
+    fun indexOf(element: Int): Int {
         val array = array
-        for (i in indices) {
+        for (i in 0 until size) {
             if (array[i] == element) return i
         }
         return -1
     }
 
-    override fun lastIndexOf(element: Int): Int {
+    fun lastIndexOf(element: Int): Int {
         val array = array
         for (i in size - 1 downTo 0) {
             if (array[i] == element) return i
@@ -203,21 +203,7 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
         return -1
     }
 
-    override fun iterator() = listIterator()
-    override fun listIterator(index: Int): ListIterator<Int> {
-        val array = array
-        return object : ListIterator<Int> {
-            var i = index
-            override fun hasNext(): Boolean = i < size
-            override fun next(): Int = array[i++]
-            override fun previous(): Int = array[--i]
-            override fun nextIndex(): Int = i
-            override fun previousIndex(): Int = i - 1
-            override fun hasPrevious(): Boolean = i > 0
-        }
-    }
-
-    override fun subList(fromIndex: Int, toIndex: Int): List<Int> {
+    fun subList(fromIndex: Int, toIndex: Int): List<Int> {
         val array = array
         return IntArray(toIndex - fromIndex) { array[fromIndex + it] }.toList()
     }
@@ -229,16 +215,11 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
         }
     }
 
-    override fun containsAll(elements: Collection<Int>): Boolean {
-        for (e in elements) {
-            if (!contains(e))
-                return false
-        }
-        return true
-    }
-
-
     fun toIntArray(canReturnSelf: Boolean = true, exact: Boolean = true) = toIntArray(size, canReturnSelf, exact)
+    fun toList(): List<Int> = subList(0, size)
+    val indices: IntRange get() = 0 until size
+    val lastIndex: Int get() = size - 1
+    fun isNotEmpty(): Boolean = !isEmpty()
 
     fun toIntArray(size1: Int, canReturnSelf: Boolean = true, exact: Boolean = true): IntArray {
         val array = array
@@ -249,18 +230,6 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
         return value
     }
 
-    override fun listIterator(): ListIterator<Int> {
-        return object : ListIterator<Int> {
-            var nextIndex = 0
-            override fun hasNext(): Boolean = nextIndex < size
-            override fun hasPrevious(): Boolean = nextIndex > 0
-            override fun next(): Int = get(nextIndex++)
-            override fun nextIndex(): Int = nextIndex
-            override fun previous(): Int = get(--nextIndex)
-            override fun previousIndex(): Int = nextIndex - 1
-        }
-    }
-
     override fun destroy() {
         pool?.returnBuffer(array)
         size = 0
@@ -269,7 +238,7 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Lis
     override fun toString(): String {
         val builder = StringBuilder(size * 4)
         builder.append('[')
-        if (isNotEmpty()) builder.append(this[0])
+        if (!isEmpty()) builder.append(this[0])
         for (i in 1 until size) {
             builder.append(',')
             builder.append(this[i])

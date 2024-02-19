@@ -21,7 +21,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
@@ -44,7 +43,6 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
-import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -141,7 +139,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     val sample = prefab.createInstance() // a little waste of allocations...
 
                     // find where to draw it
-                    findDropPosition(file, dropPosition)
+                    findDropPosition(dropPosition)
 
                     movedSample.removeAllChildren()
                     movedSample.transform.localPosition = dropPosition
@@ -628,7 +626,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val ci = PrefabInspector.currentInspector!!
         for (file in files) {
             val prefab = PrefabCache[file] ?: continue
-            val dropPosition = findDropPosition(file, Vector3d())
+            val dropPosition = findDropPosition(Vector3d())
             fun posRotSca(root: Entity, sampleInstance: Entity?): Triple<Vector3d, Quaterniond, Vector3d> {
                 val newTransform = Matrix4x3d()
                     .translationRotateScale(
@@ -761,8 +759,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     val dropRotation = Quaterniond()
     val dropScale = Vector3d(1.0)
 
-    fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d {
-        unused(drop)
+    fun findDropPosition(dst: Vector3d): Vector3d {
         // val prefab = PrefabCache[drop] ?: return null
         // val sample = prefab.getSampleInstance() as? Entity ?: return null
         // todo depending on mode, use other strategies to find zero-point on object

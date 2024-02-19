@@ -2,7 +2,7 @@ package me.anno.tests.files
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.utils.Tabs
+import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 
 fun main() {
@@ -12,14 +12,14 @@ fun main() {
     val logger = LogManager.getLogger("FileTest")
 
     fun printHierarchy(file: FileReference, depth: Int) {
-        logger.info(Tabs.tabs(depth) + file.absolutePath)
+        logger.info(Strings.tabs(depth) + file.absolutePath)
         if (file.isSomeKindOfDirectory) {
             val children = file.listChildren()
             if (children.isNotEmpty()) {
                 for (child in children)
                     printHierarchy(child, depth + 1)
             } else {
-                logger.info(Tabs.tabs(depth + 1) + "sadly empty...")
+                logger.info(Strings.tabs(depth + 1) + "sadly empty...")
             }
         }
     }

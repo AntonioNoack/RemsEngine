@@ -53,10 +53,6 @@ object GFX {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(GFX::class)
 
-    init {
-        LOGGER.info("Initializing GFX")
-    }
-
     // for final rendering we need to use the GPU anyway;
     // so just use a static variable
     @JvmField

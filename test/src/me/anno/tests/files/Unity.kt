@@ -21,8 +21,8 @@ import me.anno.ui.debug.TestEngine
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.utils.OS
-import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Strings
 
 fun inspectAsset(asset: FileReference) {
     for (file in asset.listChildren().filterIsInstance<InnerLinkFile>().sortedBy { -it.length() }) {
@@ -36,7 +36,7 @@ fun inspectAsset(asset: FileReference) {
 
 fun FileReference.printTree(depth: Int, maxDepth: Int) {
     if (!isHidden) {
-        LOGGER.debug(Tabs.spaces(depth * 2) + name)
+        LOGGER.debug(Strings.spaces(depth * 2) + name)
         if (depth + 1 < maxDepth && (if (depth == 0) isSomeKindOfDirectory else isDirectory)) {
             for (child in listChildren()) {
                 child.printTree(depth + 1, maxDepth)

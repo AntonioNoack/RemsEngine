@@ -1,8 +1,14 @@
 package org.apache.logging.log4j
 
 import me.anno.Time
+import me.anno.io.Streams.writeString
+import me.anno.io.config.ConfigBasics
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.utils.OS
 import org.apache.commons.logging.Log
+import java.io.IOException
+import java.io.OutputStream
 import java.util.Calendar
 import java.util.Locale
 import java.util.logging.Level
@@ -10,7 +16,7 @@ import java.util.logging.Level
 open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     private val lastWarned = HashMap<String, Long>()
-    private val warningTimeoutNanos = 10e9.toLong()
+    private val warningTimeoutNanos = 10L * SECONDS_TO_NANOS
 
     private fun interleave(msg: String, args: Array<out Any?>): String {
         if (args.isEmpty()) return msg
@@ -54,12 +60,26 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     private val suffix = if (prefix == null) "" else ":$prefix"
 
     fun print(prefix: String, msg: String) {
-        for (line in msg.split('\n')) {
-            val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
-            if (prefix == "ERR!" || prefix == "WARN") {
-                System.err.println(line2)
-            } else {
-                println(line2)
+        synchronized(LogManager) {
+            val logFile = getLogFileStream()
+            for (line in msg.split('\n')) {
+                val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
+                if (prefix == "ERR!" || prefix == "WARN") {
+                    System.err.println(line2)
+                } else {
+                    println(line2)
+                }
+                if (logFile != null) {
+                    try {
+                        logFile.writeString(line2)
+                        logFile.writeString(System.lineSeparator())
+                    } catch (ignored: IOException) {
+                    }
+                }
+            }
+            try {
+                logFile?.flush()
+            } catch (ignored: IOException) {
             }
         }
     }
@@ -199,7 +219,8 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         if (isWarnEnabled()) {
             synchronized(lastWarned) {
                 val time = Time.nanoTime
-                if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
+                val lastWarnedI = lastWarned[msg]
+                if (lastWarnedI == null || (lastWarnedI - time) > warningTimeoutNanos) {
                     lastWarned[msg] = time
                     print("WARN", msg)
                 }
@@ -306,8 +327,30 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
     companion object {
+
         private var lastTime = 0L
         private var lastString = ""
+        private var logFileStream: OutputStream? = null
+
+        fun getLogFileStream(): OutputStream? {
+            if (OS.isWeb || OS.isAndroid) return null
+            if (logFileStream != null) return logFileStream
+            val logFolder = ConfigBasics.cacheFolder.getChild("logs")
+            logFolder.tryMkdirs()
+            // to do pack all existing .log files into .zip files? -> no, the file size shouldn't be THAT big
+            // delete log files older than 14 days
+            val time = System.currentTimeMillis()
+            val deleteTime = time - 14L * 24L * 3600L * 1000L
+            for (child in logFolder.listChildren()) {
+                val childCreated = child.nameWithoutExtension.toLongOrNull() ?: continue
+                if (childCreated < deleteTime) child.delete()
+            }
+            val logFile = logFolder.getChild("$time.log")
+            logFileStream = logFile.outputStream(true)
+            println("[${getTimeStamp()},INFO:Logger] Writing log to $logFile")
+            return logFileStream
+        }
+
         fun getTimeStamp(): String {
             val updateInterval = 500 * MILLIS_TO_NANOS
             val time = Time.nanoTime / updateInterval

@@ -1,7 +1,7 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
-import me.anno.utils.Tabs
+import me.anno.utils.types.Strings
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.halfSubCrossDot
 import me.anno.utils.types.Triangles.rayTriangleIntersectionFront
@@ -17,7 +17,7 @@ class BLASLeaf(
 ) : BLASNode(bounds) {
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $start += $length")
+        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $start += $length")
     }
 
     override fun countNodes() = 1

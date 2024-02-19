@@ -17,7 +17,6 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.unmix
-import me.anno.utils.Warning.unused
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -118,8 +117,8 @@ class SVGMesh {
                         if (style.isStroke) addPolyline(this, style, false)
                     }
                     "polygon" -> {
-                        if (style.isFill) addPolygon(this, style, true)
-                        if (style.isStroke) addPolygon(this, style, false)
+                        if (style.isFill) addPolygon(style, true)
+                        if (style.isStroke) addPolygon(style, false)
                     }
                     "path" -> {
                         if (style.isFill) addPath(this, style, true)
@@ -815,8 +814,7 @@ class SVGMesh {
         endElement()
     }
 
-    fun addPolygon(xml: XMLNode, style: SVGStyle, fill: Boolean) {
-        unused(xml)
+    fun addPolygon(style: SVGStyle, fill: Boolean) {
         init(style, fill)
         endElement()
     }

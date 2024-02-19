@@ -12,6 +12,8 @@ import java.util.concurrent.TimeoutException
  * while(!done){ sleep() } is often not enough, e.g., the user might close the program in-between,
  * or you might wait for data from the GPU; if you are on the GFX thread, the GFX tasks still need to be run;
  * this class handles it all properly :)
+ *
+ * This class is not available on all platforms though! Use addEvent{} with a delta-millis-value instead.
  * */
 object Sleep {
 
@@ -115,5 +117,4 @@ object Sleep {
             sleepABit(canBeKilled)
         }
     }
-
 }

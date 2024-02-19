@@ -64,8 +64,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
-        getLineWidth(line, endIndex, tp.font)
+    fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) = getLineWidth(line, endIndex, tp.font)
 
     @JvmStatic
     fun getLineWidth(line: List<Int>, endIndex: Int, font: Font): Float {
@@ -80,13 +79,14 @@ object Strings {
     }
 
     @JvmStatic
-    fun getIndexFromText(characters: IntArrayList, localX: Float, tp: TextPanel) =
+    fun getIndexFromText(characters: IntArrayList, localX: Float, tp: TextPanel): Int =
         getIndexFromText(characters, localX, tp.font)
 
     @JvmStatic
     fun getIndexFromText(characters: IntArrayList, localX: Float, font: Font): Int {
+        val chars = characters.toList()
         val list = ExpensiveList(characters.size + 1) {
-            getLineWidth(characters, it, font)
+            getLineWidth(chars, it, font)
         }
         var index = list.binarySearch { it.compareTo(localX) }
         if (index < 0) index = -1 - index
@@ -98,7 +98,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel) =
+    fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel): Int =
         getIndexFromText(characters, localX, tp.font)
 
     @JvmStatic
@@ -636,4 +636,9 @@ object Strings {
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     // private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
 
+    @JvmStatic
+    fun spaces(ctr: Int): String = " ".repeat(ctr)
+
+    @JvmStatic
+    fun tabs(ctr: Int): String = "\t".repeat(ctr)
 }

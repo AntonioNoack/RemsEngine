@@ -1,7 +1,7 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
-import me.anno.utils.Tabs
+import me.anno.utils.types.Strings
 import org.joml.AABBf
 import org.joml.Vector3f
 
@@ -41,7 +41,7 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     }
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $axis")
+        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $axis")
         n0.print(depth + 1)
         n1.print(depth + 2)
     }

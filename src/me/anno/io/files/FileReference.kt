@@ -10,14 +10,13 @@ import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
-import me.anno.utils.Tabs
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.structures.Callback
+import me.anno.utils.types.Strings
+import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -438,13 +437,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         var element = this
         while (element != InvalidRef) {
             if (run(this)) return true
-            element = element.getParent() ?: return false
+            element = element.getParent()
         }
         return false
     }
 
     fun printTree(depth: Int = 0) {
-        LOGGER.info("${Tabs.spaces(depth * 2)}$name")
+        LOGGER.info("${Strings.spaces(depth * 2)}$name")
         if (isDirectory) {
             for (child in listChildren()) {
                 child.printTree(depth + 1)

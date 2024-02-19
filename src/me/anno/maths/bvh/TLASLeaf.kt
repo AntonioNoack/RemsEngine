@@ -3,8 +3,8 @@ package me.anno.maths.bvh
 import me.anno.engine.raycast.RayHit
 import me.anno.input.Input
 import me.anno.maths.Maths.min
-import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Strings
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -23,7 +23,7 @@ class TLASLeaf(
     }
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $worldToLocal, ${blas.nodeId}")
+        println(Strings.spaces(depth * 2) + " ${bounds.volume}, $worldToLocal, ${blas.nodeId}")
     }
 
     override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {

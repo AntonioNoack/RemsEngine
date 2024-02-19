@@ -2,6 +2,7 @@ package me.anno.utils.structures.lists
 
 class CountingList(capacity: Int = 16) : MutableList<Any> {
 
+    @Suppress("unused")
     constructor(src: CountingList) : this(src.size) {
         internal.addAll(src.internal)
         for (i in counters.indices) {

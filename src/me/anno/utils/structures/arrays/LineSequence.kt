@@ -32,7 +32,7 @@ class LineSequence : IntSequence {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]
         val indexInLine = index - indexTable[lineIndex]
-        if (indexInLine < 0) throw IllegalStateException("$indexInLine by $index -> $lineIndex | ${indexTable.joinToString()}")
+        if (indexInLine < 0) throw IllegalStateException("$indexInLine by $index -> $lineIndex | ${indexTable.toList().joinToString()}")
         return if (indexInLine < line.size) line[indexInLine] else '\n'.code
     }
 

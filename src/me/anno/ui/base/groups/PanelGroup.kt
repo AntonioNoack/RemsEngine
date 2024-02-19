@@ -2,11 +2,10 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.utils.Tabs
+import me.anno.utils.types.Strings
 import kotlin.math.max
 import kotlin.math.min
 
@@ -81,7 +80,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             }
         } else {
             val cs = children.size
-            print(Tabs.spaces((tabDepth + 1) * 2))
+            print(Strings.spaces((tabDepth + 1) * 2))
             if (cs == 1) println("... (1 child)")
             else println("... (${children.size} children)")
         }

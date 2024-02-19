@@ -31,7 +31,7 @@ object Triangulation {
             joint[index * 2 + 1] = v.y
         }
         val indices = EarCut.earcut(joint, 2) ?: return emptyList()
-        return indices.map { index -> points[index] }
+        return indices.toList().map { index -> points[index] }
     }
 
     @JvmStatic
@@ -43,7 +43,7 @@ object Triangulation {
             joint[index * 2 + 1] = v.y.toFloat()
         }
         val indices = EarCut.earcut(joint, 2) ?: return emptyList()
-        return indices.map { index -> points[index] }
+        return indices.toList().map { index -> points[index] }
     }
 
     @JvmStatic

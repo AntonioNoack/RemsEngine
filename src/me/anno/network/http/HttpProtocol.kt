@@ -4,7 +4,6 @@ import me.anno.network.NetworkProtocol
 import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
-import me.anno.utils.Warning.unused
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Ints.toIntOrDefault
@@ -15,7 +14,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
     Protocol(methodToMagic(method), NetworkProtocol.TCP) {
 
     override fun serverHandshake(server: Server, client: TCPClient, magic: Int): Boolean {
-        handleRequest(server, client, magic)
+        handleRequest(server, client)
         server.logRejections = false
         return false // http clients are not registered
     }
@@ -48,8 +47,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
         return Pair(realPath, args)
     }
 
-    private fun handleRequest(server: Server, client: TCPClient, magic: Int) {
-        unused(magic)
+    private fun handleRequest(server: Server, client: TCPClient) {
         val ri = client.dis.bufferedReader()
         val header = ri.readLine()!! // 1.1 200 OK
         val si = header.indexOf(' ')
