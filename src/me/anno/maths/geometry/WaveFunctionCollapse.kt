@@ -5,8 +5,8 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.structures.arrays.BooleanArrayList
 import org.apache.logging.log4j.LogManager
-import java.util.BitSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -87,7 +87,7 @@ class WaveFunctionCollapse {
     val types = ArrayList<CellType>()
 
     open class CellType(val tileIndex: Int) {
-        val neighbors = Array(4) { BitSet() }
+        val neighbors = Array(4) { BooleanArrayList() }
         override fun toString() = "$tileIndex"
     }
 
@@ -234,7 +234,7 @@ class WaveFunctionCollapse {
 
     class Cell(var length: Int) {
         var types: ArrayList<CellType>? = null
-        val typeNeighbors = Array(4) { BitSet(length) }
+        val typeNeighbors = Array(4) { BooleanArrayList(length) }
         var result: CellType? = null
     }
 
@@ -306,7 +306,7 @@ class WaveFunctionCollapse {
         cell.types = null
         cell.length = 1
 
-        val invalid = BitSet(sizeX * sizeY)
+        val invalid = BooleanArrayList(sizeX * sizeY)
         onChange(sizeX, sizeY, x, y, bestIndex, invalid)
         while (!invalid.isEmpty) {
             val index2 = invalid.nextSetBit(0)
@@ -319,7 +319,7 @@ class WaveFunctionCollapse {
         return true
     }
 
-    private fun onChange(sizeX: Int, sizeY: Int, x: Int, y: Int, index: Int, invalid: BitSet) {
+    private fun onChange(sizeX: Int, sizeY: Int, x: Int, y: Int, index: Int, invalid: BooleanArrayList) {
         if (x + 1 < sizeX) invalid.set(index + 1)
         if (x > 0) invalid.set(index - 1)
         if (y + 1 < sizeY) invalid.set(index + sizeX)
@@ -389,7 +389,7 @@ class WaveFunctionCollapse {
         } else true
     }
 
-    fun recalculateNeighborCache(cache: BitSet, types: List<CellType>, side: Int) {
+    fun recalculateNeighborCache(cache: BooleanArrayList, types: List<CellType>, side: Int) {
         cache.clear()
         var lowestClearBit = 0
         for (type in types) {
@@ -402,7 +402,15 @@ class WaveFunctionCollapse {
         }
     }
 
-    fun calculatePossibilities(sizeX: Int, sizeY: Int, grid: Array<Cell>, x: Int, y: Int, index: Int, invalid: BitSet) {
+    fun calculatePossibilities(
+        sizeX: Int,
+        sizeY: Int,
+        grid: Array<Cell>,
+        x: Int,
+        y: Int,
+        index: Int,
+        invalid: BooleanArrayList
+    ) {
         val cell = grid[x + y * sizeX]
         if (cell.length < 2) return
         val newTypes = if (cell.types == null) ArrayList(types) else cell.types!!

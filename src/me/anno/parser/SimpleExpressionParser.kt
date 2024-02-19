@@ -13,11 +13,8 @@ import me.anno.parser.Functions.functions2
 import me.anno.parser.Functions.functions3
 import me.anno.parser.Functions.functions4
 import me.anno.parser.Functions.functions5
-import me.anno.utils.structures.lists.CountingList
-import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.pow
 
 /**
@@ -55,9 +52,9 @@ object SimpleExpressionParser {
         return j
     }
 
-    fun String.splitInternally(): CountingList {
+    fun String.splitInternally(): ArrayList<Any> {
 
-        val list = CountingList(max(2, length / 3))
+        val list = ArrayList<Any>()
         var i0 = 0
         var i = -1
 
@@ -434,9 +431,7 @@ object SimpleExpressionParser {
         }
     }
 
-    class Operation(val priority: Int, val condition: List<Any>, val action: (list: List<Any>, i0: Int) -> Any) {
-        val chars = condition.filter { it.isCounted() }.toSet().toList()
-    }
+    class Operation(val priority: Int, val condition: List<Any>, val action: (list: List<Any>, i0: Int) -> Any)
 
     // val isName = { x: Any -> x is String && x.isNotEmpty() }
     val isFunctionName = Array(6) {
@@ -515,49 +510,7 @@ object SimpleExpressionParser {
 
     )
 
-    fun simplify2(parts: CountingList): CountingList {
-
-        LOGGER.info(parts.toString())
-
-        replacing@ while (true) {
-            ops@ for (op in operations) {
-                val condition = op.condition
-                val condSize = condition.size
-                if (condSize > parts.size) continue@ops
-                for (char in op.chars) {
-                    if (char !in parts) continue@ops
-                }
-                // check if/where applicable
-                for (i in condSize - 1 until parts.size) {
-                    val i0 = i - condSize + 1
-                    for (j in 0 until condSize) {
-                        val cond = condition[j]
-                        val here = parts[i0 + j]
-                        @Suppress("unchecked_cast")
-                        if (cond == here ||
-                            (cond is Function1<*, *> && (cond as Function1<Any, Boolean>)(here))
-                        ) {
-                            // ok
-                        } else continue@ops
-                    }
-                    // to do check if left/right is free
-                    // apply
-                    val replacement = op.action(parts, i0)
-                    for (j in 0 until condSize - 1) {
-                        parts.removeAt(i - j)
-                    }
-                    parts[i0] = replacement
-                }
-            }
-            break
-        }
-
-        LOGGER.info(parts)
-
-        return parts
-    }
-
-    fun simplify(parts: CountingList?, additionalConstants: Map<String, Any>?): CountingList? {
+    fun simplify(parts: ArrayList<Any>?, additionalConstants: Map<String, Any>?): ArrayList<Any>? {
         if (parts == null) return null
         try {
 
@@ -599,7 +552,7 @@ object SimpleExpressionParser {
     }
 
     var knownMessages = HashSet<String>()
-    fun parseDouble(parts: CountingList?, additionalConstants: Map<String, Any>? = null): Double? {
+    fun parseDouble(parts: ArrayList<Any>?, additionalConstants: Map<String, Any>? = null): Double? {
         val parts2 = simplify(parts, additionalConstants) ?: return null
         return when (parts2.size) {
             0 -> null

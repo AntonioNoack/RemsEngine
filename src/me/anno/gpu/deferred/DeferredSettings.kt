@@ -14,10 +14,10 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
-import java.util.BitSet
 import kotlin.math.max
 
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
@@ -190,7 +190,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         return shader
     }
 
-    fun appendLayerDeclarators(disabledLayers: BitSet?, uniforms: HashSet<Variable>, useRandomness: Boolean) {
+    fun appendLayerDeclarators(disabledLayers: BooleanArrayList?, uniforms: HashSet<Variable>, useRandomness: Boolean) {
         val layers = storageLayers
         if (useRandomness) {
             uniforms.add(Variable(GLSLType.V1F, "defRRT"))
@@ -209,7 +209,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     }
 
     fun appendLayerWriters(
-        output: StringBuilder, disabledLayers: BitSet?,
+        output: StringBuilder, disabledLayers: BooleanArrayList?,
         useRandomness: Boolean, defined: Set<Variable>
     ) {
         for (index in semanticLayers.indices) {

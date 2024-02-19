@@ -8,6 +8,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.sdf.shapes.SDFShape
+import me.anno.utils.structures.arrays.BooleanArrayList
 import org.joml.Planef
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -16,7 +17,6 @@ import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector4f
 import org.joml.Vector4i
-import java.util.BitSet
 import kotlin.math.max
 
 object ShaderToyExport {
@@ -94,13 +94,13 @@ object ShaderToyExport {
             .append(")){\n")
 
         // register all materials that use textures
-        val materialsUsingTextures = BitSet(materials.size)
+        val materialsUsingTextures = BooleanArrayList(materials.size)
         if (materials.isNotEmpty()) {
             tree.simpleTraversal(false) {
                 if (it is SDFComponent && it.positionMappers.any { pm -> pm is me.anno.sdf.random.SDFRandomUV }) {
                     it.simpleTraversal(false) { c ->
                         if (c is SDFShape) {
-                            if (c.materialId < materialsUsingTextures.size())
+                            if (c.materialId < materialsUsingTextures.size)
                                 materialsUsingTextures.set(c.materialId)
                         }
                         false

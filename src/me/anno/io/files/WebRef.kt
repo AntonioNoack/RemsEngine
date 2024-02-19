@@ -7,6 +7,7 @@ import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.structures.Callback
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import org.apache.logging.log4j.LogManager
@@ -18,7 +19,6 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.net.URLConnection
-import java.util.BitSet
 import kotlin.concurrent.thread
 import kotlin.math.min
 
@@ -205,7 +205,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
         // https://stackoverflow.com/a/10032289/4979303
         /** used for the encodeURIComponent function  */
-        private val allowedChars = BitSet(128)
+        private val allowedChars = BooleanArrayList(128)
 
         init {
             for (i in 'a'..'z') allowedChars.set(i.code)
@@ -220,11 +220,11 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
          * @return the escaped URI component
          */
         fun encodeURIComponent(input: String?): String? {
-            if (input == null || input.all { allowedChars.get(it.code) })
+            if (input == null || input.all { allowedChars[it.code] })
                 return input
             val res = StringBuilder(input.length * 2)
             for (cp in input.codepoints()) {
-                if (allowedChars.get(cp)) {
+                if (allowedChars[cp]) {
                     res.append(cp.toChar())
                 } else {
                     try {

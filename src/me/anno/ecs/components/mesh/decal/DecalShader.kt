@@ -15,9 +15,8 @@ import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.fill
-import java.util.BitSet
 
 class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
@@ -128,13 +127,13 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
     }
 
     // forward shader is not supported
-    fun getDisabledLayers(settings: DeferredSettings?): BitSet? {
+    fun getDisabledLayers(settings: DeferredSettings?): BooleanArrayList? {
         settings ?: return null
-        val disabledLayers = BitSet(settings.storageLayers.size)
+        val disabledLayers = BooleanArrayList(settings.storageLayers.size)
         disabledLayers.fill(true)
         for (layer in modifiedLayers) {
             val layer1 = settings.findLayer(layer) ?: continue
-            disabledLayers.set(layer1.texIndex, false)
+            disabledLayers[layer1.texIndex] = false
         }
         return disabledLayers
     }

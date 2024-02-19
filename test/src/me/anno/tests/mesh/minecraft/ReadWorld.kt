@@ -17,10 +17,10 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ProcessingGroup
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Booleans.toInt
-import java.util.BitSet
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.log2
 import kotlin.math.max
@@ -305,7 +305,7 @@ fun main() {
                             }
                             addModel(colors)
                         } else {
-                            val bits = BitSet.valueOf(packedBlockIds)
+                            val bits = BooleanArrayList.valueOf(packedBlockIds)
                             val colors = IntArray(chunkSize) {
                                 val offset = it * bitsPerValue
                                 var sum = 0

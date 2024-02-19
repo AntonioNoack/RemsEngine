@@ -58,6 +58,7 @@ import me.anno.graph.types.flow.vector.SeparateVector4f
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.white4
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.video.VideoCache
@@ -65,7 +66,6 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.util.BitSet
 import kotlin.math.max
 
 abstract class GraphCompiler(val g: FlowGraph) {
@@ -508,9 +508,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
         builder.append("int budget=").append(budget).append(";\n")
     }
 
-    fun findExportSet(start: Node, layers: Array<DeferredLayerType>): BitSet {
+    fun findExportSet(start: Node, layers: Array<DeferredLayerType>): BooleanArrayList {
         processedNodes.clear()
-        val exportedLayers = BitSet(layers.size)
+        val exportedLayers = BooleanArrayList(layers.size)
         fun traverse(node: Node?) {
             node ?: return
             if (!processedNodes.add(node)) {

@@ -1,9 +1,9 @@
 package me.anno.tests.assimp
 
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
-import java.util.BitSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -14,10 +14,10 @@ class TablePrinter {
     val offsets = IntArrayList(8)
 
     val colTitles = ArrayList<List<String>>()
-    val colTitleCentered = BitSet(0)
+    val colTitleCentered = BooleanArrayList()
 
     val rowTitles = ArrayList<List<String>>()
-    val rowTitleCentered = BitSet(0)
+    val rowTitleCentered = BooleanArrayList()
 
     val contentCentered = HashSet<IntPair>()
 

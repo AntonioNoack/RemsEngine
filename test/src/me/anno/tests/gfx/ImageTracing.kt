@@ -5,9 +5,9 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import java.util.BitSet
 
 @Suppress("UNUSED_PARAMETER")
 object ImageTracing {
@@ -40,7 +40,7 @@ object ImageTracing {
         val edge = IntArrayList(64)
         val p = FloatArray(2)
         val p2 = FloatArray(2)
-        val done = BitSet(w * h * 2)
+        val done = BooleanArrayList(w * h * 2)
         val s = 16
         val ii = IntImage(w * s, h * s, false)
         val ij = IntImage(w, h, false)
@@ -112,7 +112,7 @@ object ImageTracing {
         }
     }
 
-    private fun traceEdge(x0: Int, y0: Int, w: Int, h: Int, pixels: IntArray, done: BitSet, dst: IntArrayList) {
+    private fun traceEdge(x0: Int, y0: Int, w: Int, h: Int, pixels: IntArray, done: BooleanArrayList, dst: IntArrayList) {
         dst.clear()
         var x = x0
         var y = y0

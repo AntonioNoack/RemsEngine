@@ -9,24 +9,26 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
     fun enable(extensions: List<V>) {
         onEnable(extensions)
         loaded += extensions
-        for (ex in extensions) {
-            LOGGER.info("Enabled $instanceName \"${ex.name}\"")
-        }
+        printStatus("Enabled", extensions)
     }
 
     fun disable(extensions: List<V> = loaded.toList()) {
         onDisable(extensions)
-        for (ex in extensions) {
-            LOGGER.info("Disabled $instanceName \"${ex.name}\"")
-        }
+        printStatus("Disabled", extensions)
         if (extensions === loaded) loaded.clear()
         else loaded.removeAll(extensions.toHashSet())
+    }
+
+    private fun printStatus(type: String, extensions: List<V>) {
+        if (extensions.isNotEmpty()) {
+            LOGGER.info("$type ${instanceName}s ${extensions.map { "\"${it.name}\"" }}")
+        }
     }
 
     abstract fun onEnable(extensions: List<V>)
     abstract fun onDisable(extensions: List<V>)
 
-    operator fun contains(uuid: String) = loaded.any { it.uuid == uuid }
+    operator fun contains(uuid: String): Boolean = loaded.any { it.uuid == uuid }
 
     companion object {
         private val LOGGER = LogManager.getLogger(ExtensionManager::class)

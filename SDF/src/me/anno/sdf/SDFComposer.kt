@@ -29,10 +29,10 @@ import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Strings.iff
 import org.joml.Vector2f
 import org.joml.Vector3f
-import java.util.BitSet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.math.max
@@ -279,15 +279,16 @@ object SDFComposer {
         )
     }
 
-    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BitSet {
-        val flags = BitSet(materials.size)
+    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BooleanArrayList {
+        val flags = BooleanArrayList(materials.size)
         if (materials.isNotEmpty()) {
             tree.simpleTraversal(false) {
                 if (it is SDFComponent && it.positionMappers.any { pm -> pm is UVMapper }) {
                     it.simpleTraversal(false) { c ->
                         if (c is SDFShape) {
-                            if (c.materialId < flags.size())
+                            if (c.materialId < flags.size) {
                                 flags.set(c.materialId)
+                            }
                         }
                         false
                     }
@@ -308,7 +309,7 @@ object SDFComposer {
     }
 
     fun buildMaterialCode(
-        materials: List<Material?>, materialsUsingTextures: BitSet,
+        materials: List<Material?>, materialsUsingTextures: BooleanArrayList,
         uniforms: HashMap<String, TypeValue>
     ): CharSequence {
         val builder = StringBuilder(max(1, materials.size) * 128)

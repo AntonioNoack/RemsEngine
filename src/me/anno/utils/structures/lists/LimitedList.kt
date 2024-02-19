@@ -3,6 +3,9 @@ package me.anno.utils.structures.lists
 import java.util.function.Predicate
 import kotlin.math.min
 
+/**
+ * list with a special status of full, where it is assumed that all elements are part of the list;
+ * */
 class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
 
     private val data = arrayOfNulls<Any>(limit)

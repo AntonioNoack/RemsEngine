@@ -7,12 +7,12 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
-import java.util.BitSet
 
 class MainStage {
 
@@ -247,7 +247,7 @@ class MainStage {
     fun createCode(
         isFragmentStage: Boolean,
         settings: DeferredSettings?,
-        disabledLayers: BitSet?,
+        disabledLayers: BooleanArrayList?,
         ditherMode: DitherMode,
         bridgeVariablesV2F: Map<Variable, Variable>,
         bridgeVariablesI2F: Map<Variable, Variable>,
