@@ -13,7 +13,7 @@ import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
 import me.anno.images.BIImage.toImage
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.utils.Color
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList

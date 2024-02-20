@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.engine.EngineBase
 import me.anno.ui.editor.files.FileNames.toAllowedFilename

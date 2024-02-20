@@ -7,7 +7,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
 import me.anno.gpu.texture.TextureCache
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads

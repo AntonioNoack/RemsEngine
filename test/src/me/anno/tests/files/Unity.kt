@@ -14,7 +14,7 @@ import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.tests.LOGGER
 import me.anno.ui.debug.TestEngine

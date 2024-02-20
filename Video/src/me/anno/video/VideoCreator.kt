@@ -17,6 +17,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE24
 import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.utils.BetterProcessBuilder
 import me.anno.utils.hpc.ProcessingQueue
@@ -39,7 +40,7 @@ import kotlin.concurrent.thread
 open class VideoCreator(
     val width: Int, val height: Int,
     val fps: Double,
-    val totalFrameCount: Long,
+    val totalFrameCount: Int,
     val balance: FFMPEGEncodingBalance,
     val type: FFMPEGEncodingType,
     val quality: Int,
@@ -162,7 +163,7 @@ open class VideoCreator(
     private val buffer1 = ByteBufferPool.allocateDirect(pixelByteCount)
     private val buffer2 = ByteBufferPool.allocateDirect(pixelByteCount)
 
-    fun writeFrame(frame: Framebuffer, frameIndex: Long, callback: () -> Unit) {
+    fun writeFrame(frame: Framebuffer, frameIndex: Int, callback: () -> Unit) {
 
         GFX.check()
 
@@ -170,7 +171,7 @@ open class VideoCreator(
         frame.bindDirectly()
         Frame.invalidate()
 
-        val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
+        val buffer = if (frameIndex.hasFlag(1)) buffer1 else buffer2
 
         buffer.position(0)
         setReadAlignment(width * 3)
@@ -286,13 +287,13 @@ open class VideoCreator(
             callback: ((FileReference) -> Unit)? = null
         ) {
             val creator = VideoCreator(
-                w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
+                w, h, fps, numUpdates + 1, FFMPEGEncodingBalance.S1,
                 FFMPEGEncodingType.DEFAULT, defaultQuality, false, dst
             )
             creator.init()
             var frameIndex = 0
             fun writeFrame() {
-                creator.writeFrame(fb, frameIndex.toLong()) {
+                creator.writeFrame(fb, frameIndex) {
                     if (++frameIndex <= numUpdates) {
                         GFX.addGPUTask("VideoCreator", 1) {
                             update(frameIndex, ::writeFrame)
@@ -314,7 +315,7 @@ open class VideoCreator(
         @JvmStatic
         fun renderVideo(
             w: Int, h: Int, fps: Double, dst: FileReference,
-            numFrames: Long, shutdown: Boolean,
+            numFrames: Int, shutdown: Boolean,
             getNextFrame: (callback: Callback<ITexture2D>) -> Unit,
             callback: (() -> Unit)? = null
         ) {
@@ -331,7 +332,7 @@ open class VideoCreator(
                     useFrame(fb) {
                         GFX.copyNoAlpha(texture)
                     }
-                    creator.writeFrame(fb, frameCount.toLong()) {
+                    creator.writeFrame(fb, frameCount) {
                         if (++frameCount <= numFrames) {
                             if (GFX.isGFXThread()) {
                                 writeFrame()
@@ -365,8 +366,8 @@ open class VideoCreator(
             h: Int,
             fps: Double,
             dst: FileReference,
-            numFrames: Long,
-            getNextFrame: (Long) -> Image?
+            numFrames: Int,
+            getNextFrame: (Int) -> Image?
         ) {
             val creator = VideoCreator(
                 w, h, fps, numFrames, FFMPEGEncodingBalance.S1,

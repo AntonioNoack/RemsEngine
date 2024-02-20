@@ -1,4 +1,4 @@
-package me.anno.io.files.thumbs
+package me.anno.image.thumbs
 
 import me.anno.Time
 import me.anno.cache.IgnoredException
@@ -79,13 +79,13 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerStreamFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
-import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
-import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
-import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
-import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
-import me.anno.io.files.thumbs.ThumbsExt.unityExtensions
-import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
-import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
+import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
+import me.anno.image.thumbs.ThumbsExt.createModelMatrix
+import me.anno.image.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.ThumbsExt.findModelMatrix
+import me.anno.image.thumbs.ThumbsExt.unityExtensions
+import me.anno.image.thumbs.ThumbsExt.waitForMeshes
+import me.anno.image.thumbs.ThumbsExt.waitForTextures
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black
 import me.anno.utils.OS
@@ -1152,8 +1152,8 @@ object Thumbs {
     }
 
     init {
-        registerSignature("vox", ::generatePrefabReadableFrame)
-        registerSignature("maya", ::generatePrefabReadableFrame)
+        registerSignature("vox", Thumbs::generatePrefabReadableFrame)
+        registerSignature("maya", Thumbs::generatePrefabReadableFrame)
         registerSignature("hdr") { srcFile, dstFile, size, callback ->
             srcFile.inputStream { it, exc ->
                 if (it != null) {
@@ -1164,21 +1164,21 @@ object Thumbs {
                 } else callback.err(exc)
             }
         }
-        registerSignature("png", ::generateImage)
-        registerSignature("bmp", ::generateImage)
-        registerSignature("psd", ::generateImage)
-        registerSignature("ttf", ::generateFontPreview)
-        registerSignature("woff1", ::generateFontPreview)
-        registerSignature("woff2", ::generateFontPreview)
-        registerSignature("dds", ::generateVideoFrame0)
-        registerExtension("dds", ::generateVideoFrame0)
-        registerExtension("webp", ::generateVideoFrame0)
+        registerSignature("png", Thumbs::generateImage)
+        registerSignature("bmp", Thumbs::generateImage)
+        registerSignature("psd", Thumbs::generateImage)
+        registerSignature("ttf", Thumbs::generateFontPreview)
+        registerSignature("woff1", Thumbs::generateFontPreview)
+        registerSignature("woff2", Thumbs::generateFontPreview)
+        registerSignature("dds", Thumbs::generateVideoFrame0)
+        registerExtension("dds", Thumbs::generateVideoFrame0)
+        registerExtension("webp", Thumbs::generateVideoFrame0)
         registerSignature("media") { srcFile, dstFile, size, callback ->
             generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
         }
-        registerExtension("txt", ::generateTextImage)
-        registerExtension("html", ::generateTextImage)
-        registerExtension("md", ::generateTextImage)
+        registerExtension("txt", Thumbs::generateTextImage)
+        registerExtension("html", Thumbs::generateTextImage)
+        registerExtension("md", Thumbs::generateTextImage)
         registerExtension("url") { srcFile, dstFile, size, callback ->
             // try to read the url, and redirect to the icon
             findIconLineInTxtLink(srcFile, dstFile, size, "IconFile=", callback)
@@ -1198,9 +1198,9 @@ object Thumbs {
         }
         // try as an asset
         for (ext in unityExtensions) {
-            registerExtension(ext, ::generateSomething)
+            registerExtension(ext, Thumbs::generateSomething)
         }
-        registerExtension("json", ::generateSomething)
+        registerExtension("json", Thumbs::generateSomething)
 
         val ignored = listOf(
             "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar",

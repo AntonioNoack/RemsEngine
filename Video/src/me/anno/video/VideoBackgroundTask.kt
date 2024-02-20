@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.blendMode
@@ -12,7 +11,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.video.FrameTask.Companion.missingResource
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
 abstract class VideoBackgroundTask(
@@ -36,8 +35,8 @@ abstract class VideoBackgroundTask(
         true, DepthBufferType.TEXTURE
     )
 
-    private val renderingIndex = AtomicLong(0)
-    private val savingIndex = AtomicLong(0)
+    private val renderingIndex = AtomicInteger(0)
+    private val savingIndex = AtomicInteger(0)
     private val totalFrameCount = creator.totalFrameCount
 
     fun start() {
@@ -72,7 +71,6 @@ abstract class VideoBackgroundTask(
             // waiting for saving to ffmpeg
             thread(name = "VBT/2") { addNextTask() }
         }
-
     }
 
     private fun tryRenderingFrame() {
@@ -165,7 +163,6 @@ abstract class VideoBackgroundTask(
         GFX.check()
 
         return true
-
     }
 
     abstract fun renderScene(time: Double, flipY: Boolean, renderer: Renderer)
@@ -177,5 +174,4 @@ abstract class VideoBackgroundTask(
             averageFrame.destroy()
         }
     }
-
 }

@@ -4,36 +4,54 @@ import me.anno.io.files.FileReference
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.Iterators.count
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.isBlank2
+import kotlin.math.min
 
+val project = documents.getChild("IdeaProjects/RemsEngine")
+const val threshold = 10_000
+
+/**
+ * this method prints, which folders could be extracted into their own modules by line count length
+ * */
 fun main() {
-    val project = documents.getChild("IdeaProjects/RemsEngine")
-    LOGGER.info("src: ${countLines(project.getChild("src/me/anno"))}")
-    LOGGER.info("Box2D: ${countLines(project.getChild("Box2d"))}")
-    LOGGER.info("Image: ${countLines(project.getChild("Image"))}")
-    LOGGER.info("JVM: ${countLines(project.getChild("JVM"))}")
-    LOGGER.info("PDF: ${countLines(project.getChild("PDF"))}")
-    LOGGER.info("Mesh: ${countLines(project.getChild("Mesh"))}")
-    LOGGER.info("Recast: ${countLines(project.getChild("Recast"))}")
-    LOGGER.info("SDF: ${countLines(project.getChild("SDF"))}")
-    LOGGER.info("Lua: ${countLines(project.getChild("Lua"))}")
-    LOGGER.info("KOML: ${countLines(project.getChild("KOML"))}")
-    LOGGER.info("Unpack: ${countLines(project.getChild("Unpack"))}")
-    LOGGER.info("Video: ${countLines(project.getChild("Video"))}")
-    LOGGER.info("Bullet: ${countLines(project.getChild("Bullet"))}")
-    LOGGER.info("BulletJME: ${countLines(project.getChild("BulletJME"))}")
-    LOGGER.info("Test: ${countLines(project.getChild("test/src"))}")
+    for (child in project.listChildren()) {
+        if (child.name != "out") {
+            countLines(child)
+        }
+    }
 }
 
-fun countLines(file: FileReference): Int {
+fun countLines(file: FileReference, root: Int = file.toString().length + 1): IntPair {
     return if (file.isDirectory) {
-        file.listChildren().sumOf { countLines(it) }
+        val absPath = file.toString()
+        val children = file.listChildren()
+        val sum = children
+            .map { countLines(it, root) }
+            .reduceOrNull { a, b -> IntPair(a.first + b.first, a.second + b.second) }
+            ?: IntPair(0, 0)
+        if (absPath.length <= root && sum.second > 0) {
+            val relPath = absPath.substring(project.toString().length + 1)
+            LOGGER.info("$relPath: ${sum.second}")
+        }
+        if (sum.first > threshold) {
+            if (absPath.length > root) {
+                val relPath = absPath.substring(min(root, absPath.length))
+                if (sum.first == sum.second) {
+                    LOGGER.info("  $relPath: ${sum.first}")
+                } else {
+                    LOGGER.info("  $relPath: ${sum.first}/${sum.second}")
+                }
+            }
+            IntPair(0, sum.second)
+        } else sum
     } else when (file.lcExtension) {
         "kt", "java" -> {
-            file.readLinesSync(64).count {
+            val sum = file.readLinesSync(64).count {
                 !it.isBlank2() && !it.trim().startsWith("//")
             }
+            IntPair(sum, sum)
         }
-        else -> 0
+        else -> IntPair(0, 0)
     }
 }

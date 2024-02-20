@@ -23,8 +23,8 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.files.thumbs.ThumbsExt
+import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbsExt
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.engine.inspector.Inspectable

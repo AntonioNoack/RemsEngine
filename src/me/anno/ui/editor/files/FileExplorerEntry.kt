@@ -48,7 +48,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceAsync
 import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc

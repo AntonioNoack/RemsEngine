@@ -1,4 +1,4 @@
-package me.anno.io.files.thumbs
+package me.anno.image.thumbs
 
 import me.anno.Time
 import me.anno.ecs.Entity

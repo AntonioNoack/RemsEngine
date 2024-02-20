@@ -2,7 +2,7 @@ package me.anno.ui.utils
 
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.maths.Maths
 import me.anno.ui.Style
 import me.anno.ui.base.ImagePanel

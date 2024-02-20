@@ -5,8 +5,8 @@ import me.anno.engine.EngineBase
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.files.thumbs.ThumbsExt
+import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbsExt
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil

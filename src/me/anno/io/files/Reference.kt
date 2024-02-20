@@ -45,6 +45,7 @@ object Reference {
      * */
     @JvmStatic
     fun invalidate(absolutePath: String) {
+        // todo this method contains quite a few references to random stuff -> make this modular, and register listeners accordingly
         LOGGER.info("Invalidating $absolutePath")
         val path = absolutePath.replace('\\', '/')
         synchronized(fileCache) {

@@ -10,8 +10,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.ui.UIColors.mediumAquamarine
-import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
-import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
+import me.anno.image.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths.PIf
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.Color.black
@@ -42,7 +42,7 @@ fun main() {
     val dst = desktop.getChild("test.gif")
     val fps = 60.0
     val duration = 10.0
-    val numFrames = (fps * duration).toLong()
+    val numFrames = (fps * duration).toInt()
 
     ECSRegistry.initWithGFX()
 

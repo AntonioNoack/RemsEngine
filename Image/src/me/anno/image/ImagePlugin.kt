@@ -14,7 +14,7 @@ import me.anno.image.svg.SVGMesh
 import me.anno.image.tar.TGAReader
 import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import net.sf.image4j.codec.ico.ICOReader
 
 class ImagePlugin : Plugin() {

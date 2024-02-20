@@ -9,7 +9,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.Window

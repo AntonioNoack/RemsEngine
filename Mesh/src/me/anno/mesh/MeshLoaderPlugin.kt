@@ -3,7 +3,7 @@ package me.anno.mesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.extensions.plugins.Plugin
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.maya.MayaASCII2015

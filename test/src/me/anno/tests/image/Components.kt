@@ -6,9 +6,8 @@ import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.Reference.getReference
-import me.anno.io.files.thumbs.Thumbs
-import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS.desktop

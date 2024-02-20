@@ -6,7 +6,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
 import me.anno.engine.EngineBase
 import me.anno.input.Clipboard.getClipboardContent

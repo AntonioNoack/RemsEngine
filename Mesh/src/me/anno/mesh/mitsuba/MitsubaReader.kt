@@ -18,7 +18,7 @@ import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.InnerPrefabFile
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.maths.Maths.hasFlag

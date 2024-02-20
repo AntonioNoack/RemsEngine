@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 

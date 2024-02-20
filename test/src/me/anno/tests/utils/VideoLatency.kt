@@ -8,8 +8,8 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.io.files.thumbs.ThumbsExt
-import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.ThumbsExt
+import me.anno.image.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
 import me.anno.ui.UIColors.mediumAquamarine
@@ -38,7 +38,7 @@ fun main() {
     val dst = OS.desktop.getChild("test.gif")
     val fps = 60.0
     val duration = 1000.0
-    val numFrames = (fps * duration).toLong()
+    val numFrames = (fps * duration).toInt()
 
     ECSRegistry.initWithGFX()
 

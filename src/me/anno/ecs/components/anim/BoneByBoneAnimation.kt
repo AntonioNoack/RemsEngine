@@ -9,7 +9,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f3s
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f

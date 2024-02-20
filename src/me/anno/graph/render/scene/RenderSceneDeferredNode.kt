@@ -219,11 +219,7 @@ class RenderSceneDeferredNode : RenderViewNode(
                     var expressions = outputs.joinToString("") { (i, type) ->
                         val nameI = type.glslName
                         val exprI = expr(inputs[firstInputIndex + i])
-                        if ("." in type.workToData) {
-                            "$nameI = $exprI;\n"
-                        } else {
-                            "$nameI = $exprI;\n"
-                        }
+                        "$nameI = $exprI;\n"
                     }
 
                     if (outputs.any2 { it.value == DeferredLayerType.DEPTH }) {

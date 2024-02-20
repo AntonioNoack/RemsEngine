@@ -8,7 +8,7 @@ import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.parseYAML
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.io.files.thumbs.ThumbsExt
+import me.anno.image.thumbs.ThumbsExt
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import java.io.IOException

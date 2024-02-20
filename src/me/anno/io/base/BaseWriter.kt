@@ -3,8 +3,6 @@ package me.anno.io.base
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
-import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.Shader
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -815,7 +813,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             else -> {
                 val msg =
                     "saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?"
-                if (value !is Function<*> && value !is Shader && value !is BaseShader)
+                if (value !is Function<*>)
                     throw RuntimeException("Todo implement $msg") // functions cannot easily be serialized
                 else LOGGER.warn("Ignored $msg")
             }

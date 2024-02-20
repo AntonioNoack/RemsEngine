@@ -13,7 +13,7 @@ import me.anno.images.ThumbsImpl
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.utils.TrashManager
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.ui.editor.files.FileExplorer

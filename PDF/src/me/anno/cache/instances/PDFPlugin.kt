@@ -1,7 +1,7 @@
 package me.anno.cache.instances
 
 import me.anno.extensions.plugins.Plugin
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.inner.InnerFolderCache
 import org.apache.logging.log4j.LogManager
 

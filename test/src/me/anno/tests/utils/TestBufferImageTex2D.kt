@@ -10,7 +10,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.images.BIImage.toImage
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO

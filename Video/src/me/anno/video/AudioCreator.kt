@@ -81,7 +81,7 @@ abstract class AudioCreator(
 
         val process = builder.start()
         val targetFPS = 60.0
-        val totalFrameCount = (targetFPS * durationSeconds).toLong()
+        val totalFrameCount = (targetFPS * durationSeconds).toInt()
         thread(name = "AudioOutputListener") {
             processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) {
                 onFinished()

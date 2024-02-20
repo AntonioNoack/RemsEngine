@@ -6,7 +6,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads

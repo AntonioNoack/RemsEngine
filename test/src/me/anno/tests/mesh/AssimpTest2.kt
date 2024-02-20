@@ -13,7 +13,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones

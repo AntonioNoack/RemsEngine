@@ -17,7 +17,7 @@ object FFMPEGUtils {
         name: String,
         startTime: Long,
         targetFPS: Double,
-        totalFrameCount: Long,
+        totalFrameCount: Int,
         stream: InputStream,
         onFailure: () -> Unit
     ) {
@@ -47,7 +47,7 @@ object FFMPEGUtils {
                 // Video: frame=   65 fps=0.0 q=28.0 size=       0kB time=00:00:00.63 bitrate=   0.6kbits/s speed=1.26x
                 // Both:  frame=  896 fps=254 q=-1.0 size=     768kB time=00:00:14.92 bitrate= 421.5kbits/s speed=4.23x
                 // Audio: size=     346kB time=00:00:22.08 bitrate= 128.2kbits/s speed=4.54x
-                var frameIndex = 0L
+                var frameIndex = 0
                 var fps = 0f
                 // var quality = 0f
                 // var size = 0
@@ -76,7 +76,7 @@ object FFMPEGUtils {
                                 if (!hasFrameInformation) {
                                     // time since last: guess fps
                                     progressGuess += speed * deltaTime * targetFPS / 1e9
-                                    frameIndex = progressGuess.toLong()
+                                    frameIndex = progressGuess.toInt()
                                     fps = (speed * targetFPS).toFloat()
                                 }
                             } // 0.15x
@@ -89,7 +89,7 @@ object FFMPEGUtils {
                             "q" -> {
                             } // quality?
                             "frame" -> {
-                                frameIndex = value.toLong()
+                                frameIndex = value.toInt()
                                 hasFrameInformation = true
                             }
                             "fps" -> fps = value.toFloat()
@@ -107,7 +107,7 @@ object FFMPEGUtils {
                 // estimate remaining time
                 // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
                 val remainingTime =
-                    if (frameIndex == 0L) "Unknown"
+                    if (frameIndex == 0) "Unknown"
                     else max(0.0, round(elapsedTime / relativeProgress * (1.0 - relativeProgress)))
                         .formatTime2(0)
                 val progress =

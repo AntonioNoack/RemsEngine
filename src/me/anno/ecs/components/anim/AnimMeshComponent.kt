@@ -25,7 +25,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.thumbs.Thumbs
+import me.anno.image.thumbs.Thumbs
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
 import org.joml.Matrix4x3d
