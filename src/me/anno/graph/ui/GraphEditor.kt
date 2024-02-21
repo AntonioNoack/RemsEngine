@@ -104,15 +104,15 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         if (type != null) {
             candidates = if (typeIsInput) {
                 candidates.filter { (sample, _) ->
-                    sample.outputs?.any { graph.canConnectTypeToOtherType(type, it.type) } == true
+                    sample.outputs.any { graph.canConnectTypeToOtherType(type, it.type) }
                 }.sortedBy { (sample, _) ->
-                    sample.outputs?.any { type == it.type } != true
+                    !sample.outputs.any { type == it.type }
                 }
             } else {
                 candidates.filter { (sample, _) ->
-                    sample.inputs?.any { graph.canConnectTypeToOtherType(it.type, type) } == true
+                    sample.inputs.any { graph.canConnectTypeToOtherType(it.type, type) }
                 }.sortedBy { (sample, _) ->
-                    sample.inputs?.any { type == it.type } != true
+                    !sample.inputs.any { type == it.type }
                 }
             }
         }

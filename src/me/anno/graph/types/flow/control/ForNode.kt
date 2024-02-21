@@ -7,7 +7,6 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs) {
 
     override fun execute(): NodeOutput {
         val graph = graph as FlowGraph
-        val inputs = inputs!!
         val startIndex = inputs[1].getValue() as Long
         val endIndex = inputs[2].getValue() as Long
         val increment = inputs[3].getValue() as Long

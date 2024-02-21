@@ -14,7 +14,7 @@ abstract class FixedControlFlowNode : ControlFlowNode {
     ) : super(name, inputs, outputs)
 
     fun getOutputNodes(index: Int): NodeOutput {
-        val c = outputs!![index] // NodeOutputs
+        val c = outputs[index] // NodeOutputs
         if (c.type != "Flow") throw RuntimeException()
         return c
     }

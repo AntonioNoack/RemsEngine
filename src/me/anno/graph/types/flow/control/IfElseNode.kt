@@ -9,7 +9,7 @@ class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs) {
     }
 
     override fun execute(): NodeOutput {
-        val condition = inputs!![1].getValue() == true
+        val condition = inputs[1].getValue() == true
         return getOutputNodes(if (condition) 0 else 1)
     }
 

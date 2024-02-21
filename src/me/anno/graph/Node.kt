@@ -3,7 +3,6 @@ package me.anno.graph
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.ui.GraphPanel
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader

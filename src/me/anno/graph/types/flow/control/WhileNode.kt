@@ -8,7 +8,7 @@ class WhileNode : FixedControlFlowNode("While Loop", inputs, outputs) {
     override fun execute(): NodeOutput {
         val graph = graph as FlowGraph
         val running = getOutputNodes(0).others.mapNotNull { it.node }
-        val condition0 = inputs!![1]
+        val condition0 = inputs[1]
         while (true) {
             val condition = condition0.getValue() != false
             if (!condition) break

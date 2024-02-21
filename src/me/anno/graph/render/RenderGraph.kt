@@ -2,9 +2,7 @@ package me.anno.graph.render
 
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.pipeline.PipelineStage
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
 import me.anno.graph.render.effects.BloomNode
@@ -24,10 +22,8 @@ import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.effects.ShapedBlurNode
 import me.anno.graph.render.effects.ToneMappingNode
 import me.anno.graph.render.scene.BakeSkyboxNode
-import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
-import me.anno.graph.render.scene.RenderSceneForwardNode
 import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.render.scene.UVNode
 import me.anno.graph.render.scene.UViNode

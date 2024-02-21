@@ -24,32 +24,22 @@ object NodePositionOptimization {
                 val dz = 0.0
                 pos.set(v[j], v[j + 1], pos.z)
                 // place all connectors
-                val inputs = node.inputs
-                if (inputs != null) for (it in inputs) {
+                for (it in node.inputs) {
                     it.position.add(dx, dy, dz)
                 }
-                val outputs = node.outputs
-                if (outputs != null) for (it in outputs) {
+                for (it in node.outputs) {
                     it.position.add(dx, dy, dz)
                 }
             }
             // compute error
-            val err = nodes.sumOf {
-                // nodes should not spread too much
-                var error = 0.01 * it.position.lengthSquared()
-                val out = it.outputs
-                if (out != null) {
-                    for (index in out.indices) {
-                        val output = out[index]
-                        for (input in output.others) {
-                            val op = output.position
-                            error += input.position.distanceSquared(op.x + 100.0, op.y, op.z)
-                        }
+            nodes.sumOf { node ->
+                node.outputs.sumOf { output ->
+                    output.others.sumOf { input ->
+                        val op = output.position
+                        input.position.distanceSquared(op.x + 100.0, op.y, op.z)
                     }
-                }
-                error
+                } + 0.01 * node.position.lengthSquared() // nodes should not spread too much
             }
-            err
         }
 
         for (i in 0 until size) {
@@ -59,7 +49,5 @@ object NodePositionOptimization {
                 0.0
             )
         }
-
     }
-
 }

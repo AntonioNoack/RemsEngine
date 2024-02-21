@@ -47,7 +47,7 @@ open class FlowGraph : Graph() {
     fun invalidate() {
         for (ni in nodes.indices) {
             val node = nodes[ni]
-            val inputs = node.inputs ?: continue
+            val inputs = node.inputs
             for (ii in inputs.indices) {
                 inputs[ii].lastValidId = -1
             }
@@ -94,12 +94,12 @@ open class FlowGraph : Graph() {
 
     fun computeNode(input: Node): List<Any?> {
         val node = execute(input)
-        return node.outputs!!.map { it.currValue }
+        return node.outputs.map { it.currValue }
     }
 
     fun computeNode1(input: Node): Any? {
         val node = execute(input)
-        return node.outputs!!.firstOrNull()?.currValue
+        return node.outputs.firstOrNull()?.currValue
     }
 
     fun getValue(input: NodeInput): Any? {

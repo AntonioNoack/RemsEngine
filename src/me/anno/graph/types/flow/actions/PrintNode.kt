@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager
 class PrintNode : ActionNode("Print", listOf("Any?", "Printed"), emptyList()) {
 
     override fun executeAction() {
-        LOGGER.info(inputs!![1].getValue().toString())
+        LOGGER.info(inputs[1].getValue().toString())
     }
 
     companion object {

@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import org.joml.Vector3f

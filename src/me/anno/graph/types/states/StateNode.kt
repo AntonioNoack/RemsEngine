@@ -14,7 +14,7 @@ open class StateNode(
         return try {
             val outputs = outputs
             val graph = graph as? FlowGraph
-            if (outputs != null && graph != null) {
+            if (graph != null) {
                 for (output in outputs) {
                     for (input in output.others) {
                         val node = input.node
