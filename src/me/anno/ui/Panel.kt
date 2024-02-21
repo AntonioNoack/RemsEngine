@@ -10,7 +10,6 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.engine.serialization.NotSerializedProperty
@@ -725,14 +724,14 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
 
     /**
-     * does this panel contain the coordinate (x,y)?
+     * does this panel contain the coordinate (x, y)?
      * does not consider overlap
      * */
     fun contains(x: Int, y: Int, margin: Int = 0) =
         (x - this.x) in -margin until width + margin && (y - this.y) in -margin until height + margin
 
     /**
-     * does this panel contain the coordinate (x,y)?
+     * does this panel contain the coordinate (x, y)?
      * does not consider overlap
      *
      * panels are aligned on full coordinates, so there is no advantage in calling this function

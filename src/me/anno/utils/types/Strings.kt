@@ -472,6 +472,7 @@ object Strings {
     }
 
     // todo S looks off -> probably incorrect (check out Courier New in Rem's Studio)
+    @Suppress("SpellCheckingInspection")
     private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
 
     @JvmStatic

@@ -58,7 +58,6 @@ open class ByteImage(
                 val a = if (hasAlphaChannel) data[i + 3] else -1
                 argb(a, r, g, b)
             }
-            else -> throw NotImplementedError()
         }
     }
 
@@ -86,7 +85,6 @@ open class ByteImage(
                 Format.BGRA -> {
                     texture.createBGRA(data, checkRedundancy)
                 }
-                else -> throw NotImplementedError()
             }
             callback.ok(texture)
         }

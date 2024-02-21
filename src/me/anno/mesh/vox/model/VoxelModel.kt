@@ -119,7 +119,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
         // create a mesh
         // merge voxels of the same color
-        // todo only create for a certain material (e.g. same glossiness, different color, same reflectivity, ...)
+        // todo only create for a certain material (e.g., same glossiness, different color, same reflectivity, ...)
 
         // idea: create textures for large, flat sections
         // could increase performance massively

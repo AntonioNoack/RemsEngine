@@ -8,9 +8,9 @@ import java.nio.ByteBuffer
 class InnerLinkFile(
     absolutePath: String,
     relativePath: String,
-    _parent: FileReference,
+    parent: FileReference,
     val link: FileReference
-) : InnerFile(absolutePath, relativePath, link.isDirectory, _parent) {
+) : InnerFile(absolutePath, relativePath, link.isDirectory, parent) {
 
     constructor(folder: InnerFolder, name: String, content: FileReference) : this(
         "${folder.absolutePath}/$name",

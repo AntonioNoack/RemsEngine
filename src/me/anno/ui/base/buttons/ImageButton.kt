@@ -71,9 +71,4 @@ class ImageButton(
     }
 
     override val className: String get() = "ImageButton"
-
-    companion object {
-        val timeout = 300_000L
-    }
-
 }

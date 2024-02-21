@@ -2,7 +2,7 @@ package me.anno.utils.structures.tuples
 
 import me.anno.maths.Maths.clamp
 
-class ShortPair(var first: Short, var second: Short) {
+data class ShortPair(var first: Short, var second: Short) {
 
     constructor() : this(0, 0)
 
@@ -21,5 +21,4 @@ class ShortPair(var first: Short, var second: Short) {
     override fun toString(): String {
         return "($first,$second)"
     }
-
 }

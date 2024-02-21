@@ -71,7 +71,7 @@ object Dict {
             }
         }
         val externalFiles = ConfigBasics.configFolder.getChild("lang").listChildren()
-        if (externalFiles != null) for (file in externalFiles) {
+        for (file in externalFiles) {
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {
                     val data = file.readTextSync()

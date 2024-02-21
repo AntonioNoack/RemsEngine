@@ -321,6 +321,7 @@ open class Server : Closeable {
         }
     }
 
+    @Suppress("unused")
     fun forAllClientsSync(run: (TCPClient) -> Unit) {
         val clients = clients
         synchronized(clients) {

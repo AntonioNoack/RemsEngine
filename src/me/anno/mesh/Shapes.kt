@@ -14,7 +14,7 @@ import kotlin.math.sign
 @Suppress("unused")
 object Shapes {
 
-    private fun scale(src: FloatArray, scale: Float, ): FloatArray {
+    private fun scale(src: FloatArray, scale: Float): FloatArray {
         val dst = FloatArray(src.size)
         for (i in src.indices) {
             dst[i] = src[i] * scale
@@ -177,9 +177,9 @@ object Shapes {
 
     val cube11Flat = flatCube.front
 
-    // a cube (12t, 8p) has a volume of 8.0m² to cover a sphere,
-    // while a sphere itself only has 4.2m³,
-    // and a tetrahedron (8t, 6p) has 6.9m³ -> use the tetrahedron
+    // a cube (12t, 8p) has a volume of 8.0 m² to cover a sphere,
+    // while a sphere itself only has 4.2 m³,
+    // and a tetrahedron (8t, 6p) has 6.9 m³ -> use the tetrahedron
 
     /**
      * cube with half extends 0.5, full extends 1;

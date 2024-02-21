@@ -151,7 +151,7 @@ object LinearAlgebra {
     }
 
     /**
-     * calculates the inverse of matrix a; destroys a in the process
+     * calculates the inverse of matrix A; destroys A in the process
      * */
     fun inverse(a: DoubleArray, size: Int, b: DoubleArray = DoubleArray(size * size)): DoubleArray? {
 

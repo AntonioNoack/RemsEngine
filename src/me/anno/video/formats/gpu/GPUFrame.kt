@@ -192,7 +192,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
     companion object {
         @JvmField
         val creationLimiter = Semaphore(32)
-        val frameAlreadyDestroyed = "Frame is already destroyed!"
+        const val frameAlreadyDestroyed = "Frame is already destroyed!"
         val swizzleStages = LazyMap<String, ShaderStage> { swizzle ->
             ShaderStage(
                 "YUV", listOf(

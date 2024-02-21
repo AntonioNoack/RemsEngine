@@ -268,7 +268,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
         /**
          * rotate the current letter around the pixel coordinates (cx,cy) by angleRadians;
-         * use cx,cy from the parameters in AnimTextPanel.animate()
+         * use cx, cy from the parameters in AnimTextPanel.animate()
          * */
         fun rotate(angleRadians: Float, cx: Float, cy: Float) {
             val transform = GFXx2D.transform
@@ -283,14 +283,14 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         }
 
         /**
-         * scale the current letter by the factor (sx,sy)
+         * scale the current letter by the factor (sx, sy)
          * */
         fun scale(sx: Float, sy: Float = sx) {
             GFXx2D.transform.scale(sx, sy, 1f)
         }
 
         /**
-         * translate the current letter by (dx,dy) pixels
+         * translate the current letter by (dx, dy) pixels
          * */
         fun translate(dx: Float, dy: Float) {
             GFXx2D.transform.translate(dx * 2f / GFX.viewportWidth, -dy * 2f / GFX.viewportHeight, 0f)

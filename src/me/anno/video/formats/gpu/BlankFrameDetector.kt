@@ -1,10 +1,10 @@
 package me.anno.video.formats.gpu
 
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep
 import me.anno.video.VideoCache
-import me.anno.io.MediaMetadata
 import org.apache.logging.log4j.LogManager
 import java.nio.ByteBuffer
 
@@ -102,7 +102,7 @@ class BlankFrameDetector {
 
             fun getFrame(delta: Int): GPUFrame? {
                 return if (async) {
-                    VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, async)
+                    VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, true)
                 } else {
                     Sleep.waitUntilDefined(true) {
                         VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, true)
@@ -125,15 +125,12 @@ class BlankFrameDetector {
                 }
                 else -> f3
             }
-
         }
 
-        @Suppress("unused")
-        fun isBlankFrame(
+        fun isBlankFrameNullable(
             src: FileReference, scale: Int,
             frameIndex: Int, bufferSize: Int,
-            fps: Double,
-            threshold: Float = 1f
+            fps: Double, threshold: Float = 1f
         ): Boolean? {
 
             fun getFrame(delta: Int): GPUFrame? {
@@ -151,34 +148,13 @@ class BlankFrameDetector {
                     f3.isBlankFrame(f1, f5, threshold)
                 else -> null
             }
-
         }
 
-        fun isBlankFrame2(
+        @Suppress("unused")
+        fun isBlankFrame(
             src: FileReference, scale: Int,
             frameIndex: Int, bufferSize: Int,
-            fps: Double,
-            threshold: Float = 1f
-        ): Boolean {
-            return if (threshold > 0f) {
-
-                fun getFrame(delta: Int): GPUFrame? {
-                    val frameIndex2 = frameIndex + delta
-                    val bufferIndex = frameIndex2 / bufferSize
-                    return VideoCache.getVideoFrameWithoutGenerator(src, scale, frameIndex2, bufferIndex, bufferSize, fps)
-                }
-
-                val f1 = getFrame(-2)
-                val f3 = getFrame(+0)
-                val f5 = getFrame(+2)
-
-                when {
-                    f3 != null && f1 != null && f5 != null ->
-                        f3.isBlankFrame(f1, f5, threshold)
-                    else -> false
-                }
-
-            } else false
-        }
+            fps: Double, threshold: Float = 1f
+        ): Boolean = isBlankFrameNullable(src, scale, frameIndex, bufferSize, fps, threshold) ?: false
     }
 }

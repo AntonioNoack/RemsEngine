@@ -1,6 +1,5 @@
 package me.anno.input
 
-import me.anno.Time
 import me.anno.Time.nanoTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
@@ -583,8 +582,8 @@ object Input {
             window.currentWindow,
             window.mouseX,
             window.mouseY, 0f, 0f,
-            button, -1, true,
-            false, UIEventType.KEY_UP
+            button, -1, byMouse = true,
+            isLong = false, UIEventType.KEY_UP
         ).call()
 
         if (!event.isCancelled && isClick) {
@@ -604,8 +603,8 @@ object Input {
                 window.currentWindow,
                 window.mouseX,
                 window.mouseY, 0f, 0f,
-                button, -1, true,
-                false, UIEventType.MOUSE_CLICK
+                button, -1, byMouse = true,
+                isLong = false, UIEventType.MOUSE_CLICK
             ).call()
 
             if (!clickEvent.isCancelled) {

@@ -1,7 +1,6 @@
 package me.anno.image.bmp
 
 import me.anno.image.Image
-import me.anno.image.raw.IntImage
 
 /**
  * the quickest way to save images

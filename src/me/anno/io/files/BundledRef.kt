@@ -124,22 +124,6 @@ class BundledRef(
             val child = Build.assetsFolder.getChild(resName)
             if (child.exists) return child
 
-            // surprisingly, this caused issues with language files
-            /*if (mainName.indexOf('/') >= 0 && jarAsZip.isNotEmpty()) {
-                // find whether any prefix is good enough, like the search for the files
-                val index = jarAsZip
-                val parts = str.lowercase().split('/', '\\')
-
-                // binary search? let's do linear first
-                for (i in parts.lastIndex downTo 0) {
-                    val substr = parts.subList(0, i).joinToString("/")
-                    if (substr in index) {
-                        // great :), now go into that file
-                        val baseFile = BundledRef(substr, prefix + substr, false)
-                        return appendPath(baseFile, i, parts)
-                    }
-                }
-            }*/
             // is directory may be false...
             return findExistingReference(resName, fullPath) ?: BundledRef(resName, fullPath, false)
         }

@@ -22,7 +22,7 @@ object Heap {
             arr[i] = arr[largest]
             arr[largest] = swap
 
-            // Recursively heapify the affected sub-tree
+            // Recursively heapify the affected subtree
             maxHeapify(arr, largest, comparator)
         }
     }
@@ -46,7 +46,7 @@ object Heap {
             arr[i] = arr[largest]
             arr[largest] = swap
 
-            // Recursively heapify the affected sub-tree
+            // Recursively heapify the affected subtree
             minHeapify(arr, largest, comparator)
         }
     }

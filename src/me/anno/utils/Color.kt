@@ -163,6 +163,7 @@ object Color {
     @JvmStatic
     fun Int.toVecRGB(dst: Vector3f = Vector3f()) = dst.set(r01(), g01(), b01())
 
+    @Suppress("SpellCheckingInspection")
     const val base36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 
     @JvmStatic

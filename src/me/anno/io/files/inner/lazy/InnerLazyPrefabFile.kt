@@ -11,9 +11,9 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 open class InnerLazyPrefabFile(
-    absolutePath: String, relativePath: String, _parent: FileReference,
+    absolutePath: String, relativePath: String, parent: FileReference,
     val prefab: Lazy<Prefab>
-) : InnerFile(absolutePath, relativePath, false, _parent), PrefabReadable {
+) : InnerFile(absolutePath, relativePath, false, parent), PrefabReadable {
 
     val prefab2 = lazy {
         val v = prefab.value

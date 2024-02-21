@@ -213,7 +213,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     fun findWithoutAcceleration(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean
-    ) = aStar(
+    ): List<Node>? = aStar(
         start, end, distance(start, end), maxDistance,
         capacityGuess, includeStart, includeEnd
     ) { from, callback ->
@@ -226,7 +226,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
     fun findShortest(
         start: Node, end: Node, maxDistance: Double,
         capacityGuess: Int, includeStart: Boolean, includeEnd: Boolean
-    ) = dijkstra(
+    ): List<Node>? = dijkstra(
         start, end, distance(start, end), maxDistance,
         capacityGuess, includeStart, includeEnd
     ) { from, callback ->

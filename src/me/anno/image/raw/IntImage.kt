@@ -29,12 +29,6 @@ open class IntImage(
         data[x + y * width] = rgb
     }
 
-    fun setRGBSafely(x: Int, y: Int, rgb: Int) {
-        if (x in 0 until width && y in 0 until height) {
-            data[x + y * width] = rgb
-        }
-    }
-
     fun flipY() {
         val data = data
         val tmp = IntArray(width)

@@ -373,7 +373,7 @@ object SimpleExpressionParser {
     // to do pairs? true vectors? (x,y,z) -> nah...
     private fun MutableList<Any>.findVectors(): Boolean {
         var wasChanged = false
-        // searched: [ to open a vector
+        // searched: '[' to open a vector
         loop@ for (i in 0 until size) {
             if (this[i] == '[') {
                 this[i] = Vector()

@@ -24,7 +24,7 @@ import java.net.URI
 import java.nio.ByteBuffer
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
-// done when a file is changed, the meta data of it needs to be invalidated
+// done when a file is changed, the metadata of it needs to be invalidated
 // idk only allocate each inner file once: create a static store of weak references
 
 /**
@@ -377,7 +377,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
         return when (signature) { // todo these should be handled by InnerFolderCache...
             null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
-                // dae is xml
+                // dae is XML
                 when (lcExtension) {
                     in ThumbsExt.unityExtensions, "json" -> {
                         // LOGGER.info("Checking $absolutePath for mesh file, matches extension")

@@ -1,9 +1,7 @@
 package me.anno.video
 
 import me.anno.cache.ICacheData
-import me.anno.engine.EngineBase
 import me.anno.io.files.FileReference
-import me.anno.utils.types.AnyToInt
 import me.anno.video.formats.gpu.GPUFrame
 
 class VideoSlice(

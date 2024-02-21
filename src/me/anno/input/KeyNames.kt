@@ -1,7 +1,7 @@
 package me.anno.input
 
 /**
- * records, which key combinations were used to create which keys;
+ * records: which key combinations were used to create what keys;
  * this makes that we can print Umlauts and special symbols correctly
  * */
 object KeyNames {

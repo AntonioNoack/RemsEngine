@@ -12,9 +12,9 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 open class InnerLazyImageFile(
-    absolutePath: String, relativePath: String, _parent: FileReference,
+    absolutePath: String, relativePath: String, parent: FileReference,
     val cpuImage: Lazy<Image>, val gpuImage: () -> Image,
-) : InnerFile(absolutePath, relativePath, false, _parent), ImageReadable, SignatureFile {
+) : InnerFile(absolutePath, relativePath, false, parent), ImageReadable, SignatureFile {
 
     override var signature: Signature? = Signature.bmp
 

@@ -102,7 +102,7 @@ open class SecureStack<V>(var currentValue: V) : List<V> {
             private var index1 = index
             override fun hasNext() = index1 < size
             override fun hasPrevious() = index1 > 0
-            override fun next(): V = values[index1++] as V
+            override fun next(): V = values[index1++]
             override fun nextIndex() = index1
             override fun previous(): V = values[--index1]
             override fun previousIndex() = index1 - 1

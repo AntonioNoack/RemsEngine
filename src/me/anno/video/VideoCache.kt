@@ -115,7 +115,7 @@ object VideoCache : CacheSection("Videos") {
                 if (file2 != null) {
                     val meta2 = MediaMetadata.getMeta(file2, async)
                     if (meta2 != null) {
-                        val sliceI = (index % framesPerSlice).toInt()
+                        val sliceI = index % framesPerSlice
                         return getVideoFrameWithoutGenerator(meta2, sliceI, bufferLength0, fps)
                     }
                 }

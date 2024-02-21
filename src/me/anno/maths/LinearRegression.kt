@@ -17,36 +17,36 @@ import kotlin.math.abs
 object LinearRegression {
 
     /**
-     * @param X feature matrix, row major, [points x features]
+     * @param x feature matrix, row major, [points x features]
      * @param y solution vector, f(x)
      * @return v such that Xv = y
      * */
-    fun solve(X: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
+    fun solve(x: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
         val numPts = y.size
-        val degree = X.size / numPts
+        val degree = x.size / numPts
         // b = (XtX)^-1 * Xt * y
         // b = (XtX)^-1 * (Xt * y)
         if (true) {
-            val xtx = setAtB(X, X, degree, numPts, degree)
+            val xtx = setAtB(x, x, degree, numPts, degree)
             val t = degree + 1
             for (i in 0 until degree) {
                 xtx[i * t] += regularisation
             }
-            val xty = setAtX(X, y, degree, numPts)
+            val xty = setAtX(x, y, degree, numPts)
             val xtxInv = inverse(xtx, degree) ?: return null
             return setAx(xtxInv, xty, degree, degree)
         } else {
             // debug printing
             println("A:")
-            printMatrix(X, degree, numPts)
-            val xtx = setAtB(X, X, degree, numPts, degree)
+            printMatrix(x, degree, numPts)
+            val xtx = setAtB(x, x, degree, numPts, degree)
             val t = degree + 1
             for (i in 0 until degree) {
                 xtx[i * t] += regularisation
             }
             println("A*A:")
             printMatrix(xtx, degree, degree)
-            val xty = setAtX(X, y, degree, numPts)
+            val xty = setAtX(x, y, degree, numPts)
             val xtxInv = inverse(xtx.copyOf(), degree) ?: return null
             println("inv(A*A):")
             printMatrix(xtxInv, degree, degree)
@@ -57,16 +57,16 @@ object LinearRegression {
     }
 
     // not tested!
-    fun solveT(Xt: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
+    fun solveT(xTransposed: DoubleArray, y: DoubleArray, regularisation: Double = 1e-3): DoubleArray? {
         val numPts = y.size
-        val degree = Xt.size / numPts
+        val degree = xTransposed.size / numPts
         // beta = (XtX)^-1 * Xt * Y
-        val xtx = setABt(Xt, Xt, degree, numPts, degree)
+        val xtx = setABt(xTransposed, xTransposed, degree, numPts, degree)
         val t = degree + 1
         for (i in 0 until degree) {
             xtx[i * t] += regularisation
         }
-        val xty = setAx(Xt, y, degree, numPts)
+        val xty = setAx(xTransposed, y, degree, numPts)
         val xtxInv = inverse(xtx, degree) ?: return null
         return setAx(xtxInv, xty, degree, degree)
     }
@@ -197,10 +197,10 @@ object LinearRegression {
     }
 
     // y is 1
-    fun calcInvXt4(inv: Matrix4d, X: List<Vector3d>): Vector4d {
+    fun calcInvXt4(inv: Matrix4d, x: List<Vector3d>): Vector4d {
         val solution = Vector4d()
         val temp = Vector4d()
-        for (v in X) {
+        for (v in x) {
             temp.set(v.x, v.y, v.z, 1.0)
             solution.add(inv.transform(temp))
         }
@@ -208,15 +208,15 @@ object LinearRegression {
     }
 
     // finds the line, along which the points are lined up
-    // x,y,z,1
-    fun solve3d(X: List<Vector3d>, regularisation: Double): Vector4d {
-        val xtx = calcXtX4(X)
+    // x, y, z, 1
+    fun solve3d(x: List<Vector3d>, regularisation: Double): Vector4d {
+        val xtx = calcXtX4(x)
         xtx.m00(xtx.m00 + regularisation)
         xtx.m11(xtx.m11 + regularisation)
         xtx.m22(xtx.m22 + regularisation)
         xtx.m33(xtx.m33 + regularisation)
         xtx.invert()
-        return calcInvXt4(xtx, X)
+        return calcInvXt4(xtx, x)
     }
 
     fun evaluateBlackFrame(vs: DoubleArray, bias: Double = 1.0): Double {

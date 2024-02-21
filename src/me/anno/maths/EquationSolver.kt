@@ -21,15 +21,15 @@ object EquationSolver {
             dst[0] = -c / b
             return 1
         }
-        var dscr = b * b - 4 * a * c
+        var div = b * b - 4 * a * c
         return when {
-            dscr > 0f -> {
-                dscr = sqrt(dscr)
-                dst[0] = (-b + dscr) / (2 * a)
-                dst[1] = (-b - dscr) / (2 * a)
+            div > 0f -> {
+                div = sqrt(div)
+                dst[0] = (-b + div) / (2 * a)
+                dst[1] = (-b - div) / (2 * a)
                 2
             }
-            dscr == 0f -> {
+            div == 0f -> {
                 dst[0] = -b / (2 * a)
                 1
             }

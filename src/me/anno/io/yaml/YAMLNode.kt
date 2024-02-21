@@ -29,7 +29,7 @@ class YAMLNode(
         return children?.firstOrNull { it.key == key }
     }
 
-    fun getBool(): Boolean? = if (value == null) null else value?.toIntOrNull() != 0
+    fun getBool(): Boolean? = if (value == null) null else value.toIntOrNull() != 0
     fun getBool(name: String): Boolean? = this[name]?.getBool()
 
     fun getInt(): Int? = value?.toIntOrNull()

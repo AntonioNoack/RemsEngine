@@ -4,9 +4,9 @@ import me.anno.io.files.FileReference
 import java.io.InputStream
 
 class InnerStreamFile(
-    absolutePath: String, relativePath: String, _parent: FileReference,
+    absolutePath: String, relativePath: String, parent: FileReference,
     val getStream: () -> InputStream
-) : InnerFile(absolutePath, relativePath, false, _parent) {
+) : InnerFile(absolutePath, relativePath, false, parent) {
 
     @Suppress("unused")
     constructor(folder: InnerFolder, name: String, getStream: () -> InputStream) : this(

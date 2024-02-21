@@ -509,7 +509,7 @@ class PrefabInspector(var reference: FileReference) {
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
         JsonStringWriter.save(prefab, reference, workspace)
-        DelayedTask { addEvent { restoreSelected(selected) } }.update()
+        addEvent(500) { restoreSelected(selected) }
     }
 
     override fun toString(): String = JsonStringWriter.toText(prefab, workspace)

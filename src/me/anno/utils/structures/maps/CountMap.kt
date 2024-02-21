@@ -16,8 +16,6 @@ open class CountMap<V>(capacity: Int = 16) {
     }
 
     fun incAndGet(key: V): Int {
-        val count = values.getOrPut(key) { Count(getInitialCount(key)) }
-        return ++count.value
+        return incAndGet(key) + 1
     }
-
 }

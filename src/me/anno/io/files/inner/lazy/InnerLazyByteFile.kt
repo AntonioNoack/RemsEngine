@@ -9,9 +9,9 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 class InnerLazyByteFile(
-    absolutePath: String, relativePath: String, _parent: FileReference,
+    absolutePath: String, relativePath: String, parent: FileReference,
     val content: Lazy<ByteArray>
-) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     @Suppress("unused")
     constructor(folder: InnerFolder, name: String, content: Lazy<ByteArray>) : this(

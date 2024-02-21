@@ -10,8 +10,6 @@ import me.anno.ui.input.EnumInput
 class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) :
     TextPanel(title, style.getChild("italic")) {
 
-    constructor(base: EnumValuePanel) : this(base.text, base.owner, base.style)
-
     override fun acceptsChar(char: Int): Boolean {
         val asKey = Key.byId(char)
         return asKey.isUpKey() || asKey.isDownKey()

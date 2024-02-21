@@ -24,7 +24,7 @@ open class InnerFolder(
     parent: FileReference
 ) : InnerFile(absolutePath, relativePath, true, parent) {
 
-    constructor(root: FileReference) : this(root.absolutePath, "", root.getParent() ?: InvalidRef)
+    constructor(root: FileReference) : this(root.absolutePath, "", root.getParent())
 
     constructor(parent: InnerFolder, name: String) :
             this(appendPath(parent.absolutePath, name), appendPath(parent.relativePath, name), parent)

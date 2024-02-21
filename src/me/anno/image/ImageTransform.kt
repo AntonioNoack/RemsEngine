@@ -5,7 +5,8 @@ import kotlin.math.PI
 import kotlin.math.abs
 
 class ImageTransform(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val angleCW: Int) {
-    val switchWH = (abs(angleCW) % 180) > 45
+    @Suppress("unused")
+    val switchWH get() = (abs(angleCW) % 180) > 45
     private val angleRadians = -(PI * angleCW / 180).toFloat() // CCW
     fun apply(stack: Matrix4f) {
         if (mirrorHorizontal) {

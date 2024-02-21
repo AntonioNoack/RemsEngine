@@ -47,6 +47,7 @@ open class FloatVectorInput(
 
     constructor(style: Style) : this("", "", NumberType.FLOAT, style)
 
+    @Suppress("unused")
     constructor(
         title: String, visibilityKey: String, value: Quaternionf,
         type: NumberType = NumberType.QUATERNION, style: Style

@@ -177,7 +177,7 @@ open class FloatInput(
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        // evaluate the value, and write it back into the text field, e.g. for calculations
+        // evaluate the value, and write it back into the text field, e.g., for calculations
         hasValue = false
         setValue(value, -1, true)
     }

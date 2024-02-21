@@ -9,9 +9,9 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 open class InnerPrefabFile(
-    absolutePath: String, relativePath: String, _parent: FileReference,
+    absolutePath: String, relativePath: String, parent: FileReference,
     var prefab: Prefab
-) : InnerFile(absolutePath, relativePath, false, _parent), PrefabReadable {
+) : InnerFile(absolutePath, relativePath, false, parent), PrefabReadable {
 
     init {
         val size = Int.MAX_VALUE.toLong()

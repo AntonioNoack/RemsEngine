@@ -72,7 +72,7 @@ open class FileInput(
                 if (isInputAllowed) {
                     var file2 = this@FileInput.value
                     while (file2 != InvalidRef && !file2.exists) {
-                        val file3 = file2.getParent() ?: InvalidRef
+                        val file3 = file2.getParent()
                         if (file3 == InvalidRef || file3 == file2 || file3.exists) {
                             file2 = file3
                             break
@@ -80,7 +80,7 @@ open class FileInput(
                     }
                     FileChooser.selectFiles(
                         NameDesc(if (isDirectory) "Select folder" else "Select file"), !isDirectory,
-                        isDirectory, false, false, file2.getParent() ?: file2, emptyList()
+                        isDirectory, allowMultiples = false, toSave = false, file2.getParent(), emptyList()
                     ) { files ->
                         if (files.isNotEmpty()) {
                             setValue(files.first(), true)

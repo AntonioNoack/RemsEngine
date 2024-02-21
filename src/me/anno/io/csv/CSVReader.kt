@@ -6,7 +6,7 @@ import me.anno.utils.types.Strings.isBlank2
 /**
  * a few simple readers for the Comma Separated Values file format
  *
- * to do later maybe dedicated, optimized readers,
+ * to do: later maybe dedicated, optimized readers,
  * which can detect the separator even maybe :)
  * */
 @Suppress("unused")

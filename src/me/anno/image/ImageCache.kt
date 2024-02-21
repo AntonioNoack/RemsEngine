@@ -59,7 +59,7 @@ object ImageCache : CacheSection("Image") {
         }
     }
 
-    // eps: like svg, we could implement it, but we don't really need it that dearly...
+    // EPS: like SVG, we could implement it, but we don't really need it that dearly...
 
     @JvmStatic
     operator fun get(file: FileReference, async: Boolean): Image? {

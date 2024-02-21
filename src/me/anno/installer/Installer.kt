@@ -113,7 +113,7 @@ object Installer {
         val contentLength = con.contentLength
         if (contentLength > 0L) progress?.total = con.contentLength.toDouble()
         val input = con.inputStream.useBuffered()
-        dstFile.getParent()?.tryMkdirs()
+        dstFile.getParent().tryMkdirs()
         val output = tmp.outputStream().useBuffered()
         val totalLength = con.contentLength.toLong()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

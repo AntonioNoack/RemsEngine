@@ -35,16 +35,16 @@ abstract class BaseReader {
         return null
     }
 
-    private fun setContent(ptr: Int, Saveable: Saveable) {
+    private fun setContent(ptr: Int, saveable: Saveable) {
         // LOGGER.info("SetContent($ptr, ${Saveable.className})")
-        if (ptr < 0) withoutPtr.add(Saveable)
+        if (ptr < 0) withoutPtr.add(saveable)
         else {
             // add missing instances
             val index = ptr - 1
             for (i in withPtr.size..index) {
                 withPtr.add(UnitSaveable)
             }
-            withPtr[index] = Saveable
+            withPtr[index] = saveable
         }
     }
 

@@ -20,7 +20,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
     /** whether this packet will always have the same size; no matter the version, edition, or sth else */
     open val constantSize = false
 
-    /** whether this packet may be skipped, if there is lots of traffic or the client is malicious and doesn't read to cause server-side out-of-memory */
+    /** whether this packet may be skipped, if there is lots of traffic, or the client is malicious and doesn't read to cause server-side out-of-memory */
     open val canDropPacket = true
 
     open fun send(server: Server?, client: TCPClient, dos: DataOutputStream) {

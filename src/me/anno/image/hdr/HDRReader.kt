@@ -64,7 +64,7 @@ object HDRReader {
         assertTrue(height > 0, "HDR Height must be positive")
 
         // In the above, the basic information has been collected. Now, we will deal with the pixel data.
-        // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each r,g,b and a shared one byte exponent.
+        // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each RGB and a shared one byte exponent.
         // The pixel data may be stored uncompressed or using a straightforward run length encoding scheme.
         val din = DataInputStream(input)
         val pixels = FloatArray(height * width * 3)
