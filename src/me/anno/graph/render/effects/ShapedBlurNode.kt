@@ -22,6 +22,7 @@ class ShapedBlurNode() : ActionNode(
     listOf("Texture", "Blurred")
 ) {
 
+    @Suppress("unused")
     constructor(type: String) : this() {
         this.type = type
     }

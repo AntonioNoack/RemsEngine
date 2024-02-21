@@ -11,7 +11,6 @@ import me.anno.utils.Color.black4
 class SSAONode : ActionNode(
     "Screen Space Ambient Occlusion",
     listOf(
-        // todo add width and height?
         "Int", "Samples",
         "Float", "Strength",
         "Float", "Radius Scale",
@@ -20,8 +19,6 @@ class SSAONode : ActionNode(
         "Texture", "Depth",
     ), listOf("Texture", "Ambient Occlusion")
 ) {
-
-    // todo "depth texture to normal"-node
 
     init {
         setInput(1, 64) // samples

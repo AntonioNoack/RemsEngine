@@ -58,7 +58,7 @@ object AssetImport {
         LastModifiedCache.invalidate(dst)
         // update icon of current folder... hopefully this works
         Thumbs.invalidate(dst)
-        Thumbs.invalidate(dst.getParent() ?: InvalidRef)
+        Thumbs.invalidate(dst.getParent())
     }
 
     fun isPureFile(file: FileReference): Boolean {
@@ -217,26 +217,26 @@ object AssetImport {
     private fun findName(srcFile: FileReference, prefab: Prefab?, isMainFolder: Boolean): String {
         val prefabName = prefab?.instanceName?.toAllowedFilename()
         val fileName = srcFile.nameWithoutExtension.toAllowedFilename()
-        var name = fileName ?: srcFile.getParent()?.nameWithoutExtension ?: prefab?.instanceName ?: "Scene"
+        var name = fileName ?: srcFile.getParent().nameWithoutExtension
         if (name.toIntOrNull() != null) {
             name = prefabName ?: "Scene"
         }
         if (isMainFolder && name == "Scene") {
             // rename to file name
-            name = srcFile.getParent()!!.nameWithoutExtension
+            name = srcFile.getParent().nameWithoutExtension
         }
         return name
     }
 
     private fun findNameWithExt(srcFile: FileReference, isMainFolder: Boolean): String {
         val fileName = srcFile.name.toAllowedFilename()
-        var name = fileName ?: srcFile.getParent()?.name ?: "Scene"
+        var name = fileName ?: srcFile.getParent().name
         if (name.toIntOrNull() != null) {
             name = "Scene"
         }
         if (isMainFolder && name == "Scene") {
             // rename to file name
-            name = srcFile.getParent()!!.name
+            name = srcFile.getParent().name
         }
         if ('.' !in name) {
             val signature = Signature.findNameSync(srcFile)
@@ -267,7 +267,7 @@ object AssetImport {
                 dstFile = Files.findNextFile(dstFolder, name, "json", 3, '-', 1)
             }
         }
-        dstFile.getParent()?.tryMkdirs()
+        dstFile.getParent().tryMkdirs()
         dstFile.writeText(data)
         return dstFile
     }

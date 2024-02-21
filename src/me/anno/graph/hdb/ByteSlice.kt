@@ -11,7 +11,14 @@ class ByteSlice(val bytes: ByteArray, val range: IntRange) {
         return ByteArrayInputStream(bytes, range.first, range.size)
     }
 
+    @Suppress("unused")
     fun getAsString(): String {
         return bytes.decodeToString(range.first, range.last + 1)
+    }
+
+    @Suppress("unused")
+    fun getAsArray(): ByteArray {
+        return if (range == bytes.indices) bytes
+        else bytes.sliceArray(range)
     }
 }

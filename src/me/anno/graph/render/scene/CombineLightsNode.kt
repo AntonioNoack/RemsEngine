@@ -81,7 +81,7 @@ class CombineLightsNode : RenderViewNode(
                 val expressions = sizes.indices
                     .joinToString("") { i ->
                         val nameI = names[i]
-                        val exprI = expr(inputs!![firstInputIndex + i])
+                        val exprI = expr(inputs[firstInputIndex + i])
                         "$nameI=$exprI;\n"
                     }
                 defineLocalVars(builder)

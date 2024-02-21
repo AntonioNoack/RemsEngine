@@ -3,14 +3,15 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
-import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.utils.Logging.hash32
@@ -67,8 +68,8 @@ object ECSSceneTabs : ScrollPanelX(style) {
             if (tab.file != file) {
                 var file1 = file
                 // if a name is already in use, try a different one
-                while (tab.text.equals(name, true)) {
-                    val parent = file1.getParent() ?: break
+                while (tab.text.equals(name, true) && file1 != InvalidRef) {
+                    val parent = file1.getParent()
                     name = parent.nameWithoutExtension
                     file1 = parent
                 }

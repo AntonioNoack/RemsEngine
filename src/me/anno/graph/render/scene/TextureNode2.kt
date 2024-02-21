@@ -2,7 +2,6 @@ package me.anno.graph.render.scene
 
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.TextureNode.Companion.violet
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import org.joml.Vector2f
 

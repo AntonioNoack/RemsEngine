@@ -196,7 +196,7 @@ object RaycastMesh {
             val localNormal = tmp0[6]
 
             mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
-                // check collision of localStart-localEnd with triangle a,b,c
+                // check collision of localStart-localEnd with triangle ABC
                 val localDistance = Triangles.rayTriangleIntersection(
                     localSrt, localDir, a, b, c,
                     localRadiusAtOrigin, localRadiusPerUnit,
@@ -290,7 +290,7 @@ object RaycastMesh {
 
             try {
                 mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
-                    // check collision of localStart-localEnd with triangle a,b,c
+                    // check collision of localStart-localEnd with triangle ABC
                     val localDistance = Triangles.rayTriangleIntersection(
                         localSrt, localDir, a, b, c,
                         localRadiusAtOrigin, localRadiusPerUnit,

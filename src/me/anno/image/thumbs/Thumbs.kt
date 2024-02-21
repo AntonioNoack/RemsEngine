@@ -1246,11 +1246,13 @@ object Thumbs {
         // save the file
 
         if (OS.isWindows) {
+            @Suppress("SpellCheckingInspection")
             when (srcFile.absolutePath) {
                 "C:/pagefile.sys", "C:/hiberfil.sys",
                 "C:/DumpStack.log", "C:/DumpStack.log.tmp",
                 "C:/swapfile.sys" -> {
                     callback.err(IOException("Cannot generate thumbnail"))
+                    return
                 }
             }
         }

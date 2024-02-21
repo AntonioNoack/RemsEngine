@@ -7,6 +7,7 @@ class DebugRay(
     val direction: Vector3d,
     color: Int, timeOfDeath: Long = defaultTime()
 ) : DebugItem(color, timeOfDeath) {
+    @Suppress("unused")
     constructor(start: Vector3d, direction: Vector3d, color: Int, duration: Float) :
             this(start, direction, color, timeByDuration(duration))
 }

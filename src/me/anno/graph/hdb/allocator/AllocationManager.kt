@@ -8,8 +8,6 @@ interface AllocationManager<Key, Data : Any> {
         private val LOGGER = LogManager.getLogger(AllocationManager::class)
     }
 
-    // todo metadata to remember dense areas...
-
     fun compact(sortedElements: List<Key>): ArrayList<IntRange> {
         val result = ArrayList<IntRange>()
         var position = 0

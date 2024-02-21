@@ -4,7 +4,6 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.MovingGrid
-import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond

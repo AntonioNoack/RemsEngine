@@ -44,7 +44,6 @@ object RenderState {
         private set
     var fovXRadians = 1.57f
     var fovYRadians = 1.57f
-    var reverseDepth = true
     var near = 0f
     var far = 0f
 

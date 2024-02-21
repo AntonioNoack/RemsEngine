@@ -66,7 +66,7 @@ class TextSDFGroup(font: Font, text: CharSequence, charSpacing: Double) :
     }
 
     companion object {
-        val sdfTimeout = 30_000L
+        private const val sdfTimeout = 30_000L
         val queue = ProcessingQueue("SDFText")
     }
 }

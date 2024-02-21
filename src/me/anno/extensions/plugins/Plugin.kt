@@ -3,7 +3,6 @@ package me.anno.extensions.plugins
 import me.anno.extensions.Extension
 
 abstract class Plugin : Extension() {
-
     /**
      * is called, when the plugin is started
      * loads async
@@ -18,13 +17,4 @@ abstract class Plugin : Extension() {
      * will not be executed, if the program is killed
      * */
     open fun onDisable() {}
-
-    fun reload() {
-        isRunning = false
-        onDisable()
-        clearListeners()
-        isRunning = true
-        onEnable()
-    }
-
 }

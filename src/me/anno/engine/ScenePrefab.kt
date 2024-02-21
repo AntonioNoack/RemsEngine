@@ -67,7 +67,7 @@ object ScenePrefab : InnerLazyPrefabFile(
     fun getPlayerPrefab(scene: Entity) = scene.children[playerPrefabIndex]
 
     /**
-     * e.g. for custom ui layouts,
+     * e.g., for custom ui layouts,
      * will not be shared with the server
      * */
     fun getLocallyShared(scene: Entity) = scene.children[locallySharedIndex]

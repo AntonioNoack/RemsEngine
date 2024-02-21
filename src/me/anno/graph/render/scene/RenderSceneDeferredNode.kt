@@ -39,9 +39,9 @@ class RenderSceneDeferredNode : RenderViewNode(
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Int", "Draw Sky", // -1 = before, 0 = don't, 1 = after
-    ) + ll0,
+    ) + inList,
     // list all available deferred layers
-    ll1
+    outList
 ) {
 
     companion object {
@@ -59,8 +59,8 @@ class RenderSceneDeferredNode : RenderViewNode(
             }.flatten()
         }
 
-        val ll0 = listLayers(null)
-        val ll1 = listLayers("Texture")
+        val inList = listLayers(null)
+        val outList = listLayers("Texture")
     }
 
     val enabledLayers = ArrayList<DeferredLayerType>()
@@ -271,7 +271,7 @@ class RenderSceneDeferredNode : RenderViewNode(
     }
 
     private fun hasAnyInput(): Boolean {
-        for (i in 0 until ll0.size.shr(1)) {
+        for (i in 0 until inList.size.shr(1)) {
             if (!inputs[firstInputIndex + i].isEmpty()) {
                 return true
             }
@@ -280,7 +280,7 @@ class RenderSceneDeferredNode : RenderViewNode(
     }
 
     fun defineInputs(framebuffer: IFramebuffer) {
-        val inputIndex = firstInputIndex + ll0.indexOf(DeferredLayerType.DEPTH.name).shr(1)
+        val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
         val prepassDepth = (getInput(inputIndex) as? Texture)?.tex
         if (prepassDepth != null) {
             GFX.copyColorAndDepth(blackTexture, prepassDepth)

@@ -2,7 +2,6 @@ package me.anno.config
 
 import me.anno.Engine.projectName
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
@@ -99,6 +98,6 @@ object DefaultConfig : StringMap() {
     }
 
     val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
-    val defaultFont get() = Font(defaultFontName, 15f, false, false)
-    val defaultFont2 get() = Font(defaultFontName, 25f, false, false)
+    val defaultFont get() = Font(defaultFontName, 15f, isBold = false, isItalic = false)
+    val defaultFont2 get() = Font(defaultFontName, 25f, isBold = false, isItalic = false)
 }

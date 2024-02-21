@@ -114,13 +114,13 @@ class RenderLightsNode : RenderViewNode(
 
                 builder.addFragment(uvwStage)
                 builder.addFragment(
-                    ShaderStage("rlight-f0", variables, expressions)
+                    ShaderStage("r-light-f0", variables, expressions)
                         .add(extraFunctions.toString())
                 )
 
                 builder.addFragment(
                     ShaderStage(
-                        "rlight-f1", listOf(
+                        "r-light-f1", listOf(
                             Variable(GLSLType.V2F, "uv"),
                             Variable(GLSLType.V1F, "finalDepth"),
                             Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)

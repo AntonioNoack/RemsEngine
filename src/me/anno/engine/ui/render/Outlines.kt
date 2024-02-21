@@ -2,8 +2,6 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader

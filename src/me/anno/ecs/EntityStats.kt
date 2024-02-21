@@ -6,34 +6,40 @@ import me.anno.utils.types.Floats.f2s
 object EntityStats {
 
     val Entity.sizeOfHierarchy
-        get(): Int {
-            val children = children
-            var sum = 1 + components.size // self plus components
-            for (i in children.indices) {
-                sum += children[i].sizeOfHierarchy
-            }
-            return sum
+        get(): Int = calcSizeOfHierarchy(this)
+
+    private fun calcSizeOfHierarchy(entity: Entity): Int {
+        val children = entity.children
+        var sum = 1 + entity.components.size // self plus components
+        for (i in children.indices) {
+            sum += calcSizeOfHierarchy(children[i])
         }
+        return sum
+    }
 
     val Entity.totalNumEntities
-        get(): Int {
-            val children = children
-            var sum = 1 // self
-            for (i in children.indices) {
-                sum += children[i].totalNumEntities
-            }
-            return sum
+        get(): Int = calcTotalNumEntities(this)
+
+    private fun calcTotalNumEntities(entity: Entity): Int {
+        var sum = 1 // self
+        val children = entity.children
+        for (i in children.indices) {
+            sum += calcTotalNumEntities(children[i])
         }
+        return sum
+    }
 
     val Entity.totalNumComponents
-        get(): Int {
-            val children = children
-            var sum = components.size
-            for (i in children.indices) {
-                sum += children[i].totalNumComponents
-            }
-            return sum
+        get(): Int = calcTotalNumComponents(this)
+
+    private fun calcTotalNumComponents(entity: Entity): Int {
+        var sum = entity.components.size
+        val children = entity.children
+        for (i in children.indices) {
+            sum += calcTotalNumComponents(children[i])
         }
+        return sum
+    }
 
     fun Entity.toStringWithTransforms(depth: Int): StringBuilder {
         val text = StringBuilder()

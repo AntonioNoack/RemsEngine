@@ -60,7 +60,6 @@ class SSRNode : ActionNode(
         // we might use this again later...
         // val emissive = (getInput(10) as? Texture)?.tex ?: blackTexture
 
-        // todo optional normal reconstruction
         val normal = getInput(11) as? Texture
         val normalZW = normal?.mapping == "zw"
         val normalT = ((normal)?.tex as? Texture2D) ?: whiteTexture

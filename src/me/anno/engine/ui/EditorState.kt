@@ -62,7 +62,7 @@ object EditorState {
     fun selectForeignPrefab(prefab: Prefab) {
         val major = listOf(prefab.getSampleInstance())
         PrefabInspector.currentInspector = PrefabInspector(prefab.source)
-        doSelect(major, false, false)
+        doSelect(major, add = false, refocus = false)
     }
 
     private fun doSelect(major: List<Inspectable>, add: Boolean, refocus: Boolean) {

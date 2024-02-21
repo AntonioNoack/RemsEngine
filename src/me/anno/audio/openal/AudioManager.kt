@@ -46,7 +46,7 @@ object AudioManager {
     fun startRunning() {
         runningThread?.interrupt() // kill the old thread
         runningThread = thread(name = "AudioManager") {
-            // just in case the other thread is still alive, wait a little
+            // just in case the other thread is still alive, wait for a bit
             try {
                 Thread.sleep(50)
                 init()

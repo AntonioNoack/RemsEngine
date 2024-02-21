@@ -9,7 +9,7 @@ package me.anno.graph.octtree
  *
  * it also could be a dual list, e.g., list of positions, and triangle indices
  *
- * modifications must be in order, queries can be multi-threaded
+ * modifications must be in order, queries can be multithreaded
  * */
 abstract class KdTree<Point, Data>(
     val maxNumChildren: Int,

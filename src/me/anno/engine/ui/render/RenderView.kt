@@ -450,7 +450,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {
+    fun resolveClick(px: Float, py: Float): Pair<Entity?, Component?> {
         val world = getWorld()
         if (world != null) {
 

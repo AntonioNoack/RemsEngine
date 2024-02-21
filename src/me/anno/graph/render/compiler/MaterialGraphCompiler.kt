@@ -32,7 +32,7 @@ class MaterialGraphCompiler(
                 // define all values :)
                 for (i in MaterialGraph.layers.indices) {
                     val l = MaterialGraph.layers[i]
-                    val c = node.inputs!![i + 1]
+                    val c = node.inputs[i + 1]
                     if (shallExport(l, c)) {
                         // set value :)
                         val x = expr(c)
@@ -63,7 +63,7 @@ class MaterialGraphCompiler(
         // header, defining useful local variables and inout types
 
         builder.append("bool calc(")
-        val outs = start.outputs!!
+        val outs = start.outputs
         var first = true
         for (i in 1 until outs.size) {
             val o = outs[i]

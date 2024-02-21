@@ -96,7 +96,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
 
     init {
         valueButton.addLeftClickListener {
-            // open tree view to select an element without drag'n'drop
+            // open tree view to select an element without drag-and-drop
             val oldValue: Type = value
             val panel = SameSceneRefTreeView(this)
             val acceptButton = TextButton("Accept", style)

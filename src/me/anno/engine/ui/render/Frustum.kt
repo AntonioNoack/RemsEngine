@@ -224,7 +224,7 @@ class Frustum {
         cameraRotation.transform(positions[4])
         cameraRotation.transform(positions[5])
 
-        // calculate the position of the sideways planes: 0, because they go trough the center
+        // calculate the position of the sideways planes: 0, because they go through the center
         // then comes the rotation: rotate 0 = 0
         // then add the camera position ->
         // in summary just use the camera position

@@ -12,12 +12,12 @@ import me.anno.ecs.components.collider.CollidingComponent
  * */
 object Raycast {
 
-    val TRIANGLE_FRONT = 1
-    val TRIANGLE_BACK = 2
-    val TRIANGLES = TRIANGLE_FRONT or TRIANGLE_BACK // 3
-    val COLLIDERS = 4
-    val SDFS = 8
-    val SKY = 16
+    const val TRIANGLE_FRONT = 1
+    const val TRIANGLE_BACK = 2
+    const val TRIANGLES = TRIANGLE_FRONT or TRIANGLE_BACK // 3
+    const val COLLIDERS = 4
+    const val SDFS = 8
+    const val SKY = 16
 
     // todo option for smoothed collision surfaces by their normal
 
@@ -97,5 +97,4 @@ object Raycast {
         }
         return false
     }
-
 }

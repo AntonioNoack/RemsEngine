@@ -52,18 +52,18 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
         ab.set(p1).sub(p0)
         br.set(p2).sub(p1).sub(ab)
 
-        val abab = p0.distanceSquared(p1)
+        val dist01 = p0.distanceSquared(p1)
         val abbr = ab.dot(br)
-        val brbr = br.lengthSquared()
-        val abLen = sqrt(abab)
-        val brLen = sqrt(brbr)
+        val dist12 = br.lengthSquared()
+        val abLen = sqrt(dist01)
+        val brLen = sqrt(dist12)
         val crs = ab.cross(br)
-        val h = sqrt(abab + abbr + abbr + brbr)
+        val h = sqrt(dist01 + abbr + abbr + dist12)
 
         JomlPools.vec2f.sub(2)
 
-        return (brLen * ((abbr + brbr) * h - abbr * abLen) +
-                crs * crs * ln((brLen * h + abbr + brbr) / (brLen * abLen + abbr))) / (brbr * brLen)
+        return (brLen * ((abbr + dist12) * h - abbr * abLen) +
+                crs * crs * ln((brLen * h + abbr + dist12) / (brLen * abLen + abbr))) / (dist12 * brLen)
     }
 
     override fun union(bounds: AABBf, tmp: FloatArray) {

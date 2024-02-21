@@ -20,7 +20,6 @@ import me.anno.image.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.askName
@@ -39,7 +38,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 // done import mesh/material/... for modifications:
-// done create material, mesh, animation etc folder
+// done create material, mesh, animation etc. folder
 // done rename Scene.json to mesh file name.json
 
 class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileExplorer(file0, isY, style) {

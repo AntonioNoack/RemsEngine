@@ -318,6 +318,7 @@ object ExtensionLoader {
             if (index > 0) {
                 val key = line.substring(0, index).trim()
                 val value = line.substring(index + 1).trim()
+                @Suppress("SpellCheckingInspection")
                 when (key.lowercase()) {
                     "plugin-name", "pluginname", "name" -> {
                         name = value

@@ -138,7 +138,7 @@ class ShaderGraphNode : ActionNode(
             // not being used, as we only have an expression
             override fun handleReturnNode(node: ReturnNode) {
                 when (node) {
-                    is SGNReturn -> builder.append("result = ").append(expr(node.inputs!![1]))
+                    is SGNReturn -> builder.append("result = ").append(expr(node.inputs[1]))
                         .append("; return false;\n")
                     is DiscardNode -> builder.append("return true;\n")
                     else -> throw NotImplementedError(node.className)

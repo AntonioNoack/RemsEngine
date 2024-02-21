@@ -18,5 +18,4 @@ object PluginManager : ExtensionManager<Plugin>("Plugin") {
             it.onDisable()
         }
     }
-
 }

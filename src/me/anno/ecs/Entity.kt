@@ -29,7 +29,6 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools

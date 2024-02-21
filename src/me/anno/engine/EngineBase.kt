@@ -138,6 +138,7 @@ abstract class EngineBase(
 
         if (Engine.shutdown) {
             LOGGER.warn("Engine restart is experimental!")
+            @Suppress("DEPRECATION")
             Engine.cancelShutdown()
         }
 

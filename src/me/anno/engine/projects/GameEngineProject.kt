@@ -88,27 +88,6 @@ class GameEngineProject() : NamedSaveable() {
         }
     }
 
-    fun forAllFiles(run: (FileReference) -> Unit) {
-        forAllFiles(location, 10, run)
-    }
-
-    fun forAllFiles(folder: FileReference, maxDepth: Int, run: (FileReference) -> Unit) {
-        try {
-            // to do go into things as well???
-            for (child in folder.listChildren()) {
-                if (child.isDirectory) {
-                    if (maxDepth > 0) {
-                        forAllFiles(child, maxDepth - 1, run)
-                    }
-                } else {
-                    run(child)
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     fun init() {
 
         EngineBase.workspace = location

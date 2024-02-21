@@ -1,7 +1,6 @@
 package me.anno.graph.render.compiler
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.graph.types.flow.actions.ActionNode
 
