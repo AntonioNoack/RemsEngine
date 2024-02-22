@@ -1,5 +1,9 @@
 package me.anno.gpu.shader
 
+// todo could be moved to utils...
+/**
+ * formats GLSL (our shading language used in the engine) to improve its readability
+ * */
 object GLSLFormatter {
 
     fun String.formatGLSL(): String {

@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack

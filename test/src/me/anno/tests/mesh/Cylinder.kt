@@ -1,6 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

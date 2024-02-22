@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ecs.components.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer

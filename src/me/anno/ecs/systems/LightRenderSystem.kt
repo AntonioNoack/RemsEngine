@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.components.light.LightComponent
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
 

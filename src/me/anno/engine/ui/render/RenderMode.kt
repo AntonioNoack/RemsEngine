@@ -1,6 +1,6 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer

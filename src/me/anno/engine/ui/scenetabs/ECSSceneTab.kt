@@ -10,7 +10,7 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabInspector

@@ -3,7 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 
 class DrawRequest(
     var mesh: IMesh,

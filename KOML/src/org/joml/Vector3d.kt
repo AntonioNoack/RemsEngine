@@ -30,8 +30,10 @@ open class Vector3d(
     constructor(v: Vector2i, z: Double) : this(v.x.toDouble(), v.y.toDouble(), z)
     constructor(v: Vector3d) : this(v.x, v.y, v.z)
     constructor(v: Vector2d, z: Double) : this(v.x, v.y, z)
-    constructor(xyz: DoubleArray) : this(xyz[0], xyz[1], xyz[2])
-    constructor(xyz: FloatArray) : this(xyz[0], xyz[1], xyz[2])
+    constructor(xyz: DoubleArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
+    constructor(xyz: FloatArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
+    constructor(xyz: DoubleArray) : this(xyz, 0)
+    constructor(xyz: FloatArray) : this(xyz, 0)
 
     fun set(v: Vector3d): Vector3d = set(v.x, v.y, v.z)
     fun set(v: Vector3i): Vector3d = set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())

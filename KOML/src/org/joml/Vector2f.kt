@@ -15,6 +15,7 @@ open class Vector2f(
     constructor(v: Vector2f) : this(v.x, v.y)
     constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
     constructor(xy: FloatArray) : this(xy[0], xy[1])
+    constructor(v: Vector2d): this(v.x.toFloat(), v.y.toFloat())
 
     @JvmOverloads
     fun set(x: Float, y: Float = x): Vector2f {

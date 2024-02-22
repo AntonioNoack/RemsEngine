@@ -6,7 +6,7 @@ import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.gpu.shader.effects.FSR
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable

@@ -1,6 +1,6 @@
 package me.anno.graph.ui
 
-import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.gpu.shader.effects.FSR
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.Font

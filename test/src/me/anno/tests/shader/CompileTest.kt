@@ -16,12 +16,12 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.RectangleLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.AutoTileableShader
-import me.anno.ecs.components.shaders.PlanarShader
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
+import me.anno.ecs.components.mesh.material.shaders.PlanarShader
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode

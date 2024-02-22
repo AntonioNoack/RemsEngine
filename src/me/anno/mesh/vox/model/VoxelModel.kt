@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.IsSolid
-import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
+import me.anno.mesh.vox.meshing.VoxelMeshBuilder
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f2
@@ -132,16 +132,16 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         val colors = IntArrayList(vertexPointGuess / 3 + 1)
         val normals = FloatArrayList(vertexPointGuess)
 
-        val info = VoxelMeshBuildInfo(palette, vertices, colors, normals)
+        val builder = VoxelMeshBuilder(palette, vertices, colors, normals)
 
         // go over all six directions
         // just reuse our old code for minecraft like stuff
         var removed = 0f
 
         for (side in sides) {
-            info.setNormal(side)
+            builder.side = side
             // an estimate
-            removed += BakeMesh.bakeMesh(this, side, info, insideIsSolid, outsideIsSolid)
+            removed += BakeMesh.bakeMesh(this, side, builder, insideIsSolid, outsideIsSolid)
         }
 
         if (printReduction && removed > 0) {

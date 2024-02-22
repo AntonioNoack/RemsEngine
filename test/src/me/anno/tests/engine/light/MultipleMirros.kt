@@ -2,12 +2,12 @@ package me.anno.tests.engine.light
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.mesh.Shapes.flatCube

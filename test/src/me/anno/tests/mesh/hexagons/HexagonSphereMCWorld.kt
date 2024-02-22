@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max

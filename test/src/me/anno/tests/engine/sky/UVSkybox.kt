@@ -1,6 +1,6 @@
 package me.anno.tests.engine.sky
 
-import me.anno.ecs.components.shaders.UVSkybox
+import me.anno.ecs.components.light.sky.UVSkybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.image.ImageCache
 import me.anno.utils.OS.downloads

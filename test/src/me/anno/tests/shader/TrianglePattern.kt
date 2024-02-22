@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader

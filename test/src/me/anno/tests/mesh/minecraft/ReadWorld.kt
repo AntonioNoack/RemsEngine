@@ -2,10 +2,10 @@ package me.anno.tests.mesh.minecraft
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStageImpl

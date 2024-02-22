@@ -1,10 +1,10 @@
 package me.anno.tests.maths.grid
 
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndex
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getClosestLine
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getClosestVertex
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getVertex
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.indexToCoords
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.coordsToIndex
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestLine
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getClosestVertex
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.getVertex
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input

@@ -15,6 +15,7 @@ import me.anno.mesh.blender.impl.MPoly
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 import org.joml.Vector3f
 
 object BlenderMeshConverter {
@@ -30,7 +31,7 @@ object BlenderMeshConverter {
         val loopData = src.loops ?: BInstantList.emptyList()
 
         val prefab = Prefab("Mesh")
-        prefab["materials"] = materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef }
+        prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
         prefab["cullMode"] = CullMode.BOTH
 
         val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
@@ -422,14 +423,14 @@ object BlenderMeshConverter {
                 else -> {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
-                    val vec2Index = HashMap<Vector3f, Int>()
+                    val vec2Index = HashMap<Vector3d, Int>()
                     val vectors = Array(loopSize) {
                         val index = loopData[loopStart + it].v
-                        val vec = Vector3f().set(positions, index * 3)
+                        val vec = Vector3d(positions, index * 3)
                         vec2Index[vec] = index
                         vec
                     }
-                    val triangles = Triangulation.ringToTrianglesVec3f(vectors.toList())
+                    val triangles = Triangulation.ringToTrianglesVec3d(vectors.toList())
                     for (tri in triangles) {
                         indices.add(vec2Index[tri]!!)
                     }

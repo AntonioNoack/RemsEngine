@@ -5,13 +5,13 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls

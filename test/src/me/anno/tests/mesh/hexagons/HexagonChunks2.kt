@@ -3,7 +3,7 @@ package me.anno.tests.mesh.hexagons
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView
 import me.anno.ui.base.buttons.TextButton

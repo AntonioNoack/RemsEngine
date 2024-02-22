@@ -5,10 +5,10 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.control.CameraController.Companion.setup
 import me.anno.ecs.components.camera.control.OrbitControls
-import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.chunks.spherical.HexagonSphere.Companion.TRIANGLE_COUNT
-import me.anno.ecs.components.mesh.Material
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonSphere.Companion.TRIANGLE_COUNT
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache.transformMesh
 import me.anno.ecs.components.mesh.MeshComponent

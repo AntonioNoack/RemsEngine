@@ -1,6 +1,6 @@
 package me.anno.graph.render.effects
 
-import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType

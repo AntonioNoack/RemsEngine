@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.BoneAttachmentComponent
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.prefab.PrefabCache

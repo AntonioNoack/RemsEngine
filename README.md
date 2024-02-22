@@ -172,7 +172,7 @@ Some feature tests:
 - [Internal: Hierarchy.kt](test/src/me/anno/tests/engine/prefab/Hierarchy.kt)
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
-- [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)
+- [GFX: FSR.kt](src/me/anno/ecs/components/light/sky/shaders/effects/FSR.kt)
 - [Debug: JsonFormatter.kt](test/src/me/anno/tests/files/JsonFormatter.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)

@@ -2,12 +2,12 @@ package me.anno.tests.gfx
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.EnvironmentMap
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshJoiner
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping

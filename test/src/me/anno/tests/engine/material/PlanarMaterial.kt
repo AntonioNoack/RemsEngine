@@ -1,6 +1,6 @@
 package me.anno.tests.engine.material
 
-import me.anno.ecs.components.shaders.PlanarMaterial
+import me.anno.ecs.components.mesh.material.PlanarMaterial
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.pictures
 

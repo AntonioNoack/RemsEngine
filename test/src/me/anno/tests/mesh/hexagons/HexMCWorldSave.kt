@@ -1,7 +1,7 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readBE32
 import me.anno.io.Streams.readBE64

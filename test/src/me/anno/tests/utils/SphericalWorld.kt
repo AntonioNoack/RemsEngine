@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.chunks.spherical.SphereTriangle
-import me.anno.ecs.components.chunks.spherical.SphericalHierarchy
+import me.anno.maths.chunks.spherical.SphereTriangle
+import me.anno.maths.chunks.spherical.SphericalHierarchy
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshJoiner
 import me.anno.ecs.components.mesh.ProceduralMesh

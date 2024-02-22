@@ -1,12 +1,12 @@
 package me.anno.mesh.obj
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.mesh.Triangulation
 import me.anno.io.files.FileReference
-import me.anno.utils.pooling.JomlPools
+import me.anno.mesh.Triangulation
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3d
 import java.io.EOFException
 import java.io.InputStream
 
@@ -134,29 +134,17 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
                 putPoint(0)
             }
             else -> {
-
                 // triangulate the points correctly
                 // currently is the most expensive step, because of so many allocations:
                 // points, the array, the return list, ...
-
-
-                val points2 = Array(points.size) {
-                    val vi = points[it]
-                    JomlPools.vec3f.create().set(
-                        positions[vi],
-                        positions[vi + 1],
-                        positions[vi + 2]
-                    )
+                val points2 = (0 until points.size).map {
+                    Vector3d(positions.array, points[it])
                 }
-                val triangles = Triangulation.ringToTrianglesPoint2(points2)
-                for (i in triangles.indices step 3) {
+                val triangles = Triangulation.ringToTrianglesVec3d(points2)
+                facePositions.ensureExtra(triangles.size * 3)
+                for (i in triangles.indices) {
                     facePositions.add(triangles[i])
-                    facePositions.add(triangles[i + 1])
-                    facePositions.add(triangles[i + 2])
                 }
-
-                JomlPools.vec3f.sub(points.size)
-
             }
         }
     }
@@ -184,12 +172,10 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
 
         mesh.positions = facePositions.toFloatArray()
         reader.close()
-
     }
 
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(SimpleOBJReader::class)
     }
-
 }

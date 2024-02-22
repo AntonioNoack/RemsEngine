@@ -1,6 +1,6 @@
 package me.anno.graph.render.effects
 
-import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
+import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.DepthBufferType

@@ -1,11 +1,9 @@
 package me.anno.tests.rtrt.other
 
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Texture3DBTv2Material
+import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -36,7 +34,6 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3i
-import kotlin.math.PI
 import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.pow

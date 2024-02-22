@@ -99,7 +99,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
     val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
     clock.stop("Building BLAS")
 
-    return Quad(tlas, Vector3f().set(cameraPosition), Quaternionf(cameraRotation), 0.2f)
+    return Quad(tlas, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
 
 }
 

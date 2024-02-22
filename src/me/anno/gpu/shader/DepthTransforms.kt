@@ -7,6 +7,9 @@ import me.anno.utils.pooling.JomlPools
 import kotlin.math.abs
 import kotlin.math.tan
 
+/**
+ * helps loading and storing depth values in shaders from textures
+ * */
 object DepthTransforms {
 
     val rawToDepth = "" +

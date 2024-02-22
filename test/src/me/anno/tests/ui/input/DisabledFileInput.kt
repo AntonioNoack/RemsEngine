@@ -1,7 +1,7 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveableProperty

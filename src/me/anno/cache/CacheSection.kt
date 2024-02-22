@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference

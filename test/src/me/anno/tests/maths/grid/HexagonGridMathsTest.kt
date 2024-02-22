@@ -1,10 +1,10 @@
 package me.anno.tests.maths.grid
 
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndex
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.indexToCoords
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.neighbors
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.vertices
+import me.anno.maths.chunks.hexagon.HexagonGridMaths
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.coordsToIndex
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.indexToCoords
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.neighbors
+import me.anno.maths.chunks.hexagon.HexagonGridMaths.vertices
 import me.anno.maths.Maths.TAU
 import org.joml.Vector2d
 import org.joml.Vector2i

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.text
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.fonts.FontManager

@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.texture.TextureLib.bindWhite
+import me.anno.utils.Warning.unused
 
 class FakeWhiteTexture(override var width: Int, override var height: Int, override val samples: Int) : ITexture2D {
 
@@ -17,7 +18,9 @@ class FakeWhiteTexture(override var width: Int, override var height: Int, overri
     override val isHDR get() = false
     override var depthFunc: DepthMode?
         get() = null
-        set(value) {}
+        set(value) {
+            unused(value)
+        }
 
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping) = bindWhite(index)
     override fun wrapAsFramebuffer() = TextureLib.whiteTexture.wrapAsFramebuffer()

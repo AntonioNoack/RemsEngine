@@ -3,6 +3,7 @@ package me.anno.mesh.vox
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
 import org.joml.Quaterniond
@@ -26,7 +27,7 @@ class VOXNode {
 
     fun containsModel(): Boolean {
         return if ((models ?: child?.models) != null) true
-        else children?.any { it.containsModel() } ?: false
+        else children?.any2 { it.containsModel() } ?: false
     }
 
     fun toEntityPrefab(prefab: Prefab, meshes: List<FileReference>, parentPath: Path, entityIndex: Int) {
@@ -119,5 +120,4 @@ class VOXNode {
             } else rot0
         }
     }
-
 }

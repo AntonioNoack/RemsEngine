@@ -3,7 +3,7 @@ package me.anno.tests.terrain
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.chunks.cartesian.ChunkSystem
+import me.anno.maths.chunks.cartesian.ChunkSystem
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.terrain.TerrainUtils

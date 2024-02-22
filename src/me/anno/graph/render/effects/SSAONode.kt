@@ -1,6 +1,6 @@
 package me.anno.graph.render.effects
 
-import me.anno.ecs.components.shaders.effects.ScreenSpaceAmbientOcclusion
+import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture

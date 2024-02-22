@@ -2,7 +2,7 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.BillboardTransformer
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping

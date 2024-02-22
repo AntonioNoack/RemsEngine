@@ -2,7 +2,7 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable

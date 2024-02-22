@@ -1,9 +1,9 @@
 package me.anno.tests.maths.grid
 
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.coordsToIndex
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.getNeighbors
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.getVertices
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.indexToCoords
+import me.anno.maths.chunks.triangles.TriangleGridMaths.coordsToIndex
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getNeighbors
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getVertices
+import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCoords
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.Booleans.toInt

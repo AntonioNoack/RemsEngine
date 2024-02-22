@@ -12,13 +12,13 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.InputListener
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery

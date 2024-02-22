@@ -8,9 +8,10 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -178,7 +179,7 @@ fun main() {
 
         ECSRegistry.init()
 
-        val mesh = if (rayTracing) {
+        val mesh: MeshComponentBase = if (rayTracing) {
             // slower, currently less color support, but avoids triangles ^^
             world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
         } else {

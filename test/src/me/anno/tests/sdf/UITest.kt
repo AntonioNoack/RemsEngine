@@ -1,8 +1,8 @@
 package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.sdf.uv.LinearUVMapper

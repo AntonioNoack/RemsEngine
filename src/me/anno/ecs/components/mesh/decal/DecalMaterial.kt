@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.decal
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType

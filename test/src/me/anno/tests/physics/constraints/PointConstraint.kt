@@ -5,7 +5,7 @@ import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

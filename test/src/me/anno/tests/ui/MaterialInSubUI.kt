@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions

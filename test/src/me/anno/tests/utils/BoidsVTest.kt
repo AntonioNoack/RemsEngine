@@ -3,7 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.EngineBase
 import me.anno.engine.debug.DebugLine

@@ -4,9 +4,9 @@ import com.bulletphysics.collision.narrowphase.GjkEpaSolver
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.TriangleShape
 import com.bulletphysics.linearmath.Transform
-import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonTriangleQuery
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.utils.Color.a

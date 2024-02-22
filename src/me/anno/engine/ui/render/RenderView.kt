@@ -8,7 +8,7 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.effects.FSR2v2
+import me.anno.gpu.shader.effects.FSR2v2
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable

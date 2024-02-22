@@ -7,6 +7,9 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.graph.octtree.KdTree
+import me.anno.graph.octtree.OctTree
+import org.joml.Vector3d
 
 /**
  * todo like for lights: spatial acceleration structure

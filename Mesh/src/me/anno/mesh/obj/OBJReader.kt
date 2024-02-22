@@ -4,16 +4,16 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
-import me.anno.utils.structures.Callback
-import me.anno.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
+import me.anno.mesh.Triangulation
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.findNextName
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
@@ -384,11 +384,12 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 // currently is the most expensive step, because of so many allocations:
                 // points, the array, the return list, ...
 
-                val points2 = Array(points.size / 3) {
+                val points2 = ArrayList<Point>(points.size / 3)
+                for (i in 0 until points.size step 3) {
                     val point = Point.stack.create()
-                    val vi = points[it * 3]
-                    val ni = points[it * 3 + 1]
-                    val ui = points[it * 3 + 2]
+                    val vi = points[i]
+                    val ni = points[i + 1]
+                    val ui = points[i + 2]
                     point.position.set(
                         positions[vi],
                         positions[vi + 1],
@@ -407,7 +408,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                             uvs[ui + 1]
                         )
                     } else point.uv!!.set(0f)
-                    point
+                    points2.add(point)
                 }
                 val triangles = Triangulation.ringToTrianglesPoint(points2)
                 for (i in triangles.indices step 3) {
@@ -415,7 +416,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                     putPoint(triangles[i + 1])
                     putPoint(triangles[i + 2])
                 }
-
                 Point.stack.sub(points2.size)
             }
         }

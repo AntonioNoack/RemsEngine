@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.chunks.PlayerLocation
-import me.anno.ecs.components.chunks.cartesian.SingleChunkSystem
+import me.anno.maths.chunks.PlayerLocation
+import me.anno.maths.chunks.cartesian.SingleChunkSystem
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawRectangles.drawRect

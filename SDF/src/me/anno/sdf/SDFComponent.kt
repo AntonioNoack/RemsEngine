@@ -14,7 +14,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.TypeValue

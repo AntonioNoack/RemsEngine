@@ -2,7 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.Build
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.engine.EngineBase

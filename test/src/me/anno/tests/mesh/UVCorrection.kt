@@ -1,13 +1,12 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.mesh.obj.OBJReader

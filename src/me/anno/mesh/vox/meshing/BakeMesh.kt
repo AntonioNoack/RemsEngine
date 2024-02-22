@@ -10,7 +10,7 @@ object BakeMesh {
     fun bakeMesh(
         model: VoxelModel,
         side: BlockSide,
-        dst: VoxelMeshBuildInfo,
+        dst: VoxelMeshBuilder,
         insideIsSolid: IsSolid?,
         outsideIsSolid: IsSolid?
     ): Float {
@@ -68,7 +68,7 @@ object BakeMesh {
     }
 
     fun addFaces(
-        side: BlockSide, base: VoxelMeshBuildInfo,
+        side: BlockSide, base: VoxelMeshBuilder,
         x: Int, y: Int, z: Int, size: Int, color: Int, model: VoxelModel
     ) {
         // must be the inverse of size info

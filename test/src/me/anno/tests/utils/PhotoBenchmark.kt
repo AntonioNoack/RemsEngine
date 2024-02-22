@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
-import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame

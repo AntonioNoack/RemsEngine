@@ -184,7 +184,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         val pos = mesh?.positions
         if (mesh != null && pos != null) {
             val vertices = (0 until pos.size / 3).map {
-                Vector3f().set(pos, it * 3)
+                Vector3f(pos, it * 3)
             }
             val data = "Positions: $vertices\n" +
                     "Indices: ${mesh.indices?.toList()}"

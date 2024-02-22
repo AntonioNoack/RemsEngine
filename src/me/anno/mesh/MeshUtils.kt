@@ -21,7 +21,7 @@ object MeshUtils {
         centerMesh(
             cameraMatrix,
             modelMatrix,
-            AABBd().set(mesh.getBounds()),
+            AABBd(mesh.getBounds()),
             { mesh.getBounds(it, false) },
             targetFrameUsage
         )
@@ -30,7 +30,7 @@ object MeshUtils {
     fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
         mesh.getBounds()
         val aabb = AABBf()
-        centerMesh(cameraMatrix, modelMatrix, AABBd().set(mesh.aabb), {
+        centerMesh(cameraMatrix, modelMatrix, AABBd(mesh.aabb), {
             aabb.set(mesh.aabb)
             aabb.transform(it)
         }, targetFrameUsage)
@@ -42,7 +42,7 @@ object MeshUtils {
         centerMesh(stack, localStack, aabb, { transform ->
             val aabb2 = AABBd()
             collider.fillSpace(Matrix4x3d(), aabb2)
-            AABBf().set(aabb2).transformProject(transform)
+            AABBf(aabb2).transformProject(transform)
         }, targetFrameUsage)
     }
 

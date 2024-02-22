@@ -3,7 +3,7 @@ package me.anno.mesh.vox.meshing
 object BlockBuffer {
 
     fun addQuad(
-        base: VoxelMeshBuildInfo,
+        base: VoxelMeshBuilder,
         ax: Int, ay: Int, az: Int,
         bx: Int, by: Int, bz: Int,
         cx: Int, cy: Int, cz: Int,
@@ -18,7 +18,7 @@ object BlockBuffer {
     }
 
     fun addQuad(
-        base: VoxelMeshBuildInfo,
+        base: VoxelMeshBuilder,
         side: BlockSide,
         dx: Int, dy: Int, dz: Int
     ) {

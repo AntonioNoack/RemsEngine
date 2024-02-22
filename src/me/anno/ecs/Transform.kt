@@ -11,6 +11,10 @@ import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
+/**
+ * represents position, rotation and scale of an Entity,
+ * including lerping, and relative to its parent
+ * */
 class Transform() : Saveable() {
 
     companion object {
@@ -446,6 +450,7 @@ class Transform() : Saveable() {
         return this
     }
 
+    @Suppress("unused")
     fun rotateLocalZ(angleRadians: Double): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
         return this

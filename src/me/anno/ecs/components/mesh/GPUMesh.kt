@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd

@@ -9,7 +9,6 @@ import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_BORDER
 import org.lwjgl.opengl.GL46C.GL_CLAMP_TO_EDGE
-import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_ARRAY
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_3D
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_BORDER_COLOR

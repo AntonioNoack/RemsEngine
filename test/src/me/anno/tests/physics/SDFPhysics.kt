@@ -9,7 +9,7 @@ import me.anno.bullet.createBulletShape
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.shapes.SDFBox

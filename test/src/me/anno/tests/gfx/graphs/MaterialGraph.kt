@@ -1,7 +1,7 @@
 package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.SceneView
 import me.anno.graph.Node
 import me.anno.graph.NodeInput

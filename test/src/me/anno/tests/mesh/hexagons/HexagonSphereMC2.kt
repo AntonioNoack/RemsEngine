@@ -3,7 +3,7 @@ package me.anno.tests.mesh.hexagons
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.Events.addEvent

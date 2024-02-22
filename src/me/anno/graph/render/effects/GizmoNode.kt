@@ -63,7 +63,7 @@ class GizmoNode : RenderViewNode(
         val depth = getInput(8) as? Texture
         val depthT = (depth?.tex as? Texture2D)
 
-        val readsDepth = isOutputUsed(outputs!![2]) && GFX.maxSamples > 1 // else we can't cast to Framebuffeer
+        val readsDepth = isOutputUsed(outputs[2]) && GFX.maxSamples > 1 // else we can't cast to Framebuffeer
         val framebuffer = FBStack[
             name, width, height, 4, false, samples,
             if (readsDepth) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL

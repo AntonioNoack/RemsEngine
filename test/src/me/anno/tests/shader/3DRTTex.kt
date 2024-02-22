@@ -1,7 +1,7 @@
 package me.anno.tests.shader
 
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Texture3DBTv2Material
+import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.noise.PerlinNoise

@@ -3,13 +3,13 @@ package me.anno.tests.mesh.hexagons
 import me.anno.bullet.BulletPhysics
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.chunks.spherical.Hexagon
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView

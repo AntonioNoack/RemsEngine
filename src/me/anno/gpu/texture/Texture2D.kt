@@ -311,18 +311,7 @@ open class Texture2D(
         if (w * h <= 0) throw IllegalArgumentException("Cannot create empty texture")
         check()
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
-            setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
-            when (data) {
-                is ByteBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is ShortBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is IntBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is FloatArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                is DoubleArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
-                else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
-            }
+            uploadPartial(target, w, h, dataFormat, dataType, unbind, data)
         } else {
             if (withMultisampling) {
                 var depthOwner = owner
@@ -337,23 +326,7 @@ open class Texture2D(
                 glTexImage2DMultisample(target, samples, internalFormat, w, h, needsFixedSampleLocations)
                 check()
             } else {
-                if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
-                when (data) {
-                    is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is IntBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is ShortArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    is DoubleArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    null -> glTexImage2D(
-                        target, 0, internalFormat, w, h, 0, dataFormat, dataType,
-                        null as ByteBuffer?
-                    )
-                    else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
-                }
+                uploadFull(target, internalFormat, w, h, dataFormat, dataType, unbind, data)
                 check()
             }
             this.internalFormat = internalFormat
@@ -363,6 +336,47 @@ open class Texture2D(
             }
             createdW = w
             createdH = h
+        }
+    }
+
+    private fun uploadPartial(
+        target: Int,
+        w: Int, h: Int, dataFormat: Int, dataType: Int,
+        unbind: Boolean, data: Any
+    ) {
+        setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
+        when (data) {
+            is ByteBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is ShortBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is IntBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is FloatArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            is DoubleArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+            else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
+        }
+    }
+
+    private fun uploadFull(
+        target: Int, internalFormat: Int,
+        w: Int, h: Int, dataFormat: Int, dataType: Int,
+        unbind: Boolean, data: Any?
+    ) {
+        // extracted into a separate function, so we get a little more space horizontally (2 tabs)
+        if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
+        when (data) {
+            is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is IntBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is ShortArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            is DoubleArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
+            else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
         }
     }
 
@@ -1098,7 +1112,6 @@ open class Texture2D(
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)
-        // todo only set this, if it is a depth texture
         this.filtering = filtering
     }
 

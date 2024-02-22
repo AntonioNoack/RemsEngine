@@ -4,13 +4,14 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
+import me.anno.utils.structures.lists.Lists.any2
 
 class VOXLayer(var name: String) {
 
     val nodes = ArrayList<VOXNode>()
 
     fun containsModel(): Boolean {
-        return nodes.any { it.containsModel() }
+        return nodes.any2 { it.containsModel() }
     }
 
     fun toEntityPrefab(prefab: Prefab, meshes: List<FileReference>, index: Int) {
@@ -29,5 +30,4 @@ class VOXLayer(var name: String) {
             )
         }
     }
-
 }

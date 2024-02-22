@@ -33,7 +33,7 @@ import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.BillboardTransformer
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.LODMeshComponent
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MorphTarget
@@ -46,10 +46,9 @@ import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.player.RemotePlayer
-import me.anno.ecs.components.shaders.AutoTileableMaterial
-import me.anno.ecs.components.shaders.CuboidMesh
-import me.anno.ecs.components.shaders.Skybox
-import me.anno.ecs.components.shaders.TriplanarMaterial
+import me.anno.ecs.components.mesh.material.AutoTileableMaterial
+import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.material.TriplanarMaterial
 import me.anno.ecs.components.text.SDFTextComponent
 import me.anno.ecs.components.text.TextMeshComponent
 import me.anno.ecs.components.text.TextTextureComponent
@@ -163,7 +162,6 @@ object ECSRegistry {
         registerCustomClass(SplineCrossing())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
-        registerCustomClass(CuboidMesh())
         registerCustomClass(TriplanarMaterial())
         registerCustomClass(AutoTileableMaterial())
         registerCustomClass(BillboardTransformer())

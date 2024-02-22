@@ -2,7 +2,7 @@ package me.anno.ecs.components.physics
 
 import me.anno.Time
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.TypeValue

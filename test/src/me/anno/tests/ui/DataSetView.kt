@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.database.DataSetPanel
+import me.anno.ui.utils.DataSetPanel
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.NamedSaveable
 import me.anno.ui.base.components.AxisAlignment

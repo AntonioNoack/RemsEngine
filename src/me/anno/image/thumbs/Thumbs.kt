@@ -13,13 +13,13 @@ import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
-import me.anno.ecs.components.shaders.SkyboxBase
+import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache

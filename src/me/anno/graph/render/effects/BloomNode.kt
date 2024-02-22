@@ -1,6 +1,6 @@
 package me.anno.graph.render.effects
 
-import me.anno.ecs.components.shaders.effects.Bloom
+import me.anno.gpu.shader.effects.Bloom
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack

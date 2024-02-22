@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonSphere
 
 fun main() {
 

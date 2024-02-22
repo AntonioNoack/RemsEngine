@@ -1,9 +1,9 @@
 package me.anno.image
 
 import me.anno.Time
-import me.anno.gpu.texture.callbacks.F2F
-import me.anno.gpu.texture.callbacks.I3F
-import me.anno.gpu.texture.callbacks.I3I
+import me.anno.utils.callbacks.F2F
+import me.anno.utils.callbacks.I3F
+import me.anno.utils.callbacks.I3I
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage

@@ -1,9 +1,9 @@
 package me.anno.tests.engine.effect
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

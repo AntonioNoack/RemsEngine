@@ -7,10 +7,10 @@ import me.anno.ecs.EntityStats.totalNumEntities
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.Physics
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector

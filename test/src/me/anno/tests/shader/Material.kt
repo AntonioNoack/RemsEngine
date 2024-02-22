@@ -1,7 +1,7 @@
 package me.anno.tests.shader
 
 import me.anno.Engine
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions

@@ -1,11 +1,11 @@
 package me.anno.tests.maths.grid
 
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.coordsToIndex
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.getClosestLine
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.getClosestVertex
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.getVertex
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.indexToCenter
-import me.anno.ecs.components.chunks.triangles.TriangleGridMaths.indexToCoords
+import me.anno.maths.chunks.triangles.TriangleGridMaths.coordsToIndex
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getClosestLine
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getClosestVertex
+import me.anno.maths.chunks.triangles.TriangleGridMaths.getVertex
+import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCenter
+import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCoords
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input

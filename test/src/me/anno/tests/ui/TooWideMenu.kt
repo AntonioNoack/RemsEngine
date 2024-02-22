@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton

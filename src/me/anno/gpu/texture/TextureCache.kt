@@ -62,7 +62,7 @@ object TextureCache : CacheSection("Texture") {
                 if (image is GPUImage) {
                     val texture = image.texture as? Texture2D
                         ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
-                    if (texture is TextureLib.IndestructibleTexture2D) texture.ensureExists()
+                    if (texture is IndestructibleTexture2D) texture.ensureExists()
                     if (!texture.isDestroyed && texture.wasCreated) texture else null
                 } else null
             } else null
@@ -107,6 +107,7 @@ object TextureCache : CacheSection("Texture") {
         } as? LateinitTexture
     }
 
+    @Suppress("unused") // used in Rem's Studio
     fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
         val texture = getEntry("LUT" to file, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
         return if (texture?.wasCreated == true) texture else null

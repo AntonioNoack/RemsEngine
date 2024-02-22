@@ -3,7 +3,7 @@ package me.anno.engine.ui.control
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy

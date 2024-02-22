@@ -1,6 +1,6 @@
 package me.anno.mesh
 
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.extensions.plugins.Plugin
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.image.thumbs.Thumbs

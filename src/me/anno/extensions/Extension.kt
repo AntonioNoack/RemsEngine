@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier
 
 abstract class Extension {
 
+    // these values will be injected when the extension is loaded
     lateinit var name: String
     lateinit var uuid: String
     lateinit var description: String

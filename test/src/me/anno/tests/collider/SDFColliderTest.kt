@@ -119,7 +119,7 @@ fun renderSDF(collider: Collider, name: String) {
     val name1 = name.substring(0, name.length - 4) + "-d.png"
     writeImage(res, res, heavy, name1, false) { x, y ->
         val pos = Vector3f(x, y, 0f).mul(scale).sub(offset)
-        val dir = Vector3f().set(pos).mul(-1f).normalize()
+        val dir = Vector3f(pos).mul(-1f).normalize()
         val query = RayQueryLocal(pos, dir, size * 2f, 0f, 0f)
         val distance = collider.raycastClosestHit(query, null)
         if (distance.isInfinite()) LOGGER.debug("{} {} -> {}, {} -> {}", x, y, pos, dir, distance)

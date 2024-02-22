@@ -1,19 +1,22 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.chunks.cartesian.ByteArrayChunkSystem
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.CuboidMesh
-import me.anno.ecs.components.shaders.Texture3DBTMaterial
-import me.anno.ecs.components.shaders.Texture3DBTv2Material
+import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Texture3DBTMaterial
+import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture3D
+import me.anno.maths.chunks.cartesian.ByteArrayChunkSystem
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
+import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.structures.maps.Maps.flatten
+import org.joml.Vector3f
 
 /**
  * a voxel test world, that can be used for testing
@@ -105,7 +108,7 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         }
     }
 
-    fun createRaytracingMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): CuboidMesh {
+    fun createRaytracingMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponentBase {
         val texture = Texture3D("blocks", sx, sy, sz)
         texture.createMonochrome { x, y, z -> getElementAt(x0 + x, y0 + y, z0 + z) }
         texture.clamping(Clamping.CLAMP)
@@ -114,14 +117,10 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         material.color1 = grassColor.toVecRGB()
         material.limitColors(2)
         material.blocks = texture
-
-        val mesh = CuboidMesh()
-        mesh.size.set(-sx * 1f, -sy * 1f, -sz * 1f)
-        mesh.materials = listOf(material.ref)
-        return mesh
+        return createCube(sx, sy, sz, material)
     }
 
-    fun createRaytracingMeshV2(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): CuboidMesh {
+    fun createRaytracingMeshV2(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponentBase {
         val texture = Texture3D("blocks", sx, sy, sz)
         texture.createRGBA8 { x, y, z ->
             palette[getElementAt(x0 + x, y0 + y, z0 + z)
@@ -130,11 +129,15 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         texture.clamping(Clamping.CLAMP)
         val material = Texture3DBTv2Material()
         material.blocks = texture
+        return createCube(sx, sy, sz, material)
+    }
 
-        val mesh = CuboidMesh()
-        mesh.size.set(-sx * 1f, -sy * 1f, -sz * 1f)
-        mesh.materials = listOf(material.ref)
-        return mesh
+    private fun createCube(sx: Int, sy: Int, sz: Int, material: Material): MeshComponentBase {
+        val mesh = flatCube.scaled(Vector3f(sx, sy, sz)).back
+        val comp = MeshComponent()
+        comp.materials = listOf(material.ref)
+        comp.meshFile = mesh.ref
+        return comp
     }
 
     fun createTriangleMesh1(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): Mesh {

@@ -1,7 +1,7 @@
 package me.anno.engine
 
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel

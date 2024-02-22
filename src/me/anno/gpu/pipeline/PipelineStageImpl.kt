@@ -8,7 +8,7 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.RenderState

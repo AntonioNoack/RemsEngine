@@ -2,8 +2,8 @@ package me.anno.tests.physics.fluid
 
 import me.anno.Time
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.control.DraggingControls

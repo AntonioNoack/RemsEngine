@@ -18,8 +18,8 @@ import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
-import me.anno.gpu.texture.callbacks.I3B
-import me.anno.gpu.texture.callbacks.I3I
+import me.anno.utils.callbacks.I3B
+import me.anno.utils.callbacks.I3I
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.types.Booleans.toInt

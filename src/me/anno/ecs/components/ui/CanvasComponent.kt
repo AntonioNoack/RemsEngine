@@ -5,7 +5,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.InputListener
@@ -28,7 +28,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
 import me.anno.input.Key
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile

@@ -71,9 +71,6 @@ object GFXBase {
     @JvmStatic
     private val windows get() = GFX.windows
 
-    @JvmStatic
-    private var debugMsgCallback: Callback? = null
-
     @JvmField
     val glfwLock = Any()
 

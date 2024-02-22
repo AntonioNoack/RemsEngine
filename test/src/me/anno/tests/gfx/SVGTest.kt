@@ -3,7 +3,7 @@ package me.anno.tests.gfx
 import me.anno.gpu.texture.TextureReader.Companion.imageTimeout
 import me.anno.image.svg.SVGMeshCache
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX

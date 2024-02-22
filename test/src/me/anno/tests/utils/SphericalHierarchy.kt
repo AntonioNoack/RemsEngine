@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.chunks.spherical.SphereTriangle
+import me.anno.maths.chunks.spherical.SphereTriangle
 import org.joml.Vector3d
 
 fun main() {
