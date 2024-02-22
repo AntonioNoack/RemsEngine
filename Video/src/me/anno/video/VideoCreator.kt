@@ -136,7 +136,7 @@ open class VideoCreator(
             // todo transparent gifs aren't working yet, probably need some stupid flags
         }
 
-        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, args.size + 4, true)
+        val builder = BetterProcessBuilder(FFMPEG.ffmpeg, args.size + 4, true)
         if (args.isNotEmpty()) builder += "-hide_banner"
 
         builder += args

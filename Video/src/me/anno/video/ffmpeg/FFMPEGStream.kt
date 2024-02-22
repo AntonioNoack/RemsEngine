@@ -48,14 +48,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         val waitingQueue = ProcessingQueue("WaitingQueue")
 
         @JvmStatic
-        fun getInfo(input: FileReference) = (FFMPEGMeta(null)
-            .run("-i", input.absolutePath) as FFMPEGMeta).stringData
-
-        @JvmStatic
-        fun getSupportedFormats() = (FFMPEGMeta(null)
-            .run("-formats") as FFMPEGMeta).stringData
-
-        @JvmStatic
         fun getImageSequence(
             input: FileReference, signature: String?,
             w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
@@ -321,7 +313,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         LOGGER.info(arguments.joinToString(" "))
 
-        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
+        val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
         builder.add(*arguments)
 

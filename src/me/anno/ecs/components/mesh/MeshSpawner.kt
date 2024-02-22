@@ -37,7 +37,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     val transforms = ArrayList<Transform>(32)
 
     /**
-     * calls forEachInstanceGroup, forEachMeshGroupI32, forEachMeshGroupTRS, forEachMeshGroup, forEachMesh,
+     * calls instancedGroupFill, instancedTRSFill, instancedMeshGroupFill, instancedFill,
      * until the first one of them returns true;
      * if you need different behaviour, just override this method :)
      * */

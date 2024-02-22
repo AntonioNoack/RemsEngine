@@ -27,21 +27,6 @@ object YUVFrames {
         )
     }
 
-    fun yuv2rgb(y: Byte, u: Float, v: Float): Int {
-        return yuv2rgb(y.toInt().and(255) / 255f, u, v)
-    }
-
-    fun yuv2rgb(y: Float, u: Float, v: Float): Int {
-        // equal to yuv2rgb(y.toInt(),u.toInt(),v.toInt())?
-        val y2 = 1.164f * (y - 16f / 255f)
-        val u2 = u - 0.5f
-        val v2 = v - 0.5f
-        val r = y2 + 1.596f * v2
-        val g = y2 - 0.392f * u2 - 0.813f * v2
-        val b = y2 + 2.017f * u2
-        return Color.rgba(r, g, b, 1f)
-    }
-
     fun yuv2rgb(y: Int, u: Int, v: Int, a: Int): Int {
         val r = y + (+91881 * v - 11698176).shr(16)
         val g = y + (-22544 * u - 46793 * v + 8840479).shr(16)

@@ -13,7 +13,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.max
 
-// todo video plane? :D
+// todo video component? :D
 class ImageComponent() : ProceduralMesh() {
 
     constructor(source: FileReference) : this() {

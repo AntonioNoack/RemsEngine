@@ -9,7 +9,7 @@ import org.joml.Matrix4x3d
 
 /**
  * class for generating procedural meshes
- * todo animated procedural meshes
+ * todo animated procedural meshes -> GPUMesh maybe?
  * */
 abstract class ProceduralMesh : MeshComponentBase() {
 

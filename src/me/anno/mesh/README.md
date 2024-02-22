@@ -1,4 +1,4 @@
-# Math Utilities and Loaders
+# Mesh Utilities and Loaders
 
 This package is about a mesh algorithms and loading VOX files.
 VOX files are different enough, that I'd say they probably should stay VOX files for now.

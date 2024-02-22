@@ -10,6 +10,8 @@ import org.joml.Vector3i
 
 /**
  * don't use yet!
+ * probably only supported on Desktop and modern phones anyway,
+ * because we "need" compute shaders -> could implement it using graphics shaders, too
  * */
 class GPUMesh : MeshComponentBase() {
 

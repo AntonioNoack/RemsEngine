@@ -31,7 +31,7 @@ object FFMPEGMetadata {
             file.absolutePath
         )
 
-        val builder = BetterProcessBuilder(FFMPEG.ffprobePathString, args.size, true)
+        val builder = BetterProcessBuilder(FFMPEG.ffprobe, args.size, true)
         builder += args
 
         val process = builder.start()
@@ -144,7 +144,7 @@ object FFMPEGMetadata {
             "-i", file.absolutePath, "-f", "null", "-"
         )
 
-        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, args.size, true)
+        val builder = BetterProcessBuilder(FFMPEG.ffmpeg, args.size, true)
         builder += args
 
         val process = builder.start()
