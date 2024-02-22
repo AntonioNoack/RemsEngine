@@ -1,6 +1,6 @@
 package me.anno.sdf.arrays
 
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic

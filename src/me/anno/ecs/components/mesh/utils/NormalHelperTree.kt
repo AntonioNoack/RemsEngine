@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
 import me.anno.graph.octtree.KdTree
 import org.joml.Vector3f

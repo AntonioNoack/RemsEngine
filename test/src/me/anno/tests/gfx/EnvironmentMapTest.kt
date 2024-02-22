@@ -5,7 +5,7 @@ import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshJoiner
+import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry

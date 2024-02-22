@@ -1,6 +1,6 @@
 package me.anno.sdf.modifiers
 
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable

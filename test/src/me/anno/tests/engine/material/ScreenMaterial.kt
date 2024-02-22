@@ -1,8 +1,8 @@
 package me.anno.tests.engine.material
 
-import me.anno.ecs.components.mesh.ImagePlane
-import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.TypeValueTex
+import me.anno.ecs.components.mesh.ImageComponent
+import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValueTex
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
@@ -39,7 +39,7 @@ fun main() {
     // create image plane
     val mask = getReference("res://textures/RGBMask.png")
     val image = getReference("res://textures/dig8.png")
-    val plane = ImagePlane()
+    val plane = ImageComponent()
     plane.material.apply {
         shader = ScreenShader
         diffuseBase.set(0f, 0f, 0f, 1f)

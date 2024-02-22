@@ -1,8 +1,8 @@
 package me.anno.gpu.shader
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshVertexData
+import me.anno.ecs.components.mesh.utils.MeshInstanceData
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX

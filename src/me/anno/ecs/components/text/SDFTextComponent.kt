@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.fonts.Font

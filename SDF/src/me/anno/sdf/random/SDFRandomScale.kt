@@ -1,7 +1,7 @@
 package me.anno.sdf.random
 
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec

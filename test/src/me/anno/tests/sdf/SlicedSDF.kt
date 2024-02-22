@@ -7,7 +7,7 @@ import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry

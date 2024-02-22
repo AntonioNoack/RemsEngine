@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.terrain
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.OnEdgeCalculator
+import me.anno.ecs.components.mesh.utils.OnEdgeCalculator
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq

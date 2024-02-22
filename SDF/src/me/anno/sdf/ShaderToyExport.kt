@@ -2,7 +2,7 @@ package me.anno.sdf
 
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.light.sky.shaders.SkyShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib

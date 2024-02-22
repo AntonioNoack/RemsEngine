@@ -5,7 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.CullMode

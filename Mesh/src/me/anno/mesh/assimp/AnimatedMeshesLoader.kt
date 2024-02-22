@@ -8,7 +8,7 @@ import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
-import me.anno.ecs.components.mesh.MorphTarget
+import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.NamedSaveable

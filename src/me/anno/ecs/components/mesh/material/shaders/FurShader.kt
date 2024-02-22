@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh.fur
+package me.anno.ecs.components.mesh.material.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType

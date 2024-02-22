@@ -1,5 +1,6 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.utils.structures.arrays.BooleanArrayList
 import kotlin.math.max
 import kotlin.math.min

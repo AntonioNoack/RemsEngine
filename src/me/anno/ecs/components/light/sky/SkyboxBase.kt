@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.light.sky.shaders.SkyShaderBase
 import me.anno.ecs.interfaces.Renderable

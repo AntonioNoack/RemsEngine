@@ -2,7 +2,7 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
-import me.anno.ecs.components.mesh.ImagePlane
+import me.anno.ecs.components.mesh.ImageComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
@@ -36,7 +36,7 @@ fun main() {
         sdfMaterials = listOf(redMetal.ref)
     })
     scene.add(Skybox())
-    scene.add(Entity("Image", ImagePlane().apply {
+    scene.add(Entity("Image", ImageComponent().apply {
         material.diffuseMap = getReference("res://icon.png")
         // todo way to split transparency rendering into opaque + transparent?
         //  - opaque (a == 1)

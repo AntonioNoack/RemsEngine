@@ -1,7 +1,7 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.BillboardTransformer
+import me.anno.ecs.components.mesh.LookAtComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -26,7 +26,7 @@ fun main() {
             add(MeshComponent(Shapes.flat11.front).apply {
                 materials = listOf(material.ref)
             })
-            add(BillboardTransformer())
+            add(LookAtComponent())
         })
     })
 }

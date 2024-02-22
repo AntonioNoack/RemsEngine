@@ -1,8 +1,7 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.loadMat4x3
-import me.anno.gpu.shader.ShaderLib.quatRot
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -83,7 +82,7 @@ class MeshInstanceData(
                             "finalId = instanceFinalId;\n" +
                             "localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
                             "invLocalTransform = mat4x3(inverse(mat4(localTransform)));\n"
-                ).add(loadMat4x3)
+                ).add(ShaderLib.loadMat4x3)
             ) + DEFAULT.transformPosition,
             DEFAULT.transformNorTan,
             emptyList(), // colors aren't changed
@@ -96,7 +95,7 @@ class MeshInstanceData(
                         Variable(GLSLType.M4x3, "prevLocalTransform", VariableMode.OUT).flat()
                     ),
                     "prevLocalTransform = loadMat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2);\n"
-                ).add(loadMat4x3)
+                ).add(ShaderLib.loadMat4x3)
             ) + DEFAULT.transformMotionVec
         )
 
@@ -111,7 +110,7 @@ class MeshInstanceData(
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
                     ),
                     "finalPosition = quatRot(localPosition, instanceRot) * instancePosSize.w + instancePosSize.xyz;\n"
-                ).add(quatRot)
+                ).add(ShaderLib.quatRot)
             ),
             listOf(
                 ShaderStage(
@@ -121,7 +120,7 @@ class MeshInstanceData(
                         Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
                     ), "normal = quatRot(normal, instanceRot);\n" +
                             "tangent.xyz = quatRot(tangent.xyz, instanceRot);\n"
-                ).add(quatRot)
+                ).add(ShaderLib.quatRot)
             ),
             emptyList(), // colors aren't changed
             listOf(

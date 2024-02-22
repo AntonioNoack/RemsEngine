@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.Buffer

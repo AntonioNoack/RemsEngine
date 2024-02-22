@@ -2,7 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.Time
 import me.anno.config.DefaultStyle.deepDark
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType

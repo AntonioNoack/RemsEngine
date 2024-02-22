@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
-import me.anno.ecs.components.mesh.ImagePlane
+import me.anno.ecs.components.mesh.ImageComponent
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.Path
@@ -208,7 +208,7 @@ object PrefabCache : CacheSection("Prefab") {
                 }
                 else -> {
                     if (signature in imageFormats || signature == "gimp" || signature == "webp") {
-                        callback(ImagePlane(file), null)
+                        callback(ImageComponent(file), null)
                     } else loadPrefabFromFolder(file, callback)
                 }
             }

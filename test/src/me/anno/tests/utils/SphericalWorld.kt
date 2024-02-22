@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.maths.chunks.spherical.SphereTriangle
 import me.anno.maths.chunks.spherical.SphericalHierarchy
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshJoiner
+import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode

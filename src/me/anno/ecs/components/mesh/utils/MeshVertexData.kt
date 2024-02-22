@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
@@ -7,7 +7,6 @@ import me.anno.gpu.shader.builder.VariableMode
 
 /**
  * defined attributes, and how they are transformed into data we render with
- * todo make this be the way we describe meshes
  * */
 class MeshVertexData(
     val loadPosition: List<ShaderStage>,

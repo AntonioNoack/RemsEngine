@@ -1,5 +1,6 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.pooling.JomlPools
@@ -16,7 +17,6 @@ import kotlin.math.min
  * joins multiple meshes into one;
  * like static meshes in Unity / Unreal Engine
  * */
-@Suppress("unused")
 abstract class MeshJoiner<V>(
     private val hasColors: Boolean,
     private val hasBones: Boolean,

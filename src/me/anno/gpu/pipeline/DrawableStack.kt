@@ -1,6 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.gpu.GFXState
 import me.anno.utils.structures.tuples.LongTriple
 

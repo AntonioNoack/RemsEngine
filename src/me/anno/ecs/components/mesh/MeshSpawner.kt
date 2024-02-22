@@ -8,6 +8,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.interfaces.Renderable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast.TRIANGLES

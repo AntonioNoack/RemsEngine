@@ -3,7 +3,7 @@ package me.anno.sdf.shapes
 import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines

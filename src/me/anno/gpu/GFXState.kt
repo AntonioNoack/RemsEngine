@@ -1,7 +1,7 @@
 package me.anno.gpu
 
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshVertexData
+import me.anno.ecs.components.mesh.utils.MeshInstanceData
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode

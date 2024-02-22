@@ -13,7 +13,7 @@ import org.joml.Vector3d
 import kotlin.math.abs
 
 @Docs("rotates and scales the entity parallel to the camera; only works well with a single local player")
-open class BillboardTransformer : Component() {
+open class LookAtComponent : Component() {
 
     @Docs("minimum scale; set this to maximum scale to disable scaling in screen space")
     var minSize = 0.0
@@ -90,7 +90,7 @@ open class BillboardTransformer : Component() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as BillboardTransformer
+        dst as LookAtComponent
         dst.minSize = minSize
         dst.maxSize = maxSize
         dst.maxSizeDistance = maxSizeDistance
@@ -98,5 +98,8 @@ open class BillboardTransformer : Component() {
         dst.tiltY = tiltY
         dst.tiltZ = tiltZ
     }
+
+    override val className: String
+        get() = "BillboardTransformer"
 
 }

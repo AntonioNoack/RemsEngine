@@ -1,5 +1,6 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f

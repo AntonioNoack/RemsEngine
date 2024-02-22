@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.MeshVertexData
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer

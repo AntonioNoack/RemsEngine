@@ -1,6 +1,6 @@
 package me.anno.graph.render.scene
 
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality

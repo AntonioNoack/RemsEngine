@@ -3,7 +3,7 @@ package me.anno.tests.engine.material
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.mesh.fur.FurMeshRenderer
+import me.anno.ecs.components.mesh.material.FurMeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.downloads
 
@@ -14,7 +14,7 @@ fun main() {
     val mesh = MeshCache[downloads.getChild("3d/bunny.obj")]!!.clone() as Mesh
     mesh.calculateNormals(true) // clone and recalculating normals, because the bunny file, I have, has flat normals
     val scene = Entity()
-    scene.add(FurMeshRenderer(mesh))
+    scene.add(FurMeshComponent(mesh))
     testSceneWithUI("Shell Textures", scene)
 }
 

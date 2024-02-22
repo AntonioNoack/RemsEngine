@@ -9,6 +9,9 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.callbacks.LineIndexCallback
 import me.anno.ecs.components.mesh.callbacks.TriangleIndexCallback
+import me.anno.ecs.components.mesh.utils.MorphTarget
+import me.anno.ecs.components.mesh.utils.NormalCalculator
+import me.anno.ecs.components.mesh.utils.TangentCalculator
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path

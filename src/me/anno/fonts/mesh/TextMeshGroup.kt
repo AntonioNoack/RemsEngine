@@ -1,7 +1,7 @@
 package me.anno.fonts.mesh
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshJoiner
+import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.fonts.TextGroup
 import me.anno.fonts.Font
 import me.anno.utils.types.Strings.joinChars

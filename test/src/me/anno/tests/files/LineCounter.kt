@@ -13,6 +13,7 @@ const val threshold = 10_000
 
 /**
  * this method prints, which folders could be extracted into their own modules by line count length
+ * todo count lines of documentation, and then we should set a target, e.g., 5%, 10% or 20%, so everything is nicely documented
  * */
 fun main() {
     for (child in project.listChildren()) {

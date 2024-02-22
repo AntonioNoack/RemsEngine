@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshVertexData
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.light.sky.Skybox

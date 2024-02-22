@@ -1,6 +1,6 @@
 package me.anno.sdf.shapes
 
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length

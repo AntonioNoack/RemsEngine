@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.material.utils
 
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
@@ -11,9 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureCache
-import me.anno.gpu.texture.TextureLib.whiteTex2da
-import me.anno.gpu.texture.TextureLib.whiteTex3d
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -97,7 +95,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                         if (value.wasCreated) {
                             value.bind(location)
                         } else {
-                            whiteTexture.bind(location)
+                            TextureLib.whiteTexture.bind(location)
                             LOGGER.warn("Texture ${value.name} has not been created")
                         }
                     }
@@ -108,7 +106,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                         if (value1 != null && value1.isCreated()) {
                             value1.bind(location)
                         } else {
-                            whiteTexture.bind(location)
+                            TextureLib.whiteTexture.bind(location)
                             if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
                         }
                     }
@@ -121,7 +119,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                         if (value.wasCreated) {
                             value.bind(location)
                         } else {
-                            whiteTexture.bind(location)
+                            TextureLib.whiteTexture.bind(location)
                             LOGGER.warn("Texture ${value.name} has not been created")
                         }
                     }
@@ -132,7 +130,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                         if (value1 != null && value1.isCreated()) {
                             value1.bind(location)
                         } else {
-                            whiteTexture.bind(location)
+                            TextureLib.whiteTexture.bind(location)
                             if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
                         }
                     }
@@ -144,7 +142,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 if (value.wasCreated) {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
-                    whiteTex2da.bind(location)
+                    TextureLib.whiteTex2da.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")
                 }
             }
@@ -153,7 +151,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 if (value.wasCreated) {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
-                    whiteTex3d.bind(location)
+                    TextureLib.whiteTex3d.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")
                 }
             }
@@ -162,7 +160,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 if (value.wasCreated) {
                     value.bind(location, value.filtering)
                 } else {
-                    whiteTex3d.bind(location)
+                    TextureLib.whiteTex3d.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")
                 }
             }

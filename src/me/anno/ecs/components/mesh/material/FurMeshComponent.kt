@@ -1,14 +1,9 @@
-package me.anno.ecs.components.mesh.fur
+package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.io.files.FileReference
 
-class FurMeshRenderer : MeshComponent {
-
-    constructor() : super()
-    constructor(mesh: Mesh) : super(mesh)
-    constructor(meshFile: FileReference) : super(meshFile)
+class FurMeshComponent(mesh: Mesh) : MeshComponent(mesh) {
 
     @Suppress("SetterBackingFieldAssignment")
     var furMaterial = FurMaterial()

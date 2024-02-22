@@ -1,8 +1,8 @@
 package me.anno.graph.render.compiler
 
 import me.anno.Time
-import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.TypeValueV2
+import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth

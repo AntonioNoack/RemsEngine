@@ -2,7 +2,7 @@ package me.anno.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType

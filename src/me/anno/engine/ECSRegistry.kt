@@ -30,13 +30,13 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.RectangleLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.BillboardTransformer
-import me.anno.ecs.components.mesh.ImagePlane
+import me.anno.ecs.components.mesh.LookAtComponent
+import me.anno.ecs.components.mesh.ImageComponent
 import me.anno.ecs.components.mesh.LODMeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MorphTarget
+import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.decal.DecalMaterial
 import me.anno.ecs.components.mesh.decal.DecalMeshComponent
 import me.anno.ecs.components.mesh.spline.PathProfile
@@ -164,8 +164,8 @@ object ECSRegistry {
         registerCustomClass(PathProfile())
         registerCustomClass(TriplanarMaterial())
         registerCustomClass(AutoTileableMaterial())
-        registerCustomClass(BillboardTransformer())
-        registerCustomClass(ImagePlane())
+        registerCustomClass(LookAtComponent())
+        registerCustomClass(ImageComponent())
         registerCustomClass(DecalMeshComponent())
         registerCustomClass(DecalMaterial())
         initTextRenderers()

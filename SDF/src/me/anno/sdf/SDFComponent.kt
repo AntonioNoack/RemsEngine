@@ -17,8 +17,8 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.TypeValueV2
+import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValueV2
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable

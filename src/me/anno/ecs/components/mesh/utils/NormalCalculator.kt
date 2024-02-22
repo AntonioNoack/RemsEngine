@@ -1,10 +1,8 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.utils
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
-import me.anno.maths.Maths.sq
+import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
@@ -92,7 +90,7 @@ object NormalCalculator {
                 val i = j * 3
                 // dividing by the weight count is no enough, since the normal needs to be normalized,
                 // and avg(normals) will not have length 1, if there are different input normals
-                val weightInv = 1f / max(0.1f, length(normals[i + 0], normals[i + 1], normals[i + 2]))
+                val weightInv = 1f / Maths.max(0.1f, Maths.length(normals[i + 0], normals[i + 1], normals[i + 2]))
                 normals[i + 0] *= weightInv
                 normals[i + 1] *= weightInv
                 normals[i + 2] *= weightInv
@@ -107,7 +105,7 @@ object NormalCalculator {
         val c = JomlPools.vec3f.create()
         // just go through the vertices;
         // mode to calculate smooth shading by clustering points?
-        val size = min(positions.size, normals.size) - 8
+        val size = Maths.min(positions.size, normals.size) - 8
         for (i in 0 until size step 9) {
             // check whether the normal update is needed
             val needsUpdate = !isNormalValid(normals, i) ||
@@ -234,7 +232,7 @@ object NormalCalculator {
         }
 
         if (uvs != null) {
-            for (i in 0 until min(uvs.size shr 1, points.size)) {
+            for (i in 0 until Maths.min(uvs.size shr 1, points.size)) {
                 val i2 = i + i
                 val p = points[i]
                 p.u = uvs[i2]
@@ -243,19 +241,19 @@ object NormalCalculator {
         }
 
         if (color0 != null) {
-            for (i in 0 until min(color0.size, points.size)) {
+            for (i in 0 until Maths.min(color0.size, points.size)) {
                 points[i].materialIndex = color0[i]
             }
         }
 
         if (materialIndices != null) {
-            for (i in 0 until min(materialIndices.size, points.size)) {
+            for (i in 0 until Maths.min(materialIndices.size, points.size)) {
                 points[i].materialIndex = materialIndices[i]
             }
         }
 
         if (boneWeights != null && boneIndices != null) {
-            for (i in 0 until min(min(boneWeights.size, boneIndices.size) shr 2, points.size)) {
+            for (i in 0 until Maths.min(Maths.min(boneWeights.size, boneIndices.size) shr 2, points.size)) {
                 val i4 = i shl 2
                 val p = points[i]
                 p.b0 = boneIndices[i4]
@@ -290,7 +288,7 @@ object NormalCalculator {
     fun calculateSmoothNormals(mesh: Mesh, maxAllowedAngle: Float, largeLength: Float, normalScale: Float) {
         mesh.getBounds()
         val llSq = largeLength * largeLength
-        val maxD = length(cos(maxAllowedAngle) - 1f, sin(maxAllowedAngle))
+        val maxD = Maths.length(cos(maxAllowedAngle) - 1f, sin(maxAllowedAngle))
         calculateSmoothNormals(mesh, normalScale) { a, b, c ->
             if (a.distanceSquared(b) + b.distanceSquared(c) + c.distanceSquared(a) < llSq) maxD
             else normalScale
@@ -371,7 +369,7 @@ object NormalCalculator {
         if (!map.query(min, max) { k ->
                 // identical
                 val found = k.first.distanceSquared(a) <= maxDV2 &&
-                        sq(k.second.dot(normal)) > 0.99f * (normal.lengthSquared() * k.second.lengthSquared())
+                        Maths.sq(k.second.dot(normal)) > 0.99f * (normal.lengthSquared() * k.second.lengthSquared())
                 if (found) k.second.add(normal)
                 found
             }) {

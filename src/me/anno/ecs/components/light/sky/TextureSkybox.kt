@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light.sky
 
-import me.anno.ecs.components.mesh.TypeValueV2
+import me.anno.ecs.components.mesh.material.utils.TypeValueV2
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping

@@ -8,7 +8,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState

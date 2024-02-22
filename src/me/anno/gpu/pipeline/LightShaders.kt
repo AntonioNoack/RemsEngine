@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.getReflectivity

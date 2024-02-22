@@ -1,8 +1,8 @@
-package me.anno.ecs.components.mesh.fur
+package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.components.mesh.material.shaders.FurShader
 import me.anno.gpu.shader.GLSLType
 import org.joml.Vector3f
 

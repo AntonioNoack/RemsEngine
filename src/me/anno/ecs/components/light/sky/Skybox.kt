@@ -7,8 +7,8 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.TypeValueV3
+import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValueV3
 import me.anno.ecs.components.light.sky.shaders.SkyShader
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty

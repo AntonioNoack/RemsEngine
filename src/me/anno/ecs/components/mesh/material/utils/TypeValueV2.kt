@@ -1,4 +1,4 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.material.utils
 
 import me.anno.gpu.shader.GLSLType
 

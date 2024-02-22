@@ -1,7 +1,7 @@
 package me.anno.graph.render.scene
 
 import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
