@@ -19,6 +19,7 @@ class VideoPlugin : Plugin() {
         super.onEnable()
         VideoCache.generateVideoFrames = VideoCacheImpl::generateVideoFrames
         VideoCache.getProxyFile = VideoProxyCreator::getProxyFile
+        VideoCache.getProxyFileDontUpdate = VideoProxyCreator::getProxyFileDontUpdate
         VideoStream.runVideoStreamWorker = VideoStreamWorker::runVideoStreamWorker
         ImageReader.tryFFMPEG = ImageReaderExt::tryFFMPEG
         AudioCache.getAudioSequence = { file, startTime, duration, sampleRate ->

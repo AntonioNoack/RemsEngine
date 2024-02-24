@@ -4,12 +4,12 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.hasFlag
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.ExtraKeyListeners
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.Style
 
 class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
@@ -66,11 +66,14 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         if (!majors.containsKey(name)) {
             val major = Major(name, action, style)
             majors[name] = major
-            val magicIndex = addFastActionLetters(name)
+            val magicIndex = keyListeners.findNextFreeIndex(name)
             major.magicIndex = magicIndex
             if (magicIndex >= 0) {
                 val char = name[magicIndex].lowercaseChar()
-                eventHandlers[char] = major::open
+                keyListeners.bind(char) {
+                    major.open()
+                    false
+                }
             }
             this += major
         }
@@ -80,24 +83,6 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
     fun addAction(major: String, minor: String, action: () -> Unit) = addAction(major, minor, minor, action)
     fun addAction(major: String, minor: String, name: String, action: () -> Unit) {
         addMajor(major, null).addMinor(Minor(name, action), minor)
-    }
-
-    // like Menu
-    val eventHandlers = HashMap<Char, () -> Unit>()
-    var usedLetters = 0
-    fun addFastActionLetters(name: String): Int {
-        for (i in name.indices) {
-            val letter = name[i]
-            val lcLetter = letter.lowercaseChar()
-            if (lcLetter in 'a'..'z') {
-                val mask = 1 shl (lcLetter.code - 'a'.code)
-                if (!usedLetters.hasFlag(mask)) {
-                    usedLetters = usedLetters or mask
-                    return i
-                }
-            }
-        }
-        return -1
     }
 
     override fun onUpdate() {
@@ -110,10 +95,12 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
             Input.isKeyDown(Key.KEY_LEFT_ALT)
         ) {
             for (key in Input.keysWentDown) {
-                eventHandlers['a' + (key.id - Key.KEY_A.id)]?.invoke()
+                val char = 'a' + (key.id - Key.KEY_A.id)
+                keyListeners.execute(char)
             }
         }
     }
 
     val majors = HashMap<String, Major>()
+    private val keyListeners = ExtraKeyListeners()
 }

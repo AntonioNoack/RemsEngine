@@ -24,9 +24,7 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
-import me.anno.utils.Color.white
 import me.anno.utils.types.Strings.levenshtein
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -35,8 +33,6 @@ import kotlin.math.roundToInt
  * Utility for opening menus, like asking the user questions, or him selecting values for an enum from a dropdown.
  * */
 object Menu {
-
-    private val LOGGER = LogManager.getLogger(Menu::class)
 
     var paddingX = 10
     var paddingY = 10
@@ -176,25 +172,7 @@ object Menu {
         val style = DefaultConfig.style.getChild("menu")
 
         val list = ArrayList<Panel>()
-
-        // fast action letters: distributed to the first actions
-        var usedLetters = 0
-        val extraKeyListeners = HashMap<Char, () -> Boolean>()
-
-        fun addFastActionLetters(name: String): Int {
-            for (i in name.indices) {
-                val letter = name[i]
-                val lcLetter = letter.lowercaseChar()
-                if (lcLetter in 'a'..'z') {
-                    val mask = 1 shl (lcLetter.code - 'a'.code)
-                    if (!usedLetters.hasFlag(mask)) {
-                        usedLetters = usedLetters or mask
-                        return i
-                    }
-                }
-            }
-            return -1
-        }
+        val keyListeners = ExtraKeyListeners()
 
         val padding = 4
         for (index in options.indices) {
@@ -208,7 +186,7 @@ object Menu {
                     }
                 }
                 option.isEnabled && action != null -> {
-                    val magicIndex = addFastActionLetters(name)
+                    val magicIndex = keyListeners.findNextFreeIndex(name)
                     val button = object : TextPanel(name, style) {
                         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                             super.onDraw(x0, y0, x1, y1)
@@ -217,9 +195,8 @@ object Menu {
                             }
                         }
                     }
-                    if (magicIndex >= 0) {
-                        val char = name[magicIndex].lowercaseChar()
-                        extraKeyListeners[char] = {
+                    if (magicIndex in name.indices) {
+                        keyListeners.bind(name[magicIndex].lowercaseChar()) {
                             action()
                             close(button)
                             true
@@ -237,14 +214,14 @@ object Menu {
                 }
                 option.isEnabled && option is ComplexMenuGroup -> {
                     lateinit var button: ComplexMenuGroupPanel
-                    val magicIndex = addFastActionLetters(name)
+                    val magicIndex = keyListeners.findNextFreeIndex(name)
                     button = ComplexMenuGroupPanel(option, magicIndex, { close(button) }, style)
                     if (!list.size.hasFlag(1)) { // add soft stripes
                         button.backgroundColor = mixARGB(button.backgroundColor, button.textColor, 0.07f)
                     }
-                    if (magicIndex >= 0) {
+                    if (magicIndex in name.indices) {
                         val char = name[magicIndex].lowercaseChar()
-                        extraKeyListeners[char] = {
+                        keyListeners.bind(char) {
                             button.openMenu()
                             false
                         }
@@ -265,7 +242,7 @@ object Menu {
             }
         }
 
-        return openMenuByPanels(windowStack, x, y, title, list, extraKeyListeners)!!
+        return openMenuByPanels(windowStack, x, y, title, list, keyListeners.listeners)!!
     }
 
     @Suppress("unused")
@@ -432,10 +409,8 @@ object Menu {
     @Suppress("unused")
     fun openComplexMenu(
         windowStack: WindowStack,
-        x: Float,
-        y: Float,
-        title: NameDesc,
-        options: List<ComplexMenuEntry>
+        x: Float, y: Float,
+        title: NameDesc, options: List<ComplexMenuEntry>
     ) = openComplexMenu(windowStack, x.roundToInt(), y.roundToInt(), title, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =

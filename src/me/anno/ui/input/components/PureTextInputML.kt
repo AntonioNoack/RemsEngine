@@ -543,9 +543,10 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        if (!isInputAllowed) return
-        lastChangeTime = Time.nanoTime
-        addKey(codepoint)
+        if (isInputAllowed && !Input.isAltDown) {
+            lastChangeTime = Time.nanoTime
+            addKey(codepoint)
+        } else super.onCharTyped(x, y, codepoint)
     }
 
     private fun moveRight() {

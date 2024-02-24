@@ -17,7 +17,8 @@ object VideoCache : CacheSection("Videos") {
     const val minSizeForScaling = scale * minSize
     var videoGenLimit = 16
 
-    var getProxyFile: ((file: FileReference, sliceIndex: Int, update: Boolean) -> FileReference?)? = null
+    var getProxyFile: ((file: FileReference, sliceIndex: Int, async: Boolean) -> FileReference?)? = null
+    var getProxyFileDontUpdate: ((file: FileReference, sliceIndex: Int) -> FileReference?)? = null
     var generateVideoFrames: ((key: VideoFramesKey) -> VideoSlice)? = null
 
     private fun getVideoFramesWithoutGenerator(
@@ -107,11 +108,11 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         val async = true
-        val getProxyFile = getProxyFile
+        val getProxyFile = getProxyFileDontUpdate
         for (scale in 1..4) { // todo scale is weird... shouldn't it be 4^i?
             if (getProxyFile != null && useProxy(scale, bufferLength0, meta)) {
                 val slice0 = index / framesPerSlice
-                val file2 = getProxyFile(meta.file, slice0, false)
+                val file2 = getProxyFile(meta.file, slice0)
                 if (file2 != null) {
                     val meta2 = MediaMetadata.getMeta(file2, async)
                     if (meta2 != null) {

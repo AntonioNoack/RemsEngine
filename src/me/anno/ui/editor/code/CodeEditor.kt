@@ -1,6 +1,9 @@
 package me.anno.ui.editor.code
 
 import me.anno.Time
+import me.anno.engine.history.StringHistory
+import me.anno.fonts.Codepoints.codepoints
+import me.anno.fonts.Font
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
@@ -14,11 +17,8 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
-import me.anno.engine.history.StringHistory
-import me.anno.fonts.Codepoints.codepoints
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.fonts.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
@@ -281,7 +281,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val bg1 = min(x1, this.x + this.width - padding.right)
 
         // draw selected line background color
-        if (isInFocus && cursor0 == cursor1 ) {
+        if (isInFocus && cursor0 == cursor1) {
             drawRect(bg0, minSY, bg1 - bg0, maxSH, selectedLineBGColor)
         }
 
@@ -468,7 +468,6 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
             "Replace" -> {
                 // todo open UI for replacing things
-
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
@@ -510,20 +509,24 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
+    var isInputAllowed = true
+
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        val suggestion = lastSuggestion
-        val variable = lastVariable
-        if (codepoint == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
-            applySuggestion(variable, suggestion, suggestion.improvements.first())
-            lastVariable = null
-            lastSuggestion = null
-        } else {
-            deleteSelectionInternal()
-            content.insert(cursor1.y, cursor1.x, codepoint)
-            right(cursor1)
-            cursor0.set(cursor1)
-            onChangeText()
-        }
+        if (isInputAllowed && !Input.isAltDown) {
+            val suggestion = lastSuggestion
+            val variable = lastVariable
+            if (codepoint == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
+                applySuggestion(variable, suggestion, suggestion.improvements.first())
+                lastVariable = null
+                lastSuggestion = null
+            } else {
+                deleteSelectionInternal()
+                content.insert(cursor1.y, cursor1.x, codepoint)
+                right(cursor1)
+                cursor0.set(cursor1)
+                onChangeText()
+            }
+        } else super.onCharTyped(x, y, codepoint)
     }
 
     fun clampCursors() {
