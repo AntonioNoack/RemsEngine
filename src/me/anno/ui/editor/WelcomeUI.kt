@@ -287,7 +287,7 @@ interface WelcomeUI {
 
             fun fileNameIsOk(file: FileReference): Boolean {
                 val parent = file.getParent()
-                val parentIsRoot = parent == null || parent == FileRootRef
+                val parentIsRoot = parent == FileRootRef
                 if (parentIsRoot) {
                     if (file.name.isEmpty()) return true // root drive
                     if (file.name.length == 2 && file.name[0].isLetter() && file.name[1] == ':') return true // windows drive letter
@@ -296,7 +296,7 @@ interface WelcomeUI {
                     invalidName = file.name
                     return false
                 }
-                return fileNameIsOk(parent ?: return true)
+                return fileNameIsOk(parent)
             }
 
             val file = fileInput.value
@@ -318,11 +318,6 @@ interface WelcomeUI {
                 file.exists && file.listChildren().isNotEmpty() -> {
                     state = "warning"
                     msg = translate("Folder is not empty!", "ui.project.folderNotEmpty")
-                }
-                // check for read-write-access
-                file is FileFileRef && !(file.file.run { canRead() && canWrite() }) -> {
-                    state = "error"
-                    msg = translate("Cannot read/write in folder", "ui.project.readWriteFailed")
                 }
                 else -> {}
             }

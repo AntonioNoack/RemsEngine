@@ -13,4 +13,4 @@ It is also used by the Engine's editor, and Rem's Studio.
 Panels are also a mandatory component for any window.
 
 To test your own UI elements, use the methods testUI(title, panel) or testUI3(title, panel).
-The later one ensures that your element uses the whole available space, not just the minimum.
+The latter ensures that your element uses the whole available space, not just the minimum.

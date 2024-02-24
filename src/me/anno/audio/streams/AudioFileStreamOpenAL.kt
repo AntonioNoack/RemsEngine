@@ -131,7 +131,7 @@ class AudioFileStreamOpenAL(
 
         if (!isPlaying) return true
 
-        AudioTasks.addAudioTask("buffer filling", 10) {
+        addAudioTask("buffer filling", 10) {
             if (isPlaying) {
 
                 checkSession()

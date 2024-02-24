@@ -35,50 +35,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         val time1: Double,
         val bufferSize: Int,
         val repeat: LoopingState,
-    ) {
-
-        private val _hashCode = calculateHashCode()
-        override fun hashCode(): Int {
-            return _hashCode
-        }
-
-        fun withDelta(deltaIndex: Int): PipelineKey {
-            if (deltaIndex == 0) return this
-            // todo is this the intended sample rate?
-            val dt = (deltaIndex * bufferSize).toDouble() / playbackSampleRate
-            return PipelineKey(
-                file,
-                time0 + dt,
-                time1 + dt,
-                bufferSize,
-                repeat
-            )
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-
-            if (other !is PipelineKey) return false
-
-            if (_hashCode != other._hashCode) return false
-            if (bufferSize != other.bufferSize) return false
-            if (time0 != other.time0) return false
-            if (time1 != other.time1) return false
-            if (repeat != other.repeat) return false
-            if (file != other.file) return false
-
-            return true
-        }
-
-        private fun calculateHashCode(): Int {
-            var result = bufferSize.hashCode()
-            result = 31 * result + file.hashCode()
-            result = 31 * result + time0.hashCode()
-            result = 31 * result + time1.hashCode()
-            result = 31 * result + repeat.hashCode()
-            return result
-        }
-    }
+    )
 
     class AudioData(
         val key: PipelineKey,
