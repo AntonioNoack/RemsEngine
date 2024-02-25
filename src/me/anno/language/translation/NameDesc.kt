@@ -15,11 +15,12 @@ class NameDesc(
     private val iName = name
     private val iDesc = description
     private val replacements = ArrayList<Pair<String, String>>()
+    private val descPath = "$dictPath.desc"
 
     val englishName = iName
 
     val name get() = replace(Dict[iName, dictPath])
-    val desc get() = replace(Dict[iDesc, "$dictPath.desc"])
+    val desc get() = replace(Dict[iDesc, descPath])
 
     fun with(src: String, dst: Any) = with(src, dst.toString())
     fun with(src: String, dst: String) = replace(src, dst)
@@ -57,5 +58,4 @@ class NameDesc(
             return Dict[desc, "$dictPath.desc"]
         }
     }
-
 }

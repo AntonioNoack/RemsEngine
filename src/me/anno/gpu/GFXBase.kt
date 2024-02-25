@@ -30,6 +30,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
+import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
@@ -52,6 +53,7 @@ import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -565,14 +567,12 @@ object GFXBase {
         val w = srcImage.width
         val h = srcImage.height
         val pixels = ByteBufferPool.allocateDirect(w * h * 4)
+            .order(ByteOrder.BIG_ENDIAN) // why is big-endian correct here?
         for (y in 0 until h) {
             for (x in 0 until w) {
-                // argb -> rgba
-                val color = srcImage.getRGB(x, y)
-                pixels.put(color.shr(16).toByte())
-                pixels.put(color.shr(8).toByte())
-                pixels.put(color.toByte())
-                pixels.put(color.shr(24).toByte())
+                val argb = srcImage.getRGB(x, y)
+                val rgba = Color.convertARGB2RGBA(argb)
+                pixels.putInt(rgba)
             }
         }
         pixels.flip()

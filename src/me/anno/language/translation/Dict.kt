@@ -1,19 +1,25 @@
 package me.anno.language.translation
 
 import me.anno.config.DefaultConfig
-import me.anno.io.Streams.readText
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.ui.Style
 import me.anno.ui.input.EnumInput
+import me.anno.utils.types.Strings.indexOf2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import java.io.InputStream
 import java.util.Locale
 
+/**
+ * translates UI text into different languages
+ * todo somehow allow to register multiple subfolders for the same language, so we can extend translations
+ * */
 object Dict {
 
-    private var values = HashMap<String, String>()
+    private val values = HashMap<String, String>()
+    private const val ext = "lang"
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
@@ -29,26 +35,31 @@ object Dict {
         }
     }
 
-    @Suppress("unused")
-    fun getLanguageName(input: InputStream): String? {
-        val text = input.readText()
-        return getLanguageName(text)
-    }
-
     fun getLanguageName(text: String): String? {
-        for (line in text.split('\n')) {
-            val startIndex = line.indexOf(':')
-            if (startIndex >= 0) {
-                val key = line.substring(0, startIndex).trim()
-                if ("lang.name".equals(key, true)) {
-                    val value = line.substring(startIndex + 1).trim()
-                    if (value.isNotEmpty()) {
-                        return value
-                    }
-                }
+        val prefix = "lang.name:"
+        val startIndex = text.indexOf(prefix)
+        if (startIndex >= 0) {
+            val valueStartIndex = startIndex + prefix.length
+            val endOfLineIndex = text.indexOf2('\n', valueStartIndex)
+            val value = text.substring(valueStartIndex, endOfLineIndex).trim()
+            if (value.isNotEmpty()) {
+                return value
             }
         }
         return null
+    }
+
+    private fun load(file: FileReference): LanguageOption? {
+        return try {
+            val data = file.readTextSync()
+            val name = getLanguageName(data)
+            if (name != null) {
+                LanguageOption(data, file, name)
+            } else null
+        } catch (e: IOException) {
+            LOGGER.warn("Skipped $file, didn't find it")
+            null
+        }
     }
 
     fun getOptions(): List<LanguageOption> {
@@ -59,32 +70,17 @@ object Dict {
             "el.lang",
             "uk.lang", "ru.lang"
         )
-        for (it in internalFiles) {
-            try {
-                val data = getReference("res://lang/$it").readTextSync()
-                val name = getLanguageName(data)
-                if (name?.isNotEmpty() == true) {
-                    options += LanguageOption(data, "internal/$it", name)
-                }
-            } catch (e: IOException) {
-                LOGGER.warn("Skipped $it, didn't find it")
-            }
+        for (fileName in internalFiles) {
+            options += load(getReference("res://lang/$fileName")) ?: continue
         }
-        val externalFiles = ConfigBasics.configFolder.getChild("lang").listChildren()
+        val externalFiles = ConfigBasics.configFolder.getChild(ext).listChildren()
         for (file in externalFiles) {
-            if (!file.isDirectory && file.name.endsWith(".lang")) {
-                try {
-                    val data = file.readTextSync()
-                    val name = getLanguageName(data)
-                    if (name?.isNotEmpty() == true) {
-                        options += LanguageOption(data, "config/${file.name}", name)
-                    }
-                } catch (_: IOException) {
-                }
+            if (!file.isDirectory && file.lcExtension == ext) {
+                options += load(file) ?: continue
             }
         }
         if (options.isEmpty()) {
-            options += LanguageOption("", "", "Missing :/")
+            options += LanguageOption("", InvalidRef, "Missing :/")
         }
         return options
     }
@@ -92,9 +88,9 @@ object Dict {
     fun getDefaultOption(): LanguageOption {
         val options = getOptions()
         val userLanguage = Locale.getDefault().language
-        val userLanguagePath = "res://lang/$userLanguage.lang"
+        val userLanguagePath = getReference("res://$ext/$userLanguage.$ext")
         val userLanguageIsSupported = getReference(userLanguagePath).exists
-        val defaultLang0 = "res://lang/en.lang"
+        val defaultLang0 = getReference("res://$ext/en.$ext")
         val defaultLang = if (userLanguageIsSupported) userLanguagePath else defaultLang0
         val currentLanguagePath = DefaultConfig["ui.language", defaultLang]
         return options.firstOrNull { it.path == currentLanguagePath }

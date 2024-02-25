@@ -11,11 +11,9 @@ import me.anno.engine.projects.Projects
 import me.anno.gpu.GFX
 import me.anno.input.Key
 import me.anno.io.Saveable.Companion.registerCustomClass
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.inner.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate

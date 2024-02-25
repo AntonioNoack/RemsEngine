@@ -19,6 +19,7 @@ open class ByteBufferPool(size: Int, timeoutMillis: Long = 5000L) :
 
     override fun prepare(buffer: ByteBuffer, size: Int) {
         buffer.position(0).limit(size)
+        buffer.order(ByteOrder.nativeOrder())
     }
 
     override fun clear(buffer: ByteBuffer, size: Int) {
