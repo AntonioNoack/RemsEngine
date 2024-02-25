@@ -14,10 +14,13 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 
+/**
+ * utilities for NumberType
+ * */
 object Casting {
 
     fun castToInt2(it: Any?) = getInt(it, 0)
-    fun castToInt(it: Any): Int? = when (it) {
+    fun castToInt(it: Any?): Int? = when (it) {
         is Int -> it
         is Long -> it.toInt()
         is Float -> it.toInt()
@@ -32,7 +35,7 @@ object Casting {
     }
 
     fun castToLong2(it: Any?) = getLong(it, 0L)
-    fun castToLong(it: Any): Long? = when (it) {
+    fun castToLong(it: Any?): Long? = when (it) {
         is Int -> it.toLong()
         is Long -> it
         is Float -> it.toLong()
@@ -47,7 +50,7 @@ object Casting {
     }
 
     fun castToFloat2(it: Any?) = getFloat(it, 0f)
-    fun castToFloat(it: Any): Float? = when (it) {
+    fun castToFloat(it: Any?): Float? = when (it) {
         is Int -> it.toFloat()
         is Long -> it.toFloat()
         is Float -> it
@@ -62,7 +65,7 @@ object Casting {
     }
 
     fun castToDouble2(it: Any?) = getDouble(it, 0.0)
-    fun castToDouble(it: Any): Double? = when (it) {
+    fun castToDouble(it: Any?): Double? = when (it) {
         is Int -> it.toDouble()
         is Long -> it.toDouble()
         is Float -> it.toDouble()
@@ -76,7 +79,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector2f(it: Any): Vector2f? = when (it) {
+    fun castToVector2f(it: Any?): Vector2f? = when (it) {
         is Int -> Vector2f(it.toFloat())
         is Long -> Vector2f(it.toFloat())
         is Float -> Vector2f(it)
@@ -89,7 +92,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector2d(it: Any): Vector2d? = when (it) {
+    fun castToVector2d(it: Any?): Vector2d? = when (it) {
         is Int -> Vector2d(it.toDouble())
         is Long -> Vector2d(it.toDouble())
         is Float -> Vector2d(it.toDouble())
@@ -98,7 +101,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector3f(it: Any): Vector3f? = when (it) {
+    fun castToVector3f(it: Any?): Vector3f? = when (it) {
         is Int -> Vector3f(it.toFloat())
         is Long -> Vector3f(it.toFloat())
         is Float -> Vector3f(it)
@@ -111,7 +114,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector3d(it: Any): Vector3d? = when (it) {
+    fun castToVector3d(it: Any?): Vector3d? = when (it) {
         is Int -> Vector3d(it.toDouble())
         is Long -> Vector3d(it.toDouble())
         is Float -> Vector3d(it.toDouble())
@@ -120,7 +123,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector4f(it: Any): Vector4f? = when (it) {
+    fun castToVector4f(it: Any?): Vector4f? = when (it) {
         is Int -> Vector4f(it.toFloat())
         is Long -> Vector4f(it.toFloat())
         is Float -> Vector4f(it)
@@ -133,7 +136,7 @@ object Casting {
         else -> null
     }
 
-    fun castToPlanef(it: Any): Planef? = when (it) {
+    fun castToPlanef(it: Any?): Planef? = when (it) {
         is Vector4f -> Planef(it.x, it.y, it.z, it.w)
         is Planef -> it
         is Vector4d -> Planef(it.x.toFloat(), it.y.toFloat(), it.z.toFloat(), it.w.toFloat())
@@ -141,7 +144,7 @@ object Casting {
         else -> null
     }
 
-    fun castToPlaned(it: Any): Planed? = when (it) {
+    fun castToPlaned(it: Any?): Planed? = when (it) {
         is Vector4f -> Planed(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.w.toDouble())
         is Planef -> Planed(it.dirX.toDouble(), it.dirY.toDouble(), it.dirZ.toDouble(), it.distance.toDouble())
         is Vector4d -> Planed(it.x, it.y, it.z, it.w)
@@ -149,7 +152,7 @@ object Casting {
         else -> null
     }
 
-    fun castToVector4d(it: Any): Vector4d? = when (it) {
+    fun castToVector4d(it: Any?): Vector4d? = when (it) {
         is Int -> Vector4d(it.toDouble())
         is Long -> Vector4d(it.toDouble())
         is Float -> Vector4d(it.toDouble())

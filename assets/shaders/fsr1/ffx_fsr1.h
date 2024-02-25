@@ -340,9 +340,9 @@ void FsrLfgaF(inout vec3 c,vec3 t,float a){c+=(t*vec3(a))*min(vec3(1.0)-c,c);}
 //  FsrSrtmInv*(color); // {0 to 1} converted into {0 to 32768, output peak safe for FP16}.
 //==============================================================================================================================
 
-void FsrSrtmF(inout vec3 c){c*=AF3_(ARcpF1(AMax3F1(c.r,c.g,c.b)+1.0));}
+void FsrSrtmF(inout vec3 c){c*=vec3(ARcpF1(AMax3F1(c.r,c.g,c.b)+1.0));}
 // The extra max solves the c=1.0 case (which is a /0).
-void FsrSrtmInvF(inout vec3 c){c*=AF3_(ARcpF1(max(float(1.0/32768.0),1.0-AMax3F1(c.r,c.g,c.b))));}
+void FsrSrtmInvF(inout vec3 c){c*=vec3(ARcpF1(max(float(1.0/32768.0),1.0-AMax3F1(c.r,c.g,c.b))));}
 
 //==============================================================================================================================
 //
@@ -393,7 +393,7 @@ void FsrTepdC8F(inout vec3 c, float dit){
   vec3 r=(c-b)*APrxMedRcpF3(a-b);
   // Use the ratio as a cutoff to choose 'a' or 'b'.
   // AGtZeroF1() is a MUL.
-  c=ASatF3(n+AGtZeroF3(vec3(dit)-r)*AF3_(1.0/255.0));
+  c=ASatF3(n+AGtZeroF3(vec3(dit)-r)*vec3(1.0/255.0));
 }
 //------------------------------------------------------------------------------------------------------------------------------
  // This version is 10-bit gamma 2.0.

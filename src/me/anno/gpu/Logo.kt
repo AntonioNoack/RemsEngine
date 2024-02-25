@@ -105,7 +105,9 @@ object Logo {
 
     fun getLogoMesh(async: Boolean): Mesh? {
         if (requested) {
-            if (!async) waitUntilDefined(true) { mesh }
+            if (!async) {
+                waitUntilDefined(true) { mesh }
+            }
         } else {
             requested = true
             if (async) {

@@ -50,7 +50,6 @@ import org.lwjgl.opengl.GL46C.glGetInteger
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.KHRDebug
-import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
@@ -71,11 +70,11 @@ object GFXBase {
     @JvmStatic
     private val windows get() = GFX.windows
 
+    /**
+     * must be used when calling GLFW, because it's not thread-safe
+     * */
     @JvmField
     val glfwLock = Any()
-
-    @JvmField
-    val openglLock = Any()
 
     @JvmField
     var destroyed = false
@@ -111,18 +110,16 @@ object GFXBase {
             // wait for the last frame to be finished,
             // before we actually destroy the window and its framebuffer
             synchronized(glfwLock) {
-                synchronized(openglLock) {
-                    destroyed = true
-                    when (windows.size) {
-                        0 -> {}
-                        1 -> LOGGER.info("Closing one remaining window")
-                        else -> LOGGER.info("Closing ${windows.size} remaining windows")
-                    }
-                    for (index in 0 until windows.size) {
-                        close(windows.getOrNull(index) ?: break)
-                    }
-                    windows.clear()
+                destroyed = true
+                when (windows.size) {
+                    0 -> {}
+                    1 -> LOGGER.info("Closing one remaining window")
+                    else -> LOGGER.info("Closing ${windows.size} remaining windows")
                 }
+                for (index in 0 until windows.size) {
+                    close(windows.getOrNull(index) ?: break)
+                }
+                windows.clear()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -380,10 +377,8 @@ object GFXBase {
                 window.lastUpdate = time
                 // this is hopefully ok (calling it async to other glfw stuff)
                 if (window.makeCurrent()) {
-                    synchronized(openglLock) {
-                        GFX.activeWindow = window
-                        GFX.renderStep(window, true)
-                    }
+                    GFX.activeWindow = window
+                    GFX.renderStep(window, true)
                     synchronized(glfwLock) {
                         if (!destroyed) {
                             GLFW.glfwWaitEventsTimeout(0.0)
@@ -405,10 +400,8 @@ object GFXBase {
             // to keep processing, e.g., for Rem's Studio
             val window = windows.getOrNull(0)
             if (window != null && window.makeCurrent()) {
-                synchronized(openglLock) {
-                    GFX.activeWindow = window
-                    GFX.renderStep(window, false)
-                }
+                GFX.activeWindow = window
+                GFX.renderStep(window, false)
             }
         }
 

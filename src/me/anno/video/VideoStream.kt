@@ -9,6 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.max
 import me.anno.video.formats.gpu.GPUFrame
 
+// todo configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
 class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
     var playAudio: Boolean, var looping: LoopingState,

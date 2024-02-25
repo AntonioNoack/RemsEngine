@@ -17,40 +17,47 @@ import java.util.concurrent.TimeoutException
  * */
 object Sleep {
 
+    private fun checkShutdown(canBeKilled: Boolean) {
+        if (canBeKilled && shutdown) throw ShutdownException()
+    }
+
     @JvmStatic
     fun sleepShortly(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException()
+        checkShutdown(canBeKilled)
         Thread.sleep(0, 100_000)
     }
 
     @JvmStatic
     fun sleepABit(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException()
+        checkShutdown(canBeKilled)
         Thread.sleep(1)
     }
 
     @JvmStatic
     fun sleepABit10(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException()
+        checkShutdown(canBeKilled)
         Thread.sleep(10)
     }
 
     @JvmStatic
-    inline fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
+    fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
         while (!condition()) {
-            if (canBeKilled && shutdown) throw ShutdownException()
             sleepABit(canBeKilled)
         }
     }
 
     @JvmStatic
-    inline fun waitUntil(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, condition: () -> Boolean) {
-        if (timeoutNanos < 0) return waitUntil(canBeKilled, condition)
+    private fun hasExceededLimit(startTime: Long, timeoutNanos: Long): Boolean {
+        val time = Time.nanoTime - startTime
+        return time > timeoutNanos
+    }
+
+    @JvmStatic
+    fun waitUntil(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, isFinished: () -> Boolean) {
+        if (timeoutNanos < 0) return waitUntil(canBeKilled, isFinished)
         val startTime = Time.nanoTime
-        while (!condition()) {
-            if (canBeKilled && shutdown) throw ShutdownException()
-            val time = Time.nanoTime - startTime
-            if (time > timeoutNanos) throw TimeoutException("Time limit exceeded for $key")
+        while (!isFinished()) {
+            if (hasExceededLimit(startTime, timeoutNanos)) throw TimeoutException("Time limit exceeded for $key")
             sleepABit(canBeKilled)
         }
     }
@@ -59,12 +66,11 @@ object Sleep {
      * returns if you need to keep waiting
      * */
     @JvmStatic
-    inline fun waitUntil2(canBeKilled: Boolean, limit: Long, condition: () -> Boolean): Boolean {
+    fun waitUntil2(canBeKilled: Boolean, timeoutNanos: Long, isFinished: () -> Boolean): Boolean {
         val startTime = Time.nanoTime
-        while (!condition()) {
+        while (!isFinished()) {
             if (canBeKilled && shutdown) return true
-            val time = Time.nanoTime - startTime
-            if (time > limit) return true
+            if (hasExceededLimit(startTime, timeoutNanos)) return true
             sleepABit(canBeKilled)
         }
         return false
@@ -76,45 +82,46 @@ object Sleep {
     }
 
     @JvmStatic
-    fun waitOnGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
+    fun waitOnGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
         // the texture was forced to be loaded -> wait for it
         waitUntil(canBeKilled) {
             GFX.workGPUTasks(canBeKilled)
-            condition()
+            isFinished()
         }
     }
 
     @JvmStatic
-    fun waitForGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
+    fun waitForGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
         val isGFXThread = GFX.isGFXThread()
         if (isGFXThread) {
-            waitOnGFXThread(canBeKilled, condition)
+            waitOnGFXThread(canBeKilled, isFinished)
         } else {
-            waitUntil(canBeKilled, condition)
+            waitUntil(canBeKilled, isFinished)
         }
     }
 
     @JvmStatic
-    fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, condition: () -> V?): V {
+    fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
         // the texture was forced to be loaded -> wait for it
         val isGFXThread = GFX.isGFXThread()
         return if (isGFXThread) {
             waitUntilDefined(canBeKilled) {
                 GFX.workGPUTasks(canBeKilled)
-                condition()
+                getValueOrNull()
             }
         } else {
-            waitUntilDefined(canBeKilled, condition)
+            waitUntilDefined(canBeKilled, getValueOrNull)
         }
     }
 
     @JvmStatic
-    inline fun <V> waitUntilDefined(canBeKilled: Boolean, getValue: () -> V?): V {
-        while (true) {
-            val value = getValue()
-            if (value != null) return value
-            sleepABit(canBeKilled)
+    fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
+        var value: V? = null
+        waitUntil(canBeKilled) {
+            value = getValueOrNull()
+            value != null
         }
+        return value!!
     }
 }

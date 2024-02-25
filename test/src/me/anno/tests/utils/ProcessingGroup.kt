@@ -7,9 +7,10 @@ import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
+@Suppress("DEPRECATION")
 class ProcessingGroupTest {
 
-    private val LOGGER = LogManager.getLogger(ProcessingGroupTest::class)
+    private val logger = LogManager.getLogger(ProcessingGroupTest::class)
 
     private fun checkOffWork(threads: BooleanArray, data: IntArray, i0: Int, i1: Int, sleepDur: Long) {
         // it is important, that all threads work
@@ -28,7 +29,7 @@ class ProcessingGroupTest {
         }
         for (i in threads.indices) {
             if (!threads[i]) {
-                LOGGER.warn("Thread #$i didn't work!")
+                logger.warn("Thread #$i didn't work!")
             }
         }
     }

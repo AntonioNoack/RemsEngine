@@ -21,10 +21,10 @@ class NumberType(
     val hasLinear: Boolean,
     val hasExponential: Boolean,
     val clampFunc: ((Any?) -> Any)?,
-    val acceptOrNull: (Any) -> Any?
+    val acceptOrNull: (Any?) -> Any?
 ) {
 
-    constructor(defaultValue: Any, clampFunc: ((Any?) -> Any)?, acceptOrNull: (Any) -> Any?) :
+    constructor(defaultValue: Any, clampFunc: ((Any?) -> Any)?, acceptOrNull: (Any?) -> Any?) :
             this(defaultValue, 1, 1f, true, true, clampFunc, acceptOrNull)
 
     constructor(defaultValue: Any, components: Int) :
