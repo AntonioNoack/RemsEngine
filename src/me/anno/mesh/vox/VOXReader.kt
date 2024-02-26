@@ -10,7 +10,6 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Color.convertABGR2ARGB
-import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -357,20 +356,17 @@ class VOXReader {
 
     companion object {
 
-        fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
-            file.readByteBuffer(false) { it, exc ->
-                if (it != null) {
-                    val reader = VOXReader().read(it)
-                    callback.ok(readAsFolder(reader, file).first)
+        fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
+            src.readByteBuffer(false) { bytes, exc ->
+                if (bytes != null) {
+                    val reader = VOXReader().read(bytes)
+                    callback.ok(readAsFolder(reader, src))
                 } else callback.err(exc)
             }
         }
 
-        fun readAsFolder(
-            reader: VOXReader,
-            file: FileReference
-        ): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
-            val folder = InnerFolder(file)
+        fun readAsFolder(reader: VOXReader, src: FileReference): InnerFolder {
+            val folder = InnerFolder(src)
             val meshes = InnerFolder(folder, "meshes")
             val meshReferences = reader.models.mapIndexed { index, mesh ->
                 val prefab = mesh.createMeshPrefab(reader.palette)
@@ -382,7 +378,7 @@ class VOXReader {
             val layersRoot = folder.createPrefabChild("Scene.json", prefab)
             prefab.source = layersRoot
             folder.sealPrefabs()
-            return Quad(folder, layersRoot, prefab, meshReferences)
+            return folder
         }
 
         private val LOGGER = LogManager.getLogger(VOXReader::class)

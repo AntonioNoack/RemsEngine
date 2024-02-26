@@ -21,7 +21,6 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
-import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -60,7 +59,7 @@ open class ColorChooser(
         super.calculateSize(min(w, maxWidth), h)
     }
 
-    override fun getVisualState() = Quad(hue, saturation, lightness, opacity)
+    override fun getVisualState() = Vector4f(hue, saturation, lightness, opacity)
 
     val rgb = Vector3f()
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)

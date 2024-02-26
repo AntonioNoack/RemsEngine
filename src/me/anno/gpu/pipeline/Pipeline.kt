@@ -8,14 +8,14 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
+import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.light.sky.Skybox
-import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.SerializedProperty
@@ -48,9 +48,9 @@ import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.image.thumbs.Thumbs
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
@@ -406,9 +406,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                 lights.subList(0, size).sortWith { a, b ->
                     val va = a!!.light
                     val vb = b!!.light
-                    va.hasShadow.compareTo(vb.hasShadow).ifSame {
-                        va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
-                    }
+                    va.hasShadow.compareTo(vb.hasShadow)
+                        .ifSame(va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType))
                 }
             }// else done
             return size
@@ -425,9 +424,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             lights.subList(0, smallest.size).sortWith { a, b ->
                 val va = a!!.light
                 val vb = b!!.light
-                va.hasShadow.compareTo(vb.hasShadow).ifSame {
-                    va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
-                }
+                va.hasShadow.compareTo(vb.hasShadow)
+                    .ifSame(va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType))
             }
             return smallest.size
         }

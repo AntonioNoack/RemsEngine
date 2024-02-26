@@ -164,7 +164,7 @@ class SDFArray2 : SDFGroupArray() {
         functions: HashSet<String>,
         seeds: ArrayList<String>
     ) {
-        val (func, smoothness, groove, stairs) = appendGroupHeader(
+        val (funcName, smoothness, groove, stairs) = appendGroupHeader(
             functions,
             uniforms,
             CombinationMode.UNION,
@@ -172,7 +172,7 @@ class SDFArray2 : SDFGroupArray() {
         )
         builder.append("if(first").append(innerDstIndex).append("){first").append(innerDstIndex)
             .append("=false;res$outerDstIndex=res$innerDstIndex;}else{\n")
-        appendMerge(builder, outerDstIndex, innerDstIndex, func, smoothness, groove, stairs)
+        appendMerge(builder, outerDstIndex, innerDstIndex, funcName, smoothness, groove, stairs)
         builder.append("}}}}\n")
         seeds.removeLast()
     }

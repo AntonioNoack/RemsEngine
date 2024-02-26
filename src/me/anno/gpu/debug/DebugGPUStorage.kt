@@ -202,9 +202,7 @@ object DebugGPUStorage {
                     for (tex in tex2d.sortedWith { a, b ->
                         val sa = a.width * a.height
                         val sb = b.width * b.height
-                        sa.compareTo(sb).ifSame {
-                            a.name.compareTo(b.name)
-                        }
+                        sa.compareTo(sb).ifSame(a.name.compareTo(b.name))
                     }) {
                         list.add(TexturePanel(tex.name, tex, false))
                     }

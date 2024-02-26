@@ -3,6 +3,8 @@ package me.anno.utils.search
 import me.anno.maths.Maths
 import me.anno.utils.structures.lists.Lists.partition1
 
+// todo this isn't really a search, more like a select-from-sort
+//  -> choose a different folder
 object Median {
 
     // to do (low priority until sb really needs this to perform well):

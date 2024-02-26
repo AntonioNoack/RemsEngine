@@ -11,7 +11,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.maths.Maths
-import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdfwriter.COSWriter
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -130,16 +129,20 @@ object PDFCache : CacheSection("PDFCache") {
         return if (tex?.wasCreated == true) tex else null
     }
 
+    data class Key(val doc: PDDocument, val dpi: Float, val pageNumber: Int)
+    data class SizeKey(val doc: PDDocument, val size: Int, val pageNumber: Int)
+    data class HeightKey(val doc: PDDocument, val height: Int, val pageNumber: Int)
+
     @Suppress("unused")
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
-        val data = getEntry(Triple(doc, dpi, pageNumber), 10_000, false) {
+        val data = getEntry(Key(doc, dpi, pageNumber), 10_000, false) {
             CacheData(getImage(doc, dpi, pageNumber))
         } as? CacheData<*>
         return data?.value as? Image
     }
 
     fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
-        val data = getEntry(Quad(doc, size, pageNumber, ""), 10_000, false) { (doc, size, pageNumber) ->
+        val data = getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { (doc, size, pageNumber) ->
             CacheData(getImageBySize(doc, size, pageNumber))
         } as? CacheData<*>
         return data?.value as? Image
@@ -147,7 +150,7 @@ object PDFCache : CacheSection("PDFCache") {
 
     @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
-        val data = getEntry(Triple(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
+        val data = getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
             CacheData(getImageByHeight(doc, height, pageNumber))
         } as? CacheData<*>
         return data?.value as? Image

@@ -375,8 +375,7 @@ class PrefabInspector(var reference: FileReference) {
                     val pb = allProperties[b]!!
                     val ga = pa.group ?: defaultGroup
                     val gb = pb.group ?: defaultGroup
-                    ga.compareTo(gb)
-                        .ifSame { pa.order.compareTo(pb.order) }
+                    ga.compareTo(gb).ifSame(pa.order.compareTo(pb.order))
                 }) {
 
                 val property = allProperties[name]!!

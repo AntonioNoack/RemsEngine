@@ -187,27 +187,6 @@ interface Hierarchical<V : Hierarchical<V>> {
         return depthFirstTraversal(processDisabled, func)
     }
 
-    /*fun depthFirstTraversal(processDisabled: Boolean, list: UnsafeArrayList<V>, func: (V) -> Boolean): V? {
-        if (!processDisabled && !isEnabled) return null
-        this as V
-        list.quickClear()
-        list.add(this)
-        var index = 0
-        while (index < list.size) {
-            val element = list[index]
-            if (func(element)) return element
-            val children = element.children
-            for (childIndex in children.indices) {
-                val child = children[childIndex]
-                if (processDisabled || child.isEnabled) {
-                    list.add(child)
-                }
-            }
-            index++
-        }
-        return null
-    }*/
-
     fun depthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         @Suppress("unchecked_cast")
         this as V

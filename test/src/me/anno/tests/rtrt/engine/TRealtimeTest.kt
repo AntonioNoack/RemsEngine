@@ -6,7 +6,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.CullMode
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
@@ -17,14 +16,13 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
 import me.anno.maths.bvh.TLASNode
+import me.anno.tests.LOGGER
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
-import me.anno.tests.LOGGER
 import me.anno.utils.OS
-import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -39,7 +37,14 @@ fun main() {
     LOGGER.debug("Finished")
 }
 
-fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Quaternionf, Float> {
+data class SampleTLAS(
+    val root: TLASNode,
+    val cameraPosition: Vector3f,
+    val cameraRotation: Quaternionf,
+    val fovZFactor: Float
+)
+
+fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
 
     // create a scene, so maybe load Sponza, and then execute our renderer on TLAS
     @Suppress("SpellCheckingInspection")
@@ -96,11 +101,11 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
     }
     clock.stop("Building Scene")
 
-    val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
+    val tlas =
+        BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
     clock.stop("Building BLAS")
 
-    return Quad(tlas, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
-
+    return SampleTLAS(tlas, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
 }
 
 fun run(

@@ -156,8 +156,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
     val timeoutNanos = timeoutMillis * MILLIS_TO_NANOS
     val processed = ArrayList(processed)
     processed.sortWith { a, b ->
-        (a.length.compareTo(b.length))
-            .ifSame { a.compareTo(b) }
+        a.length.compareTo(b.length).ifSame(a.compareTo(b))
     }
     val totalLength = processed.size
     logger.info("Checking $totalLength 'words'")

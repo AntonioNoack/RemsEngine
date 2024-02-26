@@ -156,9 +156,7 @@ open class Shader(
 
         var outCtr = 0
         for (v in fragmentVariables.sortedWith { a, b ->
-            a.type.compareTo(b.type).ifSame {
-                a.name.compareTo(b.name)
-            }
+            a.type.compareTo(b.type).ifSame(a.name.compareTo(b.name))
         }) {
             val prefix = when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT, VariableMode.INMOD -> "uniform"

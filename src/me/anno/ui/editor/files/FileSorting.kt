@@ -26,8 +26,7 @@ enum class FileSorting {
     },
     EXTENSION {
         override fun compare(a: FileReference, b: FileReference): Int {
-            return a.lcExtension.compareTo(b.lcExtension)
-                .ifSame { a.name.compareTo(b.name, true) }
+            return a.lcExtension.compareTo(b.lcExtension).ifSame(a.name.compareTo(b.name, true))
         }
     };
 

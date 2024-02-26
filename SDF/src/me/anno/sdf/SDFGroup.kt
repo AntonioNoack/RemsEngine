@@ -13,7 +13,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2
-import me.anno.utils.structures.tuples.Quad
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -361,12 +360,17 @@ open class SDFGroup : SDFComponent() {
         }
     }
 
+    data class GroupHeader(
+        val funcName: String, val smoothness: String?,
+        val groove: String?, val stairs: String?
+    )
+
     fun appendGroupHeader(
         functions: HashSet<String>,
         uniforms: HashMap<String, TypeValue>,
         type: CombinationMode,
         style: JoiningStyle,
-    ): Quad<String, String?, String?, String?> {
+    ): GroupHeader {
         functions.add(smoothMinCubic)
         val useSmoothness = dynamicSmoothness || smoothness > 0f
                 || (style != JoiningStyle.DEFAULT && type.isStyleable) ||
@@ -406,7 +410,7 @@ open class SDFGroup : SDFComponent() {
         ) {
             defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
         } else null
-        return Quad(funcName, smoothness, groove, stairs)
+        return GroupHeader(funcName, smoothness, groove, stairs)
     }
 
     fun appendMerge(
