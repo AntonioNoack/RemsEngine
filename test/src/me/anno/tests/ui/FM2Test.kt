@@ -2,8 +2,8 @@ package me.anno.tests.ui
 
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
-import me.anno.fonts.AWTFont
-import me.anno.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.jvm.fonts.AWTFont
+import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.fonts.FontManager
 import me.anno.utils.OS
 import java.awt.Color

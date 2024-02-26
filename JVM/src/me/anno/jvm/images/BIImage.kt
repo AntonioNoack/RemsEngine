@@ -1,4 +1,4 @@
-package me.anno.images
+package me.anno.jvm.images
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D

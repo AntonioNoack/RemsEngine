@@ -1,6 +1,9 @@
-package me.anno.fonts
+package me.anno.jvm.fonts
 
+import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
+import me.anno.fonts.FontStats
+import me.anno.fonts.TextGenerator
 import me.anno.fonts.keys.FontKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -29,7 +32,7 @@ object FontManagerImpl {
         val boldItalicStyle = key.italic.toInt(Font.ITALIC) or key.bold.toInt(Font.BOLD)
         val size = getAvgFontSize(key.sizeIndex)
         return AWTFont(
-            Font(name, size, key.bold, key.italic),
+            me.anno.fonts.Font(name, size, key.bold, key.italic),
             awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, size)
             ?: throw RuntimeException("Font $name was not found")
         )

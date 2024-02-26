@@ -9,7 +9,7 @@ import me.anno.io.Streams.writeBE16
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
-import me.anno.utils.BetterProcessBuilder
+import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.video.Codecs.audioCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
@@ -37,7 +37,7 @@ abstract class AudioCreator(
     fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference, deleteVCO: Boolean) {
 
         output.delete()
-        output.getParent()?.tryMkdirs()
+        output.getParent().tryMkdirs()
         assertFalse(output.exists)
 
         // todo allow different audio codecs (if required...)

@@ -1,8 +1,8 @@
-package me.anno.images
+package me.anno.jvm.images
 
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.image.thumbs.Thumbs

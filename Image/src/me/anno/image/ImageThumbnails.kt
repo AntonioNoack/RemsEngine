@@ -11,7 +11,7 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.files.FileReference
 import me.anno.image.thumbs.Thumbs
 import me.anno.utils.Color

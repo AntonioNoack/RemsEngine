@@ -7,7 +7,6 @@ import java.util.Queue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.math.max
 
-// todo also print stuff to a file for debugging errors on users computers? :)
 object Logging {
 
     @JvmStatic

@@ -60,6 +60,11 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         if (panel != null && panel.windowStack.peek() != panel.window) {
             LOGGER.warn("illegal focus request")
         }
+        requestFocus(if (panel == null) emptyList() else listOf(panel), exclusive)
+    }
+
+    fun requestFocus(panels: Collection<Panel>, exclusive: Boolean) {
+        if (EngineBase.dragged != null) return
         val inFocus = inFocus
         if (exclusive) {
             for (index in inFocus.indices) {
@@ -67,8 +72,9 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
             }
             inFocus.clear()
         }
-        if (panel != null && panel !in inFocus) {
-            inFocus.add(panel)
+        inFocus.removeAll(panels.toSet())
+        inFocus.addAll(panels)
+        for (panel in panels) {
             panel.invalidateDrawing()
         }
     }

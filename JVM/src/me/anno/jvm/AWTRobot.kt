@@ -1,7 +1,7 @@
-package me.anno
+package me.anno.jvm
 
 import me.anno.image.Image
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.input.Output
 import org.apache.logging.log4j.LogManager
 import java.awt.AWTException

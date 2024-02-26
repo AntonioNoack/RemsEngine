@@ -297,7 +297,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    open fun requestFocus(exclusive: Boolean = true) = windowStack.requestFocus(this, exclusive)
+    open fun requestFocus(exclusive: Boolean = true) {
+        windowStack.requestFocus(this, exclusive)
+    }
 
     val hasRoundedCorners get() = backgroundRadius > 0f && backgroundRadiusCorners != 0
 

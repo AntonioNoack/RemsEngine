@@ -1,4 +1,4 @@
-package me.anno.build.web
+package me.anno.jvm.build.web
 
 import me.anno.io.files.FileReference
 import me.anno.utils.OS.documents

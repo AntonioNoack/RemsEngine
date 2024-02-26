@@ -1,15 +1,15 @@
-package me.anno
+package me.anno.jvm
 
 import com.sun.jna.platform.FileUtils
 import me.anno.audio.openal.AudioManager
 import me.anno.extensions.plugins.Plugin
-import me.anno.fonts.ContourImpl
-import me.anno.fonts.FontManagerImpl
+import me.anno.jvm.fonts.ContourImpl
+import me.anno.jvm.fonts.FontManagerImpl
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.gpu.framebuffer.Screenshots
-import me.anno.images.ImageImpl
-import me.anno.images.MetadataImpl
-import me.anno.images.ThumbsImpl
+import me.anno.jvm.images.ImageImpl
+import me.anno.jvm.images.MetadataImpl
+import me.anno.jvm.images.ThumbsImpl
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference

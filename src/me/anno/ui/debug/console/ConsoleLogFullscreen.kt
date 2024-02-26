@@ -14,11 +14,7 @@ class ConsoleLogFullscreen(style: Style) : ScrollPanelXY(Padding(5), style) {
 
     override fun onSelectAll(x: Float, y: Float) {
         val child = child as? PanelList ?: return
-        val children = child.children
-        for (index in children.indices) {
-            val panel = children[index]
-            panel.requestFocus(index == 0)
-        }
+        windowStack.requestFocus(child.children, exclusive = true)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Key) {

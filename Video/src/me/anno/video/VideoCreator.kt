@@ -19,7 +19,7 @@ import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.min
-import me.anno.utils.BetterProcessBuilder
+import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.Callback
@@ -67,7 +67,7 @@ open class VideoCreator(
         var i = 0
         while (output.exists) {
             output.delete()
-            output.getParent()?.tryMkdirs()
+            output.getParent().tryMkdirs()
             output.invalidate()
             if (output.exists) {
                 // change output

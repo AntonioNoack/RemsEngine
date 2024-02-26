@@ -1,5 +1,6 @@
-package me.anno.fonts
+package me.anno.jvm.fonts
 
+import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment

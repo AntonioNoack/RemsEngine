@@ -1,4 +1,4 @@
-package me.anno.fonts
+package me.anno.jvm.fonts
 
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager

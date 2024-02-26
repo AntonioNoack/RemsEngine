@@ -13,8 +13,8 @@ abstract class Mod : Extension() {
     open fun onPostInit() {}
 
     /**
-     * may be called, when the program exists
-     * if the program is killed, which will not be executed
+     * may be called, when the program exists;
+     * if the program is killed, this will not be executed;
      * async
      * */
     open fun onExit() {}

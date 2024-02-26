@@ -6,8 +6,8 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.paths.PathFinding
-import me.anno.fonts.DefaultRenderingHints.prepareGraphics
-import me.anno.images.BIImage.write
+import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.jvm.images.BIImage.write
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import org.joml.AABBf

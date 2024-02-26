@@ -1,4 +1,4 @@
-package me.anno
+package me.anno.jvm
 
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -16,5 +16,4 @@ class FileTransferable(val files: List<File>) : Transferable {
         if (isDataFlavorSupported(flavor)) return files
         throw UnsupportedFlavorException(flavor)
     }
-
 }

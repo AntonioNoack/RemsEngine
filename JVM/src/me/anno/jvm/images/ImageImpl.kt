@@ -1,9 +1,9 @@
-package me.anno.images
+package me.anno.jvm.images
 
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.images.BIImage.createBufferedImage
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.createBufferedImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.structures.Callback
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager

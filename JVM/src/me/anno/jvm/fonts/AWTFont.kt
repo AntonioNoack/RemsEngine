@@ -1,9 +1,14 @@
-package me.anno.fonts
+package me.anno.jvm.fonts
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
-import me.anno.fonts.DefaultRenderingHints.prepareGraphics
+import me.anno.fonts.FontManager
+import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.fonts.FontManager.spaceBetweenLines
+import me.anno.fonts.PartResult
+import me.anno.fonts.StringPart
+import me.anno.fonts.TextGenerator
+import me.anno.fonts.TextGroup
 import me.anno.fonts.mesh.CharacterOffsetCache
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts.simpleChars
@@ -12,8 +17,8 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.images.BIImage.createFromBufferedImage
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.createFromBufferedImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab

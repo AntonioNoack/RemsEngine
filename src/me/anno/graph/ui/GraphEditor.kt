@@ -1,5 +1,6 @@
 package me.anno.graph.ui
 
+import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.graph.Graph
 import me.anno.graph.Node
@@ -13,7 +14,6 @@ import me.anno.io.SaveableArray
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.max
-import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu
@@ -285,10 +285,9 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                     if (nodes.isNotEmpty()) {
                         for (node in nodes) graph.add(node)
                         for (index in nodes.indices) {
-                            val node = nodes[index]
-                            node.position.add(center)
-                            getNodePanel(node).requestFocus(index == 0)
+                            nodes[index].position.add(center)
                         }
+                        windowStack.requestFocus(nodes.map(this::getNodePanel), true)
                         onChange(false)
                         done = true
                     }

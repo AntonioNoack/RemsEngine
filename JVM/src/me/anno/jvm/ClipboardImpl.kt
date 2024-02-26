@@ -1,4 +1,4 @@
-package me.anno
+package me.anno.jvm
 
 import me.anno.engine.EngineBase
 import me.anno.input.Clipboard

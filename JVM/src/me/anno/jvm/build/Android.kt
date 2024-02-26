@@ -1,10 +1,10 @@
-package me.anno.build
+package me.anno.jvm.build
 
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.home
-import me.anno.utils.BetterProcessBuilder.Companion.readLines
+import me.anno.jvm.utils.BetterProcessBuilder.Companion.readLines
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.concurrent.thread

@@ -1,4 +1,4 @@
-package me.anno.images
+package me.anno.jvm.images
 
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference

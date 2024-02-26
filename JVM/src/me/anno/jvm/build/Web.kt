@@ -1,4 +1,4 @@
-package me.anno.build
+package me.anno.jvm.build
 
 // goal: run engine (and ideally JVM libraries) in web browser
 // ideas: JVM to WASM/JavaScript: https://github.com/appcypher/awesome-wasm-langs#java

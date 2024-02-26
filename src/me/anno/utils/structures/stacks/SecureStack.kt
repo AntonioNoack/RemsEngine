@@ -1,5 +1,9 @@
 package me.anno.utils.structures.stacks
 
+/**
+ * state-tracking stack with onChangeValue(),
+ * that ignores thrown values by rethrowing them
+ * */
 open class SecureStack<V>(var currentValue: V) : List<V> {
 
     val values = ArrayList<V>()

@@ -1,5 +1,6 @@
-package me.anno
+package me.anno.jvm
 
+import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig
@@ -13,7 +14,7 @@ import me.anno.language.Language
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Spellchecking.defaultLanguage
 import me.anno.language.spellcheck.Suggestion
-import me.anno.utils.BetterProcessBuilder
+import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.Sleep

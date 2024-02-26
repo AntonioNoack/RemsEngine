@@ -1,7 +1,7 @@
 package net.sf.image4j.codec.ico
 
 import me.anno.image.Image
-import me.anno.images.BIImage.toImage
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.utils.structures.CountingInputStream
