@@ -433,7 +433,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             lastFolder = folder
             val fileName = DefaultConfig[getClosestFileKey(folder), ""]
             fileToScrollTo =
-                if (fileName.isEmpty()) folder.getParent() ?: InvalidRef
+                if (fileName.isEmpty()) folder.getParent()
                 else folder.getChild(fileName)
             panelToScrollTo = null // first must be created
         }

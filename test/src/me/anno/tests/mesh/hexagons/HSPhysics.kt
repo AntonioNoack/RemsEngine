@@ -165,7 +165,7 @@ class HSPhysicsControls(
 
         if (Input.wasKeyPressed('s') && Input.isControlDown) {
             println("Saving")
-            file.getParent()?.mkdirs()
+            file.getParent().mkdirs()
             save.write(world, file)
             println("Saved, ${file.length().formatFileSize()}")
         }

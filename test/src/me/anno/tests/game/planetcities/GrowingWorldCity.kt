@@ -254,7 +254,7 @@ fun main() {
     val ui2 = CustomList(false, style)
     ui2.add(ScrollPanelY(object :
         ECSTreeView(style) {
-        override fun listSources(): List<Saveable> {
+        override fun listRoots(): List<Saveable> {
             return listOf(scene)
         }
     }.apply {

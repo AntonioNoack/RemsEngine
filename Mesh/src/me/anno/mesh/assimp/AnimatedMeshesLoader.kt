@@ -95,17 +95,17 @@ object AnimatedMeshesLoader {
 
     fun readAsFolder(
         file: FileReference,
-        resources: FileReference = file.getParent() ?: InvalidRef, flags: Int = defaultFlags
+        resources: FileReference = file.getParent(), flags: Int = defaultFlags
     ): InnerFolder = readAsFolder2(file, resources, flags).first
 
     fun readAsFolder2(
         file: FileReference,
-        resources: FileReference = file.getParent() ?: InvalidRef,
+        resources: FileReference = file.getParent(),
         flags: Int = defaultFlags
     ): Pair<InnerFolder, Prefab> {
 
         var name = file.nameWithoutExtension
-        if (name.equals("scene", true)) name = file.getParent()!!.name
+        if (name.equals("scene", true)) name = file.getParent().name
 
         // todo load lights and cameras for the game engine
 
@@ -247,7 +247,7 @@ object AnimatedMeshesLoader {
             }
 
             val animRefs = animMap.values.map { it.source }
-            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent()!!.name })
+            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent().name })
             animRefs
         } else emptyList()
 

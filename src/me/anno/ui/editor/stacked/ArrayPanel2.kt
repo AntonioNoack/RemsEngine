@@ -131,7 +131,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         LOGGER.warn("Add menu not really supported")
     }
 
-    override fun listSources(): List<IntRange> {
+    override fun listRoots(): List<IntRange> {
         return listOf(0 until Int.MAX_VALUE)
     }
 

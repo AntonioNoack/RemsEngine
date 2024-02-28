@@ -194,7 +194,7 @@ object MitsubaReader {
 
     fun readSceneAsFolder(sceneMain: FileReference, inputStream: InputStream): InnerFolder {
 
-        val folder = sceneMain.getParent() ?: InvalidRef
+        val folder = sceneMain.getParent()
 
         val scene = XMLReader().read(inputStream) as XMLNode
         if (scene.type != "scene") throw IOException("Wrong type: ${scene.type}")

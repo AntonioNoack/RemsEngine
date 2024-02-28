@@ -57,7 +57,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     val inspector get() = currentInspector!!
 
-    override fun listSources(): List<Saveable> {
+    override fun listRoots(): List<Saveable> {
         val world = EditorState.prefab?.getSampleInstance()// ?: library.world
         return if (world != null) listOf(world) else emptyList()
     }

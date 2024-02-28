@@ -65,15 +65,31 @@ object Lists {
     }
 
     /**
-     * allocation-free firstOrNull()
+     * allocation-free first()
      * */
     @JvmStatic
-    inline fun <V> List<V>.first2(test: (V) -> Boolean): V {
-        for (index in indices) {
+    inline fun <V: Any> List<V>.first2(test: (V) -> Boolean): V {
+        return firstOrNull2(test) ?: throw NoSuchElementException()
+    }
+
+    /**
+     * allocation-free lastOrNull()
+     * */
+    @JvmStatic
+    inline fun <V> List<V>.lastOrNull2(test: (V) -> Boolean): V? {
+        for (index in lastIndex downTo 0) {
             val element = this[index]
             if (test(element)) return element
         }
-        throw IllegalStateException("Did not find element")
+        return null
+    }
+
+    /**
+     * allocation-free last()
+     * */
+    @JvmStatic
+    inline fun <V: Any> List<V>.last2(test: (V) -> Boolean): V {
+        return lastOrNull2(test) ?: throw NoSuchElementException()
     }
 
     /**

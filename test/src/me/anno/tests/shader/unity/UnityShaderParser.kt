@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 fun main() {
     if (!unityStdLib.exists) throw IllegalStateException("Missing Unity stdlib")
     val src = desktop.getChild("SyntyStudios_Water.shader")
-    val tokens = tokenize(src.getParent()!!, src.readTextSync())
+    val tokens = tokenize(src.getParent(), src.readTextSync())
     var i = 0
     assertEquals("Shader", tokens[i++])
     val shaderName = tokens[i++] as String

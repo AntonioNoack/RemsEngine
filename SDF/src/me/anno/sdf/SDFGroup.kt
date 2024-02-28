@@ -13,6 +13,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2
+import me.anno.utils.structures.lists.Lists.last2
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -133,7 +134,7 @@ open class SDFGroup : SDFComponent() {
             field.set(value)
         }
 
-    private val numActiveChildren get() = children.count { it.isEnabled }
+    private val numActiveChildren: Int get() = children.count2 { it.isEnabled }
 
     override fun calculateBaseBounds(dst: AABBf) {
         // for now, just use the worst case
@@ -141,9 +142,9 @@ open class SDFGroup : SDFComponent() {
     }
 
     fun calculateBaseBounds(dst: AABBf, children: List<SDFComponent>) {
-        when (val size = children.count { it.isEnabled }) {
+        when (val size = children.count2 { it.isEnabled }) {
             0 -> {}
-            1 -> children.first { it.isEnabled }.calculateBounds(dst)
+            1 -> children.first2 { it.isEnabled }.calculateBounds(dst)
             else -> {
                 val tmp = JomlPools.aabbf.create()
                 when (combinationMode) {
@@ -154,15 +155,15 @@ open class SDFGroup : SDFComponent() {
                     CombinationMode.DIFFERENCE1,
                     CombinationMode.ENGRAVE,
                     CombinationMode.GROOVE -> { // use first only, the rest is cut off
-                        children.first { it.isEnabled }.calculateBounds(dst)
+                        children.first2 { it.isEnabled }.calculateBounds(dst)
                         if (combinationMode == CombinationMode.GROOVE) dst.addMargin(smoothness)
                     }
                     CombinationMode.TONGUE -> { // use first only, then widen
-                        children.first { it.isEnabled }.calculateBounds(dst)
+                        children.first2 { it.isEnabled }.calculateBounds(dst)
                         dst.addMargin(smoothness)
                     }
                     CombinationMode.DIFFERENCE2 -> {// use last only, the rest is cut off
-                        children.last { it.isEnabled }.calculateBounds(dst)
+                        children.last2 { it.isEnabled }.calculateBounds(dst)
                     }
                     // for interpolation only use meshes with weight > 0f
                     // is it possible to interpolate bounds? maybe
@@ -242,7 +243,7 @@ open class SDFGroup : SDFComponent() {
         seeds: ArrayList<String>, children: List<SDFComponent>,
         applyTransform: Boolean
     ) {
-        val enabledChildCount = children.count { it.isEnabled }
+        val enabledChildCount = children.count2 { it.isEnabled }
         if (enabledChildCount > 0) {
             val type = combinationMode
             val transform = if (applyTransform) buildTransform(
@@ -326,12 +327,8 @@ open class SDFGroup : SDFComponent() {
         seeds: ArrayList<String>,
         children: List<SDFComponent>
     ) {
-        val param1 = SDFComponent.defineUniform(uniforms, GLSLType.V1F) {
-            clamp(
-                progress,
-                0f,
-                children.size - 1f
-            )
+        val param1 = defineUniform(uniforms, GLSLType.V1F) {
+            clamp(progress, 0f, children.size - 1f)
         }
         // helper functions
         functions.addAll(combinationMode.glslCode)

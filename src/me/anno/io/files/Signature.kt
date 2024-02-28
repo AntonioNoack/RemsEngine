@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
+import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -171,7 +172,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             if (file is SignatureFile) return file.signature
             if (!file.exists) return null
             return when (file) {
-                is PrefabReadable -> signatures.first { it.name == "json" }
+                is PrefabReadable -> signatures.first2 { it.name == "json" }
                 else -> {
                     // reads the bytes, or 255 if at end of file
                     // how much do we read? 🤔

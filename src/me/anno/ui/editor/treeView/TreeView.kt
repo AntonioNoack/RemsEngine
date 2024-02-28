@@ -20,8 +20,6 @@ import me.anno.utils.Color.white
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-// todo select multiple elements, filter for common properties, and apply them all together :)
-
 abstract class TreeView<V : Any>(
     val fileContentImporter: FileContentImporter<V>,
     val showSymbols: Boolean,
@@ -54,7 +52,7 @@ abstract class TreeView<V : Any>(
 
     var needsTreeUpdate = true
 
-    abstract fun listSources(): List<V>
+    abstract fun listRoots(): List<V>
 
     // Selection.select(element, null)
     abstract fun selectElements(elements: List<V>)
@@ -293,7 +291,7 @@ abstract class TreeView<V : Any>(
     private fun updateTree() {
         try {
             var index = 1
-            val sources = listSources()
+            val sources = listRoots()
             for (i in sources.indices) {
                 val element = sources[i]
                 index = addToTreeList(element, 0, index)
@@ -327,7 +325,7 @@ abstract class TreeView<V : Any>(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        val sources = listSources()
+        val sources = listRoots()
         if (button == Key.BUTTON_RIGHT && sources.isNotEmpty()) {
             // correct? maybe 😄
             openAddMenu(sources.last())
@@ -393,8 +391,7 @@ abstract class TreeView<V : Any>(
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         for (file in files) {
             fileContentImporter.addChildFromFile(
-                listSources().lastOrNull(),
-                file,
+                listRoots().lastOrNull(), file,
                 FileContentImporter.SoftLinkMode.ASK,
                 true
             ) {}

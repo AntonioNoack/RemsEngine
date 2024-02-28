@@ -50,7 +50,7 @@ fun main() {
             object : FileContentImporter<FileReference>() {},
             true, style
         ) {
-            override fun listSources(): List<FileReference> = listOf(root)
+            override fun listRoots(): List<FileReference> = listOf(root)
             override fun selectElements(elements: List<FileReference>) {}
             override fun focusOnElement(element: FileReference) {}
             override fun openAddMenu(parent: FileReference) {}

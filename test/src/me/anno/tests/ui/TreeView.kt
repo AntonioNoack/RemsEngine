@@ -68,7 +68,7 @@ fun main() {
             }
         }, true, style) {
 
-            override fun listSources() = listOf(root)
+            override fun listRoots() = listOf(root)
 
             override fun selectElements(elements: List<Element>) {
                 selected += elements

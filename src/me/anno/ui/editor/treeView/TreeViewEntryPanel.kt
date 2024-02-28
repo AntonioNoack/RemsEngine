@@ -2,6 +2,8 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultStyle.midGray
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
+import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -11,8 +13,6 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
-import me.anno.engine.EngineBase
-import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -26,6 +26,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white
+import me.anno.utils.structures.lists.Lists.count2
 import org.apache.logging.log4j.LogManager
 
 class TreeViewEntryPanel<V : Any>(
@@ -159,9 +160,9 @@ class TreeViewEntryPanel<V : Any>(
             Key.BUTTON_LEFT -> {
                 // collapse, if you click on the symbol
                 // todo selecting multiple isn't working yet :/
-                val inFocusByParent = siblings.count { it is TreeViewEntryPanel<*> && it.isAnyChildInFocus }
+                val inFocusByParent = siblings.count2 { it is TreeViewEntryPanel<*> && it.isAnyChildInFocus }
                 LOGGER.debug(
-                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewEntryPanel<*> }}, $inFocusByParent, " +
+                    "click -> ${siblings.size}, ${siblings.count2 { it is TreeViewEntryPanel<*> }}, $inFocusByParent, " +
                             "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
                 )
                 if (Input.isShiftDown && inFocusByParent < 2) {
@@ -173,9 +174,10 @@ class TreeViewEntryPanel<V : Any>(
                 } else {
                     val elements = siblings.mapNotNull {
                         if (it == this) element
-                        else if (it is TreeViewEntryPanel<*> && it.isAnyChildInFocus)
+                        else if (it is TreeViewEntryPanel<*> && it.isAnyChildInFocus) {
+                            @Suppress("UNCHECKED_CAST")
                             it.getElement() as V
-                        else null
+                        } else null
                     }
                     treeView.selectElementsMaybe(elements)
                 }

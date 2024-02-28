@@ -375,9 +375,12 @@ interface WelcomeUI {
         var usableFile: FileReference? = null
 
         fun rootIsOk(file: FileReference): Boolean {
-            if (file.exists) return true
-            if (file == InvalidRef) return false
-            return rootIsOk(file.getParent() ?: return false)
+            var fileI = file
+            while (true) {
+                if (fileI.exists) return true
+                if (fileI == InvalidRef) return false
+                fileI = fileI.getParent()
+            }
         }
     }
 }

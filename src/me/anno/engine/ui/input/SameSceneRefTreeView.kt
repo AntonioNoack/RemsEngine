@@ -20,7 +20,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     private val notCollapsed = HashSet<PrefabSaveable>()
-    override fun listSources(): List<PrefabSaveable> {
+    override fun listRoots(): List<PrefabSaveable> {
         val instance = ECSSceneTabs.currentTab?.inspector?.prefab?.getSampleInstance()
         return if (instance != null) {
             notCollapsed.add(instance)

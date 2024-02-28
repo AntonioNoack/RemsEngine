@@ -1,10 +1,10 @@
 package me.anno.mesh.gltf
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Clamping
@@ -12,7 +12,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.Saveable
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.generic.JsonWriter
@@ -135,11 +134,8 @@ class GLTFWriter(
     private fun createPositionsView(positions: FloatArray, bounds: AABBf): Int {
         val start = binary.size()
         for (v in positions) {
-            if (v.isNaN()) { // NaN is not supported
-                binary.writeLE32(0)
-            } else {
-                binary.writeLE32(v.toRawBits())
-            }
+            // NaN is not supported
+            binary.writeLE32(if (v.isNaN()) 0 else v.toRawBits())
         }
         accessors.add(Accessor("VEC3", GL_FLOAT, positions.size / 3, false, min(bounds), max(bounds)))
         views.add(BufferView(start, positions.size * 4, 34962, 0))
@@ -161,7 +157,9 @@ class GLTFWriter(
 
     private fun createIndicesView(data: IntArray): Int {
         val pos = binary.size()
-        for (v in data) binary.writeLE32(v)
+        for (i in data.indices) {
+            binary.writeLE32(data[i])
+        }
         accessors.add(Accessor("SCALAR", GL_UNSIGNED_INT, data.size, false))
         views.add(BufferView(pos, data.size * 4, 34963, 0))
         return accessors.size - 1
@@ -345,18 +343,12 @@ class GLTFWriter(
         val color = material.diffuseBase
         if (color != white4) {
             writer.attr("baseColorFactor")
-            if (color.x in 0f..1f && color.y in 0f..1f && color.z in 0f..1f && color.w in 0f..1f) {
-                writer.write(material.diffuseBase)
+            val color1 = if (color.x in 0f..1f && color.y in 0f..1f && color.z in 0f..1f && color.w in 0f..1f) {
+                material.diffuseBase
             } else {
-                writer.write(
-                    Vector4f(
-                        clamp(color.x),
-                        clamp(color.y),
-                        clamp(color.z),
-                        clamp(color.w)
-                    )
-                )
+                Vector4f(clamp(color.x), clamp(color.y), clamp(color.z), clamp(color.w))
             }
+            writer.write(color1)
         }
         writer.attr("metallicFactor")
         writer.write(material.metallicMinMax.y)
@@ -459,7 +451,7 @@ class GLTFWriter(
         } else null
 
         fun getMaterial(i: Int): Material {
-            return   Pipeline.getMaterial(materialOverrides, mesh.materials, i)
+            return Pipeline.getMaterial(materialOverrides, mesh.materials, i)
         }
 
         if (helpers != null) {
@@ -563,7 +555,7 @@ class GLTFWriter(
     }
 
     private fun writeImages(dst: FileReference) {
-        val dstParent = dst.getParent() ?: InvalidRef
+        val dstParent = dst.getParent()
         write("images", images) {
             writeImage(dstParent, it)
         }
@@ -739,9 +731,9 @@ class GLTFWriter(
         writeChunks(dst)
     }
 
-    private fun ensureAlignment(bos: ByteArrayOutputStream, code: Int) {
-        while (bos.size() and 3 != 0) {
-            bos.write(code)
+    private fun ensureAlignment(bos: ByteArrayOutputStream, paddingByte: Int) {
+        while (bos.size().and(3) != 0) {
+            bos.write(paddingByte)
         }
     }
 
@@ -772,8 +764,8 @@ class GLTFWriter(
 
     private fun OutputStream.writeChunkType(str: String) {
         assertEquals(4, str.length)
-        for (char in str) {
-            write(char.code)
+        for (i in 0 until 4) {
+            write(str[i].code)
         }
     }
 }

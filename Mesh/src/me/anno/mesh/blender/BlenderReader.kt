@@ -251,7 +251,7 @@ object BlenderReader {
         clock.stop("put into other array")
         val binaryFile = BinaryFile(nio)
         val folder = InnerFolder(ref)
-        val file = BlenderFile(binaryFile, ref.getParent() ?: InvalidRef)
+        val file = BlenderFile(binaryFile, ref.getParent())
         clock.stop("read blender file")
         // data.printTypes()
 

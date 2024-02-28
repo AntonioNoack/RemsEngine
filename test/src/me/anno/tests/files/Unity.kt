@@ -166,7 +166,7 @@ fun main() {
     val projectPath2 = findUnityProject(file)
     LOGGER.debug("project from file? $projectPath2")*/
 
-    /*val file2 = file.getParent()!!.getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
+    /*val file2 = file.getParent().getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
     LOGGER.debug("file2 exists? ${file2.exists}")
     LOGGER.debug(PrefabCache.getPrefab(file2))*/
 

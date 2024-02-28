@@ -86,6 +86,7 @@ import me.anno.utils.files.OpenFileExternally.editInStandardProgram
 import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Strings.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings
@@ -575,12 +576,12 @@ open class FileExplorerEntry(
         // todo add created & modified information
 
         // if is selected, and there are multiple files selected, show group stats
-        if (isInFocus && siblings.count { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
+        if (isInFocus && siblings.count2 { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
             val files = siblings
                 .filter { it.isInFocus || it === this }
                 .mapNotNull { (it as? FileExplorerEntry)?.path }
                 .mapNotNull { getReferenceAsync(it) }
-            tooltip = "${files.count { it.isDirectory }} folders + ${files.count { !it.isDirectory }} files\n" +
+            tooltip = "${files.count2 { it.isDirectory }} folders + ${files.count2 { !it.isDirectory }} files\n" +
                     files.sumOf { it.length() }.formatFileSize()
         } else {
 
@@ -980,7 +981,7 @@ open class FileExplorerEntry(
         fun renameTo(windowStack: WindowStack, explorer: FileExplorer?, file: FileReference, newName: String) {
             val allowed = newName.toAllowedFilename()
             if (allowed != null) {
-                val dst = file.getParent()!!.getChild(allowed)
+                val dst = file.getParent().getChild(allowed)
                 if (dst.exists && !allowed.equals(file.name, true)) {
                     ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
                         file.renameTo(dst)
