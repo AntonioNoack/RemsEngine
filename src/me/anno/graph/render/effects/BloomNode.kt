@@ -7,6 +7,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 class BloomNode : ActionNode(
@@ -27,9 +29,9 @@ class BloomNode : ActionNode(
 
     override fun executeAction() {
 
-        val offset = getInput(1) as Float
-        val strength = getInput(2) as Float
-        val applyToneMapping = getInput(3) == true
+        val offset = getFloatInput(1)
+        val strength = getFloatInput(2)
+        val applyToneMapping = getBoolInput(3)
         val color = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: return
 
         val target = if (applyToneMapping) TargetType.UInt8x4 else TargetType.Float16x4

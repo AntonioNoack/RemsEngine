@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.graph.EnumNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 
 val dataI1 = MathNode.MathNodeData(
     IntMathsUnary.entries,
@@ -10,7 +11,7 @@ val dataI1 = MathNode.MathNodeData(
 
 class MathI1Node : MathNode<IntMathsUnary>(dataI1), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(0, type.int(getInput(0) as Int))
+        setOutput(0, type.int(getIntInput(0)))
     }
 }
 
@@ -22,7 +23,7 @@ val dataI2 = MathNode.MathNodeData(
 
 class MathI2Node : MathNode<IntMathsBinary>(dataI2), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(0, type.int(getInput(0) as Int, getInput(1) as Int))
+        setOutput(0, type.int(getIntInput(0), getIntInput(1)))
     }
 }
 
@@ -34,6 +35,6 @@ val dataI3 = MathNode.MathNodeData(
 
 class MathI3Node : MathNode<IntMathsTernary>(dataI3), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(0, type.int(getInput(0) as Int, getInput(1) as Int, getInput(2) as Int))
+        setOutput(0, type.int(getIntInput(0), getIntInput(1), getIntInput(2)))
     }
 }

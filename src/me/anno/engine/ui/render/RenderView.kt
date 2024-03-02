@@ -8,7 +8,6 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.gpu.shader.effects.FSR2v2
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -48,6 +47,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.effects.FSR2v2
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
@@ -72,6 +72,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.NumberFormatter.formatIntTriplets
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4f
@@ -367,8 +368,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val usesBetterBlending = DrawTexts.canUseComputeShader()
         drawSimpleTextCharByChar(
             x + 2, y + height + 1,
-            0, if (drawCalls == 1L && drawnInstances == 1L) "%,d tris, 1 inst, 1 draw call".format(drawnPrimitives)
-            else "%,d tris, %,d inst, %,d draw calls".format(drawnPrimitives, drawnInstances, drawCalls),
+            0, "${formatIntTriplets(drawnPrimitives)} tris, " +
+                    "${formatIntTriplets(drawnInstances)} inst, " +
+                    "${formatIntTriplets(drawCalls)} calls",
             FrameTimings.textColor,
             FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
             AxisAlignment.MIN, AxisAlignment.MAX

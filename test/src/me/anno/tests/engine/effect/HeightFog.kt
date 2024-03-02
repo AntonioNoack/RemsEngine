@@ -7,6 +7,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.render.effects.HeightExpFogNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.tests.utils.TestWorld
 import me.anno.utils.structures.lists.Lists.firstInstance
 import org.joml.Vector3f
@@ -15,25 +16,25 @@ import org.joml.Vector3f
 class HeightExpFogSettings(val node: HeightExpFogNode) : Component() {
 
     var distance: Float
-        get() = node.getInput(1) as Float
+        get() = node.getFloatInput(1)
         set(value) {
             node.setInput(1, value)
         }
 
     var strength: Float
-        get() = node.getInput(2) as Float
+        get() = node.getFloatInput(2)
         set(value) {
             node.setInput(2, value)
         }
 
     var sharpness: Float
-        get() = node.getInput(3) as Float
+        get() = node.getFloatInput(3)
         set(value) {
             node.setInput(3, value)
         }
 
     var fogLevel: Float
-        get() = node.getInput(4) as Float
+        get() = node.getFloatInput(4)
         set(value) {
             node.setInput(4, value)
         }

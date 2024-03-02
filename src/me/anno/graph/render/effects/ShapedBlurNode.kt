@@ -5,6 +5,7 @@ import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.filters
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
@@ -71,8 +72,8 @@ class ShapedBlurNode() : ActionNode(
         // todo a formula could be connected, and this would break the texture-thing...
         val tex0 = getInput(1) as? Texture
         val tex1 = tex0?.tex ?: whiteTexture
-        val scale = getInput(2) as Float
-        val gamma = getInput(3) as Float
+        val scale = getFloatInput(2)
+        val gamma = getFloatInput(3)
         val output = if (scale > 0f && tex1 != whiteTexture && gamma > 0f) {
             val filter = filters[type]?.value
             if (filter != null) {

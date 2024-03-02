@@ -2,14 +2,15 @@ package me.anno.graph.types.flow.config
 
 import me.anno.config.DefaultConfig
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.io.utils.StringMap
 
 class ConfigGetFloatNode(val config: StringMap = DefaultConfig) :
     CalculationNode("Config.GetFloat", input, output) {
 
     override fun calculate() = config[
-            getInput(0) as String,
-            getInput(1) as Float
+        getInput(0) as String,
+        getFloatInput(1)
     ]
 
     companion object {

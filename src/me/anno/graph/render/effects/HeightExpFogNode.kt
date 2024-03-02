@@ -24,6 +24,8 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
@@ -56,15 +58,15 @@ class HeightExpFogNode : RenderViewNode(
         val color0 = getInput(7) as? Texture
         val color = (color0?.tex as? Texture2D)
         val depth = ((getInput(8) as? Texture)?.tex as? Texture2D)
-        val relativeDistance = max(getInput(1) as Float, 0f)
-        val fogStrength = max(getInput(2) as Float, 0f)
+        val relativeDistance = max(getFloatInput(1), 0f)
+        val fogStrength = max(getFloatInput(2), 0f)
         if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
-            val fogSharpness = max(getInput(3) as Float, 0f)
-            val fogOffset = getInput(4) as Float
+            val fogSharpness = max(getFloatInput(3), 0f)
+            val fogOffset = getFloatInput(4)
             val fogColor = getInput(5) as Vector3f
-            val cheapMixing = getInput(6) == true
+            val cheapMixing = getBoolInput(6)
             val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
             useFrame(result, copyRenderer) {
                 val shader = shader

@@ -30,6 +30,9 @@ import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import kotlin.math.max
 
+/**
+ * extra functions for thumbnail generator, because that class is growing too big
+ * */
 object ThumbsExt {
 
     val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")

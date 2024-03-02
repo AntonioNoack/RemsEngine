@@ -3,6 +3,8 @@ package me.anno.graph.render
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.ui.GraphPanel
 import me.anno.image.ImageCache
 import me.anno.io.base.BaseWriter
@@ -44,8 +46,8 @@ class TextureNode : CalculationNode(
         val uv = getInput(0) as Vector2f
         val image = ImageCache[file, false]
         return if (image != null) {
-            val linear = if (getInput(1) == true) Filtering.LINEAR else Filtering.NEAREST
-            val clamping = when (getInput(2) as Int) {
+            val linear = if (getBoolInput(1)) Filtering.LINEAR else Filtering.NEAREST
+            val clamping = when (getIntInput(2)) {
                 1 -> Clamping.REPEAT
                 2 -> Clamping.MIRRORED_REPEAT
                 else -> Clamping.CLAMP

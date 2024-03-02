@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -19,7 +20,7 @@ class NormalizeNode2 : CalculationNode(
 
     override fun calculate(): Vector2f {
         val v = getInput(0) as Vector2f
-        val l = getInput(1) as Float
+        val l = getFloatInput(1)
         return v.normalize(l, Vector2f())
     }
 
@@ -43,7 +44,7 @@ class NormalizeNode3 : CalculationNode(
 
     override fun calculate(): Vector3f {
         val v = getInput(0) as Vector3f
-        val l = getInput(1) as Float
+        val l = getFloatInput(1)
         return v.normalize(l, Vector3f())
     }
 
@@ -66,7 +67,7 @@ class NormalizeNode4 : CalculationNode(
 
     override fun calculate(): Vector4f {
         val v = getInput(0) as Vector4f
-        val l = getInput(1) as Float
+        val l = getFloatInput(1)
         return v.normalize(l, Vector4f())
     }
 

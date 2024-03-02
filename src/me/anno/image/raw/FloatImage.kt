@@ -1,6 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
@@ -9,6 +8,7 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.Color.black
+import me.anno.utils.structures.Callback
 import kotlin.math.max
 
 class FloatImage(
@@ -121,8 +121,10 @@ class FloatImage(
     }
 
     fun mul(s: Float): FloatImage {
-        if (s != 1f) for (i in data.indices) {
-            data[i] *= s
+        if (s != 1f) {
+            for (i in data.indices) {
+                data[i] *= s
+            }
         }
         return this
     }

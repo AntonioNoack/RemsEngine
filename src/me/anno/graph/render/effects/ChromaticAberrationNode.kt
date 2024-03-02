@@ -13,6 +13,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 import org.joml.Vector2f
 
@@ -35,12 +36,12 @@ class ChromaticAberrationNode : ActionNode(
     }
 
     override fun executeAction() {
-        val strength = (getInput(1) as Float) * 0.001f
+        val strength = getFloatInput(1) * 0.001f
         val color = ((getInput(5) as? Texture)?.tex as? Texture2D)
         if (color == null) {
             setOutput(1, Texture(missingTexture))
         } else {
-            val power = getInput(2) as Float
+            val power = getFloatInput(2)
             val rOffset = getInput(3) as Vector2f
             val bOffset = getInput(4) as Vector2f
             val fp = color.isHDR

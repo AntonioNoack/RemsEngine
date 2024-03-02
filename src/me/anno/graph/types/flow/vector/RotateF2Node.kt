@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import org.joml.Vector2f
 import kotlin.math.cos
@@ -23,7 +24,7 @@ class RotateF2Node : CalculationNode(
     override fun calculate(): Vector2f {
         val r = getInput(0) as Vector2f
         val q = getInput(1) as Vector2f
-        val a = getInput(2) as Float
+        val a = getFloatInput(2)
         val c = cos(a)
         val s = sin(a)
         val vx = r.x - q.x

@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -50,8 +51,8 @@ class OutlineNode : ActionNode(
 
     override fun executeAction() {
 
-        val strength = getInput(1) as Float
-        val offset = getInput(2) as Float
+        val strength = getFloatInput(1)
+        val offset = getFloatInput(2)
         val outlineColor = getInput(3) as Vector4f
         val weights = getInput(4) as Vector3f
         val color = ((getInput(5) as? Texture)?.tex as? Texture2D) ?: blackTexture

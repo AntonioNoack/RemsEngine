@@ -18,6 +18,8 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
@@ -52,14 +54,14 @@ class DepthOfFieldNode : ActionNode(
 
     override fun executeAction() {
 
-        val focusPoint = getInput(1) as Float
-        val focusScale = getInput(2) as Float
-        val radScale = getInput(3) as Float
-        val maxBlurSize = getInput(4) as Float
-        val spherical = getInput(5) as Float
+        val focusPoint = getFloatInput(1)
+        val focusScale = getFloatInput(2)
+        val radScale = getFloatInput(3)
+        val maxBlurSize = getFloatInput(4)
+        val spherical = getFloatInput(5)
 
-        val applyToneMapping = getInput(6) == true
-        val color = ((getInput(7) as? Texture)?.tex as? Texture2D) ?: return
+        val applyToneMapping = getBoolInput(6)
+        val color = ((getInput(7) as? Texture)?.tex as? Texture2D) ?: return // this is incorrect for tinted color!
         val depth = ((getInput(8) as? Texture)?.tex as? Texture2D) ?: return
 
         val result = render(

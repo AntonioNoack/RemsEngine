@@ -24,6 +24,8 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.structures.lists.Lists.any2
 
@@ -88,7 +90,7 @@ class RenderSceneDeferredNode : RenderViewNode(
 
     fun defineFramebuffer() {
         var settings = settings
-        val samples = getInput(3) as Int
+        val samples = getIntInput(3)
         if (settings == null || framebuffer?.samples != samples) {
             enabledLayers.clear()
             val outputs = outputs
@@ -127,15 +129,15 @@ class RenderSceneDeferredNode : RenderViewNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        val samples = getIntInput(3)
         if (width < 1 || height < 1 || samples < 1) return
 
         val stage = getInput(4) as PipelineStage
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getInput(7) == true
+        val applyToneMapping = getBoolInput(7)
 
         defineFramebuffer()
 
@@ -145,10 +147,10 @@ class RenderSceneDeferredNode : RenderViewNode(
 
         // if skybox is not used, bake it anyway?
         // -> yes, the pipeline architect (^^) has to be careful
-        val skyboxResolution = getInput(8) as Int
+        val skyboxResolution = getIntInput(8)
         pipeline.bakeSkybox(skyboxResolution)
 
-        val drawSky = getInput(9) as Int
+        val drawSky = getIntInput(9)
 
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode

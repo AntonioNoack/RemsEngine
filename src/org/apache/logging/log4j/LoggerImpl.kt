@@ -329,7 +329,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     companion object {
 
         private var lastTime = 0L
-        private var lastString = ""
+        private val lastTimeStr = StringBuilder(8)
         private var logFileStream: OutputStream? = null
 
         fun getLogFileStream(): OutputStream? {
@@ -351,21 +351,34 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
             return logFileStream
         }
 
-        fun getTimeStamp(): String {
+        fun getTimeStamp(): CharSequence {
             val updateInterval = 500 * MILLIS_TO_NANOS
             val time = Time.nanoTime / updateInterval
             synchronized(Unit) {
-                if (!(time == lastTime && lastString.isNotEmpty())) {
+                if (!(time == lastTime && lastTimeStr.isNotEmpty())) {
                     val calendar = Calendar.getInstance()
                     val seconds = calendar.get(Calendar.SECOND)
                     val minutes = calendar.get(Calendar.MINUTE)
                     val hours = calendar.get(Calendar.HOUR_OF_DAY)
+                    formatTime(hours, minutes, seconds)
                     lastTime = time
-                    lastString = "%2d:%2d:%2d".format(hours, minutes, seconds)
-                        .replace(' ', '0')
                 }
             }
-            return lastString
+            return lastTimeStr
+        }
+
+        private fun formatTime(h: Int, m: Int, s: Int) {
+            if (lastTimeStr.isEmpty()) {
+                lastTimeStr.append("hh:mm:ss")
+            }
+            formatTime(h, 0)
+            formatTime(m, 3)
+            formatTime(s, 6)
+        }
+
+        private fun formatTime(h: Int, i: Int) {
+            lastTimeStr[i] = '0' + (h / 10)
+            lastTimeStr[i + 1] = '0' + (h % 10)
         }
     }
 }

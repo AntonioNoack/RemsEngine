@@ -22,6 +22,7 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 
 /**
  * cheap and easy night effect;
@@ -43,8 +44,8 @@ class NightNode : RenderViewNode(
     }
 
     override fun executeAction() {
-        val strength = getInput(1) as Float
-        val skyDarkening = getInput(2) as Float
+        val strength = getFloatInput(1)
+        val skyDarkening = getFloatInput(2)
         val color0 = getInput(3) as? Texture
         val color = (color0?.tex as? Texture2D)
         val depth = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: depthTexture

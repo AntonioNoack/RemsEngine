@@ -15,6 +15,7 @@ import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) :
@@ -29,7 +30,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
 
     override fun executeAction() {
         val color = getInput(1) as? Texture
-        val strength = getInput(2) as Float
+        val strength = getFloatInput(2)
         val result = if (strength != 0f) {
             val source = (color?.tex as? Texture2D) ?: return
             val result = FBStack[name, source.width, source.height, 4, true, 1, DepthBufferType.NONE]

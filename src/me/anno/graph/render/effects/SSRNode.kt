@@ -8,6 +8,9 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.Color.black4
 import org.joml.Vector4f
@@ -44,15 +47,15 @@ class SSRNode : ActionNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val strength = getInput(3) as Float
-        val maskSharpness = getInput(4) as Float
-        val wallThickness = getInput(5) as Float
-        val fineSteps = getInput(6) as Int // 10
-        val applyToneMapping = getInput(7) == true
+        val strength = getFloatInput(3)
+        val maskSharpness = getFloatInput(4)
+        val wallThickness = getFloatInput(5)
+        val fineSteps = getIntInput(6) // 10
+        val applyToneMapping = getBoolInput(7)
 
         val illuminated = (getInput(8) as? Texture)?.tex ?: return
 

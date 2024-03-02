@@ -28,6 +28,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
@@ -156,9 +157,9 @@ class RenderLightsNode : RenderViewNode(
         // default output in case of error
         setOutput(1, null)
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        val samples = getIntInput(3)
         if (width < 1 || height < 1 || samples < 1) return
 
         val depthTexture0 = getInput(depthIndex) as? Texture

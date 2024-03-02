@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -13,8 +14,8 @@ class CombineVector2f : CalculationNode("Combine Vector2f", inputs, outputs) {
     }
 
     override fun calculate(): Vector2f {
-        val x = getInput(0) as Float
-        val y = getInput(1) as Float
+        val x = getFloatInput(0)
+        val y = getFloatInput(1)
         return Vector2f(x, y)
     }
 
@@ -34,9 +35,9 @@ class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs) {
     }
 
     override fun calculate(): Vector3f {
-        val x = getInput(0) as Float
-        val y = getInput(1) as Float
-        val z = getInput(2) as Float
+        val x = getFloatInput(0)
+        val y = getFloatInput(1)
+        val z = getFloatInput(2)
         return Vector3f(x, y, z)
     }
 
@@ -57,10 +58,10 @@ class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs) {
     }
 
     override fun calculate(): Vector4f {
-        val x = getInput(0) as Float
-        val y = getInput(1) as Float
-        val z = getInput(2) as Float
-        val w = getInput(3) as Float
+        val x = getFloatInput(0)
+        val y = getFloatInput(1)
+        val z = getFloatInput(2)
+        val w = getFloatInput(3)
         return Vector4f(x, y, z, w)
     }
 

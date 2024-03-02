@@ -7,6 +7,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 /**
@@ -26,8 +27,8 @@ class FXAANode : ActionNode(
     }
 
     override fun executeAction() {
-        val threshold = getInput(1) as Float
-        val color = ((getInput(2) as? Texture)?.tex as? Texture2D) ?: return
+        val threshold = getFloatInput(1)
+        val color = ((getInput(2) as? Texture)?.tex as? Texture2D) ?: return // ignored tint!!
         val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             FXAA.render(color, threshold)

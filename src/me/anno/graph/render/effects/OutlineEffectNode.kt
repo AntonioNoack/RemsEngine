@@ -12,6 +12,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import org.joml.Vector4f
 import kotlin.math.min
 
@@ -46,11 +47,11 @@ class OutlineEffectNode : RenderViewNode(
     }
 
     override fun executeAction() {
-        val w = getInput(1) as Int
-        val h = getInput(2) as Int
+        val w = getIntInput(1)
+        val h = getIntInput(2)
         // not really supported...
-        val samples = getInput(3) as Int
-        val radius = getInput(4) as Int
+        val samples = getIntInput(3)
+        val radius = getIntInput(4)
         val idsTex = getInput(9) as? Texture ?: return
         val colorTex = getInput(8) as? Texture ?: return
         val groupIds = getInput(5) as? IntArray ?: return

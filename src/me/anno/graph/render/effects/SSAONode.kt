@@ -5,6 +5,9 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.Color.black4
 
@@ -29,12 +32,12 @@ class SSAONode : ActionNode(
 
     override fun executeAction() {
 
-        val samples = getInput(1) as Int
+        val samples = getIntInput(1)
         if (samples < 1) return fail()
 
-        val strength = getInput(2) as Float
-        val radiusScale = getInput(3) as Float
-        val blur = getInput(4) == true
+        val strength = getFloatInput(2)
+        val radiusScale = getFloatInput(3)
+        val blur = getBoolInput(4)
 
         val normal = getInput(5) as? Texture ?: return fail()
         val normalZW = normal.mapping == "zw"

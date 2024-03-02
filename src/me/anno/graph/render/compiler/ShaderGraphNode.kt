@@ -18,6 +18,7 @@ import me.anno.graph.render.scene.UVNode
 import me.anno.graph.render.scene.UViNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
@@ -178,10 +179,10 @@ class ShaderGraphNode : ActionNode(
             override val currentShader: Shader get() = shader
         }.shader
         this.shader = shader
-        val w = getInput(1) as Int
-        val h = getInput(2) as Int
-        val channels = clamp(getInput(3) as Int, 1, 4)
-        val samples = getInput(4) as Int
+        val w = getIntInput(1)
+        val h = getIntInput(2)
+        val channels = clamp(getIntInput(3), 1, 4)
+        val samples = getIntInput(4)
         var buffer = buffer
         if (buffer == null || buffer.width != w || buffer.height != h) {
             buffer?.destroy()

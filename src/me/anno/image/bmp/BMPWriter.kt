@@ -7,20 +7,18 @@ import me.anno.image.Image
  * */
 object BMPWriter {
 
-    const val pixelDataStart = 0x7a
+    private const val HEADER_SIZE = 0x7a
 
     fun calculateSize(img: Image): Long {
-        return pixelDataStart + img.width * img.height * 4L
+        return HEADER_SIZE + img.width * img.height * 4L
     }
 
     fun createBMP(img: Image): ByteArray {
-        val width = img.width
-        val height = img.height
-        val dst = createBMPHeader(width, height)
+        val dst = createBMPHeader(img)
         // a lot of zeros
-        var j = pixelDataStart
-        for (y in 0 until height) {
-            for (x in 0 until width) {
+        var j = HEADER_SIZE
+        for (y in 0 until img.height) {
+            for (x in 0 until img.width) {
                 val color = img.getRGB(x, y)
                 dst[j++] = color.toByte()
                 dst[j++] = (color shr 8).toByte()
@@ -31,8 +29,8 @@ object BMPWriter {
         return dst
     }
 
-    private fun createBMPHeader(width: Int, height: Int): ByteArray {
-        val dst = ByteArray(pixelDataStart + width * height * 4)
+    private fun createBMPHeader(img: Image): ByteArray {
+        val dst = ByteArray(calculateSize(img).toInt())
         // BM
         dst[0] = 0x42
         dst[1] = 0x4d
@@ -49,14 +47,14 @@ object BMPWriter {
         }
         write32(dst.size, 2)
         // 4 bytes unused
-        write32(pixelDataStart, 0xA)
+        write32(HEADER_SIZE, 0xA)
         write32(0x6C, 0xE) // bytes in the DIB header
-        write32(+width, 0x12)
-        write32(-height, 0x16) // flip upside down
+        write32(+img.width, 0x12)
+        write32(-img.height, 0x16) // flip upside down
         write16(1, 0x1A) // 1 plane
         write16(32, 0x1C) // 32 bits
         write32(3, 0x1E) // no compression used
-        write32(width * height * 4, 0x22) // size of the data
+        write32(dst.size - HEADER_SIZE, 0x22) // size of the data
         val pixelsPerMeterForPrinting = 2835 // 72 DPI
         write32(pixelsPerMeterForPrinting, 0x26)
         write32(pixelsPerMeterForPrinting, 0x2A)

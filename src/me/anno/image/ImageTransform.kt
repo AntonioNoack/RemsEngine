@@ -4,7 +4,20 @@ import org.joml.Matrix4f
 import kotlin.math.PI
 import kotlin.math.abs
 
-class ImageTransform(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val angleCW: Int) {
+/**
+ * Image files with EXIF metadata can be stored differently to what they should be displayed at.
+ * This class stores possible transforms like that.
+ * */
+class ImageTransform(
+    /**
+     * whether the image needs to be mirrored
+     * */
+    val mirrorHorizontal: Boolean, val mirrorVertical: Boolean,
+    /**
+     * angle, clock-wise, in degrees
+     * */
+    val angleCW: Int
+) {
     @Suppress("unused")
     val switchWH get() = (abs(angleCW) % 180) > 45
     private val angleRadians = -(PI * angleCW / 180).toFloat() // CCW

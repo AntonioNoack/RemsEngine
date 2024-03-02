@@ -165,7 +165,7 @@ object Strings {
     @JvmStatic
     fun Double.formatTime(fractions: Int = 0): String {
         val fractionString = if (fractions > 0) {
-            "%.${fractions}f".format(Locale.ENGLISH, fract(this)).substring(1)
+            NumberFormatter.formatFloat(fract(this), fractions, false).substring(1)
         } else ""
         val seconds = toLong()
         if (seconds < 60) return "${seconds}${fractionString}s"
@@ -177,7 +177,7 @@ object Strings {
     fun Double?.formatTime2(fractions: Int): String {
         if (this == null || this.isNaN()) return "Unknown"
         if (fractions > 0) {
-            val fractionString = "%.${fractions}f".format(Locale.ENGLISH, fract(this))
+            val fractionString = NumberFormatter.formatFloat(fract(this), fractions, false)
             return formatTime2(0) + fractionString.substring(1)
         }
         val seconds = toLong()

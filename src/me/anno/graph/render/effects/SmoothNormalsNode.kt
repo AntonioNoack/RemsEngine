@@ -17,6 +17,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 class SmoothNormalsNode : ActionNode(
@@ -33,7 +34,7 @@ class SmoothNormalsNode : ActionNode(
     }
 
     override fun executeAction() {
-        val radius = getInput(1) as Float
+        val radius = getFloatInput(1)
         val normalTex = getInput(2) as? Texture ?: return
         val normal = normalTex.tex
         val depth = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: return

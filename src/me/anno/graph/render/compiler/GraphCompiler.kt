@@ -32,6 +32,7 @@ import me.anno.graph.render.Texture
 import me.anno.graph.render.TextureNode
 import me.anno.graph.render.scene.TextureNode2
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
@@ -476,7 +477,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             g.invalidate()
                             g.lastInvalidation = time1
                         }
-                        val time = node.getInput(2) as Float
+                        val time = node.getFloatInput(2)
                         val frameCount = max(1, meta.videoFrameCount)
                         var frameIndex = (time * meta.videoFPS).toInt() % frameCount
                         if (frameIndex < 0) frameIndex += frameCount

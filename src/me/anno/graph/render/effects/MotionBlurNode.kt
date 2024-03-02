@@ -17,6 +17,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 class MotionBlurNode : ActionNode(
@@ -43,8 +45,8 @@ class MotionBlurNode : ActionNode(
 
     override fun executeAction() {
 
-        val samples = getInput(1) as Int
-        val shutter = getInput(2) as Float
+        val samples = getIntInput(1)
+        val shutter = getFloatInput(2)
         val color = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: missingTexture
         val motion = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: blackTexture
 

@@ -12,6 +12,8 @@ import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
 
 /**
@@ -49,11 +51,11 @@ class FSR1Node : ActionNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val sharpness = getInput(3) as Float
+        val sharpness = getFloatInput(3)
         val color = (getInput(4) as? Texture)?.tex ?: whiteTexture
 
         useFrame(width, height, true, f0, copyRenderer) {

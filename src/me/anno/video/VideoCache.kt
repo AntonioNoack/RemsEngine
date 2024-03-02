@@ -1,10 +1,10 @@
 package me.anno.video
 
 import me.anno.cache.CacheSection
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep
-import me.anno.io.MediaMetadata
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -100,6 +100,7 @@ object VideoCache : CacheSection("Videos") {
     /**
      * returned frames are guaranteed to be created
      * */
+    @Suppress("unused")
     fun getVideoFrameWithoutGenerator(
         meta: MediaMetadata, index: Int,
         bufferLength0: Int, fps: Double
@@ -109,7 +110,8 @@ object VideoCache : CacheSection("Videos") {
         val bufferIndex = index / bufferLength
         val async = true
         val getProxyFile = getProxyFileDontUpdate
-        for (scale in 1..4) { // todo scale is weird... shouldn't it be 4^i?
+        for (scaleI in 1..4) {
+            val scale = 1 shl (scaleI * 2)
             if (getProxyFile != null && useProxy(scale, bufferLength0, meta)) {
                 val slice0 = index / framesPerSlice
                 val file2 = getProxyFile(meta.file, slice0)
@@ -121,9 +123,10 @@ object VideoCache : CacheSection("Videos") {
                     }
                 }
             }
-            val frame =
-                getVideoFrameWithoutGenerator(meta.file, scale, index, bufferIndex, bufferLength, fps)
-            if (frame != null) return frame
+            return getVideoFrameWithoutGenerator(
+                meta.file, scale, index,
+                bufferIndex, bufferLength, fps
+            ) ?: continue
         }
         return null
     }

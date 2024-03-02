@@ -12,6 +12,8 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 
 class RenderSceneForwardNode : RenderViewNode(
     "Render Scene",
@@ -56,15 +58,15 @@ class RenderSceneForwardNode : RenderViewNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        val samples = getIntInput(3)
         if (width < 1 || height < 1 || samples < 1) return
 
         val stage = getInput(4) as PipelineStage
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getInput(7) == true
+        val applyToneMapping = getBoolInput(7)
 
         val framebuffer = FBStack["scene-forward",
             width, height, TargetType.Float16x4,
@@ -74,10 +76,10 @@ class RenderSceneForwardNode : RenderViewNode(
 
         // if skybox is not used, bake it anyway?
         // -> yes, the pipeline architect (^^) has to be careful
-        val skyboxResolution = getInput(8) as Int
+        val skyboxResolution = getIntInput(8)
         pipeline.bakeSkybox(skyboxResolution)
 
-        val drawSky = getInput(9) as Int
+        val drawSky = getIntInput(9)
         val prepassColor = (getInput(10) as? Texture)?.tex
         val prepassDepth = (getInput(11) as? Texture)?.tex
 

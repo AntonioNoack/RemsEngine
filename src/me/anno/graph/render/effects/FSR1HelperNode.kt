@@ -1,5 +1,7 @@
 package me.anno.graph.render.effects
 
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.maths.Maths.clamp
 
@@ -20,9 +22,9 @@ class FSR1HelperNode : ActionNode(
     }
 
     override fun executeAction() {
-        val w = getInput(1) as Int
-        val h = getInput(2) as Int
-        val f = clamp(getInput(3) as Float)
+        val w = getIntInput(1)
+        val h = getIntInput(2)
+        val f = clamp(getFloatInput(3))
         setOutput(1, (w * f).toInt())
         setOutput(2, (h * f).toInt())
         setOutput(3, w)

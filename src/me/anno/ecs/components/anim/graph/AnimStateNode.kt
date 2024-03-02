@@ -6,6 +6,9 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFileInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.states.StateNode
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -68,11 +71,11 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     }
 
     private fun canReturnAnyTime(): Boolean {
-        return getInput(FORCE_ONCE) != true
+        return !getBoolInput(FORCE_ONCE)
     }
 
     private fun hasReachedEnd(): Boolean {
-        val fade = getInput(FADE) as Float
+        val fade = getFloatInput(FADE)
         val goodEndTime = getDuration() - 3f / fade
         return progress > goodEndTime
     }
@@ -83,9 +86,9 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         val time = Time.gameTimeN
         if (time == lastTime) return
 
-        val source = getInput(SOURCE) as FileReference
-        val speed = getInput(SPEED) as Float
-        val loop = getInput(LOOP) as Boolean
+        val source = getFileInput(SOURCE)
+        val speed = getFloatInput(SPEED)
+        val loop = getBoolInput(LOOP)
         val dt = (time - lastTime) * speed / 1e9f
         lastTime = time
 
@@ -100,7 +103,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         }
 
         val animations = target.animations
-        val fade = getInput(FADE) as Float
+        val fade = getFloatInput(FADE)
         val fade01 = dtTo01(fade * dt)
 
         // fade animations in/out

@@ -1,9 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.Locale
+import me.anno.utils.types.NumberFormatter.formatFloat
 import kotlin.math.PI
 
 object Floats {
@@ -15,112 +13,103 @@ object Floats {
     private const val x180fPid = 180.0 / PI
 
     @JvmStatic
-    fun Float.toDegrees() = this * x180fPif
+    fun Float.toDegrees(): Float = this * x180fPif
 
     @JvmStatic
-    fun Float.toRadians() = this * piF180f
+    fun Float.toRadians(): Float = this * piF180f
 
     @JvmStatic
-    fun Double.toDegrees() = this * x180fPid
+    fun Double.toDegrees(): Double = this * x180fPid
 
     @JvmStatic
-    fun Double.toRadians() = this * piF180d
+    fun Double.toRadians(): Double = this * piF180d
 
     @JvmStatic
-    fun Float.f6(): String = "%.6f".format(Locale.ENGLISH, this)
+    fun Float.f6(): String = formatFloat(toDouble(), 6, false)
 
     @JvmStatic
-    fun Float.f5(): String = "%.5f".format(Locale.ENGLISH, this)
+    fun Float.f5(): String = formatFloat(toDouble(), 5, false)
 
     @JvmStatic
-    fun Float.f4(): String = "%.4f".format(Locale.ENGLISH, this)
+    fun Float.f4(): String = formatFloat(toDouble(), 4, false)
 
     @JvmStatic
-    fun Float.f3(): String = "%.3f".format(Locale.ENGLISH, this)
+    fun Float.f3(): String = formatFloat(toDouble(), 3, false)
 
     @JvmStatic
-    fun Float.f2(): String = "%.2f".format(Locale.ENGLISH, this)
+    fun Float.f2(): String = formatFloat(toDouble(), 2, false)
 
     @JvmStatic
-    fun Float.f1(): String = f1.format(this.toDouble())
+    fun Float.f1(): String = formatFloat(toDouble(), 1, false)
 
     @JvmStatic
-    fun Double.f6(): String = "%.6f".format(Locale.ENGLISH, this)
+    fun Double.f6(): String = formatFloat(this, 6, false)
 
     @JvmStatic
-    fun Double.f5(): String = "%.5f".format(Locale.ENGLISH, this)
+    fun Double.f5(): String = formatFloat(this, 5, false)
 
     @JvmStatic
-    fun Double.f4(): String = "%.4f".format(Locale.ENGLISH, this)
+    fun Double.f4(): String = formatFloat(this, 4, false)
 
     @JvmStatic
-    fun Double.f3(): String = "%.3f".format(Locale.ENGLISH, this)
+    fun Double.f3(): String = formatFloat(this, 3, false)
 
     @JvmStatic
-    fun Double.f2(): String = "%.2f".format(Locale.ENGLISH, this)
+    fun Double.f2(): String = formatFloat(this, 2, false)
 
     @JvmStatic
-    fun Double.f1(): String = f1.format(this)
+    fun Double.f1(): String = formatFloat(this, 1, false)
 
     @JvmStatic
-    fun Float.f6s(): String = "% .6f".format(Locale.ENGLISH, this)
+    fun Float.f6s(): String = formatFloat(toDouble(), 6, true)
 
     @JvmStatic
-    fun Float.f5s(): String = "% .5f".format(Locale.ENGLISH, this)
+    fun Float.f5s(): String = formatFloat(toDouble(), 5, true)
 
     @JvmStatic
-    fun Float.f4s(): String = "% .4f".format(Locale.ENGLISH, this)
+    fun Float.f4s(): String = formatFloat(toDouble(), 4, true)
 
     @JvmStatic
-    fun Float.f3s(): String = "% .3f".format(Locale.ENGLISH, this)
+    fun Float.f3s(): String = formatFloat(toDouble(), 3, true)
 
     @JvmStatic
-    fun Float.f2s(): String = "% .2f".format(Locale.ENGLISH, this)
+    fun Float.f2s(): String = formatFloat(toDouble(), 2, true)
 
     @JvmStatic
-    fun Float.f2x(): String = "% .2f".format(Locale.ENGLISH, this).replace("-0.00", " 0.00")
+    fun Float.f2x(): String = f2s().replace("-0.00", " 0.00")
 
     @JvmStatic
-    fun Float.f1s(): String = f1s.format(toDouble())
+    fun Float.f1s(): String = formatFloat(toDouble(), 1, true)
 
     @JvmStatic
-    fun Double.f6s(): String = "% .6f".format(Locale.ENGLISH, this)
+    fun Double.f6s(): String = formatFloat(this, 6, true)
 
     @JvmStatic
-    fun Double.f5s(): String = "% .5f".format(Locale.ENGLISH, this)
+    fun Double.f5s(): String = formatFloat(this, 5, true)
 
     @JvmStatic
-    fun Double.f4s(): String = "% .4f".format(Locale.ENGLISH, this)
+    fun Double.f4s(): String = formatFloat(this, 4, true)
 
     @JvmStatic
-    fun Double.f3s(): String = "% .3f".format(Locale.ENGLISH, this)
+    fun Double.f3s(): String = formatFloat(this, 3, true)
 
     @JvmStatic
-    fun Double.f2s(): String = "% .2f".format(Locale.ENGLISH, this)
+    fun Double.f2s(): String = formatFloat(this, 2, true)
 
     @JvmStatic
-    fun Double.f1s(): String = f1s.format(this)
+    fun Double.f1s(): String = formatFloat(this, 1, true)
 
     @JvmStatic
-    private val f1Symbols = DecimalFormatSymbols(Locale.ENGLISH)
+    fun formatPercent(progress: Int, total: Int): String = formatPercent(progress.toLong(), total.toLong())
 
     @JvmStatic
-    private val f1 = DecimalFormat("0.0", f1Symbols).apply { maximumFractionDigits = 1 }
+    fun formatPercent(progress: Long, total: Long): String = (progress.toDouble() / total.toDouble()).formatPercent()
 
     @JvmStatic
-    private val f1s = DecimalFormat(" 0.0;-0.0", f1Symbols).apply { maximumFractionDigits = 1 }
+    fun Float.formatPercent(): String = toDouble().formatPercent()
 
     @JvmStatic
-    fun formatPercent(progress: Int, total: Int) = (progress.toDouble() / total.toDouble()).formatPercent()
-
-    @JvmStatic
-    fun formatPercent(progress: Long, total: Long) = (progress.toDouble() / total.toDouble()).formatPercent()
-
-    @JvmStatic
-    fun Float.formatPercent() = toDouble().formatPercent()
-
-    @JvmStatic
-    fun Double.formatPercent() = Maths.clamp(this * 100.0, 0.0, 100.0).f1()
+    fun Double.formatPercent(): String = Maths.clamp(this * 100.0, 0.0, 100.0).f1()
 
     @JvmStatic
     infix fun ClosedFloatingPointRange<Float>.step(step: Float): Iterator<Float> {

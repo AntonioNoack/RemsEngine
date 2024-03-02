@@ -1,6 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import org.joml.Matrix3f
 import org.joml.Vector3f
@@ -19,7 +20,7 @@ class NormalMap : CalculationNode(
         val normal = getInput(0) as Vector3f
         val tangent = getInput(1) as Vector3f
         val bitangent = getInput(2) as Vector3f
-        val strength = getInput(3) as Float
+        val strength = getFloatInput(3)
         val rgb = getInput(4) as Vector3f
         val m = Matrix3f(tangent, bitangent, normal)
         val normalFromTex = Vector3f(rgb).mul(2f).sub(1f, 1f, 1f).mul(m) // transpose??

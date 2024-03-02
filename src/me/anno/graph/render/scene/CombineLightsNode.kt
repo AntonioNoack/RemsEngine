@@ -25,6 +25,8 @@ import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 
 /**
@@ -120,12 +122,12 @@ class CombineLightsNode : RenderViewNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        val samples = getIntInput(3)
         if (width < 1 || height < 1 || samples < 1) return
 
-        val applyToneMapping = getInput(4) == true
+        val applyToneMapping = getBoolInput(4)
 
         val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, DepthBufferType.NONE]
         val renderer = Renderer.copyRenderer

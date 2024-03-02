@@ -116,7 +116,7 @@ fun main() {
         return player
     }
 
-    val selfName = LoggerImpl.getTimeStamp()
+    val selfName = LoggerImpl.getTimeStamp().toString()
 
     val playerMap = HashMap<String, Entity>()
     val onPlayerUpdate: (PlayerUpdatePacket) -> Unit = { p ->

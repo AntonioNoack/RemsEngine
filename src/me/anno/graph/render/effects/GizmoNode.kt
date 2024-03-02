@@ -16,6 +16,8 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 
 class GizmoNode : RenderViewNode(
     "Gizmos",
@@ -46,14 +48,14 @@ class GizmoNode : RenderViewNode(
 
     override fun executeAction() {
 
-        val width = getInput(1) as Int
-        val height = getInput(2) as Int
-        val samples = getInput(3) as Int
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        val samples = getIntInput(3)
         if (width < 1 || height < 1 || samples < 1) return
 
-        var grid = getInput(4) as Int
-        val aabbs = getInput(5) == true
-        val debug = getInput(6) == true
+        var grid = getIntInput(4)
+        val aabbs = getBoolInput(5)
+        val debug = getBoolInput(6)
 
         if (grid == -1) {
             grid = renderView.drawGridWhenEditing

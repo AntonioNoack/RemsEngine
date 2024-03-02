@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
+import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
@@ -21,7 +22,7 @@ class FresnelNode3 : CalculationNode(
     override fun calculate(): Float {
         val a = getInput(0) as Vector3f
         val b = getInput(1) as Vector3f
-        val p = getInput(2) as Float
+        val p = getFloatInput(2)
         return pow(max(-a.dot(b) / a.length(), 0f), p)
     }
 
