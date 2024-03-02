@@ -131,7 +131,7 @@ fun main() {
     for (i in 0 until n) {
         boid.positions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s)
         boid.directions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize()
-        for (ji in 0 until m) { // todo prevent duplicates?
+        for (ji in 0 until m) { // prevent duplicates? no, not really needed
             val j = rnd.nextInt(n - 1)
             boid.following[i * m + ji] = if (j < i) j else j + 1
         }

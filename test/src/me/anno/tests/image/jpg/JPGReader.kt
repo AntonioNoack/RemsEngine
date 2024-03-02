@@ -185,7 +185,7 @@ class JPGReader {
     var codeBits = 0
     var codeBuffer = 0
     var nomore = false
-    var todo = 0
+    var remaining = 0
     var eobRun = 0
     var imgMcuX = 0
     var imgMcuY = 0
@@ -677,7 +677,7 @@ class JPGReader {
         for (i in 0 until 4)
             imgComp[i].dcPred = 0
         marker = MARKER_NONE
-        todo = if (restartInterval > 0) restartInterval else Int.MAX_VALUE
+        remaining = if (restartInterval > 0) restartInterval else Int.MAX_VALUE
         eobRun = 0
     }
 
@@ -718,7 +718,7 @@ class JPGReader {
                         val ha = comp.acIndex
                         decodeBlock(input, idct0, huffDc[comp.dcIndex], huffAc[ha], fastAc[ha], n, deq[comp.tqIndex])
                         inverseDiscreteCosineTransform(comp.data, comp.w2 * j * 8 + i * 8, comp.w2, idct0, 0)
-                        if (--todo <= 0) {
+                        if (--remaining <= 0) {
                             if (codeBits < 24) growBufferUnsafe(input)
                             if (!restart(marker)) return
                             reset()
@@ -743,7 +743,7 @@ class JPGReader {
                                 }
                             }
                         }
-                        if (--todo <= 0) {
+                        if (--remaining <= 0) {
                             if (codeBits < 24) growBufferUnsafe(input)
                             if (!restart(marker)) return
                             reset()
@@ -758,14 +758,14 @@ class JPGReader {
                 val comp = imgComp[n]
                 val w = (comp.x + 7) shr 3
                 val h = (comp.y + 7) shr 3
-                println("p1/$w/$h/$todo")
+                println("p1/$w/$h/$remaining")
                 for (j in 0 until h) {
                     for (i in 0 until w) {
                         val data = comp.coeff
                         val dataOffset = 64 * (i + j * comp.coeffW)
                         if (specStart == 0) decodeBlockProgDc(input, data, dataOffset, huffDc[comp.dcIndex], n)
                         else decodeBlockProgAc(input, data, dataOffset, huffAc[comp.acIndex], fastAc[comp.acIndex])
-                        if (--todo <= 0) {
+                        if (--remaining <= 0) {
                             if (codeBits < 24) growBufferUnsafe(input)
                             if (!restart(marker)) return
                             reset()
@@ -789,7 +789,7 @@ class JPGReader {
                                 }
                             }
                         }
-                        if (--todo <= 0) {
+                        if (--remaining <= 0) {
                             if (codeBits < 24) growBufferUnsafe(input)
                             if (!restart(marker)) return
                             reset()

@@ -252,6 +252,13 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private inline fun <reified Type> readArray(
+        typeName: SimpleType, a0: Type,
+        crossinline readValue: () -> Type,
+    ): Array<Type> {
+        return readArray(typeName.array, a0, readValue)
+    }
+
+    private inline fun <reified Type> readArray(
         typeName: String, a0: Type,
         crossinline readValue: () -> Type,
     ): Array<Type> {
@@ -259,6 +266,13 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             { Array(it) { a0 } },
             { array, index -> array[index] = readValue() }
         )
+    }
+
+    private inline fun <reified Type2> readArray2D(
+        typeName: SimpleType, sampleArray: Array<Type2>,
+        crossinline readValue: () -> Type2,
+    ): Array<Array<Type2>> {
+        return readArray2D(typeName.array2d, sampleArray, readValue)
     }
 
     private inline fun <reified Type2> readArray2D(
@@ -815,126 +829,6 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
         var (type, name) = splitTypeName(typeName)
         when (type) {
-            "i1", SimpleType.BOOLEAN.scalar -> obj.setProperty(name, readBool())
-            SimpleType.CHAR.scalar -> obj.setProperty(name, readChar())
-            "i8", SimpleType.BYTE.scalar -> obj.setProperty(name, readByte())
-            "i16", SimpleType.SHORT.scalar -> obj.setProperty(name, readShort())
-            "i32", "i", "col" -> obj.setProperty(name, readInt())
-            "u64", "l", "i64" -> obj.setProperty(name, readLong())
-            "f32", "f" -> obj.setProperty(name, readFloat())
-            "f64", "d" -> obj.setProperty(name, readDouble())
-            "i1[]", "b[]" -> obj.setProperty(name, readBoolArray())
-            "i1[][]", "b[][]" -> obj.setProperty(name, readArray("bool[]", boolArray0) { readBoolArray() })
-            "c[]" -> obj.setProperty(name, readCharArray())
-            "c[][]" -> obj.setProperty(name, readArray("char[]", charArray0) { readCharArray() })
-            "i8[]", "B[]" -> obj.setProperty(name, readByteArray())
-            "i8[][]", "B[][]" -> obj.setProperty(name, readArray("byte[]", byteArray0) { readByteArray() })
-            "i16[]", "s[]" -> obj.setProperty(name, readShortArray())
-            "i16[][]", "s[][]" -> obj.setProperty(name, readArray("short[]", shortArray0) { readShortArray() })
-            "i32[]", "i[]", "col[]" -> obj.setProperty(name, readIntArray())
-            "i32[][]", "i[][]", "col[][]" -> obj.setProperty(name, readArray("int[]", intArray0) { readIntArray() })
-            "i64[]", "u64[]", SimpleType.LONG.array ->
-                obj.setProperty(name, readLongArray())
-            "i64[][]", "u64[][]", SimpleType.LONG.array2d ->
-                obj.setProperty(name, readArray("long[]", longArray0) { readLongArray() })
-            "f32[]", SimpleType.FLOAT.array ->
-                obj.setProperty(name, readFloatArray())
-            "f32[][]", SimpleType.FLOAT.array2d ->
-                obj.setProperty(name, readArray("float[]", floatArray0) { readFloatArray() })
-            SimpleType.DOUBLE.array ->
-                obj.setProperty(name, readDoubleArray())
-            SimpleType.DOUBLE.array2d ->
-                obj.setProperty(name, readArray("double[]", doubleArray0) { readDoubleArray() })
-            SimpleType.VECTOR2F.scalar -> obj.setProperty(name, readVector2f())
-            SimpleType.VECTOR3F.scalar -> obj.setProperty(name, readVector3f())
-            SimpleType.VECTOR4F.scalar -> obj.setProperty(name, readVector4f())
-            SimpleType.VECTOR2D.scalar -> obj.setProperty(name, readVector2d())
-            SimpleType.VECTOR3D.scalar -> obj.setProperty(name, readVector3d())
-            SimpleType.VECTOR4D.scalar -> obj.setProperty(name, readVector4d())
-            SimpleType.VECTOR2I.scalar -> obj.setProperty(name, readVector2i())
-            SimpleType.VECTOR3I.scalar -> obj.setProperty(name, readVector3i())
-            SimpleType.VECTOR4I.scalar -> obj.setProperty(name, readVector4i())
-            SimpleType.VECTOR2F.array ->
-                obj.setProperty(name, readArray("vector2f", vector2f0) { readVector2f() })
-            SimpleType.VECTOR3F.array ->
-                obj.setProperty(name, readArray("vector3f", vector3f0) { readVector3f() })
-            SimpleType.VECTOR4F.array ->
-                obj.setProperty(name, readArray("vector4f", vector4f0) { readVector4f() })
-            SimpleType.VECTOR2D.array ->
-                obj.setProperty(name, readArray("vector2d", vector2d0) { readVector2d() })
-            SimpleType.VECTOR3D.array ->
-                obj.setProperty(name, readArray("vector3d", vector3d0) { readVector3d() })
-            SimpleType.VECTOR4D.array ->
-                obj.setProperty(name, readArray("vector4d", vector4d0) { readVector4d() })
-            SimpleType.VECTOR2I.array ->
-                obj.setProperty(name, readArray("vector2i", vector2i0) { readVector2i() })
-            SimpleType.VECTOR3I.array ->
-                obj.setProperty(name, readArray("vector3i", vector3i0) { readVector3i() })
-            SimpleType.VECTOR4I.array ->
-                obj.setProperty(name, readArray("vector4i", vector4i0) { readVector4i() })
-            "v2[][]" -> obj.setProperty(name, readArray2D("vector2f[]", vector2f0a) { readVector2f() })
-            "v3[][]" -> obj.setProperty(name, readArray2D("vector3f[]", vector3f0a) { readVector3f() })
-            "v4[][]" -> obj.setProperty(name, readArray2D("vector4f[]", vector4f0a) { readVector4f() })
-            "v2d[][]" -> obj.setProperty(name, readArray2D("vector2d[]", vector2d0a) { readVector2d() })
-            "v3d[][]" -> obj.setProperty(name, readArray2D("vector3d[]", vector3d0a) { readVector3d() })
-            "v4d[][]" -> obj.setProperty(name, readArray2D("vector4d[]", vector4d0a) { readVector4d() })
-            "v2i[][]" -> obj.setProperty(name, readArray2D("vector2i[]", vector2i0a) { readVector2i() })
-            "v3i[][]" -> obj.setProperty(name, readArray2D("vector3i[]", vector3i0a) { readVector3i() })
-            "v4i[][]" -> obj.setProperty(name, readArray2D("vector4i[]", vector4i0a) { readVector4i() })
-            "m2x2" -> obj.setProperty(name, readMatrix2x2())
-            "m3x2" -> obj.setProperty(name, readMatrix3x2())
-            "m3x3" -> obj.setProperty(name, readMatrix3x3())
-            "m4x3" -> obj.setProperty(name, readMatrix4x3())
-            "m4x4" -> obj.setProperty(name, readMatrix4x4())
-            "m2x2[]" -> obj.setProperty(name, readArray("m2x2", matrix2x2) { readMatrix2x2() })
-            "m3x2[]" -> obj.setProperty(name, readArray("m3x2", matrix3x2) { readMatrix3x2() })
-            "m3x3[]" -> obj.setProperty(name, readArray("m3x3", matrix3x3) { readMatrix3x3() })
-            "m4x3[]" -> obj.setProperty(name, readArray("m4x3", matrix4x3) { readMatrix4x3() })
-            "m4x4[]" -> obj.setProperty(name, readArray("m4x4", matrix4x4) { readMatrix4x4() })
-            "m2x2[][]" -> obj.setProperty(name, readArray2D("m2x2", matrix2x2a) { readMatrix2x2() })
-            "m3x2[][]" -> obj.setProperty(name, readArray2D("m3x2", matrix3x2a) { readMatrix3x2() })
-            "m3x3[][]" -> obj.setProperty(name, readArray2D("m3x3", matrix3x3a) { readMatrix3x3() })
-            "m4x3[][]" -> obj.setProperty(name, readArray2D("m4x3", matrix4x3a) { readMatrix4x3() })
-            "m4x4[][]" -> obj.setProperty(name, readArray2D("m4x4", matrix4x4a) { readMatrix4x4() })
-            "m2x2d" -> obj.setProperty(name, readMatrix2x2d())
-            "m3x2d" -> obj.setProperty(name, readMatrix3x2d())
-            "m3x3d" -> obj.setProperty(name, readMatrix3x3d())
-            "m4x3d" -> obj.setProperty(name, readMatrix4x3d())
-            "m4x4d" -> obj.setProperty(name, readMatrix4x4d())
-            "m2x2d[]" -> obj.setProperty(name, readArray("m2x2d", matrix2x2d) { readMatrix2x2d() })
-            "m3x2d[]" -> obj.setProperty(name, readArray("m3x2d", matrix3x2d) { readMatrix3x2d() })
-            "m3x3d[]" -> obj.setProperty(name, readArray("m3x3d", matrix3x3d) { readMatrix3x3d() })
-            "m4x3d[]" -> obj.setProperty(name, readArray("m4x3d", matrix4x3d) { readMatrix4x3d() })
-            "m4x4d[]" -> obj.setProperty(name, readArray("m4x4d", matrix4x4d) { readMatrix4x4d() })
-            "m2x2d[][]" -> obj.setProperty(name, readArray2D("m2x2d", matrix2x2da) { readMatrix2x2d() })
-            "m3x2d[][]" -> obj.setProperty(name, readArray2D("m3x2d", matrix3x2da) { readMatrix3x2d() })
-            "m3x3d[][]" -> obj.setProperty(name, readArray2D("m3x3d", matrix3x3da) { readMatrix3x3d() })
-            "m4x3d[][]" -> obj.setProperty(name, readArray2D("m4x3d", matrix4x3da) { readMatrix4x3d() })
-            "m4x4d[][]" -> obj.setProperty(name, readArray2D("m4x4d", matrix4x4da) { readMatrix4x4d() })
-            "AABBf" -> obj.setProperty(name, readAABBf())
-            "AABBd" -> obj.setProperty(name, readAABBd())
-            "AABBf[]" -> obj.setProperty(name, readArray("AABBf", aabbf0) { readAABBf() })
-            "AABBd[]" -> obj.setProperty(name, readArray("AABBd", aabbd0) { readAABBd() })
-            "AABBf[][]" -> obj.setProperty(name, readArray2D("AABBf", aabbf0a) { readAABBf() })
-            "AABBd[][]" -> obj.setProperty(name, readArray2D("AABBd", aabbd0a) { readAABBd() })
-            "q4" -> obj.setProperty(name, readQuaternionf())
-            "q4d" -> obj.setProperty(name, readQuaterniond())
-            "q4[]" -> obj.setProperty(name, readArray("q4", quaternionf0) { readQuaternionf() })
-            "q4d[]" -> obj.setProperty(name, readArray("q4d", quaterniond0) { readQuaterniond() })
-            "q4[][]" -> obj.setProperty(name, readArray2D("q4", quaternionf0a) { readQuaternionf() })
-            "q4d[][]" -> obj.setProperty(name, readArray2D("q4d", quaterniond0a) { readQuaterniond() })
-            "p4" -> obj.setProperty(name, readPlanef())
-            "p4d" -> obj.setProperty(name, readPlaned())
-            "p4[]" -> obj.setProperty(name, readArray("p4", planef0) { readPlanef() })
-            "p4d[]" -> obj.setProperty(name, readArray("p4d", planed0) { readPlaned() })
-            "p4[][]" -> obj.setProperty(name, readArray2D("p4", planef0a) { readPlanef() })
-            "p4d[][]" -> obj.setProperty(name, readArray2D("p4d", planed0a) { readPlaned() })
-            SimpleType.STRING.scalar -> obj.setProperty(name, readStringValue())
-            SimpleType.STRING.array -> obj.setProperty(name, readArray("String", "") { readStringValue() })
-            SimpleType.STRING.array2d -> obj.setProperty(name, readArray2D("String[]", emptyArray()) { readStringValue() })
-            "R" -> obj.setProperty(name, readFile())
-            "R[]" -> obj.setProperty(name, readArray("FileRef", InvalidRef) { readFile() })
-            "R[][]" -> obj.setProperty(name, readArray2D("FileRef", file0a) { readFile() })
             "*[]", "[]" -> {// array of mixed types
                 val elements = readArray("Any", { arrayOfNulls<Saveable?>(it) },
                     { array, index ->
@@ -948,7 +842,10 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 obj.setProperty(name, elements)
             }
             else -> {
-                if (type.endsWith("[]")) {// array, but all elements have the same type
+                val reader = readers[type]
+                if (reader != null) {
+                    reader(this, obj, name)
+                } else if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
                     val elements = readArray(type, { arrayOfNulls<Saveable?>(it) },
                         { array, index ->
@@ -1061,65 +958,67 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     companion object {
-        private val boolArray0 = BooleanArray(0)
-        private val charArray0 = CharArray(0)
-        private val shortArray0 = ShortArray(0)
-        private val byteArray0 = ByteArray(0)
-        private val intArray0 = IntArray(0)
-        private val longArray0 = LongArray(0)
-        private val floatArray0 = FloatArray(0)
-        private val doubleArray0 = DoubleArray(0)
-        private val vector2f0 = Vector2f()
-        private val vector3f0 = Vector3f()
-        private val vector4f0 = Vector4f()
-        private val vector2d0 = Vector2d()
-        private val vector3d0 = Vector3d()
-        private val vector4d0 = Vector4d()
-        private val vector2i0 = Vector2i()
-        private val vector3i0 = Vector3i()
-        private val vector4i0 = Vector4i()
-        private val matrix2x2 = Matrix2f()
-        private val matrix3x2 = Matrix3x2f()
-        private val matrix3x3 = Matrix3f()
-        private val matrix4x3 = Matrix4x3f()
-        private val matrix4x4 = Matrix4f()
-        private val matrix2x2d = Matrix2d()
-        private val matrix3x2d = Matrix3x2d()
-        private val matrix3x3d = Matrix3d()
-        private val matrix4x3d = Matrix4x3d()
-        private val matrix4x4d = Matrix4d()
-        private val aabbf0 = AABBf()
-        private val aabbd0 = AABBd()
-        private val aabbf0a = arrayOf(AABBf())
-        private val aabbd0a = arrayOf(AABBd())
-        private val planef0 = Planef()
-        private val planed0 = Planed()
-        private val planef0a = arrayOf(planef0)
-        private val planed0a = arrayOf(planed0)
-        private val quaternionf0 = Quaternionf()
-        private val quaterniond0 = Quaterniond()
-        private val quaternionf0a = arrayOf(quaternionf0)
-        private val quaterniond0a = arrayOf(quaterniond0)
-        private val vector2f0a = arrayOf(vector2f0)
-        private val vector3f0a = arrayOf(vector3f0)
-        private val vector4f0a = arrayOf(vector4f0)
-        private val vector2d0a = arrayOf(vector2d0)
-        private val vector3d0a = arrayOf(vector3d0)
-        private val vector4d0a = arrayOf(vector4d0)
-        private val vector2i0a = arrayOf(vector2i0)
-        private val vector3i0a = arrayOf(vector3i0)
-        private val vector4i0a = arrayOf(vector4i0)
-        private val matrix2x2a = arrayOf(matrix2x2)
-        private val matrix3x2a = arrayOf(matrix3x2)
-        private val matrix3x3a = arrayOf(matrix3x3)
-        private val matrix4x3a = arrayOf(matrix4x3)
-        private val matrix4x4a = arrayOf(matrix4x4)
-        private val matrix2x2da = arrayOf(matrix2x2d)
-        private val matrix3x2da = arrayOf(matrix3x2d)
-        private val matrix3x3da = arrayOf(matrix3x3d)
-        private val matrix4x3da = arrayOf(matrix4x3d)
-        private val matrix4x4da = arrayOf(matrix4x4d)
-        private val file0a = arrayOf<FileReference>(InvalidRef)
+
+        private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>()
+
+        private inline fun <reified V> registerReader(
+            type: SimpleType, v0: V,
+            crossinline reader: JsonReaderBase.() -> V
+        ) {
+            val v1 = arrayOf(v0)
+            readers[type.scalar] = { obj, name -> obj.setProperty(name, reader()) }
+            readers[type.array] = { obj, name -> obj.setProperty(name, readArray(type, v0) { reader() }) }
+            readers[type.array2d] = { obj, name -> obj.setProperty(name, readArray2D(type, v1) { reader() }) }
+        }
+
+        private inline fun <reified V, reified W> registerReader2(
+            type: SimpleType, v0: W,
+            crossinline reader1: JsonReaderBase.() -> V,
+            crossinline readerN: JsonReaderBase.() -> W
+        ) {
+            readers[type.scalar] = { obj, name -> obj.setProperty(name, reader1()) }
+            readers[type.array] = { obj, name -> obj.setProperty(name, readerN()) }
+            readers[type.array2d] = { obj, name -> obj.setProperty(name, readArray(type.array2d, v0) { readerN() }) }
+        }
+
+        init {
+            registerReader2(SimpleType.BYTE, ByteArray(0), { readByte() }, { readByteArray() })
+            registerReader2(SimpleType.SHORT, ShortArray(0), { readShort() }, { readShortArray() })
+            registerReader2(SimpleType.INT, IntArray(0), { readInt() }, { readIntArray() })
+            registerReader2(SimpleType.LONG, LongArray(0), { readLong() }, { readLongArray() })
+            registerReader2(SimpleType.FLOAT, FloatArray(0), { readFloat() }, { readFloatArray() })
+            registerReader2(SimpleType.DOUBLE, DoubleArray(0), { readDouble() }, { readDoubleArray() })
+            registerReader2(SimpleType.BOOLEAN, BooleanArray(0), { readBool() }, { readBoolArray() })
+            registerReader2(SimpleType.CHAR, CharArray(0), { readChar() }, { readCharArray() })
+            registerReader(SimpleType.STRING, "") { readStringValue() }
+            registerReader(SimpleType.REFERENCE, InvalidRef) { readFile() }
+            registerReader(SimpleType.VECTOR2F, Vector2f()) { readVector2f() }
+            registerReader(SimpleType.VECTOR3F, Vector3f()) { readVector3f() }
+            registerReader(SimpleType.VECTOR4F, Vector4f()) { readVector4f() }
+            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector2d() }
+            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector3d() }
+            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector4d() }
+            registerReader(SimpleType.VECTOR2I, Vector2i()) { readVector2i() }
+            registerReader(SimpleType.VECTOR3I, Vector3i()) { readVector3i() }
+            registerReader(SimpleType.VECTOR4I, Vector4i()) { readVector4i() }
+            registerReader(SimpleType.QUATERNIONF, Quaternionf()) { readQuaternionf() }
+            registerReader(SimpleType.QUATERNIOND, Quaterniond()) { readQuaterniond() }
+            registerReader(SimpleType.AABBF, AABBf()) { readAABBf() }
+            registerReader(SimpleType.AABBD, AABBd()) { readAABBd() }
+            registerReader(SimpleType.PLANEF, Planef()) { readPlanef() }
+            registerReader(SimpleType.PLANED, Planed()) { readPlaned() }
+            registerReader(SimpleType.MATRIX2X2F, Matrix2f()) { readMatrix2x2() }
+            registerReader(SimpleType.MATRIX3X2F, Matrix3x2f()) { readMatrix3x2() }
+            registerReader(SimpleType.MATRIX3X3F, Matrix3f()) { readMatrix3x3() }
+            registerReader(SimpleType.MATRIX4X3F, Matrix4x3f()) { readMatrix4x3() }
+            registerReader(SimpleType.MATRIX4X4F, Matrix4f()) { readMatrix4x4() }
+            registerReader(SimpleType.MATRIX2X2D, Matrix2d()) { readMatrix2x2d() }
+            registerReader(SimpleType.MATRIX3X2D, Matrix3x2d()) { readMatrix3x2d() }
+            registerReader(SimpleType.MATRIX3X3D, Matrix3d()) { readMatrix3x3d() }
+            registerReader(SimpleType.MATRIX4X3D, Matrix4x3d()) { readMatrix4x3d() }
+            registerReader(SimpleType.MATRIX4X4D, Matrix4d()) { readMatrix4x4d() }
+        }
+
         private const val black = 255.shl(24).toLong()
         private val LOGGER = LogManager.getLogger(JsonReaderBase::class)
     }
