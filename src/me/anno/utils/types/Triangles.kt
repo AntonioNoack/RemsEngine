@@ -14,6 +14,7 @@ import kotlin.math.min
 object Triangles {
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
+    @JvmStatic
     fun rayTriangleIntersection(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
@@ -56,6 +57,7 @@ object Triangles {
      * only front faces are valid; back faces are skipped;
      * returns Infinity on miss
      * */
+    @JvmStatic
     fun rayTriangleIntersectionFront(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
@@ -100,6 +102,7 @@ object Triangles {
      * only front faces are valid; back faces are skipped;
      * returns Infinity on miss
      * */
+    @JvmStatic
     fun rayTriangleIntersectionFront(
         origin: Vector3d, direction: Vector3d,
         a: Vector3d, b: Vector3d, c: Vector3d,
@@ -141,6 +144,7 @@ object Triangles {
     }
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
+    @JvmStatic
     fun rayTriangleIntersection(
         origin: Vector3d, direction: Vector3d,
         a: Vector3d, b: Vector3d, c: Vector3d,
@@ -179,6 +183,7 @@ object Triangles {
         return distance
     }
 
+    @JvmStatic
     fun rayTriangleIntersection(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
@@ -225,6 +230,7 @@ object Triangles {
         return distance
     }
 
+    @JvmStatic
     fun rayTriangleIntersection(
         origin: Vector3d, direction: Vector3d,
         a: Vector3d, b: Vector3d, c: Vector3d,
@@ -277,6 +283,7 @@ object Triangles {
      * calculates ((b-a) x (c-a)) * n
      * without any allocations
      * */
+    @JvmStatic
     fun subCrossDot(a: Vector3f, b: Vector3f, c: Vector3f, n: Vector3f): Float {
         val x0 = b.x - a.x
         val y0 = b.y - a.y
@@ -294,6 +301,7 @@ object Triangles {
      * calculates (ba x (c-a)) * n
      * without any allocations
      * */
+    @JvmStatic
     fun halfSubCrossDot(ba: Vector3f, a: Vector3f, c: Vector3f, n: Vector3f): Float {
         val x1 = c.x - a.x
         val y1 = c.y - a.y
@@ -308,6 +316,7 @@ object Triangles {
      * calculates (b-a) x (c-a)
      * without any allocations
      * */
+    @JvmStatic
     fun subCross(a: Vector3f, b: Vector3f, c: Vector3f, dst: Vector3f): Vector3f {
         val x0 = b.x - a.x
         val y0 = b.y - a.y
@@ -325,6 +334,7 @@ object Triangles {
      * calculates (b-a) x (c-a)
      * without any allocations
      * */
+    @JvmStatic
     fun subCross(a: Vector2f, b: Vector2f, c: Vector2f): Float {
         val x0 = b.x - a.x
         val y0 = b.y - a.y
@@ -337,6 +347,7 @@ object Triangles {
      * calculates ((b-a) x (c-a)) * n
      * without any allocations
      * */
+    @JvmStatic
     fun subCrossDot(a: Vector3d, b: Vector3d, c: Vector3d, n: Vector3d): Double {
         val x0 = b.x - a.x
         val y0 = b.y - a.y
@@ -354,6 +365,7 @@ object Triangles {
      * calculates (b-a) x (c-a)
      * without any allocations
      * */
+    @JvmStatic
     fun subCross(a: Vector3d, b: Vector3d, c: Vector3d, dst: Vector3d): Vector3d {
         val x0 = b.x - a.x
         val y0 = b.y - a.y
@@ -367,6 +379,7 @@ object Triangles {
         return dst.set(rx, ry, rz)
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3f, dir: Vector3f, px: Float, py: Float, pz: Float): Float {
         val tmp = JomlPools.vec3f.borrow()
@@ -374,6 +387,7 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3d, dir: Vector3d, px: Double, py: Double, pz: Double): Double {
         val tmp = JomlPools.vec3d.borrow()
@@ -381,6 +395,7 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3f, dir: Vector3f, p: Vector3f): Float {
         val tmp = JomlPools.vec3f.borrow()
@@ -388,6 +403,7 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3d, dir: Vector3d, p: Vector3d): Double {
         val tmp = JomlPools.vec3d.borrow()
@@ -395,6 +411,7 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3f, dir: Vector3f, p: Vector3d): Float {
         val tmp = JomlPools.vec3f.borrow()
@@ -402,6 +419,7 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     @Suppress("unused")
     fun linePointDistance(start: Vector3d, dir: Vector3d, p: Vector3f): Double {
         val tmp = JomlPools.vec3d.borrow()
@@ -409,10 +427,12 @@ object Triangles {
             .cross(dir).length()
     }
 
+    @JvmStatic
     fun linePointTFactor(start: Vector3f, dir: Vector3f, px: Float, py: Float, pz: Float): Float {
         return max(dir.dot(px, py, pz) - dir.dot(start), 0f)
     }
 
+    @JvmStatic
     fun linePointTFactor(start: Vector3d, dir: Vector3d, px: Double, py: Double, pz: Double): Double {
         return max(dir.dot(px, py, pz) - dir.dot(start), 0.0)
     }
@@ -420,6 +440,7 @@ object Triangles {
     /**
      * 0 = far away, 1 = hitting center guaranteed
      * */
+    @JvmStatic
     fun computeConeInterpolation(
         origin: Vector3f, direction: Vector3f, px: Float, py: Float, pz: Float,
         radiusAtOrigin: Float, radiusPerUnit: Float
@@ -432,6 +453,7 @@ object Triangles {
     /**
      * 0 = far away, 1 = hitting center guaranteed
      * */
+    @JvmStatic
     fun computeConeInterpolation(
         origin: Vector3d, direction: Vector3d, px: Double, py: Double, pz: Double,
         radiusAtOrigin: Double, radiusPerUnit: Double
@@ -441,6 +463,7 @@ object Triangles {
         return min(radius / max(distance, 1e-308), 1.0) // 0 = far away, 1 = hitting center
     }
 
+    @JvmStatic
     fun crossDot(
         a: Vector3f,
         b: Vector3f,
@@ -452,6 +475,7 @@ object Triangles {
         return d.dot(cx, cy, cz)
     }
 
+    @JvmStatic
     fun crossDot(
         ax: Float, ay: Float, az: Float,
         bx: Float, by: Float, bz: Float,
@@ -463,7 +487,7 @@ object Triangles {
         return cx * dx + cy * dy + cz * dz
     }
 
-
+    @JvmStatic
     fun getSideSign(px: Float, py: Float, ax: Float, ay: Float, bx: Float, by: Float): Float {
         val dx0 = ax - px
         val dy0 = ay - py
@@ -472,6 +496,7 @@ object Triangles {
         return dx1 * dy0 - dy1 * dx0
     }
 
+    @JvmStatic
     fun getSideSign(px: Double, py: Double, ax: Double, ay: Double, bx: Double, by: Double): Double {
         val dx0 = ax - px
         val dy0 = ay - py
@@ -480,6 +505,7 @@ object Triangles {
         return dx1 * dy0 - dy1 * dx0
     }
 
+    @JvmStatic
     fun Vector2f.getSideSign(b: Vector2f, c: Vector2f): Float {
         val bx = b.x - x
         val by = b.y - y
@@ -488,6 +514,7 @@ object Triangles {
         return cx * by - cy * bx
     }
 
+    @JvmStatic
     fun Vector2d.getSideSign(b: Vector2d, c: Vector2d): Double {
         val bx = b.x - x
         val by = b.y - y
@@ -496,6 +523,7 @@ object Triangles {
         return cx * by - cy * bx
     }
 
+    @JvmStatic
     fun Vector2f.isInsideTriangle(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
         val asX = x - a.x
         val asY = y - a.y
@@ -504,6 +532,7 @@ object Triangles {
         return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
     }
 
+    @JvmStatic
     fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
         var sum = 0
@@ -516,6 +545,7 @@ object Triangles {
         return sum == 0
     }
 
+    @JvmStatic
     fun Vector2d.isInsideTriangle(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
         val asX = x - a.x
         val asY = y - a.y
@@ -524,6 +554,7 @@ object Triangles {
         return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
     }
 
+    @JvmStatic
     fun Vector2d.isInsideTriangle2(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
 
         var sum = 0
@@ -537,6 +568,7 @@ object Triangles {
     }
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
+    @JvmStatic
     fun rayTriangleIntersection(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
@@ -558,6 +590,7 @@ object Triangles {
         } else null
     }
 
+    @JvmStatic
     fun rayTriangleIntersect(
         origin: Vector3f, direction: Vector3f,
         a: Vector3f, b: Vector3f, c: Vector3f,
@@ -572,6 +605,7 @@ object Triangles {
         return dist.isFinite()
     }
 
+    @JvmStatic
     fun rayTriangleIntersect(
         origin: Vector3d, direction: Vector3d,
         a: Vector3d, b: Vector3d, c: Vector3d,

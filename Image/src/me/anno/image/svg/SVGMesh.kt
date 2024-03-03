@@ -355,7 +355,9 @@ class SVGMesh {
                                     } else {
                                         min(bi, x + 1f)
                                     }
-                                    if (nx > bi) throw IllegalStateException()
+                                    if (nx > bi) {
+                                        throw IllegalStateException()
+                                    }
                                     // add tripe from x to nx
                                     if (x == ai) {
                                         // add left triangle

@@ -70,6 +70,7 @@ object Ints {
         return if (isNegative) result else -result
     }
 
+    @JvmStatic
     private fun digit(char: Char, radix: Int): Int {
         val code = when (char) {
             in '0'..'9' -> char.code - '0'.code

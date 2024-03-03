@@ -42,7 +42,7 @@ open class Graph : PrefabSaveable() {
         when (child) {
             is Node -> nodes.add(child)
             is NodeGroup -> groups.add(child)
-            else -> throw IllegalArgumentException()
+            else -> super.addChildByType(index, type, child)
         }
     }
 

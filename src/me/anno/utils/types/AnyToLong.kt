@@ -10,14 +10,17 @@ import org.joml.Vector4i
 
 object AnyToLong {
 
+    @JvmStatic
     fun getLong(any: Any?, defaultValue: Long): Long {
         return any[0, defaultValue]
     }
 
+    @JvmStatic
     fun getLong(any: Any?, index: Int, defaultValue: Long): Long {
         return any[index, defaultValue]
     }
 
+    @JvmStatic
     operator fun Any?.get(index: Int, defaultValue: Long): Long {
         return when (this) {
             null -> defaultValue

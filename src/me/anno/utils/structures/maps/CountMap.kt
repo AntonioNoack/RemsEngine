@@ -15,7 +15,8 @@ open class CountMap<V>(capacity: Int = 16) {
         return count.value++
     }
 
+    @Suppress("unused")
     fun incAndGet(key: V): Int {
-        return incAndGet(key) + 1
+        return getAndInc(key) + 1
     }
 }

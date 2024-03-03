@@ -67,6 +67,7 @@ object Logging {
      * returns a short random string with letters and numbers,
      * such that most instances have different codes, and it won't ever change over the lifetime of an instance
      * */
+    @JvmStatic
     fun hash32(instance: Any?): String {
         return hex32(hash32raw(instance))
     }
@@ -75,6 +76,7 @@ object Logging {
      * returns a random i32,
      * such that most instances have different codes, and it won't ever change over the lifetime of an instance
      * */
+    @JvmStatic
     fun hash32raw(instance: Any?): Int {
         return System.identityHashCode(instance)
     }

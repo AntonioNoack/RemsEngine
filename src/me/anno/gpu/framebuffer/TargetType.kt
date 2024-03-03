@@ -24,7 +24,6 @@ import org.lwjgl.opengl.GL46C.GL_RG32F
 import org.lwjgl.opengl.GL46C.GL_RG32UI
 import org.lwjgl.opengl.GL46C.GL_RG8
 import org.lwjgl.opengl.GL46C.GL_RGB
-import org.lwjgl.opengl.GL46C.GL_RGB16F
 import org.lwjgl.opengl.GL46C.GL_RGB32F
 import org.lwjgl.opengl.GL46C.GL_RGB32UI
 import org.lwjgl.opengl.GL46C.GL_RGBA
@@ -84,10 +83,10 @@ class TargetType(
         else TargetType("h1", GL_R16F, GL_RED, GL_HALF_FLOAT, 2, 1, true)
         val Float16x2 = if (!supportsF16Targets) Float32x2
         else TargetType("h2", GL_RG16F, GL_RG, GL_HALF_FLOAT, 2 * 2, 2, true)
-        val Float16x3 = if (!supportsF16Targets) Float32x3
-        else TargetType("h3", GL_RGB16F, GL_RGB, GL_HALF_FLOAT, 2 * 3, 3, true)
         val Float16x4 = if (!supportsF16Targets) Float32x4
         else TargetType("h4", GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, 2 * 4, 4, true)
+        val Float16x3 = if (!supportsF16Targets) Float32x3
+        else Float16x4 // fp16x3 has a bad memory layout, and is not color-renderable on Web
         val Float16xI = arrayOf(Float16x1, Float16x2, Float16x3, Float16x4)
 
         val Normal12Target4 = // not working, because compressed formats are not color-renderable :/, why ever...

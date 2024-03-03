@@ -4,8 +4,8 @@ import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
@@ -38,6 +38,15 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             dualCache.forEach { _, _, v -> v.destroy() }
             dualCache.clear()
         }
+    }
+
+    private fun runAsync(name: String, runnable: () -> Unit) {
+        LOGGER.debug("Started {}", name)
+        thread(name = name, block = runnable)
+    }
+
+    private fun waitAsync(name: String, runnable: () -> Unit) {
+        thread(name = name, block = runnable)
     }
 
     inline fun remove(crossinline filter: (Any?, CacheEntry) -> Boolean): Int {
@@ -270,7 +279,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 val name = "$name<$key0,$key1>"
                 LOGGER.debug("Started {}", name)
-                thread(name = name) {
+                runAsync(name) {
                     try {
                         val value = generateDualSafely(key0, key1, generator)
                         entry.data = value as? ICacheData
@@ -319,8 +328,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key>"
-                LOGGER.debug("Started {}", name)
-                thread(name = name) {
+                runAsync(name) {
                     val value = generateSafely(key, generator)
                     if (value is Exception && value !is ShutdownException) throw value
                     value as? ICacheData
@@ -374,8 +382,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key>"
-                LOGGER.debug("Started {}", name)
-                thread(name = name) {
+                runAsync(name) {
                     val value = generateSafely(key, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
@@ -388,7 +395,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
-                thread(name = "WaitingFor<$key>") {
+                waitAsync("WaitingFor<$key>") {
                     entry.waitForValue(key)
                     callback(null)
                 }
@@ -429,8 +436,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key0,$key1>"
-                LOGGER.debug("Started {}", name)
-                thread(name = name) {
+                runAsync(name) {
                     val value = generateDualSafely(key0, key1, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
@@ -443,7 +449,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
-                thread(name = "WaitingFor<$key0, $key1>") {
+                waitAsync("WaitingFor<$key0, $key1>") {
                     entry.waitForValue(key0 to key1)
                     callback(null)
                 }
@@ -566,7 +572,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         @JvmStatic
         fun updateAll() {
-            for (cache in caches) cache.update()
+            for (cache in caches) {
+                cache.update()
+            }
             LastModifiedCache.update()
             MeshCache.update()
             AnimationCache.update()
@@ -576,7 +584,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         @JvmStatic
         fun clearAll() {
-            for (cache in caches) cache.clear()
+            for (cache in caches) {
+                cache.clear()
+            }
             LastModifiedCache.clear()
         }
 

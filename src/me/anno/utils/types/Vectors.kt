@@ -18,47 +18,62 @@ import kotlin.math.sqrt
 @Suppress("unused")
 object Vectors {
 
+    @JvmStatic
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
+
+    @JvmStatic
     fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
+
+    @JvmStatic
     fun avg(a: Vector3f, b: Vector3f): Vector3f = Vector3f(a).add(b).mul(0.5f)
 
+    @JvmStatic
     fun avg(a: Vector2f, b: Vector2f, c: Vector2f) =
         Vector2f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
 
+    @JvmStatic
     fun avg(a: Vector2d, b: Vector2d, c: Vector2d) =
         Vector2d((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
 
+    @JvmStatic
     fun avg(a: Vector3f, b: Vector3f, c: Vector3f) =
         Vector3f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f, (a.z + b.z + c.z) / 3f)
 
+    @JvmStatic
     fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
         Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
 
+    @JvmStatic
     fun Matrix4f.print() = "" +
             "[($m00 $m10 $m20 $m30)\n" +
             " ($m01 $m11 $m21 $m31)\n" +
             " ($m02 $m12 $m22 $m32)\n" +
             " ($m03 $m13 $m23 $m33)]"
 
+    @JvmStatic
     fun Matrix4x3f.print() = "" +
             "[($m00 $m10 $m20 $m30)\n" +
             " ($m01 $m11 $m21 $m31)\n" +
             " ($m02 $m12 $m22 $m32)]"
 
+    @JvmStatic
     fun Matrix4x3f.f2() = "" +
             "[(${m00.f2s()} ${m10.f2s()} ${m20.f2s()} ${m30.f2s()})\n" +
             " (${m01.f2s()} ${m11.f2s()} ${m21.f2s()} ${m31.f2s()})\n" +
             " (${m02.f2s()} ${m12.f2s()} ${m22.f2s()} ${m32.f2s()})]"
 
+    @JvmStatic
     fun Matrix4x3f.f2x() = "" +
             "[(${m00.f2x()} ${m10.f2x()} ${m20.f2x()} ${m30.f2x()})\n" +
             " (${m01.f2x()} ${m11.f2x()} ${m21.f2x()} ${m31.f2x()})\n" +
             " (${m02.f2x()} ${m12.f2x()} ${m22.f2x()} ${m32.f2x()})]"
 
+    @JvmStatic
     fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
         return normal.findSecondAxis(dst)
     }
 
+    @JvmStatic
     fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
         return normal.findSecondAxis(dst)
     }
@@ -67,6 +82,7 @@ object Vectors {
      * approximate line intersection
      * http://paulbourke.net/geometry/pointlineplane/calclineline.cs
      * */
+    @JvmStatic
     fun intersect(
         pos0: Vector3d, dir0: Vector3d,
         pos1: Vector3d, dir1: Vector3d,
@@ -96,6 +112,7 @@ object Vectors {
         return true
     }
 
+    @JvmStatic
     fun Vector3f.addScaled(other: Vector3f, scale: Float): Vector3f {
         other.mulAdd(scale, this, this)
         return this
@@ -105,10 +122,12 @@ object Vectors {
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
+    @JvmStatic
     fun Vector3f.normalToQuaternionY(dst: Quaternionf): Quaternionf {
         return normalToQuaternionY(x, y, z, dst)
     }
 
+    @JvmStatic
     fun normalToQuaternionY(x: Float, y: Float, z: Float, dst: Quaternionf): Quaternionf {
         // todo this works perfectly, but the y-angle shouldn't change :/
         // uses ~ 28 ns/e on R5 2600
@@ -143,6 +162,7 @@ object Vectors {
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
+    @JvmStatic
     fun Vector3f.normalToQuaternionY2(dst: Quaternionf): Quaternionf {
         normalToQuaternionY(dst)
         // todo better formula?
@@ -154,6 +174,7 @@ object Vectors {
         return dst
     }
 
+    @JvmStatic
     fun crossLength(pos: FloatArray, ai: Int, bi: Int, ci: Int): Float {
         val ax = pos[ai]
         val ay = pos[ai + 1]
@@ -164,6 +185,7 @@ object Vectors {
         )
     }
 
+    @JvmStatic
     fun crossLength(a: Vector3f, b: Vector3f, c: Vector3f): Float {
         return crossLength(
             b.x - a.x, b.y - a.y, b.z - a.z,
@@ -171,10 +193,12 @@ object Vectors {
         )
     }
 
+    @JvmStatic
     fun crossLength(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
         return sqrt(crossLengthSq(ax, ay, az, bx, by, bz))
     }
 
+    @JvmStatic
     fun crossLengthSq(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
         val cx = ay * bz - az * by
         val cy = az * bx - ax * bz
@@ -182,6 +206,7 @@ object Vectors {
         return cx * cx + cy * cy + cz * cz
     }
 
+    @JvmStatic
     fun Vector3f.toLinear(dst: Vector3f = this): Vector3f {
         return dst.set(
             HSLuvColorSpace.toLinear(x),
@@ -190,6 +215,7 @@ object Vectors {
         )
     }
 
+    @JvmStatic
     fun Vector3f.fromLinear(dst: Vector3f = this): Vector3f {
         return dst.set(
             HSLuvColorSpace.fromLinear(x),

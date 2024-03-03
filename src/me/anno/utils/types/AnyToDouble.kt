@@ -19,16 +19,20 @@ import org.joml.Vector4i
 
 object AnyToDouble {
 
+    @JvmStatic
     private val LOGGER = LogManager.getLogger(AnyToDouble::class)
 
+    @JvmStatic
     fun getDouble(any: Any?, index: Int, defaultValue: Double): Double {
         return any[index, defaultValue]
     }
 
+    @JvmStatic
     fun getDouble(any: Any?, defaultValue: Double): Double {
         return any[0, defaultValue]
     }
 
+    @JvmStatic
     operator fun Any?.get(index: Int, defaultValue: Double): Double {
         return when (this) {
             null -> defaultValue

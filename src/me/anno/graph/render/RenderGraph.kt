@@ -147,9 +147,12 @@ object RenderGraph {
         } catch (e: ReturnNode.ReturnThrowable) {
             e.node as? ExprReturnNode
         } catch (e: Exception) {
-            if (throwExceptions) throw e
-            LOGGER.warn("Error in execution", e)
-            return null
+            if (throwExceptions) {
+                throw e
+            } else {
+                LOGGER.warn("Error in execution", e)
+                return null
+            }
         }
     }
 

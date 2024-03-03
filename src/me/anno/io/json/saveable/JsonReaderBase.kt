@@ -959,7 +959,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
     companion object {
 
-        private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>()
+        private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>(64)
 
         private inline fun <reified V> registerReader(
             type: SimpleType, v0: V,
@@ -982,6 +982,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
 
         init {
+            // todo use this sample implementation-principle for binary reader
             registerReader2(SimpleType.BYTE, ByteArray(0), { readByte() }, { readByteArray() })
             registerReader2(SimpleType.SHORT, ShortArray(0), { readShort() }, { readShortArray() })
             registerReader2(SimpleType.INT, IntArray(0), { readInt() }, { readIntArray() })

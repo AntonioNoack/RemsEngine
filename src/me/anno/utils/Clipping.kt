@@ -10,6 +10,7 @@ import kotlin.math.min
 // todo this probably should be moved elsewhere... isn't used in the engine currently at all...
 object Clipping {
 
+    @JvmStatic
     fun check(v0: Vector4f, axis1: Vector4f, axis2: Vector4f, getValue: (Vector4f) -> Float): Vector4f? {
         val val0 = getValue(v0)
         if (val0 in -1f..1f) return v0 // it's fine
@@ -26,6 +27,7 @@ object Clipping {
         }
     }
 
+    @JvmStatic
     fun lerpMaybe(v0: Vector4f, v1: Vector4f, val0: Float, val1: Float): Vector4f? {
         if ((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
         val cuttingPoint = if (val0 < 0f) -1f else 1f
@@ -35,12 +37,14 @@ object Clipping {
         return Vector4f(v0).lerp(v1, d1 / (d1 + d2))
     }
 
+    @JvmStatic
     fun getPoint(matrix: Matrix4f, x: Float, y: Float, z: Float = 0f): Vector4f? {
         val vec = matrix.transformProject(Vector4f(x, y, z, 1f))
         return if (vec.x in -1f..1f && vec.y in -1f..1f && vec.z in -1f..1f) null
         else vec
     }
 
+    @JvmStatic
     fun isPlaneVisible(matrix: Matrix4f, dx: Float, dy: Float): Boolean {
         val v000 = getPoint(matrix, +dx, +dy) ?: return true
         val v001 = getPoint(matrix, +dx, -dy) ?: return true
@@ -49,6 +53,7 @@ object Clipping {
         return isRoughlyVisible(listOf(v000, v001, v010, v011))
     }
 
+    @JvmStatic
     fun isRoughlyVisible(points: Iterable<Vector4f>): Boolean {
 
         var allNegative = true
@@ -79,6 +84,7 @@ object Clipping {
         return !(allNegative || allPositive)
     }
 
+    @JvmStatic
     fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): FloatPair? {
 
         var v00 = p00

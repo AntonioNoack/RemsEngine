@@ -17,6 +17,7 @@ import java.util.concurrent.TimeoutException
  * */
 object Sleep {
 
+    @JvmStatic
     private fun checkShutdown(canBeKilled: Boolean) {
         if (canBeKilled && shutdown) throw ShutdownException()
     }

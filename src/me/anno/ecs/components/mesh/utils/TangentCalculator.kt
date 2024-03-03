@@ -2,7 +2,6 @@ package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
-import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.min
@@ -37,13 +36,13 @@ object TangentCalculator {
         tan1.fill(0f) // in the future we could keep old values, probably not worth the effort
         val tan2 = FloatArray(tan1.size)
 
-        val n = JomlPools.vec3f.create()
-        val s = JomlPools.vec3f.create()
-        val t = JomlPools.vec3f.create()
+        val n = Vector3f()
+        val s = Vector3f()
+        val t = Vector3f()
 
         // https://gamedev.stackexchange.com/questions/68612/how-to-compute-tangent-and-bitangent-vectors
         mesh.forEachTriangleIndex { i0, i1, i2 ->
-            addTriangle(positions, i0, i1, i2, uvs, tan1, tan2, 0, s, t)
+            addTriangle(positions, i0, i1, i2, uvs, tan1, tan2, s, t)
         }
 
         // apply all the normals, smooth shading
@@ -52,13 +51,12 @@ object TangentCalculator {
             compute(n, s, t, normals, i, tan1, j, tan2, j)
             j += 4
         }
-        JomlPools.vec3f.sub(3)
     }
 
     private fun addTriangle(
         positions: FloatArray, i0: Int, i1: Int, i2: Int,
         uvs: FloatArray, tan1: FloatArray, tan2: FloatArray,
-        k0: Int, resultS: Vector3f, resultT: Vector3f
+        resultS: Vector3f, resultT: Vector3f
     ) {
 
         addTriangle(positions, i0, i1, i2, uvs, resultS, resultT)
@@ -71,9 +69,9 @@ object TangentCalculator {
         add(tan1, i14, resultS)
         add(tan1, i24, resultS)
 
-        add(tan2, i04 - k0, resultT)
-        add(tan2, i14 - k0, resultT)
-        add(tan2, i24 - k0, resultT)
+        add(tan2, i04, resultT)
+        add(tan2, i14, resultT)
+        add(tan2, i24, resultT)
     }
 
     private fun addTriangle(
@@ -165,12 +163,11 @@ object TangentCalculator {
         dst: FloatArray,
         uvs: FloatArray
     ) {
-
         dst.fill(0f) // in the future we could keep old values, probably not worth the effort
         val size = min(positions.size / 9, uvs.size / 6)
-        val n = JomlPools.vec3f.create()
-        val s = JomlPools.vec3f.create()
-        val t = JomlPools.vec3f.create()
+        val n = Vector3f()
+        val s = Vector3f()
+        val t = Vector3f()
         for (k in 0 until size) {
 
             val i = k * 3
@@ -192,8 +189,6 @@ object TangentCalculator {
                 compute(n, s, t, dst, i4 + 8)
             }
         }
-
-        JomlPools.vec3f.sub(3)
     }
 
     @JvmStatic

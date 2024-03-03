@@ -18,31 +18,35 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     private val lastWarned = HashMap<String, Long>()
     private val warningTimeoutNanos = 10L * SECONDS_TO_NANOS
 
+    private fun interleaveImpl(msg: String, args: Array<out Any?>): String {
+        val builder = StringBuilder(msg.length)
+        var i = 0
+        var j = 0
+        while (i < msg.length) {
+            val li = i
+            i = msg.indexOf("{}", i)
+            if (i < 0 || j >= args.size) {
+                builder.append(msg, li, msg.length)
+                break
+            } else {
+                builder.append(msg, li, i)
+                builder.append(args[j++])
+                i += 2 // skip over {}
+            }
+        }
+        return builder.toString()
+    }
+
     private fun interleave(msg: String, args: Array<out Any?>): String {
         if (args.isEmpty()) return msg
         return if (msg.contains("{}")) {
-            val builder = StringBuilder(msg.length)
-            var i = 0
-            var j = 0
-            while (i < msg.length) {
-                val li = i
-                i = msg.indexOf("{}", i)
-                if (i < 0 || j >= args.size) {
-                    builder.append(msg, li, msg.length)
-                    break
-                } else {
-                    builder.append(msg, li, i)
-                    builder.append(args[j++])
-                    i += 2 // skip over {}
-                }
-            }
-            builder.toString()
-        } else {
+            interleaveImpl(msg, args)
+        } else if ('%' in msg) {
             msg.format(Locale.ENGLISH, *args)
             /*val funFormat = String::class.java.getMethod("format", Locale::class.java, Array<Object>(0){ throw RuntimeException() }::class.java)
             return funFormat.invoke(msg, Locale.ENGLISH, args) as String
             return msg.format(Locale.ENGLISH, args)*/
-        }
+        } else msg
     }
 
     private fun interleave(msg: String, arg0: Any?): String {
