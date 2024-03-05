@@ -68,7 +68,7 @@ class Prefab : Saveable {
     var isValid: Boolean
         get() = _sampleInstance != null
         set(value) {
-            if (value) throw IllegalArgumentException()
+            if (value) throw IllegalArgumentException("Cannot just set this to be valid")
             invalidateInstance()
         }
 

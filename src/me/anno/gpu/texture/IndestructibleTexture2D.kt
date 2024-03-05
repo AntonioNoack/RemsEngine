@@ -31,7 +31,7 @@ class IndestructibleTexture2D(
                     create(TargetType.DEPTH16)
                     depthFunc = if (GFX.supportsClipControl) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
                 }
-                else -> throw IllegalArgumentException()
+                else -> throw IllegalArgumentException("Unknown constructor data")
             }
         }
     }

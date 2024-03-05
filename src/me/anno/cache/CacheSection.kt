@@ -278,7 +278,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key0,$key1>"
-                LOGGER.debug("Started {}", name)
                 runAsync(name) {
                     try {
                         val value = generateDualSafely(key0, key1, generator)

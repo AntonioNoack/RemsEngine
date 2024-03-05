@@ -21,7 +21,7 @@ class IndestructibleCubemap(
                     create(if (GFX.supportsDepthTextures) TargetType.DEPTH32F else TargetType.Float32x1)
                     depthFunc = DepthMode.CLOSER
                 }
-                else -> throw IllegalArgumentException()
+                else -> throw IllegalArgumentException("Unknown constructor data")
             }
         }
     }

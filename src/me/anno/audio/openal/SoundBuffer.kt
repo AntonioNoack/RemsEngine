@@ -73,7 +73,7 @@ class SoundBuffer() : ICacheData {
 
     fun loadWAV(waveData: WaveData) {
         ensurePointer()
-        data = waveData.data!!.asShortBuffer()
+        data = waveData.data?.asShortBuffer()
         format = waveData.format
         alBufferData(pointer, waveData.format, waveData.data!!, waveData.sampleRate)
         waveData.destroy()
@@ -81,7 +81,7 @@ class SoundBuffer() : ICacheData {
     }
 
     fun loadWAV0(waveData: WaveData) {
-        data = waveData.data!!.asShortBuffer()
+        data = waveData.data?.asShortBuffer()
         waveData.destroy()
     }
 
@@ -104,7 +104,7 @@ class SoundBuffer() : ICacheData {
     fun load(file: FileReference) {
         when (val ending = file.lcExtension) {
             "ogg" -> loadOGG(file)
-            "wav" -> loadWAV(WaveData.create(file.inputStreamSync())!!)
+            "wav" -> loadWAV(WaveData.create(file.inputStreamSync()) ?: return)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
@@ -112,7 +112,7 @@ class SoundBuffer() : ICacheData {
     fun load0(file: FileReference) {
         when (val ending = file.lcExtension) {
             "ogg" -> loadOGG0(file)
-            "wav" -> loadWAV0(WaveData.create(file.inputStreamSync())!!)
+            "wav" -> loadWAV0(WaveData.create(file.inputStreamSync()) ?: return)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }

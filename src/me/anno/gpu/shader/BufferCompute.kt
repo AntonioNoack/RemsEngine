@@ -30,7 +30,7 @@ object BufferCompute {
             2 -> "uvec2"
             3 -> "uvec3"
             4 -> "uvec4"
-            else -> throw IllegalArgumentException()
+            else -> throw IllegalArgumentException("Unsupported #components")
         }
     }
 
@@ -44,7 +44,7 @@ object BufferCompute {
             2 -> 8
             3 -> 16
             4 -> 16
-            else -> throw IllegalArgumentException()
+            else -> throw IllegalArgumentException("Unsupported #components")
         }
     }
 

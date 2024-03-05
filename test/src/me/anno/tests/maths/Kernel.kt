@@ -49,8 +49,9 @@ class Kernel(
     val sxy = sx * sy
 
     init {
-        if (sx * sy * sz + offset > values.size)
-            throw IllegalArgumentException()
+        if (sx * sy * sz + offset > values.size) {
+            throw IllegalArgumentException("Not enough space for kernel")
+        }
     }
 
     operator fun get(x: Int, y: Int, z: Int): Double {
@@ -166,7 +167,6 @@ class Kernel(
     operator fun get(z: Int): Kernel {
         return Kernel(sx, sy, 1, values, sxy * z)
     }
-
 }
 
 fun stack(vararg kernels: Kernel): Kernel {
@@ -292,21 +292,20 @@ fun main() {
     Kernel(2, 1, doubleArrayOf(-1.0, 1.0)).mul(Kernel(src))
         .write(dst.getChild("dxTest.png"))
 
-/*
-    // this operation is not correct, I think...
-    val poisson = stack(poissonColor, poissonDx, poissonDy)
-    poisson.write(dst.getChild("poisson.png"))
-    poisson
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .mul(poisson)
-        .write(dst.getChild("poisson2.png"))*/
-
+    /*
+        // this operation is not correct, I think...
+        val poisson = stack(poissonColor, poissonDx, poissonDy)
+        poisson.write(dst.getChild("poisson.png"))
+        poisson
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .mul(poisson)
+            .write(dst.getChild("poisson2.png"))*/
 }

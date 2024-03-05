@@ -93,7 +93,7 @@ object GFXState {
                     v.forceApply(i)
                 }
             }
-            else -> throw IllegalArgumentException()
+            else -> throw IllegalArgumentException("Unknown blend mode type")
         }
         lastBlendMode = newValue
     }

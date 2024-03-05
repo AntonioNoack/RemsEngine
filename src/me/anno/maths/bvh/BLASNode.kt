@@ -117,7 +117,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val attr = when (pixelsPerVertex) {
                 1 -> triangleAttr1
                 2 -> triangleAttr2
-                else -> throw IllegalArgumentException()
+                else -> throw NotImplementedError("px/vertex")
             }
             val buffer = ComputeBuffer("BLAS", attr, numTriangles * 3)
             // write triangle into memory

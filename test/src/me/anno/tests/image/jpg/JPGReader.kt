@@ -484,7 +484,7 @@ class JPGReader {
     fun processMarker(input: InputStream, m: Int): Boolean {
         println("reading marker: ${m.toString(16)}")
         when (m) {
-            MARKER_NONE -> throw IllegalArgumentException()
+            MARKER_NONE -> throw IllegalArgumentException("No marker")
             0xdd -> { // dri, specify restart interval
                 if (input.readBE16() != 4) throw IOException("bad DRI len")
                 restartInterval = input.readBE16()

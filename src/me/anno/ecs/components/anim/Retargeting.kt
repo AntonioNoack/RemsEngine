@@ -108,8 +108,9 @@ class Retargeting : PrefabSaveable(), Renderable {
                 // todo why is this one not animated???
                 sm.fill(pipeline, entity, clickId)
             }
-            if (srcPreviewData == null) srcPreviewData = Animation.PreviewData(srcSkeleton1, sa)
-            fillSkeletonAnimated(pipeline, entity, clickId, srcPreviewData!!)
+            val srcPreviewData = srcPreviewData ?: Animation.PreviewData(srcSkeleton1, sa)
+            this.srcPreviewData = srcPreviewData
+            fillSkeletonAnimated(pipeline, entity, clickId, srcPreviewData)
             val mappedAnimation = mappedAnimations.firstOrNull { it.first == sa }?.second
                 ?: getMappedAnimation(sa, dstSkeleton1)
             if (mappedAnimation != null) {

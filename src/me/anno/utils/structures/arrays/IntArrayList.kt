@@ -104,10 +104,7 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : ICa
     }
 
     fun add(values: IntArrayList, srcStartIndex: Int = 0, length: Int = values.size - srcStartIndex) {
-        if (length < 0) throw IllegalArgumentException()
-        if (length == 0) return
-        ensureExtra(length)
-        addUnsafe(values.array, srcStartIndex, length)
+        add(values.array, srcStartIndex, length)
     }
 
     fun joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {

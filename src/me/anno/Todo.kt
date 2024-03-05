@@ -10,3 +10,8 @@ package me.anno
 // low priority
 // todo support most svg files as meshes
 // to do load svg animations?
+
+// todo can we make everything exception-throwing-free? that would help porting (e.g. to languages like Rust, where exceptions are rare/impossible),
+//  and we would be able to disable exceptions on WASM
+//  -> get rid of all !!
+//  -> get rid of all throw

@@ -260,13 +260,7 @@ open class Shader(
     }
 
     fun getAttributeLocation(name: String): Int {
-        val attr = attributes
-        for (idx in attr.indices) {
-            if (attr[idx].name == name) {
-                return idx
-            }
-        }
-        return -1
+        return attributes.indexOfFirst { it.name == name }
     }
 
     override fun printLocationsAndValues() {

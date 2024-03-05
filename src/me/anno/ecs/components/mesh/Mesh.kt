@@ -749,7 +749,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun ensureNorTanUVs() {
 
         // not the safest, but well...
-        val positions = positions ?: return // throw RuntimeException("mesh has no positions")
+        val positions = positions ?: return
 
         // if normals are null or have length 0, compute them
         if (normals == null)
@@ -777,7 +777,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         needsMeshUpdate = false
 
         // not the safest, but well...
-        val positions = positions ?: return // throw RuntimeException("mesh has no positions")
+        val positions = positions ?: return
         if (positions.isEmpty()) return
 
         ensureNorTanUVs()

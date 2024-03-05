@@ -107,7 +107,6 @@ object StaticMeshesLoader {
 
     fun loadFile(file0: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
-        // if (file.lcExtension == "obj") throw IllegalArgumentException()
         var file = file0
         val sign = Signature.findNameSync(file)
         if (sign == "dae" && aiGetVersionMajor() < 5) {

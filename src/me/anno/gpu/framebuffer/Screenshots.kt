@@ -62,7 +62,7 @@ object Screenshots {
                     when (buffer) {
                         is IntArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)
                         is FloatArray -> glReadPixels(x0, y0, x1 - x0, y1 - y0, format, type, buffer)
-                        else -> throw IllegalArgumentException()
+                        else -> throw IllegalArgumentException("Unknown buffer type")
                     }
                 }
             } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.width},${fb.height} +/- $radius")
