@@ -39,6 +39,10 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * class for checking key pressed explicitly;
+ * handles GLFW events, and passes them onto the event system, and then the UI system (in-focus panel from deepest to root)
+ * */
 object Input {
 
     private val LOGGER = LogManager.getLogger(Input::class)

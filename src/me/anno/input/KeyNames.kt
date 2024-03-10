@@ -1,7 +1,7 @@
 package me.anno.input
 
 /**
- * records: which key combinations were used to create what keys;
+ * records, which key combinations were used to create what keys;
  * this makes that we can print Umlauts and special symbols correctly
  * */
 object KeyNames {
@@ -35,11 +35,10 @@ object KeyNames {
     fun onCharTyped(codepoint: Int) {
         if (Input.keysDown.size <= maxKeys) {
             val state = InputState()
-            if (state !in inputMap) {
+            inputMap.getOrPut(state) {
                 stateId++
-                inputMap[state] = codepoint
+                codepoint
             }
         }
     }
-
 }

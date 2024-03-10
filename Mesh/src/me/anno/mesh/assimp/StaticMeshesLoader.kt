@@ -747,8 +747,9 @@ object StaticMeshesLoader {
             val vec = AIColor4D.malloc()
             val dst = IntArray(vertexCount)
             for (j in 0 until vertexCount) {
-                // todo since all colors are linear in sRGB, we probably need to convert them here, too, don't we???
+                // since all colors are linear in assimp, we probably need to convert them here, too, don't we???
                 //  test that somehow... maybe with orange-color in Blender -> fbx -> see result here
+                // -> idk, looks fine for now; I'm not too sure though...
                 src.get(vec)
                 val r = f2i(vec.r())
                 val g = f2i(vec.g())

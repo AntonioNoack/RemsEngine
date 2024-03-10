@@ -415,9 +415,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         when (renderMode) {
             RenderMode.FSR2_X8, RenderMode.FSR2_X2 -> {
-                fsr22.drawScene(
-                    this, w, h, x0, y0, x1, y1, renderer, buffer,
-                    deferred, lightNBuffer1, baseSameDepth1
+                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
+                fsr22.render(
+                    this, w, h, x0, y0, x1, y1, buffer, deferred,
+                    lightNBuffer1, baseSameDepth1
                 )
             }
             RenderMode.LIGHT_COUNT -> {

@@ -7,7 +7,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.ActionManager
 import me.anno.input.Input
-import me.anno.input.Modifiers
 import me.anno.io.files.Reference.getReference
 import me.anno.io.utils.StringMap
 import me.anno.engine.Events.addEvent
@@ -168,10 +167,10 @@ object EngineActions {
             register["global.f5.down.c", "ClearCache"]
         }
 
-        register["global.space.down.${Modifiers[false, false]}", "Play|Pause"]
-        register["global.space.down.${Modifiers[false, true]}", "PlaySlow|Pause"]
-        register["global.space.down.${Modifiers[true, false]}", "PlayReversed|Pause"]
-        register["global.space.down.${Modifiers[true, true]}", "PlayReversedSlow|Pause"]
+        register["global.space.down", "Play|Pause"]
+        register["global.space.down.s", "PlaySlow|Pause"]
+        register["global.space.down.c", "PlayReversed|Pause"]
+        register["global.space.down.cs", "PlayReversedSlow|Pause"]
         register["global.f11.down", "ToggleFullscreen"]
         register["global.print.down", "PrintLayout"]
         register["global.left.up", "DragEnd"]
@@ -222,9 +221,9 @@ object EngineActions {
 
         for (i in 0 until 10) {
             register["SceneView.numpad$i.down", "Cam$i"]
-            register["SceneView.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
+            register["SceneView.numpad$i.down.c", "Cam$i"]
             register["DraggingControls.numpad$i.down", "Cam$i"]
-            register["DraggingControls.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
+            register["DraggingControls.numpad$i.down.c", "Cam$i"]
         }
 
         register["TextInput.backspace.typed", "DeleteBefore"]

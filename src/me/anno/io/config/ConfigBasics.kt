@@ -11,6 +11,10 @@ import me.anno.utils.OS.home
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
+/**
+ * Our configuration files are JSON for now.
+ * They probably could be something like YAML, too.
+ * */
 object ConfigBasics {
 
     private val LOGGER = LogManager.getLogger(ConfigBasics::class)
@@ -77,55 +81,4 @@ object ConfigBasics {
 
     fun loadConfig(localFileName: String, workspace: FileReference, defaultValue: StringMap, saveIfMissing: Boolean) =
         loadConfig(getConfigFile(localFileName), workspace, defaultValue, saveIfMissing)
-
-    @Suppress("unused")
-    fun loadJsonArray(
-        localFileName: String,
-        workspace: FileReference,
-        defaultValue: List<ConfigEntry>,
-        saveIfMissing: Boolean
-    ): List<ConfigEntry> {
-
-        val data = load(localFileName, saveIfMissing) { JsonStringWriter.toText(defaultValue, workspace) }
-
-        val loaded = JsonStringReader.read(data, workspace, localFileName, true)
-        val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
-
-        fun addIfNewest(entry: ConfigEntry): Boolean {
-            val id = entry.id
-            return if (id.isNotBlank()) {
-                val old = newestEntries[id]
-                if (old != null) {
-                    if (entry.version > old.version) {
-                        newestEntries[id] = entry
-                        true
-                    } else false
-                } else {
-                    newestEntries[id] = entry
-                    true
-                }
-            } else false
-        }
-
-        for (entry in loaded) {
-            if (entry is ConfigEntry) {
-                addIfNewest(entry)
-            }
-        }
-
-        var wasAugmentedByDefault = false
-        for (entry in defaultValue) {
-            if (addIfNewest(entry)) {
-                wasAugmentedByDefault = true
-            }
-        }
-
-        val result = newestEntries.values.toList()
-
-        if (wasAugmentedByDefault) {
-            save(localFileName, JsonStringWriter.toText(result, workspace))
-        }
-
-        return result
-    }
 }

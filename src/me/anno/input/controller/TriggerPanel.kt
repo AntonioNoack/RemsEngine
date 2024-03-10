@@ -19,6 +19,7 @@ class TriggerPanel(
     override val canDrawOverBorders get() = true
 
     init {
+        // click is unusual for controllers, so I think it's a fine control scheme
         tooltip = "Click to reset"
         addLeftClickListener { reset() }
     }

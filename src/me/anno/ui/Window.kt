@@ -2,11 +2,12 @@ package me.anno.ui
 
 import me.anno.Time
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderDefault
-import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -25,7 +26,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.engine.EngineBase
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -84,7 +84,7 @@ open class Window(
     // todo optimized way to request redraw-updates: e.g., for blinking cursors only a very small section actually changes
     private val needsRedraw = LimitedList<Panel>(16)
     private val needsLayout = LimitedList<Panel>(16)
-    private val needsTmp = LimitedList<Panel>(16)
+    private val tmpNeeds = LimitedList<Panel>(16)
 
     fun addNeedsRedraw(panel: Panel) {
         if (panel.canBeSeen) {
@@ -258,8 +258,8 @@ open class Window(
         // which still happens...
         // panel.findMissingParents()
 
-        panel.forAllVisiblePanels { p -> p.onUpdate() }
-        panel.forAllVisiblePanels { p -> p.tick() }
+        panel.forAllVisiblePanels(Panel::onUpdate)
+        panel.forAllVisiblePanels(Panel::tick)
 
         validateLayouts(dx, dy, windowW, windowH, panel)
     }
@@ -298,18 +298,21 @@ open class Window(
         }
     }
 
-    fun processNeeds(list: LimitedList<Panel>, panel: Panel, full: () -> Unit, single: (Panel) -> Unit) {
-        if (needsLayout.isFull || panel in list) {
-            full()
+    fun processNeeds(
+        toBeProcessed: LimitedList<Panel>, rootPanel: Panel,
+        processAll: () -> Unit, processOne: (Panel) -> Unit
+    ) {
+        if (rootPanel in toBeProcessed) {
+            processAll()
         } else {
-            val needsLayout = needsTmp
-            needsLayout.clear()
-            needsLayout.addAll(list)
-            list.clear()
-            while (needsLayout.isNotEmpty()) {
-                val p = needsLayout.minByOrNull { it.depth }!!
-                single(p)
-                needsLayout.removeIf { entry ->
+            val needs = tmpNeeds
+            needs.clear()
+            needs.addAll(toBeProcessed)
+            toBeProcessed.clear()
+            while (needs.isNotEmpty()) {
+                val p = needs.minByOrNull { it.depth }!!
+                processOne(p)
+                needs.removeIf { entry ->
                     entry === p || entry.anyInHierarchy { it == p }
                 }
             }
@@ -454,54 +457,49 @@ open class Window(
         val parent = panel.uiParent
         if (parent != null) {
             calculateXY01(parent, x0, y0, x1, y1)
-            panel.lx0 = max(panel.x, parent.lx0)
-            panel.ly0 = max(panel.y, parent.ly0)
-            panel.lx1 = min(panel.x + panel.width, parent.lx1)
-            panel.ly1 = min(panel.y + panel.height, parent.ly1)
+            setXY01(panel, parent.lx0, parent.ly0, parent.lx1, parent.ly1)
         } else {
-            panel.lx0 = max(panel.x, x0)
-            panel.ly0 = max(panel.y, y0)
-            panel.lx1 = min(panel.x + panel.width, x1)
-            panel.ly1 = min(panel.y + panel.height, y1)
+            setXY01(panel, x0, y0, x1, y1)
         }
     }
 
-    private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>) {
+    private fun setXY01(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
+        panel.lx0 = max(panel.x, x0)
+        panel.ly0 = max(panel.y, y0)
+        panel.lx1 = min(panel.x + panel.width, x1)
+        panel.ly1 = min(panel.y + panel.height, y1)
+    }
+
+    private fun drawCachedImage(panel: Panel, wasRedrawn: List<Panel>) {
         val x0 = max(panel.x, 0)
         val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
         val x1 = min(panel.x + panel.width, windowStack.width)
         val y1 = min(panel.y + panel.height, windowStack.height)
         val tex = buffer.getTexture0()
-        if (isTransparent) {
-            renderDefault {
-                drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
-                if (EngineBase.showRedraws) {
-                    showRedraws(wasRedrawn)
-                }
-            }
-        } else {
-            renderPurely {
+        GFXState.depthMode.use(GFXState.alwaysDepthMode) {
+            val blendMode = if (isTransparent) BlendMode.DEFAULT else null
+            GFXState.blendMode.use(blendMode) {
                 drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
             }
-            if (EngineBase.showRedraws) {
-                renderDefault {
-                    showRedraws(wasRedrawn)
-                }
+            GFXState.blendMode.use(BlendMode.DEFAULT) {
+                showRedraws(wasRedrawn)
             }
         }
     }
 
-    private fun showRedraws(wasRedrawn: Collection<Panel>) {
-        for (panel in wasRedrawn) {
+    private fun showRedraws(redrawnPanels: List<Panel>) {
+        val batch = DrawRectangles.startBatch()
+        for (i in redrawnPanels.indices) {
+            val panel = redrawnPanels[i]
             DrawRectangles.drawRect(
-                panel.lx0,
-                panel.ly0,
+                panel.lx0, panel.ly0,
                 panel.lx1 - panel.lx0,
                 panel.ly1 - panel.ly0,
                 redrawColor
             )
         }
+        DrawRectangles.finishBatch(batch)
     }
 
     fun close(closeAllAbove: Boolean = true) {

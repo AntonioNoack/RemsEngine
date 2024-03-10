@@ -1,7 +1,7 @@
 package me.anno.input
 
 /**
- * list of all keycodes, baseline is GLFW (and ASCII), because that's our default platform
+ * List of all keycodes, baseline is GLFW (and ASCII), because that's our default platform;
  * */
 enum class Key(val id: Int) {
 

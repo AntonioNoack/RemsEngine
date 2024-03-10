@@ -3,9 +3,9 @@ package me.anno.io.utils
 import me.anno.Engine
 import me.anno.Time.nanoTime
 import me.anno.engine.Events.addEvent
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
-import me.anno.io.config.ConfigEntry
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
@@ -23,7 +23,7 @@ import kotlin.math.min
 open class StringMap(
     capacity: Int = 16,
     val sortKeysWhenSaving: Boolean = true
-) : ConfigEntry(), MutableMap<String, Any?> {
+) : Saveable(), MutableMap<String, Any?> {
 
     constructor() : this(16)
 

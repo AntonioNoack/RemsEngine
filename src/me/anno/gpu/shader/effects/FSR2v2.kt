@@ -21,7 +21,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -276,21 +275,14 @@ class FSR2v2 : ICacheData {
         data1 = tmp
     }
 
-    fun drawScene(
+    fun render(
         view: RenderView,
         w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer,
-        deferred: DeferredSettings,
+        buffer: IFramebuffer, deferred: DeferredSettings,
         lightNBuffer1: IFramebuffer,
         baseSameDepth1: IFramebuffer
     ) {
 
-        Texture2D.unbindAllTextures()
-
-        view.drawScene(
-            w, h, renderer, buffer,
-            changeSize = true, hdr = true
-        )
         val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, DepthBufferType.INTERNAL]
         val motionRenderer = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
         view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true)

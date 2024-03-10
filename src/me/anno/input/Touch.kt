@@ -108,11 +108,13 @@ class Touch(var x: Float, var y: Float) {
         private val listeners = ArrayList<TouchListener>()
 
         @JvmStatic
+        @Suppress("unused")
         fun registerListener(listener: TouchListener) {
             listeners.add(listener)
         }
 
         @JvmStatic
+        @Suppress("unused")
         fun unregisterListener(listener: TouchListener) {
             listeners.remove(listener)
         }

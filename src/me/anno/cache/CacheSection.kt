@@ -6,7 +6,6 @@ import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.LastModifiedCache
 import me.anno.utils.ShutdownException
@@ -469,17 +468,11 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private fun onLongWaitStart(key: Any?, entry: CacheEntry) {
-        val msg = "Waiting for $name[$key] by ${entry.generatorThread.name} " +
-                "from ${Thread.currentThread().name}"
-        if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
-        LOGGER.warn(msg)
+        LOGGER.warn("Waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}")
     }
 
     private fun onLongWaitEnd(key: Any?, entry: CacheEntry) {
-        val msg = "Finished waiting for $name[$key] by ${entry.generatorThread.name} " +
-                "from ${Thread.currentThread().name}"
-        if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
-        LOGGER.warn(msg)
+        LOGGER.warn("Finished waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}")
     }
 
     fun <V> getEntryWithIfNotGeneratingCallback(

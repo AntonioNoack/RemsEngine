@@ -13,8 +13,6 @@ import org.lwjgl.opengl.GL46C
 
 // todo locations for the varyings: for debugging with RenderDoc
 
-// todo replace attributes & uniforms to lists everywhere
-
 open class Shader(
     shaderName: String,
     val vertexVariables: List<Variable>,

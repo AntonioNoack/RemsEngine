@@ -34,6 +34,10 @@ object Time {
     @JvmField
     val startTime = System.nanoTime()
 
+    /**
+     * last frame time in nanoseconds;
+     * use this in UI to check whether a function was already called that frame
+     * */
     @JvmStatic
     var lastTimeNanos = 0L
         private set
