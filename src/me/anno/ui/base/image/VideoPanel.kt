@@ -1,4 +1,4 @@
-package me.anno.ui.base
+package me.anno.ui.base.image
 
 import me.anno.Time
 import me.anno.animation.LoopingState
@@ -9,7 +9,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
-import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.ui.Panel
@@ -27,7 +26,7 @@ import kotlin.math.min
 open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boolean, style: Style) :
     ImagePanelBase(style) {
 
-    val meta = getMeta(source, false)!!
+    val meta = MediaMetadata.getMeta(source, false)!!
 
     var looping: LoopingState
         get() = stream.looping
@@ -66,7 +65,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
 
     private fun reload() {
         stream.destroy()
-        val meta = getMeta(source, false)!!
+        val meta = MediaMetadata.getMeta(source, false)!!
         stream = VideoStream(source, meta, playAudio, looping, max(width, height))
     }
 
@@ -110,7 +109,7 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         fun createSimpleVideoPlayer(source: FileReference): Panel {
             val list = PanelListY(DefaultConfig.style)
             val controls = PanelListX(DefaultConfig.style)
-            val movie = VideoPanel(source, getMeta(source, false)!!, true, DefaultConfig.style)
+            val movie = VideoPanel(source, MediaMetadata.getMeta(source, false)!!, true, DefaultConfig.style)
             movie.looping = LoopingState.PLAY_LOOP
             controls.add(
                 TextButton(">", 1.5f, DefaultConfig.style)

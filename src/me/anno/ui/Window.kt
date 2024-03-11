@@ -482,8 +482,10 @@ open class Window(
             GFXState.blendMode.use(blendMode) {
                 drawTexture(x0, y1, x1 - x0, y0 - y1, tex, -1, null)
             }
-            GFXState.blendMode.use(BlendMode.DEFAULT) {
-                showRedraws(wasRedrawn)
+            if (EngineBase.showRedraws) {
+                GFXState.blendMode.use(BlendMode.DEFAULT) {
+                    showRedraws(wasRedrawn)
+                }
             }
         }
     }

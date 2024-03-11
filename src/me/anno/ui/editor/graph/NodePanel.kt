@@ -1,20 +1,17 @@
-package me.anno.graph.ui
+package me.anno.ui.editor.graph
 
-import me.anno.gpu.shader.effects.FSR
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
-import me.anno.fonts.FontManager.getBaselineY
-import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.drawing.DrawTexts.drawText
-import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.drawing.GFXx2D.drawCircle
-import me.anno.gpu.drawing.GFXx2D.drawHalfArrow
-import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.GFXState
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.Node
@@ -24,20 +21,16 @@ import me.anno.graph.NodeOutput
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.distance
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.mapClamped
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.menu.Menu.askName
-import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
+import me.anno.utils.Color
 import me.anno.utils.Color.a
-import me.anno.utils.Color.black
-import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import kotlin.math.abs
@@ -63,7 +56,7 @@ class NodePanel(
 
     init {
         // slightly transparent, so covered connections can be seen
-        backgroundColor = mixARGB(backgroundColor, black, 0.5f).withAlpha(bgAlpha)
+        backgroundColor = Color.mixARGB(backgroundColor, Color.black, 0.5f).withAlpha(bgAlpha)
         node.createUI(gp, this, style)
         name = node.name
     }
@@ -89,7 +82,7 @@ class NodePanel(
         val font = gp.font
 
         // enough width for title
-        minW = baseTextSizeI4 + getSizeX(FontManager.getSize(font, node.name, -1, -1, false))
+        minW = baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, node.name, -1, -1, false))
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
@@ -105,23 +98,23 @@ class NodePanel(
                     inputFields[con] = newField
                 } else inputFields.remove(con)
             }
-            val newFieldW = getSizeX(FontManager.getSize(font, con.name, -1, -1, false)) + baseTextSizeI4
+            val newFieldW = GFXx2D.getSizeX(FontManager.getSize(font, con.name, -1, -1, false)) + baseTextSizeI4
             minW = if (newField != null) {
                 newField.calculateSize(w, minH)
                 val extra = if (i < outputs.size) {
-                    getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+                    GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
                 } else 0
                 max(minW, newFieldW + newField.minW + extra)
             } else {
                 val extra = if (i < outputs.size) {
-                    getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+                    GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
                 } else 0
                 max(minW, newFieldW + extra)
             }
         }
 
         for (i in inputs.size until outputs.size) {
-            val extra = getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
+            val extra = GFXx2D.getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1, false))
             minW = max(minW, baseTextSizeI4 + extra)
         }
 
@@ -230,10 +223,10 @@ class NodePanel(
             if (cachedTexture == null) {
                 // generate texture
                 cachedTexture = Framebuffer("NodePanel", width, height, TargetType.UInt8x4, DepthBufferType.NONE)
-                useFrame(cachedTexture, ::doDrawAtZero)
+                GFXState.useFrame(cachedTexture, ::doDrawAtZero)
                 this.cachedTexture = cachedTexture
             } else if (cachedTexture.width * 2 + 3 < width) {// improve resolution
-                useFrame(width, height, true, cachedTexture) {
+                GFXState.useFrame(width, height, true, cachedTexture) {
                     cachedTexture!!.clearColor(gp.backgroundColor.withAlpha(0), false)
                     doDrawAtZero()
                 }
@@ -243,7 +236,7 @@ class NodePanel(
             val texture = cachedTexture.getTexture0()
             texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             if (texture.width >= width) {
-                drawTexture(x, y + height, width, -height, texture)
+                DrawTextures.drawTexture(x, y + height, width, -height, texture)
             } else {
                 FSR.upscale(texture, x, y, width, height, flipY = true, applyToneMapping = false, withAlpha = true)
             }
@@ -274,7 +267,7 @@ class NodePanel(
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)
 
-        val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
+        val backgroundColor = Color.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
         val textSize = font.sampleHeight
 
@@ -282,7 +275,7 @@ class NodePanel(
         titleY0 = y + textSize / 2
         titleY1 = titleY0 + textSize
 
-        titleWidth = drawText(
+        titleWidth = DrawTexts.drawText(
             x + width.shr(1), titleY0, font, node.name, textColor,
             backgroundColor, (width * 3).shr(2), -1, AxisAlignment.CENTER
         )
@@ -293,7 +286,7 @@ class NodePanel(
 
         // draw sockets, and their names
         val dxTxt = (baseTextSize * 0.7).toInt()
-        val dyTxt = getBaselineY(font).toInt()
+        val dyTxt = FontManager.getBaselineY(font).toInt()
         val baseTextSize = baseTextSize.toFloat()
 
         // to do generally, weights could be useful on either end (maybe?)
@@ -330,37 +323,37 @@ class NodePanel(
         val radius = baseTextSize * 0.4f
         val dragged = (gp as? GraphEditor)?.dragged
         val canConnect = dragged == null || gp.graph?.canConnectTo(dragged, con) ?: true
-        val radius2 = if (canConnect) mapClamped(
+        val radius2 = if (canConnect) Maths.mapClamped(
             0.9f * radius, 1.3f * radius,
             radius * 1.2f, radius,
-            length(px - mouseX, py - mouseY)
+            Maths.length(px - mouseX, py - mouseY)
         ) else radius
         val innerRadius = if (con.others.isEmpty()) min(0.8f, (radius - 2f) / radius) else 0f
-        val bg = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
+        val bg = Color.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         if (con.type == "Flow") {
             // if the type is flow, draw an arrow instead of circle
             val rx = radius2 * 0.75f
             // apply inner radius
-            drawHalfArrow(
+            GFXx2D.drawHalfArrow(
                 pxi - rx, pyi - radius2, 2f * rx, 2f * radius2,
-                gp.getTypeColor(con), bg or black
+                gp.getTypeColor(con), bg or Color.black
             )
             if (innerRadius > 0f) {
                 val dx2 = ((1f - innerRadius) * radius2).roundToInt()
                 val rx2 = rx - dx2
                 val ry2 = radius2 - dx2 + 1
-                drawHalfArrow(
+                GFXx2D.drawHalfArrow(
                     pxi - rx2 - 1, pyi - ry2, 2 * rx2, 2 * ry2,
-                    bg or black, gp.getTypeColor(con)
+                    bg or Color.black, gp.getTypeColor(con)
                 )
             }
         } else {
-            drawCircle(
+            GFXx2D.drawCircle(
                 pxi, pyi, radius2, radius2, innerRadius,
                 bg, gp.getTypeColor(con), bg
             )
         }
-        drawText(
+        DrawTexts.drawText(
             pxi + dx, pyi + dy, font, con.name, textColor,
             bg, -1, -1,
             if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN
@@ -475,7 +468,7 @@ class NodePanel(
                     (if (input) node.canRemoveInput(type, idx) else node.canRemoveOutput(type, idx)) && idx >= 0
                 if (canRemove || addableTypes.isNotEmpty()) {
                     // ask user what shall be done
-                    openMenu(windowStack, addableTypes.map { typeI ->
+                    Menu.openMenu(windowStack, addableTypes.map { typeI ->
                         MenuOption(NameDesc("Add $typeI Connector")) {
                             if (input) node.inputs.add(idx1, NodeInput(typeI, node, true))
                             else node.outputs.add(idx1, NodeOutput(typeI, node, true))
@@ -535,7 +528,7 @@ class NodePanel(
                 gp.onChange(false)
             }
             con0 != null && (window == null ||
-                    distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < width / 10f) -> {
+                    Maths.distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < width / 10f) -> {
                 // loosen this connection
                 con0.disconnectAll()
                 gp.onChange(false)
@@ -595,7 +588,7 @@ class NodePanel(
         if (yi in titleY0 until titleY1 &&
             abs(xi * 2 - (this.x * 2 + this.width)) < max(titleWidth, titleY1 - titleY0)
         ) {
-            askName(windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
+            Menu.askName(windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
                 { textColor }, {
                     node.name = it
                     invalidateLayout()

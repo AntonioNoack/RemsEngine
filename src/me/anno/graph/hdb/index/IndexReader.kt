@@ -1,11 +1,13 @@
 package me.anno.graph.hdb.index
 
 import me.anno.io.json.generic.JsonScanner
+import me.anno.utils.InternalAPI
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.toInt
 import java.io.InputStream
 import kotlin.math.max
 
+@InternalAPI
 class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> StorageFile?) : JsonScanner(input) {
 
     fun readFolder(folder: Folder) {

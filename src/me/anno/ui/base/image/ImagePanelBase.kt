@@ -1,4 +1,4 @@
-package me.anno.ui.base
+package me.anno.ui.base.image
 
 import me.anno.gpu.texture.Filtering
 import me.anno.input.Input

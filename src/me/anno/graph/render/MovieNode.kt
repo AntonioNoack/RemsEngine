@@ -2,7 +2,7 @@ package me.anno.graph.render
 
 import me.anno.ecs.annotations.Type
 import me.anno.graph.types.flow.CalculationNode
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

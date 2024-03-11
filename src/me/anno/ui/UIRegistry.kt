@@ -7,7 +7,7 @@ import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation
-import me.anno.ui.base.IconPanel
+import me.anno.ui.base.image.IconPanel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton

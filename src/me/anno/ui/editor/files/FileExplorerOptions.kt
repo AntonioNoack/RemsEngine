@@ -14,8 +14,8 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
-import me.anno.ui.base.ImagePanel
-import me.anno.ui.base.VideoPanel
+import me.anno.ui.base.image.ImagePanel
+import me.anno.ui.base.image.VideoPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelStack

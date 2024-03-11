@@ -1,7 +1,6 @@
-package me.anno.ui.base
+package me.anno.ui.base.image
 
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.ITexture2D
 import me.anno.ui.Style
@@ -32,6 +31,6 @@ abstract class ImagePanel(style: Style) : ImagePanelBase(style) {
             )
         }
         texture.bind(0, filtering, Clamping.CLAMP)
-        drawTexture(lix, liy, liw, lih, texture, -1, null, flipY)
+        DrawTextures.drawTexture(lix, liy, liw, lih, texture, -1, null, flipY)
     }
 }

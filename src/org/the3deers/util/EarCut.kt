@@ -67,7 +67,9 @@ object EarCut {
         var x: Float
         var y: Float
         var invSize = 0f
-        if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim)
+        if (hasHoles && holeIndices != null) {
+            outerNode = eliminateHoles(data, holeIndices, outerNode, dim)
+        }
 
         // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
         if (data.size > 80 * dim) {
@@ -125,19 +127,16 @@ object EarCut {
      * eliminate collinear or duplicate points
      * */
     @JvmStatic
-    private fun filterPoints(start: EarCutNode?, end0: EarCutNode?): EarCutNode? {
+    private fun filterPoints(start: EarCutNode, end0: EarCutNode = start): EarCutNode {
         var end = end0
-        if (start == null) return null
-        if (end == null) end = start
         var p = start
-        var again: Boolean
         do {
-            again = false
-            if (!p!!.steiner && (p == p.next || signedTriangleArea(p.prev!!, p, p.next!!) == 0f)) {
+            var again = false
+            if (!p.isSteinerPoint && (p == p.next || signedTriangleArea(p.prev, p, p.next) == 0f)) {
                 removeNode(p)
                 end = p.prev
                 p = end
-                if (p === p!!.next) break
+                if (p === p.next) break
                 again = true
             } else {
                 p = p.next
@@ -159,23 +158,23 @@ object EarCut {
         invSize: Float,
         pass: Int
     ) {
-        var ear: EarCutNode? = ear0 ?: return
+        var ear: EarCutNode = ear0 ?: return
 
         // interlink polygon nodes in z-order
-        if (pass == 0 && invSize != 0f) indexCurve(ear!!, minX, minY, invSize)
-        var stop = ear
-        var prev: EarCutNode?
-        var next: EarCutNode?
+        if (pass == 0 && invSize != 0f) {
+            indexCurve(ear, minX, minY, invSize)
+        }
 
+        var stop = ear
         // iterate through ears, slicing them one by one
-        while (ear!!.prev !== ear!!.next) {
-            prev = ear!!.prev
-            next = ear.next
+        while (ear.prev !== ear.next) {
+            val prev = ear.prev
+            val next = ear.next
             if (if (invSize != 0f) isEarHashed(ear, minX, minY, invSize) else isEar(ear)) {
                 // cut off the triangle
-                triangles.add(prev!!.i / dim)
+                triangles.add(prev.i / dim)
                 triangles.add(ear.i / dim)
-                triangles.add(next!!.i / dim)
+                triangles.add(next.i / dim)
                 removeNode(ear)
 
                 // skipping the next vertex leads to less sliver triangles
@@ -189,14 +188,14 @@ object EarCut {
             if (ear === stop) {
                 // try filtering points and slicing again
                 when (pass) {
-                    0 -> earcutLinked(filterPoints(ear, null), triangles, dim, minX, minY, invSize, 1)
+                    0 -> earcutLinked(filterPoints(ear), triangles, dim, minX, minY, invSize, 1)
                     // if this didn't work, try curing all small self-intersections locally
                     1 -> {
-                        ear = cureLocalIntersections(filterPoints(ear, null), triangles, dim)
+                        ear = cureLocalIntersections(filterPoints(ear), triangles, dim)
                         earcutLinked(ear, triangles, dim, minX, minY, invSize, 2)
                         // as a last resort, try splitting the remaining polygon into two
                     }
-                    2 -> splitEarcut(ear!!, triangles, dim, minX, minY, invSize)
+                    2 -> splitEarcut(ear, triangles, dim, minX, minY, invSize)
                 }
                 break
             }
@@ -208,14 +207,14 @@ object EarCut {
      * */
     @JvmStatic
     private fun isEar(ear: EarCutNode): Boolean {
-        val a = ear.prev!!
-        val c = ear.next!!
+        val a = ear.prev
+        val c = ear.next
         if (signedTriangleArea(a, ear, c) >= 0) return false // reflex, can't be an ear
         // now make sure we don't have other points inside the potential ear
-        var p = ear.next!!.next
+        var p = ear.next.next
         while (p !== ear.prev) {
-            if (pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p!!.x, p.y) &&
-                signedTriangleArea(p.prev!!, p, p.next!!) >= 0
+            if (pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p.x, p.y) &&
+                signedTriangleArea(p.prev, p, p.next) >= 0
             ) return false
             p = p.next
         }
@@ -225,8 +224,8 @@ object EarCut {
     @JvmStatic
     private fun isEarHashed(ear: EarCutNode, minX: Float, minY: Float, invSize: Float): Boolean {
 
-        val a = ear.prev!!
-        val c = ear.next!!
+        val a = ear.prev
+        val c = ear.next
         if (signedTriangleArea(a, ear, c) >= 0) return false // reflex, can't be an ear
 
         // triangle bounding box; min & max are calculated like this for speed
@@ -245,12 +244,12 @@ object EarCut {
         while (p != null && p.z >= minZ && n != null && n.z <= maxZ) {
             if (p !== ear.prev && p !== ear.next &&
                 pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p.x, p.y) &&
-                signedTriangleArea(p.prev!!, p, p.next!!) >= 0
+                signedTriangleArea(p.prev, p, p.next) >= 0
             ) return false
             p = p.prevZ
             if (n !== ear.prev && n !== ear.next &&
                 pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, n.x, n.y) &&
-                signedTriangleArea(n.prev!!, n, n.next!!) >= 0
+                signedTriangleArea(n.prev, n, n.next) >= 0
             ) return false
             n = n.nextZ
         }
@@ -259,7 +258,7 @@ object EarCut {
         while (p != null && p.z >= minZ) {
             if (p !== ear.prev && p !== ear.next &&
                 pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p.x, p.y) &&
-                signedTriangleArea(p.prev!!, p, p.next!!) >= 0
+                signedTriangleArea(p.prev, p, p.next) >= 0
             ) return false
             p = p.prevZ
         }
@@ -268,7 +267,7 @@ object EarCut {
         while (n != null && n.z <= maxZ) {
             if (n !== ear.prev && n !== ear.next &&
                 pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, n.x, n.y) &&
-                signedTriangleArea(n.prev!!, n, n.next!!) >= 0
+                signedTriangleArea(n.prev, n, n.next) >= 0
             ) return false
             n = n.nextZ
         }
@@ -279,26 +278,26 @@ object EarCut {
      * go through all polygon nodes and cure small local self-intersections
      * */
     @JvmStatic
-    private fun cureLocalIntersections(start0: EarCutNode?, triangles: IntArrayList, dim: Int): EarCutNode? {
+    private fun cureLocalIntersections(start0: EarCutNode, triangles: IntArrayList, dim: Int): EarCutNode {
         var start = start0
         var p = start
         do {
-            val a = p!!.prev!!
-            val b = p.next!!.next!!
-            if (a != b && intersects(a, p, p.next!!, b) && locallyInside(a, b) && locallyInside(b, a)) {
+            val a = p.prev
+            val b = p.next.next
+            if (a != b && intersects(a, p, p.next, b) && locallyInside(a, b) && locallyInside(b, a)) {
                 triangles.add(a.i / dim)
                 triangles.add(p.i / dim)
                 triangles.add(b.i / dim)
 
                 // remove two nodes involved
                 removeNode(p)
-                removeNode(p.next!!)
+                removeNode(p.next)
                 start = b
                 p = start
             }
             p = p.next
         } while (p !== start)
-        return filterPoints(p, null)
+        return filterPoints(p)
     }
 
     /**
@@ -314,12 +313,12 @@ object EarCut {
         invSize: Float
     ) {
         // look for a valid diagonal, that divides the polygon into two
-        var an: EarCutNode? = start
+        var an: EarCutNode = start
         do {
-            val a = an!!
-            var b = a.next!!.next
+            val a = an
+            var b = a.next.next
             while (b !== a.prev) {
-                if (a.i != b!!.i && isValidDiagonal(a, b)) {
+                if (a.i != b.i && isValidDiagonal(a, b)) {
                     // split the polygon in two by the diagonal
                     val c = splitPolygon(a, b)
 
@@ -342,32 +341,25 @@ object EarCut {
      * link every hole into the outer loop, producing a single-ring polygon without holes
      * */
     @JvmStatic
-    private fun eliminateHoles(data: FloatArray, holeIndices: IntArray?, outerNode0: EarCutNode, dim: Int): EarCutNode {
-        var outerNode: EarCutNode? = outerNode0
-        val queue: MutableList<EarCutNode> = ArrayList()
-        var start: Int
-        var end: Int
-        var list: EarCutNode?
-        var i = 0
-        val len = holeIndices!!.size
-        while (i < len) {
-            start = holeIndices[i] * dim
-            end = if (i < len - 1) holeIndices[i + 1] * dim else data.size
-            list = linkedList(data, start, end, dim, false)!!
-            if (list === list.next) list.steiner = true
-            queue.add(getLeftmost(list))
-            i++
+    private fun eliminateHoles(data: FloatArray, holeIndices: IntArray, outerNode0: EarCutNode, dim: Int): EarCutNode {
+        val queue = Array(holeIndices.size) { i ->
+            val start = holeIndices[i] * dim
+            val end = if (i < holeIndices.lastIndex) holeIndices[i + 1] * dim else data.size
+            val list = linkedList(data, start, end, dim, false)!!
+            if (list === list.next) {
+                list.isSteinerPoint = true
+            }
+            getLeftmost(list)
         }
-        queue.sortWith { a: EarCutNode, b: EarCutNode -> a.x.compareTo(b.x) }
+        queue.sortBy { it.x }
 
         // process holes from left to right
-        i = 0
-        while (i < queue.size) {
-            eliminateHole(queue[i], outerNode!!)
+        var outerNode: EarCutNode = outerNode0
+        for (i in queue.indices) {
+            eliminateHole(queue[i], outerNode)
             outerNode = filterPoints(outerNode, outerNode.next)
-            i++
         }
-        return outerNode!!
+        return outerNode
     }
 
     /**
@@ -398,18 +390,18 @@ object EarCut {
         // find a segment intersected by a ray from the hole's leftmost point to the left;
         // segment's endpoint with lesser x will be potential connection point
         do {
-            if (hy <= p.y && hy >= p.next!!.y && p.next!!.y != p.y) {
-                val x = p.x + (hy - p.y) * (p.next!!.x - p.x) / (p.next!!.y - p.y)
+            if (hy <= p.y && hy >= p.next.y && p.next.y != p.y) {
+                val x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y)
                 if (x <= hx && x > qx) {
                     qx = x
                     if (x == hx) {
                         if (hy == p.y) return p
-                        if (hy == p.next!!.y) return p.next
+                        if (hy == p.next.y) return p.next
                     }
-                    m = if (p.x < p.next!!.x) p else p.next
+                    m = if (p.x < p.next.x) p else p.next
                 }
             }
-            p = p.next!!
+            p = p.next
         } while (p !== outerNode)
         if (m == null) return null
         if (hx == qx) return m // hole touches outer segment; pick leftmost endpoint
@@ -435,7 +427,7 @@ object EarCut {
                     tanMin = tan
                 }
             }
-            p = p.next!!
+            p = p.next
         } while (p !== stop)
         return m
     }
@@ -445,7 +437,7 @@ object EarCut {
      * */
     @JvmStatic
     private fun sectorContainsSector(m: EarCutNode, p: EarCutNode): Boolean {
-        return signedTriangleArea(m.prev!!, m, p.prev!!) < 0 && signedTriangleArea(p.next!!, m, m.next!!) < 0
+        return signedTriangleArea(m.prev, m, p.prev) < 0 && signedTriangleArea(p.next, m, m.next) < 0
     }
 
     /**
@@ -453,9 +445,9 @@ object EarCut {
      * */
     @JvmStatic
     private fun indexCurve(start: EarCutNode, minX: Float, minY: Float, invSize: Float) {
-        var p: EarCutNode? = start
+        var p: EarCutNode = start
         do {
-            if (p!!.z == -1f) p.z = zOrder(p.x, p.y, minX, minY, invSize)
+            if (p.z == -1) p.z = zOrder(p.x, p.y, minX, minY, invSize)
             p.prevZ = p.prev
             p.nextZ = p.next
             p = p.next
@@ -470,8 +462,8 @@ object EarCut {
      * http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
      * */
     @JvmStatic
-    private fun sortLinked(list0: EarCutNode?) {
-        var list = list0
+    private fun sortLinked(list0: EarCutNode) {
+        var list: EarCutNode? = list0
         var i: Int
         var p: EarCutNode?
         var q: EarCutNode?
@@ -523,7 +515,7 @@ object EarCut {
      * z-order of a point given coords and inverse of the longer side of data bounding box
      * */
     @JvmStatic
-    fun zOrder(x0: Float, y0: Float, minX: Float, minY: Float, invSize: Float): Float {
+    fun zOrder(x0: Float, y0: Float, minX: Float, minY: Float, invSize: Float): Int {
         // coords are transformed into non-negative 15-bit integer range
         var x = (32767 * (x0 - minX) * invSize).toInt()
         var y = (32767 * (y0 - minY) * invSize).toInt()
@@ -535,7 +527,7 @@ object EarCut {
         y = y or (y shl 4) and 0x0F0F0F0F
         y = y or (y shl 2) and 0x33333333
         y = y or (y shl 1) and 0x55555555
-        return (x or (y shl 1)).toFloat()
+        return (x or (y shl 1))
     }
 
     /**
@@ -547,7 +539,7 @@ object EarCut {
         var leftmost = start
         do {
             if (p.x < leftmost.x || p.x == leftmost.x && p.y < leftmost.y) leftmost = p
-            p = p.next!!
+            p = p.next
         } while (p !== start)
         return leftmost
     }
@@ -572,13 +564,13 @@ object EarCut {
      * */
     @JvmStatic
     private fun isValidDiagonal(a: EarCutNode, b: EarCutNode): Boolean {
-        return a.next!!.i != b.i && a.prev!!.i != b.i &&
+        return a.next.i != b.i && a.prev.i != b.i &&
                 !intersectsPolygon(a, b) && // doesn't intersect other edges
                 (locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b) && // locally visible
                         // does not create opposite-facing sectors
-                        (signedTriangleArea(a.prev!!, a, b.prev!!) != 0f || signedTriangleArea(a, b.prev!!, b) != 0f) ||
-                        a == b && signedTriangleArea(a.prev!!, a, a.next!!) > 0 &&
-                        signedTriangleArea(b.prev!!, b, b.next!!) > 0) // special zero-length case
+                        (signedTriangleArea(a.prev, a, b.prev) != 0f || signedTriangleArea(a, b.prev, b) != 0f) ||
+                        a == b && signedTriangleArea(a.prev, a, a.next) > 0 &&
+                        signedTriangleArea(b.prev, b, b.next) > 0) // special zero-length case
     }
 
     @JvmStatic
@@ -625,10 +617,10 @@ object EarCut {
     private fun intersectsPolygon(a: EarCutNode, b: EarCutNode): Boolean {
         var p = a
         do {
-            if (p.i != a.i && p.next!!.i != a.i && p.i != b.i && p.next!!.i != b.i &&
-                intersects(p, p.next!!, a, b)
+            if (p.i != a.i && p.next.i != a.i && p.i != b.i && p.next.i != b.i &&
+                intersects(p, p.next, a, b)
             ) return true
-            p = p.next!!
+            p = p.next
         } while (p !== a)
         return false
     }
@@ -638,10 +630,10 @@ object EarCut {
      * */
     @JvmStatic
     private fun locallyInside(a: EarCutNode, b: EarCutNode): Boolean {
-        return if (signedTriangleArea(a.prev!!, a, a.next!!) < 0)
-            signedTriangleArea(a, b, a.next!!) >= 0f && signedTriangleArea(a, a.prev!!, b) >= 0f
+        return if (signedTriangleArea(a.prev, a, a.next) < 0)
+            signedTriangleArea(a, b, a.next) >= 0f && signedTriangleArea(a, a.prev, b) >= 0f
         else
-            signedTriangleArea(a, b, a.prev!!) < 0f || signedTriangleArea(a, a.next!!, b) < 0f
+            signedTriangleArea(a, b, a.prev) < 0f || signedTriangleArea(a, a.next, b) < 0f
     }
 
     /**
@@ -654,10 +646,10 @@ object EarCut {
         val px = (a.x + b.x) * 0.5f
         val py = (a.y + b.y) * 0.5f
         do {
-            if (p.y > py != p.next!!.y > py && p.next!!.y != p.y &&
-                px < (p.next!!.x - p.x) * (py - p.y) / (p.next!!.y - p.y) + p.x
+            if (p.y > py != p.next.y > py && p.next.y != p.y &&
+                px < (p.next.x - p.x) * (py - p.y) / (p.next.y - p.y) + p.x
             ) inside = !inside
-            p = p.next!!
+            p = p.next
         } while (p !== a)
         return inside
     }
@@ -668,8 +660,8 @@ object EarCut {
     private fun splitPolygon(a: EarCutNode, b: EarCutNode): EarCutNode {
         val a2 = EarCutNode(a.i, a.x, a.y)
         val b2 = EarCutNode(b.i, b.x, b.y)
-        val an = a.next!!
-        val bp = b.prev!!
+        val an = a.next
+        val bp = b.prev
         a.next = b
         b.prev = a
         a2.next = an
@@ -693,7 +685,7 @@ object EarCut {
         } else {
             p.next = last.next
             p.prev = last
-            last.next!!.prev = p
+            last.next.prev = p
             last.next = p
         }
         return p
@@ -701,8 +693,8 @@ object EarCut {
 
     @JvmStatic
     private fun removeNode(p: EarCutNode) {
-        p.next!!.prev = p.prev
-        p.prev!!.next = p.next
+        p.next.prev = p.prev
+        p.prev.next = p.next
         if (p.prevZ != null) p.prevZ!!.nextZ = p.nextZ
         if (p.nextZ != null) p.nextZ!!.prevZ = p.prevZ
     }
@@ -724,18 +716,18 @@ object EarCut {
         // vertex index in coordinates array
         var i: Int,
         // vertex coordinates
-        var x: Float, var y: Float
+        var x: Float, var y: Float,
     ) {
 
         // z-order curve value
-        var z = -1f
+        var z = -1
 
         // indicates whether this is a steiner point
-        var steiner: Boolean = false
+        var isSteinerPoint: Boolean = false
 
         // previous and next vertex nodes in a polygon ring
-        var prev: EarCutNode? = null
-        var next: EarCutNode? = null
+        lateinit var prev: EarCutNode
+        lateinit var next: EarCutNode
 
         // previous and next nodes in z-order
         var nextZ: EarCutNode? = null
@@ -746,6 +738,5 @@ object EarCut {
         }
 
         override fun hashCode() = x.hashCode() * 31 + y.hashCode()
-
     }
 }

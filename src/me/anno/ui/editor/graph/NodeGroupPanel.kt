@@ -1,4 +1,4 @@
-package me.anno.graph.ui
+package me.anno.ui.editor.graph
 
 import me.anno.fonts.FontManager
 import me.anno.gpu.drawing.DrawTexts
@@ -7,8 +7,8 @@ import me.anno.graph.render.NodeGroup
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.utils.Color
 import me.anno.utils.Color.a
-import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 
@@ -73,7 +73,7 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)
 
-        val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
+        val backgroundColor = Color.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
         val textSize = font.sampleHeight
 

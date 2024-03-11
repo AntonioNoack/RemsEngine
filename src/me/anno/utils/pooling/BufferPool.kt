@@ -11,11 +11,11 @@ abstract class BufferPool<V>(
     val timeoutMillis: Long = 5000L
 ) {
 
-    abstract fun prepare(buffer: V, size: Int)
+    open fun prepare(buffer: V, size: Int) {}
     abstract fun clear(buffer: V, size: Int)
     abstract fun getSize(buffer: V): Int
     abstract fun createBuffer(size: Int): V
-    abstract fun destroy(buffer: V)
+    open fun destroy(buffer: V) {}
 
     val totalSize: Long
         get() {

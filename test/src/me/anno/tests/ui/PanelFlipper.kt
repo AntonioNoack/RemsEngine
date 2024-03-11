@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.IconPanel
+import me.anno.ui.base.image.IconPanel
 import me.anno.ui.base.groups.PanelFlipper
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.UpdatingTextPanel

@@ -109,7 +109,7 @@ object DualContouring {
         x0: Float, x1: Float,
         y0: Float, y1: Float,
         g: Vector2f, qef: QEF2d,
-        wi: Int, vertices: Array<Vector2f?>,
+        wi: Int, vertices: Array<Vector2f>,
     ) {
         val v00 = values[i0]
         val v01 = values[i0 + di]
@@ -162,7 +162,6 @@ object DualContouring {
             }.second
 
             vertices[wi] = Vector2f(s)
-
         }
     }
 
@@ -170,7 +169,7 @@ object DualContouring {
         sx: Int, sy: Int,
         func: Func2d,
         grad: Grad2d = gradient(func)
-    ): Pair<List<Vector2f>,List<Vector2f>> {
+    ): Pair<List<Vector2f>, List<Vector2f>> {
         val pointsInGrid = (sx + 1) * (sy + 1)
         // calculate all positions and all gradients
         val values = FloatArray(pointsInGrid)
@@ -190,8 +189,9 @@ object DualContouring {
         sx: Int, sy: Int,
         values: FloatArray,
         func: Func2d, gradient: Grad2d
-    ):  Pair<List<Vector2f>,List<Vector2f>>  {
-        val vertices = arrayOfNulls<Vector2f>(sx * sy)
+    ): Pair<List<Vector2f>, List<Vector2f>> {
+        val invalid = Vector2f()
+        val vertices = Array(sx * sy) { invalid }
         var writeIndex = 0
         var i = 0
         val di = sx + 1
@@ -221,8 +221,8 @@ object DualContouring {
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     // find correct vertex indices
                     val vk = x + sx * y
-                    edges += vertices[vk - 1]!!
-                    edges += vertices[vk]!!
+                    edges += vertices[vk - 1]
+                    edges += vertices[vk]
                 }
             }
         }
@@ -233,12 +233,11 @@ object DualContouring {
                 val vj = vi + 1
                 if ((values[vi] > 0f) != (values[vj] > 0f)) {
                     val vk = x + sx * y
-                    edges += vertices[vk - sx]!!
-                    edges += vertices[vk]!!
+                    edges += vertices[vk - sx]
+                    edges += vertices[vk]
                 }
             }
         }
-        return edges to vertices.filterNotNull()
+        return edges to vertices.filter { it !== invalid }
     }
-
 }

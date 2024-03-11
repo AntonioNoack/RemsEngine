@@ -3,8 +3,6 @@ package me.anno.tests.graph
 import me.anno.Engine
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
-import me.anno.io.Streams.readText
-import me.anno.tests.LOGGER
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 
@@ -58,10 +56,10 @@ fun main() {
         instance.get(sampleKeys[i], false) { bytes ->
             if (bytes == null) {
                 println("Missing $name")
-            } else if (sampleData[i].contentEquals(bytes.stream().readBytes())) {
+            } else if (sampleData[i].contentEquals(bytes.getAsArray())) {
                 println("$name is fine")
             } else {
-                println("$name was saved incorrectly: ${bytes.stream().readText()}")
+                println("$name was saved incorrectly: ${bytes.getAsString()}")
             }
         }
     }

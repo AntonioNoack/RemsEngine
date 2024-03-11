@@ -5,7 +5,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.image.ImageCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

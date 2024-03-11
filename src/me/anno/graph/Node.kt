@@ -2,7 +2,7 @@ package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -30,10 +30,12 @@ abstract class Node() : PrefabSaveable() {
     constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
         if (inputs.size.hasFlag(1)) throw IllegalArgumentException("Each input must be defined as type + name, got ${inputs.size} args")
         if (outputs.size.hasFlag(1)) throw IllegalArgumentException("Each output must be defined as type + name, got ${outputs.size} args")
-        for (it in 0 until (inputs.size shr 1)) {
+        this.inputs.ensureCapacity(inputs.size ushr 1)
+        this.outputs.ensureCapacity(outputs.size ushr 1)
+        for (it in 0 until (inputs.size ushr 1)) {
             this.inputs.add(NodeInput(inputs[it * 2], inputs[it * 2 + 1], this, false))
         }
-        for (it in 0 until (outputs.size shr 1)) {
+        for (it in 0 until (outputs.size ushr 1)) {
             this.outputs.add(NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this, false))
         }
     }

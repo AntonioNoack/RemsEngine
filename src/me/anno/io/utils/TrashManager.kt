@@ -11,6 +11,7 @@ object TrashManager {
 
     private val LOGGER = LogManager.getLogger(TrashManager::class)
 
+    // returns true on success
     var moveToTrashImpl: ((List<FileReference>) -> Boolean)? = null
     fun moveToTrash(files: List<FileReference>): Boolean {
         return moveToTrashImpl?.invoke(files) ?: false

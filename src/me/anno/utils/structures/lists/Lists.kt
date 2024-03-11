@@ -68,7 +68,7 @@ object Lists {
      * allocation-free first()
      * */
     @JvmStatic
-    inline fun <V: Any> List<V>.first2(test: (V) -> Boolean): V {
+    inline fun <V : Any> List<V>.first2(test: (V) -> Boolean): V {
         return firstOrNull2(test) ?: throw NoSuchElementException()
     }
 
@@ -88,7 +88,7 @@ object Lists {
      * allocation-free last()
      * */
     @JvmStatic
-    inline fun <V: Any> List<V>.last2(test: (V) -> Boolean): V {
+    inline fun <V : Any> List<V>.last2(test: (V) -> Boolean): V {
         return lastOrNull2(test) ?: throw NoSuchElementException()
     }
 
@@ -140,32 +140,6 @@ object Lists {
             else sorted()[size / 2]
         }
     }
-
-    /*fun <V> Iterable<V>.sumByFloat(func: (V) -> Float): Float {
-        var sum = 0f
-        for (entry in this) {
-            sum += func(entry)
-            if (sum.isInfinite() || sum.isNaN()) return sum
-        }
-        return sum
-    }
-
-    fun <V> List<V>.sumByFloat(func: (V) -> Float): Float {
-        var sum = 0f
-        for (entry in this) {
-            sum += func(entry)
-            if (sum.isInfinite() || sum.isNaN()) return sum
-        }
-        return sum
-    }
-
-    fun <V> List<V>.sumByLong(func: (V) -> Long): Long {
-        var sum = 0L
-        for (entry in this) {
-            sum += func(entry)
-        }
-        return sum
-    }*/
 
     @JvmStatic
     fun <V> MutableList<V>.pop(): V? {
@@ -226,9 +200,7 @@ object Lists {
     }
 
     @JvmStatic
-    fun <V> MutableList<V>.partition1(
-        start: Int, end: Int, condition: (V) -> Boolean
-    ): Int {
+    fun <V> MutableList<V>.partition1(start: Int, end: Int, condition: (V) -> Boolean): Int {
 
         var i = start
         var j = end - 1
@@ -376,14 +348,13 @@ object Lists {
 
     @JvmStatic
     fun <X> List<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
-        return if (size <= k) {
-            this
+        if (size <= k) {
+            return this
         } else {
-            val topK = ArrayList<X>(k)
-            for (j in 0 until k) topK.add(this[j])
+            val topK = ArrayList(subList(0, k))
             topK.sortWith(comparator)
             var lastBest = topK.last()
-            for (j in k until this.size) {
+            for (j in k until size) {
                 val element = this[j]
                 if (comparator.compare(element, lastBest) < 0) {
                     var index = topK.binarySearch(element, comparator)
@@ -395,7 +366,7 @@ object Lists {
                     lastBest = topK.last()
                 }
             }
-            topK
+            return topK
         }
     }
 
@@ -426,15 +397,6 @@ object Lists {
     }
 
     @JvmStatic
-    fun <X> ArrayList<X>.extractMax(k: Int, comparator: Comparator<X>): List<X> {
-        val list = ArrayList<X>(k)
-        for (i in 0 until k) {
-            list.add(Heap.extractMax(this, comparator))
-        }
-        return list
-    }
-
-    @JvmStatic
     fun <X> List<X>.buildMinHeap(comparator: Comparator<X>): ArrayList<X> {
         val list = ArrayList(this)
         Heap.buildMinHeap(list, comparator)
@@ -442,12 +404,27 @@ object Lists {
     }
 
     @JvmStatic
-    fun <X> ArrayList<X>.extractMin(k: Int, comparator: Comparator<X>): List<X> {
-        val list = ArrayList<X>(k)
+    inline fun <reified V> List<V>.extractMin(k: Int, comparator: Comparator<V>): List<V> {
+        if (k >= size) return this
+        val topK = ArrayList<V>(k)
         for (i in 0 until k) {
-            list.add(Heap.extractMin(this, comparator))
+            topK.add(this[i])
         }
-        return list
+        topK.sortWith(comparator)
+        var lastBest = topK.last()
+        for (j in k until size) {
+            val element = this[j]
+            if (comparator.compare(element, lastBest) < 0) {
+                var index = topK.binarySearch { comparator.compare(it, element) }
+                if (index < 0) index = -1 - index // insert index
+                for (l in k - 1 downTo index + 1) {
+                    topK[l] = topK[l - 1]
+                }
+                topK[index] = element
+                lastBest = topK.last()
+            }
+        }
+        return topK
     }
 
     @JvmStatic
@@ -460,9 +437,8 @@ object Lists {
     @JvmStatic
     @Suppress("unchecked_cast")
     fun <V> List<List<V>>.transposed(): List<List<V>> {
-        if (isEmpty()) return emptyList()
         val m = size
-        val n = maxByOrNull { it.size }!!.size
+        val n = maxOfOrNull { it.size } ?: return emptyList()
         return createArrayList(n) { i ->
             createArrayList(m) { j ->
                 this[j].getOrNull(i) as V // could be null, V may be nullable,
@@ -474,9 +450,8 @@ object Lists {
     @JvmStatic
     fun <V> MutableList<ArrayList<V>>.transpose(): MutableList<ArrayList<V>> {
         // to do function, which is in-place-transpose?
-        if (isEmpty()) return this
         val m = size
-        val n = maxByOrNull { it.size }!!.size
+        val n = maxOfOrNull { it.size } ?: return this
         // make pseudo square: enough for both formats
         // ensure size
         for (i in m until n) {

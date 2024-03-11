@@ -7,8 +7,8 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.graph.ui.GraphEditor
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style

@@ -22,8 +22,8 @@ import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.graph.ui.GraphEditor
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList

@@ -981,7 +981,7 @@ object Thumbs {
 
     private fun readImage(bytes: ByteSlice?): Image? {
         if (bytes == null) return null
-        val file = InnerStreamFile("", "", InvalidRef) { bytes.stream() }
+        val file = InnerStreamFile("", "", InvalidRef, bytes::stream)
         return ImageReader.readImage(file, true).waitForGFX()
     }
 

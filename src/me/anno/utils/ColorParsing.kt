@@ -209,18 +209,6 @@ object ColorParsing {
     @JvmStatic
     fun Int.rgbDistanceSq(other: Int) = sq(r() - other.r()) + sq(g() - other.g()) + sq(b() - other.b())
 
-    @JvmStatic
-    fun Int.getClosestColorName(): String {
-        // hsv or rgb? hsv is more important, I think...
-        val r = this.r()
-        val g = this.g()
-        val b = this.b()
-        return colorMap.entries.minByOrNull {
-            val other = it.value
-            sq(r - other.r()) + sq(g - other.g()) + sq(b - other.b())
-        }!!.key
-    }
-
     /**
      * officially supported colors from the web (CSS/HTML)
      * */

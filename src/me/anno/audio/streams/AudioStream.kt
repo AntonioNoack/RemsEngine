@@ -37,7 +37,6 @@ abstract class AudioStream(
             val bs = bufferSize.toLong()
             return progressedSamples - progressedSamples.floorDiv(bs) * bs
         }
-
     }
 
     private val filledBuffers = ArrayList<ShortBuffer?>(8)
@@ -80,33 +79,35 @@ abstract class AudioStream(
             when {
                 center -> {
                     val (left, right) = getBuffer(bufferIndex)
-                    left!!
-                    right!!
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
+                    if (left != null && right != null) {
+                        for (i in 0 until bufferSize) {
+                            stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
+                        }
                     }
                 }
                 stereo -> {
                     val (left, right) = getBuffer(bufferIndex)
-                    left!!
-                    right!!
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(left[i])
-                        stereoBuffer.put(right[i])
+                    if (left != null && right != null) {
+                        for (i in 0 until bufferSize) {
+                            stereoBuffer.put(left[i])
+                            stereoBuffer.put(right[i])
+                        }
                     }
                 }
                 left -> {
                     val (left, _) = getBuffer(bufferIndex)
-                    left!!
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(left[i])
+                    if (left != null) {
+                        for (i in 0 until bufferSize) {
+                            stereoBuffer.put(left[i])
+                        }
                     }
                 }
                 else -> {
                     val (_, right) = getBuffer(bufferIndex)
-                    right!!
-                    for (i in 0 until bufferSize) {
-                        stereoBuffer.put(right[i])
+                    if (right != null) {
+                        for (i in 0 until bufferSize) {
+                            stereoBuffer.put(right[i])
+                        }
                     }
                 }
             }
@@ -118,7 +119,6 @@ abstract class AudioStream(
             }
 
         }
-
     }
 
     /**
@@ -133,5 +133,4 @@ abstract class AudioStream(
             else -> -32768
         }
     }
-
 }

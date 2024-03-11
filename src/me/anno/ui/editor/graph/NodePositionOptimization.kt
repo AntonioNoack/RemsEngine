@@ -1,4 +1,4 @@
-package me.anno.graph.ui
+package me.anno.ui.editor.graph
 
 import me.anno.graph.Node
 import me.anno.maths.Optimization

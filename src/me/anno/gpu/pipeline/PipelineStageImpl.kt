@@ -311,16 +311,17 @@ class PipelineStageImpl(
                 val mapBounds = JomlPools.aabbd.borrow()
                 val map = if (minVolume.isFinite()) {
                     pipeline.lightStage.environmentMaps.minByOrNull {
+                        val transform = it.transform!!
                         val isOk = if (minVolume > 1e-308) {
                             // only if environment map fills >= 50% of the AABB
                             val volume = mapBounds
                                 .setMin(-1.0, -1.0, -1.0)
                                 .setMax(+1.0, +1.0, +1.0)
-                                .transform(it.transform!!.globalTransform)
+                                .transform(transform.globalTransform)
                                 .intersectionVolume(aabb)
                             volume >= minVolume
                         } else true
-                        if (isOk) it.transform!!.distanceSquaredGlobally(pos)
+                        if (isOk) transform.distanceSquaredGlobally(pos)
                         else Double.POSITIVE_INFINITY
                     }
                 } else null

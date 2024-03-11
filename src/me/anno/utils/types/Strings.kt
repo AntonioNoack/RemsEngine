@@ -14,7 +14,6 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Ints.toIntOrDefault
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
@@ -452,8 +451,7 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.titlecase(): CharSequence {
-        if (isEmpty()) return this
-        return if (first().isLowerCase()) {
+        return if (!isEmpty() && first().isLowerCase()) {
             first().uppercase() + substring(1)
         } else this
     }
@@ -476,12 +474,6 @@ object Strings {
     private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
 
     @JvmStatic
-    private val smallCapsMagicMin = smallCapsMagic.minOrNull()!!
-
-    @JvmStatic
-    private val smallCapsMagicMax = smallCapsMagic.maxOrNull()!!
-
-    @JvmStatic
     @Suppress("unused")
     fun Char.smallCaps(): Char {
         return if (this in 'a'..'z') smallCapsMagic[this.code - 'a'.code] else this
@@ -489,10 +481,8 @@ object Strings {
 
     @JvmStatic
     fun Char.normalCaps(): Char {
-        return if (this in smallCapsMagicMin..smallCapsMagicMax) {
-            val idx = smallCapsMagic.indexOf(this)
-            if (idx >= 0) ('a' + idx) else this
-        } else this
+        val idx = smallCapsMagic.indexOf(this)
+        return if (idx >= 0) ('a' + idx) else this
     }
 
     @JvmStatic

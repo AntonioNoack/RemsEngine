@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.graph.render.NodeGroup
-import me.anno.graph.ui.GraphEditor
+import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.UIColors
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI

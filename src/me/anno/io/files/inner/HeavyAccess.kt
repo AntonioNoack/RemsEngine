@@ -23,7 +23,9 @@ object HeavyAccess {
                 if (stream != null) {
                     access.process(stream)
                     access.closeStream(source, stream)
-                } else onError(e!!)
+                } else if (e != null) {
+                    onError(e)
+                }
             }
         } else {
             var waiting: List<IHeavyAccess<Stream>>? = null

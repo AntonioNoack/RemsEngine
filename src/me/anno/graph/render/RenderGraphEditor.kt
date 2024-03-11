@@ -8,7 +8,7 @@ import me.anno.graph.render.compiler.ShaderGraphNode
 import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.StartNode
-import me.anno.graph.ui.GraphEditor
+import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.Style
 
 /**

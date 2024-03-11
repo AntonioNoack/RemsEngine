@@ -982,7 +982,6 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
 
         init {
-            // todo use this sample implementation-principle for binary reader
             registerReader2(SimpleType.BYTE, ByteArray(0), { readByte() }, { readByteArray() })
             registerReader2(SimpleType.SHORT, ShortArray(0), { readShort() }, { readShortArray() })
             registerReader2(SimpleType.INT, IntArray(0), { readInt() }, { readIntArray() })
@@ -991,14 +990,15 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             registerReader2(SimpleType.DOUBLE, DoubleArray(0), { readDouble() }, { readDoubleArray() })
             registerReader2(SimpleType.BOOLEAN, BooleanArray(0), { readBool() }, { readBoolArray() })
             registerReader2(SimpleType.CHAR, CharArray(0), { readChar() }, { readCharArray() })
+            registerReader2(SimpleType.COLOR, IntArray(0), { readInt() }, { readIntArray() })
             registerReader(SimpleType.STRING, "") { readStringValue() }
             registerReader(SimpleType.REFERENCE, InvalidRef) { readFile() }
             registerReader(SimpleType.VECTOR2F, Vector2f()) { readVector2f() }
             registerReader(SimpleType.VECTOR3F, Vector3f()) { readVector3f() }
             registerReader(SimpleType.VECTOR4F, Vector4f()) { readVector4f() }
             registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector2d() }
-            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector3d() }
-            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector4d() }
+            registerReader(SimpleType.VECTOR3D, Vector3d()) { readVector3d() }
+            registerReader(SimpleType.VECTOR4D, Vector4d()) { readVector4d() }
             registerReader(SimpleType.VECTOR2I, Vector2i()) { readVector2i() }
             registerReader(SimpleType.VECTOR3I, Vector3i()) { readVector3i() }
             registerReader(SimpleType.VECTOR4I, Vector4i()) { readVector4i() }

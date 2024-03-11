@@ -1,7 +1,9 @@
 package me.anno.graph.hdb.index
 
+import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 
+@InternalAPI
 class Folder(var name: String) {
 
     val files = HashMap<Long, File>()

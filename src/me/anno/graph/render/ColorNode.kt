@@ -1,7 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.ComputeNode
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList

@@ -1,5 +1,8 @@
 package me.anno.graph.hdb.index
 
+import me.anno.utils.InternalAPI
+
+@InternalAPI
 class StorageFile(val index: Int) {
 
     val folders = HashSet<Folder>()

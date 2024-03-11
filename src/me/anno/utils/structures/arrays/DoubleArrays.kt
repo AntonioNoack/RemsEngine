@@ -6,8 +6,7 @@ object DoubleArrays {
     fun DoubleArray.accumulate() {
         var sum = 0.0
         for (index in indices) {
-            val value = this[index]
-            sum += value
+            sum += this[index]
             this[index] = sum
         }
     }

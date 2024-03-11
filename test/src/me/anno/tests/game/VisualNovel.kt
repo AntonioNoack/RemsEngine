@@ -16,8 +16,8 @@ import me.anno.graph.types.flow.control.IfElseNode
 import me.anno.graph.types.flow.maths.CompareNode
 import me.anno.graph.types.states.StateMachine
 import me.anno.graph.types.states.StateNode
-import me.anno.graph.ui.GraphEditor
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.UIColors.gold
 import me.anno.image.ImageScale
 import me.anno.input.Key

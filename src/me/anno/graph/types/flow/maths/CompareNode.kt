@@ -1,8 +1,8 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.graph.types.flow.ComputeNode
-import me.anno.graph.ui.GraphEditor
-import me.anno.graph.ui.GraphPanel
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style

@@ -2,9 +2,9 @@ package me.anno.tests.structures
 
 import me.anno.utils.structures.heap.MinHeap
 import me.anno.utils.structures.lists.Lists.smallestKElements
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class HeapTest {
@@ -16,7 +16,7 @@ class HeapTest {
     }
 
     @Test
-    fun testHeapSorting1() {
+    fun testHeapSorting() {
 
         val minHeap = MinHeap<Int>(3, Int::compareTo)
         for (v in listOf(5, 3, 17, 10, 84, 19, 6, 22, 9)) {
@@ -24,11 +24,24 @@ class HeapTest {
         }
 
         val sorted = Array(minHeap.size) {
-            assertTrue(minHeap.isNotEmpty())
-            minHeap.remove()
+            assertFalse(minHeap.isEmpty())
+            minHeap.extract()
         }
         assertTrue(minHeap.isEmpty())
+        assertEquals(sorted.toList(), listOf(3, 5, 6, 9, 10, 17, 19, 22, 84))
+    }
 
-        Assertions.assertEquals(sorted.toList(), listOf(3, 5, 6, 9, 10, 17, 19, 22, 84))
+    @Test
+    fun testHeapIndexOf() {
+
+        val heap = MinHeap<Int>(3, Int::compareTo)
+        for (v in listOf(5, 3, 17, 10, 84, 19, 6, 22, 9)) {
+            heap.add(v)
+        }
+
+        println(heap.indices.map { heap[it] })
+        for (i in heap.indices) {
+            assertEquals(i, heap.indexOf(heap[i]))
+        }
     }
 }

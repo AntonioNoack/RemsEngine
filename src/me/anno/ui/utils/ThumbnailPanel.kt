@@ -5,7 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.image.thumbs.Thumbs
 import me.anno.maths.Maths
 import me.anno.ui.Style
-import me.anno.ui.base.ImagePanel
+import me.anno.ui.base.image.ImagePanel
 import me.anno.ui.base.components.StretchModes
 
 @Suppress("unused")

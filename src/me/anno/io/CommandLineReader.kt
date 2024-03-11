@@ -27,11 +27,9 @@ open class CommandLineReader {
                     when (val char = input.read()) {
                         '\r'.code -> continue // skip it
                         '\n'.code -> {// return line
-                            return if (str.size > 0) {
-                                val value = str.array!!.decodeToString( 0, str.size)
-                                str.clear()
-                                value
-                            } else ""
+                            val value = str.array.decodeToString(0, str.size)
+                            str.clear()
+                            return value
                         }
                         -1 -> break // eof
                         else -> str.add(char.toByte())

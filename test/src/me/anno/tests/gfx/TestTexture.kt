@@ -2,7 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.texture.ITexture2D
-import me.anno.ui.base.ImagePanel
+import me.anno.ui.base.image.ImagePanel
 import me.anno.ui.debug.TestEngine
 
 fun testTexture(title: String, flipY: Boolean, draw: (p: ImagePanel) -> ITexture2D) {

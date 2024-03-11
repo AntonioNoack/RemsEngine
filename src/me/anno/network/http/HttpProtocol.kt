@@ -49,7 +49,7 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
 
     private fun handleRequest(server: Server, client: TCPClient) {
         val ri = client.dis.bufferedReader()
-        val header = ri.readLine()!! // 1.1 200 OK
+        val header = ri.readLine() ?: "" // 1.1 200 OK
         val si = header.indexOf(' ')
         if (si < 0) throw IOException("Invalid header")
         val (path, args) = parsePath(header.substring(0, si))

@@ -92,7 +92,6 @@ object DualContouring3d {
             m.m02 += dzx
             v.z += px * dzx
             v.x += pz * dzx
-
         }
 
         /**
@@ -115,7 +114,6 @@ object DualContouring3d {
             }
 
             return dst
-
         }
     }
 
@@ -172,7 +170,7 @@ object DualContouring3d {
         z0: Float, z1: Float,
         g: Vector3f, q: QEF3d,
         wi: Int,
-        vertices: Array<Vector3f?>,
+        vertices: Array<Vector3f>,
     ) {
         val v0 = values[i0]
         val v1 = values[i0 + diz]
@@ -232,7 +230,6 @@ object DualContouring3d {
             }.second
 
             vertices[wi] = Vector3f(s)
-
         }
     }
 
@@ -263,7 +260,8 @@ object DualContouring3d {
         sx: Int, sy: Int, sz: Int,
         values: FloatArray, function: Func3d, gradient: Grad3d
     ): List<Vector3f> {
-        val vertices = arrayOfNulls<Vector3f>(sx * sy * sz)
+        val invalid = Vector3f()
+        val vertices = Array(sx * sy * sz) { invalid }
         var writeIndex = 0
         var vIndex = 0
         val diy = sx + 1
@@ -305,43 +303,43 @@ object DualContouring3d {
                     if (y > 0 && z > 0) { // dx faces
                         val vj = vi + 1
                         if (b0 != (values[vj] > 0f)) {
-                            faces += vertices[vk - sx - sxy]!!
+                            faces += vertices[vk - sx - sxy]
                             if (b0) {
-                                faces += vertices[vk - sx]!!
-                                faces += vertices[vk - sxy]!!
+                                faces += vertices[vk - sx]
+                                faces += vertices[vk - sxy]
                             } else {
-                                faces += vertices[vk - sxy]!!
-                                faces += vertices[vk - sx]!!
+                                faces += vertices[vk - sxy]
+                                faces += vertices[vk - sx]
                             }
-                            faces += vertices[vk]!!
+                            faces += vertices[vk]
                         }
                     }
                     if (x > 0 && z > 0) { // dy faces
                         val vj = vi + sx1
                         if (b0 != (values[vj] > 0f)) {
-                            faces += vertices[vk - 1 - sxy]!!
+                            faces += vertices[vk - 1 - sxy]
                             if (b0) {
-                                faces += vertices[vk - sxy]!!
-                                faces += vertices[vk - 1]!!
+                                faces += vertices[vk - sxy]
+                                faces += vertices[vk - 1]
                             } else {
-                                faces += vertices[vk - 1]!!
-                                faces += vertices[vk - sxy]!!
+                                faces += vertices[vk - 1]
+                                faces += vertices[vk - sxy]
                             }
-                            faces += vertices[vk]!!
+                            faces += vertices[vk]
                         }
                     }
                     if (x > 0 && y > 0) { // dz faces
                         val vj = vi + sxy1
                         if (b0 != (values[vj] > 0f)) {
-                            faces += vertices[vk - 1 - sx]!!
+                            faces += vertices[vk - 1 - sx]
                             if (b0) {
-                                faces += vertices[vk - 1]!!
-                                faces += vertices[vk - sx]!!
+                                faces += vertices[vk - 1]
+                                faces += vertices[vk - sx]
                             } else {
-                                faces += vertices[vk - sx]!!
-                                faces += vertices[vk - 1]!!
+                                faces += vertices[vk - sx]
+                                faces += vertices[vk - 1]
                             }
-                            faces += vertices[vk]!!
+                            faces += vertices[vk]
                         }
                     }
                 }
@@ -349,5 +347,4 @@ object DualContouring3d {
         }
         return faces
     }
-
 }

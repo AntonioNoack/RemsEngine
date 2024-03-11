@@ -1,7 +1,9 @@
 package me.anno.graph.hdb.allocator
 
 import me.anno.graph.hdb.index.File
+import me.anno.utils.InternalAPI
 
+@InternalAPI
 object FileAllocation : AllocationManager<File, ByteArray> {
     override fun allocate(newSize: Int): ByteArray {
         return ByteArray(newSize)

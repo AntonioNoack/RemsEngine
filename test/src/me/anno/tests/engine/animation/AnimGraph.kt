@@ -15,7 +15,7 @@ import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SPEED
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.graph.types.states.StateMachine
-import me.anno.graph.ui.GraphEditor
+import me.anno.ui.editor.graph.GraphEditor
 import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI

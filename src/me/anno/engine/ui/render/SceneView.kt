@@ -14,7 +14,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.graph.Graph
-import me.anno.graph.ui.GraphEditor
+import me.anno.ui.editor.graph.GraphEditor
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style

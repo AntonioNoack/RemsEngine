@@ -18,8 +18,8 @@ import kotlin.reflect.full.superclasses
 /**
  * everything that should be saveable
  *
- * you just need to override readType() for every kind of field that you store; and save them in save(writer: BaseWriter)
- * if you want to use an easier, but likely slower path, you can use readSerializedProperty() on setProperty()
+ * you just need to override setProperty() as a loader and store them in save(writer: BaseWriter)
+ * if you want to use an easier, but likely slower path, you can use readSerializedProperty() and saveSerializableProperties()
  * */
 open class Saveable {
 

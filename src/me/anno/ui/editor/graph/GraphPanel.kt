@@ -1,10 +1,10 @@
-package me.anno.graph.ui
+package me.anno.ui.editor.graph
 
 import me.anno.Time
-import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
-import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawCurves
+import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.DrawTexts.monospaceFont
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.graph.Graph
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
@@ -16,37 +16,22 @@ import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.distance
-import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.pow
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.UIColors.blueishGray
-import me.anno.ui.UIColors.cornFlowerBlue
-import me.anno.ui.UIColors.darkOrange
-import me.anno.ui.UIColors.deepPink
-import me.anno.ui.UIColors.dodgerBlue
-import me.anno.ui.UIColors.fireBrick
-import me.anno.ui.UIColors.gold
-import me.anno.ui.UIColors.greenYellow
-import me.anno.ui.UIColors.mediumAquamarine
-import me.anno.ui.UIColors.paleGoldenRod
+import me.anno.ui.UIColors
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
+import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.Checkbox
+import me.anno.utils.Color
 import me.anno.utils.Color.a
-import me.anno.utils.Color.black
-import me.anno.utils.Color.mixARGB
-import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.Warning.unused
+import me.anno.utils.Warning
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
@@ -111,13 +96,13 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override var scrollPositionX: Double
         get() = scrollLeft.toDouble()
         set(value) {
-            unused(value)
+            Warning.unused(value)
         }
 
     override var scrollPositionY: Double
         get() = scrollTop.toDouble()
         set(value) {
-            unused(value)
+            Warning.unused(value)
         }
 
     override val maxScrollPositionX: Long get() = (scrollLeft + scrollRight).toLong()
@@ -125,7 +110,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override val childSizeX: Long get() = width + maxScrollPositionX
     override val childSizeY: Long get() = height + maxScrollPositionY
 
-    var font = monospaceFont
+    var font = DrawTexts.monospaceFont
 
     var gridColor = 0x10ffffff
 
@@ -190,8 +175,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (lineThickness < 0 || lineThicknessBold < 0) {
             val window = window
             if (window != null) {
-                if (lineThickness < 0) lineThickness = max(1, sqrt(window.height / 120f).roundToInt())
-                if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(window.height / 50f).roundToInt())
+                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(window.height / 120f).roundToInt())
+                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(window.height / 50f).roundToInt())
             }
         }
     }
@@ -236,10 +221,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val xi = coordsToWindowX(position.x).toInt() - panel.width / 2
         val yi = coordsToWindowY(position.y).toInt()
         panel.setPosSize(xi, yi, panel.minW, panel.minH)
-        scrollLeft = max(scrollLeft, x - xi)
-        scrollTop = max(scrollTop, y - yi)
-        scrollRight = max(scrollRight, (xi + panel.width) - xe)
-        scrollBottom = max(scrollBottom, (yi + panel.height) - ye)
+        scrollLeft = Maths.max(scrollLeft, x - xi)
+        scrollTop = Maths.max(scrollTop, y - yi)
+        scrollRight = Maths.max(scrollRight, (xi + panel.width) - xe)
+        scrollBottom = Maths.max(scrollBottom, (yi + panel.height) - ye)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
@@ -258,14 +243,14 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val maxSpeed = (width + height) / 6f // ~ 500px / s on FHD
         var dx2 = x - centerX
         var dy2 = y - centerY
-        val border = max(width / 10f, 4f)
+        val border = Maths.max(width / 10f, 4f)
         val speed = maxSpeed * min(
-            max(
-                max((this.x + border) - x, x - (this.x + this.width - border)),
-                max((this.y + border) - y, y - (this.y + this.height - border))
+            Maths.max(
+                Maths.max((this.x + border) - x, x - (this.x + this.width - border)),
+                Maths.max((this.y + border) - y, y - (this.y + this.height - border))
             ) / border, 1f
         )
-        val multiplier = speed * Time.deltaTime.toFloat() / length(dx2, dy2)
+        val multiplier = speed * Time.deltaTime.toFloat() / Maths.length(dx2, dy2)
         if (multiplier > 0f) {
             dx2 *= multiplier
             dy2 *= multiplier
@@ -307,13 +292,13 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val gridColor = mixARGB(backgroundColor, gridColor, gridColor.a() / 255f) or black
+        val gridColor = Color.mixARGB(backgroundColor, gridColor, gridColor.a() / 255f) or Color.black
         // what grid makes sense? power of 2
         // what is a good grid? one stripe every 10-20 px maybe
         val targetStripeDistancePx = 30.0
         val log = log2(targetStripeDistancePx / scale)
-        val fract = fract(log.toFloat())
-        val size = pow(2.0, floor(log))
+        val fract = Maths.fract(log.toFloat())
+        val size = Maths.pow(2.0, floor(log))
         // draw 2 grids, one fading, the other becoming more opaque
         val batch = DrawRectangles.startBatch()
         draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f - fract)), size)
@@ -341,11 +326,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                     if (nodeInput is NodeInput) {
                         val pos = nodeInput.position
                         val inNode = nodeInput.node
-                        val inIndex = max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
+                        val inIndex = Maths.max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
                         val inColor = getTypeColor(nodeInput)
                         val px1 = coordsToWindowX(pos.x).toFloat()
                         val py1 = coordsToWindowY(pos.y).toFloat()
-                        if (distance(px0, py0, px1, py1) > 1f) {
+                        if (Maths.distance(px0, py0, px1, py1) > 1f) {
                             drawNodeConnection(px0, py0, px1, py1, inIndex, i1, outColor, inColor, nodeInput.type)
                         }
                     }
@@ -374,11 +359,11 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         // line thickness depending on flow/non-flow
         val lt = if (type == "Flow") lineThicknessBold else lineThickness
         val xc = (x0 + x1) * 0.5f
-        drawQuartBezier(
+        DrawCurves.drawQuartBezier(
             x0, y0, c0,
-            x0 + d0, y0, mixARGB(c0, c1, 0.333f),
-            xc, yc, mixARGB(c0, c1, 0.5f),
-            x1 - d0, y1, mixARGB(c0, c1, 0.667f),
+            x0 + d0, y0, Color.mixARGB(c0, c1, 0.333f),
+            xc, yc, Color.mixARGB(c0, c1, 0.5f),
+            x1 - d0, y1, Color.mixARGB(c0, c1, 0.667f),
             x1, y1, c1,
             lt * 0.5f, 0,
             true, 1.5f
@@ -405,10 +390,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val s4 = abs(d1)
             val ss = s0 + s1 + s2 + s3 + s4
             if (ss > 0f) {
-                val ci0 = mixARGB(c0, c1, s0 / ss)
-                val ci1 = mixARGB(c0, c1, (s0 + s1) / ss)
-                val ci2 = mixARGB(c0, c1, (s0 + s1 + s2) / ss)
-                val ci3 = mixARGB(c0, c1, (s0 + s1 + s2 + s3) / ss)
+                val ci0 = Color.mixARGB(c0, c1, s0 / ss)
+                val ci1 = Color.mixARGB(c0, c1, (s0 + s1) / ss)
+                val ci2 = Color.mixARGB(c0, c1, (s0 + s1 + s2) / ss)
+                val ci3 = Color.mixARGB(c0, c1, (s0 + s1 + s2 + s3) / ss)
                 // right
                 drawLine(x0, y0, x0 + d0, y0, c0, ci0, lt)
                 // up
@@ -428,8 +413,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val s2 = abs(xc - x1)
             val ss = s0 + s1 + s2
             if (ss > 0f) {
-                val ci1 = mixARGB(c0, c1, s0 / ss)
-                val ci2 = mixARGB(c0, c1, (s0 + s1) / ss)
+                val ci1 = Color.mixARGB(c0, c1, s0 / ss)
+                val ci2 = Color.mixARGB(c0, c1, (s0 + s1) / ss)
                 drawLine(x0, y0, xc, y0, c0, ci1, lt)
                 drawLine(xc, y0, xc, y1, ci1, ci2, lt)
                 drawLine(xc, y1, x1, y1, ci2, c1, lt)
@@ -443,15 +428,15 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         } else {
             val lt2 = lt / 2
             when {
-                x0 == x1 -> drawRectGradient(
+                x0 == x1 -> DrawGradients.drawRectGradient(
                     x0.toInt() - lt2, y0.toInt() - lt2, lt, (y1 - y0).toInt() + lt,
                     c0, c1, false
                 )
-                y0 == y1 -> drawRectGradient(
+                y0 == y1 -> DrawGradients.drawRectGradient(
                     x0.toInt() - lt2, y0.toInt() - lt2, (x1 - x0).toInt() + lt, lt,
                     c0, c1, true
                 )
-                else -> drawSmoothLine(x0, y0, x1, y1, c0, c0.a() / 255f)
+                else -> Grid.drawSmoothLine(x0, y0, x1, y1, c0, c0.a() / 255f)
             }
         }
     }
@@ -628,7 +613,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun getTypeColor(con: NodeConnector): Int {
-        return typeColors[con.type] ?: dodgerBlue
+        return typeColors[con.type] ?: UIColors.dodgerBlue
     }
 
     fun onChange(isNodePositionChange: Boolean) {
@@ -654,27 +639,27 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         private val LOGGER = LogManager.getLogger(GraphPanel::class)
 
         val typeColors = hashMapOf(
-            "Int" to mediumAquamarine,
-            "Long" to mediumAquamarine,
-            "Float" to greenYellow,
-            "Double" to greenYellow,
-            "Flow" to white,
-            "Bool" to fireBrick,
-            "Boolean" to fireBrick,
-            "Vector2f" to gold,
-            "Vector3f" to gold,
-            "Vector4f" to gold,
-            "Vector2d" to gold,
-            "Vector3d" to gold,
-            "Vector4d" to gold,
-            "Quaternion4f" to blueishGray,
-            "Quaternion4d" to blueishGray,
-            "Transform" to darkOrange,
-            "Matrix4x3f" to darkOrange,
-            "Matrix4x3d" to darkOrange,
-            "String" to deepPink,
-            "Texture" to paleGoldenRod,
-            "?" to cornFlowerBlue,
+            "Int" to UIColors.mediumAquamarine,
+            "Long" to UIColors.mediumAquamarine,
+            "Float" to UIColors.greenYellow,
+            "Double" to UIColors.greenYellow,
+            "Flow" to Color.white,
+            "Bool" to UIColors.fireBrick,
+            "Boolean" to UIColors.fireBrick,
+            "Vector2f" to UIColors.gold,
+            "Vector3f" to UIColors.gold,
+            "Vector4f" to UIColors.gold,
+            "Vector2d" to UIColors.gold,
+            "Vector3d" to UIColors.gold,
+            "Vector4d" to UIColors.gold,
+            "Quaternion4f" to UIColors.blueishGray,
+            "Quaternion4d" to UIColors.blueishGray,
+            "Transform" to UIColors.darkOrange,
+            "Matrix4x3f" to UIColors.darkOrange,
+            "Matrix4x3d" to UIColors.darkOrange,
+            "String" to UIColors.deepPink,
+            "Texture" to UIColors.paleGoldenRod,
+            "?" to UIColors.cornFlowerBlue,
         )
     }
 }

@@ -12,7 +12,7 @@ class SubList<V>(
     override val size = toIndex - fromIndex
 
     override fun contains(element: V): Boolean {
-        throw NotImplementedError()
+        return indexOf(element) >= 0
     }
 
     override fun containsAll(elements: Collection<V>): Boolean {
@@ -24,17 +24,25 @@ class SubList<V>(
     }
 
     override fun indexOf(element: V): Int {
-        throw NotImplementedError()
+        for (i in fromIndex until toIndex) {
+            if (backend[i] == element) {
+                return i - fromIndex
+            }
+        }
+        return -1
     }
 
     override fun isEmpty(): Boolean = size == 0
 
-    override fun iterator(): MutableIterator<V> {
-        return listIterator()
-    }
+    override fun iterator(): MutableIterator<V> = listIterator()
 
     override fun lastIndexOf(element: V): Int {
-        throw NotImplementedError()
+        for (i in toIndex - 1 downTo fromIndex) {
+            if (backend[i] == element) {
+                return i - fromIndex
+            }
+        }
+        return -1
     }
 
     override fun add(element: V): Boolean {
@@ -87,7 +95,6 @@ class SubList<V>(
             override fun set(element: V) {
                 backend[iterIndex - 1] = element
             }
-
         }
     }
 
@@ -120,5 +127,4 @@ class SubList<V>(
             toIndex + this.fromIndex
         )
     }
-
 }

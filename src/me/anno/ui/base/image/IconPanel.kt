@@ -1,4 +1,4 @@
-package me.anno.ui.base
+package me.anno.ui.base.image
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.texture.TextureCache

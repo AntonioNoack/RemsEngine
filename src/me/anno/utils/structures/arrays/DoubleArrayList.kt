@@ -3,7 +3,7 @@ package me.anno.utils.structures.arrays
 import kotlin.math.max
 
 @Suppress("unused")
-open class DoubleArrayList(private val initCapacity: Int) {
+open class DoubleArrayList(initCapacity: Int) {
 
     var size = 0
 
@@ -11,30 +11,21 @@ open class DoubleArrayList(private val initCapacity: Int) {
         size = 0
     }
 
-    var array: DoubleArray? = null
+    var array: DoubleArray = DoubleArray(initCapacity)
 
     fun add(value: Double) = plusAssign(value)
     operator fun set(index: Int, value: Double) {
-        array!![index] = value
+        array[index] = value
     }
 
-    fun toArray(): DoubleArray {
-        if (array == null) return DoubleArray(0)
-        val array = array!!
-        return DoubleArray(size) { array[it] }
-    }
+    fun toArray(): DoubleArray = array.copyOf(size)
 
-    operator fun get(index: Int) = array!![index]
+    operator fun get(index: Int) = array[index]
     operator fun plusAssign(value: Double) {
-        val array = array
-        if (array == null || size + 1 >= array.size) {
-            val newArray = DoubleArray(if (array == null) initCapacity else max(array.size * 2, 16))
-            array?.copyInto(newArray)
-            this.array = newArray
-            newArray[size++] = value
-        } else {
-            array[size++] = value
+        if (size + 1 >= array.size) {
+            val newSize = max(array.size * 2, 16)
+            array = array.copyOf(newSize)
         }
+        array[size++] = value
     }
-
 }

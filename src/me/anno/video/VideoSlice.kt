@@ -1,13 +1,11 @@
 package me.anno.video
 
 import me.anno.cache.ICacheData
-import me.anno.io.files.FileReference
 import me.anno.video.formats.gpu.GPUFrame
 
 class VideoSlice(
-    val file: FileReference, val w: Int, val h: Int,
-    val scale: Int, val bufferIndex: Int,
-    val bufferLength: Int, val fps: Double,
+    val key: VideoFramesKey,
+    val w: Int, val h: Int,
     val originalWidth: Int, // meta?.videoWidth
     val originalFPS: Double, // meta?.videoFPS ?: 0.0001
     val numTotalFramesInSrc: Int,
