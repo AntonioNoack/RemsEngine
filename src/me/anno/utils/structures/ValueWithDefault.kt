@@ -41,10 +41,12 @@ class ValueWithDefault<V>(
     }
 
     companion object {
+        @Suppress("unused") // used in Rem's Studio
         fun BaseWriter.writeMaybe(self: Saveable?, name: String, value: ValueWithDefault<*>) {
             value.write(this, self, name)
         }
 
+        @Suppress("unused") // used in Rem's Studio
         fun BaseWriter.writeMaybe(self: Saveable?, name: String, value: ValueWithDefaultFunc<*>) {
             value.write(this, self, name)
         }

@@ -4,18 +4,23 @@ package me.anno.utils.structures.stacks
  * state-tracking stack with onChangeValue(),
  * that ignores thrown values by rethrowing them
  * */
-open class SecureStack<V>(var currentValue: V) : List<V> {
+open class SecureStack<V>(zeroValue: V) : List<V> {
 
     val values = ArrayList<V>()
     val index get() = size - 1
 
-    override var size = 1
+    var currentValue: V = zeroValue
+        private set
+
+    final override var size = 1
+        private set
 
     init {
         values.add(currentValue)
     }
 
     var lastV: V = currentValue
+        private set
 
     open fun onChangeValue(newValue: V, oldValue: V) {
     }
@@ -116,5 +121,4 @@ open class SecureStack<V>(var currentValue: V) : List<V> {
     override fun subList(fromIndex: Int, toIndex: Int): List<V> {
         return values.subList(fromIndex, toIndex)
     }
-
 }

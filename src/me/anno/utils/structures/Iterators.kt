@@ -27,7 +27,8 @@ object Iterators {
         return ctr
     }
 
-    fun <V> Iterator<V>.filter(test: (V) -> Boolean): Iterator<V> {
+    // todo support nullable values
+    fun <V: Any> Iterator<V>.filter(test: (V) -> Boolean): Iterator<V> {
         val base = this
         return object : NextEntryIterator<V>() {
             override fun nextEntry(): V? {

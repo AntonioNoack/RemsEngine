@@ -1,23 +1,21 @@
 package me.anno.utils.search
 
 import me.anno.maths.Maths
+import me.anno.utils.hpc.WorkSplitter
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.partition1
+import kotlin.math.sqrt
 
 // todo this isn't really a search, more like a select-from-sort
 //  -> choose a different folder
 object Median {
 
-    // to do (low priority until sb really needs this to perform well):
-    // implement median of medians
-    //  - split into sqrt(len) sections,
-    //  - calculate median each
-    //  - calculate the median of medians -> final median
     fun <V> MutableList<V>.median(comparator: Comparator<V>): V {
         return median(0, size, comparator)
     }
 
     fun <V> MutableList<V>.median(i0: Int, i1: Int, comparator: Comparator<V>): V {
-        return kthElement(i0, i1, size / 2, comparator)
+        return kthElement(i0, i1, (i0 + i1) / 2, comparator)
     }
 
     fun <V> MutableList<V>.kthElement(k: Int, comparator: Comparator<V>): V {
@@ -34,7 +32,7 @@ object Median {
         val split = partition1(i0, i1, condition)
         return when {
             split == k -> rnd
-            k < split -> kthElement(0, split, k, comparator)
+            k < split -> kthElement(i0, split, k, comparator)
             else -> kthElement(split, i1, k, comparator)
         }
     }

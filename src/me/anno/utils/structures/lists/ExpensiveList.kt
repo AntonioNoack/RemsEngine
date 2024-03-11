@@ -32,12 +32,6 @@ class ExpensiveList<V>(override val size: Int, val generator: (Int) -> V) : List
     override fun containsAll(elements: Collection<V>) = throw NotImplementedError()
     override fun subList(fromIndex: Int, toIndex: Int) = throw NotImplementedError()
 
-    @Suppress("unused")
-    fun findInsertIndex(comparator: (V) -> Int): Int {
-        val index = binarySearch(comparator)
-        return if (index < 0) -1 - index else index
-    }
-
     fun binarySearch(comparator: (V) -> Int): Int {
         return BinarySearch.binarySearch(size) { comparator(this[it]) }
     }
