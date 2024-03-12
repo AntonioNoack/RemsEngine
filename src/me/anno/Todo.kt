@@ -14,5 +14,3 @@ package me.anno
 //  and we would be able to disable exceptions on WASM
 //  -> get rid of all !!
 //  -> get rid of all throw
-
-// todo create promotional images from/for this engine

@@ -16,6 +16,42 @@ but they always had much in common, so I decided to write my own engine.
 This engine does not have the target to offer the best graphics, or be the best performant. Its goal is to be nice and
 quick to develop in, like a tool box.
 
+## What does the engine look like?
+
+![Promo Image of Editor](https://remsengine.phychi.com/img/promo-editor.webp)
+
+What can you see in this image?
+
+### UI Overview
+
+Left is a tree view of the scene, center is the 3d view of the scene, right is the property editor.
+At the bottom, you can see two file explorers with thumbnail generation: the left one is the project,
+the right one is my documents-folder.
+
+All UI is part of the engine, so you can create your own components ("Panel"), and your own rendering styles.
+
+### Asset Loading
+
+To render assets as thumbnails, or in 3d, they need to be loaded.
+This scene contains glb/gltf, obj and fbx files, jpegs and webps.
+
+### Rendering Debug Modes
+
+Currently, the scene is in "MSAA Deferred" mode, so it renders MSAAx8 with deferred light rendering.
+There is many more modes. There is also a bit of post-processing: SSR, SSAO, outline for selection,
+refraction for glass. Shadows are conditionally real-time ofc, too.
+
+### Skeletal Animations
+
+The woman with the phone is a scene from Mixamo, that I just loaded as a sub-scene.
+Most file readers export their contents as a ready-to-use sub-scene.
+It's animated ofc.
+
+### Transparency
+
+Transparent objects are currently rendered with an order-independent approach,
+but it will need a weighting function in the future, so closer panes have more weight on the final color.
+
 ## Most Relevant Websites
 
 ### [Official Website](https://remsengine.phychi.com/)
