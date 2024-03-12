@@ -1,8 +1,7 @@
 # Game Engine: Rem's Engine
 
-Parallel to my video editor "Rem's Engine", I am developing my own game engine. I have often written the beginnings of
-small games,
-but they always had much in common, so I decided to write my own engine.
+Parallel to my video editor Rem's Studio, I am developing my own game engine. I have often written the beginnings of
+small games, but they always had much in common, so I decided to write my own engine.
 
 - direct Java/Kotlin support
 - usable in my favourite IDE: Intellij Idea
