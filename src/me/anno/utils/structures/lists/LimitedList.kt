@@ -1,30 +1,26 @@
 package me.anno.utils.structures.lists
 
 import java.util.function.Predicate
-import kotlin.math.min
 
 /**
  * list with a special status of full, where it is assumed that all elements are part of the list;
  * */
-class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
+class LimitedList<V>(val limit: Int = 16) : MutableCollection<V> {
 
-    private val values = ArrayList<V>(limit)
+    private val values = ArrayList<V>(limit + 1)
 
-    var isFull = limit == 0
-        private set
+    val isFull get() = values.size >= limit
 
     override val size get() = values.size
-    override fun isEmpty(): Boolean = size <= 0
+    override fun isEmpty(): Boolean = !isFull && values.isEmpty()
 
     override fun clear() {
-        isFull = false
         values.clear()
     }
 
     override fun add(element: V): Boolean {
         if (element in this) return false
-        if (size < values.size) values.add(element)
-        else isFull = true
+        values.add(element)
         return true
     }
 
@@ -69,16 +65,11 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override operator fun contains(element: V): Boolean {
-        if (isFull) return true
-        for (i in 0 until min(size, values.size)) {
-            if (values[i] == element) return true
-        }
-        return false
+        return isFull || values.contains(element)
     }
 
     override fun containsAll(elements: Collection<V>): Boolean {
-        return if (isFull) true
-        else elements.all { it in this }
+        return isFull || elements.all { it in values }
     }
 
     override fun iterator(): MutableIterator<V> {
@@ -87,7 +78,6 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun toString(): String {
-        if (isFull) return "*"
-        return values.toString()
+        return if (isFull) "*" else values.toString()
     }
 }

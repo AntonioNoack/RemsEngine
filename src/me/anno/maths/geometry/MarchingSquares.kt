@@ -9,9 +9,6 @@ import org.joml.Vector2f
 
 object MarchingSquares {
 
-    // marching squares probably could be used in quite a few instances
-    // to do implement dual contouring https://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/
-
     /**
      * finds the intersection with the x-axis between (0,a) and (1,b)
      * */

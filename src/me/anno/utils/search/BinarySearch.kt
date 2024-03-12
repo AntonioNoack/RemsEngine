@@ -13,7 +13,7 @@ object BinarySearch {
      * @return index of element or -1-insertIndex if not found
      * */
     @JvmStatic
-    fun binarySearch(length: Int, comparator: IndexComparator) =
+    fun binarySearch(length: Int, comparator: IndexComparator): Int =
         binarySearch(0, length - 1, comparator)
 
     /**

@@ -435,7 +435,7 @@ object SimpleExpressionParser {
 
     // val isName = { x: Any -> x is String && x.isNotEmpty() }
     val isFunctionName = Array(6) {
-        val reference = when (it) {
+        val functionsI = when (it) {
             1 -> functions1
             2 -> functions2
             3 -> functions3
@@ -443,7 +443,7 @@ object SimpleExpressionParser {
             5 -> functions5
             else -> functions0
         }
-        { name: Any -> name is String && reference.containsKey(name) }
+        { name: Any -> name is String && functionsI.containsKey(name) }
     }
     val isValue = { x: Any -> x.isValue() }
     val isDouble = { x: Any -> x is Double }

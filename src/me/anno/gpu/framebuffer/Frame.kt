@@ -49,10 +49,6 @@ object Frame {
         // made more ugly, but trying to avoid allocations as much as possible :)
         var w = w0
         var h = h0
-        if (w0 < 0 || h0 < 0) {// auto
-            w = framebuffer.width
-            h = framebuffer.height
-        }
 
         val ptr = framebuffer.pointer
         if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h ||

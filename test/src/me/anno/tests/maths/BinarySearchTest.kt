@@ -1,23 +1,37 @@
 package me.anno.tests.maths
 
 import me.anno.utils.search.BinarySearch.binarySearch
-import org.junit.jupiter.api.Assertions
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class BinarySearchTest {
+
     @Test
-    fun testBinarySearch() {
-        val list = arrayListOf(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f)
-        val found = ArrayList<Float>()
-        for (v in listOf(-10f, 0.5f, 4f, 7f, 11f)) {
-            val insertIndex = binarySearch(list.size) { list[it].compareTo(v) }
-            if (insertIndex >= 0) {
-                found.add(v)
-            } else {
-                list.add(-1 - insertIndex, v)
-            }
+    fun testExistingElements() {
+        val list = createArrayList(64) { it }
+        for (i in list.indices) {
+            assertEquals(i, binarySearch(0, list.size) { list[it].compareTo(i) })
         }
-        Assertions.assertEquals(found, listOf(4f, 7f))
-        Assertions.assertEquals(list.sorted(), list)
+    }
+
+    @Test
+    fun testMissingElements() {
+        val list = arrayListOf(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f)
+        for (v in listOf(-10f, 0.5f, 3.4f, 11f)) {
+            val insertIndex = binarySearch(list.size) { list[it].compareTo(v) }
+            assertTrue(insertIndex < 0)
+            list.add(-1 - insertIndex, v)
+        }
+        assertEquals(list.sorted(), list)
+    }
+
+    @Test
+    fun testDifferentSearchAreas() {
+        val list = createArrayList(64) { it }
+        for (i in list.indices) {
+            assertEquals(i, binarySearch(i / 2, i + 1) { list[it].compareTo(i) })
+        }
     }
 }
