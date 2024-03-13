@@ -3,7 +3,9 @@ package me.anno.tests.utils
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -24,6 +26,9 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     // encode a video as quickly as possible,
     //  make the GPU-CPU communication be the bottleneck,

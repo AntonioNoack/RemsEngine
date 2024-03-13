@@ -1,6 +1,8 @@
 package me.anno.tests.utils
 
 import me.anno.ecs.components.mesh.spline.Splines
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import org.joml.Vector2f
 import org.joml.Vector3f

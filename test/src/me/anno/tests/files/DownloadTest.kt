@@ -19,9 +19,9 @@ fun main() {
     src.copyTo(dst, { _, total ->
         val t1 = Time.nanoTime
         if (t1 - lastUpdate >= SECONDS_TO_NANOS) {
-            val avgRate = total * SECONDS_TO_NANOS / (t1 - t0) // B/s
-            val currRate = (total - lastTotal) * SECONDS_TO_NANOS / (t1 - lastUpdate)
-            println("Rate: ${currRate.formatFileSize()}/s, avg: ${avgRate.formatFileSize()}/s, total: ${total.formatFileSize()}")
+            val avgBytesPerSecond = total * SECONDS_TO_NANOS / (t1 - t0)
+            val currentBytesPerSecond = (total - lastTotal) * SECONDS_TO_NANOS / (t1 - lastUpdate)
+            println("Rate: ${currentBytesPerSecond.formatFileSize()}/s, avg: ${avgBytesPerSecond.formatFileSize()}/s, total: ${total.formatFileSize()}")
             lastUpdate = t1
             lastTotal = total
         }

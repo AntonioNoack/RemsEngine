@@ -194,27 +194,26 @@ object BVHBuilder {
         return mid
     }
 
-    @Suppress("DEPRECATION")
-    private fun recursiveBuildBLAS(
+    // todo parallelize using GPU, if possible
+    // this can be quite slow, taking 600ms for the dragon with 800k triangles
+
+    private fun createBLASLeaf(
         positions: FloatArray,
         indices: IntArray,
-        start: Int, end: Int, // triangle indices
-        maxNodeSize: Int,
-        splitMethod: SplitMethod,
-        geometryData: GeometryData,
-    ): BLASNode {
-
-        val count = end - start
-        if (count <= maxNodeSize) { // create leaf
-            val bounds = AABBf()
-            for (i in start * 3 until end * 3) {
-                val ci = indices[i] * 3
-                bounds.union(positions[ci], positions[ci + 1], positions[ci + 2])
-            }
-            return BLASLeaf(start, count, geometryData, bounds)
+        start: Int,
+        end: Int,
+        geometryData: GeometryData
+    ): BLASLeaf {
+        val bounds = AABBf()
+        for (i in start * 3 until end * 3) {
+            val ci = indices[i] * 3
+            bounds.union(positions[ci], positions[ci + 1], positions[ci + 2])
         }
+        val count = end - start
+        return BLASLeaf(start, count, geometryData, bounds)
+    }
 
-        // bounds of center of primitives for efficient split dimension
+    private fun calculateCentroidX3(positions: FloatArray, indices: IntArray, start: Int, end: Int): AABBf {
         val centroidBoundsX3 = AABBf()
         for (triIndex in start until end) {
             val pointIndex = triIndex * 3
@@ -227,6 +226,25 @@ object BVHBuilder {
                 positions[ai] + positions[bi] + positions[ci]
             )
         }
+        return centroidBoundsX3
+    }
+
+    private fun recursiveBuildBLAS(
+        positions: FloatArray,
+        indices: IntArray,
+        start: Int, end: Int, // triangle indices
+        maxNodeSize: Int,
+        splitMethod: SplitMethod,
+        geometryData: GeometryData,
+    ): BLASNode {
+
+        val count = end - start
+        if (count <= maxNodeSize) {
+            return createBLASLeaf(positions, indices, start, end, geometryData)
+        }
+
+        // bounds of center of primitives for efficient split dimension
+        val centroidBoundsX3 = calculateCentroidX3(positions, indices, start, end)
 
         // split dimension
         val dim = centroidBoundsX3.maxDim()
@@ -240,6 +258,7 @@ object BVHBuilder {
         } else {
             // partition based on split method
             // for the very start, we'll only implement the simplest methods
+            @Suppress("DEPRECATION")
             when (splitMethod) {
                 SplitMethod.MIDDLE -> {
                     val midF = (centroidBoundsX3.getMin(dim) + centroidBoundsX3.getMax(dim)) * 0.5f

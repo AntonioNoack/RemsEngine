@@ -1,18 +1,27 @@
 package me.anno.tests.image
 
+import me.anno.Engine
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.image.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 
 fun main() {
+    OfficialExtensions.register()
+    ExtensionLoader.load()
     HiddenOpenGLContext.createOpenGL()
     val src = downloads.getChild("2d/qoi_test_images.zip/qoi_test_images/testcard_rgba.qoi")
-    val dst = desktop
+    val dst = desktop.getChild("qoi")
+    dst.tryMkdirs()
     var size = 64
     while (size <= 256) {
-        Thumbs[src, size, false]!!.createImage(true, true)
+        val texture = Thumbs[src, size, false] ?: throw IllegalStateException("Missing thumbs for $size")
+        texture
+            .createImage(flipY = false, withAlpha = true)
             .write(dst.getChild("$size.png"))
         size *= 2
     }
+    Engine.requestShutdown()
 }

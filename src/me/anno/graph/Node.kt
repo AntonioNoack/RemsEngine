@@ -2,7 +2,6 @@ package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
-import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -11,6 +10,7 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.editor.graph.GraphPanel
 import org.joml.Vector3d
 
 abstract class Node() : PrefabSaveable() {
@@ -128,43 +128,35 @@ abstract class Node() : PrefabSaveable() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "inputs" -> {
                 val values = value as? Array<*> ?: return
-                val newbies = values.filterIsInstance<NodeInput>()
-                for (i in newbies.indices) {
-                    val newbie = newbies[i]
-                    newbie.node = this
-                    val original = inputs.getOrNull(i)
-                    if (original?.isCustom == false) {
-                        newbie.name = original.name
-                        newbie.type = original.type
-                        newbie.description = original.description
-                    }
-                }
-                inputs.clear()
-                inputs.addAll(newbies)
+                cloneAssign(values, inputs)
             }
             "outputs" -> {
                 val values = value as? Array<*> ?: return
-                val newbies = values.filterIsInstance<NodeOutput>()
-                for (i in newbies.indices) {
-                    val newbie = newbies[i]
-                    newbie.node = this
-                    val original = outputs.getOrNull(i)
-                    if (original?.isCustom == false) {
-                        newbie.name = original.name
-                        newbie.type = original.type
-                        newbie.description = original.description
-                    }
-                }
-                outputs.clear()
-                outputs.addAll(newbies)
+                cloneAssign(values, outputs)
             }
             "layer" -> layer = value as? Int ?: return
             "position" -> position.set(value as? Vector3d ?: return)
             else -> super.setProperty(name, value)
         }
+    }
+
+    private inline fun <reified V : NodeConnector> cloneAssign(values: Array<*>, self: MutableList<V>) {
+        val newbies = values.filterIsInstance<V>()
+        for (i in newbies.indices) {
+            val newbie = newbies[i]
+            newbie.node = this
+            val original = self.getOrNull(i)
+            if (original?.isCustom == false) {
+                newbie.name = original.name
+                newbie.type = original.type
+                newbie.description = original.description
+            }
+        }
+        self.clear()
+        self.addAll(newbies)
     }
 
     fun connectTo(otherNode: Node) {

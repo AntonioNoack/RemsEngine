@@ -18,16 +18,16 @@ import org.joml.Vector4f
 
 class Texture private constructor(
     val tex: ITexture2D,
-    val texMS: ITexture2D?,
+    val texMS: ITexture2D,
     val mapping: String,
     val encoding: DeferredLayerType?,
     val color: Vector4f
 ) {
 
-    constructor(v: ITexture2D) : this(v, null, "", null, white4)
-    constructor(v: Vector4f) : this(whiteTexture, null, "", null, v)
+    constructor(v: ITexture2D) : this(v, v, "", null, white4)
+    constructor(v: Vector4f) : this(whiteTexture, whiteTexture, "", null, v)
     constructor(tex: ITexture2D, texMS: ITexture2D?, mapping: String, encoding: DeferredLayerType?) :
-            this(tex, texMS, mapping, encoding, white4)
+            this(tex, texMS ?: tex, mapping, encoding, white4)
 
     val isDestroyed get() = tex is Texture2D && tex.isDestroyed
     val mask get() = singleToVector[mapping]

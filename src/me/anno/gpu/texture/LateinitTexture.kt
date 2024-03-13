@@ -7,7 +7,9 @@ class LateinitTexture : ICacheData {
         set(value) {
             if (isDestroyed) value?.destroy()
             field = value
+            hasValue = true
         }
+    var hasValue = false
     var isDestroyed = false
     override fun destroy() {
         isDestroyed = true

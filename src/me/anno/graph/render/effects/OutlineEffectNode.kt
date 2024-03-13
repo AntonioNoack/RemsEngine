@@ -9,12 +9,15 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min
+
+// todo with Deferred MSAA, some stage before us removes multisampling; keep it, so we can make this effect look better
+// todo test MSAA (is untested -> might contain mistakes)
 
 // todo integrate all useful effects from Three.js
 //  - https://threejs.org/examples/?q=post#webgl_postprocessing_pixel, specifically their edge and depth detection
@@ -24,7 +27,6 @@ class OutlineEffectNode : RenderViewNode(
     listOf(
         "Int", "Width",
         "Int", "Height",
-        "Int", "Samples",
         "Int", "Radius",
         "IntArray", "Group IDs",
         "List<Color4>", "Fill Colors",
@@ -36,35 +38,33 @@ class OutlineEffectNode : RenderViewNode(
 ) {
 
     init {
-        // todo fractional thickness would be cool
+        // todo fractional thickness might be cool
         setInput(1, 256)
         setInput(2, 256)
-        setInput(3, 1)
-        setInput(4, 2) // radius
-        setInput(5, intArrayOf(1))
-        setInput(6, listOf(Vector4f(1f, 1f, 1f, 0.5f))) // fill colors
-        setInput(7, listOf(Vector4f(1f, 1f, 1f, 1f))) // line colors
+        setInput(3, 2) // radius
+        setInput(4, intArrayOf(1))
+        setInput(5, listOf(Vector4f(1f, 1f, 1f, 0.5f))) // fill colors
+        setInput(6, listOf(Vector4f(1f, 1f, 1f, 1f))) // line colors
     }
 
     override fun executeAction() {
         val w = getIntInput(1)
         val h = getIntInput(2)
         // not really supported...
-        val samples = getIntInput(3)
-        val radius = getIntInput(4)
-        val idsTex = getInput(9) as? Texture ?: return
-        val colorTex = getInput(8) as? Texture ?: return
-        val groupIds = getInput(5) as? IntArray ?: return
-        val fillColors = getInput(6) as? List<*> ?: return
-        val lineColors = getInput(7) as? List<*> ?: return
+        val radius = getIntInput(3)
+        val idsTex = getInput(8) as? Texture ?: return
+        val colorTex = getInput(7) as? Texture ?: return
+        val groupIds = getInput(4) as? IntArray ?: return
+        val fillColors = getInput(5) as? List<*> ?: return
+        val lineColors = getInput(6) as? List<*> ?: return
         val fillColors1 = fillColors.filterIsInstance<Vector4f>().toTypedArray()
         val lineColors1 = lineColors.filterIsInstance<Vector4f>().toTypedArray()
         val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
         if (radius >= 0 && numGroupsI > 0) {
-            val dst = FBStack["outline", w, h, 4, true, samples, DepthBufferType.NONE]
+            val dst = FBStack["outline", w, h, 4, true, 1, DepthBufferType.NONE]
             GFXState.useFrame(dst) {
                 render(
-                    colorTex.tex, idsTex,
+                    colorTex, idsTex,
                     min(groupIds.size, min(fillColors1.size, lineColors1.size)),
                     radius, groupIds, fillColors1, lineColors1
                 )
@@ -89,17 +89,20 @@ class OutlineEffectNode : RenderViewNode(
         }
 
         fun render(
-            color: ITexture2D, ids: Texture, numGroups: Int, radius: Int,
+            color: Texture, ids: Texture, numGroups: Int, radius: Int,
             groupIds: IntArray, fillColors: Array<Vector4f>, lineColors: Array<Vector4f>
         ) {
+            val samples = min(color.texMS.samples, ids.texMS.samples)
+            val useMS = samples > 1
             val numGroupsI = min(numGroups, MAX_NUM_GROUPS)
             GFXState.renderPurely {
-                val shader = shader
+                val shader = shader[useMS.toInt()]
                 shader.use()
                 shader.v1i("radius", radius)
                 val th = radius * 2 + 1
-                shader.v1f("radSq", (th * th).toFloat())
-                shader.v1f("invRadSq", 1f / (th * th))
+                val radSq = (th * th * samples).toFloat()
+                shader.v1f("radSq", radSq)
+                shader.v1f("invRadSq", 1f / radSq)
                 for (i in 0 until numGroupsI) {
                     groupIds2[i] = groupIds[i] / 255f
                     val i4 = i shl 2
@@ -110,56 +113,77 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v4fs("fillColors", fillColors2)
                 shader.v1fs("groupIds", groupIds2)
                 shader.v1i("numGroups", numGroupsI)
+                shader.v1i("samples", samples)
                 shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
-                color.bindTrulyNearest(0)
-                ids.tex.bindTrulyNearest(1)
+                (if (useMS) color.texMS else color.tex).bindTrulyNearest(0)
+                (if (useMS) ids.texMS else ids.tex).bindTrulyNearest(1)
                 GFX.flat01.draw(shader)
             }
         }
 
-
-        val shader = Shader(
-            "outlines", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
-                Variable(GLSLType.V1I, "radius"),
-                Variable(GLSLType.V1F, "radSq"),
-                Variable(GLSLType.V1F, "invRadSq"),
-                Variable(GLSLType.V1I, "numGroups"),
-                Variable(GLSLType.V1F, "groupIds", MAX_NUM_GROUPS),
-                Variable(GLSLType.V4F, "lineColors", MAX_NUM_GROUPS),
-                Variable(GLSLType.V4F, "fillColors", MAX_NUM_GROUPS),
-                Variable(GLSLType.S2D, "idTex"),
-                Variable(GLSLType.S2D, "colorTex"),
-                Variable(GLSLType.V4F, "groupTexMask"),
-                Variable(GLSLType.V4F, "result", VariableMode.OUT)
-            ), "" +
-                    "void main(){\n" +
-                    "   vec2 dx = dFdx(uv);\n" +
-                    "   vec2 dy = dFdy(uv);\n" +
-                    "   float sum = 0.0;\n" +
-                    "   vec3 color = texture(colorTex,uv).rgb;\n" +
-                    "   for(int i=0;i<numGroups;i++){\n" +
-                    "       float groupId = groupIds[i];\n" +
-                    "       for(int y=-radius;y<=radius;y++){\n" +
-                    "           for(int x=-radius;x<=radius;x++){\n" +
-                    "               vec2 uv2 = uv + dx * float(x) + dy * float(y);\n" +
-                    "               float groupId1 = dot(groupTexMask,texture(idTex,uv2));\n" +
-                    "               sum += step(0.5/255.0, abs(groupId - groupId1));\n" +
-                    "           }\n" +
-                    "       }\n" +
-                    "       if(sum < radSq){\n" + // "if(...)" could be skipped, may provide a marginal performance boost
-                    "           float percentage = sum * invRadSq;\n" +
-                    "           float percentage2 = 4.0 * percentage * (1.0 - percentage);\n" +
-                    "           percentage2 = clamp(percentage2 * float(radius), 0.0, 1.0);\n" +
-                    "           vec4 fillColor = fillColors[i];\n" +
-                    "           vec4 lineColor = lineColors[i];\n" +
-                    "           color = mix(\n" +
-                    "               mix(color, fillColor.rgb, (1.0 - fillColor.a) * (1.0 - percentage)),\n" +
-                    "               lineColor.rgb, percentage2 * lineColor.a\n" +
-                    "           );\n" +
-                    "       }\n" +
-                    "   }\n" +
-                    "   result = vec4(color, 1.0);\n" +
-                    "}\n"
-        ).setTextureIndices("colorTex", "idTex") as Shader
+        val shader = Array(2) {
+            val useMS = it != 0
+            val shader = Shader(
+                "outlines", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+                    Variable(GLSLType.V1I, "radius"),
+                    Variable(GLSLType.V1F, "radSq"),
+                    Variable(GLSLType.V1F, "invRadSq"),
+                    Variable(GLSLType.V1I, "numGroups"),
+                    Variable(GLSLType.V1I, "samples"),
+                    Variable(GLSLType.V1F, "groupIds", MAX_NUM_GROUPS),
+                    Variable(GLSLType.V4F, "lineColors", MAX_NUM_GROUPS),
+                    Variable(GLSLType.V4F, "fillColors", MAX_NUM_GROUPS),
+                    Variable(if (useMS) GLSLType.S2DMS else GLSLType.S2D, "idTex"),
+                    Variable(if (useMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
+                    Variable(GLSLType.V4F, "groupTexMask"),
+                    Variable(GLSLType.V4F, "result", VariableMode.OUT)
+                ), "" +
+                        "void main(){\n" +
+                        "   vec2 dx = dFdx(uv);\n" +
+                        "   vec2 dy = dFdy(uv);\n" +
+                        "   float sum = 0.0;\n" +
+                        "   vec3 color = texture(colorTex,uv).rgb;\n" +
+                        (if (useMS) {
+                            "" +
+                                    "ivec2 size = textureSize(idTex);\n" +
+                                    "ivec2 uvi = ivec2(uv*vec2(size));\n"
+                        } else "") +
+                        "   for(int i=0;i<numGroups;i++){\n" +
+                        "       float groupId = groupIds[i];\n" +
+                        "       for(int y=-radius;y<=radius;y++){\n" +
+                        "           for(int x=-radius;x<=radius;x++){\n" +
+                        (if (useMS) {
+                            "" +
+                                    "for(int j=0;j<samples;j++){\n" +
+                                    "   ivec2 uv2 = clamp(uvi + ivec2(x,y),ivec2(0),size-1);\n" +
+                                    "   float groupId1 = dot(groupTexMask,texelFetch(idTex,uv2,j));\n" +
+                                    "   sum += step(0.5/255.0, abs(groupId - groupId1));\n" +
+                                    "}\n"
+                        } else {
+                            "" +
+                                    "vec2 uv2 = uv + dx * float(x) + dy * float(y);\n" +
+                                    "float groupId1 = dot(groupTexMask,texture(idTex,uv2));\n" +
+                                    "sum += step(0.5/255.0, abs(groupId - groupId1));\n"
+                        }) +
+                        "           }\n" +
+                        "       }\n" +
+                        "       if(sum < radSq){\n" +
+                        "           float percentage = sum * invRadSq;\n" +
+                        "           float percentage2 = 1.0 - 2.0 * abs(percentage - 0.5);\n" +
+                        "           percentage2 = clamp(percentage2 * float(radius), 0.0, 1.0);\n" +
+                        "           vec4 fillColor = fillColors[i];\n" +
+                        "           vec4 lineColor = lineColors[i];\n" +
+                        "           color = mix(\n" +
+                        "               mix(color, fillColor.rgb, (1.0 - fillColor.a) * (1.0 - percentage)),\n" +
+                        "               lineColor.rgb, percentage2 * lineColor.a\n" +
+                        "           );\n" +
+                        "       }\n" +
+                        "   }\n" +
+                        "   result = vec4(color, 1.0);\n" +
+                        "}\n"
+            )
+            shader.setTextureIndices("colorTex", "idTex")
+            shader
+        }
     }
 }

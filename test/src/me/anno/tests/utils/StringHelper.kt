@@ -8,14 +8,15 @@ import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.smallCaps
 
 fun main() {
-    println("polyGeneLubricants".camelCaseToTitle())
-    println("polyGeneLubricants".smallCaps())
+    val test = "polyGeneLubricants"
+    println(test.camelCaseToTitle())
+    println(test.smallCaps())
     disableRenderDoc()
     testUI(
         "SmallCaps Rendering",
         listOf(
-            TextPanel("polyGeneLubricants", style),
-            TextPanel("polyGeneLubricants".smallCaps(), style)
+            TextPanel(test, style),
+            TextPanel(test.smallCaps(), style)
         )
     )
 }

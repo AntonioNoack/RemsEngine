@@ -5,7 +5,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.getComponents
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
@@ -71,7 +70,6 @@ object DebugRendering {
             val s = min(w, h) / 3
             var texture: ITexture2D? = null
             var isDepth = false
-            val flipY = light is PlanarReflection || light is DirectionalLight
             when (light) {
                 is LightComponent -> {
                     val tex = light.shadowTextures
@@ -93,10 +91,8 @@ object DebugRendering {
                             DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
                         } else if (isDepth) {
                             DrawTextures.drawDepthTextureArray(x, y + h, s, -s, texture, layer)
-                        } else if (flipY) {
-                            DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                         } else {
-                            DrawTextures.drawTextureArray(x, y + h, s, -s, texture, layer, true, -1, null)
+                            DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                         }
                         DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
                     }
@@ -105,10 +101,8 @@ object DebugRendering {
                             DrawTextures.drawTexture(x, y, w, h, texture, true, 0x33ffffff, null)
                         } else if (isDepth) {
                             DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
-                        } else if (flipY) {
-                            DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
                         } else {
-                            DrawTextures.drawTexture(x, y + h, s, -s, texture, true, -1, null)
+                            DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
                         }
                     }
                 }

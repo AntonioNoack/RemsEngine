@@ -118,6 +118,7 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 /**
@@ -205,7 +206,7 @@ object Thumbs {
         val key = ThumbnailKey(file, lastModified, size)
 
         val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
-            generate0(file, size, key, callback)
+            generate0(key, callback)
         }?.texture
         val value = when (texture) {
             is GPUFrame -> if (texture.wasCreated) texture else null
@@ -226,18 +227,15 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun generate0(
-        srcFile: FileReference,
-        size: Int,
-        key0: ThumbnailKey,
-        callback: Callback<ITexture2D>
-    ) {
+    private fun generate0(key: ThumbnailKey, callback: Callback<ITexture2D>) {
+        val srcFile = key.file
+        val size = key.size
         // if larger texture exists in cache, use it and scale it down
         val idx = sizes.indexOf(size) + 1
         for (i in idx until sizes.size) {
-            val size1 = sizes[i]
-            val key1 = ThumbnailKey(key0.file, key0.lastModified, size1)
-            val gen = TextureCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
+            val sizeI = sizes[i]
+            val keyI = ThumbnailKey(key.file, key.lastModified, sizeI)
+            val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? LateinitTexture
             val tex = gen?.texture
             if (tex != null && tex.isCreated()) {
                 copyTexIfPossible(srcFile, size, tex, callback)

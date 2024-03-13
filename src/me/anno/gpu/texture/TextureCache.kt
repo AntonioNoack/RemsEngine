@@ -96,14 +96,19 @@ object TextureCache : CacheSection("Texture") {
         generator: (callback: Callback<ITexture2D>) -> Unit
     ): LateinitTexture? {
         return getEntryLimited(key, timeout, async, limit) {
-            val textureContainer = LateinitTexture()
+            val tex = LateinitTexture()
             generator { result, exc ->
-                textureContainer.texture = result
+                tex.texture = result
                 if (exc != null && exc !is IgnoredException) {
                     exc.printStackTrace()
                 }
             }
-            textureContainer
+            if (!async) {
+                Sleep.waitForGFXThread(true) {
+                    tex.hasValue
+                }
+            }
+            tex
         } as? LateinitTexture
     }
 

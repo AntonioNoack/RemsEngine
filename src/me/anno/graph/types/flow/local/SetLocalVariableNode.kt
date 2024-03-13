@@ -22,6 +22,8 @@ class SetLocalVariableNode(type: String = "?") :
 
     init {
         if (type != "?") name = "SetLocal $type"
+        inputs[2].isCustom = true // for type
+        outputs[1].isCustom = true
     }
 
     constructor(key: String, value: Any?) : this() {

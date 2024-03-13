@@ -7,8 +7,7 @@ import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.Clock
 
 fun main() {
-    val size = 4096
-    Thread.sleep(10_000) // time for VisualVM to attach
+    val size = 512
     val mesh = Mesh()
     val clock = Clock()
     TerrainUtils.generateRegularQuadHeightMesh(size, size, false, 1f, mesh)

@@ -30,9 +30,6 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     var currValue: Any? = null
     var defaultValue: Any? = null
 
-    // todo special node ui? would help with the layouts :)
-    // todo we could add input- and output panels there :)
-
     // should/would be set by the ui routine
     var position = Vector3d()
 

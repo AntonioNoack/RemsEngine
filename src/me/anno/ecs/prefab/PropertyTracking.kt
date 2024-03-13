@@ -75,7 +75,7 @@ object PropertyTracking {
             )
             // do we need other types?
             else -> {
-                LOGGER.warn("type ${property.returnType} isn't handled")
+                LOGGER.warn("Type ${property.returnType} isn't handled")
                 return
             }
         }

@@ -37,7 +37,7 @@ This scene contains glb/gltf, obj and fbx files, jpegs and webps.
 ### Rendering Debug Modes
 
 Currently, the scene is in "MSAA Deferred" mode, so it renders MSAAx8 with deferred light rendering.
-There is many more modes. There is also a bit of post-processing: SSR, SSAO, outline for selection,
+There is many more modes. There is also a bit of post-processing: SSR, SSAO, Bloom, outline for selection,
 refraction for glass. Shadows are conditionally real-time ofc, too.
 
 ### Skeletal Animations

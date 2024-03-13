@@ -4,7 +4,9 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.deferred.DeferredLayerType
@@ -30,6 +32,8 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 
 fun main() {
+    OfficialExtensions.register()
+    ExtensionLoader.load()
     ECSRegistry.init()
     val clock = Clock()
     val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16, clock)
@@ -49,9 +53,9 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     // create a scene, so maybe load Sponza, and then execute our renderer on TLAS
     @Suppress("SpellCheckingInspection")
     val sources = listOf(
-        OS.downloads.getChild("ogldev-source/crytek_sponza/sponza.obj"),
-        OS.downloads.getChild("ogldev-source/dabrovic-sponza/sponza.obj"),
-        OS.downloads.getChild("ogldev-source/conference-room/conference.obj"),
+        OS.downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx"),
+        OS.downloads.getChild("3d/ogldev-source/dabrovic-sponza/sponza.obj"),
+        OS.downloads.getChild("3d/ogldev-source/conference-room/conference.obj"),
         OS.documents.getChild("TestScene4.fbx"),
         OS.downloads.getChild("3d/XYZ arrows.obj")
     )
@@ -63,7 +67,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
         CullMode.BOTH, ECSShaderLib.pbrModelShader
     )
 
-    val prefab = PrefabCache[source]!!
+    val prefab = PrefabCache[source] ?: throw IllegalStateException("Missing $source")
     val scene = prefab.createInstance() as Entity
     clock.stop("Loading Mesh")
 

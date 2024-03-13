@@ -23,6 +23,8 @@ import kotlin.math.abs
 
 fun main() {
 
+    // todo normals are inverted... why??
+
     // simple test for spherical hierarchy
 
     // test dynamic chunk system with dynamic lods

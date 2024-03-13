@@ -1,13 +1,20 @@
 package me.anno.tests.image
 
+import me.anno.Engine
 import me.anno.Time
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
+import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.video.formats.cpu.YUVFrames
 import java.nio.ByteBuffer
 
 fun main() {
+
+    OfficialExtensions.register()
+    ExtensionLoader.load()
 
     fun interpolate(xi: Int, yi: Int, w2: Int, data: ByteBuffer): Int {
         val xf = xi.and(1)
@@ -48,9 +55,8 @@ fun main() {
     val uData = Texture2D.bufferPool[s1, false, false]
     val vData = Texture2D.bufferPool[s1, false, false]
 
-    val t0 = Time.nanoTime
-
-    for (i in 0 until runs) {
+    val clock = Clock()
+    clock.benchmark(5, 100, "full") { _ ->
         for (yi in 0 until hx) {
             for (xi in 0 until wx) {
                 val it = xi + w * yi
@@ -63,9 +69,7 @@ fun main() {
         }
     }
 
-    val t1 = Time.nanoTime
-
-    for (i in 0 until runs) {
+    clock.benchmark(5, 100, "partial") { _ ->
         for (yi in 0 until hx step 2) {
             var it = yi * w
             for (xi in 0 until wx step 2) {
@@ -107,12 +111,10 @@ fun main() {
                 it += 2
             }
         }
-
     }
-
-    val t2 = Time.nanoTime
-    println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
 
     ImageCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!
         .write(OS.desktop.getChild("anime.png"))
+
+    Engine.requestShutdown()
 }
