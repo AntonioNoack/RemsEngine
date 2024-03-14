@@ -22,6 +22,7 @@ import me.anno.io.files.inner.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.structures.Callback
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 /**
@@ -29,6 +30,7 @@ import java.io.InputStream
  * */
 object ImageReader {
 
+    private val LOGGER = LogManager.getLogger(ImageReader::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
     var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
@@ -42,10 +44,10 @@ object ImageReader {
         val folder = InnerFolder(file)
 
         // add the most common swizzles: r,g,b,a
-        createComponent(file, folder, "r.png", "r", false)
-        createComponent(file, folder, "g.png", "g", false)
-        createComponent(file, folder, "b.png", "b", false)
-        createComponent(file, folder, "a.png", "a", false)
+        createComponent(file, folder, "r.png", 'r', false)
+        createComponent(file, folder, "g.png", 'g', false)
+        createComponent(file, folder, "b.png", 'b', false)
+        createComponent(file, folder, "a.png", 'a', false)
 
         // bgra
         createComponent(file, folder, "bgra.png") {
@@ -54,10 +56,10 @@ object ImageReader {
         }
 
         // inverted components
-        createComponent(file, folder, "1-r.png", "r", true)
-        createComponent(file, folder, "1-g.png", "g", true)
-        createComponent(file, folder, "1-b.png", "b", true)
-        createComponent(file, folder, "1-a.png", "a", true)
+        createComponent(file, folder, "1-r.png", 'r', true)
+        createComponent(file, folder, "1-g.png", 'g', true)
+        createComponent(file, folder, "1-b.png", 'b', true)
+        createComponent(file, folder, "1-a.png", 'a', true)
 
         // white with transparency, black with transparency (overriding color)
         createAlphaMask(file, folder, "111a.png", false)
@@ -104,10 +106,16 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = ImageCache[file, false] ?: missingImage
+            val src = ImageCache[file, false] ?: run {
+                LOGGER.warn("Missing texture for $file")
+                missingImage
+            }
             createImage(src)
         }, {
-            val src = TextureCache[file, false] ?: missingTexture
+            val src = TextureCache[file, false] ?: run {
+                LOGGER.warn("Missing texture for $file")
+                missingTexture
+            }
             createImage(GPUImage(src))
         })
     }
@@ -115,18 +123,15 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(
         file: FileReference, folder: InnerFolder, name: String,
-        swizzle: String, inverse: Boolean
+        swizzle: Char, inverse: Boolean
     ) {
-        when (swizzle.length) {
-            1 -> createComponent(file, folder, name) { srcImage ->
-                when {
-                    (swizzle == "a" && !srcImage.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
-                    (swizzle == "b" && srcImage.numChannels < 3) || (swizzle == "g" && srcImage.numChannels < 2) ->
-                        GPUImage(if (inverse) whiteTexture else blackTexture)
-                    else -> ComponentImage(srcImage, inverse, swizzle[0])
-                }
+        createComponent(file, folder, name) { srcImage ->
+            when {
+                (swizzle == 'a' && !srcImage.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
+                (swizzle == 'b' && srcImage.numChannels < 3) || (swizzle == 'g' && srcImage.numChannels < 2) ->
+                    GPUImage(if (inverse) whiteTexture else blackTexture)
+                else -> ComponentImage(srcImage, inverse, swizzle)
             }
-            else -> throw NotImplementedError(swizzle)
         }
     }
 

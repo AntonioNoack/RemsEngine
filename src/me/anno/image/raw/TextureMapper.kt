@@ -59,7 +59,7 @@ object TextureMapper {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
         if (mapping.length != 4) throw IllegalArgumentException()
         if (GFX.isGFXThread()) {
-            if (src !is Texture2D || src.wasCreated) {
+            if (src.isCreated()) {
                 dst.create(type)
                 useFrame(dst, 0) {
                     renderPurely {
@@ -71,7 +71,10 @@ object TextureMapper {
                 }
                 callback.ok(dst)
             } else {
-                callback.err(IllegalStateException("Mapping failed, because src wasn't created"))
+                // todo this fails a few times for our Engine()-main-project until it succeeds...
+                //  - who is retrying???
+                //  - why is it failing in the first place?
+                callback.err(IllegalStateException("Mapping '$mapping' failed, because $src isn't created"))
             }
         } else {
             GFX.addGPUTask(mapping, dst.width, dst.height) {

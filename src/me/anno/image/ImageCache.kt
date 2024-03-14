@@ -5,6 +5,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.structures.Callback
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -63,7 +64,7 @@ object ImageCache : CacheSection("Image") {
 
     @JvmStatic
     operator fun get(file: FileReference, async: Boolean): Image? {
-        return get(file, 50, async)
+        return get(file, 10_000, async)
     }
 
     fun getImageWithoutGenerator(file: FileReference): Image? {

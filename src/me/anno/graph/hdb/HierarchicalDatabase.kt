@@ -104,8 +104,12 @@ class HierarchicalDatabase(
             for (file in files) {
                 if (file == indexFile || file.isDirectory) continue
                 if (file.lcExtension == dataExtension) {
-                    val index = file.nameWithoutExtension.toIntOrNull() ?: continue
-                    if (index !in storageFiles || storageFiles[index]?.size == 0) {
+                    val index = file.nameWithoutExtension.toIntOrNull()
+                    if (index != null) {
+                        if (index !in storageFiles || storageFiles[index]?.size == 0) {
+                            file.delete()
+                        }
+                    } else {
                         file.delete()
                     }
                 } else file.delete()

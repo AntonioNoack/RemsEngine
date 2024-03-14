@@ -151,14 +151,9 @@ open class Texture2D(
     samples: Int
 ) : ICacheData, ITexture2D {
 
+    constructor(img: Image, checkRedundancy: Boolean) : this("img", img, checkRedundancy)
     constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
-        create(img, true, checkRedundancy) { _, _ -> }
-        filtering(Filtering.NEAREST)
-    }
-
-    constructor(img: Image, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
-        create(img, true, checkRedundancy) { _, _ -> }
-        filtering(Filtering.NEAREST)
+        create(img, true, checkRedundancy) { _, _ -> filtering(Filtering.NEAREST) }
     }
 
     override val samples = clamp(samples, 1, GFX.maxSamples)

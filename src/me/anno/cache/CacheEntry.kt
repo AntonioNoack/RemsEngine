@@ -2,6 +2,7 @@ package me.anno.cache
 
 import me.anno.Time.nanoTime
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.Sleep
 import kotlin.math.max
 
@@ -36,8 +37,10 @@ class CacheEntry private constructor(
     val hasBeenDestroyed get() = deletingThreadName != null
     var hasGenerator = false
 
-    fun waitForValue(key: Any?, limitNanos: Long = 60_000_000_000) {
+    fun waitForValue(key: Any?, limitNanos: Long = 60 * SECONDS_TO_NANOS) {
         Sleep.waitUntil(true, limitNanos, key) {
+            update(500) // ensure that it stays loaded; 500 is a little high,
+            // but we need the image to stay loaded for GFX.addGPUTask() afterward in some places
             (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
                     || hasBeenDestroyed
         }
@@ -49,6 +52,7 @@ class CacheEntry private constructor(
      * */
     fun waitForValue2(limitNanos: Long = 500_000_000): Boolean {
         return Sleep.waitUntil2(true, limitNanos) {
+            update(16) // ensure it's loaded
             (hasValue && (data as? AsyncCacheData<*>)?.hasValue != false)
                     || hasBeenDestroyed
         }

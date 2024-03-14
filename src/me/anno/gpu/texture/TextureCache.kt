@@ -5,7 +5,6 @@ import me.anno.cache.ICacheData
 import me.anno.cache.IgnoredException
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
-import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
@@ -56,26 +55,21 @@ object TextureCache : CacheSection("Texture") {
             LOGGER.warn("Image missing: $file")
             return null
         }
-        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { it, _ ->
-            val result = if (file is ImageReadable) {
-                val image = file.readGPUImage()
-                if (image is GPUImage) {
-                    val texture = image.texture as? Texture2D
-                        ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
-                    if (texture is IndestructibleTexture2D) texture.ensureExists()
-                    if (!texture.isDestroyed && texture.wasCreated) texture else null
-                } else null
-            } else null
-            result ?: generateImageData(it)
-        } as? TextureReader ?: return null
-        if (!imageData.hasValue &&
-            !asyncGenerator && !OS.isWeb
-        ) {
-            // the texture was forced to be loaded -> wait for it
-            Sleep.waitForGFXThread(true) { imageData.hasValue }
+        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ -> generateImageData(fileI) }
+                as? TextureReader
+        return if (imageData != null) {
+            if (!imageData.hasValue && !asyncGenerator && !OS.isWeb) {
+                // the texture was forced to be loaded -> wait for it
+                Sleep.waitForGFXThread(true) { imageData.hasValue }
+            }
+            val texture = imageData.value
+            if (texture != null && texture.isCreated()) texture else null
+        } else {
+            if (!asyncGenerator) {
+                LOGGER.warn("Couldn't load $file, probably a folder")
+            }
+            null
         }
-        val texture = imageData.value
-        return if (texture != null && texture.isCreated()) texture else null
     }
 
     private fun generateImageData(file: FileReference) = TextureReader(file)

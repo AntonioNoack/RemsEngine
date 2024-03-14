@@ -1532,7 +1532,7 @@ open class Quaterniond(
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Quaterniond && x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Quaterniond && equals(other.x, other.y, other.z, other.w)
     }
 
     @JvmOverloads
@@ -1982,31 +1982,22 @@ open class Quaterniond(
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
 
     fun equals(q: Quaterniond?, delta: Double): Boolean {
-        return if (this === q) {
-            true
-        } else if (q == null) {
-            false
-        } else if (!Runtime.equals(x, q.x, delta)) {
-            false
-        } else if (!Runtime.equals(y, q.y, delta)) {
-            false
-        } else if (!Runtime.equals(z, q.z, delta)) {
-            false
-        } else {
-            Runtime.equals(w, q.w, delta)
-        }
+        return q != null && (strictEquals(q.x, q.y, q.z, q.w, delta) || strictEquals(-q.x, -q.y, -q.z, -q.w, delta))
+    }
+
+    private fun strictEquals(qx: Double, qy: Double, qz: Double, qw: Double, delta: Double): Boolean {
+        return Runtime.equals(x, qx, delta) &&
+                Runtime.equals(y, qy, delta) &&
+                Runtime.equals(z, qz, delta) &&
+                Runtime.equals(w, qw, delta)
     }
 
     fun equals(x: Double, y: Double, z: Double, w: Double): Boolean {
-        return if ((this.x) != (x)) {
-            false
-        } else if ((this.y) != (y)) {
-            false
-        } else if ((this.z) != (z)) {
-            false
-        } else {
-            (this.w) == (w)
-        }
+        return strictEquals(x, y, z, w) || strictEquals(-x, -y, -z, -w)
+    }
+
+    private fun strictEquals(qx: Double, qy: Double, qz: Double, qw: Double): Boolean {
+        return x == qx && y == qy && z == qz && w == qw
     }
 
     fun toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {

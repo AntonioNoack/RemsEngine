@@ -15,13 +15,11 @@ fun main() {
     val src = downloads.getChild("2d/qoi_test_images.zip/qoi_test_images/testcard_rgba.qoi")
     val dst = desktop.getChild("qoi")
     dst.tryMkdirs()
-    var size = 64
-    while (size <= 256) {
+    for (size in listOf(64, 128, 256)) {
         val texture = Thumbs[src, size, false] ?: throw IllegalStateException("Missing thumbs for $size")
         texture
             .createImage(flipY = false, withAlpha = true)
             .write(dst.getChild("$size.png"))
-        size *= 2
     }
     Engine.requestShutdown()
 }

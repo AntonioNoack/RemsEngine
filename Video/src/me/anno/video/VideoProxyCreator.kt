@@ -18,7 +18,6 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     "ProxyCache.json", "proxies", "VideoProxies"
 ) {
 
-
     data class Key(val file: FileReference, val lastModified: Long, val sliceIndex: Int)
 
     private fun getKey(src: FileReference, sliceIndex: Int) = Key(src, src.lastModified, sliceIndex)

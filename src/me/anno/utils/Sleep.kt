@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.gpu.GFX
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -16,6 +17,8 @@ import java.util.concurrent.TimeoutException
  * This class is not available on all platforms though! Use addEvent{} with a delta-millis-value instead.
  * */
 object Sleep {
+
+    private val LOGGER = LogManager.getLogger(Sleep::class)
 
     @JvmStatic
     private fun checkShutdown(canBeKilled: Boolean) {
@@ -82,21 +85,21 @@ object Sleep {
         waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
-    @JvmStatic
-    fun waitOnGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
-        // the texture was forced to be loaded -> wait for it
-        waitUntil(canBeKilled) {
-            GFX.workGPUTasks(canBeKilled)
-            isFinished()
+    private fun warnIfGFXMissing() {
+        if (GFX.glThread == null) {
+            LOGGER.warn("Missing OpenGL Thread! Maybe waiting forever.")
         }
     }
 
     @JvmStatic
     fun waitForGFXThread(canBeKilled: Boolean, isFinished: () -> Boolean) {
+        warnIfGFXMissing()
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
-        val isGFXThread = GFX.isGFXThread()
-        if (isGFXThread) {
-            waitOnGFXThread(canBeKilled, isFinished)
+        if (GFX.isGFXThread()) {
+            waitUntil(canBeKilled) {
+                GFX.workGPUTasks(canBeKilled)
+                isFinished()
+            }
         } else {
             waitUntil(canBeKilled, isFinished)
         }
@@ -104,9 +107,9 @@ object Sleep {
 
     @JvmStatic
     fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?): V {
-        // the texture was forced to be loaded -> wait for it
-        val isGFXThread = GFX.isGFXThread()
-        return if (isGFXThread) {
+        warnIfGFXMissing()
+        // if we are the gfx thread ourselves, we have to fulfil our processing duties
+        return if (GFX.isGFXThread()) {
             waitUntilDefined(canBeKilled) {
                 GFX.workGPUTasks(canBeKilled)
                 getValueOrNull()

@@ -81,7 +81,8 @@ class RenderMode(
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
+                .then(FXAANode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
 

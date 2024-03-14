@@ -1893,7 +1893,7 @@ open class Quaternionf(
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Quaternionf && x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Quaternionf && equals(other.x, other.y, other.z, other.w)
     }
 
     @JvmOverloads
@@ -2009,13 +2009,20 @@ open class Quaternionf(
 
     fun equals(q: Quaternionf?, delta: Float): Boolean {
         if (this === q) return true
-        return q != null &&
-                Runtime.equals(x, q.x, delta) && Runtime.equals(y, q.y, delta) &&
-                Runtime.equals(z, q.z, delta) && Runtime.equals(w, q.w, delta)
+        return q != null && (strictEquals(q.x, q.y, q.z, q.w, delta) || strictEquals(-q.x, -q.y, -q.z, -q.w, delta))
+    }
+
+    private fun strictEquals(qx: Float, qy: Float, qz: Float, qw: Float): Boolean {
+        return x == qx && y == qy && z == qz && w == qw
+    }
+
+    private fun strictEquals(qx: Float, qy: Float, qz: Float, qw: Float, delta: Float): Boolean {
+        return Runtime.equals(x, qx, delta) && Runtime.equals(y, qy, delta) &&
+                Runtime.equals(z, qz, delta) && Runtime.equals(w, qw, delta)
     }
 
     fun equals(vx: Float, vy: Float, vz: Float, vw: Float): Boolean {
-        return x == vx && y == vy && z == vz && w == vw
+        return strictEquals(vx, vy, vz, vw) || strictEquals(-vx, -vy, -vz, -vw)
     }
 
     fun toEulerAnglesDegrees(dst: Vector3f = Vector3f()): Vector3f {

@@ -41,6 +41,9 @@ import kotlin.math.min
  *
  * OpenGL supports writing shaders to file, so they can be loaded instead of compiled.
  * This can save lots of time ofc.
+ *
+ * todo I'd like to use the HDB, but if I do, this segfaults... why???
+ *  (also don't forget to enable this cache by disabling RenderDoc ^^)
  * */
 object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     "ShaderCache.json", "shaders", "ShaderCache"
@@ -55,7 +58,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     private val length = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
     private val format = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
     private var data = ByteBuffer.allocateDirect(65536)
-    private val dataI = ByteArray(4096)
+    private val buffer = ByteArray(4096)
 
     private fun ensureCapacity(size: Int) {
         if (data.capacity() < size) {
@@ -127,18 +130,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         if (src != null && src.exists) {
             try {
                 src.inputStreamSync().use { input: InputStream ->
-
-                    for (i in magicStr.indices) {
-                        if (input.read() != magicStr[i].toInt())
-                            throw IOException("Incorrect magic")
-                    }
-                    val length = input.readLE32()
-                    val format = input.readLE32()
-                    val tmp = InflaterInputStream(input)
-                    val data = ByteBuffer.allocateDirect(length)
-                    tmp.readNBytes2(length, data, true)
-                    tmp.close()
-
+                    val format = readData(input)
                     return BinaryData(format, data)
                 }
             } catch (e: IOException) {
@@ -146,6 +138,20 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
                 return null
             }
         } else return null
+    }
+
+    private fun readData(input: InputStream): Int {
+        for (i in magicStr.indices) {
+            if (input.read() != magicStr[i].toInt())
+                throw IOException("Incorrect magic")
+        }
+        val length = input.readLE32()
+        val format = input.readLE32()
+        val tmp = InflaterInputStream(input)
+        val data = ByteBuffer.allocateDirect(length)
+        tmp.readNBytes2(length, data, true)
+        tmp.close()
+        return format
     }
 
     private fun compile(key: Pair<String, String?>): Int {
@@ -200,8 +206,6 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         glGetProgramBinary(program, length, format, data)
 
         val length = length[0]
-        val format = format[0]
-
         if (length > data.capacity() || length <= 0) {
             LOGGER.warn("Shader data too long, $length > ${data.capacity()}")
             onError(null)
@@ -209,22 +213,26 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         }
 
         dst.outputStream().use { out: OutputStream ->
-            out.write(magicStr)
-            out.writeLE32(length)
-            out.writeLE32(format)
-            val tmp = DeflaterOutputStream(out)
-            var i = 0
-            while (i < length) {
-                val len = min(dataI.size, length - i)
-                data.position(i)
-                data.get(dataI, 0, len)
-                tmp.write(dataI, 0, len)
-                i += len
-            }
-            tmp.close()
+            writeData(out, length)
         }
 
         onSuccess()
+    }
+
+    private fun writeData(out: OutputStream, length: Int) {
+        out.write(magicStr)
+        out.writeLE32(length)
+        out.writeLE32(format[0])
+        DeflaterOutputStream(out).use { tmp ->
+            var pos = 0
+            while (pos < length) {
+                val len = min(buffer.size, length - pos)
+                data.position(pos)
+                data.get(buffer, 0, len)
+                tmp.write(buffer, 0, len)
+                pos += len
+            }
+        }
     }
 
     override fun getUniqueFilename(key: Pair<String, String?>): String {

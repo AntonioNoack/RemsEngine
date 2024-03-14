@@ -46,8 +46,6 @@ class Transform() : Saveable() {
         else parent?.invalidateForChildren() // keep behaviour linear
     }
 
-    val needsUpdate: Boolean get() = state != State.VALID
-
     var entity: Entity? = null
     var parentEntity: Entity? = null
     val parent get() = (entity?.parentEntity ?: parentEntity)?.transform
@@ -183,11 +181,17 @@ class Transform() : Saveable() {
     }
 
     fun invalidateLocal() {
+        if (state == State.VALID_LOCAL) {
+            LOGGER.warn("Invalidating local -> global")
+        }
         state = State.VALID_GLOBAL
         needsStaticUpdate = true
     }
 
     fun invalidateGlobal() {
+        if (state == State.VALID_GLOBAL) {
+            LOGGER.warn("Invalidating global -> local")
+        }
         state = State.VALID_LOCAL
         needsStaticUpdate = true
     }
@@ -264,11 +268,11 @@ class Transform() : Saveable() {
     var globalRotation: Quaterniond
         get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4d.create())
         set(value) {
-            // todo test this
             // we have no correct, direct control over globalRotation,
             // so we use tricks, and compute an ideal local rotation instead
             val parent = parent
             if (parent != null) {
+                // todo test this
                 // now the rotation is like an inversion to the parent
                 val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
                 localRotation = parentInv.mul(value) // then apply this afterward
@@ -367,6 +371,7 @@ class Transform() : Saveable() {
     }
 
     private fun calculateLocalTransform(parent: Transform?) {
+        state = State.VALID
         val localTransform = localTransform
         if (parent == null) {
             localTransform.set(globalTransform)

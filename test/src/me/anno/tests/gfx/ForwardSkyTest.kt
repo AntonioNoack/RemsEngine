@@ -10,7 +10,6 @@ import me.anno.utils.OS
  * test if forward rendering is using the sky inside its light calculation
  * */
 fun main() {
-    // todo where is non-deferred lighting handled? too bright, probably using wrong color space
     val scene = Entity()
     scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(metalRoughness())

@@ -69,6 +69,11 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         stream = VideoStream(source, meta, playAudio, looping, max(width, height))
     }
 
+    fun stop() {
+        stream.stop()
+        destroy()
+    }
+
     override fun onUpdate() {
         super.onUpdate()
         requestSize(width, height)

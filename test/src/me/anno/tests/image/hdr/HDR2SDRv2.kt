@@ -1,4 +1,4 @@
-package me.anno.tests.image
+package me.anno.tests.image.hdr
 
 import me.anno.image.ImageCache
 import me.anno.io.files.Reference.getReference

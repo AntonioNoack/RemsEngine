@@ -1,5 +1,6 @@
 package me.anno.cache
 
+import me.anno.gpu.texture.TextureReader
 import me.anno.utils.Sleep
 
 open class AsyncCacheData<V> : ICacheData {

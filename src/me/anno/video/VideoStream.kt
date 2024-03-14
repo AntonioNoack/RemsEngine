@@ -8,6 +8,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.max
 import me.anno.video.formats.gpu.GPUFrame
+import java.util.concurrent.atomic.AtomicInteger
 
 // todo configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
 class VideoStream(
@@ -32,7 +33,7 @@ class VideoStream(
     val capacity = 16
     val sortedFrames = ArrayList<Pair<Int, GPUFrame>>()
     var lastRequestedFrame = 0
-    var workerId = 0
+    val workerId = AtomicInteger(0)
 
     fun togglePlaying() {
         val time = getTime()
@@ -59,13 +60,13 @@ class VideoStream(
     }
 
     fun startWorker(frameIndex0: Int, maxNumFrames: Int) {
-        val id = ++workerId
+        val id = workerId.incrementAndGet()
         runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames, maxSize)
     }
 
     fun stop() {
+        workerId.incrementAndGet() // just in case execute this always
         if (!isPlaying) return
-        ++workerId
         standTime = (getTime() * 1e9).toLong()
         isPlaying = false
         stopAudio()
@@ -144,7 +145,7 @@ class VideoStream(
     }
 
     override fun destroy() {
-        workerId++
+        stop()
         synchronized(sortedFrames) {
             for (frame in sortedFrames) {
                 frame.second.destroy()

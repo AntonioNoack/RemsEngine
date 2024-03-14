@@ -111,6 +111,6 @@ fun createUVCheckerImage(): IntImage {
 }
 
 fun main() {
-    val dst = desktop.getChild("UVChecker.png")
-    createUVCheckerImage().write(dst)
+    createUVCheckerImage()
+        .write(desktop.getChild("UVChecker.png"))
 }

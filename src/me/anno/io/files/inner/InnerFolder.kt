@@ -24,7 +24,9 @@ open class InnerFolder(
     parent: FileReference
 ) : InnerFile(absolutePath, relativePath, true, parent) {
 
-    constructor(root: FileReference) : this(root.absolutePath, "", root.getParent())
+    constructor(root: FileReference) : this(root.absolutePath, "", root.getParent()) {
+        alias = root
+    }
 
     constructor(parent: InnerFolder, name: String) :
             this(appendPath(parent.absolutePath, name), appendPath(parent.relativePath, name), parent)
@@ -32,6 +34,8 @@ open class InnerFolder(
     var lookup: Map<String, InnerFile>? = null
     val children = HashMap<String, InnerFile>()
     val childrenList = UnsafeArrayList<InnerFile>()
+    var alias: FileReference? = null
+        private set
 
     operator fun contains(fileName: String) = fileName in children
     override fun listChildren(): List<FileReference> = childrenList

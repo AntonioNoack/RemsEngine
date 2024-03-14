@@ -34,7 +34,7 @@ object VideoStreamWorker {
                             val input = process.inputStream
                             input.use {
                                 readFrame(it)
-                                while (id == self.workerId) {
+                                while (id == self.workerId.get()) {
                                     loadNextFrameMaybe(it)
                                 }
                             }
@@ -70,7 +70,7 @@ object VideoStreamWorker {
                     }
                     val sortedFrames = self.sortedFrames
                     synchronized(sortedFrames) {
-                        if (id == self.workerId) {
+                        if (id == self.workerId.get()) {
                             // remove everything that is too new
                             val tooNew = sortedFrames.count { it.first >= nextReadIndex }
                             val oldFrames = sortedFrames.subList(sortedFrames.size - tooNew, sortedFrames.size)

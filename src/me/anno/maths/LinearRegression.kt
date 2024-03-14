@@ -108,7 +108,7 @@ object LinearRegression {
     fun findPolynomialCoefficients(
         points: List<Vector2d>,
         dimensions: Int = points.size,
-        regularisation: Double = 1e-3
+        regularisation: Double = 1e-14
     ): DoubleArray? {
         // the same as above, just more efficient
         val size = points.size
@@ -175,7 +175,7 @@ object LinearRegression {
         return solve(xt, y, regularisation)
     }
 
-    fun calcXtX4(X: List<Vector3d>): Matrix4d {
+    fun calcXtX4(x: List<Vector3d>): Matrix4d {
         val m = Matrix4d()
         val a = Vector4d()
         for (i in 0 until 4) {
@@ -183,7 +183,7 @@ object LinearRegression {
             var ay = 0.0
             var az = 0.0
             var aw = 0.0
-            for (v in X) {
+            for (v in x) {
                 val f = v[0]
                 ax += f * v.x
                 ay += f * v.y
@@ -207,8 +207,10 @@ object LinearRegression {
         return solution
     }
 
-    // finds the line, along which the points are lined up
-    // x, y, z, 1
+    /**
+     * finds the line, along which the points are lined up
+     * x, y, z, 1
+     * */
     fun solve3d(x: List<Vector3d>, regularisation: Double): Vector4d {
         val xtx = calcXtX4(x)
         xtx.m00(xtx.m00 + regularisation)
@@ -217,12 +219,6 @@ object LinearRegression {
         xtx.m33(xtx.m33 + regularisation)
         xtx.invert()
         return calcInvXt4(xtx, x)
-    }
-
-    fun evaluateBlackFrame(vs: DoubleArray, bias: Double = 1.0): Double {
-        val deg2 = abs(vs[1] + vs[3] - 2 * vs[2]) + bias
-        val deg4 = abs(vs[0] + vs[4] - 4 * (vs[1] + vs[3]) + 6 * vs[2])
-        return deg4 / deg2
     }
 
 }

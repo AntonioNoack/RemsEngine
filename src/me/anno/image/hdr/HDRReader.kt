@@ -23,7 +23,7 @@ object HDRReader {
         return optimizeStream(input).use(HDRReader::read1)
     }
 
-    fun optimizeStream(input: InputStream): InputStream {
+    private fun optimizeStream(input: InputStream): InputStream {
         return if (input is BufferedInputStream ||
             input is ByteArrayInputStream
         ) input else BufferedInputStream(input)

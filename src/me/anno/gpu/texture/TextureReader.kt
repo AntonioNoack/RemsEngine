@@ -3,6 +3,7 @@ package me.anno.gpu.texture
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageReader
@@ -18,7 +19,7 @@ import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 
 @InternalAPI
-class TextureReader(file: FileReference) : AsyncCacheData<ITexture2D>() {
+class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
 
     companion object {
 
@@ -44,8 +45,13 @@ class TextureReader(file: FileReference) : AsyncCacheData<ITexture2D>() {
     }
 
     fun callback(texture: ITexture2D?, error: Exception?) {
-        value = texture
-        error?.printStackTrace()
+        if (hasValue) {
+            texture?.destroy()
+            LOGGER.warn("Destroying $texture for $file before it was used")
+        } else {
+            value = texture
+            error?.printStackTrace()
+        }
     }
 
     init {

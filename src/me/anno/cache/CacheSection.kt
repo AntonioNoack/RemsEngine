@@ -7,7 +7,9 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
+import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
@@ -96,8 +98,22 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         timeout: Long, asyncGenerator: Boolean,
         generator: (FileReference, Long) -> ICacheData?
     ): ICacheData? {
-        if (!file.exists || (!allowDirectories && file.isDirectory)) return null
-        return getDualEntry(file, file.lastModified, timeout, asyncGenerator, generator)
+        return when {
+            !allowDirectories && file is InnerFolder -> {
+                val alias = file.alias ?: return null
+                getDualEntry(alias, alias.lastModified, timeout, asyncGenerator, generator)
+            }
+            file == InvalidRef -> null
+            !file.exists -> {
+                LOGGER.warn("[$name] Skipped loading $file, is missing")
+                null
+            }
+            !allowDirectories && file.isDirectory -> {
+                LOGGER.warn("[$name] Skipped loading $file, is a folder")
+                null
+            }
+            else -> getDualEntry(file, file.lastModified, timeout, asyncGenerator, generator)
+        }
     }
 
     fun <V> getEntry(
