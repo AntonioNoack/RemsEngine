@@ -7,9 +7,13 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.engine.EngineBase.Companion.workspace
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.documents
 
 fun main() {
+    OfficialExtensions.register()
+    ExtensionLoader.load()
     ECSRegistry.init()
     // normals look broken, maybe scaled incorrectly???
     // transforms were broken -> is now fixed :)

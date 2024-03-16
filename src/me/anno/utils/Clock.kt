@@ -48,12 +48,16 @@ class Clock(
 
     fun format(nanos: Double): String {
         return when {
-            nanos < 1.0 -> nanos.f4() + "ns/e"
-            nanos < 10.0 -> nanos.f3() + "ns/e"
-            nanos < 100.0 -> nanos.f2() + "ns/e"
-            nanos < 1e3 -> nanos.f1() + "ns/e"
-            nanos < 1e6 -> nanos.roundToInt().toString() + "ns/e"
-            else -> ((nanos * 1e-9).toFloat()).toString() + "s/e"
+            nanos < 1.0 -> nanos.f4() + " ns/e"
+            nanos < 10.0 -> nanos.f3() + " ns/e"
+            nanos < 100.0 -> nanos.f2() + " ns/e"
+            nanos < 1e3 -> nanos.f1() + " ns/e"
+            nanos < 1e4 -> nanos.roundToInt().toString() + " ns/e"
+            nanos < 1e7 -> (nanos * 1e-6).f3() + " ms/e"
+            nanos < 1e8 -> (nanos * 1e-6).f2() + " ms/e"
+            nanos < 1e9 -> (nanos * 1e-6).f1() + " ms/e"
+            nanos < 1e10 -> (nanos * 1e-6).roundToInt().toString() + " ms/e"
+            else -> (nanos * 1e-9).f1() + " s/e"
         }
     }
 

@@ -1,17 +1,17 @@
 package me.anno.tests.bench
 
-import me.anno.Time
+import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
+import me.anno.utils.Clock
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.nio.FloatBuffer
-
 
 fun toBytes(data: FloatBuffer): ByteArray {
     val bos = ByteArrayOutputStream()
@@ -34,14 +34,13 @@ fun main() {
     val font = Font("Verdana", 8f, isBold = false, isItalic = false)
     val text = "Lorem Ipsum is simply text."
 
-    val t0 = Time.nanoTime
+    val clock = Clock()
     val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
-    val t1 = Time.nanoTime
-    logger.info("Used ${((t1 - t0) * 1e-9)}s")
+    clock.stop("SDF.createBuffer")
 
     val calculated = toBytes(data)
 
-    val file = OS.desktop.getChild("sdf.data")
+    val file = OS.desktop.getChild("sdf.bin")
     if (file.exists) {
         val bytes = file.readBytesSync()
         val sum = calculated.withIndex().sumOf { (index, value) -> sq(value - bytes[index]) }
@@ -49,5 +48,7 @@ fun main() {
     } else {
         file.writeBytes(calculated)
     }
+
+    Engine.requestShutdown()
 
 }

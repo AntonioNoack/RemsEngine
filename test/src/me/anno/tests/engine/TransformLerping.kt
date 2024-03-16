@@ -9,6 +9,17 @@ import me.anno.mesh.Shapes
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.max
 
+/**
+ * scripts may be expensive, so I thought it may be useful to run
+ * some logic only once in a while, and that it may be useful to
+ * allow for frame-interpolation including geometry on the engine side;
+ *
+ * this test demonstrates a script that runs only once per second,
+ * but smoothly rotates a cube anyway
+ *
+ * in retrospect, running scripts may be the cheapest part,
+ * and interpolating transforms properly might be quite expensive
+ * */
 fun main() {
     val scene = Entity()
     val child = Entity()

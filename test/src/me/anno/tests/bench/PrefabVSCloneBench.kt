@@ -14,7 +14,7 @@ fun main() {
     OfficialExtensions.register()
     ExtensionLoader.load()
 
-    // 0.114s vs 0.723s for 10k instances, so .clone() is 7x faster than setting properties using reflections
+    // 0.114s vs 0.629s for 10k instances, so .clone() is 6x faster than setting properties using reflections
     // -> usable slowdown :)
     Build.isShipped = true // 20% faster, because validation of duplicate names is skipped
     val clock = Clock()

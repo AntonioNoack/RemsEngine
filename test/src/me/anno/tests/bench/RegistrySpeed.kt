@@ -1,5 +1,6 @@
 package me.anno.tests.bench
 
+import me.anno.Engine
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
@@ -16,4 +17,5 @@ fun main() {
     ECSRegistry.hasBeenInited = false
     ECSRegistry.init() // ~0.01s
     clock.stop("Second Time")
+    Engine.requestShutdown()
 }

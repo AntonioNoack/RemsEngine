@@ -28,8 +28,6 @@ fun main() {
     val source = downloads.getChild("The Junk Shop.blend")
     val bytes = source.readByteBufferSync(true)
 
-    // todo there isn't really any reasons for the ImageCPU cache to be active... is there?
-    //  -> if it is accessed, die
     clock.benchmark(1, 50, "Loading") {
         val folder = BlenderReader.readAsFolder(source, bytes)
         val prefab = (folder.getChild("Scene.json") as PrefabReadable).readPrefab()

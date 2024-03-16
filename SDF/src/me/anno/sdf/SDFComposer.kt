@@ -280,7 +280,7 @@ object SDFComposer {
     }
 
     fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BooleanArrayList {
-        val flags = BooleanArrayList(materials.size)
+        val flags = BooleanArrayList(max(materials.size, 1))
         if (materials.isNotEmpty()) {
             tree.simpleTraversal(false) {
                 if (it is SDFComponent && it.positionMappers.any { pm -> pm is UVMapper }) {

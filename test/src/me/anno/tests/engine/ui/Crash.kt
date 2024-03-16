@@ -10,6 +10,7 @@ import me.anno.ui.Window
 
 fun main() {
     // this printed lots of errors and wasn't tonemapping correctly
+    // todo this is creating lots of errors, again :/
     object : EngineBase("Crashing", 1, false) {
         override fun createUI() {
             val renderView = RenderView1(PlayMode.PLAYING, flatCube.front, style)

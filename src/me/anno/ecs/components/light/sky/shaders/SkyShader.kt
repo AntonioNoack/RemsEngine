@@ -112,13 +112,13 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "vec3 color = rayleigh * mie * extinction;\n" +
 
                 // falloff towards downwards
-                "if(pos0.y < 0.0){\n" +
+                "if(pos0.y <= 0.0 && !sphericalSky){\n" +
                 "   color = mix(nadir.rgb, color, exp(pos0.y * nadir.w));\n" +
-                "} else if(pos.y > 0.0){\n" +
+                "} else {\n" +
                 // Cirrus Clouds
                 "   vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
                 "   float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
-                "   color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
+                "   color = mix(color, extinction * 4.0, sphericalSky ? density : density * max(pos.y, 0.0));\n" +
 
                 // Cumulus Clouds
                 "   for (int i = 0; i < 3; i++){\n" +
