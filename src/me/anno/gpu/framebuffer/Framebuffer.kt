@@ -644,5 +644,5 @@ class Framebuffer(
     }
 
     override fun toString(): String =
-        "FB[n=$name, i=$pointer, w=$width h=$height s=$samples t=[${targets.joinToString { it.name }}] d=$depthBufferType]"
+        "FB['$name', #$pointer, $width x $height x $samples, t=[${targets.joinToString { it.name }}] d=$depthBufferType]"
 }

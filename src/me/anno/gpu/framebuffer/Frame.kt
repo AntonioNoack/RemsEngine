@@ -40,12 +40,6 @@ object Frame {
 
         GFX.check()
 
-        if (framebuffer != NullFramebuffer && framebuffer.pointer == 0 && (!changeSize || w0 < 0 || h0 < 0)) {
-            framebuffer.ensure()
-        }
-
-        GFX.check()
-
         // made more ugly, but trying to avoid allocations as much as possible :)
         var w = w0
         var h = h0
@@ -102,6 +96,8 @@ object Frame {
             lastH = h
             lastPtr = ptr
         }
+
+        framebuffer.ensure()
     }
 
     fun isFullscreen(): Boolean {
