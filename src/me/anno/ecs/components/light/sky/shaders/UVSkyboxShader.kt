@@ -11,7 +11,8 @@ object UVSkyboxShader : SkyShaderBase("uv-skybox") {
         val stages = super.createFragmentStages(key)
         stages.last().variables += listOf(
             Variable(GLSLType.S2D, "skyTexture"),
-            Variable(GLSLType.V1B, "applyInverseToneMapping")
+            Variable(GLSLType.V1B, "applyInverseToneMapping"),
+            Variable(GLSLType.V1F, "maxBrightness")
         )
         return stages
     }
@@ -26,8 +27,8 @@ object UVSkyboxShader : SkyShaderBase("uv-skybox") {
                 // because it's only a line (of natural colors, high-frequency checker would still look wrong)
                 "   vec2 du = vec2(dFdx(u),dFdy(u));\n" +
                 "   vec3 color = dot(du,du) > 0.1 ? textureLod(skyTexture,vec2(0.0,v),0.0).rgb : texture(skyTexture,vec2(u,v)).rgb;\n" +
-                "   if(applyInverseToneMapping) color = 1.0/(1.03-min(color,1.0))-1.0;\n" +
-                "   return color * skyColor;\n" +
+                colorMapping +
+                "   return color;\n" +
                 "}\n"
     }
 }

@@ -1,7 +1,7 @@
 package me.anno.io.unity
 
-import me.anno.io.yaml.YAMLNode
-import me.anno.io.yaml.YAMLReader
+import me.anno.io.yaml.generic.YAMLNode
+import me.anno.io.yaml.generic.YAMLReader
 import me.anno.utils.types.Strings.indexOf2
 import org.joml.Quaterniond
 import org.joml.Vector3d

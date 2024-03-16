@@ -15,6 +15,17 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                 "   currPosition = gl_Position;\n" +
                 "   prevPosition = matMul(prevTransform, vec4(localPosition, 1.0));\n" +
                 "#endif\n"
+        val colorMapping =
+            "" +
+                    "   if(applyInverseToneMapping) {\n" + // extract brightness from [0,1]-range to [0,maxBrightness]-range
+                    "       float b = 1.0/(maxBrightness+1.0);\n" +
+                    "       float c = 1.0/(maxBrightness);\n" +
+                    "       color = 1.0/(1.0+b-min((color/(1.0+c)+b),1.0))-1.0;\n" +
+                    "   }\n" +
+                    "   color *= skyColor;\n" +
+                    "   if(!applyInverseToneMapping) {\n" + // limit brightness to [0,maxBrightness]-range
+                    "       color = maxBrightness * color / (maxBrightness + color);" +
+                    "   }\n"
     }
 
     override fun concatDefines(key: ShaderKey, dst: StringBuilder): StringBuilder {
@@ -59,7 +70,6 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
     }
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(
             "skyBase", listOf(
                 Variable(GLSLType.V3F, "normal"),

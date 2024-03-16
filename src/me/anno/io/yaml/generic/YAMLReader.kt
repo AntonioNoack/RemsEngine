@@ -1,4 +1,4 @@
-package me.anno.io.yaml
+package me.anno.io.yaml.generic
 
 import me.anno.utils.types.Strings.titlecase
 import java.io.BufferedReader

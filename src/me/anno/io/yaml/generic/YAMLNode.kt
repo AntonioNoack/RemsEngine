@@ -1,6 +1,6 @@
-package me.anno.io.yaml
+package me.anno.io.yaml.generic
 
-import me.anno.io.yaml.YAMLReader.listKey
+import me.anno.io.yaml.generic.YAMLReader.listKey
 
 class YAMLNode(
     val key: String,

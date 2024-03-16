@@ -4,8 +4,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.unity.UnityReader.assetExtension
 import me.anno.io.unity.UnityReader.readUnityObjects
-import me.anno.io.yaml.YAMLNode
-import me.anno.io.yaml.YAMLReader.parseYAML
+import me.anno.io.yaml.generic.YAMLNode
+import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.image.thumbs.ThumbsExt

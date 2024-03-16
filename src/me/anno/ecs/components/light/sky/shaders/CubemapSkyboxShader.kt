@@ -11,6 +11,7 @@ object CubemapSkyboxShader : SkyShaderBase("cubemap-skybox") {
         stages.last().variables += listOf(
             Variable(GLSLType.S2D, "skyTexture"),
             Variable(GLSLType.V1B, "applyInverseToneMapping"),
+            Variable(GLSLType.V1F, "maxBrightness"),
             Variable(GLSLType.V2F, "uv")
         )
         return stages
@@ -19,8 +20,8 @@ object CubemapSkyboxShader : SkyShaderBase("cubemap-skybox") {
     override fun getSkyColor(): String {
         return "vec3 getSkyColor(vec3 pos) {\n" +
                 "   vec3 color = texture(skyTexture,uv).rgb;\n" +
-                "   if(applyInverseToneMapping) color = 1.0/(1.03-min(color,1.0))-1.0;\n" +
-                "   return color * skyColor;\n" +
+                colorMapping +
+                "   return color;\n" +
                 "}\n"
     }
 }

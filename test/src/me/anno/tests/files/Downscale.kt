@@ -15,8 +15,9 @@ fun main() {
     LogManager.disableLogger("Saveable")
     LogManager.disableLogger("Clock")
     LogManager.disableLogger("FrameReader")
-    val src = getReference("C:/XAMPP/htdocs/anionoa/ico512")
-    val dst = getReference("C:/XAMPP/htdocs/anionoa/ico384")
+    val folder = getReference("C:/XAMPP/htdocs/anionoa")
+    val src = folder.getChild("ico512")
+    val dst = folder.getChild("ico384")
     dst.mkdirs()
     val ext = listOf("png", "jpg", "webp")
     for (child in src.listChildren()) {

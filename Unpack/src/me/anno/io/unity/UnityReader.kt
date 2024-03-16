@@ -17,9 +17,9 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
-import me.anno.io.yaml.YAMLNode
-import me.anno.io.yaml.YAMLReader.beautify
-import me.anno.io.yaml.YAMLReader.parseYAML
+import me.anno.io.yaml.generic.YAMLNode
+import me.anno.io.yaml.generic.YAMLReader.beautify
+import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.utils.ColorParsing.parseHex
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Ints.toLongOrDefault

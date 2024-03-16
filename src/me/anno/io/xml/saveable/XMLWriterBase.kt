@@ -64,6 +64,7 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 
+// todo instead of this complex logic, could we convert JSON to XML?
 abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     abstract fun append(v: String)
@@ -93,7 +94,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun array(type: SimpleType, name: String, size: Int, lastIndex: Int, formatValue: (Int) -> String) {
-        array(type, name, "$size,${(0 until lastIndex).joinToString(",") { formatValue(it) }}")
+        array(type, name, "$size,${(0 .. lastIndex).joinToString(",") { formatValue(it) }}")
     }
 
     private fun simpleObject(type: SimpleType, name: String, attributes: String) {
@@ -337,9 +338,9 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun m33(value: Matrix3f): String {
-        return "[${value.m00},${value.m01},${value.m02},\" +\n" +
-                "                \"${value.m10},${value.m11},${value.m12},\" +\n" +
-                "                \"${value.m20},${value.m21},${value.m22}]"
+        return "[${value.m00},${value.m01},${value.m02}," +
+                "${value.m10},${value.m11},${value.m12}," +
+                "${value.m20},${value.m21},${value.m22}]"
     }
 
     private fun m43(value: Matrix4x3f): String {

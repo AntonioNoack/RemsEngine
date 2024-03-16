@@ -49,6 +49,7 @@ object Renderers {
     @JvmField
     var tonemapGLSL = "" +
             "vec3 tonemapLinear(vec3 color){\n" +
+            "   color = clamp(color,vec3(0.0),vec3(1e38));\n" +
             "   float maxTerm = max(max(color.r, color.g), color.b);\n" +
             "   color = mix(vec3(1.0), color / (1.0 + maxTerm), 1.0/(1.0 + maxTerm * maxTerm * 0.0003));\n" +
             "   return color;\n" +
