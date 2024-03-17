@@ -35,13 +35,6 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl-natives-windows-x86.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl-natives-windows.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-linux-arm32.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-linux-arm64.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-linux.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-macos.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-windows-x86.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-windows.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm32.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm64.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux.jar!/" />

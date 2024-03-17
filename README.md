@@ -294,7 +294,7 @@ Until I create a release, they might be a bit out of date 😅.
 
 ## Used libraries
 
-* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb (audio))
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL)
 * [Assimp](https://github.com/assimp/assimp) (loading 3d meshes; from LWJGL)
 * [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
 * [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)

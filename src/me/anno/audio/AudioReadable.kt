@@ -21,11 +21,9 @@ interface AudioReadable {
         // generate buffer :)
         val buffer = SoundBuffer()
         val bufferLength = (duration * sampleRate).toInt()
-        buffer.format = AL11.AL_FORMAT_MONO16
         val bytes = AudioStream.bufferPool[bufferLength * 2 * channels, false, true]
         val shorts = bytes.asShortBuffer()
-        buffer.data0 = bytes
-        buffer.data = shorts
+        buffer.loadRaw16(shorts, bytes, sampleRate, AL11.AL_FORMAT_MONO16)
 
         val dt = 1.0 / sampleRate
         var time = start
@@ -56,9 +54,7 @@ interface AudioReadable {
 
         shorts.flip()
         return buffer
-
     }
 
     fun sample(time: Double, channel: Int): Short
-
 }

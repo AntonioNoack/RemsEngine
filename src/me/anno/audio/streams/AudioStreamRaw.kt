@@ -1,20 +1,19 @@
 package me.anno.audio.streams
 
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioPools.SAPool
-import me.anno.audio.AudioReadable
-import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.AudioCache
 import me.anno.audio.AudioCache.getAudioSequence
+import me.anno.audio.AudioPools.SAPool
+import me.anno.audio.AudioReadable
 import me.anno.audio.AudioSliceKey
+import me.anno.audio.openal.SoundBuffer
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
-import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.structures.tuples.ShortPair
-import me.anno.io.MediaMetadata
-import org.lwjgl.openal.AL11
 import kotlin.math.max
 import kotlin.math.min
 
@@ -114,7 +113,7 @@ class AudioStreamRaw(
                     } else lastSoundBuffer!!
                     val data = soundBuffer.data!!
                     val localIndex = clamp((index - index0i).toInt(), 0, sliceSampleCount - 1)
-                    if (soundBuffer.format == AL11.AL_FORMAT_STEREO16) {
+                    if (soundBuffer.isStereo) {
                         val arrayIndex0 = localIndex * 2 // for stereo
                         shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
                     } else {
@@ -146,10 +145,10 @@ class AudioStreamRaw(
                     val sliceTime = sliceIndex * sliceDuration
                     val soundBuffer = AudioCache.getEntry(key, timeout, false) {
                         val sequence = getAudioSequence!!(file, sliceTime, sliceDuration, sampleRate)
-                        waitUntilDefined(true) {
-                            if (sequence.hasValue) sequence.value ?: SoundBuffer(0)
-                            else null
+                        waitUntil(true) {
+                            sequence.hasValue
                         }
+                        sequence.value
                     } as SoundBuffer
                     lastSoundBuffer = soundBuffer
                     lastSliceIndex = sliceIndex
@@ -158,7 +157,7 @@ class AudioStreamRaw(
 
                 val data = soundBuffer.data!!
                 val localIndex = (index % sliceSampleCount).toInt()
-                if (soundBuffer.format == AL11.AL_FORMAT_STEREO16) {
+                if (soundBuffer.isStereo) {
                     val arrayIndex0 = localIndex * 2 // for stereo
                     shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
                 } else {
