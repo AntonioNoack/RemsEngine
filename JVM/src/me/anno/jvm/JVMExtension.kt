@@ -2,6 +2,7 @@ package me.anno.jvm
 
 import com.sun.jna.platform.FileUtils
 import me.anno.audio.openal.AudioManager
+import me.anno.config.DefaultStyle
 import me.anno.extensions.plugins.Plugin
 import me.anno.jvm.fonts.ContourImpl
 import me.anno.jvm.fonts.FontManagerImpl
@@ -30,9 +31,9 @@ import javax.sound.sampled.AudioSystem
 //  - getReference()-Implementation?
 //  - Extension discovery?? -> hard to do as an extension...
 
-class JVMPlugin : Plugin() {
+class JVMExtension : Plugin() {
     companion object {
-        private val LOGGER = LogManager.getLogger(JVMPlugin::class)
+        private val LOGGER = LogManager.getLogger(JVMExtension::class)
     }
 
     override fun onEnable() {
@@ -52,6 +53,7 @@ class JVMPlugin : Plugin() {
         AudioManager.audioDeviceHash = { AudioSystem.getMixerInfo()?.size ?: -1 }
         TrashManager.moveToTrashImpl = this::moveToTrash
         FileExplorer.createLink = FileExplorerImpl::createLink
+        DefaultStyle.initDefaults() // reload default font size
     }
 
     private fun getProcessID(): Int {

@@ -2,11 +2,11 @@ package me.anno.config
 
 import me.anno.Engine.projectName
 import me.anno.config.DefaultStyle.baseTheme
+import me.anno.fonts.Font
+import me.anno.fonts.FontStats
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
-import me.anno.fonts.Font
-import me.anno.ui.Style
 import me.anno.utils.Clock
 
 object DefaultConfig : StringMap() {
@@ -14,11 +14,10 @@ object DefaultConfig : StringMap() {
     /**
      * The default style, initialized by config
      * */
-    var style: Style = Style("", "")
-        get() {
-            onSyncAccess() // ensure default style is initialized
-            return field
-        }
+    val style by lazy {
+        val stylePath = this["style", "dark"]
+        baseTheme.getStyle(stylePath)
+    }
 
     private var lastProjectName: String? = null
 
@@ -41,21 +40,13 @@ object DefaultConfig : StringMap() {
 
         tick.stop("registering classes for config")
 
-        var newConfig: StringMap = this
         try {
-            newConfig = ConfigBasics.loadConfig("main.config", InvalidRef, this, true)
-            putAll(newConfig)
+            putAll(ConfigBasics.loadConfig("main.config", InvalidRef, this, true))
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
         tick.stop("reading base config")
-
-        val stylePath = newConfig["style"]?.toString() ?: "dark"
-        style = baseTheme.getStyle(stylePath)
-
-        // not completely true; is loading some classes, too
-        tick.stop("reading base style")
     }
 
     fun defineDefaultFileAssociations() {
@@ -97,7 +88,11 @@ object DefaultConfig : StringMap() {
         }
     }
 
-    val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
-    val defaultFont get() = Font(defaultFontName, 15f, isBold = false, isItalic = false)
-    val defaultFont2 get() = Font(defaultFontName, 25f, isBold = false, isItalic = false)
+    val defaultFont
+        get() = Font(
+            style.getString("text.fontName", "Verdana"),
+            style.getSize("text.fontSize", FontStats.getDefaultFontSize()),
+            isBold = false,
+            isItalic = false
+        )
 }

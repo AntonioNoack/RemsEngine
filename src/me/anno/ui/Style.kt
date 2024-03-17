@@ -3,6 +3,7 @@ package me.anno.ui
 import me.anno.config.DefaultConfig
 import me.anno.io.utils.StringMap
 import me.anno.fonts.Font
+import me.anno.fonts.FontStats
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color
 import org.apache.logging.log4j.LogManager
@@ -142,11 +143,11 @@ class Style(val prefix: String?, val suffix: String?) {
     fun getSize(name: String, defaultValue: Float): Float = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
-    fun getFont(name: String, defaultValue: Font = DefaultConfig.defaultFont): Font {
-        val type = getString("$name.fontName", defaultValue.name)
-        val size = getSize("$name.fontSize", defaultValue.size.toInt()).toFloat()
-        val isBold = getBoolean("$name.fontBold", defaultValue.isBold)
-        val isItalic = getBoolean("$name.fontItalic", defaultValue.isItalic)
+    fun getFont(name: String): Font {
+        val type = getString("$name.fontName", "Verdana")
+        val size = getSize("$name.fontSize", FontStats.getDefaultFontSize()).toFloat()
+        val isBold = getBoolean("$name.fontBold", false)
+        val isItalic = getBoolean("$name.fontItalic", false)
         return Font(type, size, isBold, isItalic)
     }
 

@@ -1,5 +1,6 @@
 package me.anno.tests.geometry
 
+import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.signeddistfields.edges.LinearSegment
@@ -8,7 +9,20 @@ import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths
 import me.anno.maths.geometry.MarchingSquares
 import org.joml.AABBf
+import org.joml.Vector2f
 import kotlin.math.sqrt
+
+fun distanceToPolygons(px: Float, py: Float, polygons: List<List<Vector2f>>): Float {
+    return sqrt(polygons.minOf { distanceSqToPolygon(px, py, it) })
+}
+
+fun distanceSqToPolygon(px: Float, py: Float, polygon: List<Vector2f>): Float {
+    return polygon.indices.minOf {
+        val a = polygon[it]
+        val b = polygon[(it + 1) % polygon.size]
+        LinearSegment.signedDistanceSq(px, py, a.x, a.y, b.x, b.y)
+    }
+}
 
 fun main() {
     OfficialExtensions.register()
@@ -33,16 +47,10 @@ fun main() {
     ) { x, y, _ ->
         val px = x.toFloat() / scale
         val py = y.toFloat() / scale
-        val distance = sqrt(
-            polygons.minOf { polygon ->
-                polygon.indices.minOf {
-                    val a = polygon[it]
-                    val b = polygon[(it + 1) % polygon.size]
-                    LinearSegment.signedDistanceSq(px, py, a.x, a.y, b.x, b.y)
-                }
-            }
-        )
-        val f = Maths.clamp(Maths.unmix(f0, f1, distance))
-        Maths.mix(1f, fieldScale * field.getValue(px, py), f)
+        val distance = distanceToPolygons(px, py, polygons)
+        val isOnField = Maths.clamp(Maths.unmix(f0, f1, distance))
+        val fieldColor = fieldScale * field.getValue(px, py)
+        Maths.mix(1f, fieldColor, isOnField)
     }
+    Engine.requestShutdown()
 }

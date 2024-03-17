@@ -81,16 +81,15 @@ Some depend on local files, which you might not have, but most should work, and 
 - 64-bit fp transformations for universe-scale games
   - on GPU-side, camera is always at origin, FP32
 - AABB optimized scene hierarchy
-- mods / plugins from the start: your game is a mod for the engine
-- automatic file reload, on file change
-- utilities like path-finding
+- mods / plugins from the start: your game is a mod(ule) for the engine
+- in editor: automatic file reload, on file change
 - heavy operations are cache-based, with automatic free after not-requesting for a set time
-  - ImageCPUCache, ImageGPUCache
+  - ImageCache/TextureCache (CPU/GPU)
   - MeshCache, AnimationCache, PrefabCache
   - AudioCache
   - FontManager for textures and sizes
   - PDFCache, VideoCache
-  - file metadata
+  - (File)MetadataCache
 - very basic Lua scripting
 
 ### File Formats
@@ -203,12 +202,13 @@ Some tests, starting the whole engine, like a small game:
 
 Some feature tests:
 
-- [Math: SDFTest.kt](test/src/me/anno/tests/collider/SDFColliderTest.kt)
+- [Math: SDFColliderTest.kt](test/src/me/anno/tests/collider/SDFColliderTest.kt)
 - [Internal: Hierarchy.kt](test/src/me/anno/tests/engine/prefab/Hierarchy.kt)
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
+- [GFX: MarchingCubes.kt](test/src/me/anno/tests/geometry/MarchingCubes.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
-- [GFX: FSR.kt](src/me/anno/ecs/components/light/sky/shaders/effects/FSR.kt)
-- [Debug: JsonFormatter.kt](test/src/me/anno/tests/files/JsonFormatter.kt)
+- [GFX: FSR.kt](test/src/me/anno/tests/shader/FSR.kt)
+- [Debug: JsonFormatterTest.kt](test/src/me/anno/tests/files/JsonFormatterTest.kt)
 - [UI: DrawCurves.kt](test/src/me/anno/tests/shader/DrawCurves.kt)
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
 - [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Web Demo](https://remsengine.phychi.com/jvm2wasm/snake/)
@@ -264,6 +264,8 @@ Shipping to Android is a bit more complicated:
 - libraries can be added just like in IntelliJ IDEA
 
 ### Web (HTML5, WASM, WebGL)
+
+*Note: this is currently broken when using 3d as of 17th March 2024*
 
 My JVM->WASM translation is a little slow at the moment, unfortunately. It's fast enough for simple games though.
 Lots of things haven't been implemented or are half-baked, so be cautious and don't expect too much (e.g., image loading

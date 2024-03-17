@@ -6,6 +6,13 @@ import me.anno.utils.InternalAPI
 object FontStats {
 
     @InternalAPI
+    var getDefaultFontSizeImpl: (() -> Int)? = null
+    fun getDefaultFontSize(): Int {
+        val tmp = getDefaultFontSizeImpl ?: return 15
+        return tmp()
+    }
+
+    @InternalAPI
     var getTextGeneratorImpl: ((FontKey) -> TextGenerator)? = null
     fun getTextGenerator(key: FontKey): TextGenerator {
         val tmp = getTextGeneratorImpl ?: throw NotImplementedError("Text generator")

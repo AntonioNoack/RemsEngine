@@ -12,6 +12,7 @@ import org.joml.Vector3d
 object TextShapes {
 
     private val textCache = CacheSection("TextMeshes")
+    private val font by lazy { DefaultConfig.defaultFont }
 
     // draw bone names where they are
     fun drawTextMesh(
@@ -22,7 +23,7 @@ object TextShapes {
         transform: Matrix4x3d?
     ) {
         val mesh = textCache.getEntry(text, 10000, false) {
-            TextMeshGroup(DefaultConfig.defaultFont, text, 0f, false)
+            TextMeshGroup(font, text, 0f, false)
                 .getOrCreateMesh()
         } as Mesh
         val matrix = MovingGrid.init()

@@ -7,11 +7,13 @@ import me.anno.fonts.TextGenerator
 import me.anno.fonts.keys.FontKey
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import java.awt.Toolkit
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.util.Locale
@@ -25,9 +27,14 @@ object FontManagerImpl {
         FontStats.queryInstalledFontsImpl = FontManagerImpl::getInstalledFonts
         FontStats.getTextLengthImpl = FontManagerImpl::getTextLength
         FontStats.getFontHeightImpl = FontManagerImpl::getTextHeight
+        FontStats.getDefaultFontSizeImpl = FontManagerImpl::getDefaultFontSize
     }
 
-    fun getTextGenerator(key: FontKey): TextGenerator {
+    private fun getDefaultFontSize(): Int {
+        return Maths.clamp(Toolkit.getDefaultToolkit().screenSize.height / 72, 15, 60)
+    }
+
+    private fun getTextGenerator(key: FontKey): TextGenerator {
         val name = key.name
         val boldItalicStyle = key.italic.toInt(Font.ITALIC) or key.bold.toInt(Font.BOLD)
         val size = getAvgFontSize(key.sizeIndex)
@@ -38,7 +45,7 @@ object FontManagerImpl {
         )
     }
 
-    fun getInstalledFonts(): List<String> {
+    private fun getInstalledFonts(): List<String> {
         val tick = Clock()
         val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
         val fontNames = ge.getAvailableFontFamilyNames(Locale.ROOT).toList()
@@ -50,13 +57,13 @@ object FontManagerImpl {
         return fontNames
     }
 
-    fun getTextLength(font: me.anno.fonts.Font, text: String): Double {
+    private fun getTextLength(font: me.anno.fonts.Font, text: String): Double {
         val awtFont = (FontManager.getFont(font) as AWTFont).awtFont
         val ctx = FontRenderContext(null, true, true)
         return TextLayout(text, awtFont, ctx).bounds.maxX
     }
 
-    fun getTextHeight(font: me.anno.fonts.Font): Double {
+    private fun getTextHeight(font: me.anno.fonts.Font): Double {
         val ctx = FontRenderContext(null, true, true)
         val layout = TextLayout(".", (FontManager.getFont(font) as AWTFont).awtFont, ctx)
         return (layout.ascent + layout.descent).toDouble()

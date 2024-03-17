@@ -1,6 +1,7 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
+import me.anno.fonts.FontStats
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -184,7 +185,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
 
         fun getCrossSize(style: Style): Float {
-            val fontSize = style.getSize("text.fontSize", DefaultConfig.defaultFont.size.toInt())
+            val fontSize = style.getSize("text.fontSize", FontStats.getDefaultFontSize())
             return style.getSize("customizable.crossSize", fontSize).toFloat()
         }
 
