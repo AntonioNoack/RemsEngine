@@ -2,25 +2,29 @@ package me.anno
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import org.apache.logging.log4j.LogManager
 
 object Build {
+
+    private val LOGGER = LogManager.getLogger(Build::class)
 
     @JvmStatic
     var isDebug = true
         set(value) {
             if (!isLocked) field = value
-            else throw IllegalArgumentException("Cannot set debug to locked state")
+            else LOGGER.warn("Cannot set isDebug when locked")
         }
 
     @JvmStatic
     var isShipped = false
         set(value) {
             if (!isLocked) field = value
-            else throw IllegalArgumentException("Cannot set shipped to locked state")
+            else LOGGER.warn("Cannot set isShipped when locked")
         }
 
     @JvmStatic
-    private var isLocked = false
+    var isLocked = false
+        private set
 
     @JvmStatic
     var assetsFolder: FileReference = InvalidRef

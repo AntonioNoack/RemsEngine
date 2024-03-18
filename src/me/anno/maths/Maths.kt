@@ -23,7 +23,7 @@ object Maths {
     const val TAU = PI * 2.0
 
     const val PIf = PI.toFloat()
-    const val TAUf = (PI * 2.0).toFloat()
+    const val TAUf = TAU.toFloat()
 
     const val MILLIS_TO_NANOS = 1_000_000L
     const val SECONDS_TO_MILLIS = 1_000L

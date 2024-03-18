@@ -32,7 +32,6 @@ object ColorParsing {
         }
     * */
 
-    // private val separationRegex = Regex("[,()\\[\\]]") // split by ,()[]
     @JvmStatic
     private fun parseFloats(data: String, limit: Int = 4): List<Float> {
         val result = ArrayList<Float>(min(limit, data.length ushr 1))
@@ -48,7 +47,9 @@ object ColorParsing {
                     si = ei
                 } else if (ei > si) {
                     val value = data.substring(si, ei).toFloatOrNull()
-                    if (value != null) result.add(value)
+                    if (value != null) {
+                        result.add(value)
+                    }
                 }
             }
             isFloat = isFloat2
@@ -57,7 +58,6 @@ object ColorParsing {
             val value = data.substring(si).toFloatOrNull()
             if (value != null) result.add(value)
         }
-        // data.split(separationRegex).mapNotNull { it.trim().toFloatOrNull() }
         return result
     }
 
@@ -190,13 +190,14 @@ object ColorParsing {
 
     @JvmStatic
     private val hex by lazy {
-        val array = ByteArray('f'.code + 1 - '0'.code)
+        val base = '0'.code
+        val array = ByteArray('f'.code + 1 - base)
         for (i in 0 until 10) {
             array[i] = i.toByte()
         }
         for (i in 0 until 6) {
-            array["abcdef"[i].code - 48] = (i + 10).toByte()
-            array["ABCDEF"[i].code - 48] = (i + 10).toByte()
+            array['a'.code - base + i] = (i + 10).toByte()
+            array['A'.code - base + i] = (i + 10).toByte()
         }
         array
     }

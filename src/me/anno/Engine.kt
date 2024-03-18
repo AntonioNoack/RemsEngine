@@ -13,10 +13,10 @@ object Engine {
         private set
 
     private val onShutdown = ArrayList<() -> Unit>()
-    fun registerForShutdown(callable: () -> Unit) {
-        if (shutdown) callable()
+    fun registerForShutdown(callback: () -> Unit) {
+        if (shutdown) callback()
         synchronized(onShutdown) {
-            onShutdown.add(callable)
+            onShutdown.add(callback)
         }
     }
 
