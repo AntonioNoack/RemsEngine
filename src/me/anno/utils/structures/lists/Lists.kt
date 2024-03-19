@@ -163,35 +163,6 @@ object Lists {
     @JvmStatic
     fun <V> List<V>.getOrPrevious(index: Int) = if (index > 0) this[index - 1] else this.getOrNull(0)
 
-    // before I knew there was any()
-    /* fun <V> List<V>.one(func: (V) -> Boolean): Boolean {
-         for (entry in this) {
-             if (func(entry)) return true
-         }
-         return false
-     }
-
-     fun <V> Set<V>.one(func: (V) -> Boolean): Boolean {
-         for (entry in this) {
-             if (func(entry)) return true
-         }
-         return false
-     }
-
-     fun <V> Sequence<V>.one(func: (V) -> Boolean): Boolean {
-         for (entry in this) {
-             if (func(entry)) return true
-         }
-         return false
-     }
-
-     fun <K, V> Map<K, V>.one(func: (Map.Entry<K, V>) -> Boolean): Boolean {
-         for (entry in this) {
-             if (func(entry)) return true
-         }
-         return false
-     }*/
-
     @JvmStatic
     fun <V> MutableList<V>.swap(i: Int, j: Int) {
         val t = this[i]
@@ -256,41 +227,6 @@ object Lists {
     fun <V> List<List<V>>.join(): ArrayList<V> {
         val result = ArrayList<V>(sumOf { it.size })
         for (entries in this) result += entries
-        return result
-    }
-
-    @JvmStatic
-    fun <A, B> List<A>.cross(other: List<B>): List<Pair<A, B>> {
-        val result = ArrayList<Pair<A, B>>(size * other.size)
-        for (a in this) {
-            for (b in other) {
-                result += a to b
-            }
-        }
-        return result
-    }
-
-    @JvmStatic
-    fun <A, B, C> List<A>.crossMap(other: List<B>, map: (a: A, b: B) -> C): List<C> {
-        val result = ArrayList<C>(size * other.size)
-        for (a in this) {
-            for (b in other) {
-                result += map(a, b)
-            }
-        }
-        return result
-    }
-
-    @JvmStatic
-    fun <A, B, C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
-        val result = ArrayList<Triple<A, B, C>>(size * other.size * other2.size)
-        for (a in this) {
-            for (b in other) {
-                for (c in other2) {
-                    result += Triple(a, b, c)
-                }
-            }
-        }
         return result
     }
 

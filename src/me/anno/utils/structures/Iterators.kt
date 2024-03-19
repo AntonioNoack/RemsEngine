@@ -27,16 +27,29 @@ object Iterators {
         return ctr
     }
 
-    // todo support nullable values
-    fun <V: Any> Iterator<V>.filter(test: (V) -> Boolean): Iterator<V> {
+    fun <V> Iterator<V>.filter(test: (V) -> Boolean): Iterator<V> {
         val base = this
-        return object : NextEntryIterator<V>() {
-            override fun nextEntry(): V? {
+        return object : Iterator<V> {
+            private var foundNext: Any? = null
+            private var hasFoundNext = false
+            override fun hasNext(): Boolean {
+                if (hasFoundNext) return true
                 while (base.hasNext()) {
                     val next = base.next()
-                    if (test(next)) return next
+                    if (test(next)) {
+                        foundNext = next
+                        hasFoundNext = true
+                        break
+                    }
                 }
-                return null
+                return hasFoundNext
+            }
+
+            override fun next(): V {
+                if (!hasNext()) throw NoSuchElementException()
+                hasFoundNext = false
+                @Suppress("UNCHECKED_CAST")
+                return foundNext as V
             }
         }
     }
@@ -49,6 +62,11 @@ object Iterators {
         }
     }
 
+    fun <A, B : Any> Iterator<A>.mapNotNull(mapping: (A) -> B?): Iterator<B> {
+        @Suppress("UNCHECKED_CAST")
+        return map(mapping).filter { it != null } as Iterator<B>
+    }
+
     fun <V> Iterator<V>.toList(): List<V> {
         val list = ArrayList<V>()
         while (hasNext()) {
@@ -57,12 +75,15 @@ object Iterators {
         return list
     }
 
-    fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): List<V> {
-        for (i in 0 until startIndex) {
+    fun <V> Iterator<V>.skip(n: Int): Iterator<V> {
+        for (i in 0 until n) {
             if (hasNext()) next()
-            else return emptyList()
+            else break
         }
-        val length = endIndex - startIndex
+        return this
+    }
+
+    fun <V> Iterator<V>.take(length: Int): List<V> {
         val list = ArrayList<V>(length)
         while (list.size < length && hasNext()) {
             list.add(next())
@@ -70,4 +91,7 @@ object Iterators {
         return list
     }
 
+    fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): List<V> {
+        return skip(startIndex).take(endIndex - startIndex)
+    }
 }

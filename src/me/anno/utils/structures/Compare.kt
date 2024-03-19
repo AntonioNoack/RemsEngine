@@ -17,8 +17,8 @@ object Compare {
      * then adjust the value; else return r
      * */
     @JvmStatic
-    fun Int.ifSame(func: Int): Int {
-        return if (this == 0) func else this
+    fun Int.ifSame(valueIfSame: Int): Int {
+        return if (this == 0) valueIfSame else this
     }
 
 }

@@ -14,7 +14,7 @@ import me.anno.ui.custom.CustomSizeContainer
 import me.anno.ui.debug.TrackingPanel
 import me.anno.utils.Color
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.structures.lists.Lists.cross
+import me.anno.utils.structures.Collections.cross
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -79,7 +79,7 @@ object PropertyTracking {
                 return
             }
         }
-        val samples = relevantInstances.cross(channels)
+        val samples = relevantInstances.cross(channels, ArrayList(relevantInstances.size * channels.size))
         var dynPanel: Panel? = null
         val button = TextButton("\uD83D\uDC41\uFE0F", true, style)
         button.setTooltip("Start Tracking")

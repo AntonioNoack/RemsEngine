@@ -6,6 +6,11 @@ import me.anno.engine.Events.addEvent
 import me.anno.utils.OS
 import kotlin.concurrent.thread
 
+/**
+ * this class represents a task, that should run only a few times, and not necessarily immediately,
+ * like saving a code file while it is edited:
+ * it still should be saved, but saving every 500ms for example is fine, instead of every letter
+ * */
 class DelayedTask(
     private val function: () -> Unit,
     private val delayMillis: Long = 500

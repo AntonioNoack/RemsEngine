@@ -1,5 +1,9 @@
 package me.anno.utils.search
 
+/**
+ * Binary search is a famous algorithm to find elements in a sorted list/array.
+ * This objects implements it for any class you want to use.
+ * */
 object BinarySearch {
 
     fun interface IndexComparator {

@@ -4,20 +4,23 @@ import java.io.EOFException
 import java.io.FilterInputStream
 import java.io.InputStream
 
+/**
+ * counts how many bytes have been read already
+ * */
 class CountingInputStream(src: InputStream) : FilterInputStream(src) {
 
-    var count = 0L
+    var position = 0L
         private set
 
     override fun read(): Int {
         val b = super.read()
-        if (b != -1) count++
+        if (b != -1) position++
         return b
     }
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
         val r = super.read(b, off, len)
-        if (r > 0) count += r
+        if (r > 0) position += r
         return r
     }
 
@@ -36,7 +39,7 @@ class CountingInputStream(src: InputStream) : FilterInputStream(src) {
                 else -> done += skipped
             }
         }
-        count += done.toInt()
+        position += done.toInt()
         return done
     }
 }

@@ -5,7 +5,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
-import me.anno.utils.structures.lists.Lists.cross
+import me.anno.utils.structures.Collections.cross
 import org.joml.Vector2i.Companion.length
 import kotlin.math.PI
 import kotlin.math.abs
@@ -31,7 +31,7 @@ class Cannon(
         val range = (-maxRadius..maxRadius).toList()
         val isBlockSize = (maxRadius * PI).toInt()
         val isBlocked = BooleanArray(isBlockSize)
-        val order = range.cross(range)
+        val order = range.cross(range, ArrayList(sq(range.size)))
             .filter { abs(it.first) + abs(it.second) in minRadius..maxRadius }
             .map {
                 val angle = atan2(it.second.toDouble(), it.first.toDouble()) + PI

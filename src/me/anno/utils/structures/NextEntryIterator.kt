@@ -1,6 +1,5 @@
 package me.anno.utils.structures
 
-// todo remove V: Any restriction (support nullable values)
 abstract class NextEntryIterator<V: Any> : Iterator<V> {
 
     abstract fun nextEntry(): V?

@@ -36,9 +36,9 @@ object ICOReader {
     private fun ensureOffset(input1: CountingInputStream, entry: IconEntry, i: Int) {
         // Make sure we're at the right file offset!
         val targetOffset = entry.fileOffset
-        if (input1.count < targetOffset)
-            input1.skip(targetOffset - input1.count)
-        val fileOffset = input1.count
+        if (input1.position < targetOffset)
+            input1.skip(targetOffset - input1.position)
+        val fileOffset = input1.position
         if (fileOffset != targetOffset.toLong()) {
             throw IOException(
                 "Cannot read image #$i starting at unexpected file offset, " +
@@ -54,7 +54,7 @@ object ICOReader {
 
         val info = input1.readLE32()
         LOGGER.info(
-            "Image #$i @ ${input1.count} info = ${Utils.toInfoString(info)}, " +
+            "Image #$i @ ${input1.position} info = ${Utils.toInfoString(info)}, " +
                     "${entry.width} x ${entry.height} x ${entry.bitCount} bpp"
         )
 

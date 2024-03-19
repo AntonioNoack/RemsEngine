@@ -6,8 +6,12 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.partition1
 import kotlin.math.sqrt
 
-// todo this isn't really a search, more like a select-from-sort
-//  -> choose a different folder
+/**
+ * This class finds the k-th element, or the median,
+ * in an unordered collection.
+ *
+ * After calling these functions, the collection will be slightly better sorted.
+ * */
 object Median {
 
     fun <V> MutableList<V>.median(comparator: Comparator<V>): V {

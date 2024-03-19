@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
+import me.anno.utils.structures.Iterators.mapNotNull
 import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd

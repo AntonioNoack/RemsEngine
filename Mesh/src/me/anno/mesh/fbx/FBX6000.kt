@@ -28,7 +28,7 @@ object FBX6000 {
         stream.consumeMagic("Kaydara FBX Binary")
 
         fun InputStream.skipN(n: Int) {
-            print("// [FBX6000] ? [${stream.count}]")
+            print("// [FBX6000] ? [${stream.position}]")
             for (i in 0 until n) {
                 print(" ")
                 print(read())
@@ -83,7 +83,7 @@ object FBX6000 {
                         list.add(map)
                         stack.add(map)
                         var needsNewObject = false
-                        while (stream.count < endOfBlock) {
+                        while (stream.position < endOfBlock) {
                             if (needsNewObject) {
                                 val map2 = HashMap<String, ArrayList<Any>>()
                                 list.add(map2)
