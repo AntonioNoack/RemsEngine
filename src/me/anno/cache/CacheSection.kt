@@ -2,10 +2,6 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
-import me.anno.ecs.components.anim.AnimationCache
-import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
@@ -578,16 +574,19 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         @JvmStatic
         private val caches = ConcurrentSkipListSet<CacheSection>()
 
+        @JvmStatic // typically non-CacheSection caches, that still need regular updating
+        private val updateListeners = ArrayList<() -> Unit>()
+
         @JvmStatic
         fun updateAll() {
             for (cache in caches) {
                 cache.update()
             }
-            LastModifiedCache.update()
-            MeshCache.update()
-            AnimationCache.update()
-            MaterialCache.update()
-            SkeletonCache.update()
+            synchronized(updateListeners) {
+                for (cache in updateListeners) {
+                    cache()
+                }
+            }
         }
 
         @JvmStatic
@@ -595,7 +594,14 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             for (cache in caches) {
                 cache.clear()
             }
+            // todo listeners for that?
             LastModifiedCache.clear()
+        }
+
+        fun registerOnUpdate(update: () -> Unit) {
+            synchronized(updateListeners) {
+                updateListeners.add(update)
+            }
         }
 
         fun invalidateFiles(path: String) {
@@ -603,17 +609,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 (file is FileReference && file.absolutePath.startsWith(path, true)) ||
                         (file is String && file.startsWith(path, true))
             }
-            val removed = ArrayList<Pair<String, Int>>()
+            val removed = ArrayList<IndexedValue<String>>()
             for (cache in caches) {
-                val count = cache.removeDual(filter)
-                if (count > 0) removed.add(Pair(cache.name, count))
+                val numRemovedEntries = cache.removeDual(filter)
+                if (numRemovedEntries > 0) {
+                    removed.add(IndexedValue(numRemovedEntries, cache.name))
+                }
             }
-            when (removed.sumOf { it.second }) {
-                0 -> {}
-                1 -> LOGGER.debug("Removed one file entry from ${removed.first().first} cache")
-                else -> LOGGER.debug(
-                    "Removed [${removed.joinToString("+") { it.second.toString() }}] file entries from [" +
-                            "${removed.joinToString("+") { it.first }}] caches"
+            if (removed.isNotEmpty()) {
+                LOGGER.debug(
+                    "Removed [${removed.joinToString("+") { it.index.toString() }}] file entries from [" +
+                            "${removed.joinToString("+") { it.value }}] caches"
                 )
             }
         }

@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 @Suppress("unused")
-class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
+class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<First, Second>> {
 
     var array = arrayOfNulls<Any>(max(capacity * 2, 2))
     var elementSize = 0
@@ -18,36 +18,20 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
     }
 
     @Suppress("unchecked_cast")
-    fun getA(index: Int) = array[index * 2] as A
+    fun getFirst(index: Int) = array[index * 2] as First
 
     @Suppress("unchecked_cast")
-    fun getB(index: Int) = array[index * 2 + 1] as B
+    fun getSecond(index: Int) = array[index * 2 + 1] as Second
 
-    inline fun <V> iterate(run: (a: A, b: B) -> V?): V? {
-        var index = 0
+    inline fun <V> mapFirstNotNull(run: (a: First, b: Second) -> V?): V? {
         for (i in 0 until size) {
-            @Suppress("unchecked_cast")
-            val v = run(array[index++] as A, array[index++] as B)
+            val v = run(getFirst(i), getSecond(i))
             if (v != null) return v
         }
         return null
     }
 
-    @Suppress("unchecked_cast")
-    inline fun forEachA(run: (a: A) -> Unit) {
-        for (i in 0 until size) {
-            run(array[i * 2] as A)
-        }
-    }
-
-    @Suppress("unchecked_cast")
-    inline fun forEachB(run: (b: B) -> Unit) {
-        for (i in 0 until size) {
-            run(array[i * 2 + 1] as B)
-        }
-    }
-
-    fun add(a: A, b: B) {
+    fun add(a: First, b: Second) {
         var elementSize = elementSize
         var array = array
         if (elementSize + 2 >= array.size) {
@@ -60,31 +44,41 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         this.elementSize = elementSize
     }
 
-    fun byA(a: A): B? {
-        var i = 0
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            @Suppress("unchecked_cast")
-            if (array[i] == a) return array[i + 1] as B
-            i += 2
+    fun indexOf(first: First, second: Second): Int {
+        for (i in 0 until size) {
+            if (getFirst(i) == first && getSecond(i) == second) return i
         }
-        return null
+        return -1
     }
 
-    fun byB(b: B): A? {
-        var i = 1
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            @Suppress("unchecked_cast")
-            if (array[i] == b) return array[i - 1] as A
-            i += 2
+    fun indexOfFirst(first: First): Int {
+        for (i in 0 until size) {
+            if (getFirst(i) == first) return i
         }
-        return null
+        return -1
     }
 
-    fun removeAt(elementIndex: Int) {
+    fun indexOfSecond(second: Second): Int {
+        for (i in 0 until size) {
+            if (getSecond(i) == second) return i
+        }
+        return -1
+    }
+
+    fun findSecond(first: First): Second? {
+        val i = indexOfFirst(first)
+        return if (i >= 0) getSecond(i) else null
+    }
+
+    fun findFirst(second: Second): First? {
+        val i = indexOfSecond(second)
+        return if (i >= 0) getFirst(i) else null
+    }
+
+    fun removeAt(elementIndex: Int): Boolean {
+        if (elementIndex < 0) {
+            return false
+        }
         val array = array
         val size = elementSize
         if (size > elementIndex + 1) {
@@ -99,97 +93,58 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
             array[elementIndex + 1] = null
             array[elementIndex] = null
         }
+        return true
     }
 
-    fun removeByA(a: A): Boolean {
-        var i = 0
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            if (array[i] == a) {
-                removeAt(i)
-                return true
-            }
-            i += 2
-        }
-        return false
+    fun removeByFirst(first: First): Boolean {
+        return removeAt(indexOfFirst(first))
     }
 
-    fun removeByB(b: B): Boolean {
-        var i = 1
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            if (array[i] == b) {
-                removeAt(i)
-                return true
-            }
-            i += 2
-        }
-        return false
+    fun removeBySecond(second: Second): Boolean {
+        return removeAt(indexOfSecond(second))
     }
 
-    fun remove(a: A, b: B): Boolean {
-        var i = 0
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            if (array[i] == a && array[i + 1] == b) {
-                removeAt(i)
-                return true
-            }
-            i += 2
-        }
-        return false
+    fun remove(first: First, second: Second): Boolean {
+        return removeAt(indexOf(first, second))
     }
 
     /**
      * @return whether an element was added
      * */
-    fun replaceOrAddMap(a: A, b: B): Boolean {
-        var i = 0
-        val array = array
-        val size = elementSize
-        while (i < size) {
-            if (array[i] == a) {
-                array[i + 1] = b
-                return false
-            }
-            i += 2
+    fun replaceOrAddMap(first: First, second: Second): Boolean {
+        val i = indexOfFirst(first)
+        if (i >= 0) {
+            array[i * 2 + 1] = second
+        } else {
+            add(first, second)
         }
-        add(a, b)
-        return true
+        return i < 0
     }
 
-    fun replaceBs(run: (a: A, b: B) -> B): Int {
+    fun replaceSeconds(transform: (a: First, b: Second) -> Second): Int {
         var changed = 0
-        var i = 0
-        val array = array
-        val size = elementSize
-        @Suppress("unchecked_cast")
-        while (i < size) {
-            val oldValue = array[i + 1] as B
-            val newValue = run(array[i] as A, oldValue)
+        for (i in 0 until size) {
+            val oldValue = getSecond(i)
+            val newValue = transform(getFirst(i), oldValue)
             if (newValue !== oldValue) {
-                array[i + 1] = newValue
+                array[i * 2 + 1] = newValue
                 changed++
             }
-            i += 2
         }
         return changed
     }
 
-    override fun iterator(): Iterator<MutablePair<A, B>> {
-        return object : Iterator<MutablePair<A, B>> {
+    override fun iterator(): Iterator<MutablePair<First, Second>> {
+        return object : Iterator<MutablePair<First, Second>> {
             @Suppress("unchecked_cast")
-            val pair = MutablePair(null as A, null as B)
+            val pair = MutablePair(null as First, null as Second)
             var index = 0
             override fun hasNext(): Boolean = index < elementSize
 
             @Suppress("unchecked_cast")
-            override fun next(): MutablePair<A, B> {
-                pair.first = array[index++] as A
-                pair.second = array[index++] as B
+            override fun next(): MutablePair<First, Second> {
+                pair.first = array[index++] as First
+                pair.second = array[index++] as Second
                 return pair
             }
         }
@@ -198,26 +153,28 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
     /**
      * @return how many elements were removed
      * */
-    fun removeIf(run: (a: A, b: B) -> Boolean): Int {
-        var result = 0
-        var i = 0
-        while (i < elementSize) {
-            @Suppress("unchecked_cast")
-            if (run(array[i] as A, array[i + 1] as B)) {
-                removeAt(i)
-                result++
-            } else i += 2 // this else is correct!
+    fun removeIf(shouldRemove: (first: First, second: Second) -> Boolean): Int {
+        var writeIndex = 0
+        val array = array
+        val size = size
+        for (readIndex in 0 until size) {
+            val first = getFirst(readIndex)
+            val second = getSecond(readIndex)
+            if (!shouldRemove(first, second)) {
+                array[writeIndex++] = first
+                array[writeIndex++] = second
+            }
         }
-        return result
+        array.fill(null, writeIndex, size * 2) // clear rest for GC
+        return size - writeIndex.shr(1)
     }
 
     override fun toString(): String {
         return (0 until size)
-            .joinToString { "(${array[it * 2]}, ${array[it * 2 + 1]})" }
+            .joinToString { "(${getFirst(it)}, ${getSecond(it)})" }
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(PairArrayList::class)
     }
-
 }

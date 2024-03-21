@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
@@ -57,5 +58,9 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
         } else null
         lru[ref] = value
         return value
+    }
+
+    init {
+        CacheSection.registerOnUpdate(::update)
     }
 }

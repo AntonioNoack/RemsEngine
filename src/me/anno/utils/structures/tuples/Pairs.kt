@@ -1,3 +1,3 @@
 package me.anno.utils.structures.tuples
 
-operator fun <A> Pair<A, A>.get(isFirst: Boolean) = if(isFirst) first else second
+operator fun <V> Pair<V, V>.get(isFirst: Boolean): V = if (isFirst) first else second

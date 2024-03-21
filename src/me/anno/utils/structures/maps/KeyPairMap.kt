@@ -25,13 +25,13 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
             val base = values.getOrPut(k1) { PairArrayList(v.size) }
             if (base.size == 0) {
                 for (i in 0 until v.size) {
-                    base.add(v.getA(i), v.getB(i))
+                    base.add(v.getFirst(i), v.getSecond(i))
                 }
                 size += base.size
             } else {
                 for (i in 0 until v.size) {
-                    val a = v.getA(i)
-                    val b = v.getB(i)
+                    val a = v.getFirst(i)
+                    val b = v.getSecond(i)
                     if (base.replaceOrAddMap(a, b)) size++
                 }
             }
@@ -39,7 +39,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     }
 
     operator fun get(k1: KManifold, k2: KFewOnly): Value? {
-        return values[k1]?.byA(k2)
+        return values[k1]?.findSecond(k2)
     }
 
     operator fun set(k1: KManifold, k2: KFewOnly, v: Value) {
@@ -59,7 +59,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         v: (k1: KManifold, k2: KFewOnly) -> Value
     ): Value {
         val list = values.getOrPut(k1) { PairArrayList(8) }
-        val vs = list.iterate { k2s, vs -> if (k2s == k2) vs else null }
+        val vs = list.mapFirstNotNull { k2s, vs -> if (k2s == k2) vs else null }
         if (vs != null) return vs
         val value = v(k1, k2)
         list.add(k2, value)
@@ -104,7 +104,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     inline fun replaceValues(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
         var changed = 0
         for ((k1, k2s) in values) {
-            changed += k2s.replaceBs { a, b -> run(k1, a, b) }
+            changed += k2s.replaceSeconds { a, b -> run(k1, a, b) }
         }
         return changed
     }

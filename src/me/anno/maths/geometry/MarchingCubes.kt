@@ -179,7 +179,7 @@ object MarchingCubes {
             if (edgeMask.and(1024) != 0) edges.add(1f, findZero(v101, v111), 1f)
             if (edgeMask.and(2048) != 0) edges.add(1f, findZero(v100, v110), 0f)
 
-            val data = edges.array
+            val data = edges.values
             for (i in 0 until edges.size step 3) {
                 data[i] = data[i] * sx + px
                 data[i + 1] = data[i + 1] * sy + py

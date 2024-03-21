@@ -3,7 +3,7 @@ package me.anno.utils.structures.lists
 class SmallestKList<V>(val k: Int, val comparator: Comparator<V>) {
 
     @Suppress("unchecked_cast")
-    private val content = arrayOfNulls<Any>(k) as Array<V>
+    private val array = arrayOfNulls<Any>(k) as Array<V>
 
     var size = 0
         private set
@@ -16,13 +16,13 @@ class SmallestKList<V>(val k: Int, val comparator: Comparator<V>) {
 
     fun add(element: V) {
         if (size < k) {
-            content[size++] = element
+            array[size++] = element
             if (size == k) {
-                content.sortWith(comparator)
-                lastSmallest = content.last()
+                array.sortWith(comparator)
+                lastSmallest = array.last()
             }
         } else if (comparator.compare(lastSmallest!!, element) < 0) {
-            val content = content
+            val content = array
             var index = content.binarySearch(element, comparator)
             if (index < 0) index = -1 - index
             if (index >= k) return // mmh...
@@ -41,6 +41,6 @@ class SmallestKList<V>(val k: Int, val comparator: Comparator<V>) {
         }
     }
 
-    operator fun get(index: Int): V = content[index]
+    operator fun get(index: Int): V = array[index]
 
 }

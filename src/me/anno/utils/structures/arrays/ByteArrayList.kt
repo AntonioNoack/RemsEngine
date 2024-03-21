@@ -11,7 +11,7 @@ open class ByteArrayList(initialCapacity: Int) {
     }
 
     var size = 0
-    var array: ByteArray = ByteArray(initialCapacity)
+    var values: ByteArray = ByteArray(initialCapacity)
 
     fun clear() {
         size = 0
@@ -20,20 +20,20 @@ open class ByteArrayList(initialCapacity: Int) {
     fun add(value: Byte) = plusAssign(value)
 
     operator fun set(index: Int, value: Byte) {
-        array[index] = value
+        values[index] = value
     }
 
     fun addUnsafe(src: ByteArray?, startIndex: Int, length: Int) {
-        src?.copyInto(array, size, startIndex, startIndex + length)
+        src?.copyInto(values, size, startIndex, startIndex + length)
         size += length
     }
 
     fun addUnsafe(src: Byte) {
-        array[size++] = src
+        values[size++] = src
     }
 
     fun addUnsafe(src: ByteArrayList, startIndex: Int, length: Int) {
-        addUnsafe(src.array, startIndex, length)
+        addUnsafe(src.values, startIndex, length)
     }
 
     fun addAll(src: ByteArray?, startIndex: Int, length: Int) {
@@ -42,10 +42,10 @@ open class ByteArrayList(initialCapacity: Int) {
     }
 
     fun addAll(src: ByteArrayList, startIndex: Int, length: Int) {
-        addAll(src.array, startIndex, length)
+        addAll(src.values, startIndex, length)
     }
 
-    operator fun get(index: Int): Byte = array[index]
+    operator fun get(index: Int): Byte = values[index]
     operator fun plusAssign(value: Byte) {
         ensureExtra(1)
         addUnsafe(value)
@@ -56,18 +56,16 @@ open class ByteArrayList(initialCapacity: Int) {
     }
 
     fun ensureCapacity(requestedSize: Int) {
-        val array = array
+        val array = values
         if (requestedSize >= array.size) {
             val suggestedSize = max(array.size * 2, 16)
             val newSize = max(suggestedSize, requestedSize)
-            val newArray = try {
-                ByteArray(newSize)
+            this.values = try {
+                array.copyOf(newSize)
             } catch (e: OutOfMemoryError) {
                 LOGGER.warn("Failed to allocated $newSize bytes for ExpandingByteArray")
                 throw e
             }
-            array.copyInto(newArray)
-            this.array = newArray
         }
     }
 
@@ -77,7 +75,7 @@ open class ByteArrayList(initialCapacity: Int) {
     }
 
     fun toByteArray(dstSize: Int = size): ByteArray {
-        val array = array
+        val array = values
         if (size == array.size) return array
         return array.copyOf(dstSize)
     }

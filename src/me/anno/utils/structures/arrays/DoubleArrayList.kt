@@ -1,31 +1,27 @@
 package me.anno.utils.structures.arrays
 
-import kotlin.math.max
-
 @Suppress("unused")
-open class DoubleArrayList(initCapacity: Int) {
+open class DoubleArrayList(initCapacity: Int) : NativeArrayList {
 
-    var size = 0
+    override var size = 0
 
-    fun clear() {
-        size = 0
-    }
-
-    var array: DoubleArray = DoubleArray(initCapacity)
+    var values: DoubleArray = DoubleArray(initCapacity)
+    override val capacity: Int get() = values.size
 
     fun add(value: Double) = plusAssign(value)
     operator fun set(index: Int, value: Double) {
-        array[index] = value
+        values[index] = value
     }
 
-    fun toArray(): DoubleArray = array.copyOf(size)
+    fun toArray(): DoubleArray = values.copyOf(size)
 
-    operator fun get(index: Int) = array[index]
+    override fun resize(newSize: Int) {
+        values = values.copyOf(newSize)
+    }
+
+    operator fun get(index: Int) = values[index]
     operator fun plusAssign(value: Double) {
-        if (size + 1 >= array.size) {
-            val newSize = max(array.size * 2, 16)
-            array = array.copyOf(newSize)
-        }
-        array[size++] = value
+        ensureExtra(1)
+        values[size++] = value
     }
 }

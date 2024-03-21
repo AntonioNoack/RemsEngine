@@ -138,7 +138,7 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
                 // currently is the most expensive step, because of so many allocations:
                 // points, the array, the return list, ...
                 val points2 = (0 until points.size).map {
-                    Vector3d(positions.array, points[it])
+                    Vector3d(positions.values, points[it])
                 }
                 val triangles = Triangulation.ringToTrianglesVec3d(points2)
                 facePositions.ensureExtra(triangles.size * 3)

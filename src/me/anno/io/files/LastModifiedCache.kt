@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.Time
+import me.anno.cache.CacheSection
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
@@ -85,10 +86,10 @@ object LastModifiedCache {
             val exists = file.exists()
             val dir = if (exists) file.isDirectory else false
             val lm = if (exists) file.lastModified() else 0L
-            val r = Result(file, exists, dir, lm)
-            if ('/' in absolutePath) values[absolutePath.replace('/', '\\')] = r
-            if ('\\' in absolutePath) values[absolutePath.replace('\\', '/')] = r
-            r
+            val result = Result(file, exists, dir, lm)
+            if ('/' in absolutePath) values[absolutePath.replace('/', '\\')] = result
+            if ('\\' in absolutePath) values[absolutePath.replace('\\', '/')] = result
+            result
         }
     }
 
@@ -118,4 +119,7 @@ object LastModifiedCache {
 
     private var timeoutNanos = 20_000L * Maths.MILLIS_TO_NANOS
 
+    init {
+        CacheSection.registerOnUpdate(::update)
+    }
 }

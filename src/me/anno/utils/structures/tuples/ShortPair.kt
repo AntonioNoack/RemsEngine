@@ -13,9 +13,13 @@ data class ShortPair(var first: Short, var second: Short) {
     }
 
     fun set(first: Float, second: Float): ShortPair {
-        this.first = clamp(first.toInt(), -32768, 32767).toShort()
-        this.second = clamp(second.toInt(), -32768, 32767).toShort()
+        this.first = clamp(first)
+        this.second = clamp(second)
         return this
+    }
+
+    private fun clamp(value: Float): Short {
+        return clamp(value.toInt(), -32768, 32767).toShort()
     }
 
     override fun toString(): String {

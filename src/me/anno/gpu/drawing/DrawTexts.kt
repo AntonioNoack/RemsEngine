@@ -467,13 +467,15 @@ object DrawTexts {
         if (texture != null && texture.isCreated()) {
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
-            if (shader is Shader) {
-                posSize(shader, x2, y2, texture.width, texture.height)
-                flat01.draw(shader)
-            } else {
-                shader as ComputeShader
-                posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                if (barrier) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            when (shader) {
+                is Shader -> {
+                    posSize(shader, x2, y2, texture.width, texture.height)
+                    flat01.draw(shader)
+                }
+                is ComputeShader -> {
+                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
+                    if (barrier) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                }
             }
         } else {
             LOGGER.warn(

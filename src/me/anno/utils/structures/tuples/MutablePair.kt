@@ -1,6 +1,3 @@
 package me.anno.utils.structures.tuples
 
-class MutablePair<A, B> (var first: A, var second: B){
-    operator fun component1() = first
-    operator fun component2() = second
-}
+data class MutablePair<A, B> (var first: A, var second: B)

@@ -145,7 +145,7 @@ open class InstancedI32Stack(
                     val data = instances.data
                     nioInt.position(0)
                     val length = min(totalEndIndex - baseIndex, batchSize)
-                    nioInt.put(data.array, baseIndex, length)
+                    nioInt.put(data.values, baseIndex, length)
                     nioBytes.position(length shl 2)
                     buffer.ensureBufferWithoutResize()
                     // slightly optimized over PSR ^^, ~ 8-fold throughput

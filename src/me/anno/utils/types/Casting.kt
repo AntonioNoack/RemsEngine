@@ -20,19 +20,7 @@ import org.joml.Vector4f
 object Casting {
 
     fun castToInt2(it: Any?) = getInt(it, 0)
-    fun castToInt(it: Any?): Int? = when (it) {
-        is Int -> it
-        is Long -> it.toInt()
-        is Float -> it.toInt()
-        is Double -> it.toInt()
-        is Vector2f -> it.x.toInt()
-        is Vector3f -> it.x.toInt()
-        is Vector4f -> it.x.toInt()
-        is Vector4d -> it.x.toInt()
-        is Quaternionf -> it.x.toInt()
-        is String -> it.toIntOrNull()
-        else -> null
-    }
+    fun castToInt(it: Any?): Int? = castToLong(it)?.toInt()
 
     fun castToLong2(it: Any?) = getLong(it, 0L)
     fun castToLong(it: Any?): Long? = when (it) {
@@ -43,26 +31,13 @@ object Casting {
         is Vector2f -> it.x.toLong()
         is Vector3f -> it.x.toLong()
         is Vector4f -> it.x.toLong()
-        is Vector4d -> it.x.toLong()
         is Quaternionf -> it.x.toLong()
         is String -> it.toLongOrNull()
         else -> null
     }
 
     fun castToFloat2(it: Any?) = getFloat(it, 0f)
-    fun castToFloat(it: Any?): Float? = when (it) {
-        is Int -> it.toFloat()
-        is Long -> it.toFloat()
-        is Float -> it
-        is Double -> it.toFloat()
-        is Vector2f -> it.x
-        is Vector3f -> it.x
-        is Vector4f -> it.x
-        is Vector4d -> it.x.toFloat()
-        is Quaternionf -> it.x
-        is String -> it.toFloatOrNull()
-        else -> null
-    }
+    fun castToFloat(it: Any?): Float? = castToDouble(it)?.toFloat()
 
     fun castToDouble2(it: Any?) = getDouble(it, 0.0)
     fun castToDouble(it: Any?): Double? = when (it) {
@@ -73,7 +48,6 @@ object Casting {
         is Vector2f -> it.x.toDouble()
         is Vector3f -> it.x.toDouble()
         is Vector4f -> it.x.toDouble()
-        is Vector4d -> it.x
         is Quaternionf -> it.x.toDouble()
         is String -> it.toDoubleOrNull()
         else -> null

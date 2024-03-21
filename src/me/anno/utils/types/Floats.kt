@@ -148,8 +148,8 @@ object Floats {
         )
     }
 
-    @Suppress("unused")
     @JvmStatic
+    @Suppress("unused")
     fun float32ToFloat16(value: Float): Int {
         val fp32 = value.toRawBits()
         val sign = (fp32.ushr(16)).and(0x8000) // sign only

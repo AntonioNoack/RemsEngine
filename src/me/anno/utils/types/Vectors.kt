@@ -206,6 +206,9 @@ object Vectors {
         return cx * cx + cy * cy + cz * cz
     }
 
+    /**
+     * transforms color from sRGB (standard) to linear space (light calculations)
+     * */
     @JvmStatic
     fun Vector3f.toLinear(dst: Vector3f = this): Vector3f {
         return dst.set(
@@ -215,6 +218,9 @@ object Vectors {
         )
     }
 
+    /**
+     * transforms color from linear space (light calculations) to sRGB (standard)
+     * */
     @JvmStatic
     fun Vector3f.fromLinear(dst: Vector3f = this): Vector3f {
         return dst.set(

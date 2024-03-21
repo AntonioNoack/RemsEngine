@@ -268,16 +268,18 @@ object Strings {
         var i = 0
         var lastI = 0
         while (i < value.length) {
-            when (value[i]) {
-                '\\' -> lastI = append(i, lastI, value, data, "\\\\")
-                '\t' -> lastI = append(i, lastI, value, data, "\\t")
-                '\r' -> lastI = append(i, lastI, value, data, "\\r")
-                '\n' -> lastI = append(i, lastI, value, data, "\\n")
-                '"' -> lastI = append(i, lastI, value, data, "\\\"")
-                '\b' -> lastI = append(i, lastI, value, data, "\\b")
-                12.toChar() -> lastI = append(i, lastI, value, data, "\\f")
-                else -> {
-                } // nothing
+            val str = when (value[i]) {
+                '\\' -> "\\\\"
+                '\t' -> "\\t"
+                '\r' -> "\\r"
+                '\n' -> "\\n"
+                '"' -> "\\\""
+                '\b' -> "\\b"
+                12.toChar() -> "\\f"
+                else -> null // nothing
+            }
+            if (str != null) {
+                lastI = append(i, lastI, value, data, str)
             }
             i++
         }
@@ -286,38 +288,21 @@ object Strings {
 
     @JvmStatic
     fun writeEscaped(value: String, data: JsonWriterBase) {
-        for (index in value.indices) {
-            when (val char = value[index]) {
-                '\\' -> {
-                    data.append('\\')
-                    data.append('\\')
+        loop@ for (index in value.indices) {
+            val esc = when (val char = value[index]) {
+                '\\', '"' -> char
+                '\t' -> 't'
+                '\r' -> 'r'
+                '\n' -> 'n'
+                '\b' -> 'b'
+                12.toChar() -> 'f'
+                else -> {
+                    data.append(char)
+                    continue@loop
                 }
-                '\t' -> {
-                    data.append('\\')
-                    data.append('t')
-                }
-                '\r' -> {
-                    data.append('\\')
-                    data.append('r')
-                }
-                '\n' -> {
-                    data.append('\\')
-                    data.append('n')
-                }
-                '"' -> {
-                    data.append('\\')
-                    data.append('"')
-                }
-                '\b' -> {
-                    data.append('\\')
-                    data.append('b')
-                }
-                12.toChar() -> {
-                    data.append('\\')
-                    data.append('f')
-                }
-                else -> data.append(char)
             }
+            data.append('\\')
+            data.append(esc)
         }
     }
 
