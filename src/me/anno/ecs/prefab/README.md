@@ -9,3 +9,7 @@ Each prefab is a file with:
 
 This allows for very modular world building, but brings the cost of eventually pretty deep hierarchies.
 Future implementations hopefully will get rid of their runtime cost.
+
+Removing children is impossible with the current model,
+but I'm not sure whether I should add it or not.
+The current way of "deleting" something is to disable it.

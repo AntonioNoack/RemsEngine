@@ -2,6 +2,8 @@ package me.anno.ecs.systems
 
 import me.anno.ecs.System
 
+// this would lie on the root level only...,
+// and only if needed...
 class Systems : System() {
 
     val systems = HashSet<System>()

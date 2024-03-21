@@ -31,17 +31,17 @@ abstract class UpdateByClassSystem : System() {
 
     override fun onEnable(childSystem: System) {
         val child = (childSystem as? UpdateByClassSystem)?.components ?: return
-        for ((clazz, compInChildSystem) in child) {
+        for ((clazz, componentsByChild) in child) {
             val comp = components.getOrPut(clazz) { HashSet() }
-            comp.addAll(compInChildSystem)
+            comp.addAll(componentsByChild)
         }
     }
 
     override fun onDisable(childSystem: System) {
         val child = (childSystem as? UpdateByClassSystem)?.components ?: return
-        for ((clazz, compInChildSystem) in child) {
+        for ((clazz, componentsByChild) in child) {
             val comp = components[clazz] ?: continue
-            comp.removeAll(compInChildSystem)
+            comp.removeAll(componentsByChild)
         }
     }
 }
