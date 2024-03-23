@@ -4,6 +4,7 @@ import me.anno.utils.structures.Callback
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.utils.Color.hex24
 import org.lwjgl.opengl.GL46C
@@ -24,13 +25,11 @@ class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, pr
             val map = if (inverse) channel.uppercaseChar() else channel
             val base = if (color == 0) "000" else "111"
             val tex = src.texture
-            val type = if (tex is Texture2D) {
-                when (Texture2D.getNumberType(tex.internalFormat)) {
-                    GL46C.GL_FLOAT -> TargetType.Float32x4
-                    GL46C.GL_HALF_FLOAT -> TargetType.Float16x4
-                    else -> TargetType.UInt8x4
-                }
-            } else TargetType.UInt8x4
+            val type = when (TextureHelper.getNumberType(tex.internalFormat)) {
+                GL46C.GL_FLOAT -> TargetType.Float32x4
+                GL46C.GL_HALF_FLOAT -> TargetType.Float16x4
+                else -> TargetType.UInt8x4
+            }
             TextureMapper.mapTexture(
                 src.texture, texture, "$base$map",
                 type, callback

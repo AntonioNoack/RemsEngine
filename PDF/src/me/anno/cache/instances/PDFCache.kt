@@ -115,17 +115,15 @@ object PDFCache : CacheSection("PDFCache") {
         val qualityFloat = qualityInt * 0.5f
         val tex = TextureCache.getLateinitTexture(
             Triple(src, qualityInt, pageNumber),
-            20_000L,
-            false
+            20_000L, false
         ) { callback ->
             thread(name = "PDFCache::getTexture") {
                 val image = getImage(doc, qualityFloat, pageNumber)
                 GFX.addGPUTask("PDFCache.getTexture()", image.width, image.height) {
-                    val tex = Texture2D(src.name, image, true)
-                    callback(tex)
+                    callback.ok(Texture2D(src.name, image, true))
                 }
             }
-        }?.texture as? Texture2D
+        }?.value as? Texture2D
         return if (tex?.wasCreated == true) tex else null
     }
 

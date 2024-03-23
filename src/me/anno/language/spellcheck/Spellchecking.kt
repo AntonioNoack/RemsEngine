@@ -9,7 +9,7 @@ object Spellchecking : CacheSection("Spellchecking") {
     @InternalAPI
     var checkImpl: ((sentence: CharSequence, allowFirstLowercase: Boolean, async: Boolean) -> List<Suggestion>?)? = null
 
-    var defaultLanguage = Language.AmericanEnglish
+    var defaultLanguage: Language? = Language.AmericanEnglish
 
     fun check(sentence: CharSequence, allowFirstLowercase: Boolean, async: Boolean = true): List<Suggestion>? {
         return checkImpl?.invoke(sentence, allowFirstLowercase, async)

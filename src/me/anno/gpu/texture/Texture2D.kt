@@ -2,7 +2,6 @@ package me.anno.gpu.texture
 
 import me.anno.Build
 import me.anno.Time
-import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.gpu.DepthMode
@@ -54,51 +53,15 @@ import org.lwjgl.opengl.GL46C.GL_NONE
 import org.lwjgl.opengl.GL46C.GL_ONE
 import org.lwjgl.opengl.GL46C.GL_PACK_ALIGNMENT
 import org.lwjgl.opengl.GL46C.GL_PIXEL_UNPACK_BUFFER
-import org.lwjgl.opengl.GL46C.GL_R16
 import org.lwjgl.opengl.GL46C.GL_R16F
-import org.lwjgl.opengl.GL46C.GL_R16I
-import org.lwjgl.opengl.GL46C.GL_R16UI
 import org.lwjgl.opengl.GL46C.GL_R32F
-import org.lwjgl.opengl.GL46C.GL_R32I
-import org.lwjgl.opengl.GL46C.GL_R32UI
-import org.lwjgl.opengl.GL46C.GL_R8
-import org.lwjgl.opengl.GL46C.GL_R8I
-import org.lwjgl.opengl.GL46C.GL_R8UI
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RED_INTEGER
 import org.lwjgl.opengl.GL46C.GL_RG
-import org.lwjgl.opengl.GL46C.GL_RG16
-import org.lwjgl.opengl.GL46C.GL_RG16F
-import org.lwjgl.opengl.GL46C.GL_RG16I
-import org.lwjgl.opengl.GL46C.GL_RG16UI
-import org.lwjgl.opengl.GL46C.GL_RG32F
-import org.lwjgl.opengl.GL46C.GL_RG32I
-import org.lwjgl.opengl.GL46C.GL_RG32UI
-import org.lwjgl.opengl.GL46C.GL_RG8
-import org.lwjgl.opengl.GL46C.GL_RG8I
-import org.lwjgl.opengl.GL46C.GL_RG8UI
 import org.lwjgl.opengl.GL46C.GL_RGB
-import org.lwjgl.opengl.GL46C.GL_RGB16
-import org.lwjgl.opengl.GL46C.GL_RGB16F
-import org.lwjgl.opengl.GL46C.GL_RGB16I
-import org.lwjgl.opengl.GL46C.GL_RGB16UI
 import org.lwjgl.opengl.GL46C.GL_RGB32F
-import org.lwjgl.opengl.GL46C.GL_RGB32I
-import org.lwjgl.opengl.GL46C.GL_RGB32UI
-import org.lwjgl.opengl.GL46C.GL_RGB8
-import org.lwjgl.opengl.GL46C.GL_RGB8I
-import org.lwjgl.opengl.GL46C.GL_RGB8UI
 import org.lwjgl.opengl.GL46C.GL_RGBA
-import org.lwjgl.opengl.GL46C.GL_RGBA16
-import org.lwjgl.opengl.GL46C.GL_RGBA16F
-import org.lwjgl.opengl.GL46C.GL_RGBA16I
-import org.lwjgl.opengl.GL46C.GL_RGBA16UI
-import org.lwjgl.opengl.GL46C.GL_RGBA32F
-import org.lwjgl.opengl.GL46C.GL_RGBA32I
-import org.lwjgl.opengl.GL46C.GL_RGBA32UI
 import org.lwjgl.opengl.GL46C.GL_RGBA8
-import org.lwjgl.opengl.GL46C.GL_RGBA8I
-import org.lwjgl.opengl.GL46C.GL_RGBA8UI
 import org.lwjgl.opengl.GL46C.GL_RGBA_INTEGER
 import org.lwjgl.opengl.GL46C.GL_RGB_INTEGER
 import org.lwjgl.opengl.GL46C.GL_RG_INTEGER
@@ -149,7 +112,7 @@ open class Texture2D(
     final override var width: Int,
     final override var height: Int,
     samples: Int
-) : ICacheData, ITexture2D {
+) : ITexture2D {
 
     constructor(img: Image, checkRedundancy: Boolean) : this("img", img, checkRedundancy)
     constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
@@ -159,7 +122,6 @@ open class Texture2D(
     override val samples = clamp(samples, 1, GFX.maxSamples)
     var owner: Framebuffer? = null
 
-    var internalFormat = 0
     var border = 0
 
     override var channels: Int = 0
@@ -176,7 +138,7 @@ open class Texture2D(
     var ref: FileReference = InvalidRef
         private set
         get() {
-            val numChannels = getNumChannels(internalFormat)
+            val numChannels = TextureHelper.getNumChannels(internalFormat)
             val hasAlphaChannel = numChannels == 4
             if (field == InvalidRef) field = GPUImage(this, numChannels, hasAlphaChannel).ref
             return field
@@ -221,7 +183,8 @@ open class Texture2D(
     // only used for images with exif rotation tag...
     var rotation: ImageTransform? = null
 
-    var locallyAllocated = 0L
+    override var locallyAllocated = 0L
+    override var internalFormat = 0
 
     var createdW = 0
     var createdH = 0
@@ -326,7 +289,7 @@ open class Texture2D(
             }
             this.internalFormat = internalFormat
             // todo do we keep this, or do we strive for consistency?
-            if (getNumChannels(internalFormat) == 1) {
+            if (TextureHelper.getNumChannels(internalFormat) == 1) {
                 swizzleMonochrome()
             }
             createdW = w
@@ -1443,32 +1406,6 @@ open class Texture2D(
         @JvmStatic
         fun setWriteAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
-        }
-
-        fun getNumChannels(format: Int): Int {
-            return when (format) {
-                0 -> 0
-                GL_R8, GL_R8I, GL_R8UI, GL_R16F, GL_R16I, GL_R16UI, GL_R32F, GL_R32I, GL_R32UI -> 1
-                GL_RG8, GL_RG8I, GL_RG8UI, GL_RG16F, GL_RG16I, GL_RG16UI, GL_RG32F, GL_RG32I, GL_RG32UI -> 2
-                GL_RGB8, GL_RGB8I, GL_RGB8UI, GL_RGB16F, GL_RGB16I, GL_RGB16UI, GL_RGB32F, GL_RGB32I, GL_RGB32UI -> 3
-                else -> 4
-            }
-        }
-
-        fun getNumberType(format: Int): Int {
-            return when (format) {
-                GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> GL_UNSIGNED_BYTE.inv()
-                GL_R8UI, GL_RG8UI, GL_RGB8UI, GL_RGBA8UI -> GL_UNSIGNED_BYTE
-                GL_R8I, GL_RG8I, GL_RGB8I, GL_RGBA8I -> GL_BYTE
-                GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> GL_UNSIGNED_SHORT.inv()
-                GL_R16UI, GL_RG16UI, GL_RGB16UI, GL_RGBA16UI -> GL_UNSIGNED_SHORT
-                GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I -> GL_SHORT
-                GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> GL_INT
-                GL_R32UI, GL_RG32UI, GL_RGB32UI, GL_RGBA32UI -> GL_UNSIGNED_INT
-                GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> GL_HALF_FLOAT
-                GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F -> GL_FLOAT
-                else -> 0
-            }
         }
     }
 }

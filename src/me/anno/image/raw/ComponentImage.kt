@@ -8,7 +8,7 @@ import me.anno.gpu.framebuffer.TargetType.Companion.UInt8x4
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.getNumberType
+import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.utils.Color.black
 import org.apache.logging.log4j.LogManager
@@ -35,7 +35,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
             val map = if (inverse) channel.uppercaseChar() else channel
             val tex = src.texture
             val type = if (tex is Texture2D) {
-                when (getNumberType(tex.internalFormat)) {
+                when (TextureHelper.getNumberType(tex.internalFormat)) {
                     GL_FLOAT -> Float32x4
                     GL_HALF_FLOAT -> Float16x4
                     else -> UInt8x4

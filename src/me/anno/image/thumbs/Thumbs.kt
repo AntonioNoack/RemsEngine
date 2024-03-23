@@ -1,6 +1,7 @@
 package me.anno.image.thumbs
 
 import me.anno.Time
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
@@ -12,14 +13,14 @@ import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
-import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -55,7 +56,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureReader
@@ -70,6 +70,13 @@ import me.anno.image.ImageReader
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
+import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
+import me.anno.image.thumbs.ThumbsExt.createModelMatrix
+import me.anno.image.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.ThumbsExt.findModelMatrix
+import me.anno.image.thumbs.ThumbsExt.unityExtensions
+import me.anno.image.thumbs.ThumbsExt.waitForMeshes
+import me.anno.image.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.MediaMetadata.Companion.getMeta
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
@@ -79,13 +86,6 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerStreamFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
-import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
-import me.anno.image.thumbs.ThumbsExt.createModelMatrix
-import me.anno.image.thumbs.ThumbsExt.drawAssimp
-import me.anno.image.thumbs.ThumbsExt.findModelMatrix
-import me.anno.image.thumbs.ThumbsExt.unityExtensions
-import me.anno.image.thumbs.ThumbsExt.waitForMeshes
-import me.anno.image.thumbs.ThumbsExt.waitForTextures
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black
 import me.anno.utils.OS
@@ -118,7 +118,6 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sign
 import kotlin.math.sqrt
 
 /**
@@ -207,7 +206,7 @@ object Thumbs {
 
         val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             generate0(key, callback)
-        }?.texture
+        }?.value
         val value = when (texture) {
             is GPUFrame -> if (texture.wasCreated) texture else null
             is Texture2D -> if (texture.wasCreated && !texture.isDestroyed) texture else null
@@ -218,8 +217,8 @@ object Thumbs {
         var size1 = size shr 1
         while (size1 >= sizes.first()) {
             val key1 = ThumbnailKey(file, lastModified, size1)
-            val gen = TextureCache.getEntryWithoutGenerator(key1, 50) as? LateinitTexture
-            val tex = gen?.texture
+            val gen = TextureCache.getEntryWithoutGenerator(key1, 50) as? AsyncCacheData<*>
+            val tex = gen?.value as? ITexture2D
             if (tex != null) return tex
             size1 = size1 shr 1
         }
@@ -235,8 +234,8 @@ object Thumbs {
         for (i in idx until sizes.size) {
             val sizeI = sizes[i]
             val keyI = ThumbnailKey(key.file, key.lastModified, sizeI)
-            val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? LateinitTexture
-            val tex = gen?.texture
+            val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? AsyncCacheData<*>
+            val tex = gen?.value as? ITexture2D
             if (tex != null && tex.isCreated()) {
                 copyTexIfPossible(srcFile, size, tex, callback)
                 return

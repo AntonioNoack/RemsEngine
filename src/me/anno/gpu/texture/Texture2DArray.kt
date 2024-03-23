@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.Build
-import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -64,7 +63,7 @@ open class Texture2DArray(
     override var width: Int,
     override var height: Int,
     var layers: Int
-) : ICacheData, ITexture2D {
+) : ITexture2D {
 
     var pointer = 0
     var session = -1
@@ -81,9 +80,9 @@ open class Texture2DArray(
 
     override val samples: Int get() = 1
 
-    var locallyAllocated = 0L
+    override var locallyAllocated = 0L
+    override var internalFormat = 0
 
-    var internalFormat = 0
     var border = 0
 
     val target get() = GL_TEXTURE_2D_ARRAY

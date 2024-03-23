@@ -27,8 +27,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.types.Strings.shorten
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.shorten
 import kotlin.math.max
 import kotlin.math.min
 
@@ -98,7 +98,15 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     private var xOffsets = i0
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
-    var textAlignment = AxisAlignment.MIN
+    var textAlignmentX = AxisAlignment.MIN // make this center??
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
+    var textAlignmentY = AxisAlignment.MIN
         set(value) {
             if (field != value) {
                 field = value
@@ -187,8 +195,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     open fun drawText(color: Int = effectiveTextColor) {
-        val offset = textAlignment.getOffset(width, getMaxWidth())
-        drawText(offset, 0, color)
+        val textSize = getTextSize(font, text, -1, -1, false)
+        val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
+        val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
+        drawText(dx, dy, color)
     }
 
     fun getXOffset(charIndex: Int): Int {
@@ -260,8 +270,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
-        val offset = textAlignment.getOffset(width, getMaxWidth())
-        underline(i0, i1, color, thickness, offset, 0)
+        val textSize = getTextSize(font, text, -1, -1, false)
+        val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
+        val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
+        underline(i0, i1, color, thickness, dx, dy)
     }
 
     fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
@@ -276,8 +288,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val text = if (text.isBlank2()) "." else text
         calculateSize(w, text)
     }
-
-    fun getMaxWidth() = getTextSizeX(font, text, -1, -1, false) + padding.width
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
@@ -341,7 +351,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         dst.textColor = textColor
         dst.focusTextColor = focusTextColor
         dst.focusBackground = focusBackground
-        dst.textAlignment = textAlignment
+        dst.textAlignmentX = textAlignmentX
+        dst.textAlignmentY = textAlignmentY
         // clone.textCacheKey = textCacheKey
         dst.breaksIntoMultiline = breaksIntoMultiline
         dst.disableCopy = disableCopy
@@ -352,7 +363,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         writer.writeString("text", text)
         writer.writeObject(null, "font", font)
         writer.writeBoolean("disableCopy", disableCopy)
-        writer.writeEnum("textAlignment", textAlignment)
+        writer.writeEnum("textAlignmentX", textAlignmentX)
+        writer.writeEnum("textAlignmentY", textAlignmentY)
         writer.writeColor("textColor", textColor)
         writer.writeColor("focusTextColor", focusTextColor)
         writer.writeColor("focusBackground", focusBackground)
@@ -363,15 +375,17 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
+            "text" -> text = value as? String ?: return
+            "font" -> font = value as? Font ?: return
             "disableCopy" -> disableCopy = value == true
-            "breaksIntoMultiline" -> breaksIntoMultiline = value == true
-            "instantTextLoading" -> instantTextLoading = value == true
+            "textAlignmentX" -> textAlignmentX = AxisAlignment.find(value as? Int ?: return) ?: return
+            "textAlignmentY" -> textAlignmentY = AxisAlignment.find(value as? Int ?: return) ?: return
             "textColor" -> textColor = value as? Int ?: return
             "focusTextColor" -> focusTextColor = value as? Int ?: return
             "focusBackground" -> focusBackground = value as? Int ?: return
-            "text" -> text = value as? String ?: return
             "padding" -> padding = value as? Padding ?: return
-            "font" -> font = value as? Font ?: return
+            "breaksIntoMultiline" -> breaksIntoMultiline = value == true
+            "instantTextLoading" -> instantTextLoading = value == true
             else -> super.setProperty(name, value)
         }
     }

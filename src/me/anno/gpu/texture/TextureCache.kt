@@ -76,11 +76,14 @@ object TextureCache : CacheSection("Texture") {
 
     fun getLateinitTexture(
         key: Any, timeout: Long, async: Boolean,
-        generator: (callback: (ITexture2D?) -> Unit) -> Unit
+        generator: (callback: Callback<ITexture2D>) -> Unit
     ): LateinitTexture? {
         return getEntry(key, timeout, async) {
             val textureContainer = LateinitTexture()
-            generator { textureContainer.texture = it }
+            generator { v, err ->
+                textureContainer.value = v
+                err?.printStackTrace()
+            }
             textureContainer
         } as? LateinitTexture
     }
@@ -92,7 +95,7 @@ object TextureCache : CacheSection("Texture") {
         return getEntryLimited(key, timeout, async, limit) {
             val tex = LateinitTexture()
             generator { result, exc ->
-                tex.texture = result
+                tex.value = result
                 if (exc != null && exc !is IgnoredException) {
                     exc.printStackTrace()
                 }

@@ -398,7 +398,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     /**
-     * sets minW & minH to the minimum size, this panel would like, given the available space
+     * sets minW & minH to the minimum size, this panel would like, given the available space;
+     * todo will also calculate size of children as necessary -> make the first part optional, as that may be expensive in
+     *  pointless scenarios (table with 100k entries -> all cell sizes are evaluated without them being shown);
+     *  or optimize the lists...
      * */
     open fun calculateSize(w: Int, h: Int) {
         minW = 1
@@ -823,8 +826,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeInt("y", y)
         writer.writeInt("w", width)
         writer.writeInt("h", height)
-        writer.writeInt("minW", minW)
-        writer.writeInt("minH", minH)
         writer.writeEnum("alignmentX", alignmentX)
         writer.writeEnum("alignmentY", alignmentY)
         // to do save this stuff somehow, maybe...
@@ -851,8 +852,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
             "y" -> y = value as? Int ?: return
             "w" -> width = value as? Int ?: return
             "h" -> height = value as? Int ?: return
-            "minW" -> minW = value as? Int ?: return
-            "minH" -> minH = value as? Int ?: return
             "visibility" -> isVisible = value == true
             "alignmentX" -> alignmentX = AxisAlignment.find(value as? Int ?: return) ?: alignmentX
             "alignmentY" -> alignmentY = AxisAlignment.find(value as? Int ?: return) ?: alignmentY

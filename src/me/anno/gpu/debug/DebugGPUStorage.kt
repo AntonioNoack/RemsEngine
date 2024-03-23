@@ -9,6 +9,7 @@ import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
@@ -39,7 +40,7 @@ object DebugGPUStorage {
     val tex2d = HashSet<Texture2D>(512)
     val tex3d = HashSet<Texture3D>(64)
     val tex2da = HashSet<Texture2DArray>(64)
-    val tex3dCs = HashSet<CubemapTexture>(64)
+    val texCubes = HashSet<CubemapTexture>(64)
 
     val fbs = HashSet<Framebuffer>(256)
 
@@ -47,11 +48,11 @@ object DebugGPUStorage {
 
     val fontSize get() = monospaceFont.sizeInt
 
-    abstract class TexturePanelBase(val title: String) : Panel(style) {
+    abstract class TexturePanel<V : ITexture2D>(val title: String, val tex: V) : Panel(style) {
 
-        abstract fun getTexW(): Int
-        abstract fun getTexH(): Int
-        abstract fun isFine(): Boolean
+        open fun getTexW(): Int = tex.width
+        fun getTexH(): Int = tex.height
+        fun isFine(): Boolean = tex.isCreated()
 
         override fun calculateSize(w: Int, h: Int) {
             super.calculateSize(w, h)
@@ -87,12 +88,8 @@ object DebugGPUStorage {
         else -> false
     }
 
-    class TexturePanel(name: String, val tex: Texture2D, val flipY: Boolean) :
-        TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
-
-        override fun getTexW(): Int = tex.width
-        override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
+    class TexturePanel2D(name: String, tex: Texture2D, val flipY: Boolean) :
+        TexturePanel<Texture2D>("$name, ${tex.width} x ${tex.height}", tex) {
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             if (isDepthFormat(tex.internalFormat)) {
@@ -108,22 +105,13 @@ object DebugGPUStorage {
             }
         }
 
-        override fun onUpdate() {
-            super.onUpdate()
-            invalidateDrawing()
-        }
-
         override fun getTooltipText(x: Float, y: Float) =
             "${tex.width} x ${tex.height} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
     }
 
-    class TexturePanel3D(name: String, val tex: Texture3D) :
-        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.depth}") {
-
-        override fun getTexW(): Int = tex.width
-        override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
-        val isDepth get() = isDepthFormat(tex.internalFormat)
+    // todo test this
+    class TexturePanel3D(tex: Texture3D) :
+        TexturePanel<Texture3D>("${tex.name}, ${tex.width} x ${tex.height} x ${tex.depth}", tex) {
 
         // animated
         override fun onUpdate() {
@@ -140,16 +128,14 @@ object DebugGPUStorage {
             // todo better test? currently only black...
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
             else fract(Time.nanoTime / 5.0).toFloat()
+            val isDepth = isDepthFormat(tex.internalFormat)
             DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, false, isDepth)
         }
     }
 
-    class TexturePanel2DA(name: String, val tex: Texture2DArray) :
-        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.layers}") {
+    class TexturePanel2DA(tex: Texture2DArray) :
+        TexturePanel<Texture2DArray>("${tex.name}, ${tex.width} x ${tex.height} x ${tex.layers}", tex) {
 
-        override fun getTexW(): Int = tex.width
-        override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         // animated
@@ -165,7 +151,7 @@ object DebugGPUStorage {
             // b) when hovering
             // todo calculate min/max?
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
-            else fract(Time.nanoTime / max(5f, tex.layers / 3f)).toFloat()
+            else fract(Time.nanoTime / max(5f, tex.layers / 3f))
             val zi = (z * (tex.layers + 1)).toInt()
             // todo why is every 2nd slice missing??
             DrawTextures.draw2dArraySlice(
@@ -175,12 +161,10 @@ object DebugGPUStorage {
         }
     }
 
-    class TexturePanel3DC(name: String, val tex: CubemapTexture) :
-        TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
+    class TexturePanelCubes(tex: CubemapTexture) :
+        TexturePanel<CubemapTexture>("${tex.name}, ${tex.width} x ${tex.height}", tex) {
 
         override fun getTexW(): Int = tex.width * 2 // 360°
-        override fun getTexH(): Int = tex.width // 180°
-        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
@@ -188,66 +172,33 @@ object DebugGPUStorage {
         }
     }
 
+    private fun <V : ITexture2D> createEntry(
+        title: String, tex2d: Collection<V>,
+        createPanel: (V) -> Panel
+    ): MenuOption {
+        val sizeSum = tex2d.sumOf(ITexture2D::locallyAllocated).formatFileSize()
+        return MenuOption(NameDesc("$title (${tex2d.size}, $sizeSum)")) {
+            create2DListOfPanels(title) { list ->
+                for (tex in tex2d.sortedWith { a, b ->
+                    val sa = a.width * a.height
+                    val sb = b.width * b.height
+                    sa.compareTo(sb).ifSame(a.name.compareTo(b.name))
+                }) {
+                    list.add(createPanel(tex))
+                }
+            }
+        }
+    }
+
     fun openMenu() {
         val window = GFX.someWindow
         val window1 = Menu.openMenu(window.windowStack, listOf(
-            MenuOption(
-                NameDesc(
-                    "Texture2Ds (${tex2d.size}, ${
-                        tex2d.sumOf { it.locallyAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
-                create2DListOfPanels("Texture2Ds") { list ->
-                    for (tex in tex2d.sortedWith { a, b ->
-                        val sa = a.width * a.height
-                        val sb = b.width * b.height
-                        sa.compareTo(sb).ifSame(a.name.compareTo(b.name))
-                    }) {
-                        list.add(TexturePanel(tex.name, tex, false))
-                    }
-                }
+            createEntry("Texture2Ds", tex2d) {
+                TexturePanel2D(it.name, it, false)
             },
-            MenuOption(
-                NameDesc(
-                    "Texture3Ds (${tex3d.size}, ${
-                        tex3d.sumOf { it.locallyAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
-                // todo test this
-                create2DListOfPanels("Texture3Ds") { list ->
-                    for (tex in tex3d.sortedBy { it.width * it.height * it.depth }) {
-                        list.add(TexturePanel3D(tex.name, tex))
-                    }
-                }
-            },
-            MenuOption(
-                NameDesc(
-                    "Texture2D[]s (${tex2da.size}, ${
-                        tex2da.sumOf { it.locallyAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
-                create2DListOfPanels("Texture2D[]s") { list ->
-                    for (tex in tex2da.sortedBy { it.width * it.height * it.layers }) {
-                        list.add(TexturePanel2DA(tex.name, tex))
-                    }
-                }
-            },
-            MenuOption(
-                NameDesc(
-                    "CubemapTextures (${tex3dCs.size}, ${
-                        tex3dCs.sumOf { it.locallyAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
-                create2DListOfPanels("CubemapTextures") { list ->
-                    for (tex in tex3dCs.sortedBy { it.width }) {
-                        list.add(TexturePanel3DC("", tex))
-                    }
-                }
-            },
+            createEntry("Texture3Ds", tex3d) { TexturePanel3D(it) },
+            createEntry("Texture2D[]s", tex2da) { TexturePanel2DA(it) },
+            createEntry("CubemapTextures", texCubes) { TexturePanelCubes(it) },
             MenuOption(
                 NameDesc(
                     "Framebuffers (${fbs.size}, ${
@@ -258,10 +209,10 @@ object DebugGPUStorage {
                 create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.width * it.height }) {
                         for (tex in fb.textures!!) {
-                            list.add(TexturePanel(tex.name, tex, true))
+                            list.add(TexturePanel2D(tex.name, tex, true))
                         }
                         val dt = fb.depthTexture
-                        if (dt != null) list.add(TexturePanel(dt.name, dt, true))
+                        if (dt != null) list.add(TexturePanel2D(dt.name, dt, true))
                     }
                 }
             },
@@ -276,7 +227,7 @@ object DebugGPUStorage {
                 // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
                 // we have name data, so we could show colors, uvs, coordinates and such :)
                 // first, easy way:
-                createListOfPanels("Buffers") { list ->
+                openMenuOfPanels("Buffers", PanelListY(style)) { list ->
                     for (buff in buffers.sortedBy { it.locallyAllocated }) {
                         list.add(TextPanel(
                             "${GFX.getName(buff.type)}, " +
@@ -297,29 +248,15 @@ object DebugGPUStorage {
         val list = PanelList2D(style)
         list.childWidth *= 2
         list.childHeight *= 2
-        fillList(list)
-        val window = GFX.someWindow
-        val window1 = Menu.openMenuByPanels(
-            window.windowStack,
-            window.mouseX.toInt(),
-            window.mouseY.toInt(),
-            NameDesc(title),
-            listOf(list)
-        )
-        window1?.drawDirectly = true
+        openMenuOfPanels(title, list, fillList)
     }
 
-    private fun createListOfPanels(title: String, fillList: (PanelList) -> Unit) {
-        val list = PanelListY(style)
+    private fun openMenuOfPanels(title: String, list: PanelList, fillList: (PanelList) -> Unit) {
         fillList(list)
-        val window = GFX.someWindow
-        val window1 = Menu.openMenuByPanels(
-            window.windowStack,
-            window.mouseX.toInt(),
-            window.mouseY.toInt(),
+        Menu.openMenuByPanels(
+            GFX.someWindow.windowStack,
             NameDesc(title),
             listOf(list)
-        )
-        window1?.drawDirectly = true
+        )?.drawDirectly = true
     }
 }

@@ -23,7 +23,8 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
 
     init {
         tooltip = title
-        textAlignment = AxisAlignment.CENTER
+        textAlignmentX = AxisAlignment.CENTER
+        textAlignmentY = AxisAlignment.CENTER
     }
 
     override val value: Unit get() = Unit
@@ -103,8 +104,8 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
 
         val text = text
         val widthLimit = if (breaksIntoMultiline) this.width else -1
-        val alignmentX = textAlignment
-        val alignmentY = AxisAlignment.CENTER
+        val alignmentX = textAlignmentX
+        val alignmentY = textAlignmentY
         val textColor = textColor
         val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
         else textColor.a() / 2

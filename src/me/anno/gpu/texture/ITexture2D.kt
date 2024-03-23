@@ -26,6 +26,9 @@ interface ITexture2D : ICacheData {
     val filtering: Filtering
     val clamping: Clamping
 
+    val locallyAllocated: Long
+    val internalFormat: Int
+
     fun isCreated(): Boolean {
         return wasCreated && !isDestroyed
     }

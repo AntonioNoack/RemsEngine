@@ -8,6 +8,10 @@ import me.anno.utils.types.Strings.joinChars0
 open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
 
     override var size = 0
+        set(value) {
+            field = value
+            ensureCapacity(value)
+        }
 
     var values = alloc(initCapacity)
     override val capacity: Int get() = values.size

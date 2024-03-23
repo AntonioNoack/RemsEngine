@@ -32,11 +32,11 @@ object SpellcheckingImpl {
 
     private val path = DefaultConfig["spellchecking.path", OS.downloads.getChild("lib/spellchecking")]
 
-    private val language get() = EngineBase.instance?.language ?: defaultLanguage
+    private val language: Language? get() = EngineBase.instance?.language ?: defaultLanguage
 
     fun check(sentence: CharSequence, allowFirstLowercase: Boolean, async: Boolean): List<Suggestion>? {
         val language = language
-        if (language == Language.None || sentence.isBlank2()) return null
+        if (language == null || sentence.isBlank2()) return null
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
@@ -152,7 +152,7 @@ object SpellcheckingImpl {
             if (!OS.isAndroid) {
                 getExecutable(language) { executable ->
                     val process = createProcess(executable, language)
-                    runProcess(process, queue)
+                    runProcess(process, language, queue)
                     process.destroy()
                 }
             } else {
@@ -178,7 +178,7 @@ object SpellcheckingImpl {
         return builder.start()
     }
 
-    private fun runProcess(process: Process, queue: Queue<Any>) {
+    private fun runProcess(process: Process, language: Language, queue: Queue<Any>) {
         val input = process.inputStream
         val reader = input.bufferedReader()
         process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }

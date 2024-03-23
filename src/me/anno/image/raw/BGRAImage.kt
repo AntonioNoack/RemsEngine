@@ -1,14 +1,15 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.framebuffer.TargetType.Companion.Float16xI
 import me.anno.gpu.framebuffer.TargetType.Companion.Float32xI
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureHelper
 import me.anno.image.Image
 import me.anno.maths.Maths.max
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.structures.Callback
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 
@@ -42,13 +43,11 @@ class BGRAImage(val base: Image) :
         if (base is GPUImage) {
             // if source has float precision, use that
             val tex = base.texture
-            val useFP = if (tex is Texture2D) {
-                when (Texture2D.getNumberType(tex.internalFormat)) {
-                    GL_HALF_FLOAT -> Float16xI
-                    GL_FLOAT -> Float32xI
-                    else -> UInt8xI
-                }
-            } else UInt8xI
+            val useFP = when (TextureHelper.getNumberType(tex.internalFormat)) {
+                GL_HALF_FLOAT -> Float16xI
+                GL_FLOAT -> Float32xI
+                else -> UInt8xI
+            }
             val type = useFP[max(base.numChannels - 1, 0)]
             TextureMapper.mapTexture(base.texture, texture, "bgra", type, callback)
         } else super.createTexture(texture, sync, checkRedundancy, callback)

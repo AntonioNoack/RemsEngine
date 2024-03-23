@@ -463,7 +463,7 @@ class Transform() : Saveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        // global doesn't need to be saved, as it can be reconstructed
+        // global doesn't need to be saved, because it can be reconstructed
         writer.writeMatrix4x3d("local", localTransform)
     }
 
@@ -475,6 +475,4 @@ class Transform() : Saveable() {
     }
 
     override val approxSize get() = 1
-
-    override fun isDefaultValue() = false
 }

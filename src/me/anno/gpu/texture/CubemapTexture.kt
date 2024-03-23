@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.Build
-import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -44,7 +43,7 @@ open class CubemapTexture(
     override var name: String,
     var size: Int,
     override val samples: Int
-) : ICacheData, ITexture2D {
+) : ITexture2D {
 
     override var wasCreated = false
     override var isDestroyed = false
@@ -55,8 +54,8 @@ open class CubemapTexture(
     // todo set this property when the texture was created
     override var channels = 3
 
-    var locallyAllocated = 0L
-    var internalFormat = 0
+    override var locallyAllocated = 0L
+    override var internalFormat = 0
 
     override var isHDR = false
 
@@ -83,8 +82,8 @@ open class CubemapTexture(
             // maybe we should use allocation free versions there xD
             GFX.check()
             if (pointer == 0) throw RuntimeException("Could not allocate texture pointer")
-            if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
-                DebugGPUStorage.tex3dCs.add(this)
+            if (Build.isDebug) synchronized(DebugGPUStorage.texCubes) {
+                DebugGPUStorage.texCubes.add(this)
             }
         }
     }
@@ -276,8 +275,8 @@ open class CubemapTexture(
     }
 
     private fun destroy(pointer: Int) {
-        if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
-            DebugGPUStorage.tex3dCs.remove(this)
+        if (Build.isDebug) synchronized(DebugGPUStorage.texCubes) {
+            DebugGPUStorage.texCubes.remove(this)
         }
         synchronized(texturesToDelete) {
             // allocation counter is removed a bit early, shouldn't be too bad

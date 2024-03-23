@@ -166,6 +166,7 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
             }
         }
         array.fill(null, writeIndex, size * 2) // clear rest for GC
+        elementSize = writeIndex
         return size - writeIndex.shr(1)
     }
 

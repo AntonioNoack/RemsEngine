@@ -10,8 +10,6 @@ import me.anno.language.translation.NameDesc
 @Suppress("CanBeParameter")
 enum class Language(val prettyName: String, val code: String) {
 
-    None("None", ""),
-
     Arabic("Arabic", "ar"),
     // English("English", "en"),
     AmericanEnglish("English (American)", "en-US"),

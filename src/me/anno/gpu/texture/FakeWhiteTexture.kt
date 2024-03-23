@@ -14,6 +14,8 @@ class FakeWhiteTexture(override var width: Int, override var height: Int, overri
     override val isDestroyed: Boolean get() = false
     override val filtering: Filtering get() = Filtering.TRULY_NEAREST
     override val clamping: Clamping get() = Clamping.CLAMP
+    override val internalFormat: Int get() = TextureLib.whiteTexture.internalFormat
+    override val locallyAllocated: Long get() = TextureLib.whiteTexture.locallyAllocated
 
     override val isHDR get() = false
     override var depthFunc: DepthMode?

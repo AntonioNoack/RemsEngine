@@ -9,20 +9,20 @@ class Systems : System() {
     val systems = HashSet<System>()
 
     override fun onUpdate() {
-        for (s in systems) {
-            s.onUpdate()
+        for (system in systems) {
+            system.onUpdate()
         }
     }
 
     override fun onEnable(childSystem: System) {
-        for (s in systems) {
-            s.onEnable(childSystem)
+        for (system in systems) {
+            system.onEnable(childSystem)
         }
     }
 
     override fun onDisable(childSystem: System) {
-        for (s in systems) {
-            s.onEnable(childSystem)
+        for (system in systems) {
+            system.onEnable(childSystem)
         }
     }
 }

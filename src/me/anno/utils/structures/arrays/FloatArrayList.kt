@@ -187,18 +187,18 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     }
 
     fun sum(): Float {
-        val array = values
+        val values = values
         var sum = 0.0
         for (i in 0 until size) {
-            sum += array[i]
+            sum += values[i]
         }
         return sum.toFloat()
     }
 
     fun scale(s: Float) {
-        val array = values
+        val values = values
         for (i in 0 until size) {
-            array[i] *= s
+            values[i] *= s
         }
     }
 

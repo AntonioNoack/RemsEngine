@@ -48,7 +48,8 @@ class TreeViewEntryPanel<V : Any>(
         object : TextPanel("", style) {
 
             init {
-                textAlignment = AxisAlignment.CENTER
+                textAlignmentX = AxisAlignment.CENTER
+                textAlignmentY = AxisAlignment.CENTER
             }
 
             override fun calculateSize(w: Int, h: Int) {

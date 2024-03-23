@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.Build
-import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -14,12 +13,11 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.getNumChannels
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
+import me.anno.image.Image
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
-import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_BGRA
@@ -49,7 +47,7 @@ open class Texture3D(
     override var width: Int,
     override var height: Int,
     var depth: Int
-) : ICacheData, ITexture2D {
+) : ITexture2D {
 
     var pointer = 0
     var session = -1
@@ -62,9 +60,9 @@ open class Texture3D(
     // todo set this when the texture is created
     override var channels: Int = 3
 
-    var locallyAllocated = 0L
+    override var locallyAllocated = 0L
+    override var internalFormat = 0
 
-    var internalFormat = 0
     var border = 0
 
     override val samples: Int get() = 1
@@ -112,7 +110,7 @@ open class Texture3D(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        if (getNumChannels(internalFormat) == 1) {
+        if (TextureHelper.getNumChannels(internalFormat) == 1) {
             swizzleMonochrome()
         }
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)

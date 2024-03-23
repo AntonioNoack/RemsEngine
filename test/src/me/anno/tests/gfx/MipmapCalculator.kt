@@ -11,6 +11,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureHelper
 import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
 import kotlin.math.max
@@ -57,7 +58,7 @@ object MipmapCalculator {
             GFX.check()
             GL46C.glTexImage2D(
                 texture.target, level, format, width, height, 0,
-                when (Texture2D.getNumChannels(format)) {
+                when (TextureHelper.getNumChannels(format)) {
                     1 -> GL46C.GL_RED
                     2 -> GL46C.GL_RG
                     3 -> GL46C.GL_RGB
@@ -77,7 +78,7 @@ object MipmapCalculator {
         var width = texture.width
         var height = texture.height
         if (width <= 1 && height <= 1) return
-        if (Texture2D.getNumChannels(texture.internalFormat) == 3) {
+        if (TextureHelper.getNumChannels(texture.internalFormat) == 3) {
             // LOGGER.warn("RGB textures aren't supported!")
             GL46C.glGenerateMipmap(texture.target)
         } else {
