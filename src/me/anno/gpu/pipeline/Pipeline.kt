@@ -280,10 +280,12 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         if (needsClear) {
             GFXState.currentBuffer.clearColor(0)
         }
-        for (i in stages.indices) {
-            val stage = stages[i]
-            if (!stage.isEmpty()) {
-                stage.bindDraw(this)
+        defaultStage.bind {
+            for (i in stages.indices) {
+                val stage = stages[i]
+                if (!stage.isEmpty()) {
+                    stage.draw(this)
+                }
             }
         }
     }

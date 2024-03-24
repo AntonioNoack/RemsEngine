@@ -8,9 +8,9 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
@@ -32,7 +32,6 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
@@ -530,7 +529,7 @@ class PipelineStageImpl(
         bind { drawn.draw(pipeline) }
     }
 
-    private fun bind(draw: () -> Unit) {
+    fun bind(draw: () -> Unit) {
         val blendMode = if (GFXState.ditherMode.currentValue == DitherMode.DITHER2X2) null
         else this.blendMode
         GFXState.blendMode.use(blendMode) {
@@ -546,7 +545,7 @@ class PipelineStageImpl(
         }
     }
 
-    fun DrawRequest.revDistance(dir: Vector3d): Double {
+    fun DrawRequest.getZDistance(dir: Vector3d): Double {
         val w = entity.transform.globalTransform
         return dir.dot(w.m30, w.m31, w.m32)
     }
@@ -575,30 +574,21 @@ class PipelineStageImpl(
         if (!Input.isKeyDown('l')) when (sorting) {
             Sorting.NO_SORTING -> {
             }
-
             Sorting.FRONT_TO_BACK -> {
                 drawRequests.sortWith { a, b ->
-                    val ma = a.revDistance(dir)
-                    val mb = b.revDistance(dir)
+                    val ma = a.getZDistance(dir)
+                    val mb = b.getZDistance(dir)
                     mb.compareTo(ma)
                 }
             }
-
             Sorting.BACK_TO_FRONT -> {
                 drawRequests.sortWith { a, b ->
-                    val ma = a.revDistance(dir)
-                    val mb = b.revDistance(dir)
+                    val ma = a.getZDistance(dir)
+                    val mb = b.getZDistance(dir)
                     ma.compareTo(mb)
                 }
             }
         }
-
-        lastEntity = null
-        lastMesh = null
-        lastShader = null
-        lastComp = null
-        lastReceiveShadows = false
-        previousMaterialInScene = null
 
         var drawnPrimitives = 0L
         var drawnInstances = 0L
@@ -629,15 +619,7 @@ class PipelineStageImpl(
             )
         }
 
-        // clear this to not prevent potential GC
-        lastEntity = null
-        lastMesh = null
-        lastShader = null
-        lastComp = null
-        lastReceiveShadows = false
-        previousMaterialInScene = null
-
-        lastMaterial.clear()
+        clearLastElements()
 
         // instanced rendering of all kinds
         for (i in instances.indices) {
@@ -647,11 +629,22 @@ class PipelineStageImpl(
             drawCalls += dc
         }
 
-        lastMaterial.clear()
+        clearLastElements()
 
         Companion.drawnPrimitives += drawnPrimitives
         Companion.drawnInstances += drawnInstances
         Companion.drawCalls += drawCalls
+    }
+
+    private fun clearLastElements() {
+        // clear this to not prevent potential GC
+        lastEntity = null
+        lastMesh = null
+        lastShader = null
+        lastComp = null
+        lastReceiveShadows = false
+        previousMaterialInScene = null
+        lastMaterial.clear()
     }
 
     fun draw(

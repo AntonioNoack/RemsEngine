@@ -18,6 +18,7 @@ import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.callbacks.F2F
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
@@ -46,25 +47,25 @@ object Reduction {
         @Suppress("unused")
         constructor(
             name: String, startValue: Float, normalize: Boolean, function: String,
-            kotlinImpl: (a: Float, b: Float) -> Float
+            kotlinImpl: F2F
         ) : this(name, Vector4f(startValue), function, normalize, { a, b ->
             a.set(
-                kotlinImpl(a.x, b.x),
-                kotlinImpl(a.y, b.y),
-                kotlinImpl(a.z, b.z),
-                kotlinImpl(a.w, b.w)
+                kotlinImpl.run(a.x, b.x),
+                kotlinImpl.run(a.y, b.y),
+                kotlinImpl.run(a.z, b.z),
+                kotlinImpl.run(a.w, b.w)
             )
         })
 
         constructor(
             name: String, startValue: Float, function: String,
-            kotlinImpl: (a: Float, b: Float) -> Float
+            kotlinImpl: F2F
         ) : this(name, Vector4f(startValue), function, false, { a, b ->
             a.set(
-                kotlinImpl(a.x, b.x),
-                kotlinImpl(a.y, b.y),
-                kotlinImpl(a.z, b.z),
-                kotlinImpl(a.w, b.w)
+                kotlinImpl.run(a.x, b.x),
+                kotlinImpl.run(a.y, b.y),
+                kotlinImpl.run(a.z, b.z),
+                kotlinImpl.run(a.w, b.w)
             )
         })
     }

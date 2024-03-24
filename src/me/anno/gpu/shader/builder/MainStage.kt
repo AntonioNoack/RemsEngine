@@ -418,7 +418,9 @@ class MainStage {
                 DitherMode.DITHER2X2 -> {
                     code.append("if(dither2x2(finalAlpha)) { discard; }\n")
                 }
-                DitherMode.DRAW_EVERYTHING -> {} // done
+                DitherMode.DRAW_EVERYTHING -> {
+                    code.append("// draw everything\n")
+                }
                 else -> throw NotImplementedError()
             }
             code.append("#endif\n")

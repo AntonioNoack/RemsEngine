@@ -3,8 +3,6 @@ package me.anno.ecs.components.light
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
@@ -14,7 +12,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.joml.Vector3f
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -50,7 +47,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         resolution: Int
     ) {
 
-        // todo allow to set the focus point non-centered?
+        // todo allow to set the high-resolution point non-centered
+        //  (we need less pixels behind the player, and more in front, so it makes sense to prioritize the front)
 
         // cascade style must only influence xy, not z
         dstCameraMatrix.set(drawTransform).invert()
@@ -75,40 +73,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
             -(2.0 / cascadeScale - 1.0) / (worldScale),
             dstCameraPosition, dstCameraPosition
         )
-
-        // reconstructMatrixBoundsForTesting(dstCameraMatrix, worldScale, dstCameraPosition)
-    }
-
-    /**
-     * tests whether the calculated matrix is correct:
-     * visualizes the bounds of what will be rendered
-     * */
-    fun reconstructMatrixBoundsForTesting(dstCameraMatrix: Matrix4f, worldScale: Double, dstCameraPosition: Vector3d) {
-        val pts = ArrayList<Vector3f>(8)
-        for (x in listOf(-1f, 1f)) {
-            for (y in listOf(-1f, 1f)) {
-                for (z in listOf(0f, 1f)) {
-                    pts.add(Vector3f(x, y, z))
-                }
-            }
-        }
-
-        val inv = dstCameraMatrix.invert(Matrix4f())
-        for (pt in pts) {
-            inv.transformPosition(pt)
-            pt.mul(1f / worldScale.toFloat())
-            pt.add(Vector3f(dstCameraPosition))
-        }
-
-        for (i in 0 until 8) {
-            for (j in i + 1 until 8) {
-                val d = j - i
-                if (d.and(d - 1) == 0) {
-                    val line = DebugLine(Vector3d(pts[i]), Vector3d(pts[j]), -1, 0f)
-                    DebugShapes.debugLines.add(line)
-                }
-            }
-        }
     }
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth

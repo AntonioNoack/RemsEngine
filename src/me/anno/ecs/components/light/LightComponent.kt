@@ -12,7 +12,6 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DepthMode
-import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
@@ -24,7 +23,6 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.SQRT3
@@ -81,7 +79,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     var shadowTextures: IFramebuffer? = null
 
     @SerializedProperty
-    var depthFunc = if(GFX.supportsClipControl) DepthMode.CLOSE
+    var depthFunc = if (GFX.supportsClipControl) DepthMode.CLOSE
     else DepthMode.FORWARD_CLOSE
 
     @NotSerializedProperty
@@ -212,9 +210,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
                 result.draw(renderer) { i ->
-                    if (i > 0) { // reset position and rotation
-                        position.set(tmpPos)
-                    }
+                    // reset position
+                    position.set(tmpPos)
                     pipeline.clear()
                     val cascadeScale = shadowMapPower.pow(-i.toDouble())
                     updateShadowMap(
@@ -223,13 +220,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                         position, rotation, direction,
                         drawTransform, pipeline, resolution
                     )
-                    /* test frustum, breaks cascades though (because cameraMatrix isn't reset)
-                        RenderState.cameraPosition.set(originalPosition)
-                        RenderState.worldScale = originalWorldScale
-                        pipeline.frustum.showPlanes()
-                        RenderState.worldScale = worldScale
-                        position.set(tmpPos)
-                    */
                     val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
                     RenderState.calculateDirections(isPerspective)
                     val root = rootOverride ?: entity.getRoot(Entity::class)

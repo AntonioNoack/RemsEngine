@@ -3,8 +3,8 @@ package me.anno.gpu.pipeline
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
@@ -297,10 +297,8 @@ open class InstancedStack {
         }
 
         override fun clear() {
-            for ((_, values) in data.values) {
-                for ((_, _, value) in values) {
-                    value.clear()
-                }
+            for (stack in data.values.values) {
+                stack.clear()
             }
         }
     }
