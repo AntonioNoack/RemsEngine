@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur
 import me.anno.gpu.texture.TextureCache
 import me.anno.graph.render.Texture

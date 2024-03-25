@@ -21,7 +21,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         private var trackOpenStreamsMillis = 0L
 
         fun createTempFile(name: String, extension: String): FileReference {
-            return getReference(File.createTempFile(name, extension).absolutePath)
+            return FileFileRef(File.createTempFile(name, ".$extension"))
         }
 
         private fun beautifyPath(path: String): String {

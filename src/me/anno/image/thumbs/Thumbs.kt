@@ -1154,7 +1154,7 @@ object Thumbs {
         registerSignature("hdr") { srcFile, dstFile, size, callback ->
             srcFile.inputStream { it, exc ->
                 if (it != null) {
-                    val src = it.use(HDRReader::read)
+                    val src = it.use(HDRReader::readHDR)
                     findScale(src, srcFile, size, callback) { dst ->
                         saveNUpload(srcFile, false, dstFile, dst, callback)
                     }

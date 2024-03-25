@@ -1,10 +1,8 @@
 package me.anno.graph.render
 
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.graph.Node
 import me.anno.graph.NodeOutput
 import me.anno.graph.render.RenderGraph.startArguments
-import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.StartNode
 
@@ -79,17 +77,7 @@ class QuickPipeline {
         return this
     }
 
-    fun render(target: DeferredLayerType): QuickPipeline {
-        return then(
-            RenderSceneDeferredNode(), mapOf(
-                DeferredLayerType.COLOR.name to emptyList(),
-                target.name to listOf("Color")
-            )
-        )
-    }
-
     fun finish(end: ExprReturnNode = ExprReturnNode()) = then(end).graph
     fun finish(extraInputs: Map<String, Any?>, end: ExprReturnNode = ExprReturnNode()) =
         then(end, extraInputs, emptyMap()).graph
-
 }

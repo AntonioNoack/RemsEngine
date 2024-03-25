@@ -10,7 +10,7 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.shader.Shader

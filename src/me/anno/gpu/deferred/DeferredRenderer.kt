@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 
-val DeferredRenderer by lazy {
+val DeferredRenderer by lazy { // lazy for GFX.supportsDepthTextures
     SimpleRenderer(
         "deferred", DeferredSettings(
             listOf(

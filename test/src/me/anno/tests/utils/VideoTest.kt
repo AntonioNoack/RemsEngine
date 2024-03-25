@@ -1,8 +1,7 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ECSRegistry
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.extensions.ExtensionLoader
@@ -11,11 +10,12 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.image.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths.PIf
 import me.anno.mesh.Shapes.flatCube
+import me.anno.tests.gfx.initWithGFX
+import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 import me.anno.utils.types.Floats.toRadians
@@ -49,7 +49,7 @@ fun main() {
     val duration = 10.0
     val numFrames = (fps * duration).toInt()
 
-    ECSRegistry.initWithGFX()
+    initWithGFX()
 
     val cameraMatrix = createCameraMatrix(1f).rotateZ(PIf)
 

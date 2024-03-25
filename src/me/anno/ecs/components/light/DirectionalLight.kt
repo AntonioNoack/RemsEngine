@@ -24,6 +24,9 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     @Range(-1.0, 1.0)
     var cutoff = 0f
 
+    // todo button to auto-position around scene
+    //  (translation, scale)
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         if (cutoff == 0f) {
             aabb.all()

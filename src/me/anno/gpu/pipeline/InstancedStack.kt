@@ -44,16 +44,14 @@ open class InstancedStack {
     fun isNotEmpty() = size > 0
     fun isEmpty() = size == 0
 
+    open fun resize(newSize: Int) {
+        transforms = transforms.copyOf(newSize)
+        gfxIds = gfxIds.copyOf(newSize)
+    }
+
     open fun add(transform: Transform, gfxId: Int) {
         if (size >= transforms.size) {
-            // resize
-            val newSize = transforms.size * 2
-            val newTransforms = arrayOfNulls<Transform>(newSize)
-            val newGfxIds = IntArray(newSize)
-            transforms.copyInto(newTransforms)
-            gfxIds.copyInto(newGfxIds)
-            transforms = newTransforms
-            gfxIds = newGfxIds
+            resize(transforms.size * 2)
         }
         val index = size++
         transforms[index] = transform

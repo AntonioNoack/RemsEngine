@@ -8,7 +8,7 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey

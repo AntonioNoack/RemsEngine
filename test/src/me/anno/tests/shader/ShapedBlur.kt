@@ -1,7 +1,6 @@
 package me.anno.tests.shader
 
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress
 import me.anno.gpu.shader.effects.ShapedBlur.fileName
@@ -11,6 +10,7 @@ import me.anno.io.Streams.write0String
 import me.anno.io.Streams.writeLE16
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.maths.Maths
 import me.anno.maths.Optimization
 import me.anno.network.ResetByteArrayOutputStream

@@ -12,5 +12,6 @@
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="module" module-name="KOML" />
     <orderEntry type="library" name="JavaNativeAccess" level="project" />
+    <orderEntry type="library" name="LWJGL-323" level="project" />
   </component>
 </module>

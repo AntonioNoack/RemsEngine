@@ -21,23 +21,18 @@ class InstancedAnimStack : InstancedStack() {
         add(transform, gfxId, null, defaultWeights, defaultIndices, defaultWeights, defaultIndices)
     }
 
+    override fun resize(newSize: Int) {
+        super.resize(newSize)
+        animData = animData.copyOf(newSize * 16)
+    }
+
     fun add(
         transform: Transform, clickId: Int, texture: Texture2D?,
         prevWeights: Vector4f, prevIndices: Vector4f,
         currWeights: Vector4f, currIndices: Vector4f
     ) {
         if (size >= transforms.size) {
-            // resize
-            val newSize = transforms.size * 2
-            val newTransforms = arrayOfNulls<Transform>(newSize)
-            val newAnimData = FloatArray(newSize * 16)
-            val newGfxIds = IntArray(newSize)
-            transforms.copyInto(newTransforms)
-            animData.copyInto(newAnimData)
-            gfxIds.copyInto(newGfxIds)
-            transforms = newTransforms
-            animData = newAnimData
-            gfxIds = newGfxIds
+            resize(transforms.size * 2)
         }
         if (texture != null) this.animTexture = texture
         val index = size++
@@ -66,5 +61,4 @@ class InstancedAnimStack : InstancedStack() {
         animData[j++] = prevIndices.z
         animData[j] = prevIndices.w
     }
-
 }

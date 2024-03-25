@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.Accumulation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

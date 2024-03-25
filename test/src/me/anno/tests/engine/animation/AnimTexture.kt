@@ -4,12 +4,12 @@ import me.anno.Engine
 import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.engine.ECSRegistry
+import me.anno.tests.gfx.initWithGFX
 import me.anno.utils.OS
 
 fun main() {
     // create a test texture, so we can see whether the texture is correctly created
-    ECSRegistry.initWithGFX()
+    initWithGFX()
     val source = OS.downloads.getChild("3d/azeria/scene.gltf") // animated mesh file
     val skeletonSource = source.getChild("skeletons/Skeleton.json")
     val animationsSources = source.getChild("animations").listChildren()

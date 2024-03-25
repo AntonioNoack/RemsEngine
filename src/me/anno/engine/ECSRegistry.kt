@@ -58,8 +58,6 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.projects.GameEngineProject
-import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.shader.ShaderLib
 import me.anno.graph.types.NodeLibrary
 import me.anno.io.Saveable
 import me.anno.io.Saveable.Companion.registerCustomClass
@@ -192,12 +190,5 @@ object ECSRegistry {
         registerCustomClass(TriTerrain())
 
         NodeLibrary.registerClasses()
-    }
-
-    @JvmStatic
-    fun initWithGFX(w: Int = 512, h: Int = w) {
-        HiddenOpenGLContext.createOpenGL(w, h)
-        ShaderLib.init()
-        init()
     }
 }

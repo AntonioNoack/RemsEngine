@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.Reference.getReference
 import me.anno.ui.debug.TestEngine.Companion.testUI3

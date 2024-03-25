@@ -1,7 +1,7 @@
-package me.anno.gpu.hidden
+package me.anno.jvm
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase.capabilities
+import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
@@ -16,11 +16,12 @@ import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
 import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.system.MemoryUtil
 import kotlin.test.assertTrue
 
 /**
- * a class, which allows us to use OpenGL without visible window
+ * a class, which allows us to use OpenGL without visible window;
+ *
+ * mainly used for command line tools, so typically on Desktop only -> moved to JVMExtension
  * */
 object HiddenOpenGLContext {
 
@@ -64,7 +65,7 @@ object HiddenOpenGLContext {
 
         // removes scaling options -> how could we replace them?
         window.pointer = glfwCreateWindow(width, height, "Hidden", 0L, 0L)
-        if (window.pointer == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+        if (window.pointer == 0L) throw RuntimeException("Failed to create the GLFW window")
         GFX.windows.add(window)
         GFX.activeWindow = window
 
@@ -72,7 +73,7 @@ object HiddenOpenGLContext {
 
         window.makeCurrent()
         window.forceUpdateVsync()
-        capabilities = GL.createCapabilities()
+        GFXBase.capabilities = GL.createCapabilities()
 
         GFX.check()
 

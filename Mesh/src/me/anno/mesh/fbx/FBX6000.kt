@@ -1,11 +1,16 @@
 package me.anno.mesh.fbx
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.Streams.consumeMagic
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
+import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolder
+import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -218,5 +223,30 @@ object FBX6000 {
             }
         }
         return meshes
+    }
+
+    fun readBinaryFBX6000AsFolder(file: FileReference): Pair<InnerFolder, Prefab>? {
+        val meshes = readBinaryFBX6000AsMeshes(file.inputStreamSync())
+        if (meshes.isNotEmpty()) {
+            val root = InnerFolder(file)
+            val all = Prefab("Entity")
+            for (i in meshes.indices) {
+                val mesh = meshes[i]
+                val meshPrefab = Prefab("Mesh")
+                meshPrefab["positions"] = mesh.positions
+                meshPrefab["indices"] = mesh.indices
+                meshPrefab["normals"] = mesh.normals
+                meshPrefab["uvs"] = mesh.uvs
+                meshPrefab._sampleInstance = mesh
+                val meshFileName = "$i.json"
+                val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
+                val meshComp = all.add(Path.ROOT_PATH, 'c', "MeshComponent", meshFileName)
+                all[meshComp, "isInstanced"] = true
+                all[meshComp, "meshFile"] = meshFile
+            }
+            root.createPrefabChild("Scene.json", all)
+            return root to all
+        } else LOGGER.warn("Meshes from $file is empty")
+        return null
     }
 }

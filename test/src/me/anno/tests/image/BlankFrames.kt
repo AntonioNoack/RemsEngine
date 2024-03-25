@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.OS
 import me.anno.video.formats.gpu.BlankFrameDetector

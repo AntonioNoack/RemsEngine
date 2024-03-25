@@ -1,6 +1,5 @@
 package me.anno.tests.gfx
 
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -12,7 +11,7 @@ fun main() {
     // test odd widths
     // fixed the bug :)
     val s = 31
-    ECSRegistry.initWithGFX(s + s.and(1))
+    initWithGFX(s + s.and(1))
     val fb = FBStack["", s, s, 4, false, 1, DepthBufferType.NONE]
     GFXState.useFrame(fb) {
         val black = 255 shl 24

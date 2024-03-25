@@ -2,7 +2,7 @@ package me.anno.tests.image
 
 import me.anno.Engine
 import me.anno.gpu.GFX
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntilDefined

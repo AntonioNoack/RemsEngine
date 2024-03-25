@@ -8,7 +8,7 @@ import kotlin.math.log2
 import kotlin.math.max
 
 /**
- * Panel that draws a gpu.Texture2D, e.g. for icons, showing images, ...
+ * Panel that draws an ITexture2D, e.g., for icons, showing images, ...
  * */
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class ImagePanel(style: Style) : ImagePanelBase(style) {

@@ -180,6 +180,7 @@ Some depend on local files, which you might not have, but most should work, and 
 - [Tsunami Simulation](https://github.com/AntonioNoack/RemsTsunamis)
 - [Voxel World](https://github.com/AntonioNoack/RemsEngine-VoxelWorld)
 - [Monte-Carlo Map Optimization](https://github.com/AntonioNoack/MonteCarloMapOptimization)
+- [Rubik's Cube UI](https://github.com/AntonioNoack/RubiksCubeUI)
 - a few more, non-published (yet?)
 
 ## Getting Started

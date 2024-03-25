@@ -86,8 +86,6 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            // to do 1. where is our bug, that we need to limit the value?
-            // to do 2. why can we set the limit so high? how is it processed further?
             "#define computeSpecularBRDF DxPi4 / max(x * x * t.x * t.y, $maxDivisor)\n"
 
     val specularBRDFv2NoColorEnd = "specularLight *= finalMetallic;\n" // * specularColor, just without color

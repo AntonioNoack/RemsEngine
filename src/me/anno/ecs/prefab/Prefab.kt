@@ -379,7 +379,9 @@ class Prefab : Saveable {
 
 
     fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
-        return getSampleInstance(depth).clone()
+        val newInstance = getSampleInstance(depth).clone()
+        newInstance.prefab = null
+        return newInstance
     }
 
     override val className: String get() = "Prefab"

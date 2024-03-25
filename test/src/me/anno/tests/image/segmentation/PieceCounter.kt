@@ -2,7 +2,7 @@ package me.anno.tests.image.segmentation
 
 import me.anno.Engine
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType

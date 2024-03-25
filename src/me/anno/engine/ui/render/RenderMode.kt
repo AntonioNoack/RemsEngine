@@ -116,7 +116,7 @@ class RenderMode(
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -162,7 +162,7 @@ class RenderMode(
                 .then(RenderSceneDeferredNode())
                 .then(RenderLightsNode(), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -172,7 +172,7 @@ class RenderMode(
                 .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -183,7 +183,7 @@ class RenderMode(
             QuickPipeline()
                 .then(RenderSceneDeferredNode())
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -192,7 +192,7 @@ class RenderMode(
             QuickPipeline()
                 .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -205,7 +205,7 @@ class RenderMode(
                 .then1(CombineLightsNode(), mapOf("Ambient Occlusion" to 1f))
                 .then(SSRNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -232,7 +232,7 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -258,7 +258,7 @@ class RenderMode(
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
-                .then(FSR1Node(), mapOf("Illuminated" to listOf("Color")))
+                .then(FSR1Node())
                 .finish()
         )
 
@@ -281,7 +281,7 @@ class RenderMode(
                 .then(SSRNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
+                .then1(GizmoNode(), mapOf("Samples" to 8))
                 .finish()
         )
 
@@ -306,7 +306,7 @@ class RenderMode(
                 .then(SSRNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("AABBs" to true), mapOf("Illuminated" to listOf("Color")))
+                .then1(GizmoNode(), mapOf("AABBs" to true))
                 .finish()
         )
 
@@ -329,7 +329,7 @@ class RenderMode(
                 .then(OutlineEffectSelectNode())
                 .then(OutlineEffectNode())
                 .then(FXAANode())
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -356,7 +356,7 @@ class RenderMode(
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(DepthOfFieldNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -375,7 +375,7 @@ class RenderMode(
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -394,7 +394,7 @@ class RenderMode(
                 .then(SSRNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -407,7 +407,7 @@ class RenderMode(
                 )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(DepthTestNode())
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -426,7 +426,7 @@ class RenderMode(
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(HeightExpFogNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 
@@ -445,7 +445,7 @@ class RenderMode(
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then(NightNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .then(GizmoNode())
                 .finish()
         )
 

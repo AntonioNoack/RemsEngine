@@ -10,7 +10,7 @@ fun main() {
     val max = 255.5f
     val exposure = 1f
     val ref = getReference("C:/XAMPP/htdocs/uvbaker/env/scythian_tombs_2_4k.hdr")
-    val src = ref.inputStreamSync().use(HDRReader::read)
+    val src = ref.inputStreamSync().use(HDRReader::readHDR)
     val srcPixels = src.data
     var j = 0
     val dstPixels = IntArray(src.width * src.height) { i ->

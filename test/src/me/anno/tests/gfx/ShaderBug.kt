@@ -1,6 +1,6 @@
 package me.anno.tests.gfx
 
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import org.lwjgl.opengl.GL46C
 
 fun main() {

@@ -253,7 +253,8 @@ class Transform() : Saveable() {
         }
 
     /**
-     * WARNING: setting this does not work together with setGlobalRotation/Scale()
+     * WARNING: setting this does not work together with setGlobalRotation/Scale().
+     * Call validateTransform() in-between to make them work.
      * */
     var globalPosition: Vector3d
         get() = globalTransform.getTranslation(JomlPools.vec3d.create())
@@ -263,7 +264,8 @@ class Transform() : Saveable() {
         }
 
     /**
-     * WARNING: setting this does not work together with setGlobalPosition()
+     * WARNING: setting this does not work together with setGlobalPosition().
+     * Call validateTransform() in-between to make them work.
      * */
     var globalRotation: Quaterniond
         get() = globalTransform.getUnnormalizedRotation(JomlPools.quat4d.create())
@@ -284,7 +286,8 @@ class Transform() : Saveable() {
         }
 
     /**
-     * WARNING: setting this does not work together with setGlobalPosition()
+     * WARNING: setting this does not work together with setGlobalPosition().
+     * Call validateTransform() in-between to make them work.
      * */
     var globalScale: Vector3d
         get() = globalTransform.getScale(JomlPools.vec3d.create())

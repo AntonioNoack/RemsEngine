@@ -108,8 +108,8 @@ object StaticMeshesLoader {
     fun loadFile(file0: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
         var file = file0
-        val sign = Signature.findNameSync(file)
-        if (sign == "dae" && aiGetVersionMajor() < 5) {
+        val signature = Signature.findNameSync(file)
+        if (signature == "dae" && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)
             val xml = XMLReader().read(file.inputStreamSync())!!
@@ -126,11 +126,19 @@ object StaticMeshesLoader {
             file = InnerTmpTextFile(better)
         }
 
+        // glb cannot be loaded from memory properly... (a bug in Assimp)
+        if (file0 !is FileFileRef && signature == "gltf") {
+            val tmp = FileFileRef.createTempFile(file0.nameWithoutExtension, file0.extension)
+            file0.copyTo(tmp)
+            tmp.deleteOnExit()
+            return loadFile(tmp, flags)
+        }
+
         // we could load in parallel,
         // but we'd need to keep track of the scale factor;
         // it only is allowed to be set, if the file is a fbx file
         return synchronized(StaticMeshesLoader) {
-            val isFBXFile = sign == "fbx"
+            val isFBXFile = signature == "fbx"
             val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
             val obj = if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
                 val store = aiCreatePropertyStore()!!

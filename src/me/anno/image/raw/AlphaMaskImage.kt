@@ -10,7 +10,7 @@ import me.anno.utils.Color.hex24
 import org.lwjgl.opengl.GL46C
 
 /**
- * maps a component like R/G/B/A onto RGB1 (opaque, grayscale)
+ * maps a component like R/G/B/A onto 000V or 111V (black or white mask)
  * */
 class AlphaMaskImage(val src: Image, val inverse: Boolean, val channel: Char, private val color: Int) :
     Image(src.width, src.height, 1, false) {

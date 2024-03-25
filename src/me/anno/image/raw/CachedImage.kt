@@ -17,7 +17,7 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
     constructor(src: FileReference, image: Image) :
             this(src, image.width, image.height, image.numChannels, image.hasAlphaChannel)
 
-    /** cache timeout in milli seconds */
+    /** cache timeout in milliseconds */
     var timeout = 50L
 
     val base get() = ImageCache[src, timeout, false]

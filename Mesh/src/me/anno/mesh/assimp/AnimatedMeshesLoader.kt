@@ -121,27 +121,8 @@ object AnimatedMeshesLoader {
         } catch (e: IOException) {
             if (e.message?.contains("FBX-DOM unsupported") == true) {
                 try {
-                    val meshes = FBX6000.readBinaryFBX6000AsMeshes(file.inputStreamSync())
-                    if (meshes.isNotEmpty()) {
-                        val root = InnerFolder(file)
-                        val all = Prefab("Entity")
-                        for (i in meshes.indices) {
-                            val mesh = meshes[i]
-                            val meshPrefab = Prefab("Mesh")
-                            meshPrefab["positions"] = mesh.positions
-                            meshPrefab["indices"] = mesh.indices
-                            meshPrefab["normals"] = mesh.normals
-                            meshPrefab["uvs"] = mesh.uvs
-                            meshPrefab._sampleInstance = mesh
-                            val meshFileName = "$i.json"
-                            val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
-                            val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)
-                            all[meshComp, "isInstanced"] = true
-                            all[meshComp, "meshFile"] = meshFile
-                        }
-                        root.createPrefabChild("Scene.json", all)
-                        return root to all
-                    } else LOGGER.warn("Meshes from $file is empty")
+                    val pair = FBX6000.readBinaryFBX6000AsFolder(file)
+                    if (pair != null) return pair
                 } catch (e: Exception) {
                     e.printStackTrace()
                     throw e

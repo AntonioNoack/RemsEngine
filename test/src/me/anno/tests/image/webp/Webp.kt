@@ -1,7 +1,7 @@
 package me.anno.tests.image.webp
 
 import me.anno.Engine
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageCache
 import me.anno.utils.OS.desktop

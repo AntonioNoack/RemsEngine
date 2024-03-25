@@ -23,13 +23,6 @@ import javax.net.ssl.SSLServerSocketFactory
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
-// there are multiple client-server models:
-// todo 1 simulating server, many clients
-// todo we should support multiple players in a single client
-// todo 1 data transfer server, many clients
-
-// done support TCP and UDP packets
-
 // to do there should be lobbies, where players are assigned to other servers, with seamless transfers...
 // todo ssl encryption -> you need to generate and register certificates for that to work...
 // to do be safe against malicious attacks

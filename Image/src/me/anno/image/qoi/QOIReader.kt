@@ -26,9 +26,6 @@ object QOIReader {
     }
 
     @JvmStatic
-    fun rgb(r: Int, g: Int, b: Int) = r.shl(16) or g.shl(8) or b
-
-    @JvmStatic
     fun read(input: InputStream): QOIImage {
 
         val (width, height) = findSize(input)
@@ -96,4 +93,7 @@ object QOIReader {
 
         return QOIImage(width, height, numChannels, linearColorSpace, data)
     }
+
+    @JvmStatic
+    private fun rgb(r: Int, g: Int, b: Int) = r.shl(16) or g.shl(8) or b
 }

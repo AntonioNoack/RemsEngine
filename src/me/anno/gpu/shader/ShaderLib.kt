@@ -70,7 +70,7 @@ object ShaderLib {
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
-    val dither2x2 = "" +
+    const val dither2x2 = "" +
             "bool dither2x2(float brightness, vec2 uvf) {\n" +
             "  ivec2 uvi = ivec2(floor(uvf)) & ivec2(1);\n" +
             "  int index = (uvi.x + uvi.y * 2 + gl_SampleID) & 3;\n" +
@@ -90,7 +90,7 @@ object ShaderLib {
             "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
             "}\n"
 
-    val blendColor = "" +
+    const val blendColor = "" +
             "vec4 blendColor(vec4 front, vec4 back){\n" +
             "   return vec4(mix(back.rgb,front.rgb,front.a),1.0-(1.0-front.a)*(1.0-back.a));\n" +
             "}\n"
@@ -247,7 +247,7 @@ object ShaderLib {
         Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
     )
 
-    val v3DMasked = "" +
+    const val v3DMasked = "" +
             "void main(){\n" +
             "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
@@ -525,7 +525,7 @@ object ShaderLib {
                 Variable(GLSLType.V2I, "srcOffset"),
                 Variable(GLSLType.V2I, "dstOffset"),
                 Variable(GLSLType.V2I, "invokeSize"),
-                Variable(if(instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
+                Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
             ), "" +
                     brightness +
                     "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +

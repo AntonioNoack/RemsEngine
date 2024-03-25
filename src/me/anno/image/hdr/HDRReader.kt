@@ -19,8 +19,8 @@ import kotlin.test.assertTrue
  * */
 object HDRReader {
 
-    fun read(input: InputStream): FloatImage {
-        return optimizeStream(input).use(HDRReader::read1)
+    fun readHDR(input: InputStream): FloatImage {
+        return optimizeStream(input).use(HDRReader::readHDR1)
     }
 
     private fun optimizeStream(input: InputStream): InputStream {
@@ -31,7 +31,7 @@ object HDRReader {
 
     // Construction method if the input is a InputStream.
     // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
-    private fun read1(input: InputStream): FloatImage {
+    private fun readHDR1(input: InputStream): FloatImage {
 
         // Parse HDR file's header line
         // The first line of each HDR file must be "#?RADIANCE".

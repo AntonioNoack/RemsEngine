@@ -405,7 +405,7 @@ open class Texture2D(
 
     fun setSize1x1() {
         // a warning, because you might not expect your image to be empty, and wonder why its size is 1x1
-        LOGGER.warn("Reduced \"$name\" from $width x $height to 1x1, because it was mono-colored")
+        LOGGER.warn("Reduced \"$name\" from $width x $height to 1 x 1, because it was mono-colored")
         width = 1
         height = 1
     }

@@ -7,7 +7,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 

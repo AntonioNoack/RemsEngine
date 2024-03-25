@@ -3,7 +3,7 @@ package me.anno.tests.gfx
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import org.junit.jupiter.api.Test
 
 class FBCreationTest {

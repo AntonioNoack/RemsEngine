@@ -1,8 +1,7 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ECSRegistry
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers
 import me.anno.extensions.ExtensionLoader
@@ -14,6 +13,7 @@ import me.anno.image.thumbs.ThumbsExt
 import me.anno.image.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
+import me.anno.tests.gfx.initWithGFX
 import me.anno.ui.UIColors.mediumAquamarine
 import me.anno.utils.Color
 import me.anno.utils.OS
@@ -45,7 +45,7 @@ fun main() {
     val duration = 1000.0
     val numFrames = (fps * duration).toInt()
 
-    ECSRegistry.initWithGFX()
+    initWithGFX()
 
     val cameraMatrix = ThumbsExt.createCameraMatrix(1f).rotateZ(Maths.PIf)
 

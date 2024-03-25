@@ -3,7 +3,7 @@ package me.anno.tests.mesh
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.extensions.ExtensionLoader
-import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.image.ImageCache
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.OS.desktop

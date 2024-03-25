@@ -5,7 +5,6 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
-import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.structures.Callback
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -46,7 +45,7 @@ object ImageCache : CacheSection("Image") {
 
     init {
         registerStreamReader("hdr") { it, callback ->
-            callback.ok(HDRReader.read(it))
+            callback.ok(HDRReader.readHDR(it))
         }
     }
 

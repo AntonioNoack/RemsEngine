@@ -9,6 +9,8 @@ import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
+import me.anno.engine.inspector.CachedProperty
+import me.anno.engine.inspector.CachedReflections
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.input.ComponentUI
@@ -23,6 +25,7 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
@@ -43,6 +46,7 @@ import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
+import kotlin.reflect.KProperty
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 
@@ -125,6 +129,15 @@ class PrefabInspector(var reference: FileReference) {
         prefab[path, name] = value
     }
 
+    // the index may not be set in the beginning
+    private fun getPath(instance: PrefabSaveable): Path {
+        val path = instance.prefabPath
+        if (path.lastIndex() < 0) {
+            path.index = instance.parent!!.getIndexOf(instance)
+        }
+        return path
+    }
+
     fun inspect(instances: List<PrefabSaveable>, list: PanelListY, style: Style) {
 
         for (instance in instances) {
@@ -137,7 +150,9 @@ class PrefabInspector(var reference: FileReference) {
                 )
         }
 
-        for (instance in instances) instance.ensurePrefab()
+        for (instance in instances) {
+            instance.ensurePrefab()
+        }
 
         val pathInformation = instances.joinToString("\n\n") {
             "" +
@@ -156,15 +171,6 @@ class PrefabInspector(var reference: FileReference) {
                         ECSSceneTabs.open(src, PlayMode.EDITING, true)
                     }
                 }
-        }
-
-        // the index may not be set in the beginning
-        fun getPath(instance: PrefabSaveable): Path {
-            val path = instance.prefabPath
-            if (path.lastIndex() < 0) {
-                path.index = instance.parent!!.getIndexOf(instance)
-            }
-            return path
         }
 
         val isWritable = prefab.isWritable
@@ -190,80 +196,13 @@ class PrefabInspector(var reference: FileReference) {
         }
         list += warningPanel
 
-        for (className in instances
-            .map { it.className }
-            .filter { it !in Saveable.objectTypeRegistry }
-            .toHashSet()
-            .sorted()
-        ) {
-            val warningPanel1 = TextPanel("Class '$className' wasn't registered as a custom class", style)
-            warningPanel1.tooltip =
-                "This class cannot be saved properly to disk, and might not be copyable.\n" +
-                        "Use registerCustomClass { customConstructor() } or registerCustomClass(YourClass::class)."
-            warningPanel1.textColor = warningPanel.textColor
-            list += warningPanel1
-        }
-
-        val first = instances.first()
-        val original = first.getOriginal()
-        list.add(TextInput("Name", "", instances.joinToString { it.name }, style).apply {
-            isBold = instances.any { isChanged(getPath(it), "name") }
-            isInputAllowed = isWritable
-            addChangeListener {
-                isBold = true
-                when (instances.size) {
-                    0 -> {}
-                    1 -> {
-                        val instance = instances.first()
-                        change(getPath(instance), instance, "name", it)
-                    }
-                    else -> {
-                        for (index in instances.indices) {
-                            val instance = instances[index]
-                            change(getPath(instance), instance, "name", "$it-$index")
-                        }
-                    }
-                }
-                onChange(false)
-            }
-            setResetListener {
-                isBold = false
-                val defaultValue = original?.name ?: ""
-                for (instance in instances) {
-                    reset(getPath(instance), "name")
-                    instance.name = defaultValue
-                }
-                defaultValue
-            }
-        })
-        list.add(
-            TextInput(
-                "Description",
-                "",
-                instances
-                    .map { it.description }
-                    .filter { it.isNotBlank() }
-                    .joinToString(", "),
-                style
-            ).apply {
-                isInputAllowed = isWritable && instances.all { it.description == first.description }
-                addChangeListener {
-                    isBold = true
-                    for (instance in instances) {
-                        change(getPath(instance), instance, "description", it)
-                    }
-                    onChange(false)
-                }
-                setResetListener {
-                    isBold = false
-                    val defaultValue = original?.description ?: ""
-                    for (instance in instances) {
-                        reset(getPath(instance), "description")
-                        instance.description = defaultValue
-                    }
-                    defaultValue
-                }
-            }.apply { this.isInputAllowed = isWritable })
+        showMissingClasses(list, instances, style, warningPanel)
+        showTextProperty("Name", "name",
+            list, instances, style, isWritable,
+            { it.name }) { it, v -> it.name = v }
+        showTextProperty("Description", "description",
+            list, instances, style, isWritable,
+            { it.description }) { it, v -> it.description = v }
 
         val inputListener = instances.firstInstanceOrNull<InputListener>()
         if (inputListener != null) {
@@ -273,93 +212,37 @@ class PrefabInspector(var reference: FileReference) {
 
         val customEditModes = instances.filterIsInstance<CustomEditMode>()
         if (customEditModes.isNotEmpty()) {
-            list.add(object : TextButton("Toggle Edit Mode", style) {
-
-                var borderColor = 0
-
-                override fun onUpdate() {
-                    super.onUpdate()
-                    val editMode = EditorState.editMode
-                    val newBorderColor = if (editMode in customEditModes) {
-                        editMode!!.getEditModeBorderColor()
-                    } else 0
-                    if (newBorderColor != borderColor) {
-                        borderColor = newBorderColor
-                        invalidateDrawing()
-                    }
-                }
-
-                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                    super.onDraw(x0, y0, x1, y1)
-                    DrawRectangles.drawBorder(x, y, width, height, borderColor, 2)
-                }
-            }.addLeftClickListener {
-                val editMode = EditorState.editMode
-                val index = customEditModes.indexOf(editMode) + 1
-                EditorState.editMode = customEditModes.getOrNull(index)
-            })
+            showCustomEditModeButton(list, customEditModes, style)
         }
 
         val reflections = instances.first().getReflections()
-
-        // debug warnings
-        for (warn in reflections.debugWarnings) {
-            val title = warn.name.camelCaseToTitle()
-            list.add(UpdatingTextPanel(500L, style) {
-                formatWarning(title, instances.firstNotNullOfOrNull { warn.getter.call(it) })
-            }.apply { textColor = black or 0xffff33 })
-        }
-
-        // debug actions: buttons for them
-        for (action in reflections.debugActions) {
-            // todo if there are extra arguments, we would need to create a list inputs for them
-            /* for (param in action.parameters) {
-                     param.kind
-            } */
-            val title = action.name.camelCaseToTitle()
-            val button = TextButton(title, style)
-                .addLeftClickListener {
-                    // could become a little heavy....
-                    for (instance in instances) {
-                        // todo check class using inheritance / whether it exists...
-                        if (instance::class == instances.first()::class) {
-                            action.call(instance)
-                        }
-                    }
-                    invalidateUI(true) // typically sth would have changed -> show that automatically
-                }
-            list.add(button)
-        }
-
-        // debug properties: text showing the value, constantly updating
-        for (property in reflections.debugProperties) {
-            // todo group them by their @Group-value
-            val title = property.name.camelCaseToTitle()
-            val getter = property.getter
-            val list1 = PanelListX(style)
-            list1.add(TextPanel("$title:", style))
-            val relevantInstances = instances.filter { it::class == instances.first()::class }
-            list1.add(UpdatingTextPanel(100L, style) {
-                relevantInstances
-                    .joinToString { getter.call(it).toString() }
-                    .shorten2Way(200)
-            })
-            list.add(list1)
-            createTrackingButton(list, list1, relevantInstances, property, style)
-        }
+        showDebugWarnings(list, reflections, instances, style)
+        showDebugActions(list, reflections, instances, style)
+        showDebugProperties(list, reflections, instances, style)
 
         val allProperties = reflections.allProperties
 
-        fun applyGroupStyle(tp: TextPanel): TextPanel {
-            tp.textColor = tp.textColor and 0x7fffffff
-            tp.focusTextColor = tp.textColor
-            tp.isItalic = true
-            return tp
-        }
-
         // todo place actions into these groups
+        showProperties(list, reflections, instances, style, allProperties, isWritable)
 
-        // bold/plain for other properties
+        val instance = instances.first()
+        val types = instance.listChildTypes()
+        for (i in types.indices) {
+            showChildType(list, types[i], instance, style, isWritable)
+        }
+    }
+
+    fun applyGroupStyle(tp: TextPanel): TextPanel {
+        tp.textColor = tp.textColor and 0x7fffffff
+        tp.focusTextColor = tp.textColor
+        tp.isItalic = true
+        return tp
+    }
+
+    private fun showProperties(
+        list: PanelList, reflections: CachedReflections, instances: List<PrefabSaveable>, style: Style,
+        allProperties: Map<String, CachedProperty>, isWritable: Boolean,
+    ) {
         val properties = reflections.propertiesByClass
         for (i in properties.size - 1 downTo 0) {
             val (clazz, propertyNames) = properties[i]
@@ -421,52 +304,211 @@ class PrefabInspector(var reference: FileReference) {
                 }
             }
         }
+    }
 
-        val instance = instances.first()
-        val types = instance.listChildTypes()
-        for (i in types.indices) {
-            val type = types[i]
+    private fun showChildType(
+        list: PanelList, type: Char, instance: PrefabSaveable, style: Style,
+        isWritable: Boolean
+    ) {
 
-            val options = instance.getOptionsByType(type) ?: continue
-            val niceName = instance.getChildListNiceName(type)
-            val children = instance.getChildListByType(type)
+        val options = instance.getOptionsByType(type) ?: return
+        val niceName = instance.getChildListNiceName(type)
+        val children = instance.getChildListByType(type)
 
-            if (niceName.equals("children", true)) continue
+        if (niceName.equals("children", true)) return
 
-            val nicerName = niceName.camelCaseToTitle()
-            list.add(object : StackPanel(
-                nicerName, "",
-                options, children, {
-                    it as Saveable
-                    Option(it.className.camelCaseToTitle(), "") { it }
-                }, style
-            ) {
+        val nicerName = niceName.camelCaseToTitle()
+        list.add(object : StackPanel(
+            nicerName, "",
+            options, children, {
+                it as Saveable
+                Option(it.className.camelCaseToTitle(), "") { it }
+            }, style
+        ) {
 
-                override val value: List<Inspectable>
-                    get() = instance.getChildListByType(type)
+            override val value: List<Inspectable>
+                get() = instance.getChildListByType(type)
 
-                override fun setValue(newValue: List<Inspectable>, mask: Int, notify: Boolean): Panel {
-                    if (newValue != value) {
-                        throw IllegalStateException("Cannot directly set the value of components[]!")
-                    } // else done
-                    return this
-                }
+            override fun setValue(newValue: List<Inspectable>, mask: Int, notify: Boolean): Panel {
+                if (newValue != value) {
+                    throw IllegalStateException("Cannot directly set the value of components[]!")
+                } // else done
+                return this
+            }
 
-                override fun onAddComponent(component: Inspectable, index: Int) {
-                    component as PrefabSaveable
-                    if (component.prefabPath == Path.ROOT_PATH) {
-                        val newPath = instance.prefabPath.added(Path.generateRandomId(), index, type)
-                        Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
-                    } else LOGGER.warn("Component had prefab path already")
-                }
+            override fun onAddComponent(component: Inspectable, index: Int) {
+                component as PrefabSaveable
+                if (component.prefabPath == Path.ROOT_PATH) {
+                    val newPath = instance.prefabPath.added(Path.generateRandomId(), index, type)
+                    Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
+                } else LOGGER.warn("Component had prefab path already")
+            }
 
-                override fun onRemoveComponent(component: Inspectable) {
-                    component as PrefabSaveable
-                    EditorState.unselect(component)
-                    Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
-                }
-            }.apply { isInputAllowed = isWritable })
+            override fun onRemoveComponent(component: Inspectable) {
+                component as PrefabSaveable
+                EditorState.unselect(component)
+                Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
+            }
+        }.apply { isInputAllowed = isWritable })
+    }
+
+    private fun showMissingClasses(
+        list: PanelList, instances: List<PrefabSaveable>, style: Style,
+        warningPanel: TextPanel
+    ) {
+        for (className in instances
+            .map { it.className }
+            .filter { it !in Saveable.objectTypeRegistry }
+            .toHashSet()
+            .sorted()
+        ) {
+            val warningPanel1 = TextPanel("Class '$className' wasn't registered as a custom class", style)
+            warningPanel1.tooltip =
+                "This class cannot be saved properly to disk, and might not be copyable.\n" +
+                        "Use registerCustomClass { customConstructor() } or registerCustomClass(YourClass::class)."
+            warningPanel1.textColor = warningPanel.textColor
+            list += warningPanel1
         }
+    }
+
+    private fun showTextProperty(
+        title: String, name: String, list: PanelList, instances: List<PrefabSaveable>,
+        style: Style, isWritable: Boolean,
+        getter: (PrefabSaveable) -> String,
+        setter: (PrefabSaveable, String) -> Unit
+    ) {
+        val first = instances.first()
+        val original = first.getOriginal()
+        list.add(
+            TextInput(
+                title,
+                "",
+                instances
+                    .map(getter)
+                    .filter { it.isNotBlank() }
+                    .joinToString(", "),
+                style
+            ).apply {
+                val firstValue = getter(first)
+                isBold = instances.any { isChanged(getPath(it), name) }
+                isInputAllowed = isWritable && instances.all { getter(it) == firstValue }
+                addChangeListener {
+                    isBold = true
+                    for (instance in instances) {
+                        change(getPath(instance), instance, name, it)
+                    }
+                    onChange(false)
+                }
+                setResetListener {
+                    isBold = false
+                    val defaultValue = if (original != null) getter(original) else ""
+                    for (instance in instances) {
+                        reset(getPath(instance), name)
+                        setter(instance, defaultValue)
+                    }
+                    defaultValue
+                }
+            }.apply { this.isInputAllowed = isWritable })
+    }
+
+    private fun showCustomEditModeButton(list: PanelList, customEditModes: List<CustomEditMode>, style: Style) {
+        list.add(object : TextButton("Toggle Edit Mode", style) {
+
+            var borderColor = 0
+
+            override fun onUpdate() {
+                super.onUpdate()
+                val editMode = EditorState.editMode
+                val newBorderColor = if (editMode in customEditModes) {
+                    editMode!!.getEditModeBorderColor()
+                } else 0
+                if (newBorderColor != borderColor) {
+                    borderColor = newBorderColor
+                    invalidateDrawing()
+                }
+            }
+
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                super.onDraw(x0, y0, x1, y1)
+                DrawRectangles.drawBorder(x, y, width, height, borderColor, 2)
+            }
+        }.addLeftClickListener {
+            val editMode = EditorState.editMode
+            val index = customEditModes.indexOf(editMode) + 1
+            EditorState.editMode = customEditModes.getOrNull(index)
+        })
+    }
+
+    private fun showDebugWarnings(
+        list: PanelList,
+        reflections: CachedReflections,
+        instances: List<PrefabSaveable>,
+        style: Style
+    ) {
+        for (warn in reflections.debugWarnings) {
+            val title = warn.name.camelCaseToTitle()
+            list.add(UpdatingTextPanel(500L, style) {
+                formatWarning(title, instances.firstNotNullOfOrNull { warn.getter.call(it) })
+            }.apply { textColor = black or 0xffff33 })
+        }
+    }
+
+    private fun showDebugActions(
+        list: PanelList,
+        reflections: CachedReflections,
+        instances: List<PrefabSaveable>,
+        style: Style
+    ) {
+        for (action in reflections.debugActions) {
+            // todo if there are extra arguments, we would need to create a list inputs for them
+            /* for (param in action.parameters) {
+                     param.kind
+            } */
+            val title = action.name.camelCaseToTitle()
+            val button = TextButton(title, style)
+                .addLeftClickListener {
+                    // could become a little heavy....
+                    for (instance in instances) {
+                        // todo check class using inheritance / whether it exists...
+                        if (instance::class == instances.first()::class) {
+                            action.call(instance)
+                        }
+                    }
+                    invalidateUI(true) // typically sth would have changed -> show that automatically
+                }
+            list.add(button)
+        }
+    }
+
+    /**
+     * debug properties: text showing the value, constantly updating
+     * */
+    private fun showDebugProperties(
+        list: PanelList, reflections: CachedReflections,
+        instances: List<PrefabSaveable>, style: Style
+    ) {
+        for (property in reflections.debugProperties) {
+            showDebugProperty(list, property, style, instances)
+        }
+    }
+
+    private fun showDebugProperty(
+        list: PanelList, property: KProperty<*>, style: Style,
+        instances: List<PrefabSaveable>
+    ) {
+        // todo group them by their @Group-value
+        val title = property.name.camelCaseToTitle()
+        val getter = property.getter
+        val list1 = PanelListX(style)
+        list1.add(TextPanel("$title:", style))
+        val relevantInstances = instances.filter { it::class == instances.first()::class }
+        list1.add(UpdatingTextPanel(100L, style) {
+            relevantInstances
+                .joinToString { getter.call(it).toString() }
+                .shorten2Way(200)
+        })
+        list.add(list1)
+        createTrackingButton(list, list1, relevantInstances, property, style)
     }
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
