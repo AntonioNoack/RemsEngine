@@ -3,13 +3,11 @@ package me.anno.tests.utils
 import me.anno.Engine
 import me.anno.cache.instances.PDFCache
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     PDFCache.disableLoggers()
     val file = downloads.getChild("ray differentials.pdf")
     file.inputStream { it, exc ->

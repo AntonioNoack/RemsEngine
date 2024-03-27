@@ -8,7 +8,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.UIColors.fireBrick
@@ -21,8 +20,7 @@ fun main() {
 
     // todo UI is invisible.. why???
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
 
     // index sample project

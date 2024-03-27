@@ -8,7 +8,6 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -90,8 +89,7 @@ class SimpleMeshTest(
 
 fun main() {
     // todo MSAA is broken... why?
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
     testUI3("UIMesh") { SimpleMeshTest(false, attributeRenderers[DeferredLayerType.COLOR]) }

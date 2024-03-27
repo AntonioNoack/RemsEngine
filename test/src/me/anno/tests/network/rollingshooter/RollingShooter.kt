@@ -26,7 +26,6 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
@@ -66,8 +65,7 @@ import kotlin.math.sin
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     // todo usable controls 😅
     // done moving

@@ -1,7 +1,6 @@
-package me.anno.tests.gfx
+package me.anno.tests.tools
 
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageCache
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
@@ -14,8 +13,7 @@ import kotlin.math.abs
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val i0 = ImageCache[screenshots.getChild("i0.png"), false]!!
     val i1 = ImageCache[screenshots.getChild("i1.png"), false]!!

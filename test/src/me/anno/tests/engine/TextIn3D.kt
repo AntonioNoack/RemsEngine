@@ -7,7 +7,6 @@ import me.anno.ecs.components.text.TextMeshComponent
 import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 
@@ -16,8 +15,7 @@ import me.anno.ui.base.components.AxisAlignment
  * */
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val scene = Entity("Scene")
     fun place(component: Component, pos: Double) {

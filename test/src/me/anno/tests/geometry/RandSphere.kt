@@ -2,7 +2,6 @@ package me.anno.tests.geometry
 
 import me.anno.Time
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.PIf
 import me.anno.utils.types.Floats.f1
@@ -16,8 +15,7 @@ import kotlin.random.Random
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val rand = Random(1234L)
     val size = 200

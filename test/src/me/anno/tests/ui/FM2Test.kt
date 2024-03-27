@@ -1,7 +1,6 @@
 package me.anno.tests.ui
 
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.jvm.fonts.AWTFont
 import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.fonts.FontManager
@@ -15,8 +14,7 @@ import javax.imageio.ImageIO
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val te = "Te"
     val t = "T"

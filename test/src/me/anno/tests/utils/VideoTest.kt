@@ -4,7 +4,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.Renderers.previewRenderer
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -36,8 +35,7 @@ import org.joml.Matrix4x3f
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     LogManager.logAll()
 

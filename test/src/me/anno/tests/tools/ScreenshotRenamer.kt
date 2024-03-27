@@ -1,7 +1,8 @@
-package me.anno.tests.files
+package me.anno.tests.tools
 
 import me.anno.io.files.FileReference
-import me.anno.utils.OS.pictures
+import me.anno.utils.OS.screenshots
+import org.apache.logging.log4j.LogManager
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -12,8 +13,13 @@ import java.util.Date
 val badWindowsFormat = Regex("Screenshot \\(\\d+\\)\\.png")
 val badDateFormat = Regex("\\d\\d\\.\\d\\d\\.\\d\\d\\d\\d-\\d\\d\\.\\d\\d\\.\\d\\d\\.png")
 val goodFormat = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
+
+private val logger = LogManager.getLogger("ScreenshotRenaming")
+
 fun main() {
-    rename1(pictures.getChild("Screenshots"), HashMap(256))
+    val map = HashMap<String,Int>(256)
+    rename1(screenshots, map)
+    logger.info("Renamed ${map.size} files")
 }
 
 fun rename1(file: FileReference, dates: HashMap<String, Int>) {
@@ -27,5 +33,5 @@ fun rename1(file: FileReference, dates: HashMap<String, Int>) {
         dates[newName] = id + 1
         val newName2 = if (id > 0) "$newName-$id.png" else "$newName.png"
         file.renameTo(file.getSibling(newName2))
-    } else println("ignored $file")
+    } else logger.info("Ignored $file")
 }

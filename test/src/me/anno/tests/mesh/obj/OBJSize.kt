@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.mesh.obj
 
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.OS.downloads

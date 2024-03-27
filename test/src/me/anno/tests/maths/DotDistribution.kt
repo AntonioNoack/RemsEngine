@@ -1,6 +1,8 @@
 package me.anno.tests.maths
 
+import me.anno.Engine
 import me.anno.Time
+import me.anno.engine.OfficialExtensions
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
@@ -18,6 +20,8 @@ fun calcRelativeDensity(rand: Float, rayX: Float): Float {
 }
 
 fun main() {
+
+    OfficialExtensions.initForTests()
 
     // to do there still is a small systematic difference... where is it coming from?
 
@@ -86,4 +90,5 @@ fun main() {
     }
 
     image.write(desktop.getChild("dist.png"))
+    Engine.requestShutdown()
 }

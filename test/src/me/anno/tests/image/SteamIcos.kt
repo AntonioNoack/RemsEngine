@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.image
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc

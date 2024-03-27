@@ -6,31 +6,12 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
-import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere
 
 fun main() {
-    // testSimple()
     testComplex()
-}
-
-fun testSimple() {
-    HiddenOpenGLContext.createOpenGL()
-    val base = Framebuffer(
-        "base", 1, 1, 2, arrayOf(),
-        DepthBufferType.INTERNAL
-    )
-    val derived = base.attachFramebufferToDepth(
-        "derived",
-        arrayOf(TargetType.UInt8x4)
-    )
-    useFrame(derived) {}
 }
 
 fun testComplex() {

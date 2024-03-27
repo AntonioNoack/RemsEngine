@@ -6,7 +6,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.deferred.DeferredLayerType
@@ -32,8 +31,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
     val clock = Clock()
     val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16, clock)

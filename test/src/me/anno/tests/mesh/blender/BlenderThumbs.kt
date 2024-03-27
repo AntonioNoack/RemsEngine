@@ -6,14 +6,12 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
-import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.Reference.getReference
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
     testUI3("Blender Thumbnails") {
         val src = getReference("E:/Documents/Blender")

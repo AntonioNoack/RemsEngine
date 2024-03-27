@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -48,8 +47,7 @@ import java.nio.IntBuffer
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
     ShaderLib.init()
     Thumbs.useCacheFolder = true

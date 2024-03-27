@@ -2,7 +2,6 @@ package me.anno.tests.mesh
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
@@ -14,8 +13,7 @@ import kotlin.random.Random
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val size = 512
     val offset = size / 2f

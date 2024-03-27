@@ -14,7 +14,6 @@ import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS.music
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Floats.toRadians
@@ -30,8 +29,7 @@ fun main() {
     // todo why are all bricks unstable?
 
     ECSRegistry.initMeshes()
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     registerCustomClass(BoxCollider())
     registerCustomClass(AudioComponent())

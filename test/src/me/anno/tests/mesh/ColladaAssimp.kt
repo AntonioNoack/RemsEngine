@@ -2,13 +2,11 @@ package me.anno.tests.mesh
 
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.OS
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     // not a single of my files can be loaded with Assimp 4.1 ...
     // BLEND: Expected at least one object with no parent
     val file = OS.downloads.getChild("3d/FemaleStandingPose").listChildren()

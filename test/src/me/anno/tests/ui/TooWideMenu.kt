@@ -9,6 +9,7 @@ import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.utils.ThumbnailPanel
 
+// this was a bug and has been fixed
 fun main() {
     disableRenderDoc()
     testUI3("TooWideMenu", TextButton("Click Me", style)

@@ -1,15 +1,13 @@
 package me.anno.tests.mesh.obj
 
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
 import me.anno.utils.OS
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val source = OS.downloads.getChild("San_Miguel/san-miguel.obj")
     // 20MB, so larger than the L3 cache of my CPU

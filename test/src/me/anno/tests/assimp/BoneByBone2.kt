@@ -13,7 +13,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
-import me.anno.extensions.ExtensionLoader
 import me.anno.maths.Maths
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
@@ -31,8 +30,7 @@ fun main() {
 
     // front legs are broken slightly???
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.initMeshes()
 
     val meshFile = OS.downloads.getChild("3d/azeria/scene.gltf")

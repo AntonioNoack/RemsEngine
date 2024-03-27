@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
 
 fun main() {
+    // todo cube is no longer rotating??
     rotatingCube()
 }
 

@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.Reference.getReference
 import me.anno.lua.QuickScriptComponent
 
@@ -13,8 +12,7 @@ import me.anno.lua.QuickScriptComponent
  * */
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
 
     val qs = QuickScriptComponent()

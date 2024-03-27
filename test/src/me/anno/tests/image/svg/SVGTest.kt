@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.image.svg
 
 import me.anno.gpu.texture.TextureReader.Companion.imageTimeout
 import me.anno.image.svg.SVGMeshCache

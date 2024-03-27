@@ -3,7 +3,6 @@ package me.anno.tests.image
 import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.image.thumbs.Thumbs
@@ -13,8 +12,7 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS.desktop
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     val ori = getReference("res://icon.png")
     if (true) {
         disableRenderDoc()

@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.ecs.components.physics.FlagMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.OS
+import me.anno.io.files.Reference.getReference
 
 // generate cloth mesh
 // simulate cloth using gfx shader
@@ -10,6 +10,6 @@ import me.anno.utils.OS
 // apply forces like wind and gravity
 fun main() {
     val flag = FlagMesh()
-    flag.material.diffuseMap = OS.pictures.getChild("4k.jpg")
+    flag.material.diffuseMap = getReference("res://textures/UVChecker.png")
     testSceneWithUI("FlagMeshSim", flag)
 }

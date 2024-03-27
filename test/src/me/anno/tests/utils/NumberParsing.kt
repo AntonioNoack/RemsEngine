@@ -8,8 +8,9 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class NumberParsing {
+
     @Test
-    fun testNumberParsing() {
+    fun testReadingInts() {
         registerCustomClass(StringMap())
         for ((str, expected) in mapOf(
             "156231" to 156231,
@@ -23,9 +24,14 @@ class NumberParsing {
             "#abcd" to 0xaabbccdd.toInt(),
             "0110" to "110".toInt(8)
         )) {
-            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"i32:value\": $str}]", InvalidRef)
+            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"i:value\": $str}]", InvalidRef)
             assertEquals(expected, actual["value"])
         }
+    }
+
+    @Test
+    fun testReadingLongs() {
+        registerCustomClass(StringMap())
         for ((str, expected) in mapOf(
             "156231" to 156231L,
             "${Long.MAX_VALUE}" to Long.MAX_VALUE,
@@ -38,7 +44,7 @@ class NumberParsing {
             "#abcd" to 0xaabbccdd.toInt().toLong(),
             "0110" to "110".toInt(8).toLong()
         )) {
-            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"i64:value\": $str}]", InvalidRef)
+            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"l:value\": $str}]", InvalidRef)
             assertEquals(expected, actual["value"])
         }
     }

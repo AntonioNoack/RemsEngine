@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.Reference.getReference
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.shapes.SDFBezierCurve
@@ -124,8 +123,7 @@ fun createShapesScene(): Entity {
 fun main() {
 
     ECSRegistry.initMeshes()
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     // todo bug: these elements cannot be properly clicked -> all have same clickId
     // todo bug: even when I select one, the gizmos isn't shown at the right place

@@ -17,7 +17,6 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -202,8 +201,7 @@ class FoliageShader(
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     // https://www.youtube.com/watch?v=jw00MbIJcrk
 

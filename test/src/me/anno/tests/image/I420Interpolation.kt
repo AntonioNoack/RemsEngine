@@ -1,9 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.Engine
-import me.anno.Time
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.utils.Clock
@@ -13,8 +11,7 @@ import java.nio.ByteBuffer
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     fun interpolate(xi: Int, yi: Int, w2: Int, data: ByteBuffer): Int {
         val xf = xi.and(1)

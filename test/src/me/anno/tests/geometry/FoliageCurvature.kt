@@ -1,7 +1,6 @@
 package me.anno.tests.geometry
 
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.image.ImageWriter
 import me.anno.maths.LinearRegression.findPolynomialCoefficients
 import me.anno.utils.types.Floats.f2
@@ -12,8 +11,7 @@ import org.joml.Vector2f
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     /**
      * - foliage can be animated by shearing, but that makes the straws longer

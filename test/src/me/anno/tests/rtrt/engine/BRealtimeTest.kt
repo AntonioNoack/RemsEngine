@@ -10,7 +10,6 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.useFrame
@@ -85,8 +84,7 @@ const val sky0BGR = 0x93522f
 const val sky1BGR = 0x9b725c
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     val clock = Clock()
     forceLoadRenderDoc()
     ECSRegistry.initMeshes()

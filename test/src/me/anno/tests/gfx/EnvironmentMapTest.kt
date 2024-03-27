@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
 import me.anno.image.raw.ByteImage
@@ -20,6 +21,7 @@ import org.joml.Matrix4x3f
 import org.joml.Vector3d
 
 fun main() {
+    OfficialExtensions.initForTests()
     // test environment map
     ECSRegistry.init()
     val scene = Entity()

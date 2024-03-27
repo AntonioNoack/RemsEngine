@@ -10,14 +10,12 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
 
     LogManager.enableLogger("AnimatedMeshesLoader")

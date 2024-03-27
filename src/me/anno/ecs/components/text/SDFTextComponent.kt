@@ -72,12 +72,13 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         } * dx
     }
 
-    init {
+    val init = lazy {
         onTextFontChange()
         onAlignmentChange()
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        init.value
 
         // calculate local aabb
         val local = localAABB
@@ -98,6 +99,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
     }
 
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+        init.value
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
         val meshGroup = meshGroup ?: TextSDFGroup(font, text, 0.0)

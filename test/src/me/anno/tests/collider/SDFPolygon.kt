@@ -2,7 +2,6 @@ package me.anno.tests.collider
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.sdf.shapes.SDFPolygon
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
@@ -14,8 +13,7 @@ import kotlin.math.sign
 /** 2d sdf test */
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val size = 512
     val star = SDFPolygon()

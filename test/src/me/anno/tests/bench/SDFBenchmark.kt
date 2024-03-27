@@ -2,7 +2,6 @@ package me.anno.tests.bench
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.fonts.Font
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
@@ -25,8 +24,7 @@ fun toBytes(data: FloatBuffer): ByteArray {
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val logger = LogManager.getLogger("SDFBenchmark")
 

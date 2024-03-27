@@ -4,7 +4,6 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
@@ -15,8 +14,7 @@ import me.anno.io.json.saveable.JsonStringWriter
  * a test, because smileys were not written correctly
  * */
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     // smileys were not saved correctly, why?
     // because the input stream reader was reading bytes, not chars
     ECSRegistry.init()

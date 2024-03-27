@@ -6,14 +6,12 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     // given a triangle, and uv coordinates of a triangle,
     //  draw a pixelated image such that it appears to have triangular pixels
     val mesh = MeshComponent(documents.getChild("triangle.obj"))

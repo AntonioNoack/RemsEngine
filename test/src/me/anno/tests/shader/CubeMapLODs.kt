@@ -6,13 +6,11 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.utils.OS.documents
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     // render a dynamic cube map,
     // calculate its LODs
     // display the result

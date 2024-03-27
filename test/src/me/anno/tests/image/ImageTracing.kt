@@ -1,10 +1,9 @@
-package me.anno.tests.gfx
+package me.anno.tests.image
 
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
-import me.anno.maths.Maths.mix
+import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.OS.desktop
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -81,13 +80,13 @@ object ImageTracing {
                         edgeToPoint(edge[k + 1], w, pixels, p2)
                         for (m in 0 until s * 2) {
                             val f = m / (s * 2 - 1f)
-                            val px = (mix(p[0], p2[0], f) * s).toInt()
-                            val py = (mix(p[1], p2[1], f) * s).toInt()
+                            val px = (Maths.mix(p[0], p2[0], f) * s).toInt()
+                            val py = (Maths.mix(p[1], p2[1], f) * s).toInt()
                             ii.setRGB(px, py, -1)
                         }
                         k++
                     }
-                    ii.write(desktop.getChild("it/lines-" + ctr++ + ".png"))
+                    ii.write(OS.desktop.getChild("it/lines-" + ctr++ + ".png"))
                 }
                 x++
                 i++
@@ -96,7 +95,7 @@ object ImageTracing {
             y++
         }
         for (k in 0 until w * h) ij.setRGB(k % w, k / w, if (done[k * 2] || done[k * 2 + 1]) 0 else -1)
-        ij.write(desktop.getChild("it/done.png"))
+        ij.write(OS.desktop.getChild("it/done.png"))
     }
 
     private fun edgeToPoint(edge: Int, w: Int, pixels: IntArray, dst: FloatArray) {

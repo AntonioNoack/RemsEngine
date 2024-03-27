@@ -4,7 +4,6 @@ import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.io.files.inner.InnerFolder
@@ -25,8 +24,7 @@ import kotlin.math.abs
  * uv-sign detection implementation test
  * */
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
     @Suppress("SpellCheckingInspection")
     val samples = listOf(

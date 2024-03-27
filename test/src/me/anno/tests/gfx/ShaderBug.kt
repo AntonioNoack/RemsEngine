@@ -3,6 +3,9 @@ package me.anno.tests.gfx
 import me.anno.jvm.HiddenOpenGLContext
 import org.lwjgl.opengl.GL46C
 
+/**
+ * this is shader code that once crashed -> fixed in newer driver versions
+ * */
 fun main() {
     HiddenOpenGLContext.createOpenGL()
 

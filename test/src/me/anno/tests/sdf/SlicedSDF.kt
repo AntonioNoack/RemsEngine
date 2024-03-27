@@ -4,13 +4,14 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.PlaneModel
-import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.BaseShader
@@ -29,7 +30,6 @@ import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.sdf.shapes.SDFTorus
 import me.anno.utils.OS.documents
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
@@ -45,6 +45,7 @@ fun main() {
     // todo other thing: screen space shadows :)
     // https://panoskarabelas.com/posts/screen_space_shadows/
 
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
 
     // todo render dust, fog, modelled by SDF
@@ -93,7 +94,6 @@ fun main() {
             // todo calculate procedural length based on state
             mesh.proceduralLength = 16
             mesh.cullMode = CullMode.BOTH
-            JomlPools.aabbf.sub(1)
         }
 
         override fun createShader(): Pair<Map<String, TypeValue>, BaseShader> {

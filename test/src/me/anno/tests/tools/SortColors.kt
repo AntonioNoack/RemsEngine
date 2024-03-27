@@ -1,16 +1,23 @@
-package me.anno.tests.image
+package me.anno.tests.tools
 
+import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color.g
 import me.anno.utils.Color.hex24
 import me.anno.utils.Color.r
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.pictures
 
+/**
+ * transforms an image into a pseudo-histogram,
+ * which then can be used in code directly because of its small 6x6 size
+ * */
 fun main() {
-    val image = ImageCache[OS.pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg"), false]!!
+    OfficialExtensions.initForTests()
+    val src = pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
+    val image = ImageCache[src, false]!!
     val intImage = image.createIntImage()
     val sortedY = intImage.data.sortedBy { it.g() }
     val sortedX = (0 until image.height).map { y ->

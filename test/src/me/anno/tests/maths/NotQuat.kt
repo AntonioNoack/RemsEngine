@@ -15,7 +15,7 @@ fun main() {
         normal.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).normalize()
             .normalToQuaternionY(quat)
             .transform(test.set(1f, 0f, 0f))
-        for (j in 0 until 10) {
+        for (j in 0 until 10) { // not always working
             val angle = atan2(test.z, test.x)
             quat.rotateY(angle)
                 .transform(test.set(1f, 0f, 0f))

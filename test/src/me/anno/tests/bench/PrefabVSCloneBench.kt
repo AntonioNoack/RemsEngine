@@ -5,14 +5,12 @@ import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
 
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     // 0.114s vs 0.629s for 10k instances, so .clone() is 6x faster than setting properties using reflections
     // -> usable slowdown :)

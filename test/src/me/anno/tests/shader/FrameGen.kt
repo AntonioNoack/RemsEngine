@@ -11,7 +11,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
@@ -54,8 +53,7 @@ import org.lwjgl.opengl.GL46C.glPointSize
 import kotlin.math.max
 
 fun main() {
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     // todo this has bad graphics, because I'm using Pipeline directly
     // todo instead, use RenderGraph/RenderView

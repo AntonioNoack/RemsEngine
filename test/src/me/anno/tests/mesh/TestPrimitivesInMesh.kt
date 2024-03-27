@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.mesh
 
 import me.anno.Engine
 import me.anno.ecs.Entity
@@ -7,17 +7,19 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
 
 fun main() {
+    OfficialExtensions.initForTests()
     ECSRegistry.initMeshes()
     val file = downloads.getChild("3d/blender_chan.glb")
-    val obj = PrefabCache[file] ?: throw java.lang.IllegalStateException("Missing $file")
+    val obj = PrefabCache[file] ?: throw IllegalStateException("Missing $file")
     val entity = obj.getSampleInstance() as Entity
     val totalNumPrimitives = entity.sumComponentsInChildren(MeshComponent::class) { comp ->
         MeshCache[comp.meshFile]!!.numPrimitives
     }
-    LOGGER.debug("Primitives: $totalNumPrimitives")
+    LOGGER.info("Primitives: $totalNumPrimitives")
     Engine.requestShutdown()
 }

@@ -25,4 +25,9 @@ object OfficialExtensions {
             ExtensionLoader.tryLoadMainInfo(path)
         }
     }
+
+    fun initForTests() {
+        register()
+        ExtensionLoader.load()
+    }
 }

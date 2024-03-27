@@ -52,6 +52,7 @@ import org.joml.Vector3f
 
 // get snow effect working like in https://www.glslsandbox.com/e#36547.0
 // done get this and rain working in 3d
+// todo why is the sky black???
 // todo render snow as SDF instead (?), so we can apply lighting to it without extra cost.
 // our snow is transparent though... so that's a little more complicated...
 

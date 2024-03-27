@@ -11,7 +11,6 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -125,8 +124,7 @@ class ForceFieldMaterial : Material() {
  * */
 fun main() {
 
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
 
     val scene = Entity()
     val planeMat = Material().apply {

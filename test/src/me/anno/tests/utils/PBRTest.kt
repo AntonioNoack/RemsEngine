@@ -1,7 +1,6 @@
 package me.anno.tests.utils
 
 import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
@@ -84,8 +83,7 @@ private val testShader = Shader(
 
 fun main() {
     val size = 512
-    OfficialExtensions.register()
-    ExtensionLoader.load()
+    OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL(size, size)
     val randomTex = Texture2D("random", size, size, 1)
     val random = Random(1234L)
