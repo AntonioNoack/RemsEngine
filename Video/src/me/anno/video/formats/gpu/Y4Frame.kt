@@ -3,7 +3,7 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 

@@ -83,7 +83,7 @@ class ContentCreator(
                     is FileReference -> {
                         FileInput("", style, value, emptyList())
                             .apply { base.setPlaceholder(shortTitle) }
-                            .setChangeListener { map[fullName] = it }
+                            .addChangeListener { map[fullName] = it }
                     }
                     is Int -> {
                         if (value.a() > 100 || "Color" in fullName || fullName.endsWith("background")) {

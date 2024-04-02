@@ -9,7 +9,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.InputStreams.skipN
+import me.anno.io.Streams.skipN
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream

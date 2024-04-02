@@ -29,8 +29,8 @@ import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.float16ToFloat32
-import me.anno.utils.types.InputStreams.readNBytes2
-import me.anno.utils.types.InputStreams.skipN
+import me.anno.io.Streams.readNBytes2
+import me.anno.io.Streams.skipN
 import org.apache.logging.log4j.LogManager
 import java.io.RandomAccessFile
 import java.math.BigInteger

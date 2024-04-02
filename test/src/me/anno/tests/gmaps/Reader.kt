@@ -22,7 +22,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL46C
 import java.io.InputStream

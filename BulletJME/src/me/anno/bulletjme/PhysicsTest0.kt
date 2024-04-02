@@ -4,7 +4,6 @@ import com.jme3.bullet.PhysicsSpace
 import com.jme3.bullet.collision.shapes.BoxCollisionShape
 import com.jme3.bullet.objects.PhysicsRigidBody
 import com.jme3.math.Vector3f
-import me.anno.bulletjme.Rigidbody.Companion.v
 
 fun main() {
     BulletJMEMod.Companion // load library

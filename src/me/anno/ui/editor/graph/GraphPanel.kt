@@ -504,7 +504,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             "File", "FileReference" -> {
                 if (old is FileInput) return old.apply { old.textSize = font.size }
                 return FileInput("", style, con.currValue as? FileReference ?: InvalidRef, emptyList(), false)
-                    .setChangeListener {
+                    .addChangeListener {
                         con.currValue = it
                         onChange(false)
                     }

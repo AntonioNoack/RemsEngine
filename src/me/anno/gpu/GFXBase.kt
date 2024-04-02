@@ -544,7 +544,7 @@ object GFXBase {
 
     @JvmStatic
     fun setIcon(window: Long) {
-        val src = getReference(BundledRef.prefix + "icon.png")
+        val src = getReference("res://icon.png")
         val srcImage = ImageCache[src, false]
         if (srcImage != null) {
             setIcon(window, srcImage)

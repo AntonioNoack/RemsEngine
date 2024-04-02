@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="Video" />
     <orderEntry type="module" module-name="JVM" />
     <orderEntry type="module" module-name="BulletJME" />
+    <orderEntry type="module" module-name="Export" />
   </component>
 </module>

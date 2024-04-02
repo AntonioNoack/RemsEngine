@@ -12,7 +12,7 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
 import me.anno.io.files.FileReference
 import me.anno.utils.types.Strings.indexOf2
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import java.io.DataInputStream
 import java.io.IOException
 import java.nio.ByteOrder

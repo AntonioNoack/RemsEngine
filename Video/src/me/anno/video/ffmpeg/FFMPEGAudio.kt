@@ -9,7 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Buffers.flip16
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
 import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16

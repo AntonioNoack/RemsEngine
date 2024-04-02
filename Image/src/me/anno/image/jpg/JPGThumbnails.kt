@@ -1,7 +1,7 @@
 package me.anno.image.jpg
 
 import me.anno.io.files.FileReference
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 
 /**
  * Extracts embedded thumbnails in JPEGs

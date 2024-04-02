@@ -380,7 +380,7 @@ class Prefab : Saveable {
 
     fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
         val newInstance = getSampleInstance(depth).clone()
-        newInstance.prefab = null
+        newInstance.prefab = null // make mutable
         return newInstance
     }
 

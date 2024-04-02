@@ -5,7 +5,7 @@ import me.anno.io.files.Signature
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.types.Strings.shorten
-import me.anno.utils.types.InputStreams.skipN
+import me.anno.io.Streams.skipN
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame

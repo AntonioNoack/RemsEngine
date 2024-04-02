@@ -8,6 +8,7 @@ import me.anno.engine.Events
 import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.extensions.events.Event
 import me.anno.gpu.GFX
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -23,6 +24,11 @@ import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 
 class GameEngineProject() : NamedSaveable() {
+
+    /**
+     * is called when a project has been loaded
+     * */
+    class ProjectLoadedEvent(val project: GameEngineProject): Event()
 
     companion object {
 

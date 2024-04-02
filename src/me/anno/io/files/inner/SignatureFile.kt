@@ -2,7 +2,7 @@ package me.anno.io.files.inner
 
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Signature
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import java.io.InputStream
 
 /**

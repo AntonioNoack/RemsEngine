@@ -20,6 +20,7 @@ object OfficialExtensions {
             "res://unpack-ext.info",
             "res://image-ext.info",
             "res://video-ext.info",
+            "res://export-ext.info",
         )
         for (path in paths) {
             ExtensionLoader.tryLoadMainInfo(path)

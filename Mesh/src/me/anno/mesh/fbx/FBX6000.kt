@@ -15,7 +15,7 @@ import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.pop
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException

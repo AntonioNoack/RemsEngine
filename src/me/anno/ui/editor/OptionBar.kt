@@ -17,7 +17,7 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         spacing = style.getSize("fontSize", 12) / 2
     }
 
-    class Major(name: String, val action: (() -> Unit)?, style: Style) : TextPanel(name, style) {
+    class Major(name: String, var action: (() -> Unit)?, style: Style) : TextPanel(name, style) {
 
         init {
             this.name = name
@@ -63,7 +63,7 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
     class Minor(val name: String, val action: () -> Unit)
 
     fun addMajor(name: String, action: (() -> Unit)?): Major {
-        if (!majors.containsKey(name)) {
+        val major = majors.getOrPut(name) {
             val major = Major(name, action, style)
             majors[name] = major
             val magicIndex = keyListeners.findNextFreeIndex(name)
@@ -75,14 +75,24 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
                     false
                 }
             }
-            this += major
+            major
         }
-        return majors[name]!!
+        major.action = action
+        return major
     }
 
     fun addAction(major: String, minor: String, action: () -> Unit) = addAction(major, minor, minor, action)
     fun addAction(major: String, minor: String, name: String, action: () -> Unit) {
         addMajor(major, null).addMinor(Minor(name, action), minor)
+    }
+
+    fun removeMajor(name: String) {
+        val major = majors[name] ?: return
+        val magicIndex = major.magicIndex
+        if (magicIndex >= 0) {
+            keyListeners.remove(major.name[magicIndex])
+            major.removeFromParent()
+        }
     }
 
     override fun onUpdate() {

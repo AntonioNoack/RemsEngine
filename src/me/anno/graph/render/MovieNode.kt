@@ -34,7 +34,7 @@ class MovieNode : CalculationNode(
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
         list += FileInput("", style, file, emptyList())
-            .setChangeListener {
+            .addChangeListener {
                 file = it
                 g.onChange(false)
             }

@@ -1,6 +1,6 @@
 package me.anno.tests.mesh.minecraft
 
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import java.io.DataInputStream
 
 object NBTReader {

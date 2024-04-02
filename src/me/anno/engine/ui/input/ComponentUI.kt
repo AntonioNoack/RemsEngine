@@ -1020,7 +1020,7 @@ object ComponentUI {
                         property.reset(this) as? FileReference
                             ?: InvalidRef
                     }
-                    setChangeListener {
+                    addChangeListener {
                         property.set(this, it)
                     }
                 }
@@ -1110,7 +1110,7 @@ object ComponentUI {
                             setResetListener {
                                 property.reset(this) as? FileReference ?: InvalidRef
                             }
-                            setChangeListener { property.set(this, it) }
+                            addChangeListener { property.set(this, it) }
                         }
 
                         val openFromProjectButton = TextButton("\uD83D\uDCDA", true, style)

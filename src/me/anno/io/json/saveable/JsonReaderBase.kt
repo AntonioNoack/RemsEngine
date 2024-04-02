@@ -153,7 +153,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     /**
-     * reads a number string; may return invalid results
+     * reads a number string; may return invalid results;
      * if a string starts here, the string is read instead
      * */
     private fun readNumber(): String {

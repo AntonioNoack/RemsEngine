@@ -9,7 +9,7 @@ import me.anno.io.Streams.write0String
 import me.anno.io.Streams.writeBE32
 import me.anno.io.Streams.writeBE64
 import me.anno.io.files.FileReference
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

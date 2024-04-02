@@ -3,7 +3,7 @@ package me.anno.network
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.network.Protocol.Companion.convertMagic
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream

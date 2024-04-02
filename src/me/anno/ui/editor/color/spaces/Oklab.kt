@@ -1,16 +1,11 @@
 package me.anno.ui.editor.color.spaces
 
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.buffer.DrawMode
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.Color.toRGB
 import me.anno.utils.types.Vectors.fromLinear
 import me.anno.utils.types.Vectors.toLinear
 import org.joml.Vector3f
 import kotlin.math.cbrt
-import kotlin.random.Random
 
 /**
  * https://bottosson.github.io/posts/oklab/
@@ -68,30 +63,4 @@ object Oklab : ColorSpace(
         )
         return dst.fromLinear(dst)
     }
-}
-
-// invertibility check
-// and looking at how the color space looks
-fun main() {
-    val rgb = Vector3f()
-    val lab = Vector3f()
-    val dst = Vector3f()
-    val n = 100000
-    val rnd = Random(1234L)
-    val positions = FloatArray(n * 3)
-    val colors = IntArray(n)
-    for (i in 0 until n) {
-        rgb.set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat())
-        Oklab.fromRGB(rgb, lab)
-        Oklab.toRGB(lab, dst)
-        if (rgb.distanceSquared(dst) > 1e-7f)
-            throw IllegalStateException("[$i] $rgb -> $lab -> $dst")
-        lab.get(positions, 3 * i)
-        colors[i] = rgb.toRGB()
-    }
-    val mesh = Mesh()
-    mesh.positions = positions
-    mesh.color0 = colors
-    mesh.drawMode = DrawMode.POINTS
-    testSceneWithUI("Oklab", mesh)
 }

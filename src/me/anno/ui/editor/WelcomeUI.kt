@@ -355,7 +355,7 @@ interface WelcomeUI {
         }
         newProject += nameInput
 
-        fileInput.setChangeListener {
+        fileInput.addChangeListener {
             updateFileInputColor()
         }
         newProject += fileInput

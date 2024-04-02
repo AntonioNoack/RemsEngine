@@ -1,0 +1,4 @@
+plugin-name: Game Export
+authors: Antonio Noack
+description: creates a runnable .jar file from a set of scene files
+main-class: me.anno.export.ExportPlugin

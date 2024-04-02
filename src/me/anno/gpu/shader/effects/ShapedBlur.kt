@@ -19,7 +19,7 @@ import me.anno.io.Streams.readLE32F
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.hasFlag
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.ByteArrayInputStream

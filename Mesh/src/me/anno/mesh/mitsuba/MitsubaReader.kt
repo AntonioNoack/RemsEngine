@@ -28,7 +28,7 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.InputStreams.skipN
+import me.anno.io.Streams.skipN
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f

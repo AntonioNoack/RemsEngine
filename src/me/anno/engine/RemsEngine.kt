@@ -28,6 +28,7 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.projects.GameEngineProject
+import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -222,16 +223,20 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
             openStylingWindow(windowStack)
         }
 
+        // todo bug: why is options invisible???
         list.add(options)
 
         list.add(ECSSceneTabs)
 
-        val editUI = createDefaultMainUI(currentProject!!.location, style)
+        val project = currentProject!!
+        val editUI = createDefaultMainUI(project.location, style)
         list.add(editUI)
 
         list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
         windowStack.push(list)
         // could be drawDirectly, but the text quality of triangle- and draw count suffers from it
+
+        callEvent(GameEngineProject.ProjectLoadedEvent(project))
     }
 
     override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
@@ -253,10 +258,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
         getWelcomeUI().create(this)
 
-        // do that now, because we now can support progress bars
-        // todo collect progress bars from the start
         Installer.checkFFMPEGInstall()
-
         ShaderLib.init()
 
         val windowStack = GFX.windows.first().windowStack

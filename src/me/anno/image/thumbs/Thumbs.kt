@@ -100,7 +100,7 @@ import me.anno.utils.structures.Callback
 import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.formats.gpu.GPUFrame

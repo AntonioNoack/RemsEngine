@@ -9,7 +9,7 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COMPUTE_SHADER
 import org.lwjgl.opengl.GL46C.GL_FRAGMENT_SHADER

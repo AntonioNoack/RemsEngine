@@ -96,6 +96,7 @@
       <element id="module-output" name="Unpack" />
       <element id="module-output" name="Video" />
       <element id="module-output" name="JVM" />
+      <element id="module-output" name="Export" />
     </root>
   </artifact>
 </component>

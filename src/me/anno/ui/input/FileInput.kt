@@ -1,15 +1,15 @@
 package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
+import me.anno.image.thumbs.Thumbs
+import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.image.thumbs.Thumbs
+import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
-import me.anno.engine.EngineBase
-import me.anno.input.Clipboard.getClipboardContent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
@@ -62,9 +62,7 @@ open class FileInput(
             alignmentX = AxisAlignment.CENTER
             alignmentY = AxisAlignment.CENTER
             addChangeListener {
-                val gf = it.toGlobalFile()
-                this@FileInput.changeListener(gf)
-                // base.tooltip = gf.absolutePath
+                notifyListeners(it.toGlobalFile())
             }
         }
         button.apply {
@@ -140,8 +138,14 @@ open class FileInput(
 
     override fun setValue(newValue: FileReference, mask: Int, notify: Boolean): Panel {
         base.setValue(newValue.toString2(), false)
-        if (notify) changeListener(newValue)
+        if (notify) notifyListeners(newValue)
         return this
+    }
+
+    private fun notifyListeners(newValue: FileReference) {
+        for (listener in changeListeners) {
+            listener(newValue)
+        }
     }
 
     private fun FileReference.toString2() = toLocalPath()
@@ -150,9 +154,9 @@ open class FileInput(
         get() = if (base.value == f0.absolutePath)
             f0 else base.value.toGlobalFile()
 
-    var changeListener = { _: FileReference -> }
-    fun setChangeListener(listener: (FileReference) -> Unit): FileInput {
-        this.changeListener = listener
+    private val changeListeners = ArrayList<(file: FileReference) -> Unit>()
+    fun addChangeListener(listener: (FileReference) -> Unit): FileInput {
+        changeListeners.add(listener)
         return this
     }
 

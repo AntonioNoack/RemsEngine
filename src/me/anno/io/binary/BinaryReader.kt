@@ -12,7 +12,7 @@ import me.anno.io.binary.BinaryTypes.OBJECT_PTR
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.SimpleType
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.io.Streams.readNBytes2
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix2d

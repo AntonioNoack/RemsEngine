@@ -564,16 +564,16 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun addComponent(component: Component): Entity {
-        addComponent(-1, component)
-        return this
+        return addComponent(-1, component)
     }
 
-    fun addComponent(index: Int, component: Component) {
+    fun addComponent(index: Int, component: Component): Entity {
         if (index < 0 || index >= internalComponents.size) internalComponents.add(component)
         else internalComponents.add(index, component)
         component.entity = this
         onChangeComponent(component)
         setChildPath(component, index, 'c')
+        return this
     }
 
     fun onChangeComponent(component: Component) {
@@ -741,27 +741,18 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             "position" -> transform.localPosition = value as? Vector3d ?: return
             "scale" -> transform.localScale = value as? Vector3d ?: return
             "rotation" -> transform.localRotation = value as? Quaterniond ?: return
-            "children" -> {
-                val values = value as? Array<*> ?: return
-                internalChildren.clear()
-                internalChildren.ensureCapacity(values.size)
-                for (valueI in values) {
-                    if (valueI is Entity) {
-                        addChild(valueI)
-                    }
-                }
-            }
-            "components" -> {
-                val values = value as? Array<*> ?: return
-                internalComponents.clear()
-                internalComponents.ensureCapacity(values.size)
-                for (valueI in values) {
-                    if (valueI is Component) {
-                        addComponent(valueI)
-                    }
-                }
-            }
+            "children" -> addMembers(value, internalChildren) { if (it is Entity) addChild(it) }
+            "components" -> addMembers(value, internalComponents) { if (it is Component) addComponent(it) }
             else -> super.setProperty(name, value)
+        }
+    }
+
+    private fun <V> addMembers(value: Any?, dst: ArrayList<V>, add: (Any?) -> Unit) {
+        val values = value as? Array<*> ?: return
+        dst.clear()
+        dst.ensureCapacity(values.size)
+        for (valueI in values) {
+            add(valueI)
         }
     }
 
