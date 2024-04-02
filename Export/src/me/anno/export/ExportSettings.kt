@@ -5,7 +5,8 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.types.AnyToLong
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 
 class ExportSettings : NamedSaveable() {
 
@@ -27,7 +28,7 @@ class ExportSettings : NamedSaveable() {
 
     val modulesToInclude = HashSet<String>()
 
-    var firstScenePath: FileReference = InvalidRef
+    var firstSceneRef: FileReference = InvalidRef
 
     @Docs("Collection of files/folders; external stuff is always exported, when referenced by an internal asset")
     val assetsToInclude = HashSet<FileReference>()
@@ -45,19 +46,15 @@ class ExportSettings : NamedSaveable() {
         writer.writeStringArray("modulesToInclude", modulesToInclude.toTypedArray())
         writer.writeFileArray("assetsToInclude", assetsToInclude.toTypedArray())
         writer.writeStringArray("excludedClasses", excludedClasses.toTypedArray())
-        writer.writeFile("dstFile", dstFile)
-        writer.writeFile("iconOverride", iconOverride)
-        writer.writeLong("lastUsed", lastUsed)
+        saveSerializableProperties(writer)
     }
 
     override fun setProperty(name: String, value: Any?) {
+        if (readSerializableProperty(name, value)) return
         when (name) {
             "modulesToInclude" -> loadStringArray(modulesToInclude, value)
             "assetsToInclude" -> loadFileArray(assetsToInclude, value)
             "excludedClasses" -> loadStringArray(excludedClasses, value)
-            "lastUsed" -> lastUsed = AnyToLong.getLong(value, 0L)
-            "dstFile" -> dstFile = value as? FileReference ?: InvalidRef
-            "iconOverride" -> iconOverride = value as? FileReference ?: InvalidRef
             else -> super.setProperty(name, value)
         }
     }
@@ -74,5 +71,9 @@ class ExportSettings : NamedSaveable() {
             dst.clear()
             dst.addAll(value.filterIsInstance<String>())
         }
+    }
+
+    fun clone(): ExportSettings {
+        return JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
     }
 }

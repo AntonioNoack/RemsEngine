@@ -69,6 +69,7 @@ object LocalFile {
         register("\$CACHE\$") { ConfigBasics.cacheFolder }
         register("\$DOWNLOADS\$", OS.downloads)
         register("\$DOCUMENTS\$", OS.documents)
+        register("\$DESKTOP\$", OS.desktop)
         register("\$PICTURES\$", OS.pictures)
         register("\$VIDEOS\$", OS.videos)
         register("\$MUSIC\$", OS.music)

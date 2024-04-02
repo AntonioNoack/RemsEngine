@@ -16,7 +16,9 @@ import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -25,6 +27,7 @@ import me.anno.ui.input.TextInput
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import java.io.IOException
+import kotlin.concurrent.thread
 
 class ExportPlugin : Plugin() {
 
@@ -77,6 +80,7 @@ class ExportPlugin : Plugin() {
             return try {
                 JsonStringReader.read(configFile, workspace, true)
                     .filterIsInstance<ExportSettings>()
+                    .sortedByDescending { it.lastUsed }
             } catch (e: IOException) {
                 e.printStackTrace()
                 return emptyList()
@@ -91,6 +95,10 @@ class ExportPlugin : Plugin() {
     fun openExportMenu() {
         val presets = loadPresets().sortedBy { it.name.lowercase() }
         val ui = PanelListY(style)
+        fun reloadUI() {
+            Menu.close(ui)
+            openExportMenu()
+        }
         // export setting chooser: a list of saveable presets
         val body = PanelListY(style)
         lateinit var preset: ExportSettings
@@ -111,7 +119,11 @@ class ExportPlugin : Plugin() {
                     }
                 )
             } else {
+
                 preset = presets[index - 1]
+                preset.lastUsed = System.currentTimeMillis()
+                storePresets(presets)
+
                 body.clear()
                 // inputs
                 body.add(TextInput("Name", "", preset.name, style)
@@ -128,23 +140,40 @@ class ExportPlugin : Plugin() {
                     .addChangeListener { preset.configName = it.trim() })
                 body.add(IntInput("Version Number", "", preset.versionNumber, style)
                     .setChangeListener { preset.versionNumber = it.toInt() })
+                body.add(FileInput("First Scene", style, preset.firstSceneRef, emptyList(), false)
+                    .addChangeListener { preset.firstSceneRef = it })
                 // todo inputs for all settings
                 // buttons
                 body.add(TextButton("Export", style)
                     .addLeftClickListener {
-                        ExportProcess.execute(GameEngineProject.currentProject!!, preset)
+                        val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
+                        progress.intFormatting = true
+                        thread(name = "Export") {
+                            ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
+                            addEvent { msg(NameDesc("Export Finished!")) }
+                        }
                     })
                 body.add(TextButton("Save Preset", style)
                     .addLeftClickListener {
                         storePresets(presets)
-                        // todo show message that it was saved
+                        msg(NameDesc("Saved Preset!"))
+                    })
+                body.add(TextButton("Save Preset As...", style)
+                    .addLeftClickListener {
+                        askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
+                            NameDesc("Save"), { -1 }) {
+                            val newPreset = preset.clone()
+                            newPreset.name = it.trim()
+                            storePresets(presets + newPreset)
+                            msg(NameDesc("Saved Preset!"))
+                            reloadUI()
+                        }
                     })
                 body.add(TextButton("Delete Preset", style)
                     .addLeftClickListener {
-                        Menu.ask(body.windowStack, NameDesc("Delete ${preset.name}?")) {
+                        ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
                             storePresets(presets.filter { it !== preset })
-                            Menu.close(body)
-                            openExportMenu()
+                            reloadUI()
                         }
                     })
             }

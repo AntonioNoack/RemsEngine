@@ -44,6 +44,8 @@ open class ProgressBar(
     private var lastDrawnUpdate = 0.0
     private var lastDrawn = Time.nanoTime
 
+    var intFormatting = false
+
     var isCancelled = false
     var window: OSWindow? = null
 
@@ -89,6 +91,7 @@ open class ProgressBar(
             total.isNaN() -> "$progress $unit"
             unit == "Bytes" && progress.isFinite() && total.isFinite() && progress >= 0.0 && total >= 0.0 ->
                 "${progress.toLong().formatFileSize()} / ${total.toLong().formatFileSize()}"
+            intFormatting ->  "${progress.toLong()} / ${total.toLong()} $unit"
             else -> "$progress / $total $unit"
         }
     }
