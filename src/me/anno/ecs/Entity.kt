@@ -30,6 +30,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -758,6 +759,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
-        private val entityOptionList = listOf(Option("Entity", "Create a child entity") { Entity() })
+        private val entityOptionList = listOf(Option(NameDesc("Entity", "Create a child entity", "")) { Entity() })
     }
 }

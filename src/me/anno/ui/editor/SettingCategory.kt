@@ -1,11 +1,10 @@
 package me.anno.ui.editor
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
@@ -15,23 +14,14 @@ import me.anno.ui.input.InputVisibility
 import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
-open class SettingCategory(
-    val title: String,
-    val visibilityKey: String,
-    withScrollbar: Boolean,
-    style: Style
+open class SettingCategory private constructor(
+    title: NameDesc, val visibilityKey: String,
+    withScrollbar: Boolean, style: Style
 ) : PanelGroup(style) {
 
-    constructor(title: String, style: Style) :
-            this(title, title, false, style)
-
-    constructor(title: String, description: String, dictPath: String, style: Style) :
-            this(title, description, dictPath, false, style)
-
-    constructor(title: String, description: String, dictPath: String, withScrollbar: Boolean, style: Style) :
-            this(Dict[title, dictPath], title, withScrollbar, style) {
-        tooltip = Dict[description, "$dictPath.desc"]
-    }
+    constructor(nameDesc: NameDesc, style: Style) : this(nameDesc, false, style)
+    constructor(nameDesc: NameDesc, withScrollbar: Boolean, style: Style) :
+            this(nameDesc, nameDesc.key, withScrollbar, style) { tooltip = nameDesc.desc }
 
     val titlePanel = TextPanel(title, style.getChild("group"))
     val content = PanelListY(style)

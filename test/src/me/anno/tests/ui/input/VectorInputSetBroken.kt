@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.engine.inspector.Inspectable
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
@@ -19,10 +20,8 @@ fun main() {
     // -> is possible, so very weird that it's not working for me in my subproject...
     class Sample : Inspectable {
         override fun createInspector(
-            inspected: List<Inspectable>,
-            list: PanelListY,
-            style: Style,
-            getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+            inspected: List<Inspectable>, list: PanelListY, style: Style,
+            getGroup: (nameDesc: NameDesc) -> SettingCategory
         ) {
             val vi = FloatVectorInput("Value", "", Vector4f(), NumberType.VEC4, DefaultConfig.style)
             list.add(vi)

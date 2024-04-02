@@ -81,7 +81,12 @@ interface WelcomeUI {
         welcome += createNewProjectUI(studio, style)
         welcome += SpacerPanel(0, 1, style)
 
-        val quickSettings = SettingCategory(Dict["Quick Settings", "ui.welcome.quickSettings.title"], style)
+        val quickSettings = SettingCategory(
+            NameDesc(
+                "Quick Settings", "",
+                "ui.welcome.quickSettings.title"
+            ), style
+        )
         quickSettings.show2()
         welcome += quickSettings
 
@@ -147,11 +152,10 @@ interface WelcomeUI {
 
         val window = GFX.someWindow
         val recentProjects = SettingCategory(
-            "Recent Projects",
-            "Your projects of the past",
-            "ui.recentProjects.title",
-            true,
-            style
+            NameDesc(
+                "Recent Projects", "Your projects of the past",
+                "ui.recentProjects.title"
+            ), true, style
         )
         recentProjects.show2()
 
@@ -273,7 +277,7 @@ interface WelcomeUI {
 
     fun createNewProjectUI(studio: EngineBase, style: Style): Panel {
 
-        val newProject = SettingCategory("New Project", "New Workplace", "ui.project.new", style)
+        val newProject = SettingCategory(NameDesc("New Project", "New Workplace", "ui.project.new"), style)
         newProject.show2()
 
         // cannot be moved down
@@ -360,7 +364,8 @@ interface WelcomeUI {
         }
         newProject += fileInput
 
-        val okButton = TextButton(NameDesc("Create Project", "Creates a new project", "ui.createNewProject"), false, style)
+        val okButton =
+            TextButton(NameDesc("Create Project", "Creates a new project", "ui.createNewProject"), false, style)
         okButton.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
         newProject += okButton
 

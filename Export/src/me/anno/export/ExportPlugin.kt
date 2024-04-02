@@ -4,6 +4,9 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.projects.GameEngineProject
+import me.anno.export.platform.LinuxPlatforms
+import me.anno.export.platform.MacOSPlatforms
+import me.anno.export.platform.WindowsPlatforms
 import me.anno.extensions.events.EventHandler
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
@@ -20,10 +23,8 @@ import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.editor.OptionBar
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
-import me.anno.ui.input.FileInput
-import me.anno.ui.input.IntInput
-import me.anno.ui.input.TextInput
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import java.io.IOException
@@ -37,6 +38,9 @@ class ExportPlugin : Plugin() {
         super.onEnable()
         registerListener(this)
         registerCustomClass(ExportSettings())
+        registerCustomClass(LinuxPlatforms())
+        registerCustomClass(WindowsPlatforms())
+        registerCustomClass(MacOSPlatforms())
         addEvent(::registerExportMenu)
     }
 
@@ -126,23 +130,12 @@ class ExportPlugin : Plugin() {
 
                 body.clear()
                 // inputs
-                body.add(TextInput("Name", "", preset.name, style)
-                    .addChangeListener { preset.name = it.trim() })
-                body.add(TextInput("Description", "", preset.description, style)
-                    .addChangeListener { preset.description = it.trim() })
-                body.add(FileInput("Destination", style, preset.dstFile, emptyList(), false)
-                    .addChangeListener { preset.dstFile = it })
-                body.add(FileInput("Icon Override", style, preset.iconOverride, emptyList(), false)
-                    .addChangeListener { preset.iconOverride = it })
-                body.add(TextInput("Game Title", "", preset.gameTitle, style)
-                    .addChangeListener { preset.gameTitle = it.trim() })
-                body.add(TextInput("Config Name", "", preset.configName, style)
-                    .addChangeListener { preset.configName = it.trim() })
-                body.add(IntInput("Version Number", "", preset.versionNumber, style)
-                    .setChangeListener { preset.versionNumber = it.toInt() })
-                body.add(FileInput("First Scene", style, preset.firstSceneRef, emptyList(), false)
-                    .addChangeListener { preset.firstSceneRef = it })
-                // todo inputs for all settings
+                preset.createInspector(body, style) {
+                    val cat = SettingCategory(it, style)
+                    cat.show2()
+                    body.add(cat)
+                    cat
+                }
                 // buttons
                 body.add(TextButton("Export", style)
                     .addLeftClickListener {

@@ -1030,9 +1030,9 @@ object ComponentUI {
                 value as Inspectable
                 val list = PanelListY(style)
                 val groups = HashMap<String, SettingCategory>()
-                value.createInspector(list, style) { title2, description, path ->
-                    groups.getOrPut(path.ifEmpty { title2 }) {
-                        SettingCategory(title2, description, path, style)
+                value.createInspector(list, style) {
+                    groups.getOrPut(it.key) {
+                        SettingCategory(it, style)
                     }
                 }
                 return list

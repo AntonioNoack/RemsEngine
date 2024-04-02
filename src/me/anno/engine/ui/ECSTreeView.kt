@@ -492,8 +492,8 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     private fun optionToMenu(parent: Saveable, option: Option, type: Char): ComplexMenuOption {
-        val title = option.title
-        return ComplexMenuOption(NameDesc("Add $title")) {
+        val title = option.nameDesc.name
+        return ComplexMenuOption(NameDesc("Add $title", option.nameDesc.desc, "")) {
             val sample = option.getSample() as PrefabSaveable
             val prefab1 = Prefab(sample.className)
             addChild(parent, prefab1, type, -1)

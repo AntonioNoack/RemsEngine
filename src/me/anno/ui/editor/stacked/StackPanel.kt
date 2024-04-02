@@ -60,7 +60,7 @@ abstract class StackPanel(
                 NameDesc(
                     "Append %1", "Add an element at the end of the list",
                     "ui.option.append"
-                ).with("%1", option.title)
+                ).with("%1", option.nameDesc.name)
             ) {
                 addComponent(option, content.children.size, true)
             }.setEnabled(isInputAllowed, "Property is immutable")
@@ -78,7 +78,7 @@ abstract class StackPanel(
 
     fun addComponent(option: Option, index: Int, notify: Boolean) {
         val component = option.value0 ?: option.generator()
-        content.add(index, OptionPanel(this, option.title, option.description, component))
+        content.add(index, OptionPanel(this, option.nameDesc, component))
         if (notify) {
             onAddComponent(component, index)
             invalidateLayout()

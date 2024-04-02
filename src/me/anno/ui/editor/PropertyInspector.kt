@@ -1,13 +1,13 @@
 package me.anno.ui.editor
 
 import me.anno.Time
+import me.anno.engine.EngineBase
+import me.anno.engine.inspector.Inspectable
 import me.anno.gpu.GFX
-import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.engine.inspector.Inspectable
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -21,7 +21,6 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
-import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
@@ -166,32 +165,28 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         private val LOGGER = LogManager.getLogger(PropertyInspector::class)
 
         private fun createGroup(
-            title: String, description: String, dictSubPath: String,
-            list: PanelListY, groups: HashMap<String, SettingCategory>, style: Style
+            nameDesc: NameDesc, list: PanelListY,
+            groups: HashMap<String, SettingCategory>, style: Style
         ): SettingCategory {
-            val cat = groups.getOrPut(dictSubPath) {
-                val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
+            return groups.getOrPut(nameDesc.key) {
+                val group = SettingCategory(nameDesc, style)
                 list += group
                 group
             }
-            if (cat.tooltip?.isBlank2() != false) {
-                cat.tooltip = Dict[description, "obj.$dictSubPath.desc"]
-            }
-            return cat
         }
 
         fun createInspector(ins: List<Inspectable>, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
-            ins[0].createInspector(ins, list, style) { title, description, dictSubPath ->
-                createGroup(title, description, dictSubPath, list, groups, style)
+            ins[0].createInspector(ins, list, style) {
+                createGroup(it, list, groups, style)
             }
             addSpacingForFrameTimings(list)
         }
 
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
-            ins.createInspector(list, style) { title, description, dictSubPath ->
-                createGroup(title, description, dictSubPath, list, groups, style)
+            ins.createInspector(list, style) {
+                createGroup(it, list, groups, style)
             }
             addSpacingForFrameTimings(list)
         }

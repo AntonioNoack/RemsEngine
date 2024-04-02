@@ -6,11 +6,11 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.NamedSaveable
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -277,7 +277,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         inspected: List<Inspectable>,
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+        getGroup: (nameDesc: NameDesc) -> SettingCategory
     ) {
         val inspector = PrefabInspector.currentInspector
         if (inspector != null) inspector.inspect(inspected.filterIsInstance<PrefabSaveable>(), list, style)
@@ -310,20 +310,20 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
-            return Saveable.getSample(className) as? PrefabSaveable
+            return getSample(className) as? PrefabSaveable
                 ?: throw RuntimeException("No super instance was found for class '$className'")
         }
 
         fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {
             // registry over all options... / search the raw files + search all scripts? a bit much... maybe in the local folder?
-            val knownComponents = Saveable.getInstanceOf(clazz)
+            val knownComponents = getInstanceOf(clazz)
             return knownComponents.map {
-                Option(it.key.camelCaseToTitle(), "") {
+                Option(NameDesc(it.key.camelCaseToTitle())) {
                     val comp = it.value.generate() as PrefabSaveable
                     comp.parent = parent
                     comp
                 }
-            }.sortedBy { it.title }
+            }.sortedBy { it.nameDesc.name }
         }
     }
 }

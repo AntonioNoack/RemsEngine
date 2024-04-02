@@ -270,7 +270,7 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     override fun createInspector(
         list: PanelListY, style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+        getGroup: (nameDesc: NameDesc) -> SettingCategory
     ) {
         super.createInspector(listOf(this), list, style, getGroup)
         // todo value / UI for scale change preview?
@@ -389,7 +389,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         inspected: List<Inspectable>,
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+        getGroup: (nameDesc: NameDesc) -> SettingCategory
     ) {
         createInspector(list, style, getGroup)
     }

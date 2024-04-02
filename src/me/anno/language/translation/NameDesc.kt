@@ -18,6 +18,7 @@ class NameDesc(
     private val descPath = "$dictPath.desc"
 
     val englishName = iName
+    val key get() = dictPath.ifEmpty { englishName }
 
     val name get() = replace(Dict[iName, dictPath])
     val desc get() = replace(Dict[iDesc, descPath])

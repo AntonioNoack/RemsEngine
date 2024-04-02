@@ -23,6 +23,8 @@ object ExportProcess {
         // todo build .jar file from export settings and current project
         //  - collect all required files
         //  - exclude those that were explicitly excluded
+        //  - respect platform (Linux/Windows/MacOS) settings in config file
+        //  - option for Android build
         // override icon if needed
         if (settings.iconOverride.exists) {
             sources["icon.png"] = settings.iconOverride.readBytesSync()
@@ -68,9 +70,7 @@ object ExportProcess {
             zos.putNextEntry(entry)
             zos.write(bytes)
             zos.closeEntry()
-            if (progress.isCancelled) {
-                break
-            }
+            if (progress.isCancelled) break
             progress.progress++
         }
         zos.close()

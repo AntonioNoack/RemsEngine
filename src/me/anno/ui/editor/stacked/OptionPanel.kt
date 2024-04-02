@@ -16,13 +16,11 @@ import me.anno.utils.types.Strings.isBlank2
 
 class OptionPanel(
     private val stackPanel: StackPanel,
-    title: String,
-    tooltipText: String,
+    nameDesc: NameDesc,
     val value: Inspectable
-) : SettingCategory(title, stackPanel.style) {
+) : SettingCategory(nameDesc, stackPanel.style) {
 
     init {
-        tooltip = tooltipText
         PropertyInspector.createInspector(value, content, style)
     }
 
@@ -32,8 +30,8 @@ class OptionPanel(
                 val index = indexInParent
                 openMenu(windowStack, stackPanel.options.map { option ->
                     MenuOption(
-                        NameDesc("Prepend %1", option.description, "ui.option.prepend")
-                            .with("%1", option.title)
+                        NameDesc("Prepend %1", option.nameDesc.name, "ui.option.prepend")
+                            .with("%1", option.nameDesc.desc)
                     ) {
                         stackPanel.addComponent(option, index, true)
                     }

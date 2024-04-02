@@ -22,6 +22,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
@@ -322,7 +323,7 @@ class PrefabInspector(var reference: FileReference) {
             nicerName, "",
             options, children, {
                 it as Saveable
-                Option(it.className.camelCaseToTitle(), "") { it }
+                Option(NameDesc(it.className.camelCaseToTitle())) { it }
             }, style
         ) {
 
