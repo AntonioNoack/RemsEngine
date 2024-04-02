@@ -25,6 +25,7 @@ import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
+import me.anno.utils.Clock
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import java.io.IOException
@@ -139,10 +140,12 @@ class ExportPlugin : Plugin() {
                 // buttons
                 body.add(TextButton("Export", style)
                     .addLeftClickListener {
+                        val clock = Clock()
                         val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
                         progress.intFormatting = true
                         thread(name = "Export") {
                             ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
+                            clock.stop("Export")
                             addEvent { msg(NameDesc("Export Finished!")) }
                         }
                     })
