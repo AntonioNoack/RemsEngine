@@ -7,6 +7,7 @@ import me.anno.engine.projects.GameEngineProject
 import me.anno.extensions.events.EventHandler
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -23,6 +24,7 @@ import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import java.io.IOException
 
 class ExportPlugin : Plugin() {
 
@@ -31,6 +33,7 @@ class ExportPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
         registerListener(this)
+        registerCustomClass(ExportSettings())
         addEvent(::registerExportMenu)
     }
 
@@ -52,7 +55,7 @@ class ExportPlugin : Plugin() {
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
                     .firstInstanceOrNull<OptionBar>() ?: continue
-                bar.removeMajor("Game Export")
+                bar.removeMajor("Export")
             }
         }
     }
@@ -64,14 +67,21 @@ class ExportPlugin : Plugin() {
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
                     .firstInstanceOrNull<OptionBar>() ?: continue
-                bar.addMajor("Game Export", ::openExportMenu)
+                bar.addMajor("Export", ::openExportMenu)
             }
         }
     }
 
     fun loadPresets(): List<ExportSettings> {
-        return JsonStringReader.read(configFile, workspace, true)
-            .filterIsInstance<ExportSettings>()
+        if (configFile.exists) {
+            return try {
+                JsonStringReader.read(configFile, workspace, true)
+                    .filterIsInstance<ExportSettings>()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                return emptyList()
+            }
+        } else return emptyList()
     }
 
     fun storePresets(presets: List<ExportSettings>) {
