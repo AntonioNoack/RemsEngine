@@ -2,14 +2,15 @@ package me.anno.video.ffmpeg
 
 import me.anno.Engine
 import me.anno.audio.openal.SoundBuffer
+import me.anno.audio.streams.AudioStream
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Buffers.flip16
-import me.anno.io.Streams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL11.AL_FORMAT_MONO16
 import org.lwjgl.openal.AL11.AL_FORMAT_STEREO16
@@ -74,7 +75,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
     fun readRAW(input: InputStream, channels: Int, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
         val sampleCount = frameCount * channels
         val size = sampleCount * 2
-        val bytes = ByteBufferPool.allocateDirect(size)
+        val bytes = AudioStream.bufferPool.get(size, clear = false, exactMatchesOnly = false)
         input.readNBytes2(size, bytes, false)
         if (bytes.position() > 0) bytes.flip()
         val shorts = bytes.asShortBuffer()

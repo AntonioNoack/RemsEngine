@@ -57,7 +57,7 @@ class SoundBuffer : ICacheData {
             alDeleteBuffers(pointer)
             pointer = 0
         }
-        if (data != null) {
+        if (data0 != null) {
             bufferPool.returnBuffer(data0)
             data0 = null
             data = null

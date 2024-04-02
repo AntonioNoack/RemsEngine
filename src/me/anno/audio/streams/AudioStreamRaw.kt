@@ -157,13 +157,16 @@ class AudioStreamRaw(
 
                 val data = soundBuffer.data!!
                 val localIndex = (index % sliceSampleCount).toInt()
+                // todo instead of setting it zero, create a smooth falloff from whatever last value we had
                 if (soundBuffer.isStereo) {
-                    val arrayIndex0 = localIndex * 2 // for stereo
-                    shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
-                } else {
-                    val v = data[localIndex] // mono
-                    shortPair.set(v, v)
-                }
+                    val localIndex0 = localIndex * 2 // for stereo
+                    if (localIndex0 + 1 < data.limit()) {
+                        shortPair.set(data[localIndex0], data[localIndex0 + 1])
+                    } else shortPair.set(0, 0)
+                } else if (localIndex < data.limit()) {
+                    val value = data[localIndex] // mono
+                    shortPair.set(value, value)
+                } else shortPair.set(0, 0)
             }
         }
     }
