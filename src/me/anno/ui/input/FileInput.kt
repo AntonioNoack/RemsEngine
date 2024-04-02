@@ -49,11 +49,11 @@ open class FileInput(
     val base2 = base.base
 
     private val buttons = ArrayList<TextButton>()
-    fun addButton(button: TextButton) {
+    fun addButton(button: TextButton, index: Int = 0) {
         button.textColor = textColor.withAlpha(0.5f)
         button.disableFocusColors()
         buttons.add(button)
-        add(children.lastIndex, button)
+        add(index, button)
     }
 
     init {

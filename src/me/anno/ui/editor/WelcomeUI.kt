@@ -360,9 +360,9 @@ interface WelcomeUI {
         }
         newProject += fileInput
 
-        val button = TextButton("Create Project", "Creates a new project", "ui.createNewProject", false, style)
-        button.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
-        newProject += button
+        val okButton = TextButton(NameDesc("Create Project", "Creates a new project", "ui.createNewProject"), false, style)
+        okButton.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
+        newProject += okButton
 
         return newProject
     }

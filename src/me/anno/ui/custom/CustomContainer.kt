@@ -1,6 +1,5 @@
 package me.anno.ui.custom
 
-import me.anno.config.DefaultConfig
 import me.anno.fonts.FontStats
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureCache
@@ -12,6 +11,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color.white
@@ -95,52 +95,48 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun changeType() {
         val options = ArrayList<MenuOption>(library.typeList.size + 5)
-        for (it in library.typeList) {
-            options.add(MenuOption(NameDesc(it.displayName, "", "")) { changeTo(it.generator()) })
+        for ((name, generator) in library.typeList) {
+            options.add(MenuOption(NameDesc(name, "", "")) { changeTo(generator()) })
         }
+        options.add(Menu.menuSeparator1)
         val parent = parent
         val warningForLast = "Cannot remove root of custom UI hierarchy"
-        options += MenuOption(NameDesc("Remove This Element", "", "ui.customize.remove")) {
-            if (parent is CustomList) {
-                parent.remove(indexInParent)
-            } else LOGGER.warn(warningForLast)
-        }.setEnabled(parent is CustomList && (siblings.size > 1 || parent.parent is CustomList), warningForLast)
-        options += MenuOption(
+        options.add(
+            MenuOption(NameDesc("Remove This Element", "", "ui.customize.remove")) {
+                if (parent is CustomList) {
+                    parent.remove(indexInParent)
+                } else LOGGER.warn(warningForLast)
+            }.setEnabled(parent is CustomList && (siblings.size > 1 || parent.parent is CustomList), warningForLast)
+        )
+        options.add(Menu.menuSeparator1)
+        options.add(MenuOption(
             NameDesc(
                 "Add Panel Before",
                 "Adds a new panel to the left of this one",
                 "ui.customize.addBefore"
             )
-        ) {
-            addPanel(false, firstThis = false)
-        }
-        options += MenuOption(
+        ) { addPanel(false, firstThis = false) })
+        options.add(MenuOption(
             NameDesc(
                 "Add Panel After",
                 "Adds a new panel to the right of this one",
                 "ui.customize.addAfter"
             )
-        ) {
-            addPanel(false, firstThis = true)
-        }
-        options += MenuOption(
+        ) { addPanel(false, firstThis = true) })
+        options.add(MenuOption(
             NameDesc(
                 "Add Panel Above",
                 "Adds a new panel to the top of this one",
                 "ui.customize.addAbove"
             )
-        ) {
-            addPanel(true, firstThis = false)
-        }
-        options += MenuOption(
+        ) { addPanel(true, firstThis = false) })
+        options.add(MenuOption(
             NameDesc(
                 "Add Panel Below",
                 "Adds a new panel to the bottom of this one",
                 "ui.customize.addBelow"
             )
-        ) {
-            addPanel(true, firstThis = true)
-        }
+        ) { addPanel(true, firstThis = true) })
         openMenu(windowStack, x + width - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }
 

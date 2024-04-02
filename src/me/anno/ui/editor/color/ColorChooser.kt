@@ -2,20 +2,21 @@ package me.anno.ui.editor.color
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
-import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.color.spaces.HSI
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
-import me.anno.ui.editor.color.spaces.HSI
 import me.anno.ui.input.ColorInput.Companion.pickColor
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
@@ -28,6 +29,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.min
 
+// todo change mouse cursor if on active area of color chooser
 open class ColorChooser(
     style: Style,
     val withAlpha: Boolean,
@@ -105,7 +107,10 @@ open class ColorChooser(
     }.setTooltip("Style, does not change values")
 
     private val pickButton = TextButton(
-        "Pick", "Takes a screenshot, and lets you choose a pixel of your liking. Zoom in via mouse wheel.",
+        NameDesc(
+            "Pick", "Takes a screenshot, and lets you choose a pixel of your liking. Zoom in via mouse wheel.",
+            ""
+        ),
         false, style
     ).addLeftClickListener {
         pickColor(windowStack, style) { color ->

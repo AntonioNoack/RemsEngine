@@ -5,7 +5,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Key
-import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
@@ -35,12 +35,10 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     constructor(style: Style) : this("", style)
     constructor(title: String, style: Style) : this(title, 0f, style)
     constructor(title: String, isSquare: Boolean, style: Style) : this(title, if (isSquare) 1f else 0f, style)
-    constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {
-        tooltip = description
-    }
 
-    constructor(title: String, description: String, dictPath: String, isSquare: Boolean, style: Style) :
-            this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], isSquare, style)
+    constructor(nameDesc: NameDesc, isSquare: Boolean, style: Style) : this(nameDesc.name, isSquare, style) {
+        tooltip = nameDesc.desc
+    }
 
     val leftColor = style.getColor("borderColorLeft", black or 0x999999)
     val rightColor = style.getColor("borderColorRight", black or 0x111111)

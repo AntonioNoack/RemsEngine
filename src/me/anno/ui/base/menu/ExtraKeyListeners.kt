@@ -1,5 +1,7 @@
 package me.anno.ui.base.menu
 
+import me.anno.maths.Maths.hasFlag
+
 /**
  * utility class for defining extra-keys for menus:
  * distributed to the first actions by their name
@@ -12,7 +14,7 @@ class ExtraKeyListeners {
     fun findNextFreeIndex(name: String): Int {
         for (i in name.indices) {
             val mask = getMask(name[i])
-            if (mask != 0) {
+            if (mask != 0 && !usedLetters.hasFlag(mask)) {
                 usedLetters = usedLetters or mask
                 return i
             }

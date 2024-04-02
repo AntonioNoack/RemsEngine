@@ -3,8 +3,8 @@ package me.anno.engine.ui.control
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
@@ -98,7 +98,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         val topLeft = PanelListX(style)
         drawModeInput.alignmentY = AxisAlignment.CENTER
         topLeft.add(drawModeInput)
-        topLeft.add(TextButton("Play", "Start the game", false, style)
+        topLeft.add(TextButton(NameDesc("Play", "Start the game", ""), false, style)
             .addLeftClickListener { ECSSceneTabs.currentTab?.play() }
             .apply { alignmentY = AxisAlignment.MIN })
         topLeft.add(TextButton("⚙", 1f, style)
