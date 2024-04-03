@@ -1,49 +1,69 @@
 package me.anno.export
 
 import me.anno.engine.projects.GameEngineProject
+import me.anno.export.idea.IdeaLibrary
+import me.anno.export.idea.IdeaModule
+import me.anno.export.idea.IdeaProject
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
-import me.anno.io.xml.generic.XMLNode
-import me.anno.io.xml.generic.XMLReader
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.utils.OS.documents
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import kotlin.test.assertEquals
 
 // todo how can we create an executable from a jar like Launch4j?
 object ExportProcess {
 
-    fun listProjectRoots(source: FileReference): List<FileReference> {
-        val moduleConfig = source.getChild(".idea/modules.xml")
-        if (!moduleConfig.exists) return emptyList()
-        val node0 = moduleConfig.inputStreamSync().use {
-            XMLReader().read(it) as XMLNode
+    fun listProjectRoots(source: FileReference): List<Pair<FileReference, String>> {
+        return IdeaProject.loadModules(source).map {
+            it.getParent() to it.nameWithoutExtension
         }
-        assertEquals("project", node0.type)
-        val node1 = node0.children.filterIsInstance<XMLNode>()
-            .first { it.type == "component" && it["name"] == "ProjectModuleManager" }
-        val node2 = node1.children.filterIsInstance<XMLNode>()
-            .first { it.type == "modules" }
-        return node2.children.asSequence()
-            .filterIsInstance<XMLNode>()
-            .filter { it.type == "module" }
-            .mapNotNull { it["filepath"] }
-            .map { it.replace("file://\$PROJECT_DIR\$/", source.absolutePath) }
-            .map { getReference(it).getParent() }.toList()
     }
 
-    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
+    fun execute(gep: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
         val sources = HashMap<String, ByteArray>(65536)
-        val engineBuild = settings.projectRoots.map {
-            it.getChild("out/artifacts/universal/RemsEngine.jar")
-        }.firstOrNull { it.exists } ?: InvalidRef
-        indexJar(sources, engineBuild, progress)
+        val projects = settings.projectRoots.map(IdeaProject::loadProject)
+
+        // todo inclusion order???
+        for (project in projects) {
+
+            // modules have dependencies,
+            //  so find them (list of source projects?),
+            //  read their dependency list,
+            //  and apply it ourselves (-> we need to find the build folders, too)
+
+            val doneModules = HashSet<String>()
+            val doneJars = HashSet<FileReference>()
+
+            fun checkLibrary(library: IdeaLibrary) {
+                for (jar in library.jars) {
+                    if (doneJars.add(jar)) {
+                        indexJar(sources, jar, progress)
+                    }
+                }
+            }
+
+            fun checkModule(name: String, module: IdeaModule) {
+                if (name !in settings.excludedModules && doneModules.add(name)) {
+                    for (subName in module.moduleDependencies) {
+                        checkModule(subName, project.modules[subName]!!)
+                    }
+                    for (libName in module.libraryDependencies) {
+                        checkLibrary(project.libraries[libName]!!)
+                    }
+                    // todo we should not include the .jar, if it is an engine build... how?
+                    val moduleOutFolder = project.projectDir.getChild("out/production/$name")
+                    indexViaCopy(sources, moduleOutFolder, "", progress)
+                }
+            }
+            for ((name, module) in project.modules) {
+                checkModule(name, module)
+            }
+        }
+
         excludeLWJGLFiles(sources, settings)
         excludeJNAFiles(sources, settings)
         excludeWebpFiles(sources, settings)
@@ -54,16 +74,11 @@ object ExportProcess {
         //  - respect platform (Linux/Windows/MacOS) settings in config file
         //  - option for Android build
 
-        // todo modules have dependencies,
-        //  so find them (list of source projects?),
-        //  read their dependency list,
-        //  and apply it ourselves (-> we need to find the build folders, too)
-
         // override icon if needed
         if (settings.iconOverride.exists) {
             sources["icon.png"] = settings.iconOverride.readBytesSync()
         }
-        sources["export.json"] = createConfigJson(project, settings)
+        sources["export.json"] = createConfigJson(settings)
         sources["META-INF/MANIFEST.MF"] = createManifest()
         progress.total = sources.size + 2.0 // 2.0 just for safety
         if (progress.isCancelled) return
@@ -73,12 +88,17 @@ object ExportProcess {
     }
 
     private fun excludeLWJGLFiles(sources: HashMap<String, ByteArray>, settings: ExportSettings) {
+        excludeFiles(sources, settings.linuxPlatforms.any, "org/lwjgl/system/linux/")
         excludeFiles(sources, settings.linuxPlatforms.arm64, "linux/arm64/")
         excludeFiles(sources, settings.linuxPlatforms.arm32, "linux/arm32/")
         excludeFiles(sources, settings.linuxPlatforms.x64, "linux/x64/")
+
+        excludeFiles(sources, settings.windowsPlatforms.any, "org/lwjgl/system/windows/")
         excludeFiles(sources, settings.windowsPlatforms.arm64, "windows/arm64/")
         excludeFiles(sources, settings.windowsPlatforms.x86, "windows/x86/")
         excludeFiles(sources, settings.windowsPlatforms.x64, "windows/x64/")
+
+        excludeFiles(sources, settings.macosPlatforms.any, "org/lwjgl/system/macos/")
         excludeFiles(sources, settings.macosPlatforms.arm64, "macos/arm64/")
         excludeFiles(sources, settings.macosPlatforms.x64, "macos/x64/")
     }
@@ -130,7 +150,7 @@ object ExportProcess {
         }
     }
 
-    private fun createConfigJson(project: GameEngineProject, settings: ExportSettings): ByteArray {
+    private fun createConfigJson(settings: ExportSettings): ByteArray {
         val config = StringMap()
         config["firstScenePath"] = settings.firstSceneRef
         config["gameTitle"] = settings.gameTitle
@@ -153,6 +173,24 @@ object ExportProcess {
             progress.total++
         }
         input.close()
+    }
+
+    private fun indexViaCopy(
+        sources: MutableMap<String, ByteArray>,
+        src: FileReference, path: String, progress: ProgressBar
+    ) {
+        if (src.isDirectory) {
+            for (child in src.listChildren()) {
+                indexViaCopy(
+                    sources, child,
+                    if (path.isEmpty()) child.name
+                    else "$path/${child.name}", progress
+                )
+            }
+        } else {
+            sources[path] = src.readBytesSync()
+            progress.total++
+        }
     }
 
     private fun writeJar(sources: Map<String, ByteArray>, dst: FileReference, progress: ProgressBar) {

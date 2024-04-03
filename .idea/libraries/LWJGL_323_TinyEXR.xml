@@ -1,0 +1,19 @@
+<component name="libraryTable">
+  <library name="LWJGL-323-TinyEXR">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm32.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-macos.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows-x86.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-tinyexr-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

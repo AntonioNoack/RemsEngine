@@ -34,6 +34,8 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
+    <orderEntry type="library" name="LWJGL-323-OpenAL" level="project" />
+    <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />
     <orderEntry type="module" module-name="KOML" />
   </component>
 </module>

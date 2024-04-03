@@ -10,6 +10,8 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
+    <orderEntry type="library" name="LWJGL-323-OpenAL" level="project" />
+    <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />
     <orderEntry type="module" module-name="JVM" />
   </component>
 </module>

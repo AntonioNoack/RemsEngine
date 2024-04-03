@@ -157,7 +157,6 @@ open class XMLReader {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             val type = input.readTypeUntilSpaceOrEnd(type0).toString()
-            val end = last
             @Suppress("SpellCheckingInspection")
             when {
                 type.startsWith("?") -> {
@@ -192,32 +191,30 @@ open class XMLReader {
 
             val xmlNode = XMLNode(type)
             // / is the end of an element
-            var end2 = end
+            var end = last
             if (end == ' '.code) {
-                var next = -1
                 // read the properties
                 propertySearch@ while (true) {
                     // name="value"
-                    if (next < 0) next = input.skipSpaces()
-                    val propName = input.readTypeUntilSpaceOrEnd(keyBuilder, next)
-                    val propEnd = last
-                    // ("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
-                    assertEquals(propEnd, '='.code)
-                    val start = input.skipSpaces()
-                    assert(start, '"', '\'')
-                    val value = input.readString(start, valueBuilder)
-                    xmlNode[propName.toString()] = value.toString()
-                    next = input.skipSpaces()
-                    when (next) {
+                    when (val next = input.skipSpaces()) {
                         '/'.code, '>'.code -> {
-                            end2 = next
+                            end = next
                             break@propertySearch
+                        }
+                        else -> {
+                            val propName = input.readTypeUntilSpaceOrEnd(keyBuilder, next)
+                            val propEnd = last
+                            assertEquals(propEnd, '='.code)
+                            val start = input.skipSpaces()
+                            assert(start, '"', '\'')
+                            val value = input.readString(start, valueBuilder)
+                            xmlNode[propName.toString()] = value.toString()
                         }
                     }
                 }
             }
 
-            when (end2) {
+            when (end) {
                 '/'.code -> {
                     assertEquals(input.read(), '>'.code)
                     return xmlNode
@@ -239,7 +236,7 @@ open class XMLReader {
                         }
                     }
                 }
-                else -> throw RuntimeException("Unknown end symbol ${end2.toChar()}")
+                else -> throw RuntimeException("Unknown end symbol ${end.toChar()}")
             }
         } else return readString(first, input)
     }
@@ -268,7 +265,7 @@ open class XMLReader {
     }
 
     fun assertEquals(a: Int, b: Int) {
-        if (a != b) throw IOException("$a != $b")
+        if (a != b) throw IOException("'${a.toChar()}' != '${b.toChar()}'")
     }
 
     companion object {

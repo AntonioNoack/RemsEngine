@@ -2,6 +2,7 @@ package me.anno.export
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
+import me.anno.export.ExportProcess.listProjectRoots
 import me.anno.export.platform.LinuxPlatforms
 import me.anno.export.platform.MacOSPlatforms
 import me.anno.export.platform.WindowsPlatforms
@@ -60,6 +61,8 @@ class ExportSettings : NamedSaveable() {
     var windowsPlatforms = WindowsPlatforms()
     var macosPlatforms = MacOSPlatforms()
 
+    override val approxSize: Int get() = 1000
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFileArray("projectRoots", projectRoots.toTypedArray())
@@ -70,13 +73,14 @@ class ExportSettings : NamedSaveable() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (readSerializableProperty(name, value)) return
         when (name) {
             "excludedModules" -> loadStringArray(excludedModules, value)
             "excludedClasses" -> loadStringArray(excludedClasses, value)
             "projectRoots" -> loadFileArray(projectRoots, value)
             "includedAssets" -> loadFileArray(includedAssets, value)
-            else -> super.setProperty(name, value)
+            else -> if (!readSerializableProperty(name, value)) {
+                super.setProperty(name, value)
+            }
         }
     }
 
@@ -104,46 +108,46 @@ class ExportSettings : NamedSaveable() {
     ) {
         // general settings
         val general = getGroup(NameDesc("General"), list)
-        general.addChild(TextInput("Name", "", name, DefaultConfig.style)
+        general.add(TextInput("Name", "", name, DefaultConfig.style)
             .addChangeListener { name = it.trim() })
-        general.addChild(TextInput("Description", "", description, DefaultConfig.style)
+        general.add(TextInput("Description", "", description, DefaultConfig.style)
             .addChangeListener { description = it.trim() })
-        general.addChild(FileInput("Destination", DefaultConfig.style, dstFile, emptyList(), false)
+        general.add(FileInput("Destination", DefaultConfig.style, dstFile, emptyList(), false)
             .addChangeListener { dstFile = it })
-        general.addChild(FileInput("Icon Override", DefaultConfig.style, iconOverride, emptyList(), false)
+        general.add(FileInput("Icon Override", DefaultConfig.style, iconOverride, emptyList(), false)
             .addChangeListener { iconOverride = it })
-        general.addChild(TextInput("Game Title", "", gameTitle, DefaultConfig.style)
+        general.add(TextInput("Game Title", "", gameTitle, DefaultConfig.style)
             .addChangeListener { gameTitle = it.trim() })
-        general.addChild(TextInput("Config Name", "", configName, DefaultConfig.style)
+        general.add(TextInput("Config Name", "", configName, DefaultConfig.style)
             .addChangeListener { configName = it.trim() })
-        general.addChild(IntInput("Version Number", "", versionNumber, DefaultConfig.style)
+        general.add(IntInput("Version Number", "", versionNumber, DefaultConfig.style)
             .setChangeListener { versionNumber = it.toInt() })
-        general.addChild(FileInput("First Scene", DefaultConfig.style, firstSceneRef, emptyList(), false)
+        general.add(FileInput("First Scene", DefaultConfig.style, firstSceneRef, emptyList(), false)
             .addChangeListener { firstSceneRef = it })
         // platforms
         val platforms = getGroup(NameDesc("Platforms"), list)
         val linux = getGroup(NameDesc("Linux"), platforms)
-        linux.addChild(BooleanInput("x64", linuxPlatforms.x64, true, style)
+        linux.add(BooleanInput("x64", linuxPlatforms.x64, true, style)
             .setChangeListener { linuxPlatforms.x64 = it })
-        linux.addChild(BooleanInput("arm64", linuxPlatforms.arm64, true, style)
+        linux.add(BooleanInput("arm64", linuxPlatforms.arm64, true, style)
             .setChangeListener { linuxPlatforms.arm64 = it })
-        linux.addChild(BooleanInput("arm32", linuxPlatforms.arm32, false, style)
+        linux.add(BooleanInput("arm32", linuxPlatforms.arm32, false, style)
             .setChangeListener { linuxPlatforms.arm32 = it })
         val windows = getGroup(NameDesc("Windows"), platforms)
-        windows.addChild(BooleanInput("x64 (64-bit)", windowsPlatforms.x64, true, style)
+        windows.add(BooleanInput("x64 (64-bit)", windowsPlatforms.x64, true, style)
             .setChangeListener { windowsPlatforms.x64 = it })
-        windows.addChild(BooleanInput("x86 (32-bit)", windowsPlatforms.x86, false, style)
+        windows.add(BooleanInput("x86 (32-bit)", windowsPlatforms.x86, false, style)
             .setChangeListener { windowsPlatforms.x86 = it })
-        windows.addChild(BooleanInput("arm64", windowsPlatforms.arm64, true, style)
+        windows.add(BooleanInput("arm64", windowsPlatforms.arm64, true, style)
             .setChangeListener { windowsPlatforms.arm64 = it })
         val macos = getGroup(NameDesc("MacOS"), platforms)
-        macos.addChild(BooleanInput("x64 (Intel)", macosPlatforms.x64, true, style)
+        macos.add(BooleanInput("x64 (Intel)", macosPlatforms.x64, true, style)
             .setChangeListener { macosPlatforms.x64 = it })
-        macos.addChild(BooleanInput("arm64 (M-Series)", macosPlatforms.arm64, true, style)
+        macos.add(BooleanInput("arm64 (M-Series)", macosPlatforms.arm64, true, style)
             .setChangeListener { macosPlatforms.arm64 = it })
         // modules
-        val modules = getGroup(NameDesc("Modules"), list)
-        modules.addChild(
+        val logicSources = getGroup(NameDesc("Project Roots"), list)
+        logicSources.add(
             object : ArrayPanel<FileReference, Panel>("IntellijIdea Projects", "", { InvalidRef }, style) {
                 override fun createPanel(value: FileReference): Panel {
                     return FileInput("Project Root", style, value, emptyList(), true)
@@ -159,8 +163,23 @@ class ExportSettings : NamedSaveable() {
                 setValues(projectRoots)
             }
         )
-        // todo find all modules
-        // todo checkboxes for all modules
+
+        // todo show a warning when a dependency isn't fulfilled
+        val modules = getGroup(NameDesc("Included Modules"), list)
+        val moduleList = projectRoots
+            .flatMap { listProjectRoots(it) }
+            .toHashSet()
+            .sortedBy { it.second }
+        for ((file, name) in moduleList) {
+            modules.add(
+                BooleanInput(name, name !in excludedModules, false, style)
+                    .setChangeListener { included ->
+                        if (included) excludedModules.remove(name)
+                        else excludedModules.add(name)
+                    }.setTooltip(file.toLocalPath())
+            )
+        }
+
         // assets
         val assets = getGroup(NameDesc("Assets"), list)
 

@@ -32,10 +32,15 @@ import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
 
 class ExportPlugin : Plugin() {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ExportPlugin::class)
+    }
 
     val configFile get() = configFolder.getChild("Export.json")
 
@@ -131,9 +136,14 @@ class ExportPlugin : Plugin() {
                     val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
                     progress.intFormatting = true
                     thread(name = "Export") {
-                        ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
-                        clock.stop("Export")
-                        addEvent { msg(NameDesc("Export Finished!")) }
+                        try {
+                            ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
+                            clock.stop("Export")
+                            addEvent { msg(NameDesc("Export Finished!")) }
+                        } catch (e: Exception) {
+                            LOGGER.warn("Export failed!", e)
+                            addEvent { msg(NameDesc("Failed Export :/")) }
+                        }
                     }
                 })
             body.add(TextButton("Save Preset", style)
