@@ -16,56 +16,48 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeNull(name: String?) {}
     override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {}
 
-    override fun writeObjectImpl(name: String?, value: Saveable) {
-        if (writtenObjects.add(value))
+    private fun writeObject(value: Saveable) {
+        if (writtenObjects.add(value)) {
             value.save(this)
-    }
-
-    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
-        values ?: return
-        for (value in values) {
-            if (writtenObjects.add(value))
-                value.save(this)
         }
     }
 
-    override fun <V : Saveable> writeObjectArray2D(
-        self: Saveable?,
-        name: String,
-        values: Array<Array<V>>,
-        force: Boolean
+    override fun writeObjectImpl(name: String?, value: Saveable) {
+        writeObject(value)
+    }
+
+    override fun <V : Saveable> writeObjectList(self: Saveable?, name: String, values: List<V>, force: Boolean) {
+        for (value in values) {
+            writeObject(value)
+        }
+    }
+
+    override fun <V : Saveable> writeObjectList2D(
+        self: Saveable?, name: String,
+        values: List<List<V>>, force: Boolean
     ) {
         for (objects in values) {
             for (value in objects) {
-                if (writtenObjects.add(value))
-                    value.save(this)
+                writeObject(value)
             }
         }
     }
 
-    override fun <V : Saveable?> writeNullableObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>?,
-        force: Boolean
-    ) {
-        if (values != null) {
-            for (value in values) {
-                if (value != null && writtenObjects.add(value))
-                    value.save(this)
-            }
-        }
-    }
-
-    override fun <V : Saveable?> writeHomogenousObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>,
-        force: Boolean
+    override fun <V : Saveable?> writeNullableObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean
     ) {
         for (value in values) {
-            if (value != null && writtenObjects.add(value))
-                value.save(this)
+            writeObject(value ?: continue)
+        }
+    }
+
+    override fun <V : Saveable?> writeHomogenousObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean
+    ) {
+        for (value in values) {
+            writeObject(value ?: continue)
         }
     }
 

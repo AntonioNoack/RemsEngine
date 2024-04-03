@@ -16,6 +16,7 @@ import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
@@ -126,7 +127,8 @@ object Retargetings {
     fun getAllowedBones(
         bone: Bone,
         srcSkeleton: Skeleton,
-        dstSkeleton: Skeleton, dstBoneMapping: Array<String>,
+        dstSkeleton: Skeleton,
+        dstBoneMapping: List<String>,
     ): List<Bone> {
         var ancestor = bone
         var ancestorMap = noBoneMapped
@@ -144,7 +146,7 @@ object Retargetings {
         // automatic bone-assignment, if none is found
         // todo - use similar assignments, if some are found in the database
         // todo merge skeletons, if they are very similar (names, positions, structure)
-        val map = Array(dstSkeleton.bones.size) { dstBoneId ->
+        val map = createArrayList(dstSkeleton.bones.size) { dstBoneId ->
             val dstName = dstSkeleton.bones[dstBoneId].name
             srcSkeleton.bones.firstOrNull { it.name == dstName }?.name // perfect match
                 ?: noBoneMapped

@@ -15,7 +15,7 @@
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
-    <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
+    <orderEntry type="library" name="Apache Compress" level="project" />
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="module" module-name="PDF" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
@@ -39,5 +39,6 @@
     <orderEntry type="module" module-name="JVM" />
     <orderEntry type="module" module-name="BulletJME" />
     <orderEntry type="module" module-name="Export" />
+    <orderEntry type="library" name="Apache Imaging" level="project" />
   </component>
 </module>

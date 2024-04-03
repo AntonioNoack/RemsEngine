@@ -1,6 +1,7 @@
 package me.anno.io.binary
 
 import me.anno.io.Saveable
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
@@ -12,7 +13,7 @@ import me.anno.io.binary.BinaryTypes.OBJECT_PTR
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.SimpleType
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.io.Streams.readNBytes2
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix2d
@@ -114,7 +115,6 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readLongArray() = LongArray(input.readInt()) { input.readLong() }
     private fun readFloatArray() = FloatArray(input.readInt()) { input.readFloat() }
     private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
-    private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
 
     private fun readObjectOrNull(): Saveable? {
         return when (val subType = input.read()) {
@@ -125,8 +125,8 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         }
     }
 
-    private fun readHomogeneousObjectArray(type: String): Array<Saveable?> {
-        return readArray {
+    private fun readHomogeneousObjectArray(type: String): List<Saveable?> {
+        return readList {
             when (val subType = input.read()) {
                 OBJECT_IMPL -> readObject(type)
                 OBJECT_PTR -> getByPointer(input.readInt(), true)
@@ -168,9 +168,9 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return obj
     }
 
-    private inline fun <reified V> readArray(get: () -> V): Array<V> = Array(input.readInt()) { get() }
-    private inline fun <reified V> readArray2D(get: () -> V): Array<Array<V>> {
-        return readArray { readArray(get) }
+    private fun <V> readList(get: () -> V): ArrayList<V> = createArrayList(input.readInt()) { get() }
+    private fun <V> readList2D(get: () -> V): ArrayList<ArrayList<V>> {
+        return readList { readList(get) }
     }
 
     private fun readFile() = readEfficientString()?.toGlobalFile() ?: InvalidRef
@@ -292,28 +292,28 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
         private val readers = arrayOfNulls<BinaryReader.() -> Any?>(128)
 
-        private inline fun <reified V> registerReader(
-            type: SimpleType, crossinline reader: BinaryReader.() -> V
+        private fun <V> registerReader(
+            type: SimpleType, reader: BinaryReader.() -> V
         ) {
             readers[type.scalarId] = { reader() }
-            readers[type.scalarId + 1] = { readArray { reader() } }
-            readers[type.scalarId + 2] = { readArray2D { reader() } }
+            readers[type.scalarId + 1] = { readList { reader() } }
+            readers[type.scalarId + 2] = { readList2D { reader() } }
         }
 
-        private inline fun <reified V, reified W> registerReader2(
-            type: SimpleType, crossinline reader1: BinaryReader.() -> V,
-            crossinline readerN: BinaryReader.() -> W
+        private fun <V, W> registerReader2(
+            type: SimpleType, reader1: BinaryReader.() -> V,
+            readerN: BinaryReader.() -> W
         ) {
             readers[type.scalarId] = { reader1() }
             readers[type.scalarId + 1] = { readerN() }
-            readers[type.scalarId + 2] = { readArray { readerN() } }
+            readers[type.scalarId + 2] = { readList { readerN() } }
         }
 
         init {
             readers[OBJECT_NULL] = { null }
             readers[OBJECT_IMPL] = { readObject() }
-            readers[OBJECT_ARRAY] = { readArray { readObjectOrNull() } }
-            readers[OBJECT_ARRAY_2D] = { readArray2D { readObjectOrNull() } }
+            readers[OBJECT_ARRAY] = { readList { readObjectOrNull() } }
+            readers[OBJECT_ARRAY_2D] = { readList2D { readObjectOrNull() } }
             readers[OBJECTS_HOMOGENOUS_ARRAY] = { readHomogeneousObjectArray(readTypeString()) }
             registerReader2(SimpleType.BYTE, { input.readByte() }) { readByteArray() }
             registerReader2(SimpleType.SHORT, { input.readShort() }) { readShortArray() }

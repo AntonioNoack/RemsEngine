@@ -100,7 +100,7 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
             "value" -> currValue = value
             "node" -> node = value as? Node
             "type" -> type = value as? String ?: return
-            "others" -> others = (value as? Array<*> ?: return).filterIsInstance<NodeConnector>()
+            "others" -> others = (value as? List<*> ?: return).filterIsInstance<NodeConnector>()
             else -> super.setProperty(name, value)
         }
     }

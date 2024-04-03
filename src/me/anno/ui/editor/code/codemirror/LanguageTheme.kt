@@ -3,18 +3,12 @@ package me.anno.ui.editor.code.codemirror
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.editor.code.tokenizer.TokenType
+import me.anno.utils.structures.lists.Lists.createArrayList
 import kotlin.math.min
 
-class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
+class LanguageTheme(val styles: ArrayList<LanguageStyle>) : Saveable() {
 
-    constructor() : this(Array(TokenType.entries.size) { LanguageStyle() })
-    constructor(base: LanguageStyle) : this(Array(TokenType.entries.size) { LanguageStyle(base) })
-
-    fun getColor(tokenType: TokenType) = styles[tokenType.ordinal].color
-    fun getSquiggles(tokenType: TokenType) = styles[tokenType.ordinal].squiggles
-    fun getUnderlined(tokenType: TokenType) = styles[tokenType.ordinal].underlined
-    fun getBold(tokenType: TokenType) = styles[tokenType.ordinal].bold
-    fun getItalic(tokenType: TokenType) = styles[tokenType.ordinal].italic
+    constructor() : this(createArrayList(TokenType.entries.size, LanguageStyle()))
 
     var name = ""
 
@@ -39,7 +33,7 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
             if (styles.all { it.isSimple() }) {
                 writer.writeColorArray("styles", IntArray(styles.size) { styles[it].color })
             } else {
-                writer.writeObjectArray(null, "styles", styles)
+                writer.writeObjectList(null, "styles", styles)
             }
         } else {
             writer.writeColorArray("s", IntArray(styles.size) { styles[it].encode() })
@@ -73,7 +67,7 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
                             styles[i] = LanguageStyle(value[i])
                         }
                     }
-                    is Array<*> -> {
+                    is List<*> -> {
                         for (i in value.indices) {
                             styles[i] = value[i] as? LanguageStyle ?: continue
                         }

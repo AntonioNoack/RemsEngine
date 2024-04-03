@@ -136,15 +136,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(BOOLEAN.array, name)
-            writeArray(values.size, values.indexOfLast { it }) {
+            writeList(values.size, values.indexOfLast { it }) {
                 append(if (values[it]) '1' else '0')
             }
         }
     }
 
-    override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
-        writeArray(name, values, force, BOOLEAN.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it }) {
+    override fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean) {
+        writeList(name, values, force, BOOLEAN.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it }) {
                 append(if (arr[it]) '1' else '0')
             }
         }
@@ -172,15 +172,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(CHAR.array, name)
-            writeArray(values.size, values.indexOfLast { it.code != 0 }) {
+            writeList(values.size, values.indexOfLast { it.code != 0 }) {
                 appendCharValue(values[it])
             }
         }
     }
 
-    override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
-        writeArray(name, values, force, CHAR.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it.code != 0 }) {
+    override fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean) {
+        writeList(name, values, force, CHAR.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it.code != 0 }) {
                 appendCharValue(arr[it])
             }
         }
@@ -196,15 +196,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(SimpleType.BYTE.array, name)
-            writeArray(values.size, values.indexOfLast { it != 0.toByte() }) {
+            writeList(values.size, values.indexOfLast { it != 0.toByte() }) {
                 append(values[it].toInt())
             }
         }
     }
 
-    override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
-        writeArray(name, values, force, SimpleType.BYTE.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0.toByte() }) {
+    override fun writeByteArray2D(name: String, values: List<ByteArray>, force: Boolean) {
+        writeList(name, values, force, SimpleType.BYTE.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0.toByte() }) {
                 append(arr[it].toInt())
             }
         }
@@ -220,15 +220,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(SimpleType.SHORT.array, name)
-            writeArray(values.size, values.indexOfLast { it != 0.toShort() }) {
+            writeList(values.size, values.indexOfLast { it != 0.toShort() }) {
                 append(values[it].toInt())
             }
         }
     }
 
-    override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
-        writeArray(name, values, force, SimpleType.SHORT.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0.toShort() }) {
+    override fun writeShortArray2D(name: String, values: List<ShortArray>, force: Boolean) {
+        writeList(name, values, force, SimpleType.SHORT.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0.toShort() }) {
                 append(arr[it].toInt())
             }
         }
@@ -300,7 +300,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(INT.array, name)
             // 18-23ns/e
-            writeArray(values.size, values.indexOfLast { it != 0 }) {
+            writeList(values.size, values.indexOfLast { it != 0 }) {
                 append(values[it])
             }
         }
@@ -310,23 +310,23 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(COLOR.array, name)
             // 18-23ns/e
-            writeArray(values.size, values.indexOfLast { it != 0 }) {
+            writeList(values.size, values.indexOfLast { it != 0 }) {
                 appendColor(values[it])
             }
         }
     }
 
-    override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        writeArray(name, values, force, INT.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0 }) {
+    override fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean) {
+        writeList(name, values, force, INT.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0 }) {
                 append(arr[it])
             }
         }
     }
 
-    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        writeArray(name, values, force, COLOR.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0 }) {
+    override fun writeColorArray2D(name: String, values: List<IntArray>, force: Boolean) {
+        writeList(name, values, force, COLOR.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0 }) {
                 appendColor(arr[it])
             }
         }
@@ -342,15 +342,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(FLOAT.array, name)
-            writeArray(values.size, values.indexOfLast { it != 0f }) {
+            writeList(values.size, values.indexOfLast { it != 0f }) {
                 append(values[it])
             }
         }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
-        writeArray(name, values, force, FLOAT.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0f }) {
+    override fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean) {
+        writeList(name, values, force, FLOAT.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0f }) {
                 append(arr[it])
             }
         }
@@ -366,15 +366,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(DOUBLE.array, name)
-            writeArray(values.size, values.indexOfLast { it != 0.0 }) {
+            writeList(values.size, values.indexOfLast { it != 0.0 }) {
                 append(values[it])
             }
         }
     }
 
-    override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
-        writeArray(name, values, force, DOUBLE.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0.0 }) {
+    override fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean) {
+        writeList(name, values, force, DOUBLE.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0.0 }) {
                 append(arr[it])
             }
         }
@@ -387,14 +387,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {
-        writeArray(name, values, force, STRING.array) {
+    override fun writeStringList(name: String, values: List<String>, force: Boolean) {
+        writeList(name, values, force, STRING.array) {
             writeString(it)
         }
     }
 
-    override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
-        writeArray2D(name, values, force, STRING.array2d, ::writeString)
+    override fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean) {
+        writeList2D(name, values, force, STRING.array2d, ::writeString)
     }
 
     private fun writeFile(value: FileReference?, workspace: FileReference) {
@@ -409,17 +409,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
-        writeArray(name, values, force, REFERENCE.array) {
+    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) {
+        writeList(name, values, force, REFERENCE.array) {
             writeFile(it, workspace)
         }
     }
 
-    override fun writeFileArray2D(
-        name: String, values: Array<Array<FileReference>>,
+    override fun writeFileList2D(
+        name: String, values: List<List<FileReference>>,
         force: Boolean, workspace: FileReference
     ) {
-        writeArray2D(name, values, force, REFERENCE.array2d) {
+        writeList2D(name, values, force, REFERENCE.array2d) {
             writeFile(it, workspace)
         }
     }
@@ -434,15 +434,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(LONG.array, name)
-            writeArray(values.size, values.indexOfLast { it != 0L }) {
+            writeList(values.size, values.indexOfLast { it != 0L }) {
                 append(values[it])
             }
         }
     }
 
-    override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
-        writeArray(name, values, force, LONG.array2d) { arr ->
-            writeArray(arr.size, arr.indexOfLast { it != 0L }) {
+    override fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean) {
+        writeList(name, values, force, LONG.array2d) { arr ->
+            writeList(arr.size, arr.indexOfLast { it != 0L }) {
                 append(arr[it])
             }
         }
@@ -540,17 +540,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
-        writeArray(name, values, force, "q4[]", ::writeQuaternionf)
+    override fun writeQuaternionfList(name: String, values: List<Quaternionf>, force: Boolean) =
+        writeList(name, values, force, "q4[]", ::writeQuaternionf)
 
-    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
-        writeArray2D(name, values, force, "q4[][]", ::writeQuaternionf)
+    override fun writeQuaternionfList2D(name: String, values: List<List<Quaternionf>>, force: Boolean) =
+        writeList2D(name, values, force, "q4[][]", ::writeQuaternionf)
 
-    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
-        writeArray(name, values, force, "q4d[]", ::writeQuaterniond)
+    override fun writeQuaterniondList(name: String, values: List<Quaterniond>, force: Boolean) =
+        writeList(name, values, force, "q4d[]", ::writeQuaterniond)
 
-    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
-        writeArray2D(name, values, force, "q4d[][]", ::writeQuaterniond)
+    override fun writeQuaterniondList2D(name: String, values: List<List<Quaterniond>>, force: Boolean) =
+        writeList2D(name, values, force, "q4d[][]", ::writeQuaterniond)
 
     private fun writeVector2d(value: Vector2d) {
         writeVector2d(value.x, value.y)
@@ -649,11 +649,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) =
-        writeArray(name, values, force, "v2i[]", ::writeVector2i)
+    override fun writeVector2iList(name: String, values: List<Vector2i>, force: Boolean) =
+        writeList(name, values, force, "v2i[]", ::writeVector2i)
 
-    override fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean) =
-        writeArray2D(name, values, force, "v2i[][]", ::writeVector2i)
+    override fun writeVector2iList2D(name: String, values: List<List<Vector2i>>, force: Boolean) =
+        writeList2D(name, values, force, "v2i[][]", ::writeVector2i)
 
     override fun writeVector3i(name: String, value: Vector3i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0 || value.z != 0) {
@@ -662,11 +662,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) =
-        writeArray(name, values, force, "v3i[]", ::writeVector3i)
+    override fun writeVector3iList(name: String, values: List<Vector3i>, force: Boolean) =
+        writeList(name, values, force, "v3i[]", ::writeVector3i)
 
-    override fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean) =
-        writeArray2D(name, values, force, "v3i[][]", ::writeVector3i)
+    override fun writeVector3iList2D(name: String, values: List<List<Vector3i>>, force: Boolean) =
+        writeList2D(name, values, force, "v3i[][]", ::writeVector3i)
 
     override fun writeVector4i(name: String, value: Vector4i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0) {
@@ -675,11 +675,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) =
-        writeArray(name, values, force, "v4i[]", ::writeVector4i)
+    override fun writeVector4iList(name: String, values: List<Vector4i>, force: Boolean) =
+        writeList(name, values, force, "v4i[]", ::writeVector4i)
 
-    override fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean) =
-        writeArray2D(name, values, force, "v4i[][]", ::writeVector4i)
+    override fun writeVector4iList2D(name: String, values: List<List<Vector4i>>, force: Boolean) =
+        writeList2D(name, values, force, "v4i[][]", ::writeVector4i)
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f) {
@@ -688,11 +688,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) =
-        writeArray(name, values, force, "v2[]", ::writeVector2f)
+    override fun writeVector2fList(name: String, values: List<Vector2f>, force: Boolean) =
+        writeList(name, values, force, "v2[]", ::writeVector2f)
 
-    override fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean) =
-        writeArray2D(name, values, force, "v2[][]", ::writeVector2f)
+    override fun writeVector2fList2D(name: String, values: List<List<Vector2f>>, force: Boolean) =
+        writeList2D(name, values, force, "v2[][]", ::writeVector2f)
 
     override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
@@ -701,11 +701,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) =
-        writeArray(name, values, force, "v3[]", ::writeVector3f)
+    override fun writeVector3fList(name: String, values: List<Vector3f>, force: Boolean) =
+        writeList(name, values, force, "v3[]", ::writeVector3f)
 
-    override fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean) =
-        writeArray2D(name, values, force, "v3[][]", ::writeVector3f)
+    override fun writeVector3fList2D(name: String, values: List<List<Vector3f>>, force: Boolean) =
+        writeList2D(name, values, force, "v3[][]", ::writeVector3f)
 
     override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
@@ -714,11 +714,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) =
-        writeArray(name, values, force, "v4[]", ::writeVector4f)
+    override fun writeVector4fList(name: String, values: List<Vector4f>, force: Boolean) =
+        writeList(name, values, force, "v4[]", ::writeVector4f)
 
-    override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) =
-        writeArray2D(name, values, force, "v4[][]", ::writeVector4f)
+    override fun writeVector4fList2D(name: String, values: List<List<Vector4f>>, force: Boolean) =
+        writeList2D(name, values, force, "v4[][]", ::writeVector4f)
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0) {
@@ -727,11 +727,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) =
-        writeArray(name, values, force, "v2d[]", ::writeVector2d)
+    override fun writeVector2dList(name: String, values: List<Vector2d>, force: Boolean) =
+        writeList(name, values, force, "v2d[]", ::writeVector2d)
 
-    override fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean) =
-        writeArray2D(name, values, force, "v2d[][]", ::writeVector2d)
+    override fun writeVector2dList2D(name: String, values: List<List<Vector2d>>, force: Boolean) =
+        writeList2D(name, values, force, "v2d[][]", ::writeVector2d)
 
     override fun writeVector3d(name: String, value: Vector3d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0) {
@@ -740,11 +740,11 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) =
-        writeArray(name, values, force, "v3d[]", ::writeVector3d)
+    override fun writeVector3dList(name: String, values: List<Vector3d>, force: Boolean) =
+        writeList(name, values, force, "v3d[]", ::writeVector3d)
 
-    override fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean) =
-        writeArray2D(name, values, force, "v3d[][]", ::writeVector3d)
+    override fun writeVector3dList2D(name: String, values: List<List<Vector3d>>, force: Boolean) =
+        writeList2D(name, values, force, "v3d[][]", ::writeVector3d)
 
     override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
@@ -753,13 +753,13 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) =
-        writeArray(name, values, force, "v4d[]", ::writeVector4d)
+    override fun writeVector4dList(name: String, values: List<Vector4d>, force: Boolean) =
+        writeList(name, values, force, "v4d[]", ::writeVector4d)
 
-    override fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean) =
-        writeArray2D(name, values, force, "v4d[][]", ::writeVector4d)
+    override fun writeVector4dList2D(name: String, values: List<List<Vector4d>>, force: Boolean) =
+        writeList2D(name, values, force, "v4d[][]", ::writeVector4d)
 
-    private inline fun writeArray(
+    private fun writeList(
         size: Int,
         lastIndex: Int,
         writeValue: (Int) -> Unit
@@ -773,9 +773,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         close(true)
     }
 
-    private inline fun <V> writeArray(
+    private fun <V> writeList(
         name: String,
-        values: Array<V>?,
+        values: List<V>?,
         force: Boolean,
         type: String,
         writeValue: (V) -> Unit
@@ -799,12 +799,12 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    private inline fun <V> writeArray2D(
-        name: String, values: Array<Array<V>>,
+    private fun <V> writeList2D(
+        name: String, values: List<List<V>>,
         force: Boolean, type: String, writeValue: (V) -> Unit
     ) {
-        writeArray(name, values, force, type) { array ->
-            writeArray(array.size, array.size) {
+        writeList(name, values, force, type) { array ->
+            writeList(array.size, array.size) {
                 writeValue(array[it])
             }
         }
@@ -890,35 +890,35 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeMatrix4x3f(value)
     }
 
-    override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) =
-        writeArray(name, values, force, "m2x2[]", ::writeMatrix2x2f)
+    override fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean) =
+        writeList(name, values, force, "m2x2[]", ::writeMatrix2x2f)
 
-    override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) =
-        writeArray(name, values, force, "m3x2[]", ::writeMatrix3x2f)
+    override fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean) =
+        writeList(name, values, force, "m3x2[]", ::writeMatrix3x2f)
 
-    override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) =
-        writeArray(name, values, force, "m3x3[]", ::writeMatrix3x3f)
+    override fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean) =
+        writeList(name, values, force, "m3x3[]", ::writeMatrix3x3f)
 
-    override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) =
-        writeArray(name, values, force, "m4x3[]", ::writeMatrix4x3f)
+    override fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean) =
+        writeList(name, values, force, "m4x3[]", ::writeMatrix4x3f)
 
-    override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) =
-        writeArray(name, values, force, "m4x4[]", ::writeMatrix4x4f)
+    override fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean) =
+        writeList(name, values, force, "m4x4[]", ::writeMatrix4x4f)
 
-    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) =
-        writeArray2D(name, values, force, "m2x2[][]", ::writeMatrix2x2f)
+    override fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean) =
+        writeList2D(name, values, force, "m2x2[][]", ::writeMatrix2x2f)
 
-    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean) =
-        writeArray2D(name, values, force, "m3x2[][]", ::writeMatrix3x2f)
+    override fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean) =
+        writeList2D(name, values, force, "m3x2[][]", ::writeMatrix3x2f)
 
-    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean) =
-        writeArray2D(name, values, force, "m3x3[][]", ::writeMatrix3x3f)
+    override fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean) =
+        writeList2D(name, values, force, "m3x3[][]", ::writeMatrix3x3f)
 
-    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean) =
-        writeArray2D(name, values, force, "m4x3[][]", ::writeMatrix4x3f)
+    override fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean) =
+        writeList2D(name, values, force, "m4x3[][]", ::writeMatrix4x3f)
 
-    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean) =
-        writeArray2D(name, values, force, "m4x4[][]", ::writeMatrix4x4f)
+    override fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean) =
+        writeList2D(name, values, force, "m4x4[][]", ::writeMatrix4x4f)
 
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) {
         writeAttributeStart("m4x4", name)
@@ -1010,35 +1010,35 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeMatrix4x4d(value)
     }
 
-    override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean) =
-        writeArray(name, values, force, "m2x2d[]", ::writeMatrix2x2d)
+    override fun writeMatrix2x2dList(name: String, values: List<Matrix2d>, force: Boolean) =
+        writeList(name, values, force, "m2x2d[]", ::writeMatrix2x2d)
 
-    override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean) =
-        writeArray(name, values, force, "m3x2d[]", ::writeMatrix3x2d)
+    override fun writeMatrix3x2dList(name: String, values: List<Matrix3x2d>, force: Boolean) =
+        writeList(name, values, force, "m3x2d[]", ::writeMatrix3x2d)
 
-    override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean) =
-        writeArray(name, values, force, "m3x3d[]", ::writeMatrix3x3d)
+    override fun writeMatrix3x3dList(name: String, values: List<Matrix3d>, force: Boolean) =
+        writeList(name, values, force, "m3x3d[]", ::writeMatrix3x3d)
 
-    override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean) =
-        writeArray(name, values, force, "m4x3d[]", ::writeMatrix4x3d)
+    override fun writeMatrix4x3dList(name: String, values: List<Matrix4x3d>, force: Boolean) =
+        writeList(name, values, force, "m4x3d[]", ::writeMatrix4x3d)
 
-    override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean) =
-        writeArray(name, values, force, "m4x4d[]", ::writeMatrix4x4d)
+    override fun writeMatrix4x4dList(name: String, values: List<Matrix4d>, force: Boolean) =
+        writeList(name, values, force, "m4x4d[]", ::writeMatrix4x4d)
 
-    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean) =
-        writeArray2D(name, values, force, "m2x2d[][]", ::writeMatrix2x2d)
+    override fun writeMatrix2x2dList2D(name: String, values: List<List<Matrix2d>>, force: Boolean) =
+        writeList2D(name, values, force, "m2x2d[][]", ::writeMatrix2x2d)
 
-    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean) =
-        writeArray2D(name, values, force, "m3x2d[][]", ::writeMatrix3x2d)
+    override fun writeMatrix3x2dList2D(name: String, values: List<List<Matrix3x2d>>, force: Boolean) =
+        writeList2D(name, values, force, "m3x2d[][]", ::writeMatrix3x2d)
 
-    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean) =
-        writeArray2D(name, values, force, "m3x3d[][]", ::writeMatrix3x3d)
+    override fun writeMatrix3x3dList2D(name: String, values: List<List<Matrix3d>>, force: Boolean) =
+        writeList2D(name, values, force, "m3x3d[][]", ::writeMatrix3x3d)
 
-    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean) =
-        writeArray2D(name, values, force, "m4x3d[][]", ::writeMatrix4x3d)
+    override fun writeMatrix4x3dList2D(name: String, values: List<List<Matrix4x3d>>, force: Boolean) =
+        writeList2D(name, values, force, "m4x3d[][]", ::writeMatrix4x3d)
 
-    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) =
-        writeArray2D(name, values, force, "m4x4[][]", ::writeMatrix4x4d)
+    override fun writeMatrix4x4dList2D(name: String, values: List<List<Matrix4d>>, force: Boolean) =
+        writeList2D(name, values, force, "m4x4[][]", ::writeMatrix4x4d)
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
@@ -1197,17 +1197,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeAABBd(value)
     }
 
-    override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) =
-        writeArray(name, values, force, "AABBf[]", ::writeAABBf)
+    override fun writeAABBfList(name: String, values: List<AABBf>, force: Boolean) =
+        writeList(name, values, force, "AABBf[]", ::writeAABBf)
 
-    override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) =
-        writeArray(name, values, force, "AABBd[]", ::writeAABBd)
+    override fun writeAABBdList(name: String, values: List<AABBd>, force: Boolean) =
+        writeList(name, values, force, "AABBd[]", ::writeAABBd)
 
-    override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) =
-        writeArray2D(name, values, force, "AABBf[][]", ::writeAABBf)
+    override fun writeAABBfList2D(name: String, values: List<List<AABBf>>, force: Boolean) =
+        writeList2D(name, values, force, "AABBf[][]", ::writeAABBf)
 
-    override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) =
-        writeArray2D(name, values, force, "AABBd[][]", ::writeAABBd)
+    override fun writeAABBdList2D(name: String, values: List<List<AABBd>>, force: Boolean) =
+        writeList2D(name, values, force, "AABBd[][]", ::writeAABBd)
 
     fun writePlanef(value: Planef) {
         append('[')
@@ -1243,17 +1243,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writePlaned(value)
     }
 
-    override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) =
-        writeArray(name, values, force, "p4[]", ::writePlanef)
+    override fun writePlanefList(name: String, values: List<Planef>, force: Boolean) =
+        writeList(name, values, force, "p4[]", ::writePlanef)
 
-    override fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean) =
-        writeArray(name, values, force, "p4d[]", ::writePlaned)
+    override fun writePlanedList(name: String, values: List<Planed>, force: Boolean) =
+        writeList(name, values, force, "p4d[]", ::writePlaned)
 
-    override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) =
-        writeArray2D(name, values, force, "p4[][]", ::writePlanef)
+    override fun writePlanefList2D(name: String, values: List<List<Planef>>, force: Boolean) =
+        writeList2D(name, values, force, "p4[][]", ::writePlanef)
 
-    override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
-        writeArray2D(name, values, force, "p4d[][]", ::writePlaned)
+    override fun writePlanedList2D(name: String, values: List<List<Planed>>, force: Boolean) =
+        writeList2D(name, values, force, "p4d[][]", ::writePlaned)
 
     override fun writeNull(name: String?) {
         writeAttributeStart("?", name)
@@ -1288,9 +1288,9 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         close(false)
     }
 
-    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
-        if (force || values?.isNotEmpty() == true) {
-            if (values.isNullOrEmpty()) {
+    override fun <V : Saveable> writeObjectList(self: Saveable?, name: String, values: List<V>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            if (values.isEmpty()) {
                 writeAttributeStart("*[]", name)
                 append("[0]")
             } else {
@@ -1307,20 +1307,17 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
                     }
                     close(true)
                 } else {
-                    writeHeterogeneousArray(name, values)
+                    writeHeterogeneousList(name, values)
                 }
             }
         }
     }
 
-    override fun <V : Saveable?> writeNullableObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>?,
-        force: Boolean
+    override fun <V : Saveable?> writeNullableObjectList(
+        self: Saveable?, name: String, values: List<V>, force: Boolean
     ) {
-        if (force || values?.isNotEmpty() == true) {
-            if (values.isNullOrEmpty()) {
+        if (force || values.isNotEmpty()) {
+            if (values.isEmpty()) {
                 writeAttributeStart("*[]", name)
                 append("[0]")
             } else {
@@ -1337,38 +1334,38 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
                     }
                     close(true)
                 } else {
-                    writeHeterogeneousArray(name, values)
+                    writeHeterogeneousList(name, values)
                 }
             }
         }
     }
 
-    private fun <V : Saveable?> writeHeterogeneousArray(name: String, values: Array<V>) {
+    private fun <V : Saveable?> writeHeterogeneousList(name: String, values: List<V>) {
         writeAttributeStart("*[]", name)
-        writeArray(values.size, values.size) {
+        writeList(values.size, values.size) {
             writeObject(null, null, values[it], true)
         }
     }
 
-    override fun <V : Saveable> writeObjectArray2D(
+    override fun <V : Saveable> writeObjectList2D(
         self: Saveable?,
         name: String,
-        values: Array<Array<V>>,
+        values: List<List<V>>,
         force: Boolean
     ) {
-        writeArray(name, values, force, "*[][]") { arr ->
-            writeArray(arr.size, arr.size) {
+        writeList(name, values, force, "*[][]") { arr ->
+            writeList(arr.size, arr.size) {
                 writeObject(null, null, arr[it], true)
             }
         }
     }
 
-    override fun <V : Saveable?> writeHomogenousObjectArray(
+    override fun <V : Saveable?> writeHomogenousObjectList(
         self: Saveable?,
         name: String,
-        values: Array<V>,
+        values: List<V>,
         force: Boolean
-    ) = writeNullableObjectArray(self, name, values, force)
+    ) = writeNullableObjectList(self, name, values, force)
 
     override fun writePointer(name: String?, className: String, ptr: Int, value: Saveable) {
         writeAttributeStart(className, name)

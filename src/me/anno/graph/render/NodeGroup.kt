@@ -34,7 +34,7 @@ class NodeGroup : PrefabSaveable() {
             "position" -> position.set(value as? Vector3d ?: return)
             "extends" -> extends.set(value as? Vector3d ?: return)
             "members" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 members.clear()
                 members.addAll(values.filterIsInstance<Node>())
             }

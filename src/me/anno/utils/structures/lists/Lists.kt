@@ -371,6 +371,13 @@ object Lists {
     }
 
     @JvmStatic
+    fun <V> createArrayList(size: Int, element: V): ArrayList<V> {
+        val result = ArrayList<V>(size)
+        for (i in 0 until size) result.add(element)
+        return result
+    }
+
+    @JvmStatic
     @Suppress("unchecked_cast")
     fun <V> List<List<V>>.transposed(): List<List<V>> {
         val m = size

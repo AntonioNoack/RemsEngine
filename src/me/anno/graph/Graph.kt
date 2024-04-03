@@ -118,12 +118,12 @@ open class Graph : PrefabSaveable() {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "nodes" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 nodes.clear()
                 nodes.addAll(values.filterIsInstance<Node>())
             }
             "groups" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 groups.clear()
                 groups.addAll(values.filterIsInstance<NodeGroup>())
             }

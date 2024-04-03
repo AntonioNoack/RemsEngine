@@ -135,7 +135,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "children" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 val children = children
                 if (children is MutableList) {
                     children.clear()

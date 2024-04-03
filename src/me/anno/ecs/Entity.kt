@@ -749,7 +749,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     private fun <V> addMembers(value: Any?, dst: ArrayList<V>, add: (Any?) -> Unit) {
-        val values = value as? Array<*> ?: return
+        val values = value as? List<*> ?: return
         dst.clear()
         dst.ensureCapacity(values.size)
         for (valueI in values) {

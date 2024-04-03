@@ -4,6 +4,7 @@ import me.anno.io.Saveable
 import me.anno.io.json.saveable.SimpleType
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.indexOf2
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
@@ -20,11 +21,11 @@ class XMLStringReader(val data: CharSequence) {
             registry[type] = reader
         }
 
-        private inline fun <Type, reified ArrayType> register1(
+        private fun <Type, ArrayType> register1(
             type: SimpleType,
-            noinline reader: (String) -> Type,
-            noinline createArray: (size: Int) -> ArrayType,
-            crossinline insert: (array: ArrayType, index: Int, value: Type) -> Unit
+            reader: (String) -> Type,
+            createArray: (size: Int) -> ArrayType,
+            insert: (array: ArrayType, index: Int, value: Type) -> Unit
         ) {
             register(type.scalar, reader)
             register(type.array) {
@@ -80,13 +81,13 @@ class XMLStringReader(val data: CharSequence) {
             return a1(value, ',', createArray, readValue)
         }
 
-        private inline fun <reified ArrayType> a2(
+        private fun <ArrayType> a2(
             value: String,
-            noinline createArray: (Int) -> ArrayType,
-            noinline readValue: (vs: ArrayType, i: Int, v: String) -> Unit
-        ): Array<ArrayType> {
+            createArray: (Int) -> ArrayType,
+            readValue: (vs: ArrayType, i: Int, v: String) -> Unit
+        ): ArrayList<ArrayType> {
             val empty = createArray(0)
-            return a1(value, ';', { Array(it) { empty } }, { vs, i, v ->
+            return a1(value, ';', { createArrayList(it, empty) }, { vs, i, v ->
                 vs[i] = a1(v, ',', createArray, readValue)
             })
         }

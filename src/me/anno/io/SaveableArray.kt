@@ -21,7 +21,7 @@ class SaveableArray() : Saveable(), MutableList<Saveable> {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "values" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 this.values.clear()
                 this.values.addAll(values.filterIsInstance<Saveable>())
             }

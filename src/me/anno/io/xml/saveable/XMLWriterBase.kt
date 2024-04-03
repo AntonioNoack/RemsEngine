@@ -89,12 +89,12 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(" $name=\"$type:${escape(value)}\"")
     }
 
-    private fun array(type: SimpleType, name: String, value: String) {
+    private fun writeList(type: SimpleType, name: String, value: String) {
         attr(type.array, name, value)
     }
 
-    private fun array(type: SimpleType, name: String, size: Int, lastIndex: Int, formatValue: (Int) -> String) {
-        array(type, name, "$size,${(0 .. lastIndex).joinToString(",") { formatValue(it) }}")
+    private fun list(type: SimpleType, name: String, size: Int, lastIndex: Int, formatValue: (Int) -> String) {
+        writeList(type, name, "$size,${(0 .. lastIndex).joinToString(",") { formatValue(it) }}")
     }
 
     private fun simpleObject(type: SimpleType, name: String, attributes: String) {
@@ -109,7 +109,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         attr(BOOLEAN.array, name, values.joinToString("") { if (it) "1" else "0" })
     }
 
-    override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
+    override fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -118,10 +118,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
-        array(CHAR, name, values.size, values.indexOfLast { it.code != 0 }) { values[it].code.toString() }
+        list(CHAR, name, values.size, values.indexOfLast { it.code != 0 }) { values[it].code.toString() }
     }
 
-    override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
+    override fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -130,10 +130,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
-        array(BYTE, name, values.size, values.indexOfLast { it.toInt() != 0 }) { values[it].toString() }
+        list(BYTE, name, values.size, values.indexOfLast { it.toInt() != 0 }) { values[it].toString() }
     }
 
-    override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
+    override fun writeByteArray2D(name: String, values: List<ByteArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -142,10 +142,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
-        array(SHORT, name, values.size, values.indexOfLast { it.toInt() != 0 }) { values[it].toString() }
+        list(SHORT, name, values.size, values.indexOfLast { it.toInt() != 0 }) { values[it].toString() }
     }
 
-    override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
+    override fun writeShortArray2D(name: String, values: List<ShortArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -154,10 +154,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
-        array(INT, name, values.size, values.indexOfLast { it != 0 }) { values[it].toString() }
+        list(INT, name, values.size, values.indexOfLast { it != 0 }) { values[it].toString() }
     }
 
-    override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
+    override fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -166,10 +166,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeColorArray(name: String, values: IntArray, force: Boolean) {
-        array(COLOR, name, values.size, values.indexOfLast { it != 0 }) { values[it].toHexColor() }
+        list(COLOR, name, values.size, values.indexOfLast { it != 0 }) { values[it].toHexColor() }
     }
 
-    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
+    override fun writeColorArray2D(name: String, values: List<IntArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -178,10 +178,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
-        array(LONG, name, values.size, values.indexOfLast { it != 0L }) { values[it].toString() }
+        list(LONG, name, values.size, values.indexOfLast { it != 0L }) { values[it].toString() }
     }
 
-    override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
+    override fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -190,10 +190,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
-        array(FLOAT, name, values.size, values.indexOfLast { it != 0f }) { values[it].toString() }
+        list(FLOAT, name, values.size, values.indexOfLast { it != 0f }) { values[it].toString() }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+    override fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -202,10 +202,10 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
-        array(DOUBLE, name, values.size, values.indexOfLast { it != 0.0 }) { values[it].toString() }
+        list(DOUBLE, name, values.size, values.indexOfLast { it != 0.0 }) { values[it].toString() }
     }
 
-    override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
+    override fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -213,11 +213,11 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         if (force || value != "") attr(STRING, name, value)
     }
 
-    override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {
-        array(STRING, name, values.size, values.indexOfLast { it != "" }) { "\"${escape(values[it])}\"" }
+    override fun writeStringList(name: String, values: List<String>, force: Boolean) {
+        list(STRING, name, values.size, values.indexOfLast { it != "" }) { "\"${escape(values[it])}\"" }
     }
 
-    override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
+    override fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -233,27 +233,27 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(VECTOR4F, name, "x=${value.x} y=${value.y} z=${value.z} w=${value.w}")
     }
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) {
-        array(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y})" })
+    override fun writeVector2fList(name: String, values: List<Vector2f>, force: Boolean) {
+        writeList(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y})" })
     }
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
-        array(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
+    override fun writeVector3fList(name: String, values: List<Vector3f>, force: Boolean) {
+        writeList(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
     }
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
-        array(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
+    override fun writeVector4fList(name: String, values: List<Vector4f>, force: Boolean) {
+        writeList(VECTOR2F, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
     }
 
-    override fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean) {
+    override fun writeVector2fList2D(name: String, values: List<List<Vector2f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean) {
+    override fun writeVector3fList2D(name: String, values: List<List<Vector3f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) {
+    override fun writeVector4fList2D(name: String, values: List<List<Vector4f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -269,27 +269,27 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(VECTOR4D, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
-        array(VECTOR2D, name, values.joinToString(",") { "(${it.x},${it.y})" })
+    override fun writeVector2dList(name: String, values: List<Vector2d>, force: Boolean) {
+        writeList(VECTOR2D, name, values.joinToString(",") { "(${it.x},${it.y})" })
     }
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {
-        array(VECTOR3D, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
+    override fun writeVector3dList(name: String, values: List<Vector3d>, force: Boolean) {
+        writeList(VECTOR3D, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
     }
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {
-        array(VECTOR4D, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
+    override fun writeVector4dList(name: String, values: List<Vector4d>, force: Boolean) {
+        writeList(VECTOR4D, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
     }
 
-    override fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean) {
+    override fun writeVector2dList2D(name: String, values: List<List<Vector2d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean) {
+    override fun writeVector3dList2D(name: String, values: List<List<Vector3d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean) {
+    override fun writeVector4dList2D(name: String, values: List<List<Vector4d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -305,27 +305,27 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(VECTOR4I, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
-        array(VECTOR2I, name, values.joinToString(",") { "(${it.x},${it.y})" })
+    override fun writeVector2iList(name: String, values: List<Vector2i>, force: Boolean) {
+        writeList(VECTOR2I, name, values.joinToString(",") { "(${it.x},${it.y})" })
     }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
-        array(VECTOR3I, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
+    override fun writeVector3iList(name: String, values: List<Vector3i>, force: Boolean) {
+        writeList(VECTOR3I, name, values.joinToString(",") { "(${it.x},${it.y},${it.z})" })
     }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
-        array(VECTOR4I, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
+    override fun writeVector4iList(name: String, values: List<Vector4i>, force: Boolean) {
+        writeList(VECTOR4I, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
     }
 
-    override fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean) {
+    override fun writeVector2iList2D(name: String, values: List<List<Vector2i>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean) {
+    override fun writeVector3iList2D(name: String, values: List<List<Vector3i>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean) {
+    override fun writeVector4iList2D(name: String, values: List<List<Vector4i>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -377,43 +377,43 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(MATRIX4X4F, name, "v=\"${m44(value)}\"")
     }
 
-    override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) {
-        array(MATRIX2X2F, name, values.joinToString(",") { m22(it) })
+    override fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean) {
+        writeList(MATRIX2X2F, name, values.joinToString(",") { m22(it) })
     }
 
-    override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) {
-        array(MATRIX3X2F, name, values.joinToString(",") { m32(it) })
+    override fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean) {
+        writeList(MATRIX3X2F, name, values.joinToString(",") { m32(it) })
     }
 
-    override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) {
-        array(MATRIX3X3F, name, values.joinToString(",") { m33(it) })
+    override fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean) {
+        writeList(MATRIX3X3F, name, values.joinToString(",") { m33(it) })
     }
 
-    override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) {
-        array(MATRIX4X3F, name, values.joinToString(",") { m43(it) })
+    override fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean) {
+        writeList(MATRIX4X3F, name, values.joinToString(",") { m43(it) })
     }
 
-    override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) {
-        array(MATRIX4X4F, name, values.joinToString(",") { m44(it) })
+    override fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean) {
+        writeList(MATRIX4X4F, name, values.joinToString(",") { m44(it) })
     }
 
-    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) {
+    override fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean) {
+    override fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean) {
+    override fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean) {
+    override fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean) {
+    override fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -437,43 +437,43 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean) {
+    override fun writeMatrix2x2dList(name: String, values: List<Matrix2d>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean) {
+    override fun writeMatrix3x2dList(name: String, values: List<Matrix3x2d>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean) {
+    override fun writeMatrix3x3dList(name: String, values: List<Matrix3d>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean) {
+    override fun writeMatrix4x3dList(name: String, values: List<Matrix4x3d>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean) {
+    override fun writeMatrix4x4dList(name: String, values: List<Matrix4d>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean) {
+    override fun writeMatrix2x2dList2D(name: String, values: List<List<Matrix2d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean) {
+    override fun writeMatrix3x2dList2D(name: String, values: List<List<Matrix3x2d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean) {
+    override fun writeMatrix3x3dList2D(name: String, values: List<List<Matrix3d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean) {
+    override fun writeMatrix4x3dList2D(name: String, values: List<List<Matrix4x3d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) {
+    override fun writeMatrix4x4dList2D(name: String, values: List<List<Matrix4d>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -485,19 +485,19 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(QUATERNIOND, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
-    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
-        array(QUATERNIONF, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
+    override fun writeQuaternionfList(name: String, values: List<Quaternionf>, force: Boolean) {
+        writeList(QUATERNIONF, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
     }
 
-    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) {
-        array(QUATERNIOND, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
+    override fun writeQuaterniondList(name: String, values: List<Quaterniond>, force: Boolean) {
+        writeList(QUATERNIOND, name, values.joinToString(",") { "(${it.x},${it.y},${it.z},${it.w})" })
     }
 
-    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
+    override fun writeQuaternionfList2D(name: String, values: List<List<Quaternionf>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
+    override fun writeQuaterniondList2D(name: String, values: List<List<Quaterniond>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -515,23 +515,23 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         )
     }
 
-    override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) {
-        array(AABBF, name, values.joinToString(",") {
+    override fun writeAABBfList(name: String, values: List<AABBf>, force: Boolean) {
+        writeList(AABBF, name, values.joinToString(",") {
             "(${it.minX},${it.minY},${it.minZ},${it.maxX},${it.maxY},${it.maxZ})"
         })
     }
 
-    override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) {
-        array(AABBD, name, values.joinToString(",") {
+    override fun writeAABBdList(name: String, values: List<AABBd>, force: Boolean) {
+        writeList(AABBD, name, values.joinToString(",") {
             "(${it.minX},${it.minY},${it.minZ},${it.maxX},${it.maxY},${it.maxZ})"
         })
     }
 
-    override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) {
+    override fun writeAABBfList2D(name: String, values: List<List<AABBf>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) {
+    override fun writeAABBdList2D(name: String, values: List<List<AABBd>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -545,19 +545,19 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         simpleObject(PLANED, name, attr)
     }
 
-    override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) {
-        array(PLANEF, name, values.joinToString(",") { "(${it.dirX},${it.dirY},${it.dirZ},${it.distance})" })
+    override fun writePlanefList(name: String, values: List<Planef>, force: Boolean) {
+        writeList(PLANEF, name, values.joinToString(",") { "(${it.dirX},${it.dirY},${it.dirZ},${it.distance})" })
     }
 
-    override fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean) {
-        array(PLANED, name, values.joinToString(",") { "(${it.dirX},${it.dirY},${it.dirZ},${it.distance})" })
+    override fun writePlanedList(name: String, values: List<Planed>, force: Boolean) {
+        writeList(PLANED, name, values.joinToString(",") { "(${it.dirX},${it.dirY},${it.dirZ},${it.distance})" })
     }
 
-    override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) {
+    override fun writePlanefList2D(name: String, values: List<List<Planef>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) {
+    override fun writePlanedList2D(name: String, values: List<List<Planed>>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -569,17 +569,17 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         if (force || value != InvalidRef) attr(REFERENCE, name, formatFile(value, workspace))
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
+    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) {
         if (force || values.isNotEmpty()) {
-            array(REFERENCE, name, values.size, values.indexOfLast { it != InvalidRef }) {
+            list(REFERENCE, name, values.size, values.indexOfLast { it != InvalidRef }) {
                 "\"${escape(formatFile(values[it], workspace))}\""
             }
         }
     }
 
-    override fun writeFileArray2D(
+    override fun writeFileList2D(
         name: String,
-        values: Array<Array<FileReference>>,
+        values: List<List<FileReference>>,
         force: Boolean,
         workspace: FileReference
     ) {
@@ -624,11 +624,12 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : Saveable?> writeNullableObjectArray(
-        self: Saveable?, name: String, values: Array<V>?, force: Boolean
+    override fun <V : Saveable?> writeNullableObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean
     ) {
-        if (force || values?.isNotEmpty() == true) {
-            if (!values.isNullOrEmpty()) {
+        if (force || values.isNotEmpty()) {
+            if (values.isNotEmpty()) {
                 append("<$name>")
                 for (value in values) {
                     writeObject(self, null, value)
@@ -640,19 +641,19 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) {
-        writeNullableObjectArray(self, name, values, force)
+    override fun <V : Saveable> writeObjectList(self: Saveable?, name: String, values: List<V>, force: Boolean) {
+        writeNullableObjectList(self, name, values, force)
     }
 
-    override fun <V : Saveable> writeObjectArray2D(
-        self: Saveable?, name: String, values: Array<Array<V>>, force: Boolean
+    override fun <V : Saveable> writeObjectList2D(
+        self: Saveable?, name: String, values: List<List<V>>, force: Boolean
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun <V : Saveable?> writeHomogenousObjectArray(
-        self: Saveable?, name: String, values: Array<V>, force: Boolean
-    ) = writeNullableObjectArray(self, name, values, force)
+    override fun <V : Saveable?> writeHomogenousObjectList(
+        self: Saveable?, name: String, values: List<V>, force: Boolean
+    ) = writeNullableObjectList(self, name, values, force)
 
     override fun writeListStart() {
         append("<thisIsXML>")

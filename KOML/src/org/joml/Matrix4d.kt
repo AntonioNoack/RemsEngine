@@ -1526,7 +1526,7 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    operator fun get(dest: DoubleArray, offset: Int = 0): DoubleArray {
+    fun get(dest: DoubleArray, offset: Int = 0): DoubleArray {
         dest[offset] = m00
         dest[offset + 1] = m01
         dest[offset + 2] = m02
@@ -1547,7 +1547,7 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    operator fun get(dest: FloatArray, offset: Int = 0): FloatArray {
+    fun get(dest: FloatArray, offset: Int = 0): FloatArray {
         dest[offset] = m00.toFloat()
         dest[offset + 1] = m01.toFloat()
         dest[offset + 2] = m02.toFloat()

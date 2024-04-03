@@ -200,7 +200,7 @@ class GameEngineProject() : NamedSaveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("lastScene", lastScene)
-        writer.writeStringArray("openTabs", openTabs.toTypedArray())
+        writer.writeStringList("openTabs", openTabs.toList())
         writer.writeInt("maxIndexDepth", maxIndexDepth)
         // location doesn't really need to be saved
     }
@@ -210,7 +210,7 @@ class GameEngineProject() : NamedSaveable() {
             "lastScene" -> lastScene = value as? String ?: (value as? FileReference)?.absolutePath ?: return
             "maxIndexDepth" -> maxIndexDepth = value as? Int ?: return
             "openTabs" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 openTabs.clear()
                 openTabs.addAll(values.filterIsInstance<String>())
                 openTabs.addAll(values.filterIsInstance<FileReference>().map { it.toLocalPath(location) })

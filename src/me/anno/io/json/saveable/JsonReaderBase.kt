@@ -6,6 +6,7 @@ import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -251,37 +252,37 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return values
     }
 
-    private inline fun <reified Type> readArray(
+    private fun <Type> readArray(
         typeName: SimpleType, a0: Type,
-        crossinline readValue: () -> Type,
-    ): Array<Type> {
+        readValue: () -> Type,
+    ): ArrayList<Type> {
         return readArray(typeName.array, a0, readValue)
     }
 
-    private inline fun <reified Type> readArray(
+    private fun <Type> readArray(
         typeName: String, a0: Type,
-        crossinline readValue: () -> Type,
-    ): Array<Type> {
+        readValue: () -> Type,
+    ): ArrayList<Type> {
         return readArray(typeName,
-            { Array(it) { a0 } },
+            { createArrayList(it, a0) },
             { array, index -> array[index] = readValue() }
         )
     }
 
-    private inline fun <reified Type2> readArray2D(
-        typeName: SimpleType, sampleArray: Array<Type2>,
-        crossinline readValue: () -> Type2,
-    ): Array<Array<Type2>> {
-        return readArray2D(typeName.array2d, sampleArray, readValue)
+    private fun <Type> readArray2D(
+        typeName: SimpleType, sampleInstance: Type,
+        readValue: () -> Type,
+    ): ArrayList<List<Type>> {
+        return readArray2D(typeName.array2d, sampleInstance, readValue)
     }
 
-    private inline fun <reified Type2> readArray2D(
-        typeName: String, sampleArray: Array<Type2>,
-        crossinline readValue: () -> Type2,
-    ): Array<Array<Type2>> {
-        val sampleInstance = sampleArray[0]
+    private fun <Type> readArray2D(
+        typeName: String, sampleInstance: Type,
+        readValue: () -> Type,
+    ): ArrayList<List<Type>> {
+        val sampleArray = emptyList<Type>()
         return readArray(typeName,
-            { Array(it) { sampleArray } },
+            { createArrayList(it, sampleArray) },
             { array, index -> array[index] = readArray(typeName, sampleInstance, readValue) }
         )
     }
@@ -830,15 +831,16 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         var (type, name) = splitTypeName(typeName)
         when (type) {
             "*[]", "[]" -> {// array of mixed types
-                val elements = readArray("Any", { arrayOfNulls<Saveable?>(it) },
-                    { array, index ->
-                        array[index] = when (val next = skipSpace()) {
-                            'n' -> readNull()
-                            '{' -> readObject()
-                            in '0'..'9' -> readPtr(next)
-                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                        }
-                    })
+                val elements = readArray("Any", {
+                    createArrayList<Saveable?>(it, null)
+                }, { array, index ->
+                    array[index] = when (val next = skipSpace()) {
+                        'n' -> readNull()
+                        '{' -> readObject()
+                        in '0'..'9' -> readPtr(next)
+                        else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                    }
+                })
                 obj.setProperty(name, elements)
             }
             else -> {
@@ -847,15 +849,16 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                     reader(this, obj, name)
                 } else if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
-                    val elements = readArray(type, { arrayOfNulls<Saveable?>(it) },
-                        { array, index ->
-                            array[index] = when (val next = skipSpace()) {
-                                'n' -> readNull()
-                                '{' -> readObjectAndRegister(type)
-                                in '0'..'9' -> readPtr(next)
-                                else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
-                            }
-                        })
+                    val elements = readArray(type, {
+                        createArrayList<Saveable?>(it, null)
+                    }, { array, index ->
+                        array[index] = when (val next = skipSpace()) {
+                            'n' -> readNull()
+                            '{' -> readObjectAndRegister(type)
+                            in '0'..'9' -> readPtr(next)
+                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
+                        }
+                    })
                     obj.setProperty(name, elements)
                 } else {
                     when (val next = skipSpace()) {
@@ -961,20 +964,19 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
         private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>(64)
 
-        private inline fun <reified V> registerReader(
+        private fun <V> registerReader(
             type: SimpleType, v0: V,
-            crossinline reader: JsonReaderBase.() -> V
+            reader: JsonReaderBase.() -> V
         ) {
-            val v1 = arrayOf(v0)
             readers[type.scalar] = { obj, name -> obj.setProperty(name, reader()) }
             readers[type.array] = { obj, name -> obj.setProperty(name, readArray(type, v0) { reader() }) }
-            readers[type.array2d] = { obj, name -> obj.setProperty(name, readArray2D(type, v1) { reader() }) }
+            readers[type.array2d] = { obj, name -> obj.setProperty(name, readArray2D(type, v0) { reader() }) }
         }
 
-        private inline fun <reified V, reified W> registerReader2(
+        private fun <V, W> registerReader2(
             type: SimpleType, v0: W,
-            crossinline reader1: JsonReaderBase.() -> V,
-            crossinline readerN: JsonReaderBase.() -> W
+            reader1: JsonReaderBase.() -> V,
+            readerN: JsonReaderBase.() -> W
         ) {
             readers[type.scalar] = { obj, name -> obj.setProperty(name, reader1()) }
             readers[type.array] = { obj, name -> obj.setProperty(name, readerN()) }

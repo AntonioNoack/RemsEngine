@@ -14,5 +14,7 @@
     <orderEntry type="library" name="JavaNativeAccess" level="project" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />
+    <orderEntry type="library" name="Apache CLI" level="project" />
+    <orderEntry type="library" name="Apache Imaging" level="project" />
   </component>
 </module>

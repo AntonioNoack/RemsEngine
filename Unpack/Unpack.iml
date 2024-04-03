@@ -9,7 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="Engine" />
-    <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
+    <orderEntry type="library" name="Apache Compress" level="project" />
     <orderEntry type="library" name="jUnRAR" level="project" />
     <orderEntry type="module" module-name="KOML" />
   </component>

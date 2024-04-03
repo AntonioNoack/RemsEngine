@@ -62,12 +62,12 @@ class ImportedAnimation : Animation() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFloatArray2D("frames", frames.map { joinValues(it) }.toTypedArray())
+        writer.writeFloatArray2D("frames", frames.map { joinValues(it) })
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "frames" -> frames = (value as? Array<*>)
+            "frames" -> frames = (value as? List<*>)
                 ?.filterIsInstance<FloatArray>()
                 ?.map { splitValues(it) }
                 ?.toTypedArray() ?: return

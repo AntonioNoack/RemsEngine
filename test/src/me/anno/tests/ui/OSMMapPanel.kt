@@ -8,9 +8,9 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.io.Streams.readText
+import me.anno.io.Streams.writeString
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.WebRef.Companion.encodeURIComponent
-import me.anno.io.json.generic.ObjectMapper.write
 import me.anno.tests.map.OSMap
 import me.anno.tests.map.readOSM1
 import me.anno.tests.ui.OSMMapCache.getMapData
@@ -109,7 +109,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
                 limit.acquire()
                 val con = URL(MAIN_URL).openConnection() as HttpURLConnection
                 con.doOutput = true
-                con.outputStream.write("data=${encodeURIComponent(query)}")
+                con.outputStream.writeString("data=${encodeURIComponent(query)}")
                 if (con.responseCode == 200) {
                     val bytes = con.inputStream.use { it.readBytes() }
                     result = readOSM1(ByteArrayInputStream(bytes))

@@ -56,7 +56,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean = false) =
+    open fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeChar(name: String, value: Char, force: Boolean = false) =
@@ -65,7 +65,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeCharArray(name: String, values: CharArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean = false) =
+    open fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeByte(name: String, value: Byte, force: Boolean = false) =
@@ -74,7 +74,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeByteArray(name: String, values: ByteArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean = false) =
+    open fun writeByteArray2D(name: String, values: List<ByteArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeShort(name: String, value: Short, force: Boolean = false) =
@@ -83,7 +83,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeShortArray(name: String, values: ShortArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean = false) =
+    open fun writeShortArray2D(name: String, values: List<ShortArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeInt(name: String, value: Int, force: Boolean = false) =
@@ -92,7 +92,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeIntArray(name: String, values: IntArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean = false) =
+    open fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeColor(name: String, value: Int, force: Boolean = true) =
@@ -101,7 +101,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeColorArray(name: String, values: IntArray, force: Boolean = true) =
         writeSomething(name, values, force)
 
-    open fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean = true) =
+    open fun writeColorArray2D(name: String, values: List<IntArray>, force: Boolean = true) =
         writeSomething(name, values, force)
 
     open fun writeLong(name: String, value: Long, force: Boolean = false) =
@@ -110,7 +110,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeLongArray(name: String, values: LongArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false) =
+    open fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeFloat(name: String, value: Float, force: Boolean = false) =
@@ -119,7 +119,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeFloatArray(name: String, values: FloatArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean = false) =
+    open fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeDouble(name: String, value: Double, force: Boolean = false) =
@@ -128,16 +128,16 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean = false) =
+    open fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeString(name: String, value: String, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeStringArray(name: String, values: Array<String>, force: Boolean = false) =
+    open fun writeStringList(name: String, values: List<String>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean = false) =
+    open fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeVector2f(name: String, value: Vector2f, force: Boolean = false) =
@@ -149,22 +149,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeVector4f(name: String, value: Vector4f, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean = false) =
+    open fun writeVector2fList(name: String, values: List<Vector2f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean = false) =
+    open fun writeVector3fList(name: String, values: List<Vector3f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean = false) =
+    open fun writeVector4fList(name: String, values: List<Vector4f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean = false) =
+    open fun writeVector2fList2D(name: String, values: List<List<Vector2f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean = false) =
+    open fun writeVector3fList2D(name: String, values: List<List<Vector3f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean = false) =
+    open fun writeVector4fList2D(name: String, values: List<List<Vector4f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeVector2d(name: String, value: Vector2d, force: Boolean = false) =
@@ -176,22 +176,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeVector4d(name: String, value: Vector4d, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean = false) =
+    open fun writeVector2dList(name: String, values: List<Vector2d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean = false) =
+    open fun writeVector3dList(name: String, values: List<Vector3d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean = false) =
+    open fun writeVector4dList(name: String, values: List<Vector4d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean = false) =
+    open fun writeVector2dList2D(name: String, values: List<List<Vector2d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean = false) =
+    open fun writeVector3dList2D(name: String, values: List<List<Vector3d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean = false) =
+    open fun writeVector4dList2D(name: String, values: List<List<Vector4d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeVector2i(name: String, value: Vector2i, force: Boolean = false) =
@@ -203,22 +203,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeVector4i(name: String, value: Vector4i, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean = false) =
+    open fun writeVector2iList(name: String, values: List<Vector2i>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean = false) =
+    open fun writeVector3iList(name: String, values: List<Vector3i>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean = false) =
+    open fun writeVector4iList(name: String, values: List<Vector4i>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean = false) =
+    open fun writeVector2iList2D(name: String, values: List<List<Vector2i>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean = false) =
+    open fun writeVector3iList2D(name: String, values: List<List<Vector3i>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean = false) =
+    open fun writeVector4iList2D(name: String, values: List<List<Vector4i>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     // matrices, which are commonly used in game development
@@ -237,34 +237,34 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean = false) =
+    open fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean = false) =
+    open fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean = false) =
+    open fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean = false) =
+    open fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean = false) =
+    open fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean = false) =
+    open fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean = false) =
+    open fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean = false) =
+    open fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean = false) =
+    open fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean = false) =
+    open fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean = false) =
@@ -282,34 +282,34 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean = false) =
+    open fun writeMatrix2x2dList(name: String, values: List<Matrix2d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean = false) =
+    open fun writeMatrix3x2dList(name: String, values: List<Matrix3x2d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean = false) =
+    open fun writeMatrix3x3dList(name: String, values: List<Matrix3d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean = false) =
+    open fun writeMatrix4x3dList(name: String, values: List<Matrix4x3d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean = false) =
+    open fun writeMatrix4x4dList(name: String, values: List<Matrix4d>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean = false) =
+    open fun writeMatrix2x2dList2D(name: String, values: List<List<Matrix2d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean = false) =
+    open fun writeMatrix3x2dList2D(name: String, values: List<List<Matrix3x2d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean = false) =
+    open fun writeMatrix3x3dList2D(name: String, values: List<List<Matrix3d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean = false) =
+    open fun writeMatrix4x3dList2D(name: String, values: List<List<Matrix4x3d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean = false) =
+    open fun writeMatrix4x4dList2D(name: String, values: List<List<Matrix4d>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false) =
@@ -318,16 +318,16 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean = false) =
+    open fun writeQuaternionfList(name: String, values: List<Quaternionf>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean = false) =
+    open fun writeQuaterniondList(name: String, values: List<Quaterniond>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean = false) =
+    open fun writeQuaternionfList2D(name: String, values: List<List<Quaternionf>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean = false) =
+    open fun writeQuaterniondList2D(name: String, values: List<List<Quaterniond>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeAABBf(name: String, value: AABBf, force: Boolean = false) =
@@ -336,16 +336,16 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writeAABBd(name: String, value: AABBd, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean = false) =
+    open fun writeAABBfList(name: String, values: List<AABBf>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean = false) =
+    open fun writeAABBdList(name: String, values: List<AABBd>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean = false) =
+    open fun writeAABBfList2D(name: String, values: List<List<AABBf>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean = false) =
+    open fun writeAABBdList2D(name: String, values: List<List<AABBd>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writePlanef(name: String, value: Planef, force: Boolean = false) =
@@ -354,16 +354,16 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun writePlaned(name: String, value: Planed, force: Boolean = false) =
         writeSomething(name, value, force)
 
-    open fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean = false) =
+    open fun writePlanefList(name: String, values: List<Planef>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean = false) =
+    open fun writePlanedList(name: String, values: List<Planed>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean = false) =
+    open fun writePlanefList2D(name: String, values: List<List<Planef>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
-    open fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean = false) =
+    open fun writePlanedList2D(name: String, values: List<List<Planed>>, force: Boolean = false) =
         writeSomething(name, values, force)
 
     open fun writeFile(
@@ -371,13 +371,13 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         workspace: FileReference = EngineBase.workspace
     ) = writeSomething(name, value, force)
 
-    open fun writeFileArray(
-        name: String, values: Array<FileReference>, force: Boolean = false,
+    open fun writeFileList(
+        name: String, values: List<FileReference>, force: Boolean = false,
         workspace: FileReference = EngineBase.workspace
     ) = writeSomething(name, values, force)
 
-    open fun writeFileArray2D(
-        name: String, values: Array<Array<FileReference>>, force: Boolean = false,
+    open fun writeFileList2D(
+        name: String, values: List<List<FileReference>>, force: Boolean = false,
         workspace: FileReference = EngineBase.workspace
     ) = writeSomething(name, values, force)
 
@@ -410,71 +410,37 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writePointer(name: String?, className: String, ptr: Int, value: Saveable)
     abstract fun writeObjectImpl(name: String?, value: Saveable)
 
-    open fun <V : Saveable> writeObjectList(
-        self: Saveable?,
-        name: String,
-        values: List<V>?,
-        force: Boolean = false
-    ) {
-        if (force || values?.isNotEmpty() == true) {
-            writeNullableObjectList(self, name, values, force)
-        }
-    }
-
-    open fun <V : Saveable> writeNullableObjectList(
-        self: Saveable?,
-        name: String,
-        values: List<V?>?,
-        force: Boolean = false
-    ) {
-        if (force || values?.isNotEmpty() == true) {
-            @Suppress("unchecked_cast")
-            writeNullableObjectArray(
-                self, name, if (values == null) emptyArray<Any>() as Array<V> else
-                    Array<Saveable?>(values.size) { values[it] }, force
-            )
-        }
-    }
-
     /**
-     * saves an array of objects of different classes
+     * saves a list of objects of different classes
      * */
-    abstract fun <V : Saveable?> writeNullableObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>?,
-        force: Boolean = false
+    abstract fun <V : Saveable?> writeNullableObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean = false
     )
 
     /**
-     * saves an array of objects of different classes
+     * saves a list of objects of different classes
      * */
-    abstract fun <V : Saveable> writeObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>?,
-        force: Boolean = false
+    abstract fun <V : Saveable> writeObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean = false
     )
 
     /**
-     * saves a 2d array of objects of different classes
+     * saves a 2d list of objects of different classes
      * */
-    abstract fun <V : Saveable> writeObjectArray2D(
-        self: Saveable?,
-        name: String,
-        values: Array<Array<V>>,
-        force: Boolean = false
+    abstract fun <V : Saveable> writeObjectList2D(
+        self: Saveable?, name: String, 
+        values: List<List<V>>, force: Boolean = false
     )
 
     /**
-     * saves an array of objects of one single class
+     * saves a list of objects of one single class
      * all elements are guaranteed to be of the same getClassName()
      * */
-    abstract fun <V : Saveable?> writeHomogenousObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>,
-        force: Boolean = false
+    abstract fun <V : Saveable?> writeHomogenousObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean = false
     )
 
     fun generatePointer(obj: Saveable, addToSorted: Boolean): Int {
@@ -561,86 +527,86 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 forceSaving
             )
 
-            is BooleanArray -> writeBooleanArray2D(name, toArray(value), forceSaving)
-            is CharArray -> writeCharArray2D(name, toArray(value), forceSaving)
-            is ByteArray -> writeByteArray2D(name, toArray(value), forceSaving)
-            is ShortArray -> writeShortArray2D(name, toArray(value), forceSaving)
-            is IntArray -> writeIntArray2D(name, toArray(value), forceSaving)
-            is LongArray -> writeLongArray2D(name, toArray(value), forceSaving)
-            is FloatArray -> writeFloatArray2D(name, toArray(value), forceSaving)
-            is DoubleArray -> writeDoubleArray2D(name, toArray(value), forceSaving)
+            is BooleanArray -> writeBooleanArray2D(name, filterII(value), forceSaving)
+            is CharArray -> writeCharArray2D(name, filterII(value), forceSaving)
+            is ByteArray -> writeByteArray2D(name, filterII(value), forceSaving)
+            is ShortArray -> writeShortArray2D(name, filterII(value), forceSaving)
+            is IntArray -> writeIntArray2D(name, filterII(value), forceSaving)
+            is LongArray -> writeLongArray2D(name, filterII(value), forceSaving)
+            is FloatArray -> writeFloatArray2D(name, filterII(value), forceSaving)
+            is DoubleArray -> writeDoubleArray2D(name, filterII(value), forceSaving)
 
-            is String -> writeStringArray(name, toArray(value), forceSaving)
+            is String -> writeStringList(name, filterII(value), forceSaving)
 
-            is Vector2f -> writeVector2fArray(name, toArray(value), forceSaving)
-            is Vector3f -> writeVector3fArray(name, toArray(value), forceSaving)
-            is Vector4f -> writeVector4fArray(name, toArray(value), forceSaving)
-            is Vector2d -> writeVector2dArray(name, toArray(value), forceSaving)
-            is Vector3d -> writeVector3dArray(name, toArray(value), forceSaving)
-            is Vector4d -> writeVector4dArray(name, toArray(value), forceSaving)
-            is Vector2i -> writeVector2iArray(name, toArray(value), forceSaving)
-            is Vector3i -> writeVector3iArray(name, toArray(value), forceSaving)
-            is Vector4i -> writeVector4iArray(name, toArray(value), forceSaving)
+            is Vector2f -> writeVector2fList(name, filterII(value), forceSaving)
+            is Vector3f -> writeVector3fList(name, filterII(value), forceSaving)
+            is Vector4f -> writeVector4fList(name, filterII(value), forceSaving)
+            is Vector2d -> writeVector2dList(name, filterII(value), forceSaving)
+            is Vector3d -> writeVector3dList(name, filterII(value), forceSaving)
+            is Vector4d -> writeVector4dList(name, filterII(value), forceSaving)
+            is Vector2i -> writeVector2iList(name, filterII(value), forceSaving)
+            is Vector3i -> writeVector3iList(name, filterII(value), forceSaving)
+            is Vector4i -> writeVector4iList(name, filterII(value), forceSaving)
 
-            is Matrix2f -> writeMatrix2x2fArray(name, toArray(value), forceSaving)
-            is Matrix3x2f -> writeMatrix3x2fArray(name, toArray(value), forceSaving)
-            is Matrix3f -> writeMatrix3x3fArray(name, toArray(value), forceSaving)
-            is Matrix4x3f -> writeMatrix4x3fArray(name, toArray(value), forceSaving)
-            is Matrix4f -> writeMatrix4x4fArray(name, toArray(value), forceSaving)
+            is Matrix2f -> writeMatrix2x2fList(name, filterII(value), forceSaving)
+            is Matrix3x2f -> writeMatrix3x2fList(name, filterII(value), forceSaving)
+            is Matrix3f -> writeMatrix3x3fList(name, filterII(value), forceSaving)
+            is Matrix4x3f -> writeMatrix4x3fList(name, filterII(value), forceSaving)
+            is Matrix4f -> writeMatrix4x4fList(name, filterII(value), forceSaving)
 
-            is Matrix2d -> writeMatrix2x2dArray(name, toArray(value), forceSaving)
-            is Matrix3x2d -> writeMatrix3x2dArray(name, toArray(value), forceSaving)
-            is Matrix3d -> writeMatrix3x3dArray(name, toArray(value), forceSaving)
-            is Matrix4x3d -> writeMatrix4x3dArray(name, toArray(value), forceSaving)
-            is Matrix4d -> writeMatrix4x4dArray(name, toArray(value), forceSaving)
+            is Matrix2d -> writeMatrix2x2dList(name, filterII(value), forceSaving)
+            is Matrix3x2d -> writeMatrix3x2dList(name, filterII(value), forceSaving)
+            is Matrix3d -> writeMatrix3x3dList(name, filterII(value), forceSaving)
+            is Matrix4x3d -> writeMatrix4x3dList(name, filterII(value), forceSaving)
+            is Matrix4d -> writeMatrix4x4dList(name, filterII(value), forceSaving)
 
-            is Quaternionf -> writeQuaternionfArray(name, toArray(value), forceSaving)
-            is Quaterniond -> writeQuaterniondArray(name, toArray(value), forceSaving)
+            is Quaternionf -> writeQuaternionfList(name, filterII(value), forceSaving)
+            is Quaterniond -> writeQuaterniondList(name, filterII(value), forceSaving)
 
-            is Planef -> writePlanefArray(name, toArray(value), forceSaving)
-            is Planed -> writePlanedArray(name, toArray(value), forceSaving)
+            is Planef -> writePlanefList(name, filterII(value), forceSaving)
+            is Planed -> writePlanedList(name, filterII(value), forceSaving)
 
-            is AABBf -> writeAABBfArray(name, toArray(value), forceSaving)
-            is AABBd -> writeAABBdArray(name, toArray(value), forceSaving)
+            is AABBf -> writeAABBfList(name, filterII(value), forceSaving)
+            is AABBd -> writeAABBdList(name, filterII(value), forceSaving)
 
-            // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
-            is Saveable -> writeObjectArray(self, name, toArray(value), forceSaving)
-            is FileReference -> writeFileArray(name, toArray(value), forceSaving)
+            // is PrefabSaveable -> writeObjectList(self, name, toList(value), forceSaving)
+            is Saveable -> writeObjectList(self, name, filterII(value), forceSaving)
+            is FileReference -> writeFileList(name, filterII(value), forceSaving)
 
             // todo 2d stuff...
             else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${if (sample != null) sample::class else null}")
         }
     }
 
-    private fun write1DArray(self: Saveable?, name: String, value: Any, sample: Any?, forceSaving: Boolean) {
+    private fun write1DList(self: Saveable?, name: String, value: Any, sample: Any?, forceSaving: Boolean) {
         when (sample) {
 
-            is String -> writeStringArray(name, cast(value), forceSaving)
+            is String -> writeStringList(name, cast(value), forceSaving)
 
-            is Vector2f -> writeVector2fArray(name, cast(value), forceSaving)
-            is Vector3f -> writeVector3fArray(name, cast(value), forceSaving)
-            is Vector4f -> writeVector4fArray(name, cast(value), forceSaving)
-            is Vector2d -> writeVector2dArray(name, cast(value), forceSaving)
-            is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
-            is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
-            is Vector2i -> writeVector2iArray(name, cast(value), forceSaving)
-            is Vector3i -> writeVector3iArray(name, cast(value), forceSaving)
-            is Vector4i -> writeVector4iArray(name, cast(value), forceSaving)
+            is Vector2f -> writeVector2fList(name, cast(value), forceSaving)
+            is Vector3f -> writeVector3fList(name, cast(value), forceSaving)
+            is Vector4f -> writeVector4fList(name, cast(value), forceSaving)
+            is Vector2d -> writeVector2dList(name, cast(value), forceSaving)
+            is Vector3d -> writeVector3dList(name, cast(value), forceSaving)
+            is Vector4d -> writeVector4dList(name, cast(value), forceSaving)
+            is Vector2i -> writeVector2iList(name, cast(value), forceSaving)
+            is Vector3i -> writeVector3iList(name, cast(value), forceSaving)
+            is Vector4i -> writeVector4iList(name, cast(value), forceSaving)
 
-            is Matrix2f -> writeMatrix2x2fArray(name, cast(value), forceSaving)
-            is Matrix3x2f -> writeMatrix3x2fArray(name, cast(value), forceSaving)
-            is Matrix3f -> writeMatrix3x3fArray(name, cast(value), forceSaving)
-            is Matrix4x3f -> writeMatrix4x3fArray(name, cast(value), forceSaving)
-            is Matrix4f -> writeMatrix4x4fArray(name, cast(value), forceSaving)
+            is Matrix2f -> writeMatrix2x2fList(name, cast(value), forceSaving)
+            is Matrix3x2f -> writeMatrix3x2fList(name, cast(value), forceSaving)
+            is Matrix3f -> writeMatrix3x3fList(name, cast(value), forceSaving)
+            is Matrix4x3f -> writeMatrix4x3fList(name, cast(value), forceSaving)
+            is Matrix4f -> writeMatrix4x4fList(name, cast(value), forceSaving)
 
-            is Matrix2d -> writeMatrix2x2dArray(name, cast(value), forceSaving)
-            is Matrix3x2d -> writeMatrix3x2dArray(name, cast(value), forceSaving)
-            is Matrix3d -> writeMatrix3x3dArray(name, cast(value), forceSaving)
-            is Matrix4x3d -> writeMatrix4x3dArray(name, cast(value), forceSaving)
-            is Matrix4d -> writeMatrix4x4dArray(name, cast(value), forceSaving)
+            is Matrix2d -> writeMatrix2x2dList(name, cast(value), forceSaving)
+            is Matrix3x2d -> writeMatrix3x2dList(name, cast(value), forceSaving)
+            is Matrix3d -> writeMatrix3x3dList(name, cast(value), forceSaving)
+            is Matrix4x3d -> writeMatrix4x3dList(name, cast(value), forceSaving)
+            is Matrix4d -> writeMatrix4x4dList(name, cast(value), forceSaving)
 
-            is Quaternionf -> writeQuaternionfArray(name, cast(value), forceSaving)
-            is Quaterniond -> writeQuaterniondArray(name, cast(value), forceSaving)
+            is Quaternionf -> writeQuaternionfList(name, cast(value), forceSaving)
+            is Quaterniond -> writeQuaterniondList(name, cast(value), forceSaving)
 
             is BooleanArray -> writeBooleanArray2D(name, cast(value), forceSaving)
             is CharArray -> writeCharArray2D(name, cast(value), forceSaving)
@@ -650,61 +616,53 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is LongArray -> writeLongArray2D(name, cast(value), forceSaving)
             is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
             is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
-            is PrefabSaveable -> {
-                @Suppress("UNCHECKED_CAST")
-                writeNullableObjectArray(
-                    self, name, value as Array<Saveable?>, forceSaving
-                )
-            }
-            is Saveable -> {
-                @Suppress("UNCHECKED_CAST")
-                writeNullableObjectArray(self, name, value as Array<Saveable?>, forceSaving)
-            }
-            is FileReference -> writeFileArray(name, cast(value), forceSaving)
-            is Array<*> -> {
+            is PrefabSaveable -> writeNullableObjectList(self, name, filterII(value as List<*>), forceSaving)
+            is Saveable -> writeNullableObjectList(self, name, filterII(value as List<*>), forceSaving)
+            is FileReference -> writeFileList(name, cast(value), forceSaving)
+            is List<*> -> {
                 if (sample.isNotEmpty()) {
-                    write2DArray(name, value, sample[0], forceSaving)
+                    write2DList(name, value, sample[0], forceSaving)
                 } // else ...
             }
-            else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
+            else -> throw RuntimeException("Not yet implemented: saving a list of $sample")
         }
     }
 
-    private fun write2DArray(name: String, value: Any, sample1: Any?, forceSaving: Boolean) {
+    private fun write2DList(name: String, value: Any, sample1: Any?, forceSaving: Boolean) {
         when (sample1) {
             // vectors
-            is Vector2f -> writeVector2fArray2D(name, cast(value), forceSaving)
-            is Vector3f -> writeVector3fArray2D(name, cast(value), forceSaving)
-            is Vector4f -> writeVector4fArray2D(name, cast(value), forceSaving)
-            is Vector2d -> writeVector2dArray2D(name, cast(value), forceSaving)
-            is Vector3d -> writeVector3dArray2D(name, cast(value), forceSaving)
-            is Vector4d -> writeVector4dArray2D(name, cast(value), forceSaving)
-            is Vector2i -> writeVector2iArray2D(name, cast(value), forceSaving)
-            is Vector3i -> writeVector3iArray2D(name, cast(value), forceSaving)
-            is Vector4i -> writeVector4iArray2D(name, cast(value), forceSaving)
+            is Vector2f -> writeVector2fList2D(name, cast(value), forceSaving)
+            is Vector3f -> writeVector3fList2D(name, cast(value), forceSaving)
+            is Vector4f -> writeVector4fList2D(name, cast(value), forceSaving)
+            is Vector2d -> writeVector2dList2D(name, cast(value), forceSaving)
+            is Vector3d -> writeVector3dList2D(name, cast(value), forceSaving)
+            is Vector4d -> writeVector4dList2D(name, cast(value), forceSaving)
+            is Vector2i -> writeVector2iList2D(name, cast(value), forceSaving)
+            is Vector3i -> writeVector3iList2D(name, cast(value), forceSaving)
+            is Vector4i -> writeVector4iList2D(name, cast(value), forceSaving)
             // matrices
-            is Matrix2f -> writeMatrix2x2fArray2D(name, cast(value), forceSaving)
-            is Matrix2d -> writeMatrix2x2dArray2D(name, cast(value), forceSaving)
-            is Matrix3x2f -> writeMatrix3x2fArray2D(name, cast(value), forceSaving)
-            is Matrix3x2d -> writeMatrix3x2dArray2D(name, cast(value), forceSaving)
-            is Matrix3f -> writeMatrix3x3fArray2D(name, cast(value), forceSaving)
-            is Matrix3d -> writeMatrix3x3dArray2D(name, cast(value), forceSaving)
-            is Matrix4x3f -> writeMatrix4x3fArray2D(name, cast(value), forceSaving)
-            is Matrix4x3d -> writeMatrix4x3dArray2D(name, cast(value), forceSaving)
-            is Matrix4f -> writeMatrix4x4fArray2D(name, cast(value), forceSaving)
-            is Matrix4d -> writeMatrix4x4dArray2D(name, cast(value), forceSaving)
+            is Matrix2f -> writeMatrix2x2fList2D(name, cast(value), forceSaving)
+            is Matrix2d -> writeMatrix2x2dList2D(name, cast(value), forceSaving)
+            is Matrix3x2f -> writeMatrix3x2fList2D(name, cast(value), forceSaving)
+            is Matrix3x2d -> writeMatrix3x2dList2D(name, cast(value), forceSaving)
+            is Matrix3f -> writeMatrix3x3fList2D(name, cast(value), forceSaving)
+            is Matrix3d -> writeMatrix3x3dList2D(name, cast(value), forceSaving)
+            is Matrix4x3f -> writeMatrix4x3fList2D(name, cast(value), forceSaving)
+            is Matrix4x3d -> writeMatrix4x3dList2D(name, cast(value), forceSaving)
+            is Matrix4f -> writeMatrix4x4fList2D(name, cast(value), forceSaving)
+            is Matrix4d -> writeMatrix4x4dList2D(name, cast(value), forceSaving)
             // quaternions
-            is Quaternionf -> writeQuaternionfArray2D(name, cast(value), forceSaving)
-            is Quaterniond -> writeQuaterniondArray2D(name, cast(value), forceSaving)
+            is Quaternionf -> writeQuaternionfList2D(name, cast(value), forceSaving)
+            is Quaterniond -> writeQuaterniondList2D(name, cast(value), forceSaving)
             // planes
-            is Planef -> writePlanefArray2D(name, cast(value), forceSaving)
-            is Planed -> writePlanedArray2D(name, cast(value), forceSaving)
+            is Planef -> writePlanefList2D(name, cast(value), forceSaving)
+            is Planed -> writePlanedList2D(name, cast(value), forceSaving)
             // aabbs
-            is AABBf -> writeAABBfArray2D(name, cast(value), forceSaving)
-            is AABBd -> writeAABBdArray2D(name, cast(value), forceSaving)
+            is AABBf -> writeAABBfList2D(name, cast(value), forceSaving)
+            is AABBd -> writeAABBdList2D(name, cast(value), forceSaving)
             // other
-            is String -> writeStringArray2D(name, cast(value), forceSaving)
-            is FileReference -> writeFileArray2D(name, cast(value), forceSaving)
+            is String -> writeStringList2D(name, cast(value), forceSaving)
+            is FileReference -> writeFileList2D(name, cast(value), forceSaving)
             else -> throw NotImplementedError("Writing 2d array of type ${if (sample1 != null) sample1::class else null}, '$name'")
         }
     }
@@ -733,11 +691,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is List<*> -> {
                 if (value.isNotEmpty()) {
                     write1DList(self, name, value, value[0], forceSaving)
-                } // else if is force saving, then this won't work, because of the weak generics in Java :/
-            }
-            is Array<*> -> {
-                if (value.isNotEmpty()) {
-                    write1DArray(self, name, value, value[0], forceSaving)
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }
             is Map<*, *> -> {// mmh, mediocre solution
@@ -826,8 +779,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         return input as V
     }
 
-    inline fun <reified V> toArray(value: List<Any?>): Array<V> {
-        return value.filterIsInstance<V>().toTypedArray()
+    inline fun <reified V> filterII(value: List<Any?>): List<V> {
+        return value.filterIsInstance<V>()
     }
 
     companion object {

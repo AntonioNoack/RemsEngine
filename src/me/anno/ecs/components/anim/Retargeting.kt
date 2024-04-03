@@ -24,7 +24,6 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.debug.DebugText
 import me.anno.engine.debug.DebugTriangle
 import me.anno.engine.inspector.Inspectable
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -63,13 +62,11 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     // for each dstBone, which bone is responsible for the transform
     @HideInInspector
-    @SerializedProperty("dstBoneIndexToSrcName")
-    var dstBoneIndexToSrcName: Array<String>? = null
+    val dstBoneIndexToSrcName: ArrayList<String> = ArrayList()
 
     // todo (how) can we use these to convert A poses to T poses and vice-versa?
     @HideInInspector
-    @SerializedProperty("dstBoneIndexToSrcName")
-    var dstBoneRotations: Array<Quaternionf>? = null
+    val dstBoneRotations: ArrayList<Quaternionf> = ArrayList()
 
     val isIdentityMapping get() = srcSkeleton == dstSkeleton
 
@@ -278,18 +275,14 @@ class Retargeting : PrefabSaveable(), Renderable {
         val srcSkeleton = SkeletonCache[srcSkeleton]
         val dstSkeleton = SkeletonCache[dstSkeleton]
         if (srcSkeleton != null && dstSkeleton != null) {
-            var dstBoneMapping = dstBoneIndexToSrcName
-            if (dstBoneMapping == null) dstBoneMapping = Array(dstSkeleton.bones.size) { noBoneMapped }
-            else if (dstBoneMapping.size != dstSkeleton.bones.size) {
-                dstBoneMapping = Array(dstSkeleton.bones.size) { dstBoneMapping!!.getOrNull(it) ?: noBoneMapped }
+            val dstBoneMapping = dstBoneIndexToSrcName
+            while (dstBoneMapping.size < dstSkeleton.bones.size) {
+                dstBoneMapping.add(noBoneMapped)
             }
-            var dstBoneRotations = dstBoneRotations
-            if (dstBoneRotations == null) dstBoneRotations = Array(dstSkeleton.bones.size) { Quaternionf() }
-            else if (dstBoneRotations.size != dstSkeleton.bones.size) {
-                dstBoneRotations = Array(dstSkeleton.bones.size) { dstBoneRotations!!.getOrNull(it) ?: Quaternionf() }
+            val dstBoneRotations = dstBoneRotations
+            while (dstBoneRotations.size < dstSkeleton.bones.size) {
+                dstBoneRotations.add(Quaternionf())
             }
-            this.dstBoneIndexToSrcName = dstBoneMapping
-            this.dstBoneRotations = dstBoneRotations
             // for each bone, create an enum input
             for ((i, bone) in dstSkeleton.bones.withIndex()) {
                 // todo change color based on whether it is set to a valid bone
@@ -398,24 +391,24 @@ class Retargeting : PrefabSaveable(), Renderable {
         super.save(writer)
         writer.writeFile("srcSkeleton", srcSkeleton)
         writer.writeFile("dstSkeleton", dstSkeleton)
-        val dstBoneMapping = dstBoneIndexToSrcName
-        if (dstBoneMapping != null) {
-            writer.writeStringArray("dstBoneIndexToSrcName", dstBoneMapping)
-        }
-        val dstBoneRotations = dstBoneRotations
-        if (dstBoneRotations != null) {
-            writer.writeQuaternionfArray("dstBoneRotations", dstBoneRotations)
-        }
+        writer.writeStringList("dstBoneIndexToSrcName", dstBoneIndexToSrcName)
+        writer.writeQuaternionfList("dstBoneRotations", dstBoneRotations)
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "srcSkeleton" -> srcSkeleton = value as? FileReference ?: InvalidRef
             "dstSkeleton" -> dstSkeleton = value as? FileReference ?: InvalidRef
-            "dstBoneIndexToSrcName" -> dstBoneIndexToSrcName =
-                (value as? Array<*>)?.filterIsInstance<String>()?.toTypedArray()
-            "dstBoneRotations" -> dstBoneRotations =
-                (value as? Array<*>)?.filterIsInstance<Quaternionf>()?.toTypedArray()
+            "dstBoneIndexToSrcName" -> {
+                if (value !is List<*>) return
+                dstBoneIndexToSrcName.clear()
+                dstBoneIndexToSrcName.addAll(value.filterIsInstance<String>())
+            }
+            "dstBoneRotations" -> {
+                if (value !is List<*>) return
+                dstBoneRotations.clear()
+                dstBoneRotations.addAll(value.filterIsInstance<Quaternionf>())
+            }
             else -> super.setProperty(name, value)
         }
     }

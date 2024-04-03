@@ -5,6 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 
 fun main() {
@@ -12,14 +13,14 @@ fun main() {
     val logger = LogManager.getLogger("FloatArray2D")
 
     val writer = JsonStringWriter(InvalidRef)
-    writer.writeFloatArray2D("x", Array(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
+    writer.writeFloatArray2D("x", createArrayList(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
     logger.info(writer.toString())
 
     val reader = JsonStringReader(writer.toString(), InvalidRef)
     reader.readProperty(object : Saveable() {
 
         override fun setProperty(name: String, value: Any?) {
-            val values = value as? Array<*> ?: return
+            val values = value as? List<*> ?: return
             logger.info(
                 "$name: ${
                     values.joinToString(",", "[", "]") { fa ->

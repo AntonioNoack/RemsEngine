@@ -32,7 +32,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="LWJGL-323-OpenAL" level="project" />
     <orderEntry type="library" name="LWJGL-323-OpenGL" level="project" />

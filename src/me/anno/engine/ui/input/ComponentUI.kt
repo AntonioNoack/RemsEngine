@@ -222,6 +222,13 @@ object ComponentUI {
                     dst[i] = this[i]
                 }
             }
+            is List<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                dst as MutableList<Any?>
+                for (i in indices) {
+                    dst[i] = this[i]
+                }
+            }
             else -> throw NotImplementedError()
         }
         return dst
@@ -755,7 +762,7 @@ object ComponentUI {
                         val generics = type0.substring(index0 + 1, index1).trim()
                         when (mainType) {
                             "Array" -> {
-                                value as Array<*>
+                                value as List<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
                                         property.set(this, values.writeTo(value))

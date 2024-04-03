@@ -12,6 +12,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.ColorParsing
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.titlecase
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.memberProperties
@@ -70,7 +71,7 @@ fun main() {
             name = name.split('-').joinToString("") { it.titlecase() }
             print("val $name = read(\"")
             listOfAll.add(name)
-            val styles = Array(TokenType.entries.size) { LanguageStyle() }
+            val styles = createArrayList(TokenType.entries.size) { LanguageStyle() }
             val theme = LanguageTheme(styles)
             while (true) {
 

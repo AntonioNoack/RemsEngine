@@ -17,51 +17,13 @@ import java.util.zip.ZipOutputStream
 // todo how can we create an executable from a jar like Launch4j?
 object ExportProcess {
 
-    fun listProjectRoots(source: FileReference): List<Pair<FileReference, String>> {
-        return IdeaProject.loadModules(source).map {
-            it.getParent() to it.nameWithoutExtension
-        }
-    }
-
-    fun execute(gep: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
+    fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
         val sources = HashMap<String, ByteArray>(65536)
         val projects = settings.projectRoots.map(IdeaProject::loadProject)
 
         // todo inclusion order???
-        for (project in projects) {
-
-            // modules have dependencies,
-            //  so find them (list of source projects?),
-            //  read their dependency list,
-            //  and apply it ourselves (-> we need to find the build folders, too)
-
-            val doneModules = HashSet<String>()
-            val doneJars = HashSet<FileReference>()
-
-            fun checkLibrary(library: IdeaLibrary) {
-                for (jar in library.jars) {
-                    if (doneJars.add(jar)) {
-                        indexJar(sources, jar, progress)
-                    }
-                }
-            }
-
-            fun checkModule(name: String, module: IdeaModule) {
-                if (name !in settings.excludedModules && doneModules.add(name)) {
-                    for (subName in module.moduleDependencies) {
-                        checkModule(subName, project.modules[subName]!!)
-                    }
-                    for (libName in module.libraryDependencies) {
-                        checkLibrary(project.libraries[libName]!!)
-                    }
-                    // todo we should not include the .jar, if it is an engine build... how?
-                    val moduleOutFolder = project.projectDir.getChild("out/production/$name")
-                    indexViaCopy(sources, moduleOutFolder, "", progress)
-                }
-            }
-            for ((name, module) in project.modules) {
-                checkModule(name, module)
-            }
+        for (projectI in projects) {
+            indexProject(projectI, sources, settings, progress)
         }
 
         excludeLWJGLFiles(sources, settings)
@@ -165,7 +127,48 @@ object ExportProcess {
         return str.encodeToByteArray()
     }
 
-    private fun indexJar(sources: MutableMap<String, ByteArray>, src: FileReference, progress: ProgressBar) {
+    fun indexProject(
+        project: IdeaProject,
+        sources: HashMap<String, ByteArray>,
+        settings: ExportSettings,
+        progress: ProgressBar
+    ) {
+
+        // modules have dependencies,
+        //  so find them (list of source projects?),
+        //  read their dependency list,
+        //  and apply it ourselves (-> we need to find the build folders, too)
+
+        val doneModules = HashSet<String>()
+        val doneJars = HashSet<FileReference>()
+
+        fun checkLibrary(library: IdeaLibrary) {
+            for (jar in library.jars) {
+                if (doneJars.add(jar)) {
+                    indexZipFile(sources, jar, progress)
+                }
+            }
+        }
+
+        fun checkModule(name: String, module: IdeaModule) {
+            if (name !in settings.excludedModules && doneModules.add(name)) {
+                for (subName in module.moduleDependencies) {
+                    checkModule(subName, project.modules[subName]!!)
+                }
+                for (libName in module.libraryDependencies) {
+                    checkLibrary(project.libraries[libName]!!)
+                }
+                // todo we should not include the .jar, if it is an engine build... how?
+                val moduleOutFolder = project.projectDir.getChild("out/production/$name")
+                indexFolder(sources, moduleOutFolder, "", progress)
+            }
+        }
+        for ((name, module) in project.modules) {
+            checkModule(name, module)
+        }
+    }
+
+    private fun indexZipFile(sources: MutableMap<String, ByteArray>, src: FileReference, progress: ProgressBar) {
         val input = ZipInputStream(src.inputStreamSync())
         while (!progress.isCancelled) {
             val entry = input.nextEntry ?: break
@@ -175,13 +178,13 @@ object ExportProcess {
         input.close()
     }
 
-    private fun indexViaCopy(
+    private fun indexFolder(
         sources: MutableMap<String, ByteArray>,
         src: FileReference, path: String, progress: ProgressBar
     ) {
         if (src.isDirectory) {
             for (child in src.listChildren()) {
-                indexViaCopy(
+                indexFolder(
                     sources, child,
                     if (path.isEmpty()) child.name
                     else "$path/${child.name}", progress

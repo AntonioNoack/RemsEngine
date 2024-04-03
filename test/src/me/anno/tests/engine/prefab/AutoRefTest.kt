@@ -37,6 +37,8 @@ class AutoRefTest {
         val prefab = PrefabCache[asFile]!!
 
         if (false) {
+            println(asText)
+
             println(scene.prefab!!.adds)
             println(prefab.adds)
 

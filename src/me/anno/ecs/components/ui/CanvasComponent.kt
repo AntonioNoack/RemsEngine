@@ -267,7 +267,7 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "panels" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 windowStack.clear()
                 windowStack.addAll(
                     values.filterIsInstance<Panel>().map {

@@ -2,7 +2,7 @@ package me.anno.export
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
-import me.anno.export.ExportProcess.listProjectRoots
+import me.anno.export.idea.IdeaProject
 import me.anno.export.platform.LinuxPlatforms
 import me.anno.export.platform.MacOSPlatforms
 import me.anno.export.platform.WindowsPlatforms
@@ -65,10 +65,10 @@ class ExportSettings : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFileArray("projectRoots", projectRoots.toTypedArray())
-        writer.writeStringArray("excludedClasses", excludedClasses.toTypedArray())
-        writer.writeStringArray("excludedModules", excludedModules.toTypedArray())
-        writer.writeFileArray("includedAssets", includedAssets.toTypedArray())
+        writer.writeFileList("projectRoots", projectRoots)
+        writer.writeStringList("excludedClasses", excludedClasses.toList())
+        writer.writeStringList("excludedModules", excludedModules.toList())
+        writer.writeFileList("includedAssets", includedAssets.toList())
         saveSerializableProperties(writer)
     }
 
@@ -85,14 +85,14 @@ class ExportSettings : NamedSaveable() {
     }
 
     private fun loadFileArray(dst: MutableCollection<FileReference>, value: Any?) {
-        if (value is Array<*>) {
+        if (value is List<*>) {
             dst.clear()
             dst.addAll(value.filterIsInstance<FileReference>())
         }
     }
 
     private fun loadStringArray(dst: MutableCollection<String>, value: Any?) {
-        if (value is Array<*>) {
+        if (value is List<*>) {
             dst.clear()
             dst.addAll(value.filterIsInstance<String>())
         }
@@ -167,10 +167,11 @@ class ExportSettings : NamedSaveable() {
         // todo show a warning when a dependency isn't fulfilled
         val modules = getGroup(NameDesc("Included Modules"), list)
         val moduleList = projectRoots
-            .flatMap { listProjectRoots(it) }
+            .flatMap { IdeaProject.loadModules(it) }
             .toHashSet()
-            .sortedBy { it.second }
-        for ((file, name) in moduleList) {
+            .sortedBy { it.name }
+        for (file in moduleList) {
+            val name = file.nameWithoutExtension
             modules.add(
                 BooleanInput(name, name !in excludedModules, false, style)
                     .setChangeListener { included ->

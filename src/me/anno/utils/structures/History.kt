@@ -64,7 +64,7 @@ class History<V> : Saveable {
         when(name){
             "index" -> index = value as? Int ?: return
             "values" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 this.values.clear()
                 @Suppress("unchecked_cast")
                 this.values.addAll(values.toList() as List<V>)

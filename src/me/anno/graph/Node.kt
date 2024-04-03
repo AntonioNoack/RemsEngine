@@ -130,11 +130,11 @@ abstract class Node() : PrefabSaveable() {
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "inputs" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 cloneAssign(values, inputs)
             }
             "outputs" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 cloneAssign(values, outputs)
             }
             "layer" -> layer = value as? Int ?: return
@@ -143,7 +143,7 @@ abstract class Node() : PrefabSaveable() {
         }
     }
 
-    private inline fun <reified V : NodeConnector> cloneAssign(values: Array<*>, self: MutableList<V>) {
+    private inline fun <reified V : NodeConnector> cloneAssign(values: List<*>, self: MutableList<V>) {
         val newbies = values.filterIsInstance<V>()
         for (i in newbies.indices) {
             val newbie = newbies[i]

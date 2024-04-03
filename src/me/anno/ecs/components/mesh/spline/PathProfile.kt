@@ -165,7 +165,7 @@ class PathProfile() : Saveable() {
         writer.writeFloat("width", width)
         writer.writeBoolean("flatShading", flatShading)
         writer.writeBoolean("isClosed", isClosed)
-        writer.writeVector2fArray("positions", positions.toTypedArray())
+        writer.writeVector2fList("positions", positions)
         writer.writeIntArray("colors", colors.toIntArray())
     }
 
@@ -175,7 +175,7 @@ class PathProfile() : Saveable() {
             "flatShading" -> flatShading = value == true
             "isClosed" -> isClosed = value == true
             "positions" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 positions = values.filterIsInstance<Vector2f>()
             }
             "colors" -> {

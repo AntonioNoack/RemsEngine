@@ -103,7 +103,7 @@ abstract class History<V : Any> : Saveable() {
             "state" -> states.add(filter(value) ?: return)
             "states" -> {
                 states.clear()
-                states.addAll((value as Array<*>).mapNotNull { filter(it) })
+                states.addAll((value as List<*>).mapNotNull { filter(it) })
             }
             else -> super.setProperty(name, value)
         }

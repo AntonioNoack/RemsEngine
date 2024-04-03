@@ -311,7 +311,7 @@ class Prefab : Saveable {
             "className", "class" -> clazzName = value as? String ?: return
             "history" -> history = value as? ChangeHistory ?: return
             "adds", "sets", "changes" -> {
-                val values = value as? Array<*> ?: return
+                val values = value as? List<*> ?: return
                 readAdds(values.filterIsInstance<CAdd>())
                 readSets(values.filterIsInstance<CSet>())
             }

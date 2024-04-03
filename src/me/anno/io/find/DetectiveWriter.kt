@@ -43,80 +43,80 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
         put(name, type, value)
     }
 
-    override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) =
-        put(name, "Array<BooleanArray>", values)
+    override fun writeBooleanArray2D(name: String, values: List<BooleanArray>, force: Boolean) =
+        put(name, "List<BooleanArray>", values)
 
-    override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) =
-        put(name, "Array<CharArray>", values)
+    override fun writeCharArray2D(name: String, values: List<CharArray>, force: Boolean) =
+        put(name, "List<CharArray>", values)
 
-    override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) =
-        put(name, "Array<ByteArray>", values)
+    override fun writeByteArray2D(name: String, values: List<ByteArray>, force: Boolean) =
+        put(name, "List<ByteArray>", values)
 
-    override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) =
-        put(name, "Array<ShortArray>", values)
+    override fun writeShortArray2D(name: String, values: List<ShortArray>, force: Boolean) =
+        put(name, "List<ShortArray>", values)
 
-    override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) =
-        put(name, "Array<IntArray>", values)
+    override fun writeIntArray2D(name: String, values: List<IntArray>, force: Boolean) =
+        put(name, "List<IntArray>", values)
 
     override fun writeColor(name: String, value: Int, force: Boolean) =
         put(name, "Color4", value)
 
     override fun writeColorArray(name: String, values: IntArray, force: Boolean) =
-        put(name, "Array<Color4>", values)
+        put(name, "List<Color4>", values)
 
-    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) =
-        put(name, "Array<Array<Color4>>", values)
+    override fun writeColorArray2D(name: String, values: List<IntArray>, force: Boolean) =
+        put(name, "List<List<Color4>>", values)
 
-    override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) =
-        put(name, "Array<LongArray>", values)
+    override fun writeLongArray2D(name: String, values: List<LongArray>, force: Boolean) =
+        put(name, "List<LongArray>", values)
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) =
-        put(name, "Array<FloatArray>", values)
+    override fun writeFloatArray2D(name: String, values: List<FloatArray>, force: Boolean) =
+        put(name, "List<FloatArray>", values)
 
-    override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) =
-        put(name, "Array<DoubleArray>", values)
+    override fun writeDoubleArray2D(name: String, values: List<DoubleArray>, force: Boolean) =
+        put(name, "List<DoubleArray>", values)
 
-    override fun writeStringArray(name: String, values: Array<String>, force: Boolean) =
-        put(name, "Array<String>", values)
+    override fun writeStringList(name: String, values: List<String>, force: Boolean) =
+        put(name, "List<String>", values)
 
-    override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) =
-        put(name, "Array<Array<String>>", values)
+    override fun writeStringList2D(name: String, values: List<List<String>>, force: Boolean) =
+        put(name, "List<List<String>>", values)
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) =
-        put(name, "Array<Vector2f>", values)
+    override fun writeVector2fList(name: String, values: List<Vector2f>, force: Boolean) =
+        put(name, "List<Vector2f>", values)
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) =
-        put(name, "Array<Vector3f>", values)
+    override fun writeVector3fList(name: String, values: List<Vector3f>, force: Boolean) =
+        put(name, "List<Vector3f>", values)
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) =
-        put(name, "Array<Vector4f>", values)
+    override fun writeVector4fList(name: String, values: List<Vector4f>, force: Boolean) =
+        put(name, "List<Vector4f>", values)
 
-    override fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean) =
-        put(name, "Array<Array<Vector2f>>", values)
+    override fun writeVector2fList2D(name: String, values: List<List<Vector2f>>, force: Boolean) =
+        put(name, "List<List<Vector2f>>", values)
 
-    override fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean) =
-        put(name, "Array<Array<Vector3f>>", values)
+    override fun writeVector3fList2D(name: String, values: List<List<Vector3f>>, force: Boolean) =
+        put(name, "List<List<Vector3f>>", values)
 
-    override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) =
-        put(name, "Array<Array<Vector4f>>", values)
+    override fun writeVector4fList2D(name: String, values: List<List<Vector4f>>, force: Boolean) =
+        put(name, "List<List<Vector4f>>", values)
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) =
-        put(name, "Array<Array<Vector2f>>", values)
+    override fun writeVector2dList(name: String, values: List<Vector2d>, force: Boolean) =
+        put(name, "List<List<Vector2f>>", values)
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) =
-        put(name, "Array<Array<Vector3f>>", values)
+    override fun writeVector3dList(name: String, values: List<Vector3d>, force: Boolean) =
+        put(name, "List<List<Vector3f>>", values)
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) =
-        put(name, "Array<Array<Vector4f>>", values)
+    override fun writeVector4dList(name: String, values: List<Vector4d>, force: Boolean) =
+        put(name, "List<List<Vector4f>>", values)
 
-    override fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean) =
-        put(name, "Array<Array<Vector2d>>", values)
+    override fun writeVector2dList2D(name: String, values: List<List<Vector2d>>, force: Boolean) =
+        put(name, "List<List<Vector2d>>", values)
 
-    override fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean) =
-        put(name, "Array<Array<Vector3d>>", values)
+    override fun writeVector3dList2D(name: String, values: List<List<Vector3d>>, force: Boolean) =
+        put(name, "List<List<Vector3d>>", values)
 
-    override fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean) =
-        put(name, "Array<Array<Vector4d>>", values)
+    override fun writeVector4dList2D(name: String, values: List<List<Vector4d>>, force: Boolean) =
+        put(name, "List<List<Vector4d>>", values)
 
     override fun writeVector2i(name: String, value: Vector2i, force: Boolean) =
         put(name, "Vector2i", value)
@@ -127,23 +127,23 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeVector4i(name: String, value: Vector4i, force: Boolean) =
         put(name, "Vector4i", value)
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) =
-        put(name, "Array<Vector2i>", values)
+    override fun writeVector2iList(name: String, values: List<Vector2i>, force: Boolean) =
+        put(name, "List<Vector2i>", values)
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) =
-        put(name, "Array<Vector3i>", values)
+    override fun writeVector3iList(name: String, values: List<Vector3i>, force: Boolean) =
+        put(name, "List<Vector3i>", values)
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) =
-        put(name, "Array<Vector4i>", values)
+    override fun writeVector4iList(name: String, values: List<Vector4i>, force: Boolean) =
+        put(name, "List<Vector4i>", values)
 
-    override fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean) =
-        put(name, "Array<Array<Vector2i>>", values)
+    override fun writeVector2iList2D(name: String, values: List<List<Vector2i>>, force: Boolean) =
+        put(name, "List<List<Vector2i>>", values)
 
-    override fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean) =
-        put(name, "Array<Array<Vector3i>>", values)
+    override fun writeVector3iList2D(name: String, values: List<List<Vector3i>>, force: Boolean) =
+        put(name, "List<List<Vector3i>>", values)
 
-    override fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean) =
-        put(name, "Array<Array<Vector4i>>", values)
+    override fun writeVector4iList2D(name: String, values: List<List<Vector4i>>, force: Boolean) =
+        put(name, "List<List<Vector4i>>", values)
 
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) =
         put(name, "Matrix2x2", value)
@@ -160,35 +160,35 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) =
         put(name, "Matrix4x4", value)
 
-    override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) =
-        put(name, "Array<Matrix2x2>", values)
+    override fun writeMatrix2x2fList(name: String, values: List<Matrix2f>, force: Boolean) =
+        put(name, "List<Matrix2x2>", values)
 
-    override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) =
-        put(name, "Array<Matrix3x2>", values)
+    override fun writeMatrix3x2fList(name: String, values: List<Matrix3x2f>, force: Boolean) =
+        put(name, "List<Matrix3x2>", values)
 
-    override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) =
-        put(name, "Array<Matrix3x3>", values)
+    override fun writeMatrix3x3fList(name: String, values: List<Matrix3f>, force: Boolean) =
+        put(name, "List<Matrix3x3>", values)
 
-    override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) =
-        put(name, "Array<Matrix4x3>", values)
+    override fun writeMatrix4x3fList(name: String, values: List<Matrix4x3f>, force: Boolean) =
+        put(name, "List<Matrix4x3>", values)
 
-    override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) =
-        put(name, "Array<Matrix4x4>", values)
+    override fun writeMatrix4x4fList(name: String, values: List<Matrix4f>, force: Boolean) =
+        put(name, "List<Matrix4x4>", values)
 
-    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) =
-        put(name, "Array<Array<Matrix2x2>>", values)
+    override fun writeMatrix2x2fList2D(name: String, values: List<List<Matrix2f>>, force: Boolean) =
+        put(name, "List<List<Matrix2x2>>", values)
 
-    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean) =
-        put(name, "Array<Array<Matrix3x2>>", values)
+    override fun writeMatrix3x2fList2D(name: String, values: List<List<Matrix3x2f>>, force: Boolean) =
+        put(name, "List<List<Matrix3x2>>", values)
 
-    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean) =
-        put(name, "Array<Array<Matrix3x3>>", values)
+    override fun writeMatrix3x3fList2D(name: String, values: List<List<Matrix3f>>, force: Boolean) =
+        put(name, "List<List<Matrix3x3>>", values)
 
-    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean) =
-        put(name, "Array<Array<Matrix4x3>>", values)
+    override fun writeMatrix4x3fList2D(name: String, values: List<List<Matrix4x3f>>, force: Boolean) =
+        put(name, "List<List<Matrix4x3>>", values)
 
-    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean) =
-        put(name, "Array<Array<Matrix4x4>>", values)
+    override fun writeMatrix4x4fList2D(name: String, values: List<List<Matrix4f>>, force: Boolean) =
+        put(name, "List<List<Matrix4x4>>", values)
 
     override fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean) =
         put(name, "Matrix2x2d", value)
@@ -205,79 +205,79 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean) =
         put(name, "Matrix4x4d", value)
 
-    override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean) =
-        put(name, "Array<Matrix2x2d>", values)
+    override fun writeMatrix2x2dList(name: String, values: List<Matrix2d>, force: Boolean) =
+        put(name, "List<Matrix2x2d>", values)
 
-    override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean) =
-        put(name, "Array<Matrix3x2d>", values)
+    override fun writeMatrix3x2dList(name: String, values: List<Matrix3x2d>, force: Boolean) =
+        put(name, "List<Matrix3x2d>", values)
 
-    override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean) =
-        put(name, "Array<Matrix3x3d>", values)
+    override fun writeMatrix3x3dList(name: String, values: List<Matrix3d>, force: Boolean) =
+        put(name, "List<Matrix3x3d>", values)
 
-    override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean) =
-        put(name, "Array<Matrix4x3d>", values)
+    override fun writeMatrix4x3dList(name: String, values: List<Matrix4x3d>, force: Boolean) =
+        put(name, "List<Matrix4x3d>", values)
 
-    override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean) =
-        put(name, "Array<Matrix4x4d>", values)
+    override fun writeMatrix4x4dList(name: String, values: List<Matrix4d>, force: Boolean) =
+        put(name, "List<Matrix4x4d>", values)
 
-    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean) =
-        put(name, "Array<Array<Matrix2x2d>>", values)
+    override fun writeMatrix2x2dList2D(name: String, values: List<List<Matrix2d>>, force: Boolean) =
+        put(name, "List<List<Matrix2x2d>>", values)
 
-    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean) =
-        put(name, "Array<Array<Matrix3x2d>>", values)
+    override fun writeMatrix3x2dList2D(name: String, values: List<List<Matrix3x2d>>, force: Boolean) =
+        put(name, "List<List<Matrix3x2d>>", values)
 
-    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean) =
-        put(name, "Array<Array<Matrix3x3d>>", values)
+    override fun writeMatrix3x3dList2D(name: String, values: List<List<Matrix3d>>, force: Boolean) =
+        put(name, "List<List<Matrix3x3d>>", values)
 
-    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean) =
-        put(name, "Array<Array<Matrix4x3d>>", values)
+    override fun writeMatrix4x3dList2D(name: String, values: List<List<Matrix4x3d>>, force: Boolean) =
+        put(name, "List<List<Matrix4x3d>>", values)
 
-    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) =
-        put(name, "Array<Array<Matrix4x4d>>", values)
+    override fun writeMatrix4x4dList2D(name: String, values: List<List<Matrix4d>>, force: Boolean) =
+        put(name, "List<List<Matrix4x4d>>", values)
 
-    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
-        put(name, "Array<Quaternionf>", values)
+    override fun writeQuaternionfList(name: String, values: List<Quaternionf>, force: Boolean) =
+        put(name, "List<Quaternionf>", values)
 
-    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
-        put(name, "Array<Quaterniond>", values)
+    override fun writeQuaterniondList(name: String, values: List<Quaterniond>, force: Boolean) =
+        put(name, "List<Quaterniond>", values)
 
-    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
-        put(name, "Array<Array<Quaternionf>>", values)
+    override fun writeQuaternionfList2D(name: String, values: List<List<Quaternionf>>, force: Boolean) =
+        put(name, "List<List<Quaternionf>>", values)
 
-    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
-        put(name, "Array<Array<Quaterniond>>", values)
+    override fun writeQuaterniondList2D(name: String, values: List<List<Quaterniond>>, force: Boolean) =
+        put(name, "List<List<Quaterniond>>", values)
 
-    override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) =
-        put(name, "Array<AABBf>", values)
+    override fun writeAABBfList(name: String, values: List<AABBf>, force: Boolean) =
+        put(name, "List<AABBf>", values)
 
-    override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) =
-        put(name, "Array<AABBd>", values)
+    override fun writeAABBdList(name: String, values: List<AABBd>, force: Boolean) =
+        put(name, "List<AABBd>", values)
 
-    override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) =
-        put(name, "Array<Array<AABBf>>", values)
+    override fun writeAABBfList2D(name: String, values: List<List<AABBf>>, force: Boolean) =
+        put(name, "List<List<AABBf>>", values)
 
-    override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) =
-        put(name, "Array<Array<AABBd>>", values)
+    override fun writeAABBdList2D(name: String, values: List<List<AABBd>>, force: Boolean) =
+        put(name, "List<List<AABBd>>", values)
 
-    override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) =
-        put(name, "Array<Planef>", values)
+    override fun writePlanefList(name: String, values: List<Planef>, force: Boolean) =
+        put(name, "List<Planef>", values)
 
-    override fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean) =
-        put(name, "Array<Planed>", values)
+    override fun writePlanedList(name: String, values: List<Planed>, force: Boolean) =
+        put(name, "List<Planed>", values)
 
-    override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) =
-        put(name, "Array<Array<Planef>>", values)
+    override fun writePlanefList2D(name: String, values: List<List<Planef>>, force: Boolean) =
+        put(name, "List<List<Planef>>", values)
 
-    override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
-        put(name, "Array<Array<Planed>>", values)
+    override fun writePlanedList2D(name: String, values: List<List<Planed>>, force: Boolean) =
+        put(name, "List<List<Planed>>", values)
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) =
-        put(name, "Array<FileReference>", values)
+    override fun writeFileList(name: String, values: List<FileReference>, force: Boolean, workspace: FileReference) =
+        put(name, "List<FileReference>", values)
 
-    override fun writeFileArray2D(
-        name: String, values: Array<Array<FileReference>>,
+    override fun writeFileList2D(
+        name: String, values: List<List<FileReference>>,
         force: Boolean, workspace: FileReference
-    ) = put(name, "Array<Array<FileReference>>", values)
+    ) = put(name, "List<List<FileReference>>", values)
 
     override fun writeNull(name: String?) {
         if (name != null) {
@@ -289,27 +289,25 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
         // maybe... idk...
     }
 
-    override fun <V : Saveable?> writeNullableObjectArray(
+    override fun <V : Saveable?> writeNullableObjectList(
+        self: Saveable?, name: String,
+        values: List<V>, force: Boolean
+    ) = put(name, "List<Object?>", values)
+
+    override fun <V : Saveable> writeObjectList(self: Saveable?, name: String, values: List<V>, force: Boolean) =
+        put(name, "List<Object>", values)
+
+    override fun <V : Saveable> writeObjectList2D(
         self: Saveable?,
         name: String,
-        values: Array<V>?,
+        values: List<List<V>>,
         force: Boolean
-    ) = put(name, "Array<Object?>", values)
+    ) = put(name, "List<List<Object>>", values)
 
-    override fun <V : Saveable> writeObjectArray(self: Saveable?, name: String, values: Array<V>?, force: Boolean) =
-        put(name, "Array<Object>", values)
-
-    override fun <V : Saveable> writeObjectArray2D(
+    override fun <V : Saveable?> writeHomogenousObjectList(
         self: Saveable?,
         name: String,
-        values: Array<Array<V>>,
+        values: List<V>,
         force: Boolean
-    ) = put(name, "Array<Array<Object>>", values)
-
-    override fun <V : Saveable?> writeHomogenousObjectArray(
-        self: Saveable?,
-        name: String,
-        values: Array<V>,
-        force: Boolean
-    ) = put(name, "Array<Array<Object>>", values)
+    ) = put(name, "List<List<Object>>", values)
 }
