@@ -149,6 +149,9 @@ open class XMLReader {
         }
     }
 
+    /**
+     * returns String | XMLNode | Marker
+     * */
     fun read(input: InputStream) = read(-1, input)
     fun read(firstChar: Int, input: InputStream): Any? {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar

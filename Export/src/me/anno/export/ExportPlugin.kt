@@ -16,12 +16,16 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Window
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
@@ -75,7 +79,7 @@ class ExportPlugin : Plugin() {
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
                     .firstInstanceOrNull<OptionBar>() ?: continue
-                bar.addMajor("Export", ::openExportMenu)
+                bar.addMajor("Export") { openExportMenu(null) }
             }
         }
     }
@@ -97,18 +101,76 @@ class ExportPlugin : Plugin() {
         configFile.writeText(JsonStringWriter.toText(presets, workspace))
     }
 
-    fun openExportMenu() {
-        val presets = loadPresets().sortedBy { it.name.lowercase() }
+    // export setting chooser: a list of saveable presets
+    fun openExportMenu(nameToLoad: String?) {
+        val presets = loadPresets()
         val ui = PanelListY(style)
-        fun reloadUI() {
+
+        fun reloadUI(nameToLoad: String?) {
             Menu.close(ui)
-            openExportMenu()
+            openExportMenu(nameToLoad)
         }
-        // export setting chooser: a list of saveable presets
+
         val body = PanelListY(style)
+        fun createPresetUI(preset: ExportSettings) {
+            body.clear()
+            // inputs
+            preset.createInspector(body, style) { nameDesc, parent ->
+                val group = SettingCategory(nameDesc, style)
+                group.show2()
+                parent.add(group)
+                group.content
+            }
+            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
+            body.add(SpacerPanel(0, 1, style.getChild("deep")))
+            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
+            // buttons
+            body.add(TextButton("Export", style)
+                .addLeftClickListener {
+                    val clock = Clock()
+                    val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
+                    progress.intFormatting = true
+                    thread(name = "Export") {
+                        ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
+                        clock.stop("Export")
+                        addEvent { msg(NameDesc("Export Finished!")) }
+                    }
+                })
+            body.add(TextButton("Save Preset", style)
+                .addLeftClickListener {
+                    storePresets(presets)
+                    msg(NameDesc("Saved Preset!"))
+                })
+            body.add(TextButton("Save Preset As...", style)
+                .addLeftClickListener {
+                    askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
+                        NameDesc("Save"), { -1 }) {
+                        val newPreset = preset.clone()
+                        val newName = it.trim()
+                        newPreset.name = newName
+                        storePresets(presets + newPreset)
+                        msg(NameDesc("Saved Preset!"))
+                        reloadUI(newName)
+                    }
+                })
+            body.add(TextButton("Delete Preset", style)
+                .addLeftClickListener {
+                    ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
+                        storePresets(presets.filter { it !== preset })
+                        reloadUI(nameToLoad)
+                    }
+                })
+        }
+
+        val loadedInitially = presets.firstOrNull { it.name == nameToLoad } ?: presets.firstOrNull()
+        if (loadedInitially != null) {
+            createPresetUI(loadedInitially)
+        }
+
         lateinit var preset: ExportSettings
         ui.add(EnumInput(
-            NameDesc("Preset"), NameDesc("Please Choose"),
+            NameDesc("Preset"),
+            NameDesc(loadedInitially?.name ?: "Please Choose"),
             listOf(NameDesc("New Preset")) +
                     presets.map { NameDesc(it.name, it.description, "") }, style
         ).setChangeListener { _, index, _ ->
@@ -118,65 +180,31 @@ class ExportPlugin : Plugin() {
                     GFX.someWindow.windowStack,
                     NameDesc(), "Preset Name", NameDesc("Create"), { white }, {
                         Menu.close(ui)
-                        val newList = presets + ExportSettings().apply { name = it.trim() }
+                        val newName = it.trim()
+                        val newList = presets + ExportSettings().apply { name = newName }
                         storePresets(newList)
-                        openExportMenu()
+                        openExportMenu(newName)
                     }
                 )
             } else {
-
                 preset = presets[index - 1]
                 preset.lastUsed = System.currentTimeMillis()
                 storePresets(presets)
-
-                body.clear()
-                // inputs
-                preset.createInspector(body, style) {
-                    val cat = SettingCategory(it, style)
-                    cat.show2()
-                    body.add(cat)
-                    cat
-                }
-                // buttons
-                body.add(TextButton("Export", style)
-                    .addLeftClickListener {
-                        val clock = Clock()
-                        val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
-                        progress.intFormatting = true
-                        thread(name = "Export") {
-                            ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
-                            clock.stop("Export")
-                            addEvent { msg(NameDesc("Export Finished!")) }
-                        }
-                    })
-                body.add(TextButton("Save Preset", style)
-                    .addLeftClickListener {
-                        storePresets(presets)
-                        msg(NameDesc("Saved Preset!"))
-                    })
-                body.add(TextButton("Save Preset As...", style)
-                    .addLeftClickListener {
-                        askName(ui.windowStack, NameDesc("Preset Name"), preset.name,
-                            NameDesc("Save"), { -1 }) {
-                            val newPreset = preset.clone()
-                            newPreset.name = it.trim()
-                            storePresets(presets + newPreset)
-                            msg(NameDesc("Saved Preset!"))
-                            reloadUI()
-                        }
-                    })
-                body.add(TextButton("Delete Preset", style)
-                    .addLeftClickListener {
-                        ask(ui.windowStack, NameDesc("Delete ${preset.name}?")) {
-                            storePresets(presets.filter { it !== preset })
-                            reloadUI()
-                        }
-                    })
+                createPresetUI(preset)
             }
         })
-        ui.add(body)
+
+        ui.add( // add a decorative strip around the settings ^^
+            PanelContainer(
+                PanelContainer(
+                    PanelContainer(body, Padding(4), style),
+                    Padding(1), style.getChild("deep")
+                ),
+                Padding(4), style
+            )
+        )
         // todo open quick export: most recent 3 export settings
         val ws = GFX.someWindow.windowStack
-        ws.add(Window(ui, false, ws))
+        ws.add(Window(ScrollPanelY(ui, style), false, ws))
     }
 }

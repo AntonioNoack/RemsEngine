@@ -3,26 +3,50 @@ package me.anno.export
 import me.anno.engine.projects.GameEngineProject
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.test.assertEquals
 
 // todo how can we create an executable from a jar like Launch4j?
 object ExportProcess {
+
+    fun listProjectRoots(source: FileReference): List<FileReference> {
+        val moduleConfig = source.getChild(".idea/modules.xml")
+        if (!moduleConfig.exists) return emptyList()
+        val node0 = moduleConfig.inputStreamSync().use {
+            XMLReader().read(it) as XMLNode
+        }
+        assertEquals("project", node0.type)
+        val node1 = node0.children.filterIsInstance<XMLNode>()
+            .first { it.type == "component" && it["name"] == "ProjectModuleManager" }
+        val node2 = node1.children.filterIsInstance<XMLNode>()
+            .first { it.type == "modules" }
+        return node2.children.asSequence()
+            .filterIsInstance<XMLNode>()
+            .filter { it.type == "module" }
+            .mapNotNull { it["filepath"] }
+            .map { it.replace("file://\$PROJECT_DIR\$/", source.absolutePath) }
+            .map { getReference(it).getParent() }.toList()
+    }
+
     fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
         val sources = HashMap<String, ByteArray>(65536)
-        val engineBuild = documents.getChild("IdeaProjects/RemsEngine/out/artifacts/universal/RemsEngine.jar")
+        val engineBuild = settings.projectRoots.map {
+            it.getChild("out/artifacts/universal/RemsEngine.jar")
+        }.firstOrNull { it.exists } ?: InvalidRef
         indexJar(sources, engineBuild, progress)
         excludeLWJGLFiles(sources, settings)
         excludeJNAFiles(sources, settings)
-        settings.assetsToInclude
-        settings.excludedClasses
-        settings.modulesToInclude
+        excludeWebpFiles(sources, settings)
 
         // todo build .jar file from export settings and current project
         //  - collect all required files
@@ -60,10 +84,9 @@ object ExportProcess {
     }
 
     private fun excludeJNAFiles(sources: HashMap<String, ByteArray>, settings: ExportSettings) {
-        val anyMacos = settings.macosPlatforms.arm64 || settings.macosPlatforms.x64
-        val anyLinux = settings.linuxPlatforms.arm32 || settings.linuxPlatforms.arm64 || settings.linuxPlatforms.x64
-        val anyWindows = settings.windowsPlatforms.x86 || settings.windowsPlatforms.x64 ||
-                settings.windowsPlatforms.arm64
+        val anyMacos = settings.macosPlatforms.any
+        val anyLinux = settings.linuxPlatforms.any
+        val anyWindows = settings.windowsPlatforms.any
         sources.removeIf { (key, _) ->
             if (key.startsWith("com/sun/jna/")) {
                 key.startsWith("com/sun/jna/aix-") ||
@@ -91,6 +114,12 @@ object ExportProcess {
                         (!settings.linuxPlatforms.x64 && key.startsWith("com/sun/jna/linux-x86-64/"))
             } else false
         }
+    }
+
+    private fun excludeWebpFiles(sources: HashMap<String, ByteArray>, settings: ExportSettings) {
+        excludeFiles(sources, settings.linuxPlatforms.any, "native/linux/")
+        excludeFiles(sources, settings.windowsPlatforms.any, "native/win/")
+        excludeFiles(sources, settings.macosPlatforms.any, "native/mac/")
     }
 
     private fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {

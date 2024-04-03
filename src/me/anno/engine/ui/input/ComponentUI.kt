@@ -1,26 +1,10 @@
 package me.anno.engine.ui.input
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.annotations.Range.Companion.maxByte
-import me.anno.ecs.annotations.Range.Companion.maxDouble
-import me.anno.ecs.annotations.Range.Companion.maxFloat
-import me.anno.ecs.annotations.Range.Companion.maxInt
 import me.anno.ecs.annotations.Range.Companion.maxLong
-import me.anno.ecs.annotations.Range.Companion.maxShort
-import me.anno.ecs.annotations.Range.Companion.maxUByte
-import me.anno.ecs.annotations.Range.Companion.maxUInt
 import me.anno.ecs.annotations.Range.Companion.maxULong
-import me.anno.ecs.annotations.Range.Companion.maxUShort
-import me.anno.ecs.annotations.Range.Companion.minByte
-import me.anno.ecs.annotations.Range.Companion.minDouble
-import me.anno.ecs.annotations.Range.Companion.minFloat
-import me.anno.ecs.annotations.Range.Companion.minInt
 import me.anno.ecs.annotations.Range.Companion.minLong
-import me.anno.ecs.annotations.Range.Companion.minShort
-import me.anno.ecs.annotations.Range.Companion.minUByte
-import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
-import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.DefaultAssets
@@ -29,6 +13,29 @@ import me.anno.engine.inspector.IProperty
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.AssetImport
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.input.ComponentUIImpl.createAABBdInput
+import me.anno.engine.ui.input.ComponentUIImpl.createAABBfInput
+import me.anno.engine.ui.input.ComponentUIImpl.createBooleanInput
+import me.anno.engine.ui.input.ComponentUIImpl.createByteArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createByteInput
+import me.anno.engine.ui.input.ComponentUIImpl.createDoubleArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createDoubleInput
+import me.anno.engine.ui.input.ComponentUIImpl.createFloatArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createFloatInput
+import me.anno.engine.ui.input.ComponentUIImpl.createIntArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createIntInput
+import me.anno.engine.ui.input.ComponentUIImpl.createLongArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createShortArrayInput
+import me.anno.engine.ui.input.ComponentUIImpl.createShortInput
+import me.anno.engine.ui.input.ComponentUIImpl.createUByteInput
+import me.anno.engine.ui.input.ComponentUIImpl.createUIntInput
+import me.anno.engine.ui.input.ComponentUIImpl.createUShortInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector2dInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector2fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector3dInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector3fInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector4dInput
+import me.anno.engine.ui.input.ComponentUIImpl.createVector4fInput
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.input.Input
@@ -61,11 +68,9 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
-import me.anno.ui.input.FloatInput
 import me.anno.ui.input.FloatVectorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.IntInput
@@ -79,7 +84,6 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
-import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -428,94 +432,22 @@ object ComponentUI {
         }
 
         val title = name?.camelCaseToTitle() ?: ""
-        val ttt = "" // we could use annotations for that :)
+        // todo use @Docs() for ttt
+        val ttt = ""
         val value = property.get()
         val default = property.getDefault()
 
         when (type0) {
             // native types
-            "Bool", "Boolean" -> return BooleanInput(
-                title, ttt, value as Boolean,
-                default as? Boolean ?: false, style
-            ).apply {
-                alignmentX = AxisAlignment.FILL
-                property.init(this)
-                setResetListener { property.reset(this) as Boolean }
-                askForReset(property) { setValue(it as Boolean, false) }
-                setChangeListener {
-                    property.set(this, it)
-                }
-            }
+            "Bool", "Boolean" -> return createBooleanInput(title, ttt, value, default, property, style)
             // todo char
-            "Byte" -> {
-                val type = NumberType(default as Byte,
-                    { clamp(AnyToLong.getLong(it, 0), range.minByte().toLong(), range.maxByte().toLong()).toByte() },
-                    { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as Byte).toInt(), false)
-                    askForReset(property) { setValue((it as Byte).toInt(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toByte())
-                    }
-                }
-            }
-            "UByte" -> {
-                val type = NumberType(default as UByte,
-                    { clamp(AnyToLong.getLong(it, 0), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
-                    { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as UByte).toInt(), false)
-                    askForReset(property) { setValue((it as UByte).toInt(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toUByte())
-                    }
-                }
-            }
-            "Short" -> {
-                val type = NumberType(default as Short,
-                    { clamp(AnyToLong.getLong(it, 0), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
-                    { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as Short).toInt(), false)
-                    askForReset(property) { setValue((it as Short).toInt(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toShort())
-                    }
-                }
-            }
-            "UShort" -> {
-                val type = NumberType(default as UShort,
-                    {
-                        clamp(
-                            AnyToLong.getLong(it, 0),
-                            range.minUShort().toLong(),
-                            range.maxUShort().toLong()
-                        ).toUShort()
-                    },
-                    { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as UShort).toInt(), false)
-                    askForReset(property) { setValue((it as UShort).toInt(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toUShort())
-                    }
-                }
-            }
+            "Byte" -> return createByteInput(title, visibilityKey, value, default, property, range, style)
+            "UByte" -> return createUByteInput(title, visibilityKey, value, default, property, range, style)
+            "Short" -> return createShortInput(title, visibilityKey, value, default, property, range, style)
+            "UShort" -> return createUShortInput(title, visibilityKey, value, default, property, range, style)
             "Int", "Integer" -> {
-                if (title.endsWith("color", true)) {
-                    return ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
+                return if (title.endsWith("color", true)) {
+                    ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
                         alignmentX = AxisAlignment.FILL
                         property.init(this)
                         askForReset(property) { it as Int; setValue(it.toVecRGBA(), -1, false) }
@@ -524,36 +456,9 @@ object ComponentUI {
                             property.set(this, Color.rgba(r, g, b, a), mask)
                         }
                     }
-                } else {
-                    val type = NumberType(default as? Int ?: 0,
-                        { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
-                    return IntInput(title, visibilityKey, type, style).apply {
-                        alignmentX = AxisAlignment.FILL
-                        property.init(this)
-                        setValue(value as Int, false)
-                        askForReset(property) { setValue(it as Int, false) }
-                        setResetListener { property.reset(this).toString() }
-                        setChangeListener {
-                            property.set(this, it.toInt())
-                        }
-                    }
-                }
+                } else createIntInput(title, visibilityKey, value, default, property, range, style)
             }
-            "UInt" -> {
-                val type = NumberType(default as? UInt ?: 0u,
-                    { clamp(AnyToLong.getLong(it, 0), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() },
-                    { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as UInt).toLong(), false)
-                    askForReset(property) { setValue((it as UInt).toLong(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toUInt())
-                    }
-                }
-            }
+            "UInt" -> return createUIntInput(title, visibilityKey, value, default, property, range, style)
             "Long" -> {
                 val type = NumberType(default as? Long ?: 0L,
                     { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
@@ -583,35 +488,9 @@ object ComponentUI {
                 }
             }
             // todo slider type, which returns a float in 01 range
-            "Float" -> {
-                val type = NumberType(AnyToFloat.getFloat(default, 0f),
-                    { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
-                return FloatInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue(value as Float, false)
-                    setResetListener { property.reset(this).toString() }
-                    askForReset(property) { setValue(it as Float, false) }
-                    setChangeListener {
-                        property.set(this, it.toFloat())
-                    }
-                }
-            }
-            "Double" -> {
-                val type = NumberType(default as? Double ?: 0.0,
-                    { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
-                return FloatInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue(value as Double, -1, false)
-                    setResetListener { property.reset(this).toString() }
-                    askForReset(property) { setValue(it as Double, -1, false) }
-                    setChangeListener {
-                        property.set(this, it)
-                    }
-                }
-            }
-            "Char", "Character", "char" -> {
+            "Float" -> return createFloatInput(title, visibilityKey, value, default, property, range, style)
+            "Double" -> return createDoubleInput(title, visibilityKey, value, default, property, range, style)
+            "Char" -> {
                 return TitledListY(title, visibilityKey, style).add(
                     TextInput(title, visibilityKey, value.toString(), style.getChild("deep")).apply {
                         // todo limit length to 1
@@ -639,42 +518,9 @@ object ComponentUI {
 
             // float vectors
             // todo ranges for vectors
-            "Vector2f" -> {
-                val type = NumberType.VEC2.withDefault(default as? Vector2f ?: Vector2f())
-                return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector2f, false) }
-                    addChangeListener { x, y, _, _, mask ->
-                        property.set(this, Vector2f(x.toFloat(), y.toFloat()), mask)
-                    }
-                }
-            }
-            "Vector3f" -> {
-                val type = NumberType.VEC3.withDefault(default as? Vector3f ?: Vector3f())
-                return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector3f, false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        property.set(this, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()), mask)
-                    }
-                }
-            }
-            "Vector4f" -> {
-                val type = NumberType.VEC4.withDefault(default as? Vector4f ?: Vector4f())
-                return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector4f, false) }
-                    addChangeListener { x, y, z, w, mask ->
-                        property.set(this, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), mask)
-                    }
-                }
-            }
+            "Vector2f" -> return createVector2fInput(title, visibilityKey, value, default, property, style)
+            "Vector3f" -> return createVector3fInput(title, visibilityKey, value, default, property, style)
+            "Vector4f" -> return createVector4fInput(title, visibilityKey, value, default, property, style)
             "Planef" -> {
                 val type = NumberType.PLANE4.withDefault(default as? Planef ?: Planef())
                 return FloatVectorInput(title, visibilityKey, value as Planef, type, style).apply {
@@ -687,42 +533,9 @@ object ComponentUI {
                     }
                 }
             }
-            "Vector2d" -> {
-                val type = NumberType.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
-                return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector2d, false) }
-                    addChangeListener { x, y, _, _, mask ->
-                        property.set(this, Vector2d(x, y), mask)
-                    }
-                }
-            }
-            "Vector3d" -> {
-                val type = NumberType.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
-                return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector3d, false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        property.set(this, Vector3d(x, y, z), mask)
-                    }
-                }
-            }
-            "Vector4d" -> {
-                val type = NumberType.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
-                return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector4d, -1, false) }
-                    addChangeListener { x, y, z, w, mask ->
-                        property.set(this, Vector4d(x, y, z, w), mask)
-                    }
-                }
-            }
+            "Vector2d" -> return createVector2dInput(title, visibilityKey, value, default, property, style)
+            "Vector3d" -> return createVector3dInput(title, visibilityKey, value, default, property, style)
+            "Vector4d" -> return createVector4dInput(title, visibilityKey, value, default, property, style)
             "Planed" -> {
                 val type = NumberType.PLANE4D.withDefault(default as? Planed ?: Planed())
                 return FloatVectorInput(title, visibilityKey, value as Planed, type, style).apply {
@@ -887,60 +700,8 @@ object ComponentUI {
             }
 
             // AABBf/AABBd
-            "AABBf" -> {
-                value as AABBf
-                default as AABBf
-                val typeMin = NumberType.VEC3.withDefault(default.getMin())
-                val panel = TitledListY(title, visibilityKey, style)
-                panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBf).getMin(), false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        value.setMin(x.toFloat(), y.toFloat(), z.toFloat())
-                        property.set(this, value, mask.and(7))
-                    }
-                })
-                val typeMax = NumberType.VEC3D.withDefault(default.getMax())
-                panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBf).getMax(), false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        value.setMax(x.toFloat(), y.toFloat(), z.toFloat())
-                        property.set(this, value, mask.and(7).shl(3))
-                    }
-                })
-                return panel
-            }
-            "AABBd" -> {
-                value as AABBd
-                default as AABBd
-                val typeMin = NumberType.VEC3D.withDefault(default.getMin())
-                val panel = TitledListY(title, visibilityKey, style)
-                panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBd).getMin(), false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        value.setMin(x, y, z)
-                        property.set(this, value, mask.and(3))
-                    }
-                })
-                val typeMax = NumberType.VEC3D.withDefault(default.getMax())
-                panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBd).getMax(), false) }
-                    addChangeListener { x, y, z, _, mask ->
-                        value.setMax(x, y, z)
-                        property.set(this, value, mask.and(7).shl(3))
-                    }
-                })
-                return panel
-            }
+            "AABBf" -> return createAABBfInput(title, visibilityKey, value, default, property, style)
+            "AABBd" -> return createAABBdInput(title, visibilityKey, value, default, property, style)
 
             // todo smaller matrices, and for double
             // todo when editing a matrix, maybe add a second mode for translation x rotation x scale
@@ -949,68 +710,13 @@ object ComponentUI {
 
             // native arrays
             // todo char array?
-            "ByteArray", "Byte[]", "byte[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Byte", style) {
-                    override fun onChange() {
-                        property.set(this, ByteArray(values.size) { values[it] as Byte })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? ByteArray)?.asList() ?: emptyList())
-                }
-            }
-            "ShortArray", "Short[]", "short[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Short", style) {
-                    override fun onChange() {
-                        property.set(this, ShortArray(values.size) { values[it] as Short })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? ShortArray)?.asList() ?: emptyList())
-                }
-            }
-            "IntArray", "IntegerArray", "Integer[]", "integer[]", "Int[]", "int[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Int", style) {
-                    override fun onChange() {
-                        property.set(this, IntArray(values.size) { values[it] as Int })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? IntArray)?.asList() ?: emptyList())
-                }
-            }
-            "LongArray", "Long[]", "long[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Long", style) {
-                    override fun onChange() {
-                        property.set(this, LongArray(values.size) { values[it] as Long })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? LongArray)?.asList() ?: emptyList())
-                }
-            }
-            "FloatArray", "Float[]", "float[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Float", style) {
-                    override fun onChange() {
-                        property.set(this, FloatArray(values.size) { values[it] as Float })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? FloatArray)?.asList() ?: emptyList())
-                }
-            }
-            "DoubleArray", "Double[]", "double[]" -> {
-                return object : AnyArrayPanel(title, visibilityKey, "Double", style) {
-                    override fun onChange() {
-                        property.set(this, DoubleArray(values.size) { values[it] as Double })
-                    }
-                }.apply {
-                    property.init(this)
-                    setValues((value as? DoubleArray)?.asList() ?: emptyList())
-                }
-            }
-
-            "File", "FileReference", "InvalidReference" -> {
+            "ByteArray" -> return createByteArrayInput(title, visibilityKey, value, property, style)
+            "ShortArray" -> return createShortArrayInput(title, visibilityKey, value, property, style)
+            "IntArray" -> return createIntArrayInput(title, visibilityKey, value, property, style)
+            "LongArray" -> return createLongArrayInput(title, visibilityKey, value, property, style)
+            "FloatArray" -> return createFloatArrayInput(title, visibilityKey, value, property, style)
+            "DoubleArray" -> return createDoubleArrayInput(title, visibilityKey, value, property, style)
+            "FileReference" -> {
                 value as FileReference
                 // todo if resource is located here, and we support the type, allow editing here directly
                 //  (Materials), #fileInputRightClickOptions
@@ -1025,7 +731,6 @@ object ComponentUI {
                     }
                 }
             }
-
             "Inspectable" -> {
                 value as Inspectable
                 val list = PanelListY(style)
@@ -1274,7 +979,7 @@ object ComponentUI {
         }
     }
 
-    private fun Panel.askForReset(property: IProperty<Any?>, callback: (Any?) -> Unit): Panel {
+    fun Panel.askForReset(property: IProperty<Any?>, callback: (Any?) -> Unit): Panel {
         addOnClickListener { _, _, _, button, _ ->
             if (button == Key.BUTTON_RIGHT) {
                 // todo option to edit the parent... how will that work?
