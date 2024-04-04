@@ -271,7 +271,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
     private fun <Type> readArray2D(
         typeName: SimpleType, sampleInstance: Type,
-        readValue: () -> Type,
+        readValue: () -> Type
     ): ArrayList<List<Type>> {
         return readArray2D(typeName.array2d, sampleInstance, readValue)
     }

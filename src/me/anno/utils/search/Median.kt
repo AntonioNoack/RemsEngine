@@ -27,7 +27,7 @@ object Median {
     }
 
     fun <V> MutableList<V>.kthElement(i0: Int, i1: Int, k: Int, comparator: Comparator<V>): V {
-        if (k !in i0 until i1) throw IllegalArgumentException()
+        if (k !in i0 until i1) throw IndexOutOfBoundsException("k !in i0 until i1")
         val rndI = i0 + (Maths.random() * (i1 - i0)).toInt()
         val rnd = this[rndI]
         val condition = { it: V ->

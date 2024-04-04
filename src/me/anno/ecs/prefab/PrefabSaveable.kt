@@ -28,7 +28,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @SerializedProperty
     override var isEnabled = true
 
-    @NotSerializedProperty // todo ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
+    @NotSerializedProperty
     override var isCollapsed = true
 
     /**

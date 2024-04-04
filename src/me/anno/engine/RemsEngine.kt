@@ -45,18 +45,6 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
-// dithered shadows for transparent materials
-// todo glass opaque-ness depends on color and alpha, not only on alpha
-// glass is not opaque enough in current glass pass -> color-filtering must not depend on angle, only reflections shall depend on it
-// -> todo glass generally looks bad in the engine, can we fix that somehow?
-
-// todo implement exporting process:
-//  - pack libraries and Universal into folder
-//  - checkboxes for libraries/modules like Mesh to save space/complexity
-//  - list of packed files/dynamically loaded files
-//  - load main class?
-//  - convert all file formats as needed
-
 // to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
 //  - see local variables for all execution units

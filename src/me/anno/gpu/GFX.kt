@@ -97,8 +97,8 @@ object GFX {
     @JvmField
     var maxSamples = 1
 
-    @JvmField
-    var supportsClipControl = !OS.isAndroid && !OS.isWeb
+    @JvmStatic
+    val supportsClipControl get() = !OS.isAndroid && !OS.isWeb
 
     @JvmField
     var supportsF32Targets = true
@@ -202,29 +202,16 @@ object GFX {
     }
 
     @JvmStatic
-    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
-        if (buffer == null) {
-            val ox = offsetX
-            val oy = offsetY
-            offsetX = x
-            offsetY = y
-            try {
-                process()
-            } finally {
-                offsetX = ox
-                offsetY = oy
-            }
-        } else {
-            val ox = buffer.offsetX
-            val oy = buffer.offsetY
-            buffer.offsetX = x
-            buffer.offsetY = y
-            try {
-                process()
-            } finally {
-                buffer.offsetX = ox
-                buffer.offsetY = oy
-            }
+    fun useWindowXY(x: Int, y: Int, buffer: Framebuffer, process: () -> Unit) {
+        val ox = buffer.offsetX
+        val oy = buffer.offsetY
+        buffer.offsetX = x
+        buffer.offsetY = y
+        try {
+            process()
+        } finally {
+            buffer.offsetX = ox
+            buffer.offsetY = oy
         }
     }
 

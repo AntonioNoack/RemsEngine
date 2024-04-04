@@ -20,6 +20,7 @@ import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -719,6 +720,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             GFXState.depthMode.use(depthMode) {
                 stage0.depthMode = depthMode
                 dst.clearDepth()
+            }
+
+            if (renderer == overdrawRenderer) {
+                dst.clearColor(0)
             }
 
             GFX.check()

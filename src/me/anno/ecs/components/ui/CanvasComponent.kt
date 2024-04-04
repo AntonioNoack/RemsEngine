@@ -55,13 +55,9 @@ import org.joml.Matrix4d
 
 // todo remove subpixel rendering in world space here
 
-class CanvasComponent() : MeshComponentBase(), InputListener {
+class CanvasComponent : MeshComponentBase(), InputListener {
 
     // todo this element always need glCullFace, or you see the back when it's transparent
-
-    constructor(base: CanvasComponent) : this() {
-        base.copyInto(this)
-    }
 
     // this is a trick to continue the hierarchy using panels
     override fun listChildTypes(): String = "p"
@@ -109,10 +105,11 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
             }
         }
 
+    @NotSerializedProperty
     var style = DefaultConfig.style
 
     @NotSerializedProperty
-    private val windowStack = WindowStack()
+    val windowStack = WindowStack()
 
     @Group("Dimensions")
     @Range(1.0, 4096.0)
@@ -233,8 +230,6 @@ class CanvasComponent() : MeshComponentBase(), InputListener {
             }
         }
     }
-
-    override fun clone() = CanvasComponent(this)
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

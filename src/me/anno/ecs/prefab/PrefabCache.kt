@@ -37,7 +37,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
-    operator fun get(resource: FileReference?, async: Boolean) =
+    operator fun get(resource: FileReference?, async: Boolean): Prefab? =
         pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async))
 
     operator fun get(
@@ -45,8 +45,7 @@ object PrefabCache : CacheSection("Prefab") {
         depth: Int = maxPrefabDepth,
         timeout: Long = prefabTimeout,
         async: Boolean = false
-    ) =
-        pairToPrefab(getPrefabPair(resource, depth, timeout, async))
+    ): Prefab? = pairToPrefab(getPrefabPair(resource, depth, timeout, async))
 
     private fun pairToPrefab(pair: FileReadPrefabData?): Prefab? {
         pair ?: return null

@@ -3,7 +3,7 @@ package me.anno.gpu.texture
 import me.anno.cache.AsyncCacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.TextureLib.missingTexture
+import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageReader
@@ -14,6 +14,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.utils.InternalAPI
+import me.anno.utils.OS
 import me.anno.utils.Sleep
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
@@ -44,7 +45,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
         }
     }
 
-    fun callback(texture: ITexture2D?, error: Exception?) {
+    private fun callback(texture: ITexture2D?, error: Exception?) {
         if (hasValue) {
             texture?.destroy()
             LOGGER.warn("Destroying $texture for $file before it was used")
@@ -63,31 +64,37 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
             if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
                 cpuImage.createTexture(texture, sync = true, checkRedundancy = true, ::callback)
-            } else when (Signature.findNameSync(file)) {
-                "dds", "media" -> tryUsingVideoCache(file)
-                else -> {
-                    when (val image = ImageReader.readImage(file, true).waitForGFX()) {
-                        is GPUImage -> {
-                            val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
-                            texture.rotation = (image.texture as? Texture2D)?.rotation
-                            texture.create(image, true, ::callback)
-                        }
-                        null -> {
-                            LOGGER.warn("Null from ImageReader for $file")
-                            value = null
-                        }
-                        else -> {
-                            val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
-                            texture.rotation = getRotation(file)
-                            texture.create(image, true, ::callback)
-                        }
-                    }
-                }
+            } else loadTexture()
+        }
+    }
+
+    private fun loadTexture() {
+        when (if (OS.isWeb) null else Signature.findNameSync(file)) {
+            "dds", "media" -> return tryUsingVideoCache(file)
+        }
+        ImageReader.readImage(file, true).waitForGFX(::loadImage)
+    }
+
+    private fun loadImage(image: Image?) {
+        when (image) {
+            is GPUImage -> {
+                val texture = Texture2D("copyOf/${image.texture.name}", image.width, image.height, 1)
+                texture.rotation = (image.texture as? Texture2D)?.rotation
+                texture.create(image, true, ::callback)
+            }
+            null -> {
+                LOGGER.warn("Null from ImageReader for $file")
+                value = null
+            }
+            else -> {
+                val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
+                texture.rotation = getRotation(file)
+                texture.create(image, true, ::callback)
             }
         }
     }
 
-    fun tryUsingVideoCache(file: FileReference) {
+    private fun tryUsingVideoCache(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
         val meta = getMeta(file, false)
         if (meta == null || !meta.hasVideo || meta.videoFrameCount < 1) {

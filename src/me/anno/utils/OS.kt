@@ -9,13 +9,13 @@ import me.anno.io.files.Reference.getReference
 @Suppress("unused")
 object OS {
 
-    private val data: String? = System.getProperty("os.name")
+    private val osName: String? = System.getProperty("os.name")
 
     @JvmField
-    var isWindows = data != null && data.contains("windows", true)
+    var isWindows = osName != null && osName.contains("windows", true)
 
     @JvmField
-    var isWeb = data == "Linux Web"
+    var isWeb = osName == "Linux Web"
 
     @JvmField
     var isLinux = !isWindows && !isWeb // ^^

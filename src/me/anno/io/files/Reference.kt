@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths
 import me.anno.ui.editor.files.FileExplorer
+import me.anno.utils.InternalAPI
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -37,6 +38,13 @@ object Reference {
     fun registerStatic(ref: FileReference): FileReference {
         staticReferences[ref.absolutePath] = ref
         return ref
+    }
+
+    @JvmStatic
+    @InternalAPI // idk, do you need this?
+    @Suppress("unused") // JVM2WASM needs it
+    fun queryStatic(absolutePath: String): FileReference? {
+        return staticReferences[absolutePath]
     }
 
     /**
@@ -131,22 +139,27 @@ object Reference {
     private fun createReference(str: String): FileReference {
 
         // internal resource
-        if (str.startsWith(BundledRef.prefix, true))
+        if (str.startsWith(BundledRef.prefix, true)) {
             return BundledRef.parse(str)
+        }
 
-        if (str.startsWith("http://", true) ||
-            str.startsWith("https://", true)
-        ) return WebRef(str, emptyMap())
+        // web resource
+        if (str.startsWith("http://", true) || str.startsWith("https://", true)) {
+            return WebRef(str, emptyMap())
+        }
 
+        // runtime-only resource
         if (str.startsWith("tmp://")) {
             val tmp = InnerTmpFile.find(str)
             if (tmp == null) LOGGER.warn("$str could not be found, maybe it was created in another session, or GCed")
             return tmp ?: InvalidRef
         }
 
-        // static references
+        // resource, which is defined by always-existing object
         val static = staticReferences[str]
-        if (static != null) return static
+        if (static != null) {
+            return static
+        }
 
         // real or compressed files
         // check whether it exists -> easy then :)
@@ -193,5 +206,4 @@ object Reference {
         return if (parent.isBlank2()) name
         else "$parent/$name"
     }
-
 }

@@ -1,9 +1,9 @@
 package me.anno.tests.utils
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Texture3DBTMaterial
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.gpu.texture.Clamping
@@ -45,7 +45,9 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         leaves to leafColor
     )
 
-    var palette = colors.flatten(0) { blockType -> blockType.toInt() }
+    var palette = colors
+        .mapKeys { it.key.toInt() }
+        .flatten(0)
 
     // this world surely could be useful in a few other instances as well 😄
     val treeRandom = FullNoise(1234L)

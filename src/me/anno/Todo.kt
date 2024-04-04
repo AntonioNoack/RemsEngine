@@ -15,5 +15,3 @@ package me.anno
 //  -> get rid of all "!!"
 //  -> get rid of all "throw"
 //  -> get rid of all "as", but "as?" is fine
-
-// todo bug: half-shadows of glasses are missing?!? - why?

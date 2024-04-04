@@ -3,6 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.supportsF16Targets
 import me.anno.gpu.GFX.supportsF32Targets
+import me.anno.utils.OS
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32
@@ -73,10 +74,11 @@ class TargetType(
         else TargetType("f1", GL_R32F, GL_RED, GL_FLOAT, 1 * 4, 1, true)
         val Float32x2 = if (!supportsF32Targets) UInt8x2
         else TargetType("f2", GL_RG32F, GL_RG, GL_FLOAT, 2 * 4, 2, true)
-        val Float32x3 = if (!supportsF32Targets) UInt8x3
-        else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
         val Float32x4 = if (!supportsF32Targets) UInt8x4
         else TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
+        val Float32x3 = if (!supportsF32Targets) UInt8x3
+        else if (OS.isWeb) Float32x4 // f32x3 isn't color-renderable on Web
+        else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
         val Float32xI = arrayOf(Float32x1, Float32x2, Float32x3, Float32x4)
 
         val Float16x1 = if (!supportsF16Targets) Float32x1
