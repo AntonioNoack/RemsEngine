@@ -11,6 +11,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -51,7 +52,7 @@ interface IFramebuffer {
         return attachFramebufferToDepth(name, createTargets(targetCount, fpTargets))
     }
 
-    fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer
+    fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer
 
     fun checkSession()
 
@@ -121,7 +122,7 @@ interface IFramebuffer {
         }
     }
 
-    fun clearColor(colors: Array<Vector4f>, depth: Boolean = false) {
+    fun clearColor(colors: List<Vector4f>, depth: Boolean = false) {
         if (isBound()) {
             Frame.bind()
             val tmp = tmp4f
@@ -219,9 +220,9 @@ interface IFramebuffer {
 
     companion object {
         private val tmp4f = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
-        fun createTargets(targetCount: Int, fpTargets: Boolean): Array<TargetType> {
+        fun createTargets(targetCount: Int, fpTargets: Boolean): List<TargetType> {
             val target = if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4
-            return Array(targetCount) { target }
+            return createArrayList(targetCount, target)
         }
     }
 }

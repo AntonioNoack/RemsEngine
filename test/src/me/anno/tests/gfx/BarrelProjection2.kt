@@ -5,6 +5,7 @@ import me.anno.image.ImageCache
 import me.anno.maths.Maths
 import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.utils.OS.desktop
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.cos
 import kotlin.math.sin
@@ -37,7 +38,7 @@ fun main() {
     val img0 = ImageCache[desktop.getChild("20220306_091338.jpg"), false]!!
     val img = img0// .createBImage(img0.width/5, img0.height/5)
 
-    val bestPolynomials = Array(3) { Polynomial() }
+    val bestPolynomials = createArrayList(3) { Polynomial() }
     /*bestPolynomials[0] = Polynomial(-3.125E-5f * img.width, 8.333333E-5f * img.height)
     bestPolynomials[1] = Polynomial(-3.75E-4f * img.width, 2.0833334E-4f * img.height)
     bestPolynomials[2] = Polynomial(2.5E-4f * img.width, 4.5833335E-4f * img.height)

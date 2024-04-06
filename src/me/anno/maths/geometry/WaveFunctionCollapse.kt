@@ -6,6 +6,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -92,13 +93,13 @@ class WaveFunctionCollapse {
     }
 
     open class ImageCellType(tileIndex: Int, val image: Image) : CellType(tileIndex) {
-        lateinit var edges: Array<IntArray>
+        lateinit var edges: List<IntArray>
     }
 
     class DerivedImageCellType(
         tileIndex: Int, val base: ImageCellType,
         rotation: Int, mirrorX: Boolean,
-        edges: Array<IntArray>
+        edges: List<IntArray>
     ) : ImageCellType(tileIndex, base.image.rotate(rotation).mirrorX(mirrorX)) {
         init {
             this.edges = edges
@@ -133,8 +134,8 @@ class WaveFunctionCollapse {
         }
     }
 
-    fun calculateEdges(image: Image): Array<IntArray> {
-        return arrayOf(
+    fun calculateEdges(image: Image): List<IntArray> {
+        return listOf(
             image.row(0), // top
             image.col(image.width - 1), // right
             image.row(image.height - 1).apply { reverse() }, // bottom
@@ -188,13 +189,13 @@ class WaveFunctionCollapse {
                         if (rot == 0 && !mirrorX) continue
                         // apply mirror and rotation on edges
                         val newEdges = if (mirrorX) {
-                            arrayOf(
+                            listOf(
                                 mirrors[rot],
                                 mirrors[(rot + 3) and 3],
                                 mirrors[(rot + 2) and 3],
                                 mirrors[(rot + 1) and 3]
                             )
-                        } else Array(4) { edges[(it + rot) and 3] } // just rotate -> easy :)
+                        } else createArrayList(4) { edges[(it + rot) and 3] } // just rotate -> easy :)
                         types.add(DerivedImageCellType(nextId++, type, rot, mirrorX, newEdges))
                     }
                 }

@@ -30,7 +30,7 @@ object HexagonGridMaths {
     val dy = Vector2d(-1.0 / 3.0, 1.0 / SQRT3)
 
     // neighbors are sorted by angle, starting at 0°
-    val neighbors = arrayOf(
+    val neighbors = listOf(
         Vector2i(+1, 0),
         Vector2i(0, +1),
         Vector2i(-1, +1),
@@ -40,7 +40,7 @@ object HexagonGridMaths {
     )
 
     // vertices are sorted by angle, starting at 0°
-    val vertices = arrayOf(
+    val vertices = listOf(
         Vector2d(1.0, 0.0),
         Vector2d(0.5, SQRT3 * 0.5),
         Vector2d(-0.5, SQRT3 * 0.5),

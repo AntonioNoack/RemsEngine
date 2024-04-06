@@ -4,7 +4,7 @@ import me.anno.mesh.blender.BlenderFile
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
-class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStructs: IntArray?) {
+class BlockTable(val file: BlenderFile, val blocks: List<Block>?, offHeapStructs: IntArray?) {
 
     companion object {
         private const val HEAP_BASE = 4096L

@@ -195,7 +195,7 @@ class FlagMesh : MeshComponent() {
 
         }
 
-        val targets = arrayOf(TargetType.Float32x3)
+        val targets = listOf(TargetType.Float32x3)
 
         val updateShader = Shader(
             "clothSim", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(

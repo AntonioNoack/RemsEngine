@@ -3,6 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
@@ -18,7 +19,7 @@ object BoneData {
         shader: Shader,
         animation: Animation,
         time: Double
-    ): Array<Matrix4x3f>? {
+    ): List<Matrix4x3f>? {
         val location = shader.getUniformLocation("jointTransforms")
         if (location < 0) return null
         val skeleton = SkeletonCache[animation.skeleton] ?: return null
@@ -47,7 +48,7 @@ object BoneData {
     }
 
     val matrixBuffer: FloatBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
-    val tmpMatrices = Array(maxBones) { Matrix4x3f() }
+    val tmpMatrices: List<Matrix4x3f> = createArrayList(maxBones) { Matrix4x3f() }
 
     @JvmStatic
     private val LOGGER = LogManager.getLogger(BoneData::class)

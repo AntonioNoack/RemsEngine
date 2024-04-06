@@ -9,6 +9,7 @@ import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.write
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBf
 import java.awt.Color
 import java.awt.Font
@@ -30,7 +31,7 @@ class TestNode(var x: Float, var y: Float, val i: Int, val j: Int, val id: Int) 
 
 class Link(val to: TestNode, var dist: Double)
 
-typealias TestGraph = Array<TestNode>
+typealias TestGraph = List<TestNode>
 
 fun distance(a: TestNode, b: TestNode): Double {
     // return (abs(b.x - a.x) + abs(b.y - a.y)).toDouble()
@@ -146,7 +147,7 @@ fun main() {
     val startNode = 0
     val endNode = sx * sy - 1
 
-    val nodes = Array(sx * sy) { id ->
+    val nodes = createArrayList(sx * sy) { id ->
         val i = id % sx
         val j = id / sx
         // change their positions slightly

@@ -73,7 +73,7 @@ class CombineLightsNode : RenderViewNode(
 
             init {
                 val sizes = intArrayOf(3, 3, 3, 1, 1)
-                val names = arrayOf(
+                val names = listOf(
                     DeferredLayerType.LIGHT_SUM.glslName,
                     DeferredLayerType.COLOR.glslName,
                     DeferredLayerType.EMISSIVE.glslName,

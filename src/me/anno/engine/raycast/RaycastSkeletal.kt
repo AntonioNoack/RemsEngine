@@ -9,7 +9,7 @@ import org.joml.Vector3d
 
 object RaycastSkeletal {
 
-    private class RaycastSkeletalHelper(query: RayQuery, mesh: Mesh, val matrices: Array<Matrix4x3f>) {
+    private class RaycastSkeletalHelper(query: RayQuery, mesh: Mesh, val matrices: List<Matrix4x3f>) {
 
         val result = query.result
         val tmpF = result.tmpVector3fs
@@ -53,7 +53,7 @@ object RaycastSkeletal {
 
     fun raycastGlobalBoneMeshClosestHit(
         query: RayQuery, globalTransform: Matrix4x3d?, mesh: Mesh,
-        matrices: Array<Matrix4x3f>
+        matrices: List<Matrix4x3f>
     ) {
         val typeMask = query.typeMask
         val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
@@ -82,7 +82,7 @@ object RaycastSkeletal {
     fun raycastGlobalBoneMeshAnyHit(
         query: RayQuery,
         globalTransform: Matrix4x3d?, mesh: Mesh,
-        matrices: Array<Matrix4x3f>
+        matrices: List<Matrix4x3f>
     ): Boolean {
 
         val typeMask = query.typeMask

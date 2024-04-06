@@ -45,8 +45,8 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int, val 
     }
 
     companion object {
-        val floats = arrayOf(V1F, V2F, V3F, V4F)
-        val integers = arrayOf(V1I, V2I, V3I, V4I)
-        val booleans = arrayOf(V1B, V2B, V3B, V4B)
+        val floats = listOf(V1F, V2F, V3F, V4F)
+        val integers = listOf(V1I, V2I, V3I, V4I)
+        val booleans = listOf(V1B, V2B, V3B, V4B)
     }
 }

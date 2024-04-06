@@ -18,7 +18,7 @@ class FluidSimulation(val width: Int, val height: Int, numSurfaceParticles: Int)
     val particles = run {
         val w = sqrt(numSurfaceParticles.toFloat()).toInt()
         val h = ceilDiv(numSurfaceParticles, w)
-        val targets = arrayOf(
+        val targets = listOf(
             TargetType.Float32x3, // position,
             TargetType.Float32x3, // velocity,
             TargetType.Float32x3, // rotation (xyz, via order yxz)

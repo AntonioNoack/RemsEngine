@@ -136,7 +136,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         data: FloatBuffer,
         animation: Animation,
         frameIndex: Int,
-        tmp: Array<Matrix4x3f>,
+        tmp: List<Matrix4x3f>,
     ) {
         // get frame
         val tmp1 = animation.getMappedMatricesSafely(frameIndex, tmp, skeleton.ref)

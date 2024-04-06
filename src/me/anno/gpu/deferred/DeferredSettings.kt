@@ -147,7 +147,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    val targetTypes = Array(storageLayers.size) { storageLayers[it].type }
+    val targetTypes = storageLayers.map { it.type }
 
     fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
         val layers = storageLayers

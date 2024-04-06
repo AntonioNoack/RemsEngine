@@ -6,6 +6,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f3s
@@ -170,7 +171,7 @@ class BoneByBoneAnimation() : Animation() {
         }
     }
 
-    override fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+    override fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f>? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
@@ -190,7 +191,7 @@ class BoneByBoneAnimation() : Animation() {
         return dst
     }
 
-    override fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+    override fun getMatrix(frameIndex: Float, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
@@ -213,7 +214,7 @@ class BoneByBoneAnimation() : Animation() {
         return dst[boneId]
     }
 
-    override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+    override fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f>? {
         // println("getting matrices for $frameIndex")
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
@@ -233,7 +234,7 @@ class BoneByBoneAnimation() : Animation() {
         return dst
     }
 
-    override fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+    override fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.create()
@@ -254,7 +255,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     // use this? idk...
-    /*fun applyGlobal(dst: Array<Matrix4x3f>) {
+    /*fun applyGlobal(dst: List<Matrix4x3f>) {
         val global = globalTransform
         if (!global.isIdentity()) for (boneId in 0 until min(dst.size, boneCount)) {
             val dstI = dst[boneId]
@@ -282,8 +283,8 @@ class BoneByBoneAnimation() : Animation() {
             val new = toImported(ImportedAnimation())
             val frame = 0
             val skeleton = SkeletonCache[anim.skeleton]!!
-            val src = anim.getMatrices(frame, Array(boneCount) { Matrix4x3f() })
-            val dst = new.getMatrices(frame, Array(boneCount) { Matrix4x3f() })
+            val src = anim.getMatrices(frame, createArrayList(boneCount) { Matrix4x3f() })
+            val dst = new.getMatrices(frame, createArrayList(boneCount) { Matrix4x3f() })
 
             fun Matrix4x3f.f2() = "" +
                     "[(${m00.f2s()} ${m10.f2s()} ${m20.f2s()} ${m30.f2s()})" +
@@ -360,8 +361,8 @@ class BoneByBoneAnimation() : Animation() {
         val tmpSca = JomlPools.vec3f.create()
         val tmpRot = JomlPools.quat4f.borrow()
         val bones = skel.bones
-        dst.frames = Array(frameCount) { i ->
-            val matrices = Array(bones.size) { Matrix4x3f() }
+        dst.frames = createArrayList(frameCount) { i ->
+            val matrices = createArrayList(bones.size) { Matrix4x3f() }
             for (j in bones.indices) {
                 val bone = bones[j]
                 val pj = bone.parentId

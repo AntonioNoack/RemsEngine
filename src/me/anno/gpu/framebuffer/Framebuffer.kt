@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
@@ -47,36 +48,29 @@ import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 class Framebuffer(
     override var name: String,
     override var width: Int, override var height: Int,
-    samples: Int, val targets: Array<TargetType>,
+    samples: Int, val targets: List<TargetType>,
     var depthBufferType: DepthBufferType
 ) : IFramebuffer, ICacheData {
 
     constructor(
         name: String, w: Int, h: Int, samples: Int,
-        targetCount: Int,
-        fpTargets: Boolean,
+        targetCount: Int, fpTargets: Boolean,
         depthBufferType: DepthBufferType
     ) : this(
         name, w, h, samples, if (fpTargets)
-            Array(targetCount) { TargetType.Float32x4 } else
-            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
+            createArrayList(targetCount, TargetType.Float32x4) else
+            createArrayList(targetCount, TargetType.UInt8x4), depthBufferType
     )
 
     constructor(
-        name: String,
-        w: Int,
-        h: Int,
-        targets: Array<TargetType>,
+        name: String, w: Int, h: Int, targets: List<TargetType>,
         depthBufferType: DepthBufferType = DepthBufferType.NONE
     ) : this(name, w, h, 1, targets, depthBufferType)
 
     constructor(
-        name: String,
-        w: Int,
-        h: Int,
-        target: TargetType,
+        name: String, w: Int, h: Int, target: TargetType,
         depthBufferType: DepthBufferType = DepthBufferType.NONE
-    ) : this(name, w, h, 1, arrayOf(target), depthBufferType)
+    ) : this(name, w, h, 1, listOf(target), depthBufferType)
 
     fun clone() = Framebuffer(name, width, height, samples, targets, depthBufferType)
 
@@ -90,7 +84,7 @@ class Framebuffer(
      * this can be used to draw 3D ui without deferred-rendering,
      * but using the same depth values
      * */
-    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         if (depthBufferType == DepthBufferType.NONE)
             throw IllegalStateException("Cannot attach depth to framebuffer without depth buffer")
         return if (targets.size <= GFX.maxColorAttachments) {
@@ -142,7 +136,7 @@ class Framebuffer(
     var internalDepthRenderbuffer = 0
     override var depthTexture: Texture2D? = null
 
-    var textures: Array<Texture2D>? = null
+    var textures: List<Texture2D>? = null
 
     override fun checkSession() {
         if (pointer != 0 && session != GFXState.session) {
@@ -196,7 +190,8 @@ class Framebuffer(
         ensure()
 
         if (da != null) {
-            val dtp = (if(GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.internalDepthRenderbuffer
+            val dtp =
+                (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.internalDepthRenderbuffer
             if (dtp != depthAttachedPtr) {
                 throw IllegalStateException(
                     "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
@@ -261,11 +256,11 @@ class Framebuffer(
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
         if (textures == null) {
-            textures = Array(targets.size) { index ->
+            textures = targets.mapIndexed { index, target ->
                 val texture = Texture2D("$name-tex[$index]", w, h, samples)
                 texture.autoUpdateMipmaps = autoUpdateMipmaps
                 texture.owner = this
-                texture.create(targets[index])
+                texture.create(target)
                 GFX.check()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
                 texture

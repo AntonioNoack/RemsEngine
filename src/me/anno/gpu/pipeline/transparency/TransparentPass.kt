@@ -18,7 +18,7 @@ abstract class TransparentPass : ICacheData {
         lastK = null
     }
 
-    fun getFB(targets: Array<TargetType>): IFramebuffer {
+    fun getFB(targets: List<TargetType>): IFramebuffer {
         val base = GFXState.currentBuffer
         val result = if (lastK === base) lastV!! else run {
             lastV?.destroy()

@@ -6,7 +6,7 @@ import me.anno.tests.LOGGER
 
 fun main() {
     @Suppress("SpellCheckingInspection")
-    val names = arrayOf(
+    val names = listOf(
         /* "src/test/fixtures/Local file.lnk",
                        "src/test/fixtures/Local folder.lnk",
                        "src/test/fixtures/Remote folder.lnk",

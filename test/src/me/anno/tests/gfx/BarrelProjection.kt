@@ -22,7 +22,6 @@ data class Polynomial(val c3: Float, val c5: Float) {
         val xx = x * x
         return c5 * xx + c3
     }
-
 }
 
 fun searchCube(params: IntArray, max: Int, index: Int, calc: (IntArray) -> Unit) {
@@ -50,11 +49,11 @@ fun apply(image: Image, name: String, p0: Polynomial, p1: Polynomial, p2: Polyno
     ImageWriter.writeImageInt(image.width, image.height, false, name, apply(image, p0, p1, p2).data)
 }
 
-fun apply(image: Image, name: String, polys: Array<Polynomial>) {
+fun apply(image: Image, name: String, polys: List<Polynomial>) {
     apply(image, name, polys[0], polys[1], polys[2])
 }
 
-fun apply(image: Image, polys: Array<Polynomial>): IntImage {
+fun apply(image: Image, polys: List<Polynomial>): IntImage {
     return apply(image, polys[0], polys[1], polys[2])
 }
 
@@ -112,7 +111,7 @@ fun getError(image: Image, channel: Int, polynomial: Polynomial): Int {
 }
 
 fun main() {
-    
+
     val logger = LogManager.getLogger("BarrelProjection")
 
     // r = 2, 1 = g, 0 = b
@@ -126,10 +125,11 @@ fun main() {
     // 1 + x^2 + x^4 + x^6
 
     val p0 = Polynomial()
-    val bestPolynomials = Array(3) { p0 }
-    bestPolynomials[0] = Polynomial(-3.125E-5f * img.width, 8.333333E-5f * img.height)
-    bestPolynomials[1] = Polynomial(-3.75E-4f * img.width, 2.0833334E-4f * img.height)
-    bestPolynomials[2] = Polynomial(2.5E-4f * img.width, 4.5833335E-4f * img.height)
+    val bestPolynomials = mutableListOf(
+        Polynomial(-3.125E-5f * img.width, 8.333333E-5f * img.height),
+        Polynomial(-3.75E-4f * img.width, 2.0833334E-4f * img.height),
+        Polynomial(2.5E-4f * img.width, 4.5833335E-4f * img.height)
+    )
     apply(img, "rgb1", bestPolynomials)
 
     /*val pBest = Polynomial(8f * s * 5f, 11f * s * 5f)
@@ -173,12 +173,10 @@ fun main() {
         ImageWriter.writeImageFloat(dim, dim, "error-$channel-x1.png", true, result)
 
         bestPolynomials[channel] = bestParams
-
     }
 
     apply(img, "rgb2", bestPolynomials)
     for ((index, poly) in bestPolynomials.withIndex()) {
         logger.info("bestPolynomials[$index] = Polynomial(${poly.c3 / img.width}f * img.width, ${poly.c5 / img.height}f * img.height)")
     }
-
 }

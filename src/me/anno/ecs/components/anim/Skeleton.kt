@@ -17,6 +17,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Vectors
 import org.joml.Matrix3f
 import org.joml.Matrix4x3f
@@ -38,7 +39,7 @@ class Skeleton : PrefabSaveable(), Renderable {
     private var previewMesh: Mesh? = null
 
     @NotSerializedProperty
-    private var bonePositions: Array<Vector3f>? = null
+    private var bonePositions: List<Vector3f>? = null
 
     override fun listChildTypes() = "ca"
     override fun getChildListByType(type: Char): List<PrefabSaveable> {
@@ -48,7 +49,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     override val children get() = bones
 
-    fun draw(shader: Shader, stack: Matrix4x3f, skinningMatrices: Array<Matrix4x3f>?) {
+    fun draw(shader: Shader, stack: Matrix4x3f, skinningMatrices: List<Matrix4x3f>?) {
 
         if (previewMesh == null) {
             val mesh = Mesh()
@@ -57,7 +58,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             mesh.positions = FloatArray(size)
             mesh.boneWeights = FloatArray(size / 3 * 4) { if (it and 3 == 0) 1f else 0f }
             mesh.boneIndices = ByteArray(size / 3 * 4)
-            bonePositions = Array(bones.size) { Vector3f() }
+            bonePositions = createArrayList(bones.size) { Vector3f() }
         }
 
         val mesh = previewMesh!!
@@ -104,7 +105,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             val size = (bones.size - 1) * boneMeshVertices.size
             mesh.positions = Texture2D.floatArrayPool[size, false, true]
             mesh.normals = Texture2D.floatArrayPool[size, true, true]
-            val bonePositions = Array(bones.size) { bones[it].bindPosition }
+            val bonePositions = bones.map { it.bindPosition }
             generateSkeleton(bones, bonePositions, mesh.positions!!, null)
             previewData = mesh
         }
@@ -150,7 +151,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         @JvmStatic
         fun generateSkeleton(
             bones: List<Bone>,
-            bonePositions: Array<Vector3f>,
+            bonePositions: List<Vector3f>,
             positions: FloatArray,
             boneIndices: ByteArray?
         ) {
@@ -205,7 +206,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             positions.fill(0f, j, positions.size)
         }
 
-        fun fillInSizeEstimate(bones: List<Bone>, bonePositions: Array<Vector3f>): Float {
+        fun fillInSizeEstimate(bones: List<Bone>, bonePositions: List<Vector3f>): Float {
             val bounds = JomlPools.aabbf.borrow()
             for (boneId in bones.indices) {
                 bounds.union(bonePositions[boneId])

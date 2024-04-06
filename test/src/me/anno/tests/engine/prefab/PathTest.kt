@@ -17,9 +17,9 @@ import kotlin.test.assertTrue
 
 class PathTest {
 
-    val p1 = Path(arrayOf("1"), intArrayOf(1), charArrayOf('a'))
-    val p2 = Path(arrayOf("2"), intArrayOf(2), charArrayOf('b'))
-    val p3 = Path(arrayOf("3"), intArrayOf(3), charArrayOf('c'))
+    val p1 = Path(listOf("1"), intArrayOf(1), charArrayOf('a'))
+    val p2 = Path(listOf("2"), intArrayOf(2), charArrayOf('b'))
+    val p3 = Path(listOf("3"), intArrayOf(3), charArrayOf('c'))
     val p23 = p2 + p3
     val p12 = p1 + p2
     val p123 = p12 + p3
@@ -72,8 +72,8 @@ class PathTest {
     @Test
     fun testConcat() {
         val p12123 = p12 + p123
-        assertEquals(Path(arrayOf("2", "3"), intArrayOf(2, 3), charArrayOf('b', 'c')), p23)
-        assertEquals(Path(arrayOf("1", "2", "3"), intArrayOf(1, 2, 3), charArrayOf('a', 'b', 'c')), p123)
+        assertEquals(Path(listOf("2", "3"), intArrayOf(2, 3), charArrayOf('b', 'c')), p23)
+        assertEquals(Path(listOf("1", "2", "3"), intArrayOf(1, 2, 3), charArrayOf('a', 'b', 'c')), p123)
         assertEquals("a1,1/b2,2/a1,1/b2,2/c3,3", p12123.toString())
     }
 
@@ -100,9 +100,9 @@ class PathTest {
     @Test
     fun testRestIfStartsWith() {
 
-        val ab = Path(arrayOf("a", "b"), intArrayOf(0, 1), charArrayOf('x', 'x'))
-        val abc = Path(arrayOf("a", "b", "c"), intArrayOf(0, 1, 2), charArrayOf('x', 'x', 'x'))
-        val bcd = Path(arrayOf("b", "c", "d"), intArrayOf(1, 2, 3), charArrayOf('x', 'x', 'x'))
+        val ab = Path(listOf("a", "b"), intArrayOf(0, 1), charArrayOf('x', 'x'))
+        val abc = Path(listOf("a", "b", "c"), intArrayOf(0, 1, 2), charArrayOf('x', 'x', 'x'))
+        val bcd = Path(listOf("b", "c", "d"), intArrayOf(1, 2, 3), charArrayOf('x', 'x', 'x'))
 
         assertSame(Path.ROOT_PATH, abc.getRestIfStartsWith(abc, 0))
         assertTrue(null === abc.getRestIfStartsWith(ab, 0))

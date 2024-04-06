@@ -74,7 +74,7 @@ class HexagonSphere(
             val v = 0.850640f
             val w = 0.525720f
             val x = 0.894425f
-            arrayOf(
+            listOf(
                 Vector3f(0f, -1f, 0f), Vector3f(t, -u, w),
                 Vector3f(-s, -u, v), Vector3f(-x, -u, 0f),
                 Vector3f(-s, -u, -v), Vector3f(t, -u, -w),

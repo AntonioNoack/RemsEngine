@@ -8,6 +8,7 @@ import me.anno.mesh.Triangulation
 import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.BMesh
+import me.anno.mesh.blender.impl.BlendData
 import me.anno.mesh.blender.impl.MDeformVert
 import me.anno.mesh.blender.impl.MLoop
 import me.anno.mesh.blender.impl.MLoopUV
@@ -26,7 +27,7 @@ object BlenderMeshConverter {
 
         val vertices = src.vertices ?: return null // how can there be meshes without vertices?
         val positions = FloatArray(vertices.size * 3)
-        val materials = src.materials ?: emptyArray()
+        val materials: List<BlendData?> = src.materials ?: emptyList()
         val polygons = src.polygons ?: BInstantList.emptyList()
         val loopData = src.loops ?: BInstantList.emptyList()
 

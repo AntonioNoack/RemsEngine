@@ -94,7 +94,7 @@ object MaterialGraph {
         "Color", "finalColorA", 4,
         DeferredLayerType.COLOR.defaultWorkValue.toARGB() or black
     )
-    val layers = arrayOf(
+    val layers = listOf(
         colorWithAlpha,
         DeferredLayerType.EMISSIVE,
         DeferredLayerType.NORMAL,
@@ -114,7 +114,7 @@ object MaterialGraph {
         // DeferredLayerType.INDEX_OF_REFRACTION,
     )
 
-    val types = arrayOf(
+    val types = listOf(
         "Float",
         "Vector2f",
         "Vector3f",

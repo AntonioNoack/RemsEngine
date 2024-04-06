@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.spline
 
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -18,7 +19,7 @@ object Splines {
      * posNormals: mixed positions and normals, pnpn-pnpn-pnpn-pnpn <br>
      * returns list of positions
      * */
-    fun generateSplineLinePair(pns: Array<Vector3d>, ptsPerRadiant: Double, close: Boolean): List<Vector3d> {
+    fun generateSplineLinePair(pns: List<Vector3d>, ptsPerRadiant: Double, close: Boolean): List<Vector3d> {
 
         val result = ArrayList<Vector3d>()
 
@@ -171,17 +172,17 @@ object Splines {
         return result
     }
 
-    fun generateCurve(a0: Float, a1: Float, n: Int): Array<Vector2f> {
+    fun generateCurve(a0: Float, a1: Float, n: Int): List<Vector2f> {
         return when {
             n < 0 -> throw IllegalArgumentException("n must be >= 0, got $n")
-            n == 0 -> emptyArray()
+            n == 0 -> emptyList()
             n == 1 -> {
                 val angle = (a0 + a1) * 0.5f
-                arrayOf(Vector2f(cos(angle), sin(angle)))
+                listOf(Vector2f(cos(angle), sin(angle)))
             }
             else -> {
                 val div = 1f / (n - 1f)
-                Array(n) {
+                createArrayList(n) {
                     val angle = mix(a0, a1, it * div)
                     Vector2f(cos(angle), sin(angle))
                 }

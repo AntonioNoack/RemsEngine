@@ -138,8 +138,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, depthType)
     val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, depthType)
 
-    private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", arrayOf(TargetType.Float16x4))
-    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", arrayOf(TargetType.Float16x4))
+    private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", listOf(TargetType.Float16x4))
+    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", listOf(TargetType.Float16x4))
 
     private var entityBaseClickId = 0
 

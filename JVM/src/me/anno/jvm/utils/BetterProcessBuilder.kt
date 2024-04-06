@@ -64,10 +64,6 @@ class BetterProcessBuilder(
         args += arguments
     }
 
-    operator fun plusAssign(arguments: Array<String>) {
-        args += arguments
-    }
-
     fun add(argument: String): BetterProcessBuilder {
         args += argument
         return this

@@ -68,7 +68,7 @@ class TargetType(
         val UInt8x2 = TargetType("u2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
         val UInt8x4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
         val UInt8x3 = UInt8x4 // 3 isn't supported well
-        val UInt8xI = arrayOf(UInt8x1, UInt8x2, UInt8x3, UInt8x4)
+        val UInt8xI = listOf(UInt8x1, UInt8x2, UInt8x3, UInt8x4)
 
         val Float32x1 = if (!supportsF32Targets) UInt8x1
         else TargetType("f1", GL_R32F, GL_RED, GL_FLOAT, 1 * 4, 1, true)
@@ -79,7 +79,7 @@ class TargetType(
         val Float32x3 = if (!supportsF32Targets) UInt8x3
         else if (OS.isWeb) Float32x4 // f32x3 isn't color-renderable on Web
         else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
-        val Float32xI = arrayOf(Float32x1, Float32x2, Float32x3, Float32x4)
+        val Float32xI = listOf(Float32x1, Float32x2, Float32x3, Float32x4)
 
         val Float16x1 = if (!supportsF16Targets) Float32x1
         else TargetType("h1", GL_R16F, GL_RED, GL_HALF_FLOAT, 2, 1, true)
@@ -89,7 +89,7 @@ class TargetType(
         else TargetType("h4", GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, 2 * 4, 4, true)
         val Float16x3 = if (!supportsF16Targets) Float32x3
         else Float16x4 // fp16x3 has a bad memory layout, and is not color-renderable on Web
-        val Float16xI = arrayOf(Float16x1, Float16x2, Float16x3, Float16x4)
+        val Float16xI = listOf(Float16x1, Float16x2, Float16x3, Float16x4)
 
         val Normal12Target4 = // not working, because compressed formats are not color-renderable :/, why ever...
             Float16x4 // TargetType(GL_UNSIGNED_INT_10_10_10_2, GL_RGBA, GL_UNSIGNED_BYTE, 4, true)

@@ -12,6 +12,7 @@ import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import kotlin.math.cos
 import kotlin.math.sin
@@ -69,12 +70,12 @@ fun main() {
     }
 }
 
-fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, Array<Vector2f>) -> Unit) {
+fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -> Unit) {
     val global = Array(np) {
         val a = it * TAUf / np
         Vector2f(cos(a), sin(a)).mul(300f)
     }
-    val local = Array(np) { Vector2f() }
+    val local = createArrayList(np) { Vector2f() }
     testUI3(title) {
         object : MapPanel(style) {
 

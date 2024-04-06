@@ -52,7 +52,7 @@ object UnrealReader {
             }
             // todo read license version
             val customVersionContainer =
-                if (legacyFileVersion <= -2) readArray { readCustomVersion() } else emptyArray()
+                if (legacyFileVersion <= -2) readArray { readCustomVersion() } else emptyList()
             if (fileVersionUE4 == 0 && fileVersionUE5 == 0 && fileVersionLicensee == 0) {
                 unversioned = true
                 fileVersionUE = 0 // todo Ar.Ver
@@ -80,7 +80,7 @@ object UnrealReader {
     var fileVersionUE = 0
     var fileVersionLicensee = 0
 
-    fun <V> readArray(readElement: () -> V): Array<V> {
+    fun <V> readArray(readElement: () -> V): List<V> {
         TODO()
     }
 

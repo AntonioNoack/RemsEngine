@@ -45,9 +45,9 @@ fun meshToVoxels(
     mesh: Mesh, renderer: Renderer, blocksX: Int, blocksY: Int, blocksZ: Int,
     waitForTextures: Boolean
 ): Texture3D {
-    val dataXYZ = Framebuffer3D("3d", blocksX, blocksY, blocksZ, arrayOf(TargetType.UInt8x4), DepthBufferType.NONE)
-    val dataZYX = Framebuffer3D("3d", blocksZ, blocksY, blocksX, arrayOf(TargetType.UInt8x4), DepthBufferType.NONE)
-    val dataXZY = Framebuffer3D("3d", blocksX, blocksZ, blocksY, arrayOf(TargetType.UInt8x4), DepthBufferType.NONE)
+    val dataXYZ = Framebuffer3D("3d", blocksX, blocksY, blocksZ, listOf(TargetType.UInt8x4), DepthBufferType.NONE)
+    val dataZYX = Framebuffer3D("3d", blocksZ, blocksY, blocksX, listOf(TargetType.UInt8x4), DepthBufferType.NONE)
+    val dataXZY = Framebuffer3D("3d", blocksX, blocksZ, blocksY, listOf(TargetType.UInt8x4), DepthBufferType.NONE)
     meshToSeparatedVoxels(mesh, renderer, blocksX, blocksY, blocksZ, dataXYZ, dataZYX, dataXZY, waitForTextures)
     val tex = mergeChannels(dataXYZ, dataZYX, dataXZY)
     dataZYX.destroy()

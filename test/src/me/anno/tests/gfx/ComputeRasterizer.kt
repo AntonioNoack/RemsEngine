@@ -92,8 +92,8 @@ fun main() {
 fun testCopyColorToDepth() {
     val w = 256
     val h = 256
-    val depthDst = Framebuffer("dd", w, h, emptyArray(), DepthBufferType.TEXTURE)
-    val colorDst = Framebuffer("cd", w, h, arrayOf(TargetType.UInt8x4), DepthBufferType.NONE)
+    val depthDst = Framebuffer("dd", w, h, emptyList(), DepthBufferType.TEXTURE)
+    val colorDst = Framebuffer("cd", w, h, listOf(TargetType.UInt8x4), DepthBufferType.NONE)
     testDrawing("Copy Depth") {
         val depthSrc = TextureCache[getReference("res://icon.png"), false]
         if (depthSrc != null) {
@@ -573,7 +573,7 @@ fun computeRasterizer() {
         private fun getDepthTarget(target: IFramebuffer): Texture2D {
             val depthAsColor = FBStack[
                 "depthAsColor", target.width, target.height,
-                arrayOf(TargetType.Float32x1), 1, DepthBufferType.NONE
+                listOf(TargetType.Float32x1), 1, DepthBufferType.NONE
             ]
             useFrame(depthAsColor) {
                 GFX.copy(target.depthTexture!!)

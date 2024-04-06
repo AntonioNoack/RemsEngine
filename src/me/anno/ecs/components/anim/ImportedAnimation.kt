@@ -1,8 +1,8 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.base.BaseWriter
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.min
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
@@ -15,12 +15,12 @@ class ImportedAnimation : Animation() {
 
     // manually serialized
     @NotSerializedProperty
-    var frames: Array<Array<Matrix4x3f>> = emptyArray()
+    var frames: List<List<Matrix4x3f>> = emptyList()
 
     override val numFrames: Int
         get() = frames.size
 
-    override fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
+    override fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f> {
 
         // find the correct frames for interpolation and lerp them
         val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
@@ -35,7 +35,7 @@ class ImportedAnimation : Animation() {
         return dst
     }
 
-    override fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+    override fun getMatrix(frameIndex: Float, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f {
         val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
         val dstI = dst[boneId]
         val frame0 = frames[index0]
@@ -46,11 +46,11 @@ class ImportedAnimation : Animation() {
         return dst[boneId]
     }
 
-    override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
+    override fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f> {
         return frames[frameIndex]
     }
 
-    override fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+    override fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
         return frames[frameIndex].getOrNull(boneId)
     }
 
@@ -69,8 +69,7 @@ class ImportedAnimation : Animation() {
         when (name) {
             "frames" -> frames = (value as? List<*>)
                 ?.filterIsInstance<FloatArray>()
-                ?.map { splitValues(it) }
-                ?.toTypedArray() ?: return
+                ?.map { splitValues(it) } ?: return
             else -> super.setProperty(name, value)
         }
     }
@@ -88,7 +87,7 @@ class ImportedAnimation : Animation() {
         }
 
         @JvmStatic
-        fun joinValues(list: Array<Matrix4x3f>): FloatArray {
+        fun joinValues(list: List<Matrix4x3f>): FloatArray {
             val result = FloatArray(list.size * 12)
             var j = 0
             for (i in list.indices) {
@@ -110,16 +109,18 @@ class ImportedAnimation : Animation() {
         }
 
         @JvmStatic
-        fun splitValues(values: FloatArray): Array<Matrix4x3f> {
+        fun splitValues(values: FloatArray): List<Matrix4x3f> {
             val size = values.size / 12
-            val result = Array(size) { Matrix4x3f() }
+            val result = ArrayList<Matrix4x3f>(size)
             for (i in 0 until size) {
                 val j = i * 12
-                result[i].set(
-                    values[j + 0], values[j + 1], values[j + 2],
-                    values[j + 3], values[j + 4], values[j + 5],
-                    values[j + 6], values[j + 7], values[j + 8],
-                    values[j + 9], values[j + 10], values[j + 11],
+                result.add(
+                    Matrix4x3f(
+                        values[j + 0], values[j + 1], values[j + 2],
+                        values[j + 3], values[j + 4], values[j + 5],
+                        values[j + 6], values[j + 7], values[j + 8],
+                        values[j + 9], values[j + 10], values[j + 11]
+                    )
                 )
             }
             return result

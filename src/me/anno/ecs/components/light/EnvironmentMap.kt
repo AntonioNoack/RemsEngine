@@ -78,7 +78,7 @@ class EnvironmentMap : LightComponentBase() {
             texture?.destroy()
             texture = CubemapFramebuffer(
                 "EnvironmentMap",
-                max(1, resolution), samples, arrayOf(TargetType.Float16x3),
+                max(1, resolution), samples, listOf(TargetType.Float16x3),
                 DepthBufferType.TEXTURE_16
             )
             needsUpdate1 = true

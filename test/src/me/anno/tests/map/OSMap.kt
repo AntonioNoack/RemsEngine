@@ -17,6 +17,7 @@ import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
 import me.anno.utils.types.Strings.toLong
+import org.junit.jupiter.api.condition.OS
 import java.io.InputStream
 import kotlin.math.cos
 
@@ -44,7 +45,7 @@ class OSMNode(
 //  <tag k="building" v="yes"/>
 // </way>
 class OSMWay(
-    val nodes: Array<OSMNode>,
+    val nodes: List<OSMNode>,
     val minLon: Float,
     val minLat: Float,
     val maxLon: Float,
@@ -119,12 +120,11 @@ fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OS
     for (child in xml.children) {
         if (child is XMLNode && child.type == "way") {
             val id = (child["id"] ?: continue).toLong()
-            val nds = Array(child.children.count2 { it is XMLNode && it.type == "nd" }) { n0 }
-            var i = 0
+            val nds = ArrayList<OSMNode>(child.children.count2 { it is XMLNode && it.type == "nd" })
             for (nd in child.children) {
                 if (nd is XMLNode && nd.type == "nd") {
                     val node = map.nodes[nd["ref"]!!.toLong()]!!
-                    nds[i++] = node
+                    nds.add(node)
                     node.used = true
                 }
             }
@@ -242,7 +242,7 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
             "node" -> map.nodes[id] = OSMNode(lat, lon, readTags2())
             "way" -> {
                 map.ways[id] = OSMWay(
-                    mapNodes.toTypedArray(),
+                    mapNodes.toList(),
                     mapNodes.minOf { it.relLon },
                     mapNodes.minOf { it.relLat },
                     mapNodes.maxOf { it.relLon },

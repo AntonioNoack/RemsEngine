@@ -45,8 +45,8 @@ val birdMesh = run {
 // O(n²) complexity, so don't use it xD, but still runs at 70 fps for 1000 boids :)
 class Boid(
     val index: Int, val n: Int,
-    val positions: Array<Vector3f>,
-    val directions: Array<Vector3f>
+    val positions: List<Vector3f>,
+    val directions: List<Vector3f>
 ) : Component() {
 
     val newDir = Vector3f()
@@ -121,8 +121,8 @@ fun main() {
     // O(n²) should be fine with n=1000
     val n = 1000
     val scene = Entity("Scene")
-    val positions = Array(n) { Vector3f() }
-    val directions = Array(n) { Vector3f() }
+    val positions = ArrayList<Vector3f>(n)
+    val directions = ArrayList<Vector3f>(n)
     val rnd = Random(1234)
     val s = 1000f
     for (i in 0 until n) {
@@ -131,8 +131,8 @@ fun main() {
         mesh.isInstanced = true
         boid.add(mesh)
         boid.add(Boid(i, n, positions, directions))
-        positions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s)
-        directions[i].set(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize()
+        positions.add(Vector3f(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).mul(s))
+        directions.add(Vector3f(rnd.nextFloat(), rnd.nextFloat(), rnd.nextFloat()).sub(0.5f, 0.5f, 0.5f).normalize())
         scene.add(boid)
     }
     testSceneWithUI("Boids", scene) {

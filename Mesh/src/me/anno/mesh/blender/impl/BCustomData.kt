@@ -8,11 +8,11 @@ import java.nio.ByteBuffer
 class BCustomData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-    val external = getStructArray("*external")
+    val external get() = getStructArray("*external")
     val size = int("totsize")
     val numLayers = int("totlayer")
     val maxLayer = int("maxlayer")
-    val layers = getStructArray("*layers")?.toList() as? List<BCustomDataLayer> ?: emptyList()
+    val layers get() = getStructArray("*layers")?.toList() as? List<BCustomDataLayer> ?: emptyList()
 
     override fun toString(): String {
         return "BCustomData { layers: ${layers}, external: $external }"

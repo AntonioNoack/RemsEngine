@@ -124,7 +124,7 @@ fun main() {
         add(spider, Vector3f(x * 0.3f, +0.6f, -1.68f), Vector3f(0.08f), black1)
     }
 
-    val legDimensions = arrayOf(
+    val legDimensions = listOf(
         Vector3f(1f, 0.20f, 0.20f),
         Vector3f(1f, 0.18f, 0.18f),
         Vector3f(1f, 0.16f, 0.16f),

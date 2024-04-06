@@ -42,7 +42,7 @@ class OutlineNode : ActionNode(
         setInput(4, Vector3f(1f))
     }
 
-    private val framebuffer = Framebuffer(name, 1, 1, arrayOf(TargetType.Float16x3))
+    private val framebuffer = Framebuffer(name, 1, 1, listOf(TargetType.Float16x3))
 
     override fun onDestroy() {
         super.onDestroy()

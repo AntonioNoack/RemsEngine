@@ -370,11 +370,17 @@ object Lists {
         return result
     }
 
+    // todo this could be replaced with a pseudo-list
     @JvmStatic
     fun <V> createArrayList(size: Int, element: V): ArrayList<V> {
         val result = ArrayList<V>(size)
         for (i in 0 until size) result.add(element)
         return result
+    }
+
+    @JvmStatic
+    fun <V> arrayListOfNulls(size: Int): ArrayList<V?> {
+        return createArrayList(size, null)
     }
 
     @JvmStatic

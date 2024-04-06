@@ -138,7 +138,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         previewData.renderer.fill(pipeline, entity, clickId)
     }
 
-    private fun drawBoneNames(skeleton: Skeleton, matrices: Array<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {
+    private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {
         matrices ?: return
         // draw bone names where they are
         for (i in 0 until min(skeleton.bones.size, matrices.size)) {

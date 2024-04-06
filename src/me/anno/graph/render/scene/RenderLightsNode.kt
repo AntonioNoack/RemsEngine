@@ -83,7 +83,7 @@ class RenderLightsNode : RenderViewNode(
 
             init {
 
-                val types = arrayOf(
+                val types = listOf(
                     DeferredLayerType.NORMAL,
                     DeferredLayerType.METALLIC,
                     DeferredLayerType.ROUGHNESS,

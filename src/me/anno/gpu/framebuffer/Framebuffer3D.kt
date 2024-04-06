@@ -7,6 +7,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
@@ -23,7 +24,7 @@ class Framebuffer3D(
     override var width: Int,
     override var height: Int,
     val d: Int,
-    val targets: Array<TargetType>,
+    val targets: List<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
@@ -34,7 +35,7 @@ class Framebuffer3D(
     override val numTextures = 1
     override var depthTexture: Texture3D? = null
 
-    lateinit var textures: Array<Texture3D>
+    lateinit var textures: List<Texture3D>
 
     var depthAttachedPtr = 0
     var depthAttachment: Framebuffer3D? = null
@@ -55,10 +56,10 @@ class Framebuffer3D(
         val d = d
         if (w * h * d < 1) throw RuntimeException("Invalid framebuffer size $w x $h x $d")
         GFX.check()
-        textures = Array(targets.size) { index ->
+        textures = targets.mapIndexed { index, target ->
             val texture = Texture3D("$name-tex[$index]", w, h, d)
             // texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.create(targets[index])
+            texture.create(target)
             GFX.check()
             texture
         }
@@ -247,7 +248,7 @@ class Framebuffer3D(
     override fun getTexture0() = textures[0]
     override fun getTextureI(index: Int) = textures[index]
 
-    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         throw NotImplementedError()
     }
 }

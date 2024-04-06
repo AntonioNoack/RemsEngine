@@ -1,5 +1,7 @@
 package me.anno.utils.types
 
+import me.anno.utils.structures.lists.Lists.createArrayList
+
 object Arrays {
 
     @JvmStatic
@@ -23,9 +25,23 @@ object Arrays {
     }
 
     @JvmStatic
-    inline fun <reified V> Array<V>.rotateRight(shift: Int) {
-        val wrapAround = Array(shift) { this[size - shift + it] }
+    fun <V> ArrayList<V>.rotateRight(shift: Int) {
+        val wrapAround = createArrayList(shift) { this[size - shift + it] }
         copyInto(this, shift, 0, size - shift)
         wrapAround.copyInto(this)
+    }
+
+    @JvmStatic
+    fun <V> ArrayList<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI: Int, srcEndI: Int) {
+        assert(this !== dst)
+        var dstI = dstI0
+        for (i in srcI until srcEndI) {
+            dst[dstI++] = this[i]
+        }
+    }
+
+    @JvmStatic
+    fun <V> ArrayList<V>.copyInto(dst: MutableList<V>) {
+        copyInto(dst, 0, 0, size)
     }
 }

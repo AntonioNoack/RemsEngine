@@ -16,7 +16,6 @@ import kotlin.math.min
 
 class SDFBezierCurve : SDFShape() {
 
-    // todo Array<Type> doesn't work in UI yet, as it tries to use Object[], which is incorrect
     @Type("List<Vector4f>")
     var points = arrayListOf(
         Vector4f(0f, 0f, 0f, 0.1f),

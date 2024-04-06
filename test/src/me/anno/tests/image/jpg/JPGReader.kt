@@ -10,6 +10,7 @@ import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Booleans.toInt
 import me.anno.io.Streams.skipN
+import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -204,7 +205,7 @@ class JPGReader {
 
     fun yCbCrToRGB(
         out: ByteArray, outIndex0: Int,
-        data: Array<ByteArray>, dataOffset: IntArray
+        data: List<ByteArray>, dataOffset: IntArray
     ) {
         val ya = data[0]
         val yi = dataOffset[0]
@@ -260,7 +261,7 @@ class JPGReader {
                 else -> ResampleRowGeneric
             }
         }
-        val data2 = Array(n) { imgComp[it].data }
+        val data2 = createArrayList(n) { imgComp[it].data }
         val data2Off = IntArray(n)
         val out = ByteArray(n * imgX * imgY)
         var outChannels = n

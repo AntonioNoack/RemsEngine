@@ -18,7 +18,7 @@ class FBCreationTest {
     fun testInternalDepthWithMSAA() {
         // fixed sample locations wasn't set, which caused a crash
         HiddenOpenGLContext.createOpenGL()
-        Framebuffer("", 256, 256, 8, arrayOf(TargetType.UInt8x4), DepthBufferType.INTERNAL)
+        Framebuffer("", 256, 256, 8, listOf(TargetType.UInt8x4), DepthBufferType.INTERNAL)
             .create()
     }
 }

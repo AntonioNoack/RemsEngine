@@ -31,7 +31,7 @@ class BObject(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: 
     */
 
     val id = inside("id") as BID
-    val materials = getStructArray("**mat")
+    val materials get() = getStructArray("**mat")
     val type = short("type")
     val parType = short("partype")
     val parent get() = getPointer("*parent") as? BObject

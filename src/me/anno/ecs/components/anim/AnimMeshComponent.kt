@@ -28,6 +28,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.image.thumbs.Thumbs
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
@@ -201,8 +202,8 @@ open class AnimMeshComponent : MeshComponent() {
     /**
      * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
      * */
-    fun getMatrices(): Array<Matrix4x3f>? {
-        var matrices: Array<Matrix4x3f>? = null
+    fun getMatrices(): List<Matrix4x3f>? {
+        var matrices: List<Matrix4x3f>? = null
         var sumWeight = 0f
         val animations = animations
         val skeleton = skeleton
@@ -377,8 +378,8 @@ open class AnimMeshComponent : MeshComponent() {
 
     companion object {
 
-        val tmpMapping0 = Array(256) { Matrix4x3f() }
-        val tmpMapping1 = Array(256) { Matrix4x3f() }
+        val tmpMapping0 = createArrayList(256) { Matrix4x3f() }
+        val tmpMapping1 = createArrayList(256) { Matrix4x3f() }
 
         fun drawAnimatedSkeleton(
             animMeshComponent: AnimMeshComponent,
@@ -410,7 +411,7 @@ open class AnimMeshComponent : MeshComponent() {
             }
         }
 
-        fun upload(shader: Shader, location: Int, matrices: Array<Matrix4x3f>) {
+        fun upload(shader: Shader, location: Int, matrices: List<Matrix4x3f>) {
             val boneCount = min(matrices.size, BoneData.maxBones)
             val buffer = BoneData.matrixBuffer
             buffer.limit(BoneData.matrixSize * boneCount)

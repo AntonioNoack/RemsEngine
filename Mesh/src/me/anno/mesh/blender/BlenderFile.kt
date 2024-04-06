@@ -57,6 +57,7 @@ import me.anno.mesh.blender.impl.values.BNSVRGBA
 import me.anno.mesh.blender.impl.values.BNSVRotation
 import me.anno.mesh.blender.impl.values.BNSVVector
 import me.anno.utils.Color.rgba
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.ByteOrder
@@ -136,7 +137,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('T', 'L', 'E', 'N')
     }
 
-    val types: Array<DNAType> = Array(typeNames.size) { i ->
+    val types: List<DNAType> = createArrayList(typeNames.size) { i ->
         val typeLength = file.readShort().toUShort().toInt()
         DNAType(typeNames[i], typeLength)
     }
@@ -153,7 +154,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     val structs = Array(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
         val type = types[s.type.toUShort().toInt()]
-        val fields = Array(s.fieldsAsTypeName.size shr 1) { j ->
+        val fields = createArrayList(s.fieldsAsTypeName.size shr 1) { j ->
             val j2 = j * 2
             val typeIndex = s.fieldsAsTypeName[j2].toUShort().toInt()
             val nameIndex = s.fieldsAsTypeName[j2 + 1].toUShort().toInt()
@@ -183,7 +184,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     init {
 
-        val offHeapAreas = if (version < 276) arrayOf("FileGlobal") else arrayOf("FileGlobal", "TreeStoreElem")
+        val offHeapAreas = if (version < 276) listOf("FileGlobal") else listOf("FileGlobal", "TreeStoreElem")
         var indices = IntArray(offHeapAreas.size)
         var length = 0
         for (index in offHeapAreas.indices) {
@@ -193,7 +194,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         }
         // shorten the array, if needed
         if (length < offHeapAreas.size) indices = IntArray(length) { indices[it] }
-        blockTable = BlockTable(this, blocks.toTypedArray(), indices)
+        blockTable = BlockTable(this, blocks, indices)
     }
 
     private val objectCache = HashMap<String, HashMap<Long, BlendData?>>()

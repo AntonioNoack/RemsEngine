@@ -149,7 +149,7 @@ class GlassPass : TransparentPass() {
         // todo baked ambient occlusion is somehow put into depth buffer, when we split FBs
 
         val old = GFXState.currentBuffer
-        val tmp = getFB(arrayOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
+        val tmp = getFB(listOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
             val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE

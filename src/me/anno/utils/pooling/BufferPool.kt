@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 
 abstract class BufferPool<V>(
     val size: Int,
@@ -31,7 +32,7 @@ abstract class BufferPool<V>(
             return length * elementSize
         }
 
-    private val available = arrayOfNulls<Any?>(size)
+    private val available = arrayListOfNulls<Any?>(size)
     private val lastUsed = LongArray(size)
     operator fun get(size: Int, clear: Boolean, exactMatchesOnly: Boolean): V {
         val maxSize = if (exactMatchesOnly) size else size * 2

@@ -17,6 +17,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
@@ -84,7 +85,7 @@ object GFXState {
                 }
                 newValue.forceApply()
             }
-            is Array<*> -> {
+            is List<*> -> {
                 if (lastBlendMode == Unit || lastBlendMode == null) {
                     glEnable(GL_BLEND)
                 }
@@ -243,7 +244,7 @@ object GFXState {
     // maximum expected depth for OpenGL operations
 // could be changed, if needed...
     private const val maxSize = 512
-    val renderers = Array<Renderer>(maxSize) { colorRenderer }
+    val renderers = createArrayList<Renderer>(maxSize, colorRenderer)
 
     val currentRenderer get() = renderers[framebuffer.index]
     val currentBuffer get() = framebuffer.values[framebuffer.index]

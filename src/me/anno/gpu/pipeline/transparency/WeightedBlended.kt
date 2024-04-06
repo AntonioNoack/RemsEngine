@@ -139,8 +139,8 @@ class WeightedBlended : TransparentPass() {
         }
 
         private val clear0 = intArrayOf(0, -1)
-        private val targets = arrayOf(TargetType.Float16x4, TargetType.Float16x1)
-        private val blend0s = arrayOf(BlendMode.PURE_ADD, blend0)
+        private val targets = listOf(TargetType.Float16x4, TargetType.Float16x1)
+        private val blend0s = listOf(BlendMode.PURE_ADD, blend0)
     }
 
     override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {

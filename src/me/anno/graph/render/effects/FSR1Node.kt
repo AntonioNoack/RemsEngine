@@ -40,8 +40,8 @@ class FSR1Node : ActionNode(
     }
 
     // hdr? upscaling, so not really necessary
-    private val f0 = Framebuffer("fsr1-0", 1, 1, arrayOf(TargetType.UInt8x4))
-    private val f1 = Framebuffer("fsr1-1", 1, 1, arrayOf(TargetType.UInt8x4))
+    private val f0 = Framebuffer("fsr1-0", 1, 1, listOf(TargetType.UInt8x4))
+    private val f1 = Framebuffer("fsr1-1", 1, 1, listOf(TargetType.UInt8x4))
 
     override fun onDestroy() {
         super.onDestroy()

@@ -205,19 +205,19 @@ object MovingGrid {
     private val baseRotX = Quaterniond().rotateX(PI * 0.5)
     private val baseRotY = Quaterniond()
     private val baseRotZ = Quaterniond().rotateY(PI * 0.5).rotateX(PI * 0.5)
-    private val textRotX = arrayOf(
+    private val textRotX = listOf(
         Quaterniond(baseRotX).rotateX(-PI * 0.5),
         Quaterniond(baseRotX).rotateY(PI * 0.5).rotateX(-PI * 0.5),
         Quaterniond(baseRotX).rotateY(PI * 1.0).rotateX(-PI * 0.5),
         Quaterniond(baseRotX).rotateY(PI * 1.5).rotateX(-PI * 0.5),
     )
-    private val textRotY = arrayOf(
+    private val textRotY = listOf(
         Quaterniond(baseRotY).rotateX(-PI * 0.5),
         Quaterniond(baseRotY).rotateY(PI * 0.5).rotateX(-PI * 0.5),
         Quaterniond(baseRotY).rotateY(PI * 1.0).rotateX(-PI * 0.5),
         Quaterniond(baseRotY).rotateY(PI * 1.5).rotateX(-PI * 0.5),
     )
-    private val textRotZ = arrayOf(
+    private val textRotZ = listOf(
         Quaterniond(baseRotZ).rotateX(-PI * 0.5),
         Quaterniond(baseRotZ).rotateY(PI * 0.5).rotateX(-PI * 0.5),
         Quaterniond(baseRotZ).rotateY(PI * 1.0).rotateX(-PI * 0.5),

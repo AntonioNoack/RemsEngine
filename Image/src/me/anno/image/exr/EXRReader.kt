@@ -4,6 +4,7 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IFloatImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.float16ToFloat32
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
@@ -35,6 +36,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 /**
  * Uses TinyEXR to read EXR files; only some are supported, so try every single file before shipping!
@@ -80,8 +82,8 @@ object EXRReader {
         }
     }
 
-    private inline fun <reified V> mapChannels(channels: Array<V>, src: Array<String>, dst: String): Array<V> {
-        return Array(channels.size) { dstIndex ->
+    private fun <V> mapChannels(channels: List<V>, src: List<String>, dst: String): List<V> {
+        return channels.indices.map { dstIndex ->
             val dstName = dst[dstIndex]
             channels[src.indexOfFirst { srcName -> srcName[0] == dstName }]
         }
@@ -211,7 +213,7 @@ object EXRReader {
         val numChannels = image.num_channels()
 
         val channels = header.channels()
-        val channelNames = Array(numChannels) {
+        val channelNames = createArrayList(numChannels) {
             channels[it].nameString().lowercase()
         }
 
@@ -227,7 +229,7 @@ object EXRReader {
         )
 
         val images = image.images()!!
-        var floats = Array(numChannels) { channelIndex ->
+        var floats: List<FloatBuffer> = createArrayList(numChannels) { channelIndex ->
             LOGGER.debug("Image[$channelIndex, ${channelNames[channelIndex]}]: @${images[channelIndex]}")
             val dst = ByteBuffer.allocateDirect(numPixels * 4).asFloatBuffer()
             val channel = channels[channelIndex]

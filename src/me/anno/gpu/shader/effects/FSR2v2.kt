@@ -37,7 +37,7 @@ import kotlin.random.Random
 // todo this is currently broken :/
 class FSR2v2 : ICacheData {
 
-    val dataTargetTypes = arrayOf(TargetType.Float16x4, TargetType.Float32x4)
+    val dataTargetTypes = listOf(TargetType.Float16x4, TargetType.Float32x4)
     var data0 = Framebuffer("data", 1, 1, dataTargetTypes)
     var data1 = Framebuffer("data", 1, 1, dataTargetTypes)
 

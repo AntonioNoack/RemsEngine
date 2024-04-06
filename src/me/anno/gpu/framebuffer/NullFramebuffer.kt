@@ -34,7 +34,7 @@ object NullFramebuffer : IFramebuffer {
 
     override fun getTargetType(slot: Int) = TargetType.UInt8x4 // really?
 
-    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         throw UnsupportedOperationException()
     }
 

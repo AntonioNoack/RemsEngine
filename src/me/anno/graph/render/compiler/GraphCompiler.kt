@@ -509,7 +509,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         builder.append("int budget=").append(budget).append(";\n")
     }
 
-    fun findExportSet(start: Node, layers: Array<DeferredLayerType>): BooleanArrayList {
+    fun findExportSet(start: Node, layers: List<DeferredLayerType>): BooleanArrayList {
         processedNodes.clear()
         val exportedLayers = BooleanArrayList(layers.size)
         fun traverse(node: Node?) {

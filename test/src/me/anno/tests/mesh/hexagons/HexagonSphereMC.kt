@@ -81,7 +81,7 @@ val positions = ThreadLocal2 { FloatArrayList(8192) }
 val normals = ThreadLocal2 { FloatArrayList(8192) }
 val colors = ThreadLocal2 { IntArrayList(8192) }
 
-val uv6 = arrayOf(
+val uv6 = listOf(
     Vector2f(1f, 0.75f),
     Vector2f(0.5f, 1f),
     Vector2f(0f, 0.75f),

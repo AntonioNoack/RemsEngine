@@ -206,7 +206,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         //  maybe even only one side at a time
         val framebuffer = bakedSkybox ?: CubemapFramebuffer(
             "skyBox", resolution, 1,
-            arrayOf(TargetType.Float16x3), DepthBufferType.NONE
+            listOf(TargetType.Float16x3), DepthBufferType.NONE
         )
         val renderer = Renderers.rawAttributeRenderers[DeferredLayerType.EMISSIVE]
         framebuffer.draw(renderer) { side ->

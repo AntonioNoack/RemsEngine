@@ -21,8 +21,8 @@ class Path(
     constructor() : this(ROOT_PATH, "", 0, ' ')
 
     /** legacy constructor */
-    constructor(names: Array<String>, indices: IntArray, types: CharArray) : this(
-        names.toList(), indices.toList(), types.toList()
+    constructor(names: List<String>, indices: IntArray, types: CharArray) : this(
+        names, indices.toList(), types.toList()
     )
 
     /** constructor for testing */

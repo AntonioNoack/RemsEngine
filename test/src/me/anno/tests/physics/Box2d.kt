@@ -175,7 +175,7 @@ fun test3() {
         world.add(circle)
     }
 
-    val rect = arrayOf(
+    val rect = listOf(
         Vector2f(-1f, -1f),
         Vector2f(+1f, -1f),
         Vector2f(+1f, +1f),

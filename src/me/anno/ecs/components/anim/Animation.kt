@@ -55,11 +55,11 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         return Triple(fraction, index0, index1)
     }
 
-    abstract fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
-    abstract fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    abstract fun getMatrices(frameIndex: Float, dst: List<Matrix4x3f>): List<Matrix4x3f>?
+    abstract fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f>?
 
-    abstract fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
-    abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
+    abstract fun getMatrix(frameIndex: Float, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f?
+    abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f?
 
     fun getMappedAnimation(skel: FileReference): Animation? {
         if (skel == skeleton) return this
@@ -69,9 +69,9 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     fun getMappedMatrices(
         frameIndex: Float,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference
-    ): Array<Matrix4x3f>? {
+    ): List<Matrix4x3f>? {
         return getMappedAnimation(dstSkeleton)
             ?.getMatrices(frameIndex, dst)
     }
@@ -79,7 +79,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     fun getMappedMatrix(
         frameIndex: Float,
         boneId: Int,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference
     ): Matrix4x3f? {
         return getMappedAnimation(dstSkeleton)
@@ -88,18 +88,18 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     fun getMappedMatrices(
         frameIndex: Int,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference
-    ): Array<Matrix4x3f>? {
+    ): List<Matrix4x3f>? {
         return getMappedAnimation(dstSkeleton)
             ?.getMatrices(frameIndex, dst)
     }
 
     fun getMappedMatricesSafely(
         frameIndex: Float,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference
-    ): Array<Matrix4x3f> {
+    ): List<Matrix4x3f> {
         val base = getMappedMatrices(frameIndex, dst, dstSkeleton)
         if (base != null) return base
         for (i in dst.indices) dst[i].identity()
@@ -109,7 +109,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     fun getMappedMatrixSafely(
         frameIndex: Float,
         boneId: Int,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference,
     ): Matrix4x3f {
         return getMappedMatrix(frameIndex, boneId, dst, dstSkeleton) ?: dst[0].identity()
@@ -117,9 +117,9 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     fun getMappedMatricesSafely(
         frameIndex: Int,
-        dst: Array<Matrix4x3f>,
+        dst: List<Matrix4x3f>,
         dstSkeleton: FileReference
-    ): Array<Matrix4x3f> {
+    ): List<Matrix4x3f> {
         val base = getMappedMatrices(frameIndex, dst, dstSkeleton)
         if (base != null) return base
         for (i in dst.indices) dst[i].identity()
@@ -140,7 +140,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
             mesh.normals = Texture2D.floatArrayPool[size, true, true]
             mesh.boneIndices = Texture2D.byteArrayPool[size * 4 / 3, true, true]
             Skeleton.generateSkeleton(
-                bones, Array(bones.size) { bones[it].bindPosition },
+                bones, bones.map { it.bindPosition },
                 mesh.positions!!, mesh.boneIndices!!
             )
             renderer.meshFile = mesh.ref

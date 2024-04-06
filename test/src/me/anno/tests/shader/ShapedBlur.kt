@@ -17,6 +17,7 @@ import me.anno.network.ResetByteArrayOutputStream
 import me.anno.sdf.shapes.SDFHeart
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector2d
@@ -200,11 +201,11 @@ fun main2() {
 
     val rx = Maths.max(dst.width, dst.height).toDouble() * 5.0 / numLayers
     val rnd = Random()
-    val kernels = Array(numLayers) { li ->
+    val kernels = createArrayList(numLayers) { li ->
         val i0 = li * totalSamples / numLayers
         val i1 = (li + 1) * totalSamples / numLayers
         val c = i1 - i0
-        Array(c) {
+        createArrayList(c) {
             Sampler(
                 Vector2d(
                     rx * rnd.nextGaussian(),
@@ -279,7 +280,7 @@ fun main2() {
 class Sampler(val position: Vector2d, var weight: Double) {
     override fun toString() = "[(${position.x},${position.y})x$weight]"
 }
-typealias SparseKernel = Array<Sampler>
+typealias SparseKernel = List<Sampler>
 
 fun error(src: FloatImage, dst: FloatImage): Double {
     val w = Maths.max(src.width, dst.width)
@@ -310,7 +311,7 @@ fun pad(src: FloatImage, w: Int, h: Int): FloatArray {
     return dst
 }
 
-fun sparseConvolve(kernels: Array<SparseKernel>, write: Boolean): FloatImage {
+fun sparseConvolve(kernels: List<SparseKernel>, write: Boolean): FloatImage {
     // convolve
     val bounds = AABBd()
     val numLayers = kernels.size
@@ -332,7 +333,7 @@ fun sparseConvolve(kernels: Array<SparseKernel>, write: Boolean): FloatImage {
         // convolve actually
         sparseConvolve(image, tmp, k)
         if (write) {
-            sparseConvolve(arrayOf(k), false).normalize().write(OS.desktop.getChild("img/krn$i.png"))
+            sparseConvolve(listOf(k), false).normalize().write(OS.desktop.getChild("img/krn$i.png"))
             tmp.normalize().write(OS.desktop.getChild("img/img$i.png"))
         }
         image = tmp

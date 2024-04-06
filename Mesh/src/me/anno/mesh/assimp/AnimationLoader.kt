@@ -144,7 +144,7 @@ object AnimationLoader {
         animNodeCache: Map<String, NodeAnim>,
         timeIndex: Double,
         aiNode: AINode,
-        skinningMatrices: Array<Matrix4x3f>,
+        skinningMatrices: List<Matrix4x3f>,
         parentTransform: Matrix4x3f?,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
@@ -212,7 +212,7 @@ object AnimationLoader {
         aiScene: AIScene,
         rootNode: AINode,
         timeIndex: Double,
-        skinningMatrices: Array<Matrix4x3f>,
+        skinningMatrices: List<Matrix4x3f>,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?,
         boneMap: Map<String, Bone>,

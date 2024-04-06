@@ -29,7 +29,7 @@ object ExifOrientation {
         }
     }
 
-    val orientations = arrayOf(
+    val orientations = listOf(
         ImageTransform(mirrorHorizontal = true, mirrorVertical = false, 0),
         ImageTransform(mirrorHorizontal = false, mirrorVertical = false, 180),
         ImageTransform(mirrorHorizontal = false, mirrorVertical = true, 0),

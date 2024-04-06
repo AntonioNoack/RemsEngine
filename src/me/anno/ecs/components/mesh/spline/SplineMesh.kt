@@ -10,6 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -211,7 +212,7 @@ class SplineMesh : ProceduralMesh() {
             perRadiant: Double,
             isClosed: Boolean,
         ): List<Vector3d> {
-            val posNormals = Array((points.size + isClosed.toInt()) * 4) { Vector3d() }
+            val posNormals = createArrayList((points.size + isClosed.toInt()) * 4) { Vector3d() }
             for (i in 0 until (points.size + isClosed.toInt())) {
                 val i4 = i * 4
                 val pt = points[i % points.size]

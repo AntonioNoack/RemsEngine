@@ -20,7 +20,7 @@ object FBStack : CacheSection("FBStack") {
         val width: Int,
         val height: Int,
         private val samples: Int,
-        targetTypes: Array<TargetType>,
+        targetTypes: List<TargetType>,
         depthBufferType: DepthBufferType
     ) : ICacheData {
 
@@ -106,7 +106,7 @@ object FBStack : CacheSection("FBStack") {
     private class FBStackData1(val key: FBKey1) :
         FBStackData(
             key.width, key.height, key.samples,
-            arrayOf(getTargetType(key.channels, key.quality)),
+           listOf(getTargetType(key.channels, key.quality)),
             key.depthBufferType
         ) {
         override fun printDestroyed(size: Int) {
@@ -121,30 +121,12 @@ object FBStack : CacheSection("FBStack") {
     )
 
     private data class FBKey3(
-        val width: Int, val height: Int, val targetTypes: Array<TargetType>,
+        val width: Int, val height: Int, val targetTypes: List<TargetType>,
         val samples: Int, val depthBufferType: DepthBufferType
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            return other is FBKey3 && width == other.width &&
-                    height == other.height &&
-                    samples == other.samples &&
-                    depthBufferType == other.depthBufferType &&
-                    targetTypes.contentEquals(other.targetTypes)
-        }
-
-        override fun hashCode(): Int {
-            var result = width
-            result = 31 * result + height
-            result = 31 * result + targetTypes.contentHashCode()
-            result = 31 * result + samples
-            result = 31 * result + depthBufferType.hashCode()
-            return result
-        }
-    }
+    )
 
     private class FBStackData2(val key: FBKey2) :
-        FBStackData(key.width, key.height, key.samples, arrayOf(key.targetType), key.depthBufferType) {
+        FBStackData(key.width, key.height, key.samples, listOf(key.targetType), key.depthBufferType) {
         override fun printDestroyed(size: Int) {
             val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
             LOGGER.info("Freed $fs of size ${key.width} x ${key.height}, samples: ${key.samples}, type: ${key.targetType}")
@@ -181,7 +163,7 @@ object FBStack : CacheSection("FBStack") {
     }
 
     private fun getValue(
-        w: Int, h: Int, targetTypes: Array<TargetType>, samples: Int,
+        w: Int, h: Int, targetTypes: List<TargetType>, samples: Int,
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey3(w, h, targetTypes, clamp(samples, 1, GFX.maxSamples), depthBufferType)
@@ -222,7 +204,7 @@ object FBStack : CacheSection("FBStack") {
 
     operator fun get(
         name: String, w: Int, h: Int,
-        targetTypes: Array<TargetType>, samples: Int,
+        targetTypes: List<TargetType>, samples: Int,
         depthBufferType: DepthBufferType
     ): IFramebuffer {
         val value = getValue(w, h, targetTypes, samples, depthBufferType)

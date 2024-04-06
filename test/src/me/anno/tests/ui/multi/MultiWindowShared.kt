@@ -14,7 +14,7 @@ import kotlin.math.sin
 
 fun main() {
 
-    val titles = arrayOf("Red", "Green", "Blue")
+    val titles = listOf("Red", "Green", "Blue")
 
     var frameIndex = 0
     val color = Vector4f()

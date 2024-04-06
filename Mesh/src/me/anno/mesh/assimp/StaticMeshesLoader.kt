@@ -19,6 +19,7 @@ import me.anno.io.xml.generic.XMLWriter
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
@@ -272,7 +273,7 @@ object StaticMeshesLoader {
         loadedTextures: List<FileReference>,
         original: FileReference,
         missingFilesLookup: Map<String, FileReference>
-    ): Array<Prefab> {
+    ): List<Prefab> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
         val gltfMaterials = try {
@@ -281,7 +282,7 @@ object StaticMeshesLoader {
             null
         }
         val textureLookup = createTextureLookup(missingFilesLookup)
-        return Array(numMaterials) {
+        return createArrayList(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
             processMaterialPrefab(
                 aiScene, aiMaterial, loadedTextures, texturesDir,

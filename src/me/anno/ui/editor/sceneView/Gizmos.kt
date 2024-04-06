@@ -85,7 +85,7 @@ object Gizmos {
     val rayPos = Vector3f()
     val rayDir = Vector3f()
 
-    val rotations = arrayOf(
+    val rotations = listOf(
         Quaterniond(),
         Quaterniond().rotateX(+PI * 0.5).rotateY(+PI * 0.5),
         Quaterniond().rotateX(-PI * 0.5).rotateZ(-PI * 0.5)

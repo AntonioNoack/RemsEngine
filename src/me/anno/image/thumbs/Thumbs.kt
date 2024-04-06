@@ -101,6 +101,7 @@ import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.io.Streams.readNBytes2
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.formats.gpu.GPUFrame
@@ -437,7 +438,7 @@ object Thumbs {
             if (GFX.maxSamples > 1) {
                 val newBuffer = Framebuffer(
                     srcFile.name, w, h, 1,
-                    arrayOf(TargetType.UInt8x4), DepthBufferType.NONE
+                    listOf(TargetType.UInt8x4), DepthBufferType.NONE
                 )
                 renderTarget.needsBlit = true // needed?
                 useFrame(newBuffer) {
@@ -822,7 +823,7 @@ object Thumbs {
 
         // in a tree with N nodes, there is N-1 lines
         val positions = FloatArray((bones.size - 1) * boneMeshVertices.size)
-        val bonePositions = Array(bones.size) { bones[it].bindPosition }
+        val bonePositions = bones.map { it.bindPosition }
         generateSkeleton(bones, bonePositions, positions, null)
         mesh.positions = positions
         generateMeshFrame(srcFile, dstFile, size, mesh, callback)
@@ -875,8 +876,8 @@ object Thumbs {
     @JvmField
     val threadLocalBoneMatrices = ThreadLocal2 {
         val boneCount = 256
-        val skinningMatrices = Array(boneCount) { Matrix4x3f() }
-        val animPositions = Array(boneCount) { Vector3f() }
+        val skinningMatrices = createArrayList(boneCount) { Matrix4x3f() }
+        val animPositions = createArrayList(boneCount) { Vector3f() }
         skinningMatrices to animPositions
     }
 
@@ -897,7 +898,7 @@ object Thumbs {
     @JvmStatic
     fun drawAnimatedSkeleton(
         skeleton: Skeleton,
-        skinningMatrices: Array<Matrix4x3f>,
+        skinningMatrices: List<Matrix4x3f>,
         aspect: Float
     ) {
         buildAnimatedSkeleton(skeleton, skinningMatrices) { mesh ->
@@ -913,7 +914,7 @@ object Thumbs {
     @JvmStatic
     fun buildAnimatedSkeleton(
         skeleton: Skeleton,
-        skinningMatrices: Array<Matrix4x3f>,
+        skinningMatrices: List<Matrix4x3f>,
         useGeneratedMesh: (Mesh) -> Unit,
     ) {
         val mesh = Mesh()

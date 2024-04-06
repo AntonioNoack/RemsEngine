@@ -72,7 +72,7 @@ fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
 }
 
 fun createNiceMesh0(
-    mesh: Mesh, hexagons: Array<Hexagon>,
+    mesh: Mesh, hexagons: List<Hexagon>,
     getColor: (Hexagon, Vector3f) -> Int,
 ) {
 

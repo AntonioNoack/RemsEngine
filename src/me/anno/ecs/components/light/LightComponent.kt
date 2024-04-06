@@ -131,7 +131,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 // so an 8 bit depth buffer would be enough
                 val depthBufferType =
                     if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE_16 else DepthBufferType.INTERNAL
-                val targets = if (GFX.supportsDepthTextures) emptyArray() else arrayOf(TargetType.Float16x1)
+                val targets = if (GFX.supportsDepthTextures) emptyList() else listOf(TargetType.Float16x1)
                 this.shadowTextures = if (lightType.shadowMapType == GLSLType.SCubeShadow) {
                     CubemapFramebuffer(
                         "ShadowCubemap", resolution, 1, targets, depthBufferType

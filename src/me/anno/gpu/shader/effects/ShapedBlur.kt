@@ -67,7 +67,7 @@ object ShapedBlur {
         gamma: Float
     ): ITexture2D {
         var src: ITexture2D = src0
-        val afp = arrayOf(fp)
+        val afp = listOf(fp)
         val dst0 = FBStack["d0", src.width, src.height, afp, 1, DepthBufferType.NONE]
         val dst1 = FBStack["d1", src.width, src.height, afp, 1, DepthBufferType.NONE]
         shader.use()

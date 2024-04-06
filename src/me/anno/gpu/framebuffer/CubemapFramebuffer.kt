@@ -9,6 +9,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
@@ -31,20 +32,18 @@ import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 class CubemapFramebuffer(
     override var name: String, var size: Int,
     override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
-    val targets: Array<TargetType>,
+    val targets: List<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     constructor(
-        name: String, size: Int,
-        samples: Int,
-        targetCount: Int,
-        fpTargets: Boolean,
+        name: String, size: Int, samples: Int,
+        targetCount: Int, fpTargets: Boolean,
         depthBufferType: DepthBufferType
     ) : this(
-        name, size, samples, if (fpTargets)
-            Array(targetCount) { TargetType.Float32x4 } else
-            Array(targetCount) { TargetType.UInt8x4 }, depthBufferType
+        name, size, samples,
+        createArrayList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
+        depthBufferType
     )
 
     // multiple targets, layout=x require shader version 330+
@@ -60,7 +59,7 @@ class CubemapFramebuffer(
     override val height: Int get() = size
     override val numTextures: Int = targets.size
 
-    lateinit var textures: Array<CubemapTexture>
+    lateinit var textures: List<CubemapTexture>
 
     var autoUpdateMipmaps = true
 
@@ -129,10 +128,10 @@ class CubemapFramebuffer(
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
-        textures = Array(targets.size) { index ->
+        textures = targets.mapIndexed { index, target ->
             val texture = CubemapTexture("$name-$index", size, samples)
             texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.create(targets[index])
+            texture.create(target)
             GFX.check()
             texture
         }
@@ -267,7 +266,7 @@ class CubemapFramebuffer(
         for (i in textures.indices) textures[i].needsMipmaps = true
     }
 
-    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         return if (targets.size <= GFX.maxColorAttachments) {
             val buffer = CubemapFramebuffer(name, size, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this

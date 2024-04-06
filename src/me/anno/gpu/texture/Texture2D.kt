@@ -1162,7 +1162,7 @@ open class Texture2D(
             override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean) =
                 throw NotImplementedError()
 
-            override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>) =
+            override fun attachFramebufferToDepth(name: String, targets: List<TargetType>) =
                 throw NotImplementedError()
 
             override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {

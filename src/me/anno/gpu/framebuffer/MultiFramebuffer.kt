@@ -10,6 +10,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.lists.Lists.createArrayList
 
 /**
  * there is a target limit, so
@@ -21,11 +22,11 @@ import me.anno.maths.Maths.min
 class MultiFramebuffer(
     name: String,
     w: Int, h: Int,
-    samples: Int, val targets: Array<TargetType>,
+    samples: Int, val targets: List<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
-    val targetsI: Array<Framebuffer>
+    val targetsI: List<Framebuffer>
     val div = max(1, GFX.maxColorAttachments)
 
     override var name: String = name
@@ -38,12 +39,12 @@ class MultiFramebuffer(
 
     init {
         val targetCount = ceilDiv(targets.size, div)
-        targetsI = Array(targetCount) { targetIndex ->
+        targetsI = createArrayList(targetCount) { targetIndex ->
             val targetIndex0 = targetIndex * div
             val targetIndex1 = min(targetIndex0 + div, targets.size)
             Framebuffer(
                 "$name/$targetIndex", w, h, samples,
-                Array(targetIndex1 - targetIndex0) { targets[targetIndex0 + it] },
+                targets.subList(targetIndex0, targetIndex1),
                 depthBufferType
             )
         }
@@ -71,7 +72,7 @@ class MultiFramebuffer(
         }
     }
 
-    override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
+    override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         return targetsI[0].attachFramebufferToDepth(name, targets)
     }
 

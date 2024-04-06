@@ -6,10 +6,10 @@ import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
-open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: String) :
+open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: String) :
     StaticBuffer(name0, listOf(Attribute(name, 2)), vertices.size) {
 
-    constructor(name0: String, vertices: Array<Vector2f>, indices: IntArray, name: String) :
+    constructor(name0: String, vertices: List<Vector2f>, indices: IntArray, name: String) :
             this(name0, createArray(vertices, indices), name)
 
     init {
@@ -20,10 +20,8 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
     companion object {
 
         @JvmStatic
-        fun createArray(vertices: Array<Vector2f>, indices: IntArray): Array<Vector2f> {
-            return Array(indices.size) {
-                vertices[indices[it]]
-            }
+        fun createArray(vertices: List<Vector2f>, indices: IntArray): List<Vector2f> {
+            return indices.map { vertices[it] }
         }
 
         // to do "move" towards the viewer for large distance, so it stays fullscreen?
@@ -80,7 +78,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
          * */
         @JvmField
         val flat01 = object : SimpleBuffer(
-            "flat01", arrayOf(
+            "flat01", listOf(
                 Vector2f(0f, 0f),
                 Vector2f(0f, 1f),
                 Vector2f(1f, 1f),
@@ -89,7 +87,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         ) {
             // https://wallisc.github.io/rendering/2021/04/18/Fullscreen-Pass.html
             private val flat01FS = SimpleBuffer(
-                "flat01FS", arrayOf(
+                "flat01FS", listOf(
                     Vector2f(0f, 0f),
                     Vector2f(2f, 0f),
                     Vector2f(0f, 2f),
@@ -254,7 +252,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11 = SimpleBuffer(
             "flat11",
-            arrayOf(
+            listOf(
                 Vector2f(-1f, -1f),
                 Vector2f(-1f, 1f),
                 Vector2f(1f, 1f),

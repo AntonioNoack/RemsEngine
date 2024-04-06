@@ -32,6 +32,7 @@ import me.anno.mesh.fbx.FBX6000
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
@@ -451,15 +452,15 @@ object AnimatedMeshesLoader {
 
     private fun loadMeshPrefabs(
         aiScene: AIScene, materials: List<FileReference>, boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
-    ): Array<Prefab> {
+    ): List<Prefab> {
         val numMeshes = aiScene.mNumMeshes()
         return if (numMeshes > 0) {
             val aiMeshes = aiScene.mMeshes()!!
-            Array(numMeshes) {
+            createArrayList(numMeshes) {
                 val aiMesh = AIMesh.create(aiMeshes[it])
                 createMeshPrefab(aiMesh, materials, boneList, boneMap)
             }
-        } else emptyArray()
+        } else emptyList()
     }
 
     // using all root nodes together fixes the fox and the robot <3
@@ -563,9 +564,9 @@ object AnimatedMeshesLoader {
         animNodeCache: Map<String, NodeAnim>,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
-    ): Array<Array<Matrix4x3f>> {
-        return Array(numFrames) { frameIndex ->
-            val animatedFrame = Array(boneMap.size) { Matrix4x3f() }
+    ): List<List<Matrix4x3f>> {
+        return createArrayList(numFrames) { frameIndex ->
+            val animatedFrame = createArrayList(boneMap.size) { Matrix4x3f() }
             loadAnimationFrame(
                 aiScene, rootNode, frameIndex * timeScale, animatedFrame,
                 globalTransform, globalInverseTransform, boneMap, animNodeCache

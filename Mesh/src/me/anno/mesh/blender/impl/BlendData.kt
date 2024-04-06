@@ -3,6 +3,7 @@ package me.anno.mesh.blender.impl
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
@@ -19,8 +20,6 @@ open class BlendData(
     val address get() = file.blockTable.getAddressAt(position)
 
     fun byte(offset: Int) = buffer.get(position + offset)
-    fun uByte(offset: Int) = buffer.get(position + offset).toUByte()
-
     fun short(offset: Int) = buffer.getShort(position + offset)
     fun int(offset: Int) = buffer.getInt(position + offset)
     fun long(offset: Int) = buffer.getLong(position + offset)
@@ -36,7 +35,7 @@ open class BlendData(
 
     // fields starting with **
     fun getPointerArray(name: String) = getPointerArray(getField(name))
-    fun getPointerArray(field: DNAField?): Array<BlendData?>? {
+    fun getPointerArray(field: DNAField?): List<BlendData?>? {
         field ?: return null
         val pointer = pointer(field.offset)
         if (pointer == 0L) return null
@@ -47,28 +46,7 @@ open class BlendData(
         if (length == 0) return null
         val positionInFile = block.positionInFile
         val data = file.file.data
-        return Array(length) {
-            val posInFile = positionInFile + it * file.pointerSize
-            val ptr = if (file.file.is64Bit) data.getLong(posInFile)
-            else data.getInt(posInFile).toLong()
-            file.getOrCreate(file.structByName[field.type.name]!!, field.type.name, block, ptr)
-        }
-    }
-
-    // fields starting with **
-    fun getPointerArray(name: String, size: Int) = getPointerArray(getField(name), size)
-    fun getPointerArray(field: DNAField?, size: Int): Array<BlendData?>? {
-        field ?: return null
-        val pointer = pointer(field.offset)
-        if (pointer == 0L) return null
-        val block = file.blockTable.findBlock(file, pointer) ?: return null
-        // all elements will be pointers to material
-        val remainingSize = block.size - (pointer - block.address)
-        val length = min((remainingSize / file.pointerSize).toInt(), size)
-        if (length == 0) return null
-        val positionInFile = block.positionInFile
-        val data = file.file.data
-        return Array(length) {
+        return createArrayList(length) {
             val posInFile = positionInFile + it * file.pointerSize
             val ptr = if (file.file.is64Bit) data.getLong(posInFile)
             else data.getInt(posInFile).toLong()
@@ -195,11 +173,11 @@ open class BlendData(
         return file.getOrCreate(struct, className, block, address)
     }
 
-    fun getStructArray(name: String): Array<BlendData?>? = getStructArray(dnaStruct.byName[name])
-    fun getStructArray(field: DNAField?): Array<BlendData?>? {
+    fun getStructArray(name: String): List<BlendData?>? = getStructArray(dnaStruct.byName[name])
+    fun getStructArray(field: DNAField?): List<BlendData?>? {
         field ?: return null
-        if (field.decoratedName.startsWith("*")) {
-            var address = pointer(field.offset)
+        return if (field.decoratedName.startsWith("*")) {
+            val address = pointer(field.offset)
             if (address == 0L) return null
             val block = file.blockTable.findBlock(file, address) ?: return null
             var className = field.type.name
@@ -217,17 +195,12 @@ open class BlendData(
             val remainingSize = block.size - addressInBlock
             val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
-            // if(length > 1000000) throw RuntimeException()
-            file.getOrCreate(struct, className, block, address) ?: return null
-            return Array(length.toInt()) {
-                val obj = file.getOrCreate(struct, className, block, address)
-                address += typeSize
-                obj
+            file.getOrCreate(struct, className, block, address) ?: return null // if no instance can be created, just return null
+            createArrayList(length.toInt()) {
+                val addressI = address + it * typeSize
+                file.getOrCreate(struct, className, block, addressI)
             }
-        } else {
-            return inside(field)
-                .run { arrayOf(this) }
-        }
+        } else listOf(inside(field))
     }
 
 

@@ -21,7 +21,7 @@ import kotlin.math.sin
 fun main() {
 
     var run = false
-    val titles = arrayOf("Red", "Green", "Blue")
+    val titles = listOf("Red", "Green", "Blue")
 
     // to prevent errors from the engine, which is currently using single-threaded OpenGL
     Build.isDebug = false

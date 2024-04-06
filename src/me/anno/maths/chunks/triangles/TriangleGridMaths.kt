@@ -32,33 +32,33 @@ object TriangleGridMaths {
     const val DELTA_Y_TO_CENTER = SQRT3 / 12
 
     // vertices are sorted by angle, starting at 0°
-    val verticesUp = arrayOf(
+    val verticesUp = listOf(
         Vector2d(0.5, -SQRT3 * 0.25),
         Vector2d(0.0, SQRT3 * 0.25),
         Vector2d(-0.5, -SQRT3 * 0.25),
     )
 
     // vertices are sorted by angle, starting at >0°
-    val verticesDown = arrayOf(
+    val verticesDown = listOf(
         Vector2d(0.5, SQRT3 * 0.25),
         Vector2d(-0.5, SQRT3 * 0.25),
         Vector2d(0.0, -SQRT3 * 0.25),
     )
 
     // neighbors are sorted by angle, starting at 0°
-    val neighborsDirectUp = arrayOf(
+    val neighborsDirectUp = listOf(
         Vector2i(1, 0),
         Vector2i(-1, 0),
         Vector2i(1, -1),
     )
 
-    val neighborsDirectDown = arrayOf(
+    val neighborsDirectDown = listOf(
         Vector2i(1, 0),
         Vector2i(-1, 1),
         Vector2i(-1, 0),
     )
 
-    val neighborsIndirectUp = arrayOf(
+    val neighborsIndirectUp = listOf(
         Vector2i(2, 0),
         Vector2i(1, 0),
         Vector2i(0, 1),
@@ -73,7 +73,7 @@ object TriangleGridMaths {
         Vector2i(3, -1), // 11
     )
 
-    val neighborsIndirectDown = arrayOf(
+    val neighborsIndirectDown = listOf(
         Vector2i(1, 0),
         Vector2i(2, 0),
         Vector2i(1, 1), // 2
@@ -88,7 +88,7 @@ object TriangleGridMaths {
         Vector2i(2, -1),
     )
 
-    fun getVertices(down: Boolean): Array<Vector2d> {
+    fun getVertices(down: Boolean): List<Vector2d> {
         return if (down) verticesDown
         else verticesUp
     }
@@ -106,17 +106,17 @@ object TriangleGridMaths {
         return getVertex(index.x, index.y, vertexIndex, dst)
     }
 
-    fun getNeighborsDirect(down: Boolean): Array<Vector2i> {
+    fun getNeighborsDirect(down: Boolean): List<Vector2i> {
         return if (down) neighborsDirectDown
         else neighborsDirectUp
     }
 
-    fun getNeighborsIndirect(down: Boolean): Array<Vector2i> {
+    fun getNeighborsIndirect(down: Boolean): List<Vector2i> {
         return if (down) neighborsIndirectDown
         else neighborsIndirectUp
     }
 
-    fun getNeighbors(direct: Boolean, down: Boolean): Array<Vector2i> {
+    fun getNeighbors(direct: Boolean, down: Boolean): List<Vector2i> {
         return if (direct) getNeighborsDirect(down)
         else getNeighborsIndirect(down)
     }

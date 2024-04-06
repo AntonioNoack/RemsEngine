@@ -226,8 +226,8 @@ open class EnumInput(
             return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
         }
 
-        fun getEnumConstants(clazz: Class<*>): Array<out Any> {
-            return if (clazz.isEnum) clazz.enumConstants!!
+        fun getEnumConstants(clazz: Class<*>): List<Any> {
+            return if (clazz.isEnum) clazz.enumConstants!!.toList()
             else getEnumConstants(clazz.superclass)
         }
 

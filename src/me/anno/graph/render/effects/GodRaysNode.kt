@@ -39,7 +39,7 @@ class GodRaysNode : ActionNode(
         setInput(4, Vector2f(0f, 0.1f))
     }
 
-    private val framebuffer = Framebuffer(name, 1, 1, arrayOf(TargetType.Float16x3))
+    private val framebuffer = Framebuffer(name, 1, 1, listOf(TargetType.Float16x3))
 
     override fun onDestroy() {
         super.onDestroy()

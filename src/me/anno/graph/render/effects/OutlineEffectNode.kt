@@ -57,8 +57,8 @@ class OutlineEffectNode : RenderViewNode(
         val groupIds = getInput(4) as? IntArray ?: return
         val fillColors = getInput(5) as? List<*> ?: return
         val lineColors = getInput(6) as? List<*> ?: return
-        val fillColors1 = fillColors.filterIsInstance<Vector4f>().toTypedArray()
-        val lineColors1 = lineColors.filterIsInstance<Vector4f>().toTypedArray()
+        val fillColors1 = fillColors.filterIsInstance<Vector4f>()
+        val lineColors1 = lineColors.filterIsInstance<Vector4f>()
         val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
         if (radius >= 0 && numGroupsI > 0) {
             val dst = FBStack["outline", w, h, 4, true, 1, DepthBufferType.NONE]
@@ -90,7 +90,7 @@ class OutlineEffectNode : RenderViewNode(
 
         fun render(
             color: Texture, ids: Texture, numGroups: Int, radius: Int,
-            groupIds: IntArray, fillColors: Array<Vector4f>, lineColors: Array<Vector4f>
+            groupIds: IntArray, fillColors: List<Vector4f>, lineColors: List<Vector4f>
         ) {
             val samples = min(color.texMS.samples, ids.texMS.samples)
             val useMS = samples > 1
