@@ -7,6 +7,7 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.rotateRight
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -538,9 +539,9 @@ class HexagonSphere(
     }
 
     private val lines = ArrayList<Line>(lineIndices.size)
-    private val pentagons = Array(PENTAGON_COUNT) {
+    private val pentagons = createArrayList(PENTAGON_COUNT) {
         val v = vertices[it]
-        creator.create(special0 + it, v, Array(5) { v })
+        creator.create(special0 + it, v, createArrayList(5, v))
     }
 
     private fun calcHexPos(
@@ -560,7 +561,7 @@ class HexagonSphere(
 
     private fun create(center: Vector3f, ab: Vector3f, ac: Vector3f, index: Long, b0: Float, b1: Float): Hexagon {
         val pos = calcHexPos(center, ab, ac, b0, b1)
-        val hex = creator.create(index, pos, Array(6) { create(pos, ab, ac, it) })
+        val hex = creator.create(index, pos, createArrayList(6) { create(pos, ab, ac, it) })
         hex.center.normalize()
         return hex
     }
@@ -574,7 +575,7 @@ class HexagonSphere(
         val ps10 =
             calcHexPos(ba.tri.center, ba.tri.ab, ba.tri.ac, ba.mapI(i0Inv, j) - this.i0, ba.mapJ(i0Inv, j) - j0)
 
-        val corners = Array(6) {
+        val corners = createArrayList(6) {
             val a = (it % 6) < 3
             val x = if (a) ab else ba
             val tri = x.tri
