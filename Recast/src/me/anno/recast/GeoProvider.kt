@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector3f

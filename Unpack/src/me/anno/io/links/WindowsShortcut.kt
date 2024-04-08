@@ -1,11 +1,10 @@
 package me.anno.io.links
 
-import me.anno.io.files.FileReference
-import me.anno.maths.Maths.hasFlag
-import me.anno.utils.structures.Callback
 import me.anno.io.Streams.readNBytes2
+import me.anno.io.files.FileReference
+import me.anno.utils.structures.Callback
+import me.anno.utils.types.Booleans.hasFlag
 import java.io.IOException
-import java.io.InputStream
 import java.text.ParseException
 
 /**

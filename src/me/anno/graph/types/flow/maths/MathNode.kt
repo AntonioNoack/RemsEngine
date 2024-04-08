@@ -8,7 +8,7 @@ import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel

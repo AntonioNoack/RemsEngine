@@ -31,6 +31,8 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withFlag
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -74,30 +76,48 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    @DebugProperty
-    @NotSerializedProperty
-    var hasValidCollisionMask = false
+    private var flags = 0
 
     @DebugProperty
     @NotSerializedProperty
-    var hasSpaceFillingComponents = false
+    var hasValidCollisionMask: Boolean
+        get() = flags.hasFlag(VALID_COLLISION_MASK_FLAG)
+        set(value) {
+            flags = flags.withFlag(VALID_COLLISION_MASK_FLAG, value)
+        }
+
+    @DebugProperty
+    @NotSerializedProperty
+    var hasSpaceFillingComponents: Boolean
+        get() = flags.hasFlag(SPACE_FILLING_FLAG)
+        set(value) {
+            flags = flags.withFlag(SPACE_FILLING_FLAG, value)
+        }
 
     // renderable-cache for faster rendering
     @DebugProperty
     @NotSerializedProperty
-    var hasRenderables = false
+    var hasRenderables: Boolean
+        get() = flags.hasFlag(RENDERABLES_FLAG)
+        set(value) {
+            flags = flags.withFlag(RENDERABLES_FLAG, value)
+        }
 
     @DebugProperty
     @NotSerializedProperty
-    var hasAnyRenderables = false
+    var hasOnUpdate: Boolean
+        get() = flags.hasFlag(ON_UPDATE_FLAG)
+        set(value) {
+            flags = flags.withFlag(ON_UPDATE_FLAG, value)
+        }
 
     @DebugProperty
     @NotSerializedProperty
-    var hasOnUpdate = true
-
-    @DebugProperty
-    @NotSerializedProperty
-    var hasControlReceiver = true
+    var hasControlReceiver: Boolean
+        get() = flags.hasFlag(CONTROL_RECEIVER_FLAG)
+        set(value) {
+            flags = flags.withFlag(CONTROL_RECEIVER_FLAG, value)
+        }
 
     @DebugProperty
     @NotSerializedProperty
@@ -171,12 +191,20 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasValidAABB: Boolean = false
+    var hasValidAABB: Boolean
+        get() = flags.hasFlag(VALID_AABB_FLAG)
+        set(value) {
+            flags = flags.withFlag(VALID_AABB_FLAG, value)
+        }
 
     @Docs("Set by the engine; if so, transforms are ignored")
     @DebugProperty
     @NotSerializedProperty
-    var isPhysicsControlled: Boolean = false
+    var isPhysicsControlled: Boolean
+        get() = flags.hasFlag(PHYSICS_CONTROLLED_FLAG)
+        set(value) {
+            flags = flags.withFlag(PHYSICS_CONTROLLED_FLAG, value)
+        }
 
     // collision mask for faster collision checks
     @DebugProperty
@@ -760,5 +788,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
         private val entityOptionList = listOf(Option(NameDesc("Entity", "Create a child entity", "")) { Entity() })
+        private const val VALID_COLLISION_MASK_FLAG = 1
+        private const val SPACE_FILLING_FLAG = 2
+        private const val RENDERABLES_FLAG = 4
+        private const val PHYSICS_CONTROLLED_FLAG = 8
+        private const val CONTROL_RECEIVER_FLAG = 16
+        private const val CREATED_FLAG = 32
+        private const val ON_UPDATE_FLAG = 64
+        private const val VALID_AABB_FLAG = 128
     }
 }

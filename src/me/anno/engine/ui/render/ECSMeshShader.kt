@@ -15,7 +15,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {

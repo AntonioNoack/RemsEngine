@@ -2,35 +2,34 @@ package me.anno.ui.editor.code
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.fonts.Font
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.io.Streams.readNBytes2
+import me.anno.io.Streams.skipN
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.scrolling.LongScrollable
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
-import me.anno.utils.Color.hex4
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.float16ToFloat32
-import me.anno.io.Streams.readNBytes2
-import me.anno.io.Streams.skipN
 import org.apache.logging.log4j.LogManager
 import java.io.RandomAccessFile
 import java.math.BigInteger
@@ -150,16 +149,16 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     private val buffers = ArrayList<ByteArray?>()
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // calculate line number
-        val v = DrawRectangles.startBatch()
+        val rectBatch = DrawRectangles.startBatch()
         drawBackground(x0, y0, x1, y1)
-        draw(y0, y1, false)
-        DrawRectangles.finishBatch(v)
-        val x = DrawTexts.startSimpleBatch()
-        draw(y0, y1, true)
-        DrawTexts.finishSimpleBatch(x)
+        drawTextOrBackground(y0, y1, false)
+        DrawRectangles.finishBatch(rectBatch)
+        val textBatch = DrawTexts.startSimpleBatch()
+        drawTextOrBackground(y0, y1, true)
+        DrawTexts.finishSimpleBatch(textBatch)
     }
 
-    fun draw(y0: Int, y1: Int, text: Boolean) {
+    fun drawTextOrBackground(y0: Int, y1: Int, textNotBackground: Boolean) {
 
         val charWidth = charWidth
         val extraScrolling = extraScrolling
@@ -172,7 +171,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val l0 = max(0, (y0 - by) / lineHeight)
         val lineCount = ceilDiv(file.length(), bytesPerLine.toLong())
         val l1 = min(ceilDiv(y1 - by, lineHeight.toLong()), lineCount)
-        val bc = if (text) backgroundColor.withAlpha(0) else backgroundColor
+        val bc = if (textNotBackground) backgroundColor.withAlpha(0) else backgroundColor
         val tc = textColor
         val tcAD = textColorDifferent
         val tcSD = textColorSomeDifferent
@@ -181,22 +180,25 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val addressDx = addressDx
 
         // draw addresses
-        if (text) for (lineNumber in l0 until l1) {
-            val y = by0 + (lineNumber * lineHeight - extraScrolling).toInt()
-            val address = lineNumber * bytesPerLine
-            for (digitIndex in 0 until addressDigits) {
-                val digit = address.shr((addressDigits - 1 - digitIndex) * 4)
-                val pairOffset = bx + if ((digitIndex + addressDigits).and(1) > 0) -1 else +1
-                val x = pairOffset + digitIndex * charWidth
-                // group these in pairs as well
-                drawChar(x, y, hex4(digit), tc, bc, true)
+        if (textNotBackground) {
+            for (lineNumber in l0 until l1) {
+                val y = by0 + (lineNumber * lineHeight - extraScrolling).toInt()
+                val address = lineNumber * bytesPerLine
+                for (digitIndex in 0 until addressDigits) {
+                    val digit = address.shr((addressDigits - 1 - digitIndex) * 4)
+                    val pairOffset = bx + if ((digitIndex + addressDigits).and(1) > 0) -1 else +1
+                    val x = pairOffset + digitIndex * charWidth
+                    // group these in pairs as well
+                    drawChar(x, y, hex4(digit.toInt()), tc, bc)
+                }
             }
         }
+
         lateinit var buffer: ByteArray
         var lastBufferIndex = -1L
         // draw content
         val ox2 = bytesPerLine * spacing2 + addressDx + bx
-        val sbc = if (text) selectedBackgroundColor.withAlpha(0) else selectedBackgroundColor
+        val sbc = if (textNotBackground) selectedBackgroundColor.withAlpha(0) else selectedBackgroundColor
         loop@ for (lineNumber in l0 until l1) {
             for (lineIndex in 0 until bytesPerLine) {
                 val byteIndex = lineNumber * bytesPerLine + lineIndex
@@ -228,16 +230,22 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
                 val bc1 = if (isSelected) sbc else bc
                 // draw hex
-                drawChar(lineIndex * 2, lineNumber, ox + 1, by0, hex4(value.shr(4)), tc1, bc1, text)
-                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, by0, hex4(value), tc1, bc1, text)
+                drawChar(lineIndex * 2, lineNumber, ox + 1, by0, hex4(value.shr(4)), tc1, bc1, textNotBackground)
+                drawChar(lineIndex * 2 + 1, lineNumber, ox - 1, by0, hex4(value), tc1, bc1, textNotBackground)
                 if (showText) {
                     // draw byte as char
-                    drawChar(bytesPerLine * 2 + lineIndex, lineNumber, ox2, by0, displayedBytes[value], tc1, bc1, text)
+                    drawChar(
+                        bytesPerLine * 2 + lineIndex,
+                        lineNumber, ox2, by0,
+                        displayedBytes[value],
+                        tc1, bc1, textNotBackground
+                    )
                 }
             }
         }
+
         // separation lines
-        if (!text) {
+        if (!textNotBackground) {
             val yl0 = max(y0.toLong(), by)
             val yl1 = (min(y1.toLong(), by + lineCount * lineHeight) - yl0).toInt()
             val yl0i = yl0.toInt()
@@ -253,16 +261,16 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     }
 
     fun drawChar(
-        xi: Int, yi: Long, dx: Int, dy: Int, char: Char,
+        xi: Int, yi: Long, dx: Int, dy: Int, char: String,
         textColor: Int, backgroundColor: Int,
-        text1: Boolean
+        drawTextNotBackground: Boolean
     ) {
-        if (char == ' ') return
+        if (char == " ") return
         val x = dx + xi * charWidth
         val y = dy + (yi * lineHeight - extraScrolling).toInt()
-        if (text1) {
+        if (drawTextNotBackground) {
             drawSimpleTextCharByChar(
-                x, y, 0, char.toString(), textColor, backgroundColor,
+                x, y, 0, char, textColor, backgroundColor,
                 AxisAlignment.MIN, AxisAlignment.MIN, batched = true
             )
         } else if (backgroundColor != this.backgroundColor) {
@@ -271,19 +279,13 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     }
 
     fun drawChar(
-        x: Int, y: Int, char: Char,
-        textColor: Int, backgroundColor: Int,
-        text1: Boolean
+        x: Int, y: Int, char: String,
+        textColor: Int, backgroundColor: Int
     ) {
-        if (char == ' ') return
-        if (text1) {
-            drawSimpleTextCharByChar(
-                x, y, 0, char.toString(), textColor, backgroundColor,
-                AxisAlignment.MIN, AxisAlignment.MIN, batched = true
-            )
-        } else if (backgroundColor != this.backgroundColor) {
-            drawRect(x, y, charWidth, lineHeight, backgroundColor)
-        }
+        drawSimpleTextCharByChar(
+            x, y, 0, char, textColor, backgroundColor,
+            AxisAlignment.MIN, AxisAlignment.MIN, batched = true
+        )
     }
 
     fun getCursorAt(x: Float, y: Float): Long {
@@ -415,14 +417,22 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         private const val timeout = 5_000L
         private val cache = CacheSection("ByteSections")
 
-        val displayedBytes = CharArray(256) { '.' }
+        val displayedBytes = Array(256) { "." }
 
         init {
             val d = displayedBytes
-            for (c in 'A'..'Z') d[c.code] = c
-            for (c in 'a'..'z') d[c.code] = c
-            for (c in '0'..'9') d[c.code] = c
-            for (c in "@^°,-_:;`~'!\"§$%&/()=?{[]}\\+-*/|<>") d[c.code] = c
+            for (c in 'A'..'Z') d[c.code] = c.toString()
+            for (c in 'a'..'z') d[c.code] = c.toString()
+            for (c in '0'..'9') d[c.code] = c.toString()
+            for (c in "@^°,-_:;`~'!\"§$%&/()=?{[]}\\+-*/|<>") d[c.code] = c.toString()
+        }
+
+        fun hex4(j: Int): String {
+            val i = j and 15
+            return displayedBytes[when (i) {
+                in 0 until 10 -> i + 48
+                else -> i + 97 - 10
+            }]
         }
 
         fun get(file: FileReference, index: Long, async: Boolean): ByteArray? {

@@ -33,9 +33,9 @@ object Events {
     }
 
     fun workEventTasks() {
+        val time = Time.nanoTime
         while (scheduledTasks.isNotEmpty()) {
             try {
-                val time = Time.nanoTime
                 val peeked = scheduledTasks.peek()!!
                 if (time >= peeked.first) {
                     scheduledTasks.poll()!!.second.invoke()

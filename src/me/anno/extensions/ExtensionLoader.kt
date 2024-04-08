@@ -15,6 +15,7 @@ import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
+import java.net.URL
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
 import kotlin.concurrent.thread
@@ -201,7 +202,7 @@ object ExtensionLoader {
                 // load the classes
                 val exFile = ex.file
                 val urlClassLoader =
-                    if (exFile.exists) URLClassLoader(arrayOf(exFile.toUri().toURL()), javaClass.classLoader)
+                    if (exFile.exists) URLClassLoader(arrayOf(URL(exFile.absolutePath)), javaClass.classLoader)
                     else ClassLoader.getSystemClassLoader()
                 Thread.currentThread().contextClassLoader = urlClassLoader
                 val classToLoad = Class.forName(className, true, urlClassLoader)

@@ -107,12 +107,6 @@ abstract class InnerFile(
 
     override val exists: Boolean = true
 
-    // override fun toString(): String = relativePath
-
-    override fun toUri(): URI {
-        return URI("zip://${absolutePath.replace(" ", "%20")}")
-    }
-
     override fun deleteRecursively(): Boolean {
         throw RuntimeException("Writing into zip files is not yet supported")
     }

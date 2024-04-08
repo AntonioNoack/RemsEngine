@@ -21,7 +21,7 @@ import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.mesh.assimp.StaticMeshesLoader.shininessToRoughness
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA

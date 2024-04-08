@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.LRUCache
 import me.anno.fonts.FontStats.getTextGenerator
 import me.anno.fonts.FontStats.queryInstalledFonts
 import me.anno.fonts.keys.FontKey
@@ -153,10 +154,17 @@ object FontManager {
         return getTexture(key, timeoutMillis, async)
     }
 
+    private val asciiTexLRU = LRUCache<Font, Texture2DArray>(16)
     fun getASCIITexture(font: Font): Texture2DArray {
-        return TextCache.getEntry(font, textureTimeout, false) { key ->
+        val prev = asciiTexLRU[font]
+        if (prev is Texture2DArray && prev.isCreated()) {
+            return prev
+        }
+        val curr = TextCache.getEntry(font, textureTimeout, false) { key ->
             getFont(key).generateASCIITexture(false)
         } as Texture2DArray
+        asciiTexLRU[font] = curr
+        return curr
     }
 
     fun getTexture(cacheKey: TextCacheKey, async: Boolean): ITexture2D? {

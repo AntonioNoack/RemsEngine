@@ -47,8 +47,4 @@ object FileRootRef : FileReference("root") {
     override val lastModified: Long get() = 0L
     override val lastAccessed: Long get() = 0L
     override val creationTime: Long get() = 0L
-
-    override fun toUri(): URI {
-        return URI("file:/")
-    }
 }

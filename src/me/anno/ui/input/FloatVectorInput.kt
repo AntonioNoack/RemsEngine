@@ -7,7 +7,7 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style

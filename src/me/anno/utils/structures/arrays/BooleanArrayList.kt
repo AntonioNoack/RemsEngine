@@ -2,6 +2,7 @@ package me.anno.utils.structures.arrays
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.types.Booleans.withFlag
 import kotlin.math.min
 
 /**
@@ -21,11 +22,7 @@ class BooleanArrayList(var size: Int) : Saveable() {
     operator fun set(index: Int, value: Boolean) {
         val arrIndex = index shr 6
         val subIndex = index and 63
-        if (value) {
-            values[arrIndex] = values[arrIndex] or (1L shl subIndex)
-        } else {
-            values[arrIndex] = values[arrIndex] and (1L shl subIndex).inv()
-        }
+        values[arrIndex] = values[arrIndex].withFlag(1L shl subIndex, value)
     }
 
     fun set(index: Int) {

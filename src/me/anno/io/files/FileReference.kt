@@ -398,8 +398,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract val lastAccessed: Long
     abstract val creationTime: Long
 
-    abstract fun toUri(): URI
-
     override fun equals(other: Any?): Boolean {
         return other is FileReference && other._hashCode == _hashCode && other.absolutePath == absolutePath
     }

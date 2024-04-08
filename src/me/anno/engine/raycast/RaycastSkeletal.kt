@@ -1,7 +1,7 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Triangles
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f

@@ -4,7 +4,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.pooling.JomlPools

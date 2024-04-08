@@ -48,7 +48,6 @@ object InvalidRef : FileReference("") {
         return false
     }
 
-    // a local file...
     override fun getChild(name: String): FileReference = InvalidRef
 
     override val exists: Boolean get() = false
@@ -58,10 +57,6 @@ object InvalidRef : FileReference("") {
     override val lastModified: Long get() = 0L
     override val lastAccessed: Long get() = 0L
     override val creationTime: Long get() = 0L
-
-    override fun toUri(): URI {
-        return URI("file:/invalid")
-    }
 
     override fun toString() = ""
 

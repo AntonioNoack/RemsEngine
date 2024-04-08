@@ -18,7 +18,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.mesh.Shapes
 import org.joml.AABBd
 import org.joml.Matrix4x3d

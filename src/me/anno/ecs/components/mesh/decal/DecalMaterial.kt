@@ -7,7 +7,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GPUShader
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f

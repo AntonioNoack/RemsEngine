@@ -17,7 +17,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE24
 import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.hpc.ProcessingQueue

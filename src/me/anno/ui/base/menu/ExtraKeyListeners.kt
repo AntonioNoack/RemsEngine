@@ -1,6 +1,6 @@
 package me.anno.ui.base.menu
 
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 
 /**
  * utility class for defining extra-keys for menus:

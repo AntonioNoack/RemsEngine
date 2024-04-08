@@ -2,6 +2,7 @@ package me.anno.tests.game
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -138,6 +139,7 @@ object VisualNovel {
     @JvmStatic
     fun main(args: Array<String>) {
 
+        OfficialExtensions.initForTests()
         // story graph
         // nodes for changing character images, background, effects and such,
         // todo load good images from somewhere...

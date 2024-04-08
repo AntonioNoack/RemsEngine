@@ -58,7 +58,7 @@ object DrawTexts {
         Font(fontName, size, bold, italic)
     }
 
-    val simpleBatch = object : Batch(
+    private val simpleBatch = object : Batch(
         "simpleTextBatch", flat01, listOf(
             Attribute("instData", 3),
             Attribute("color0", AttributeType.UINT8_NORM, 4),
@@ -86,17 +86,19 @@ object DrawTexts {
         val shader = chooseShader(-1, -1, 1)
         val texture = FontManager.getASCIITexture(font)
         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-        val v = if (shader is Shader) {
-            val v = simpleBatch.start()
-            posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
-            v
+        val batch = if (shader is Shader) {
+            val batch = simpleBatch.start()
+            if (batch == 0) {
+                posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
+            }
+            batch
         } else 0
-        return if (x) v else v.inv()
+        return if (x) batch else batch.inv()
     }
 
-    fun finishSimpleBatch(v: Int) {
-        simpleBatch.finish(if (v < 0) v.inv() else v)
-        popBetterBlending(v < 0)
+    fun finishSimpleBatch(batch: Int) {
+        simpleBatch.finish(if (batch < 0) batch.inv() else batch)
+        popBetterBlending(batch >= 0)
     }
 
     fun drawSimpleTextCharByChar(
@@ -119,16 +121,18 @@ object DrawTexts {
         val dx0 = getOffset(width, alignX) - padding
         val dy0 = getOffset(height, alignY) - padding
 
-        if (backgroundColor.a() != 0) DrawRectangles.drawRect(
-            x + dx0, y + dy0,
-            charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
-            backgroundColor
-        )
+        if (backgroundColor.a() != 0) {
+            DrawRectangles.drawRect(
+                x + dx0, y + dy0,
+                charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
+                backgroundColor
+            )
+        }
 
         val background = backgroundColor and 0xffffff
 
         val texture = FontManager.getASCIITexture(font)
-        var v = 0
+        var v = 1
         val shader = if (!batched) {
             val shader = chooseShader(textColor, background, 1)
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
@@ -186,8 +190,8 @@ object DrawTexts {
         return width
     }
 
-    // slightly buggy (missing barriers?), but allows for correct rendering of text against any background with correct subpixel rendering
-    private var enableComputeRendering = false
+    var enableComputeRendering = false
+        private set
 
     fun pushBetterBlending(enabled: Boolean): Boolean {
         val pbb = enableComputeRendering

@@ -28,7 +28,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Strings.iff

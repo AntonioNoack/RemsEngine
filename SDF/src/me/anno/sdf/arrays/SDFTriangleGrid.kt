@@ -9,7 +9,7 @@ import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
 import me.anno.sdf.random.SDFRandom.Companion.twoInputRandom
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf

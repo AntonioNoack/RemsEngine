@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.engine.inspector.CachedProperty
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2f
 import org.joml.Vector2d
 import org.joml.Vector3f

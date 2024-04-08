@@ -16,7 +16,7 @@ import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE32F
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.align
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads

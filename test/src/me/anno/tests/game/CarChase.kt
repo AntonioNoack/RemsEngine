@@ -15,6 +15,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -230,5 +231,6 @@ fun createUI(): Panel {
 fun main() {
     // todo bug: why are meshes and materials not automatically reloading?
     disableRenderDoc()
+    OfficialExtensions.initForTests()
     testUI3("CarChase") { createUI() }
 }

@@ -20,6 +20,7 @@ import me.anno.ecs.components.mesh.material.AutoTileableMaterial
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc
 import me.anno.input.Input
@@ -43,6 +44,7 @@ import kotlin.math.abs
 fun main() {
 
     RenderDoc.forceLoadRenderDoc()
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
 
     val scene = Entity("Scene")

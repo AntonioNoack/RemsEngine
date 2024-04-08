@@ -2,7 +2,7 @@ package me.anno.maths.chunks.triangles
 
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector2d
 import org.joml.Vector2i
 import kotlin.math.atan2

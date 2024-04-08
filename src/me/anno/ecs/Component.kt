@@ -158,10 +158,4 @@ abstract class Component : PrefabSaveable() {
         builder.append('\n')
         return builder
     }
-
-    companion object {
-        fun create(type: String): Component {
-            return (createOrNull(type) ?: throw IllegalStateException("Missing $type")) as Component
-        }
-    }
 }

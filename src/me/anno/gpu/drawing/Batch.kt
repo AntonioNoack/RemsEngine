@@ -1,5 +1,6 @@
 package me.anno.gpu.drawing
 
+import me.anno.Time
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
@@ -50,15 +51,13 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
     }
 
     fun finish(v: Int) {
-        if (v == 0) {
-            if (batchCount > 0) {
-                draw()
-            }
-            active = false
-            shader = null
+        if (v != 0) return
+        if (batchCount > 0) {
+            draw()
         }
+        active = false
+        shader = null
     }
 
     abstract fun bindShader(): Shader
-
 }

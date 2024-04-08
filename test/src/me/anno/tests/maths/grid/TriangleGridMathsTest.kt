@@ -5,7 +5,7 @@ import me.anno.maths.chunks.triangles.TriangleGridMaths.getNeighbors
 import me.anno.maths.chunks.triangles.TriangleGridMaths.getVertices
 import me.anno.maths.chunks.triangles.TriangleGridMaths.indexToCoords
 import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2d
 import org.joml.Vector2i

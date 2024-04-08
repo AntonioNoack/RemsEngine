@@ -2,7 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.config.ConfigRef
 import me.anno.ecs.annotations.Range
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.engine.inspector.Inspectable
 import org.joml.Vector3d
 import kotlin.math.floor

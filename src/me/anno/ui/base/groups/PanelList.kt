@@ -19,7 +19,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     var allChildrenHaveSameSize = false
 
     fun needsPosUpdate(x: Int, y: Int): Boolean {
-        return this.x != x || this.y != y || lastPosTime != Time.nanoTime
+        return this.x != x || this.y != y || lastPosTime != Time.lastTimeNanos
     }
 
     open fun clear() {

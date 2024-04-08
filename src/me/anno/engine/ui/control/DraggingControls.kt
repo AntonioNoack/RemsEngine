@@ -33,7 +33,7 @@ import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton

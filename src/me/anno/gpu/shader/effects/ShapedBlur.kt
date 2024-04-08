@@ -18,7 +18,7 @@ import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32F
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.io.Streams.readNBytes2
 import org.joml.Vector3f
 import org.joml.Vector4f

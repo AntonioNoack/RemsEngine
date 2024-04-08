@@ -33,7 +33,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
 import me.anno.utils.Color.a

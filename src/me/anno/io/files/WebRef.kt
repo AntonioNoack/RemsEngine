@@ -16,12 +16,10 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.UnsupportedEncodingException
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
 import java.net.URLConnection
 import kotlin.concurrent.thread
 import kotlin.math.min
-
 
 /**
  * http/https resource
@@ -76,7 +74,6 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
     fun toURL() = URL(absolutePath)
     override fun toLocalPath(workspace: FileReference) = absolutePath
-    override fun toUri() = URI(absolutePath)
 
     override fun getChild(name: String): FileReference {
         val splitIndex = absolutePath.indexOf('?')

@@ -14,7 +14,7 @@ import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaterniond

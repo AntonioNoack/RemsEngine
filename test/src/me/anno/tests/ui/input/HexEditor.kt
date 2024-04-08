@@ -1,29 +1,26 @@
 package me.anno.tests.ui.input
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.EngineBase
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.ActionManager
-import me.anno.engine.EngineBase
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.code.HexEditor
-import me.anno.utils.OS
+import me.anno.utils.OS.documents
 
 fun main() {
+    // todo why is it only showing 85kB?
     disableRenderDoc()
-    testUI("Hex Editor") {
+    testUI3("Hex Editor") {
         EngineBase.enableVSync = false
         ActionManager.register("HexEditor.s.t.c", "Save")
         val list = PanelListX(DefaultConfig.style)
-        val files = listOf(
-            OS.desktop.getChild("SM_Prop_Gem_03.prefab"),
-            OS.desktop.getChild("SM_Env_Minetrack_Bridge_Broken_01.prefab"),
-            OS.desktop.getChild("Character_Ghost_01.prefab"),
-            OS.desktop.getChild("Character_Ghost_02.prefab"),
-            OS.desktop.getChild("FX_Sword_Fire.prefab")
-        )
+        val files = documents
+            .getChild("IdeaProjects/RemsStudio/out/artifacts/Universal")
+            .listChildren().filter { it.lcExtension == "exe" }
         for (file1 in files) {
             list.add(HexEditor(DefaultConfig.style).apply {
                 file = file1

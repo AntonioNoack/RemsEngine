@@ -23,6 +23,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.random
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.custom.CustomList
@@ -54,6 +55,7 @@ fun createTestTerrain(): MeshComponent {
 }
 
 fun main() {
+    OfficialExtensions.initForTests()
     testUI3("World Builder") {
 
         ECSRegistry.init()

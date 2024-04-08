@@ -37,38 +37,39 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         var availableW = w - padding.width
         val availableH = h - padding.height
 
+        fun addChildSize(child: Panel, childCount: Int) {
+            val dx = child.minW * childCount
+            constantSum += dx
+            maxY = max(maxY, child.y + child.minH)
+            availableW = max(0, availableW - dx)
+            if (child.weight > 0f) {
+                weightSum += child.weight * childCount
+            } else {
+                constantSumWW += dx
+            }
+        }
+
         val children = children
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
             // optimize for case that all children have same size
-            val child0 = children[0]
+            val child = children[0]
             val count = children.count2 { it.isVisible }
-            child0.calculateSize(availableW, availableH)
-            // apply constraints?
-            constantSum += count * child0.minW
-            maxY = max(maxY, child0.y + child0.minH)
-            weightSum += count * max(0f, child0.weight)
+            child.calculateSize(availableW, availableH)
+            addChildSize(child, count)
             // assign child measurements to all visible children
             for (i in children.indices) {
-                val child = children[i]
-                child.width = child0.width
-                child.height = child0.height
-                child.minW = child0.minW
-                child.minH = child0.minH
+                val childI = children[i]
+                childI.width = child.width
+                childI.height = child.height
+                childI.minW = child.minW
+                childI.minH = child.minH
             }
         } else {
             for (i in children.indices) {
                 val child = children[i]
                 if (child.isVisible) {
                     child.calculateSize(availableW, availableH)
-                    // apply constraints?
-                    constantSum += child.minW
-                    maxY = max(maxY, child.y + child.minH)
-                    availableW = max(0, availableW - child.minW)
-                    if (child.weight > 0f) {
-                        weightSum += child.weight
-                    } else {
-                        constantSumWW += child.minW
-                    }
+                    addChildSize(child, 1)
                 }
             }
         }
@@ -111,7 +112,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     override fun setPosition(x: Int, y: Int) {
         if (true || needsPosUpdate(x, y)) {
-            lastPosTime = Time.nanoTime
+            lastPosTime = Time.lastTimeNanos
 
             super.setPosition(x, y)
 
@@ -122,8 +123,9 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             val childY = y + padding.top
 
             val children = children
-            if (allChildrenHaveSameSize) {
-                val childW = availableW / max(children.count2 { it.isVisible }, 1)
+            if (allChildrenHaveSameSize && children.isNotEmpty()) {
+                val idealW = availableW / max(children.count2 { it.isVisible }, 1)
+                val childW = if (children[0].weight > 0f) idealW else min(idealW, children[0].minW)
                 for (i in children.indices) {
                     val child = children[i]
                     if (child.isVisible) {

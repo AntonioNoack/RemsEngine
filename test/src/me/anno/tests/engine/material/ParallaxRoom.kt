@@ -15,7 +15,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths.hasFlag
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.documents
 import org.joml.Vector3d

@@ -16,6 +16,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.tests.game.creeperworld.RockTypes.dissolved
 import me.anno.tests.game.creeperworld.RockTypes.hardness
 import me.anno.tests.game.creeperworld.RockTypes.rock
@@ -112,6 +113,7 @@ val sumByType = HashMap<String, String>()
 
 fun main() {
 
+    OfficialExtensions.initForTests()
     val world = CreeperWorld(512, 256)
 
     val w = world.w

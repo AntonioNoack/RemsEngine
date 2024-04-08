@@ -624,16 +624,10 @@ object Maths {
     fun roundDiv(a: Long, b: Long) = (a + b.shr(1)) / b
 
     @JvmStatic
-    fun align(size: Int, rem: Int) = ceilDiv(size, rem) * rem
+    fun align(size: Int, rem: Int): Int = ceilDiv(size, rem) * rem
 
     @JvmStatic
-    fun align(size: Long, rem: Long) = ceilDiv(size, rem) * rem
-
-    @JvmStatic
-    fun Int.hasFlag(flag: Int) = (this and flag) == flag
-
-    @JvmStatic
-    fun Long.hasFlag(flag: Long) = (this and flag) == flag
+    fun align(size: Long, rem: Long): Long = ceilDiv(size, rem) * rem
 
     @JvmStatic
     fun Int.factorial(): Int {

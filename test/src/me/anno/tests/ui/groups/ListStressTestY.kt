@@ -13,7 +13,9 @@ fun main() {
         val n = 100_000
         val list = PanelListY(style)
         list.allChildrenHaveSameSize = true
-        for (i in 0 until n) list.add(TextPanel("Test-$i", style))
+        for (i in 0 until n) {
+            list.add(TextPanel("Test-$i", style))
+        }
         ScrollPanelY(list, style)
     }
 }

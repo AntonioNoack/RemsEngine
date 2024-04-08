@@ -25,7 +25,9 @@ open class AsyncCacheData<V> : ICacheData {
 
     fun waitForGFX(callback: (V?) -> Unit) {
         if (hasValue) callback(value)
-        else addEvent { waitForGFX(callback) }
+        else addEvent(1) {
+            waitForGFX(callback)
+        }
     }
 
     override fun destroy() {
