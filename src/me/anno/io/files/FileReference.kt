@@ -6,7 +6,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.image.thumbs.Thumbs
-import me.anno.image.thumbs.ThumbsExt
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
@@ -20,7 +20,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.OutputStreamWriter
-import java.net.URI
 import java.nio.ByteBuffer
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
@@ -379,7 +378,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
                 // dae is XML
                 when (lcExtension) {
-                    in ThumbsExt.unityExtensions, "json" -> {
+                    in AssetThumbHelper.unityExtensions, "json" -> {
                         // LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }

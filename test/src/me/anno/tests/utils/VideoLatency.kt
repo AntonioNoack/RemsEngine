@@ -8,8 +8,8 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.image.thumbs.ThumbsExt
-import me.anno.image.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.AssetThumbHelper
+import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
 import me.anno.maths.Maths
 import me.anno.mesh.Shapes
 import me.anno.tests.gfx.initWithGFX
@@ -45,7 +45,7 @@ fun main() {
 
     initWithGFX()
 
-    val cameraMatrix = ThumbsExt.createCameraMatrix(1f).rotateZ(Maths.PIf)
+    val cameraMatrix = AssetThumbHelper.createCameraMatrix(1f).rotateZ(Maths.PIf)
 
     fun createModelMatrix(frameIndex: Float): Matrix4x3f {
         val stack = Matrix4x3f()

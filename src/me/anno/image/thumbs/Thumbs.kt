@@ -39,7 +39,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * creates and caches small versions of image and video resources
+ * creates and caches small versions of image, video and mesh resources
  *
  * // todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
  * */
@@ -60,10 +60,6 @@ object Thumbs {
     private const val timeout = 5000L
 
     var useCacheFolder = true
-
-    // todo choose jpg/png depending on where alpha is present;
-    //  use webp if possible
-    private const val destinationFormat = "png"
 
     val sphereMesh = UVSphereModel.createUVSphere(30, 30)
 
@@ -243,7 +239,8 @@ object Thumbs {
     ) {
         if (dstKey != InvalidKey) {
             val bos = ByteArrayOutputStream()
-            dst.write(bos, destinationFormat)
+            // todo could we write webp? is most efficient
+            dst.write(bos, if (dst.hasAlphaChannel) "png" else "jpg")
             bos.close()
             // todo we could skip toByteArray() by using our own type,
             //  and putting a ByteSlice

@@ -9,8 +9,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.image.thumbs.ThumbsExt.createCameraMatrix
-import me.anno.image.thumbs.ThumbsExt.drawAssimp
+import me.anno.image.thumbs.AssetThumbHelper.createCameraMatrix
+import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
 import me.anno.maths.Maths.PIf
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.gfx.initWithGFX

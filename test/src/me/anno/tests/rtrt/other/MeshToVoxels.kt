@@ -19,7 +19,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture3D
-import me.anno.image.thumbs.ThumbsExt.waitForTextures
+import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min

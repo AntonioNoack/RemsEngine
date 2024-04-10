@@ -23,7 +23,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
 import me.anno.io.files.FileReference
-import me.anno.image.thumbs.ThumbsExt
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.engine.inspector.Inspectable
@@ -173,7 +173,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
             val sky = Skybox()
             val cameraMatrix = Matrix4f()
             override val canDrawOverBorders get() = true
-            private val modelMatrix = ThumbsExt.createModelMatrix().scale(0.62f)
+            private val modelMatrix = AssetThumbHelper.createModelMatrix().scale(0.62f)
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 useFrame(previewRenderer) {
                     sky.nadirSharpness = 10f
@@ -188,7 +188,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
                         (x1 - x0) * 1f / (y1 - y0),
                         0.001f, 10f, 0f, 0f
                     )
-                    ThumbsExt.bindShader(shader, cameraMatrix, modelMatrix)
+                    AssetThumbHelper.bindShader(shader, cameraMatrix, modelMatrix)
                     sky.material.bind(shader)
                     sky.getMesh().draw(shader, 0)
                 }

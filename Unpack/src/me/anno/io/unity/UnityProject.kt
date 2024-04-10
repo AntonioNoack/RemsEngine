@@ -8,7 +8,7 @@ import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.image.thumbs.ThumbsExt
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -77,7 +77,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 folder.hide()
                 files[guid] = folder
                 when (guidObject.lcExtension) {
-                    in ThumbsExt.unityExtensions -> {
+                    in AssetThumbHelper.unityExtensions -> {
                         val node = getYAML(guidObject)
                         parse(node, guid, folder)
                     }

@@ -33,10 +33,10 @@ import kotlin.math.max
 /**
  * extra functions for thumbnail generator, because that class is growing too big
  * */
-object ThumbsExt {
+object AssetThumbHelper {
 
     val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
-    private val LOGGER = LogManager.getLogger(ThumbsExt::class)
+    private val LOGGER = LogManager.getLogger(AssetThumbHelper::class)
 
     private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
         for (index in 0 until max(l0.size, l1.size)) {

@@ -8,7 +8,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.image.thumbs.Thumbs
-import me.anno.image.thumbs.ThumbsExt
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.io.links.LNKReader
 import me.anno.io.links.URLReader
 import me.anno.io.links.WindowsShortcut
@@ -27,7 +27,7 @@ class UnpackPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
 
-        DefaultConfig.addImportMappings("Asset", *ThumbsExt.unityExtensions.toTypedArray())
+        DefaultConfig.addImportMappings("Asset", *AssetThumbHelper.unityExtensions.toTypedArray())
         PrefabCache.unityReader = UnityReader::loadUnityFile
 
         // compressed folders
@@ -64,12 +64,12 @@ class UnpackPlugin : Plugin() {
         }
 
         // try as an asset
-        for (ext in ThumbsExt.unityExtensions) {
+        for (ext in AssetThumbHelper.unityExtensions) {
             Thumbs.registerExtension(ext, AssetThumbnails::generateAssetFrame)
         }
 
         // register yaml generally for unity files?
-        InnerFolderCache.registerFileExtension(ThumbsExt.unityExtensions) { it, c ->
+        InnerFolderCache.registerFileExtension(AssetThumbHelper.unityExtensions) { it, c ->
             val f = UnityReader.readAsFolder(it) as? InnerFolder
             c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
         }

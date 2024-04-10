@@ -30,8 +30,8 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
-import me.anno.image.thumbs.ThumbsExt.drawAssimp
-import me.anno.image.thumbs.ThumbsExt.findModelMatrix
+import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
+import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
@@ -73,8 +73,8 @@ object AssetThumbnails {
     ) {
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
-            ThumbsExt.waitForMeshes(scene)
-            ThumbsExt.waitForTextures(scene, srcFile)
+            AssetThumbHelper.waitForMeshes(scene)
+            AssetThumbHelper.waitForTextures(scene, srcFile)
         }
         scene.validateTransform()
         scene.getBounds()
@@ -154,7 +154,7 @@ object AssetThumbnails {
         size: Int,
         callback: Callback<ITexture2D>
     ) {
-        ThumbsExt.waitForTextures(materials.mapNotNull { MaterialCache[it] })
+        AssetThumbHelper.waitForTextures(materials.mapNotNull { MaterialCache[it] })
         ThumbsRendering.renderMultiWindowImage(
             srcFile, dstFile, materials.size, size, false,
             Renderers.previewRenderer, callback
@@ -197,8 +197,8 @@ object AssetThumbnails {
         callback: Callback<ITexture2D>
     ) {
         Warning.unused(srcFile)
-        val cameraMatrix = ThumbsExt.createCameraMatrix(1f)
-        val modelMatrix = ThumbsExt.createModelMatrix()
+        val cameraMatrix = AssetThumbHelper.createCameraMatrix(1f)
+        val modelMatrix = AssetThumbHelper.createModelMatrix()
         collider.findModelMatrix(cameraMatrix, modelMatrix, centerMesh = true, normalizeScale = true)
         ThumbsRendering.renderToImage(
             srcFile,
@@ -225,7 +225,7 @@ object AssetThumbnails {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        ThumbsExt.waitForTextures(mesh, srcFile)
+        AssetThumbHelper.waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         ThumbsRendering.renderToImage(
@@ -256,7 +256,7 @@ object AssetThumbnails {
         val mesh = comp.getMesh() as? Mesh ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        ThumbsExt.waitForTextures(comp, mesh, srcFile)
+        AssetThumbHelper.waitForTextures(comp, mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         ThumbsRendering.renderToImage(
@@ -293,8 +293,8 @@ object AssetThumbnails {
         }
     }
 
-    private val matCameraMatrix = ThumbsExt.createCameraMatrix(1f)
-    private val matModelMatrix = ThumbsExt.createModelMatrix().scale(0.62f)
+    private val matCameraMatrix = AssetThumbHelper.createCameraMatrix(1f)
+    private val matModelMatrix = AssetThumbHelper.createModelMatrix().scale(0.62f)
 
     @JvmStatic
     fun generateMaterialFrame(
@@ -304,7 +304,7 @@ object AssetThumbnails {
         size: Int,
         callback: Callback<ITexture2D>
     ) {
-        ThumbsExt.waitForTextures(material)
+        AssetThumbHelper.waitForTextures(material)
         ThumbsRendering.renderToImage(
             srcFile, false, dstFile, true, Renderers.previewRenderer,
             true, callback, size, size
