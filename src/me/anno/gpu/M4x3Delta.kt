@@ -11,6 +11,9 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 
+/**
+ * utilities for storing a Matrix4x3f with a constant offset, and uniform scale
+ * */
 object M4x3Delta {
 
     @JvmField

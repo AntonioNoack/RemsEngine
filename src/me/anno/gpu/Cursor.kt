@@ -64,6 +64,7 @@ class Cursor : ICacheData {
         // glfwDestroyCursor(pointer)
     }
 
+    @Suppress("unused")
     companion object {
         val default = Cursor(0)
         val resize = Cursor(GLFW_RESIZE_ALL_CURSOR)

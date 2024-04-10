@@ -12,9 +12,10 @@ import me.anno.image.jpg.ExifOrientation
 import me.anno.image.qoi.QOIReader
 import me.anno.image.svg.SVGMesh
 import me.anno.image.tar.TGAReader
+import me.anno.image.thumbs.ImageThumbnails
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.image.thumbs.Thumbs
 import net.sf.image4j.codec.ico.ICOReader
 
 class ImagePlugin : Plugin() {
@@ -78,7 +79,7 @@ class ImagePlugin : Plugin() {
         }
 
         // thumbnails
-        Thumbs.registerSignature("qoi", Thumbs::generateImage)
+        Thumbs.registerSignature("qoi", ImageThumbnails::generateImage)
         Thumbs.registerSignature("jpg", ::generateJPGFrame)
         Thumbs.registerSignature("ico", ::generateICOFrame)
         Thumbs.registerExtension("tga", ::generateTGAFrame)

@@ -38,6 +38,7 @@ import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.input.Clipboard
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
@@ -388,7 +389,7 @@ open class FileExplorerEntry(
                         else DepthMode.FORWARD_CLOSE
                         GFXState.depthMode.use(depthMode) {
                             tmp.clearColor(backgroundColor, true)
-                            Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
+                            AssetThumbnails.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
                     GFX.copy(tmp)
@@ -404,7 +405,7 @@ open class FileExplorerEntry(
                         else DepthMode.FORWARD_CLOSE
                         GFXState.depthMode.use(depthMode) {
                             GFXState.currentBuffer.clearDepth()
-                            Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
+                            AssetThumbnails.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
                 }

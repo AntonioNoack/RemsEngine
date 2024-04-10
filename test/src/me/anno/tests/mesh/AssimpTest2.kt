@@ -12,6 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.image.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.assimp.StaticMeshesLoader
@@ -69,7 +70,7 @@ fun main() {
     // check what is the result using the animations
     // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
     val dst0 = desktop.getChild("byAnimation.png")
-    Thumbs.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+    AssetThumbnails.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
         if (result is Texture2D) GPUImage(result).write(dst0)
         exc?.printStackTrace()
     }
@@ -83,7 +84,7 @@ fun main() {
 
     findAllBones(aiScene, rootNode, boneList, boneMap)
     val dst1 = desktop.getChild("byTree.png")
-    Thumbs.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+    AssetThumbnails.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
         if (result is Texture2D) GPUImage(result).write(dst1)
         exc?.printStackTrace()
     }

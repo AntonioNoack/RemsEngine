@@ -1,20 +1,22 @@
 package me.anno.image
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureReader
 import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureReader
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
-import me.anno.jvm.images.BIImage.toImage
-import me.anno.io.files.FileReference
+import me.anno.image.thumbs.ImageThumbnails.generateImage
 import me.anno.image.thumbs.Thumbs
+import me.anno.image.thumbs.ThumbsRendering
+import me.anno.io.files.FileReference
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.Color
+import me.anno.utils.structures.Callback
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList
 import java.io.ByteArrayInputStream
@@ -34,9 +36,9 @@ object ImageThumbnails {
                     val image = ImageIO.read(ByteArrayInputStream(bytes))
                     Thumbs.transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
                 } catch (e: Exception) {
-                    Thumbs.generateImage(srcFile, dstFile, size, callback)
+                    generateImage(srcFile, dstFile, size, callback)
                 }
-            } else Thumbs.generateImage(srcFile, dstFile, size, callback)
+            } else generateImage(srcFile, dstFile, size, callback)
         }
     }
 
@@ -82,7 +84,7 @@ object ImageThumbnails {
 
         val transform = Matrix4fArrayList()
         transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)
-        Thumbs.renderToImage(srcFile, false, dstFile, false, Renderer.colorRenderer, false, callback, w, h) {
+        ThumbsRendering.renderToImage(srcFile, false, dstFile, false, Renderer.colorRenderer, false, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 transform,
                 buffer,

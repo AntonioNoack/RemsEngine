@@ -305,19 +305,16 @@ open class OSWindow(var title: String) {
             synchronized(progressBars) {
                 progressBars.add(bar)
             }
-            for (window in windowStack) {
-                if (window.isFullscreen) {
-                    window.panel.invalidateLayout()
-                }
-            }
+            invalidateLayout()
         }
         return bar
     }
 
     fun invalidateLayout() {
-        for (window1 in windowStack) {
-            if (window1.isFullscreen) {
-                window1.panel.invalidateLayout()
+        for (i in windowStack.indices) {
+            val window = windowStack[i]
+            if (window.isFullscreen) {
+                window.panel.invalidateLayout()
             }
         }
     }

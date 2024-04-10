@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager
 /**
  * RenderDoc is a graphics debugging tool.
  * Rem's Engine supports starting with RenderDoc attached,
- * we just have to initialize RenderDoc before OpenGL
+ * we just have to initialize RenderDoc before OpenGL.
  * */
 object RenderDoc {
 

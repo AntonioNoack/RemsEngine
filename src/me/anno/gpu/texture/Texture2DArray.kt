@@ -57,7 +57,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-// is this correct?
 open class Texture2DArray(
     override var name: String,
     override var width: Int,

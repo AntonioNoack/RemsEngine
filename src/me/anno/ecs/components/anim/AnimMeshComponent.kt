@@ -23,6 +23,7 @@ import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.image.thumbs.Thumbs
@@ -401,7 +402,7 @@ open class AnimMeshComponent : MeshComponent() {
                 }
             }
 
-            Thumbs.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
+            AssetThumbnails.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
                 useFrame(simpleNormalRenderer) {
                     Gizmos.drawMesh(
                         RenderState.cameraMatrix, transform,

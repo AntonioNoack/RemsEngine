@@ -202,8 +202,12 @@ object ExtensionLoader {
                 // load the classes
                 val exFile = ex.file
                 val urlClassLoader =
-                    if (exFile.exists) URLClassLoader(arrayOf(URL(exFile.absolutePath)), javaClass.classLoader)
-                    else ClassLoader.getSystemClassLoader()
+                    if (exFile.exists) {
+                        URLClassLoader(
+                            arrayOf(URL("file://${exFile.absolutePath}")),
+                            javaClass.classLoader
+                        )
+                    } else ClassLoader.getSystemClassLoader()
                 Thread.currentThread().contextClassLoader = urlClassLoader
                 val classToLoad = Class.forName(className, true, urlClassLoader)
                 // call with arguments??..., e.g. config or StudioBase or sth...

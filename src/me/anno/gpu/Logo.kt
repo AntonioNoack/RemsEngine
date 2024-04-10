@@ -27,9 +27,9 @@ object Logo {
     var logoBackgroundColor = 0
     var logoIconColor = 0xff212256.toInt()
 
-    val logoSrc = getReference("res://icon.obj")
+    private val logoSrc = getReference("res://icon.obj")
 
-    val shader = Shader(
+    private val shader = Shader( // very simple shader, drawing a single color
         "logo", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
             Variable(GLSLType.V3F, "size")
@@ -43,7 +43,7 @@ object Logo {
         shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
     }
 
-    val frame by lazy {
+    val frame by lazy { // lazy, so we can get GFX.maxSamples
         Framebuffer(
             "logo", 1, 1, min(8, GFX.maxSamples),
             1, false, DepthBufferType.NONE
@@ -126,8 +126,7 @@ object Logo {
 
     fun drawLogo(shader: Shader): Boolean {
         // load icon.obj as file, and draw it
-        val c = logoBackgroundColor
-        GFXState.currentBuffer.clearColor(c, 1f)
+        GFXState.currentBuffer.clearColor(logoBackgroundColor, 1f)
         var success = false
         renderPurely {
             try {

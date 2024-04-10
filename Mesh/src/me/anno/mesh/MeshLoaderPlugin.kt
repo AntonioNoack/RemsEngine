@@ -2,8 +2,9 @@ package me.anno.mesh
 
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.extensions.plugins.Plugin
-import me.anno.io.files.inner.InnerFolderCache
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.image.thumbs.Thumbs
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.maya.MayaASCII2015
@@ -26,23 +27,23 @@ class MeshLoaderPlugin : Plugin() {
         InnerFolderCache.register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
 
         // thumbnails
-        Thumbs.registerSignature("blend", Thumbs::generateSomething)
-        Thumbs.registerSignature("mitsuba-scene", Thumbs::generateSomething)
-        Thumbs.registerSignature("mitsuba-meshes", Thumbs::generateSomething)
-        Thumbs.registerSignature("maya", Thumbs::generateSomething)
-        Thumbs.registerExtension("obj", Thumbs::generateSomething)
-        Thumbs.registerExtension("fbx", Thumbs::generateSomething)
-        Thumbs.registerExtension("gltf", Thumbs::generateSomething)
-        Thumbs.registerExtension("glb", Thumbs::generateSomething)
-        Thumbs.registerExtension("dae", Thumbs::generateSomething)
-        Thumbs.registerExtension("md2", Thumbs::generateSomething)
-        Thumbs.registerExtension("md5mesh", Thumbs::generateSomething)
+        Thumbs.registerSignature("blend", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignature("mitsuba-scene", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignature("mitsuba-meshes", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignature("maya", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("obj", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("fbx", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("gltf", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("glb", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("dae", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("md2", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerExtension("md5mesh", AssetThumbnails::generateAssetFrame)
         Thumbs.registerExtension("mtl") { srcFile, dstFile, size, callback ->
             // read as folder
             val children = InnerFolderCache.readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
             if (children.isNotEmpty()) {
                 val maxSize = 25 // with more, too many details are lost
-                Thumbs.generateMaterialFrame(
+                AssetThumbnails.generateMaterialFrame(
                     srcFile, dstFile,
                     if (children.size < maxSize) children else
                         children.subList(0, maxSize), size, callback
@@ -50,7 +51,7 @@ class MeshLoaderPlugin : Plugin() {
             } else {
                 // just an empty material to symbolize, that the file is empty
                 // we maybe could do better with some kind of texture...
-                Thumbs.generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+                AssetThumbnails.generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
             }
         }
     }

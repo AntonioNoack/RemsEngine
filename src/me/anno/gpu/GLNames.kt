@@ -38,19 +38,6 @@ object GLNames {
         discoverOpenGLNames(clazz.java)
         val t3 = Time.nanoTime
         LOGGER.debug("Took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
-        /*val t0 = Time.nanoTime
-        val properties = clazz.staticProperties // this call takes 1000 ms
-        val t1 = Time.nanoTime
-        println("took ${(t1 - t0) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
-        for (property in properties) {
-            val name = property.name
-            if (name.startsWith("GL_")) {
-                val value = property.get()
-                if (value is Int) {
-                    glConstants[value] = name.substring(3)
-                }
-            }
-        }*/
     }
 
     @JvmStatic

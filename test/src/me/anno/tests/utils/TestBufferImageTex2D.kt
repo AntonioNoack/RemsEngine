@@ -3,14 +3,14 @@ package me.anno.tests.utils
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
+import me.anno.image.thumbs.ThumbsRendering
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.jvm.images.BIImage.toImage
-import me.anno.image.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -33,7 +33,7 @@ fun main() {
 
     val magnification = 1
 
-    Thumbs.renderToImage(
+    ThumbsRendering.renderToImage(
         srcFile, false, HDBKey.InvalidKey, false,
         Renderer.colorRenderer, true, { result, exc ->
             if (result is Texture2D) GPUImage(result).write(desktop.getChild("result.png"))

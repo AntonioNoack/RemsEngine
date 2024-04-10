@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
 import me.anno.image.raw.GPUImage
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
@@ -50,7 +51,7 @@ fun testRendering(file: FileReference, size: Int = 512, index: Int) {
     LOGGER.debug(JsonFormatter.format(prefab.toString()))
     val sample = prefab.createInstance()
     LOGGER.debug(sample)
-    Thumbs.generateSomething(
+    AssetThumbnails.generateAssetFrame(
         prefab, file,
         InvalidKey, size
     ) { result, exc ->

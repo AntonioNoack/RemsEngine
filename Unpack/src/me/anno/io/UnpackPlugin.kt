@@ -3,6 +3,7 @@ package me.anno.io
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.extensions.plugins.Plugin
+import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
@@ -60,6 +61,11 @@ class UnpackPlugin : Plugin() {
                     Thumbs.generate(getReference(iconFile), dstFile, size, callback)
                 } else callback.err(exc)
             }
+        }
+
+        // try as an asset
+        for (ext in ThumbsExt.unityExtensions) {
+            Thumbs.registerExtension(ext, AssetThumbnails::generateAssetFrame)
         }
 
         // register yaml generally for unity files?
