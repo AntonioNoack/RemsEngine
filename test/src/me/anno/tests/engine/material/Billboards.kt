@@ -6,17 +6,19 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
+import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes
 import me.anno.utils.OS.pictures
 
 fun main() {
     // todo this lags behind one frame, can we get it perfect?
+    val source = getReference("res://icon.png")
     val material = Material().apply {
         // for alpha
-        diffuseMap = pictures.getChild("fav128.ico")
+        diffuseMap = source
         diffuseBase.set(0f, 0f, 0f, 1f)
         // actual color
-        emissiveMap = pictures.getChild("fav128.ico")
+        emissiveMap = source
         emissiveBase.set(2f)
         linearFiltering = false
         clamping = Clamping.CLAMP

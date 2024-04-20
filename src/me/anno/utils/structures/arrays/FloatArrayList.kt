@@ -70,6 +70,23 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         values[size++] = x
     }
 
+    fun addUnsafe(x: Float, y: Float) {
+        val values = values
+        var size = size
+        values[size++] = x
+        values[size++] = y
+        this.size = size
+    }
+
+    fun addUnsafe(x: Float, y: Float, z: Float) {
+        val values = values
+        var size = size
+        values[size++] = x
+        values[size++] = y
+        values[size++] = z
+        this.size = size
+    }
+
     operator fun set(index: Int, value: Float) {
         values[index] = value
     }

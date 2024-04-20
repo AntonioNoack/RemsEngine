@@ -3,9 +3,11 @@ package me.anno.ecs.components.mesh.material.shaders
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Strings.iff
 
 /**
  * a material, that is defined by blocks (which may be empty);
@@ -52,6 +54,8 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val flags = key.flags
+        val showCost = key.renderer.name == "Num SDF Steps"
+        val isOutOfBounds = "any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))"
         return listOf(
             ShaderStage(
                 "block-traced shader", createFragmentVariables(key), "" +
@@ -74,9 +78,9 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "float dtf1 = min(dtf3.x, min(dtf3.y, dtf3.z));\n" +
                         "float dtf = min(dtf1, 0.0);\n" +
                         "localStart += -dtf * dir + halfBounds;\n" +
-                        "vec3 blockPosition = clamp(floor(localStart), vec3(0.0), bounds1);\n" +
+                        "vec3 blockPosition = floor(localStart);\n" +
                         "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
-                        "vec3 invUStep = dirSign/dir;\n" +
+                        "vec3 invUStep = dirSign / dir;\n" +
                         "float nextDist, dist = 0.0;\n" +
                         initProperties(flags.hasFlag(IS_INSTANCED)) +
                         "int lastNormal = dtf3.z == dtf1 ? 2 : dtf3.y == dtf1 ? 1 : 0, i;\n" +
@@ -90,7 +94,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "   if(skippingDist >= 1.0){\n" +
                         // skip multiple blocks; and then recalculate all necessary stats
                         "       blockPosition = floor(localStart + dir * (dist + skippingDist));\n" +
-                        "       if(any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))) break;\n" +
+                        "       if($isOutOfBounds) break;\n" +
                         "       dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
                         "       nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
                         "       dist = nextDist;\n" +
@@ -127,11 +131,14 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "#define CUSTOM_DEPTH\n" +
                         "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                         computeMaterialProperties(flags.hasFlag(IS_INSTANCED)) +
+                        ("" +
+                                "finalColor = vec3(0.0);\n" +
+                                "finalEmissive = costShadingFunc(min(float(i)*0.02,1.0));\n").iff(showCost) +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +
                         ""
-            ).add(RendererLib.getReflectivity)
+            ).add(RendererLib.getReflectivity).add(ShaderFuncLib.costShadingFunc)
         )
     }
 

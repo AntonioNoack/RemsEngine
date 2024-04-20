@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.material.shaders
 
+import me.anno.ecs.components.mesh.material.Texture3DBTMaterial
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 

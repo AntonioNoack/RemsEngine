@@ -139,9 +139,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         var removed = 0f
 
         for (side in sides) {
-            builder.side = side
             // an estimate
             removed += BakeMesh.bakeMesh(this, side, builder, insideIsSolid, outsideIsSolid)
+            builder.finishSide(side)
         }
 
         if (printReduction && removed > 0) {

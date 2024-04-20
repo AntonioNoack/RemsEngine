@@ -1,27 +1,21 @@
 package me.anno.mesh.vox.meshing
 
-import me.anno.mesh.vox.meshing.BlockBuffer.addQuad
 import me.anno.mesh.vox.meshing.MergeBlocks.mergeBlocks
 import me.anno.mesh.vox.model.VoxelModel
 import kotlin.math.max
 
 object BakeMesh {
 
-    fun bakeMesh(
-        model: VoxelModel,
-        side: BlockSide,
-        dst: VoxelMeshBuilder,
-        insideIsSolid: IsSolid?,
-        outsideIsSolid: IsSolid?
-    ): Float {
-
+    private fun getColors(model: VoxelModel, dst: VoxelMeshBuilder): IntArray {
         val colors = IntArray(model.size)
         model.fill(dst.palette, colors)
+        return colors
+    }
 
+    private fun getIsSolid(model: VoxelModel, insideIsSolid: IsSolid?, colors: IntArray): BooleanArray {
         val isSolid = BooleanArray(model.size)
         val insideIsSolid1 = insideIsSolid
             ?: IsSolid { x, y, z -> colors[model.getIndex(x, y, z)] != 0 }
-
         val dz = model.getIndex(0, 0, 1)
         for (y in 0 until model.sizeY) {
             for (x in 0 until model.sizeX) {
@@ -32,19 +26,28 @@ object BakeMesh {
                 }
             }
         }
+        return isSolid
+    }
 
-        val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
-
+    private fun getInitialBlockSizes(model: VoxelModel, colors: IntArray): IntArray {
         val size000 = 0
         val size111 = getSizeInfo(1, 1, 1, model)
-
-        val blockSizes = IntArray(colors.size) {
-            val isEmpty = colors[it] == 0
-            if (isEmpty) size000 else size111
+        val blockSizes = IntArray(colors.size)
+        for (i in blockSizes.indices) {
+            val isEmpty = colors[i] == 0
+            blockSizes[i] = if (isEmpty) size000 else size111
         }
+        return blockSizes
+    }
 
-        mergeBlocks(blockSizes, colors, model)
-
+    private fun addFaces(
+        model: VoxelModel,
+        blockSizes: IntArray,
+        side: BlockSide,
+        dst: VoxelMeshBuilder,
+        colors: IntArray
+    ) {
+        val dz = model.getIndex(0, 0, 1)
         for (y in 0 until model.sizeY) {
             for (x in 0 until model.sizeX) {
                 var index = model.getIndex(x, y, 0)
@@ -57,6 +60,26 @@ object BakeMesh {
                 }
             }
         }
+    }
+
+    /**
+     * returns the ratio of removed blocks
+     * */
+    fun bakeMesh(
+        model: VoxelModel,
+        side: BlockSide,
+        dst: VoxelMeshBuilder,
+        insideIsSolid: IsSolid?,
+        outsideIsSolid: IsSolid?
+    ): Float {
+
+        val colors = getColors(model, dst)
+        val isSolid = getIsSolid(model, insideIsSolid, colors)
+        val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
+        val blockSizes = getInitialBlockSizes(model, colors)
+
+        mergeBlocks(blockSizes, colors, model)
+        addFaces(model, blockSizes, side, dst, colors)
 
         return removed
     }
@@ -78,11 +101,16 @@ object BakeMesh {
         val sxy = size / sz0
         val sx = sxy % sx0
         val sy = sxy / sx0
-        base.setOffset(x - model.centerX, y - model.centerY, z - model.centerZ)
-        base.color = color
-        addQuad(base, side, sx, sy, sz)
+        val ox = x - model.centerX
+        val oy = y - model.centerY
+        val oz = z - model.centerZ
+        base.addQuad(side, ox, oy, oz, ox + sx, oy + sy, oz + sz)
+        base.addColor(color, 6)
     }
 
+    /**
+     * returns the ratio of removed blocks
+     * */
     fun removeSolidInnerBlocks(
         model: VoxelModel,
         blockSide: BlockSide,

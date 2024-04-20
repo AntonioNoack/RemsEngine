@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.material.shaders
 
+import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 
@@ -27,7 +28,7 @@ object Texture3DBTv2Shader : BlockTracedShader("3dTex-rt") {
         // todo transparent things look weird, if you're inside of them
         // todo transparency is implemented here awkwardly: multiply color again and again to achieve tinting :)
         return "" +
-                "vec4 blockColor = texture(blocksTexture, (blockPosition+0.5)/bounds0);\n" +
+                "vec4 blockColor = texelFetch(blocksTexture, ivec3(blockPosition), 0);\n" +
                 "float maxEffect = 1.0-totalColor.a;\n" +
                 "float effect = blockColor.a <= 0.0 ? 0.0 : blockColor.a >= 1.0 ? maxEffect :\n" +
                 "   (1.0 - exp(-abs(nextDist-dist)*10.0*blockColor.a*blockColor.a)) * maxEffect;\n" + // beer's law

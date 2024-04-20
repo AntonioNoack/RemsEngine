@@ -16,12 +16,12 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib.costShadingFunc
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
@@ -30,6 +30,7 @@ import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.iff
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -232,6 +233,7 @@ object SDFComposer {
                 functions.add(quatRot)
                 functions.add(rawToDepth)
                 functions.add(depthToPosition)
+                functions.add(costShadingFunc)
                 functions.add(RendererLib.getReflectivity)
                 stage.add(build(functions, shapeDependentShader))
                 return listOf(stage)
@@ -378,12 +380,7 @@ object SDFComposer {
             "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "#define CUSTOM_DEPTH\n" +
             "gl_FragDepth = newVertex.z/newVertex.w;\n" +
-            // shading from https://www.shadertoy.com/view/WdVyDW
-            "const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
-            "const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
-            "const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +
-            "float t = float(steps)/float(maxSteps);\n" +
-            "finalEmissive = t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
+            "finalEmissive = costShadingFunc(float(steps)/float(maxSteps));\n" +
             "finalColor = finalEmissive;\n" +
             "finalAlpha = 1.0;\n"
 

@@ -10,7 +10,6 @@ class AABBf(
     var maxX: Float, var maxY: Float, var maxZ: Float
 ) {
 
-
     constructor(base: AABBf) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Float, max: Float) : this(min, min, min, max, max, max)
     constructor() : this(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY)

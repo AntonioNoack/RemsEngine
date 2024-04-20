@@ -46,10 +46,10 @@ object ImageThumbnails {
         size: Int,
         callback: Callback<ITexture2D>
     ) {
-        srcFile.inputStream { it, exc ->
-            if (it != null) {
-                val src = it.use(HDRReader::readHDR)
-                Thumbs.findScale(src, srcFile, size, callback) { dst ->
+        srcFile.inputStream { stream, exc ->
+            if (stream != null) {
+                val image = stream.use(HDRReader::readHDR)
+                Thumbs.findScale(image, srcFile, size, callback) { dst ->
                     Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
                 }
             } else callback.err(exc)

@@ -79,4 +79,13 @@ object ShaderFuncLib {
             "   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);\n" +
             "}\n" +
             "#endif\n"
+
+    // from https://www.shadertoy.com/view/WdVyDW
+    const val costShadingFunc = "" +
+            "vec3 costShadingFunc(float t){\n" +
+            "   const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
+            "   const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
+            "   const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +
+            "   return t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
+            "}\n"
 }

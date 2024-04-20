@@ -128,7 +128,6 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
             palette[getElementAt(x0 + x, y0 + y, z0 + z)
                 .toInt().and(255)]
         }
-        texture.clamping(Clamping.CLAMP)
         val material = Texture3DBTv2Material()
         material.blocks = texture
         return createCube(sx, sy, sz, material)
@@ -147,6 +146,16 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         object : VoxelModel(sx, sy, sz) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
+        }.createMesh(palette, null, null, mesh)
+        return mesh
+    }
+
+    fun createTriangleMeshFromChunk(cx: Int, cy: Int, cz: Int): Mesh {
+        val mesh = Mesh()
+        val chunk = getChunk(cx, cy, cz, true)!!
+        object : VoxelModel(sizeX, sizeY, sizeZ) {
+            override fun getBlock(x: Int, y: Int, z: Int) =
+                chunk[getIndex(x, y, z)].toInt()
         }.createMesh(palette, null, null, mesh)
         return mesh
     }

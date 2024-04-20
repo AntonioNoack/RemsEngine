@@ -26,6 +26,8 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
@@ -225,6 +227,8 @@ fun mergeChannels(
 )
 
 fun main() {
+
+    OfficialExtensions.initForTests()
 
     // convert triangle mesh into voxels quickly
 

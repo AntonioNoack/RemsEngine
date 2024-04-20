@@ -2,7 +2,6 @@ package me.anno.mesh.vox.meshing
 
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import org.joml.Vector3f
 
 class VoxelMeshBuilder(
     // input
@@ -13,55 +12,90 @@ class VoxelMeshBuilder(
     val normals: FloatArrayList?
 ) {
 
-    var side: BlockSide = BlockSide.NX
-
-    var color = 0
-
-    var ox = 0f
-    var oy = 0f
-    var oz = 0f
-
-    fun setOffset(x: Float, y: Float, z: Float) {
-        ox = x
-        oy = y
-        oz = z
-    }
-
-    fun add(vx: Int, vy: Int, vz: Int) {
-        vertices += ox + vx
-        vertices += oy + vy
-        vertices += oz + vz
-        if (normals != null) {
-            normals.add(side.x.toFloat())
-            normals.add(side.y.toFloat())
-            normals.add(side.z.toFloat())
+    fun finishSide(side: BlockSide) {
+        val normals = normals ?: return
+        val sx = side.x.toFloat()
+        val sy = side.y.toFloat()
+        val sz = side.z.toFloat()
+        val dstSize = vertices.size
+        normals.ensureCapacity(dstSize)
+        val dst = normals.values
+        var i = normals.size
+        while (i < dstSize) {
+            dst[i++] = sx
+            dst[i++] = sy
+            dst[i++] = sz
         }
-        colors?.add(color)
+        normals.size = i
     }
 
-    fun add(v: Vector3f) {
-        vertices += ox + v.x
-        vertices += oy + v.y
-        vertices += oz + v.z
-        if (normals != null) {
-            normals.add(side.x.toFloat())
-            normals.add(side.y.toFloat())
-            normals.add(side.z.toFloat())
+    fun addColor(color: Int, times: Int) {
+        val colors = colors ?: return
+        val oldSize = colors.size
+        val newSize = oldSize + times
+        colors.ensureCapacity(newSize)
+        colors.values.fill(color, oldSize, newSize)
+        colors.size = newSize
+    }
+
+    fun addQuad(
+        ax: Float, ay: Float, az: Float,
+        bx: Float, by: Float, bz: Float,
+        cx: Float, cy: Float, cz: Float,
+        dx: Float, dy: Float, dz: Float
+    ) {
+        val vertices = vertices
+        vertices.ensureExtra(6 * 3)
+        vertices.addUnsafe(ax, ay, az)
+        vertices.addUnsafe(cx, cy, cz)
+        vertices.addUnsafe(bx, by, bz)
+        vertices.addUnsafe(ax, ay, az)
+        vertices.addUnsafe(dx, dy, dz)
+        vertices.addUnsafe(cx, cy, cz)
+    }
+
+    fun addQuad(
+        side: BlockSide,
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float
+    ) {
+        when (side) {
+            BlockSide.NX -> addQuad(
+                x0, y0, z0,
+                x0, y1, z0,
+                x0, y1, z1,
+                x0, y0, z1
+            )
+            BlockSide.PX -> addQuad(
+                x1, y1, z0,
+                x1, y0, z0,
+                x1, y0, z1,
+                x1, y1, z1
+            )
+            BlockSide.NY -> addQuad(
+                x0, y0, z0,
+                x0, y0, z1,
+                x1, y0, z1,
+                x1, y0, z0
+            )
+            BlockSide.PY -> addQuad(
+                x0, y1, z1,
+                x0, y1, z0,
+                x1, y1, z0,
+                x1, y1, z1
+            )
+            BlockSide.NZ -> addQuad(
+                x0, y1, z0,
+                x0, y0, z0,
+                x1, y0, z0,
+                x1, y1, z0
+            )
+            BlockSide.PZ -> addQuad(
+                x0, y0, z1,
+                x0, y1, z1,
+                x1, y1, z1,
+                x1, y0, z1
+            )
         }
-        colors?.add(color)
     }
-
-    fun add(x: Float, y: Float, z: Float) {
-        vertices += ox + x
-        vertices += oy + y
-        vertices += oz + z
-        if (normals != null) {
-            normals.add(side.x.toFloat())
-            normals.add(side.y.toFloat())
-            normals.add(side.z.toFloat())
-        }
-        colors?.add(color)
-    }
-
-
 }

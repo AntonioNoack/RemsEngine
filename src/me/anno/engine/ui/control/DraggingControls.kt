@@ -59,6 +59,8 @@ import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
 
+// todo adjust movement speed and mouse rotation based on FOV
+
 // todo select a bunch of assets, make it a collection,
 //  and draw them using a brush, for foliage
 

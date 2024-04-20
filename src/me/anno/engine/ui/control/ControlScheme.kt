@@ -23,6 +23,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
+import me.anno.input.Input.isKeyDown
 import me.anno.input.Key
 import me.anno.input.Touch
 import me.anno.maths.Maths
@@ -32,12 +33,14 @@ import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
+import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.sign
 import kotlin.math.sin
@@ -127,7 +130,10 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
-        val speed = -500f / Maths.max(windowStack.height, height)
+        var speed = -settings.turnSpeed * 500f / Maths.max(windowStack.height, height)
+        if (camera.isPerspective) {
+            speed *= atan(camera.fovY.toRadians())
+        }
         rotateCamera(dy * speed, dx * speed, 0f)
     }
 
@@ -246,15 +252,17 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         val factor = clamp(20.0 * dt, 0.0, 1.0)
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius
-        val s = factor * radius * 1.2
+        var acceleration = factor * radius * settings.moveSpeed
+        if (camera.isPerspective) {
+            acceleration *= atan(camera.fovY.toRadians())
+        }
         val shiftSpace = settings.enableShiftSpaceControls
         if (isSelected && !Input.isControlDown && (!Input.isShiftDown || shiftSpace) && !Input.isAltDown) {
-            if (Input.isKeyDown(Key.KEY_A)) velocity.x -= s
-            if (Input.isKeyDown(Key.KEY_D)) velocity.x += s
-            if (Input.isKeyDown(Key.KEY_W)) velocity.z -= s
-            if (Input.isKeyDown(Key.KEY_S)) velocity.z += s
-            if (Input.isKeyDown(Key.KEY_Q) || (shiftSpace && Input.isShiftDown)) velocity.y -= s
-            if (Input.isKeyDown(Key.KEY_E) || (shiftSpace && Input.isKeyDown(Key.KEY_SPACE))) velocity.y += s
+            val down = isKeyDown(Key.KEY_Q) || (shiftSpace && Input.isShiftDown)
+            val up = isKeyDown(Key.KEY_E) || (shiftSpace && isKeyDown(Key.KEY_SPACE))
+            velocity.x += (isKeyDown(Key.KEY_D).toInt() - isKeyDown(Key.KEY_A).toInt()) * acceleration
+            velocity.z += (isKeyDown(Key.KEY_S).toInt() - isKeyDown(Key.KEY_W).toInt()) * acceleration
+            velocity.y += (up.toInt() - down.toInt()) * acceleration
         }
         if (velocity.lengthSquared() > 0.0001 * sq(radius)) {
             moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)

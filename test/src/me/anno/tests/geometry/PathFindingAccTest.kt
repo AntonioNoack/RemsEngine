@@ -52,7 +52,7 @@ fun main() {
      * */
 
     // slower, just another rendering technique
-    val rayTracing = false
+    val rayTracing = true
     // when you just need the direction,
     // and the result may change over time,
     // use the partial procedure; it is way faster than a full result
@@ -64,9 +64,9 @@ fun main() {
     val world = TestWorld()
 
     // if you use raytracing, make these smaller :D
-    val sx = 512
+    val sx = 128
     val sy = 32
-    val sz = 512
+    val sz = 128
     val x0 = 0
     val y0 = 0
     val z0 = 0
