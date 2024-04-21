@@ -15,6 +15,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.uvRenderer
 import me.anno.graph.render.QuickPipeline
+import me.anno.graph.render.effects.AnimeOutlineNode
 import me.anno.graph.render.effects.BloomNode
 import me.anno.graph.render.effects.ColorBlindnessMode
 import me.anno.graph.render.effects.ColorBlindnessNode.Companion.createRenderGraph
@@ -38,6 +39,7 @@ import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.render.scene.RenderSceneForwardNode
 import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
@@ -291,24 +293,7 @@ class RenderMode(
         /** visualize the triangle structure by giving each triangle its own color */
         val SHOW_TRIANGLES = RenderMode("Show Triangles", triangleVisRenderer)
 
-        val SHOW_AABB = RenderMode(
-            "Show AABBs",
-            QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderLightsNode())
-                .then(SSAONode())
-                .then(CombineLightsNode())
-                .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then1(GizmoNode(), mapOf("AABBs" to true))
-                .finish()
-        )
-
+        val SHOW_AABB = RenderMode("Show AABBs", DEFAULT)
         val PHYSICS = RenderMode("Physics", DEFAULT)
 
         val POST_OUTLINE = RenderMode(
@@ -410,9 +395,8 @@ class RenderMode(
                 .finish()
         )
 
-        val FOG_TEST = RenderMode(
-            "Fog Test",
-            QuickPipeline()
+        fun postProcessGraph(node: ActionNode): FlowGraph {
+            return QuickPipeline()
                 .then1(
                     RenderSceneDeferredNode(),
                     mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
@@ -423,30 +407,15 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
-                .then(HeightExpFogNode())
+                .then(node)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
                 .finish()
-        )
+        }
 
-        val NIGHT_TEST = RenderMode(
-            "Night Test",
-            QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderLightsNode())
-                .then(SSAONode())
-                .then(CombineLightsNode())
-                .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
-                .then(NightNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode())
-                .finish()
-        )
+        val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))
+        val NIGHT_TEST = RenderMode("Night Test", postProcessGraph(NightNode()))
+        val ANIME_OUTLINES = RenderMode("Anime Outlines", postProcessGraph(AnimeOutlineNode()))
 
         val ALL_GLASS = RenderMode("All Glass", Material().apply {
             pipelineStage = PipelineStage.TRANSPARENT
@@ -478,8 +447,6 @@ class RenderMode(
         val ALL_WHITE = RenderMode("All White", Material().apply {
             enableVertexColors = false
         })
-
-        // todo render mode / post-processing for anime outlines
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
 

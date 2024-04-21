@@ -515,8 +515,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         width: Int,
         height: Int,
         aspectRatio: Float,
-        camera: Camera,
-        previousCamera: Camera,
+        currCam: Camera,
+        prevCam: Camera,
         blending: Float,
         update: Boolean
     ) {
@@ -532,70 +532,30 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val blend = clamp(blending, 0f, 1f).toDouble()
         val blendF = blend.toFloat()
 
-        val near = mix(previousCamera.near, camera.near, blend)
-        val far = mix(previousCamera.far, camera.far, blend)
-        val isPerspective = camera.isPerspective
+        val near = mix(prevCam.near, currCam.near, blend)
+        val far = mix(prevCam.far, currCam.far, blend)
+        val isPerspective = currCam.isPerspective
         val fov = if (isPerspective) {
-            mix(previousCamera.fovY, camera.fovY, blending)
+            mix(prevCam.fovY, currCam.fovY, blending)
         } else {
-            mix(previousCamera.fovOrthographic, camera.fovOrthographic, blending)
+            mix(prevCam.fovOrthographic, currCam.fovOrthographic, blending)
         }
 
-        bloomStrength = mix(previousCamera.bloomStrength, camera.bloomStrength, blendF)
-        bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
+        bloomStrength = mix(prevCam.bloomStrength, currCam.bloomStrength, blendF)
+        bloomOffset = mix(prevCam.bloomOffset, currCam.bloomOffset, blendF)
 
-        val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
-        val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
+        val centerX = mix(prevCam.center.x, currCam.center.x, blendF)
+        val centerY = mix(prevCam.center.x, currCam.center.y, blendF)
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        var scaledNear = (near * worldScale)
-        var scaledFar = (far * worldScale)
-        this.scaledNear = scaledNear
-        this.scaledFar = scaledFar
+        this.scaledNear = (near * worldScale)
+        this.scaledFar = (far * worldScale)
         this.isPerspective = isPerspective
         if (isPerspective) {
-            val fovYRadians = fov.toRadians()
-            this.fovXRadians = 2f * atan(tan(fovYRadians * 0.5f) * aspectRatio)
-            this.fovYRadians = fovYRadians
-            Perspective.setPerspective(
-                cameraMatrix, fovYRadians, aspectRatio,
-                scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
-            )
+            setPerspectiveCamera(fov, aspectRatio, centerX, centerY)
         } else {
-            scaledNear = max(scaledNear, worldScale * 0.001)
-            scaledFar = min(scaledFar, worldScale * 1000.0)
-            fovXRadians = fov * aspectRatio
-            fovYRadians = fov // not really defined
-            val sceneScaleXY = 1f / fov
-            val n: Float
-            val f: Float
-            // todo some devices may not support 01-range, so make this optional
-            val range01 = inverseDepth
-            if (range01) {
-                // range is 0 .. 1
-                n = scaledNear.toFloat()
-                f = scaledFar.toFloat()
-            } else {
-                // range is -1 .. 1 instead of 0 .. 1
-                n = scaledFar.toFloat()
-                f = scaledNear.toFloat()
-            }
-            val sceneScaleZ = 1f / (f - n)
-            val reverseDepth = GFXState.depthMode.currentValue.reversedDepth
-            var m22 = if (reverseDepth) +sceneScaleZ else -sceneScaleZ
-            var z0 = 1f - n * sceneScaleZ
-            if (!range01) {
-                m22 *= 2f
-                z0 = z0 * 2f - 1f
-            }
-            // todo respect near
-            cameraMatrix.set(
-                height * sceneScaleXY / width, 0f, 0f, 0f,
-                0f, sceneScaleXY, 0f, 0f,
-                0f, 0f, m22, 0f,
-                0f, 0f, z0, 1f
-            )
+            setOrthographicCamera(fov, aspectRatio)
         }
 
         if (renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2) {
@@ -607,14 +567,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             LOGGER.warn("Set matrix to identity, because it was non-finite! $cameraMatrix")
         }
 
-        val t0 = previousCamera.entity?.transform?.run {
-            validate()
-            getDrawMatrix()
-        }
-        val t1 = camera.entity?.transform?.run {
-            validate()
-            getDrawMatrix()
-        }
+        val t0 = prevCam.entity?.transform?.getValidDrawMatrix()
+        val t1 = currCam.entity?.transform?.getValidDrawMatrix()
 
         val rot0 = JomlPools.quat4d.create()
         val rot1 = JomlPools.quat4d.create()
@@ -650,6 +604,52 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         currentInstance = this
 
         definePipeline(width, height, aspectRatio, fov, world)
+    }
+
+    fun setPerspectiveCamera(fov: Float, aspectRatio: Float, centerX: Float, centerY: Float) {
+        val fovYRadians = fov.toRadians()
+        this.fovXRadians = 2f * atan(tan(fovYRadians * 0.5f) * aspectRatio)
+        this.fovYRadians = fovYRadians
+        Perspective.setPerspective(
+            cameraMatrix, fovYRadians, aspectRatio,
+            scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
+        )
+    }
+
+    fun setOrthographicCamera(fov: Float, aspectRatio: Float) {
+        val scaledNear = max(scaledNear, worldScale * 0.001)
+        val scaledFar = min(scaledFar, worldScale * 1000.0)
+        fovXRadians = fov * aspectRatio
+        fovYRadians = fov // not really defined
+        val sceneScaleXY = 1f / fov
+        val n: Float
+        val f: Float
+        // todo some devices may not support 01-range, so make this optional
+        val range01 = inverseDepth
+        if (range01) {
+            // range is 0 .. 1
+            n = scaledNear.toFloat()
+            f = scaledFar.toFloat()
+        } else {
+            // range is -1 .. 1 instead of 0 .. 1
+            n = scaledFar.toFloat()
+            f = scaledNear.toFloat()
+        }
+        val sceneScaleZ = 1f / (f - n)
+        val reverseDepth = GFXState.depthMode.currentValue.reversedDepth
+        var m22 = if (reverseDepth) +sceneScaleZ else -sceneScaleZ
+        var z0 = 1f - n * sceneScaleZ
+        if (!range01) {
+            m22 *= 2f
+            z0 = z0 * 2f - 1f
+        }
+        // todo respect near
+        cameraMatrix.set(
+            height * sceneScaleXY / width, 0f, 0f, 0f,
+            0f, sceneScaleXY, 0f, 0f,
+            0f, 0f, m22, 0f,
+            0f, 0f, z0, 1f
+        )
     }
 
     fun updateWorld(world: PrefabSaveable?) {

@@ -127,6 +127,11 @@ class Transform() : Saveable() {
         return drawTransform
     }
 
+    fun getValidDrawMatrix(): Matrix4x3d {
+        validate()
+        return getDrawMatrix()
+    }
+
     private fun teleportVisuals() {
         drawnTransform.set(drawTransform)
         drawTransform.set(globalTransform)

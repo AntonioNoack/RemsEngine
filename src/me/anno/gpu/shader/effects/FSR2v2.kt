@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.cache.ICacheData
+Eximport me.anno.engine.ui.control.DraggingControlSettings
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
@@ -31,10 +32,8 @@ import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3f
 import kotlin.math.ceil
-import kotlin.random.Random
 
 // implement the ideas of FSR2, but just in principle and much easier
-// todo this is currently broken :/
 class FSR2v2 : ICacheData {
 
     val dataTargetTypes = listOf(TargetType.Float16x4, TargetType.Float32x4)
@@ -71,7 +70,8 @@ class FSR2v2 : ICacheData {
                 Variable(GLSLType.V1F, "sharpness"),
                 Variable(GLSLType.V1F, "maxWeight"),
                 Variable(GLSLType.V4F, "colorNWeightResult", VariableMode.OUT),
-                Variable(GLSLType.V4F, "depthResult", VariableMode.OUT)
+                Variable(GLSLType.V4F, "depthResult", VariableMode.OUT),
+                Variable(GLSLType.V2F, "motionScale"),
             ), "" +
                     "float sq(float x) { return x*x; }\n" +
                     "float dot2(vec3 x) { return dot(x,x); }\n" +
@@ -80,9 +80,10 @@ class FSR2v2 : ICacheData {
                     // iterate over all 4 old neighbors
                     "   vec4 colorNWeight = vec4(0.0);\n" +
                     "   vec4 weightedDepth = vec4(0.0);\n" +
-                    "   vec2 motion2 = (currJitter - prevJitter) / renderSizeF;\n" +
                     // display space
-                    "   vec2  srcUV0  = uv * renderSizeF - currJitter - 0.5, uvi01 = floor(srcUV0), duv0 = srcUV0-uvi01;\n" +
+                    // todo this is kind of broken with regards to jitter :/...
+                    //  motion correction is completely useless/broken
+                    "   vec2  srcUV0  = uv * renderSizeF - 0.5, uvi01 = floor(srcUV0), duv0 = srcUV0-uvi01;\n" +
                     "   ivec2 srcUV0f = ivec2(uvi01);\n" +
                     "   for(int y=-1;y<=2;y++){\n" +
                     "       for(int x=-1;x<=2;x++){\n" +
@@ -93,7 +94,7 @@ class FSR2v2 : ICacheData {
                     "           float depth = log2(max(1e-16, depth0 - fullMotion.z));\n" +
                     "           vec4 normal0 = texelFetch(normalTex,srcUV,0);\n" +
                     "           vec3 normal = UnpackNormal(normalZW ? normal0.zw : normal0.xy);\n" +
-                    "           vec2 motion = fullMotion.xy * 0.5 + motion2;\n" +
+                    "           vec2 motion = motionScale * fullMotion.xy;\n" +
                     "           vec2 uviX = (uv - motion) * displaySizeF - 0.5,  uviX1 = floor(uviX), duvX = uviX-uviX1;\n" +
                     "           ivec2 uvx = ivec2(uviX1);\n" +
                     // iterate over all 4 hit pixels
@@ -176,14 +177,13 @@ class FSR2v2 : ICacheData {
         ).apply { setTextureIndices("colorNWeights", "depths") }
     }
 
-    var jx = 0f
-    var jy = 0f
-    var pjx = 0f
-    var pjy = 0f
-    val random = Random(1234L)
-    var idx = 0
-    val phaseCount get() = ceil(8f * lastScaleX * lastScaleY).toInt()
-    var randomness = 1f
+    private var jx = 0f
+    private var jy = 0f
+    private var pjx = 0f
+    private var pjy = 0f
+    private var sequenceIndex = 0
+    private val phaseCount get() = ceil(8f * lastScaleX * lastScaleY).toInt()
+    private var randomness = 1f
 
     fun halton(index: Int, base: Int): Float {
         var f = 1f
@@ -194,7 +194,11 @@ class FSR2v2 : ICacheData {
             result += f * (currIndex % base)
             currIndex /= base
         }
-        return result
+        return (result - 0.5f) * randomness
+    }
+
+    fun halton1(index: Int, base: Int): Float {
+        return (halton(index,base) - 0.5f) * randomness
     }
 
     // todo unjitter gizmos
@@ -202,15 +206,11 @@ class FSR2v2 : ICacheData {
     fun jitter(m: Matrix4f, pw: Int, ph: Int) {
         pjx = jx
         pjy = jy
-        jx = halton(idx + 1, 2) - 0.5f
-        jy = halton(idx + 1, 3) - 0.5f
-        // jx = random.nextFloat() - 0.5f
-        // jy = random.nextFloat() - 0.5f
-        jx *= randomness
-        jy *= randomness
+        jx = halton1(sequenceIndex + 1, 2)
+        jy = halton1(sequenceIndex + 1, 3)
         m.m20(m.m20 + jx * 2f * lastScaleX / pw) // = /rw
         m.m21(m.m21 + jy * 2f * lastScaleY / ph) // = /rh
-        if (++idx > phaseCount) idx = 0
+        if (++sequenceIndex > phaseCount) sequenceIndex = 0
     }
 
     private val tmpV = Vector3f()
@@ -263,6 +263,8 @@ class FSR2v2 : ICacheData {
             shader.v1b("normalZW", normalZW)
             shader.v4f("depthMask", DeferredSettings.singleToVector[depthMask]!!)
             shader.v1f("maxWeight", 5f)
+            val settings = DraggingControlSettings()
+            shader.v2f("motionScale", settings.debugX, settings.debugY)
             SimpleBuffer.flat01.draw(shader)
         }
         // render result
