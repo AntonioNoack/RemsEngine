@@ -366,7 +366,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         renderView.radius *= factor
         renderView.near *= factor
         renderView.far *= factor
-        camera.fovOrthographic *= factor
+        camera.fovOrthographic = renderView.radius.toFloat()
     }
 
     override val className: String

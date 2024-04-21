@@ -2,13 +2,13 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.LookAtComponent
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.EngineBase.Companion.enableVSync
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
 import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes
-import me.anno.utils.OS.pictures
 
 fun main() {
     // todo this lags behind one frame, can we get it perfect?
@@ -30,5 +30,7 @@ fun main() {
             })
             add(LookAtComponent())
         })
-    })
+    }) {
+        enableVSync = true // seeing the lag of one frame is easier at 60 fps than at 200 ^^
+    }
 }

@@ -64,7 +64,6 @@ class RenderMode(
 
         val values = ArrayList<RenderMode>()
 
-        // todo glass shadows are missing :/
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
@@ -82,7 +81,7 @@ class RenderMode(
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())
-                .then(FXAANode(), mapOf("Illuminated" to listOf("Color")))
+                .then(FXAANode())
                 .finish()
         )
 
@@ -96,7 +95,7 @@ class RenderMode(
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
-                .then(CombineLightsNode(), mapOf("Apply Tone Mapping" to true), mapOf("Illuminated" to listOf("Color")))
+                .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
                 .finish()
         )
 
