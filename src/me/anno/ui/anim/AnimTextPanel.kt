@@ -8,6 +8,7 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.ShaderLib
@@ -173,7 +174,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                             GFXx2D.posSize(shader, x2, y2, texture.width, texture.height)
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
-                            GFX.flat01.draw(shader)
+                            flat01.draw(shader)
                         }
                     }
                 }
@@ -219,7 +220,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                             GFXx2D.posSize(shader, x2, y2, texture.width.toFloat(), texture.height.toFloat())
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
-                            GFX.flat01.draw(shader)
+                            flat01.draw(shader)
                         }
                     }
                 }

@@ -1,13 +1,13 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.CalculationNode
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import me.anno.maths.Maths.fract
 import org.joml.Vector2f
 import kotlin.math.sin
 
 // todo make input and output vec4s :)
-class RandomNode : CalculationNode("Random", listOf("Vector2f", "Seed"), listOf("Float", "Result")), GLSLExprNode {
+class RandomNode : CalculationNode("Random", listOf("Vector2f", "Seed"), listOf("Float", "Result")), GLSLFuncNode {
 
     init {
         setInput(0, Vector2f())

@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
@@ -43,7 +44,7 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
         texture.bind(0, texture.filtering, Clamping.CLAMP)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -62,7 +63,7 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -83,7 +84,7 @@ object DrawTextures {
         shader.v1f("layer", layer)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -103,7 +104,7 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -121,7 +122,7 @@ object DrawTextures {
         texture.bind(0)
         val depthFunc = tex?.depthFunc
         tex?.depthFunc = null
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         tex?.depthFunc = depthFunc
         GFX.check()
     }
@@ -140,7 +141,7 @@ object DrawTextures {
         texture.bind(0, texture.filtering, texture.clamping)
         val depthFunc = texture.depthFunc
         texture.depthFunc = null
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         texture.depthFunc = depthFunc
         GFX.check()
     }
@@ -161,7 +162,7 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -230,7 +231,7 @@ object DrawTextures {
         shader.v1b("showDepth", showDepth)
         shader.v1f("z", z)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -254,7 +255,7 @@ object DrawTextures {
         shader.v1b("showDepth", showDepth)
         shader.v1f("z", z + 0.5f)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 }

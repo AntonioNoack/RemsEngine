@@ -2,7 +2,7 @@ package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
@@ -13,7 +13,7 @@ class RotateF3XNode : CalculationNode(
     "Vector3f RotateX",
     listOf("Vector3f", "Vector", "Vector3f", "Center", "Float", "Angle(Rad)"),
     "Vector3f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector3f())
@@ -45,7 +45,7 @@ class RotateF3YNode : CalculationNode(
     "Vector3f RotateY",
     listOf("Vector3f", "Vector", "Vector3f", "Center", "Float", "Angle(Rad)"),
     "Vector3f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector3f())
@@ -78,7 +78,7 @@ class RotateF3ZNode : CalculationNode(
     "Vector3f RotateZ",
     listOf("Vector3f", "Vector", "Vector3f", "Center", "Float", "Angle(Rad)"),
     "Vector3f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector3f())

@@ -1,6 +1,7 @@
 package me.anno.tests.physics.fluid
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -54,7 +55,7 @@ object FluidDebug {
             Filtering.NEAREST,
             Clamping.CLAMP
         )
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 
@@ -70,7 +71,7 @@ object FluidDebug {
             Filtering.NEAREST,
             Clamping.CLAMP
         )
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 }

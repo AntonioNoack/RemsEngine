@@ -10,7 +10,6 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -29,6 +28,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.engine.EngineBase
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader
 import me.anno.tests.physics.fluid.FluidSimulator.splatShader

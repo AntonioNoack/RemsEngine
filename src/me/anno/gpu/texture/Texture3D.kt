@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -380,7 +381,7 @@ open class Texture3D(
         shader.v1f("uvZ", z)
         GFXx2D.noTiling(shader)
         bind(0, filtering, Clamping.CLAMP)
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 

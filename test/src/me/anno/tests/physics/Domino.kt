@@ -1,7 +1,7 @@
 package me.anno.tests.physics
 
-import me.anno.bulletjme.BulletPhysics
-import me.anno.bulletjme.Rigidbody
+import me.anno.bullet.BulletPhysics
+import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider

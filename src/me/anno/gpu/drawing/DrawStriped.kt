@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.GLSLType
@@ -49,7 +50,7 @@ object DrawStriped {
         if (o < 0) o += stride
         shader.v1i("offset", o)
         shader.v1i("stride", stride)
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 

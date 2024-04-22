@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
@@ -200,19 +201,19 @@ open class ColorChooser(
                 val hue0 = colorSpace.hue0
                 shader.v2f("ringSL", hue0.y, hue0.z)
                 shader.v1f("sharpness", sharpness)
-                GFX.flat01.draw(shader)
+                flat01.draw(shader)
             }
             ColorVisualisation.CIRCLE -> {
                 shader.v1f("lightness", lightness)
                 shader.v1f("sharpness", sharpness)
-                GFX.flat01.draw(shader)
+                flat01.draw(shader)
             }
             ColorVisualisation.BOX -> {
                 shader.v3f("v0", d0.x + hue * dh, d0.y, d0.z)
                 shader.v3f("du", du)
                 shader.v3f("dv", dv)
                 // shader.v1("sharpness", sharpness)
-                GFX.flat01.draw(shader)
+                flat01.draw(shader)
             }
         }
     }

@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -17,10 +18,10 @@ import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
-import me.anno.utils.callbacks.I3B
-import me.anno.utils.callbacks.I3I
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2RGBA
+import me.anno.utils.callbacks.I3B
+import me.anno.utils.callbacks.I3I
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
@@ -446,16 +447,12 @@ open class Texture2DArray(
         shader.v1f("uvZ", z)
         GFXx2D.noTiling(shader)
         bind(0, filtering, Clamping.CLAMP)
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 
     fun swizzleMonochrome() {
         swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
-    }
-
-    fun swizzleAlpha() {
-        swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED)
     }
 
     fun swizzle(r: Int, g: Int, b: Int, a: Int) {

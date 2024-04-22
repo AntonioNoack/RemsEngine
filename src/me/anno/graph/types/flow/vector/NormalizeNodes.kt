@@ -2,7 +2,7 @@ package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -11,7 +11,7 @@ class NormalizeNode2 : CalculationNode(
     "Vector2f Normalize",
     listOf("Vector2f", "Vector", "Float", "Length"),
     "Vector2f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector2f())
@@ -35,7 +35,7 @@ class NormalizeNode3 : CalculationNode(
     "Vector3f Normalize",
     listOf("Vector3f", "Vector", "Float", "Length"),
     "Vector3f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector3f())
@@ -58,7 +58,7 @@ class NormalizeNode4 : CalculationNode(
     "Vector4f Normalize",
     listOf("Vector4f", "Vector", "Float", "Length"),
     "Vector4f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector4f())

@@ -6,7 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.GFX.flat01
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -60,7 +60,7 @@ fun main() {
             shader.use()
             shader.v1f("time", Time.gameTime)
             shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
-            flat01.draw(shader)
+            SimpleBuffer.flat01.draw(shader)
         }, 1f)
 
         // 3d

@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -64,7 +65,7 @@ object Bloom {
             val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
-                GFX.flat01.draw(shaderX)
+                flat01.draw(shaderX)
                 previous = bufferX.getTexture0()
             }
 
@@ -74,7 +75,7 @@ object Bloom {
             val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
-                GFX.flat01.draw(shaderY)
+                flat01.draw(shaderY)
                 previous = bufferY.getTexture0()
             }
 
@@ -97,7 +98,7 @@ object Bloom {
                 val nextSrc = tmpForward[i]!! // large
                 GFXState.useFrame(nextSrc, Renderer.copyRenderer) {
                     previous.bindTexture0(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                    GFX.flat01.draw(shader)
+                    flat01.draw(shader)
                     previous = nextSrc
                 }
             }
@@ -166,7 +167,7 @@ object Bloom {
         shader.v1b("applyToneMapping", applyToneMapping)
         source.bindTrulyNearest(0)
         bloom.bind(1, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
     }
 
     private val forwardShaderX = createForwardShader(1, 0, false)

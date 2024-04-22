@@ -8,7 +8,7 @@ val dataL1 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLExprNode {
+class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLFuncNode {
     override fun compute() {
         setOutput(0, type.long(getInput(0) as Long))
     }
@@ -20,7 +20,7 @@ val dataL2 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLExprNode {
+class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLFuncNode {
     override fun compute() {
         setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long))
     }
@@ -32,7 +32,7 @@ val dataL3 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathL3Node : MathNode<IntMathsTernary>(dataL3), EnumNode, GLSLExprNode {
+class MathL3Node : MathNode<IntMathsTernary>(dataL3), EnumNode, GLSLFuncNode {
     override fun compute() {
         setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long, getInput(2) as Long))
     }

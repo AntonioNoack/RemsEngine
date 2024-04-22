@@ -35,7 +35,6 @@ import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
-import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.types.flow.actions.PrintNode
 import me.anno.graph.types.flow.control.DoWhileNode
 import me.anno.graph.types.flow.control.ForNode
@@ -44,15 +43,9 @@ import me.anno.graph.types.flow.control.WhileNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.CompareNode
-import me.anno.graph.types.flow.maths.CrossProductF3
-import me.anno.graph.types.flow.maths.DotProductF2
-import me.anno.graph.types.flow.maths.DotProductF3
-import me.anno.graph.types.flow.maths.DotProductF4
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLConstNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import me.anno.graph.types.flow.maths.ValueNode
-import me.anno.graph.types.flow.vector.CombineVector2f
-import me.anno.graph.types.flow.vector.CombineVector3f
-import me.anno.graph.types.flow.vector.CombineVector4f
 import me.anno.graph.types.flow.vector.SeparateVector2f
 import me.anno.graph.types.flow.vector.SeparateVector3f
 import me.anno.graph.types.flow.vector.SeparateVector4f
@@ -81,7 +74,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
     val prefix = "tmp_"
     val conDefines = HashMap<NodeOutput, String>()
 
-    var k = 0
+    var loopIndexCtr = 0
 
     val localVars = HashMap<String, Pair<String, String>>() // name -> newName,type
     fun getLocalVarName(name: String, type: String?): String {
@@ -131,51 +124,13 @@ abstract class GraphCompiler(val g: FlowGraph) {
         val v = conDefines[out]
         if (v != null) return v
         return when (n) {
-            is GLSLExprNode -> {
+            is GLSLFuncNode -> {
                 val c = n.outputs.indexOf(out)
                 val name = n.getShaderFuncName(c)
-                val func = typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
-                if (func != null) {
-                    val inputs = n.inputs
-                    when (inputs.size) {
-                        0 -> "$name()"
-                        else -> "$name(${inputs.joinToString(",") { expr(it) }})"
-                    }
-                } else name
+                typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
+                "$name(${n.inputs.joinToString(",") { expr(it) }})"
             }
-            is DotProductF2, is DotProductF3, is DotProductF4 -> {
-                val inputs = n.inputs
-                val a = expr(inputs[0])
-                val b = expr(inputs[1])
-                "dot($a,$b)"
-            }
-            is CrossProductF3 -> {
-                val inputs = n.inputs
-                val a = expr(inputs[0])
-                val b = expr(inputs[1])
-                "cross($a,$b)"
-            }
-            is CombineVector2f -> {
-                val inputs = n.inputs
-                val a = expr(inputs[0])
-                val b = expr(inputs[1])
-                "vec2($a,$b)"
-            }
-            is CombineVector3f -> {
-                val inputs = n.inputs
-                val a = expr(inputs[0])
-                val b = expr(inputs[1])
-                val c = expr(inputs[2])
-                "vec3($a,$b,$c)"
-            }
-            is CombineVector4f -> {
-                val inputs = n.inputs
-                val a = expr(inputs[0])
-                val b = expr(inputs[1])
-                val c = expr(inputs[2])
-                val d = expr(inputs[3])
-                "vec4($a,$b,$c,$d)"
-            }
+            is GLSLConstNode -> n.getGLSLName(n.outputs.indexOf(out))
             is SeparateVector2f, is SeparateVector3f, is SeparateVector4f -> {
                 val c = n.outputs.indexOf(out)
                 val a = expr(n.inputs[0])
@@ -274,18 +229,18 @@ abstract class GraphCompiler(val g: FlowGraph) {
         }
     }
 
-    fun expr(c: NodeInput): String {
-        if (c.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
-        val n0 = c.others.firstOrNull()
-        if (n0 is NodeOutput) { // it is connected
-            val aType0 = aType(n0, c)
-            return convert(aType0, c.type, expr(n0, n0.node!!))
-                ?: throw IllegalStateException("Cannot convert ${n0.type}->$aType0 to ${c.type}!")
+    fun expr(input: NodeInput): String {
+        if (input.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
+        val other = input.others.firstOrNull()
+        if (other is NodeOutput) { // it is connected
+            val aType0 = aType(other, input)
+            return convert(aType0, input.type, expr(other, other.node!!))
+                ?: throw IllegalStateException("Cannot convert ${other.type}->$aType0 to ${input.type}!")
         }
-        val v = c.currValue
-        return (when (c.type) {
-            "Float", "Double" -> AnyToFloat.getFloat(v, 0, c.defaultValue as? Float ?: 0f)
-            "Int", "Long" -> AnyToLong.getLong(v, 0, c.defaultValue as? Long ?: 0L)
+        val v = input.currValue
+        return (when (input.type) {
+            "Float", "Double" -> AnyToFloat.getFloat(v, 0, input.defaultValue as? Float ?: 0f)
+            "Int", "Long" -> AnyToLong.getLong(v, 0, input.defaultValue as? Long ?: 0L)
             "Vector2f" -> {
                 if (v !is Vector2f) return "vec2(0)"
                 "vec2(${v.x},${v.y})"
@@ -302,7 +257,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 if (v !is Boolean) return "false"
                 v.toString()
             }
-            else -> throw IllegalArgumentException("Unknown type ${c.type}")
+            else -> throw IllegalArgumentException("Unknown type ${input.type}")
         }).toString()
     }
 
@@ -324,7 +279,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         return when (n) {
             is StartNode -> createTree(n.getOutputNode(0), depth)
             is ForNode -> {
-                val ki = k++
+                val ki = loopIndexCtr++
                 val body = n.getOutputNode(0)
                 if (body != null) {
                     val startValue = expr(n.inputs[1])
@@ -334,9 +289,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
                     builder.append(
                         "" +
                                 "bool d$ki=$desc;\n" +
-                                "for(int i$ki=$startValue-(d$ki?1:0);d$ki?i$ki>=$endValue:i$ki<$endValue;i$ki+=$step"
+                                "for(int i$ki=$startValue-(d$ki?1:0);d$ki?i$ki>=$endValue:i$ki<$endValue;i$ki+=$step){\n"
                     )
-                    builder.append("){\n")
                     createTree(body, depth + 1)
                     builder.append("}\n")
                 }
@@ -351,9 +305,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 val cc = constEval(n.inputs[1])
                 if (body != null && cc != false) {
                     val cond = expr(n.inputs[1])
-                    builder.append("while((")
-                    builder.append(cond)
-                    builder.append(") && (budget--)>0){\n")
+                    builder.append("while((").append(cond).append(") && (budget--)>0){\n")
                     createTree(body, depth + 1)
                     builder.append("}\n")
                 }
@@ -366,35 +318,31 @@ abstract class GraphCompiler(val g: FlowGraph) {
                     builder.append("do {")
                     createTree(body, depth + 1)
                     val cond = expr(n.inputs[1])
-                    builder.append("} while((\n")
-                    builder.append(cond)
-                    builder.append(") && (budget--)>0);\n")
+                    builder.append("} while((\n").append(cond).append(") && (budget--)>0);\n")
                 }
                 createTree(n.getOutputNode(1), depth)
             }
             is IfElseNode -> {
-                val tr = n.getOutputNode(0)
-                val fs = n.getOutputNode(1)
+                val ifTrue = n.getOutputNode(0)
+                val ifFalse = n.getOutputNode(1)
                 // constant eval if possible
                 when (constEval(n.inputs[1])) {
-                    true -> createTree(tr, depth)
-                    false -> createTree(fs, depth)
+                    true -> createTree(ifTrue, depth)
+                    false -> createTree(ifFalse, depth)
                     else -> {
                         val cond = expr(n.inputs[1])
-                        if (tr != null && fs != null) {
-                            builder.append("if(")
-                            builder.append(cond)
-                            builder.append("){\n")
-                            val x = createTree(tr, depth)
+                        if (ifTrue != null && ifFalse != null) {
+                            builder.append("if(").append(cond).append("){\n")
+                            val x = createTree(ifTrue, depth)
                             builder.append("} else {\n")
-                            val y = createTree(fs, depth)
+                            val y = createTree(ifFalse, depth)
                             builder.append("}\n")
                             x || y
-                        } else if (tr != null || fs != null) {
-                            builder.append(if (tr != null) "if((" else "if(!(")
+                        } else if (ifTrue != null || ifFalse != null) {
+                            builder.append(if (ifTrue != null) "if((" else "if(!(")
                             builder.append(cond)
                             builder.append(")){\n")
-                            val tmp = createTree(tr ?: fs, depth)
+                            val tmp = createTree(ifTrue ?: ifFalse, depth)
                             builder.append("}\n")
                             tmp
                         } else true// else nothing
@@ -517,21 +465,20 @@ abstract class GraphCompiler(val g: FlowGraph) {
             if (!processedNodes.add(node)) {
                 throw IllegalStateException("Illegal loop for ${node.javaClass.name}")
             }
-            when (node) {
-                is StartNode, is ActionNode -> traverse(node.getOutputNode(0))
-                is ForNode -> {
-                    traverse(node.getOutputNode(0))
-                    traverse(node.getOutputNode(2))
+            val outputs = node.outputs
+            for (i in outputs.indices) {
+                val output = outputs[i]
+                if (output.type == "Flow") {
+                    val inputs = output.others
+                    for (j in inputs.indices) {
+                        traverse(inputs[j].node)
+                    }
                 }
-                is WhileNode, is DoWhileNode, is IfElseNode -> {
-                    traverse(node.getOutputNode(0))
-                    traverse(node.getOutputNode(1))
-                }
-                is MaterialReturnNode -> {
-                    for (i in layers.indices) {
-                        if (!exportedLayers[i] && shallExport(layers[i], node.inputs[i + 1])) {
-                            exportedLayers[i] = true
-                        }
+            }
+            if (node is MaterialReturnNode) {
+                for (i in layers.indices) {
+                    if (!exportedLayers[i] && shallExport(layers[i], node.inputs[i + 1])) {
+                        exportedLayers[i] = true
                     }
                 }
             }

@@ -3,6 +3,7 @@ package me.anno.gpu.shader.effects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -264,7 +265,7 @@ object ScreenSpaceAmbientOcclusion {
             shader.v4f("depthMask", DeferredSettings.singleToVector[depthMask]!!)
             shader.v1f("radiusScale", radiusScale)
             // draw
-            GFX.flat01.draw(shader)
+            flat01.draw(shader)
             GFX.check()
         }
 
@@ -290,7 +291,7 @@ object ScreenSpaceAmbientOcclusion {
             normals.bindTrulyNearest(shader, "normalTex")
             depth.bindTrulyNearest(shader, "depthTex")
             shader.v2f("duv", 1f / w, 1f / h)
-            GFX.flat01.draw(shader)
+            flat01.draw(shader)
             GFX.check()
         }
         return dst

@@ -8,7 +8,8 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 
-class DotProductF2 : ComputeNode("Vector2f Dot", listOf("Vector2f", "A", "Vector2f", "B"), "Float") {
+class DotProductF2 : ComputeNode("Vector2f Dot", listOf("Vector2f", "A", "Vector2f", "B"), "Float"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector2f
         val b = getInput(1) as Vector2f
@@ -16,7 +17,8 @@ class DotProductF2 : ComputeNode("Vector2f Dot", listOf("Vector2f", "A", "Vector
     }
 }
 
-class DotProductF3 : ComputeNode("Vector3f Dot", listOf("Vector3f", "A", "Vector3f", "B"), "Float") {
+class DotProductF3 : ComputeNode("Vector3f Dot", listOf("Vector3f", "A", "Vector3f", "B"), "Float"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector3f
         val b = getInput(1) as Vector3f
@@ -24,7 +26,8 @@ class DotProductF3 : ComputeNode("Vector3f Dot", listOf("Vector3f", "A", "Vector
     }
 }
 
-class DotProductF4 : ComputeNode("Vector4f Dot", listOf("Vector4f", "A", "Vector4f", "B"), "Float") {
+class DotProductF4 : ComputeNode("Vector4f Dot", listOf("Vector4f", "A", "Vector4f", "B"), "Float"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector4f
         val b = getInput(1) as Vector4f
@@ -32,7 +35,8 @@ class DotProductF4 : ComputeNode("Vector4f Dot", listOf("Vector4f", "A", "Vector
     }
 }
 
-class DotProductD2 : ComputeNode("Vector2d Dot", listOf("Vector2d", "A", "Vector2d", "B"), "Double") {
+class DotProductD2 : ComputeNode("Vector2d Dot", listOf("Vector2d", "A", "Vector2d", "B"), "Double"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector2d
         val b = getInput(1) as Vector2d
@@ -40,7 +44,8 @@ class DotProductD2 : ComputeNode("Vector2d Dot", listOf("Vector2d", "A", "Vector
     }
 }
 
-class DotProductD3 : ComputeNode("Vector3d Dot", listOf("Vector3d", "A", "Vector3d", "B"), "Double") {
+class DotProductD3 : ComputeNode("Vector3d Dot", listOf("Vector3d", "A", "Vector3d", "B"), "Double"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector3d
         val b = getInput(1) as Vector3d
@@ -48,7 +53,8 @@ class DotProductD3 : ComputeNode("Vector3d Dot", listOf("Vector3d", "A", "Vector
     }
 }
 
-class DotProductD4 : ComputeNode("Vector4d Dot", listOf("Vector4d", "A", "Vector4d", "B"), "Double") {
+class DotProductD4 : ComputeNode("Vector4d Dot", listOf("Vector4d", "A", "Vector4d", "B"), "Double"), GLSLFuncNode {
+    override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {
         val a = getInput(0) as Vector4d
         val b = getInput(1) as Vector4d

@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.shader.FlatShaders.flatShaderGradient
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -25,7 +26,7 @@ object DrawGradients {
         shader.v4f("rColor", rightColor)
         shader.v1i("code", -1)
         shader.v1b("inXDirection", inXDirection)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -44,7 +45,7 @@ object DrawGradients {
         shader.v4f("rColor", rightColor)
         shader.v1i("code", -1)
         shader.v1b("inXDirection", inXDirection)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -66,7 +67,7 @@ object DrawGradients {
         shader.v4f("uvs", uvs)
         shader.v1i("code", frame.code)
         shader.v1b("inXDirection", inXDirection)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 
@@ -87,7 +88,7 @@ object DrawGradients {
         shader.v4f("uvs", uvs)
         shader.v1i("code", frame.code)
         shader.v1b("inXDirection", inXDirection)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 

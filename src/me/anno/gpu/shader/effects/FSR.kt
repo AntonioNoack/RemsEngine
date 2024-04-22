@@ -2,6 +2,7 @@ package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -141,7 +142,7 @@ object FSR {
         shader.v3f("background", backgroundColor)
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1b("withAlpha", withAlpha)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
     }
 
     private fun fsrConfig(shader: Shader, iw: Int, ih: Int, ow: Int, oh: Int) {
@@ -174,7 +175,7 @@ object FSR {
         texelOffset(shader, w, h)
         tiling(shader, flipY)
         GFXx2D.posSize(shader, x, y, w, h)
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
     }
 
     fun tiling(shader: Shader, flipY: Boolean) {

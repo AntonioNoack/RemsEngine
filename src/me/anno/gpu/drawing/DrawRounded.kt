@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
@@ -37,7 +38,6 @@ object DrawRounded {
         }
 
         return buffer
-
     }
 
     private val cornerAttr = listOf(Attribute("coords", 2))
@@ -99,7 +99,7 @@ object DrawRounded {
         shader.v4f("radius", br, tr, bl, tl)
         shader.v1f("smoothness", smoothness)
         shader.v2f("size2", w.toFloat(), h.toFloat())
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
     }
 
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, corner: StaticBuffer) {
@@ -122,5 +122,4 @@ object DrawRounded {
         corner.draw(shader)
         GFX.check()
     }
-
 }

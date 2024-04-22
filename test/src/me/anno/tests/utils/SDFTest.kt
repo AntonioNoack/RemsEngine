@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
@@ -193,7 +194,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
             for ((key, value) in uniforms) {
                 value.bind(shader, key)
             }
-            GFX.flat01.draw(shader)
+            SimpleBuffer.flat01.draw(shader)
         }
     }
 }

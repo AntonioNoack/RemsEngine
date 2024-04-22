@@ -229,7 +229,7 @@ object GFXx3D {
             shader.v2f("stepSize", 1f / w, 0f)
             shader.v1i("steps", steps)
         }
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 

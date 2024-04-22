@@ -3,6 +3,7 @@ package me.anno.graph.render.compiler
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms
@@ -96,7 +97,7 @@ interface ExpressionRenderer {
                         v.bind(shader, k)
                     }
                 }
-                GFX.flat01.draw(shader)
+                SimpleBuffer.flat01.draw(shader)
             }
         }
 

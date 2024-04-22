@@ -35,7 +35,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
+import org.lwjgl.opengl.ARBImaging
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL46C
 import java.util.Queue
@@ -171,9 +171,6 @@ object GFX {
     var viewportHeight = 0
 
     @JvmField
-    val flat01 = SimpleBuffer.flat01
-
-    @JvmField
     var glThread: Thread? = null
 
     @JvmStatic
@@ -270,7 +267,7 @@ object GFX {
         shader.use()
         shader.v1i("samples", samples)
         shader.v1f("alpha", alpha)
-        flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         check()
     }
 
@@ -281,7 +278,7 @@ object GFX {
         shader.use()
         shader.v1i("samples", samples)
         shader.v1f("alpha", 1f)
-        flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         check()
     }
 
@@ -303,7 +300,7 @@ object GFX {
         shader.v1i("depthSamples", depthSamples)
         shader.v1i("targetSamples", GFXState.currentBuffer.samples)
         bindDepthUniforms(shader)
-        flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         check()
     }
 
@@ -325,7 +322,7 @@ object GFX {
                 shader.use()
                 shader.v1i("samples", samples)
                 shader.v1f("alpha", 1f)
-                flat01.draw(shader)
+                SimpleBuffer.flat01.draw(shader)
             }
         }
         check()
@@ -600,7 +597,7 @@ object GFX {
             GL46C.GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
             GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
             GL46C.GL_CONTEXT_LOST -> "context lost"
-            GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
+            ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
             GL46C.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"

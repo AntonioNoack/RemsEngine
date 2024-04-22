@@ -1,9 +1,9 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer

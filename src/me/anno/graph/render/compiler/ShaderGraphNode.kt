@@ -1,8 +1,9 @@
 package me.anno.graph.render.compiler
 
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
@@ -22,12 +23,12 @@ import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.ui.editor.graph.GraphEditor
-import me.anno.ui.editor.graph.GraphPanel
 import me.anno.maths.Maths.clamp
+import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.Style
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 
 // todo own internal graph
 // todo customizable inputs

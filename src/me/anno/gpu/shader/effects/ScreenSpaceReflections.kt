@@ -1,8 +1,8 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -248,7 +248,7 @@ object ScreenSpaceReflections {
             normal.bind(shader, "finalNormal", n, c)
             depth.bind(shader, "finalDepth", n, c)
             color.bind(shader, "finalColor", n, c)
-            GFX.flat01.draw(shader)
+            SimpleBuffer.flat01.draw(shader)
         }
         return dst
     }

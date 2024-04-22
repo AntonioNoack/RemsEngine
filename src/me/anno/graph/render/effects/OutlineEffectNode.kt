@@ -1,7 +1,7 @@
 package me.anno.graph.render.effects
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
@@ -117,7 +117,7 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
                 (if (useMS) color.texMS else color.tex).bindTrulyNearest(0)
                 (if (useMS) ids.texMS else ids.tex).bindTrulyNearest(1)
-                GFX.flat01.draw(shader)
+                SimpleBuffer.flat01.draw(shader)
             }
         }
 

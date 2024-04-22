@@ -2,7 +2,7 @@ package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
@@ -11,7 +11,7 @@ class FresnelNode3 : CalculationNode(
     "Vector3f Fresnel",
     listOf("Vector3f", "CamSpace Position", "Vector3f", "Normal", "Float", "Power"),
     "Float"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     init {
         setInput(0, Vector3f())

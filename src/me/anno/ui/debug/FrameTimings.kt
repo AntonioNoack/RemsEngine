@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
@@ -177,7 +178,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 shader.v4f("background", background)
                 GFXx2D.noTiling(shader)
                 texture.bindTrulyNearest(0)
-                GFX.flat01.draw(shader)
+                SimpleBuffer.flat01.draw(shader)
                 GFX.check()
 
                 background = background.withAlpha(0)

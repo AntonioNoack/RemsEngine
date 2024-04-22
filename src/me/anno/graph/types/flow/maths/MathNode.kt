@@ -17,7 +17,7 @@ import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(
     val data: MathNodeData<V>,
-) : ComputeNode("", data.inputs, data.outputs), EnumNode, GLSLExprNode {
+) : ComputeNode("", data.inputs, data.outputs), EnumNode, GLSLFuncNode {
 
     class MathNodeData<V : Enum<V>>(
         val values: List<V>,

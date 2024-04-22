@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.renderer.Renderer
@@ -50,7 +51,7 @@ object VRAMToRAM {
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.noTiling(shader)
         texture.bind(0)
-        GFX.flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 

@@ -16,7 +16,7 @@ val dataB2 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLExprNode {
+class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLFuncNode {
     override fun compute() {
         setOutput(0, type.compute(getBoolInput(0), getBoolInput(1)))
     }
@@ -28,7 +28,7 @@ val dataB3 = MathNode.MathNodeData(
     { it.id }, { it.glsl }
 )
 
-class MathB3Node : MathNode<BooleanMathsTernary>(dataB3), EnumNode, GLSLExprNode {
+class MathB3Node : MathNode<BooleanMathsTernary>(dataB3), EnumNode, GLSLFuncNode {
     override fun compute() {
         setOutput(0, type.compute(getBoolInput(0), getBoolInput(1), getBoolInput(2)))
     }

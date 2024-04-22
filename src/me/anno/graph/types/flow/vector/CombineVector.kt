@@ -2,17 +2,19 @@ package me.anno.graph.types.flow.vector
 
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class CombineVector2f : CalculationNode("Combine Vector2f", inputs, outputs) {
+class CombineVector2f : CalculationNode("Combine Vector2f", inputs, outputs), GLSLFuncNode {
 
     init {
         setInput(0, 0f)
         setInput(1, 0f)
     }
 
+    override fun getShaderFuncName(outputIndex: Int): String = "vec2"
     override fun calculate(): Vector2f {
         val x = getFloatInput(0)
         val y = getFloatInput(1)
@@ -26,7 +28,7 @@ class CombineVector2f : CalculationNode("Combine Vector2f", inputs, outputs) {
 
 }
 
-class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs) {
+class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs), GLSLFuncNode {
 
     init {
         setInput(0, 0f)
@@ -34,6 +36,7 @@ class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs) {
         setInput(2, 0f)
     }
 
+    override fun getShaderFuncName(outputIndex: Int): String = "vec3"
     override fun calculate(): Vector3f {
         val x = getFloatInput(0)
         val y = getFloatInput(1)
@@ -48,7 +51,7 @@ class CombineVector3f : CalculationNode("Combine Vector3f", inputs, outputs) {
 
 }
 
-class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs) {
+class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs), GLSLFuncNode {
 
     init {
         setInput(0, 0f)
@@ -57,6 +60,7 @@ class CombineVector4f : CalculationNode("Combine Vector4f", inputs, outputs) {
         setInput(3, 1f)
     }
 
+    override fun getShaderFuncName(outputIndex: Int): String = "vec4"
     override fun calculate(): Vector4f {
         val x = getFloatInput(0)
         val y = getFloatInput(1)

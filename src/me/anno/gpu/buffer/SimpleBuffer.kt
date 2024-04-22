@@ -91,7 +91,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
                     Vector2f(0f, 0f),
                     Vector2f(2f, 0f),
                     Vector2f(0f, 2f),
-                ), intArrayOf(0, 1, 2), "coords"
+                ),"coords"
             )
 
             override fun draw(shader: Shader) {
@@ -130,7 +130,7 @@ open class SimpleBuffer(name0: String, val vertices: List<Vector2f>, name: Strin
                 idx[i++] = t
                 idx[i++] = -1f
                 idx[i++] = t
-                idx[i++] = +1f
+                idx[i++] = 1f
             }
             return idx
         }

@@ -10,14 +10,10 @@ import me.anno.graph.types.flow.FlowGraphNode
 // we enter the graph somewhere, do processing, and then exit some time
 open class FlowGraph : Graph() {
 
-    // todo probably nodes should be able to compute their values
-    // todo maybe we need to evaluate nodes every time: internal values may have changed
-
     var validId = 0
     var lastInvalidation = 0L
 
-    // todo define them local variables...
-    var localVariables = HashMap<String, Any?>()
+    val localVariables = HashMap<String, Any?>()
 
     fun requestId(): Int {
         val v = ++validId
@@ -27,11 +23,6 @@ open class FlowGraph : Graph() {
             invalidate()
             return 0
         } else v
-    }
-
-    // shouldn't really be required...
-    fun resetLocalVariables() {
-        localVariables.clear()
     }
 
     fun invalidate() {

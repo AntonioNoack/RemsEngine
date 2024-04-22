@@ -1,6 +1,6 @@
 package me.anno.gpu.shader.effects
 
-import me.anno.gpu.GFX.flat01
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -126,9 +126,8 @@ object FXAA {
         shader.v1b("disableEffect", enableDebugControls && isControlDown)
         shader.v1b("showEdges", enableDebugControls && isShiftDown)
         color.bindTrulyNearest(0)
-        flat01.draw(shader)
+        SimpleBuffer.flat01.draw(shader)
     }
 
     var enableDebugControls = false
-
 }

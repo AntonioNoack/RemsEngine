@@ -28,6 +28,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -35,7 +36,6 @@ import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -105,7 +105,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     private val inertia = Vector3d()
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<RigidBody>? {
-
         val colliders = getValidComponents(entity, Collider::class)
             .filter { it.hasPhysics }.toList()
         return if (colliders.isNotEmpty()) {
@@ -128,7 +127,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             com1.basis.setIdentity()
             com1.origin.set(com0.x, com0.y, com0.z)
 
-            // create the motion state
             val motionState = DefaultMotionState(transform1, com1)
             val rbInfo = RigidBodyConstructionInfo(mass, motionState, collider, inertia)
             rbInfo.friction = rigidBody.friction
@@ -141,10 +139,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val rb = RigidBody(rbInfo)
             rb.deactivationTime = rigidBody.sleepingTimeThreshold
             rb.ccdMotionThreshold = 1e-7
-            val sp = Vector3d()
-            val r = DoubleArray(1)
-            collider.getBoundingSphere(sp, r)
-            rb.ccdSweptSphereRadius = r[0]
+            rb.ccdSweptSphereRadius = collider.getBoundingSphere(Vector3d())
 
             BodyWithScale(rb, scale)
         } else null
@@ -300,6 +295,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             Stack.printClassUsage()
             Stack.printSizes()
         }
+        Stack.limit = 1024
         Stack.reset(printSlack)
         super.step(dt, printSlack)
     }
@@ -312,18 +308,19 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             Stack.reset(false)
             bulletInstance?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
         } catch (e: Exception) {
-            e.printStackTrace()
-            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+            warnCrash(e)
         } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+            warnCrash(e)
         } catch (e: IndexOutOfBoundsException) {
-            e.printStackTrace()
-            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+            warnCrash(e)
         } catch (e: OutOfMemoryError) {
-            e.printStackTrace()
-            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+            warnCrash(e)
         }
+    }
+
+    private fun warnCrash(e: Throwable) {
+        e.printStackTrace()
+        LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
     }
 
     override fun isActive(rigidbody: RigidBody): Boolean {

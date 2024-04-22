@@ -43,6 +43,10 @@ import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
+/**
+ * How a RenderView shall render a scene;
+ * Defined by either a Renderer, a render graph, or a Material.
+ * */
 @Suppress("unused")
 class RenderMode(
     val name: String,

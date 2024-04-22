@@ -1,15 +1,14 @@
 package me.anno.graph.render.scene
 
 import me.anno.graph.types.flow.CalculationNode
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLConstNode
 import org.joml.Vector2f
 
-open class ShaderConstNode(name: String, val glsl: String) :
-    CalculationNode(name, emptyList(), "Vector2f"), GLSLExprNode {
+open class ShaderConstNode(name: String, val type: String, val glsl: String) :
+    CalculationNode(name, emptyList(), type), GLSLConstNode {
     override fun calculate() = Vector2f(0f)
-    override fun defineShaderFunc(outputIndex: Int) = null
-    override fun getShaderFuncName(outputIndex: Int) = glsl
+    override fun getGLSLName(outputIndex: Int) = glsl
 }
 
-class UViNode : ShaderConstNode("UVi", "gl_FragCoord")
-class UVNode : ShaderConstNode("UV", "uv")
+class UViNode : ShaderConstNode("UVi", "Vector2f", "gl_FragCoord")
+class UVNode : ShaderConstNode("UV", "Vector2f", "uv")

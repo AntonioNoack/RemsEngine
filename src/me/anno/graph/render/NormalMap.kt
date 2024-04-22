@@ -2,7 +2,7 @@ package me.anno.graph.render
 
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.types.flow.maths.GLSLExprNode
+import me.anno.graph.types.flow.maths.GLSLFuncNode
 import org.joml.Matrix3f
 import org.joml.Vector3f
 
@@ -14,7 +14,7 @@ class NormalMap : CalculationNode(
         "Float", "Strength",
         "Vector3f", "Texture RGB"
     ), "Vector3f"
-), GLSLExprNode {
+), GLSLFuncNode {
 
     override fun calculate(): Vector3f {
         val normal = getInput(0) as Vector3f

@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.ShaderLib
@@ -59,7 +60,7 @@ private fun testShader() {
             shader.v2f("rbOffset", 0f, 0f) // red-blue-offset; disabled for testing
             depth.bindTexture0(0, Filtering.NEAREST, Clamping.CLAMP)
             depth.bindTexture0(1, Filtering.NEAREST, Clamping.CLAMP)
-            GFX.flat01.draw(shader)
+            SimpleBuffer.flat01.draw(shader)
         }
         GFX.copy(result)
     }
