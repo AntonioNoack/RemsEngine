@@ -17,7 +17,6 @@ abstract class QuadTree<Data>(maxNumChildren: Int) :
     override fun chooseSplitDimension(min: Vector2d, max: Vector2d): Int {
         val dx = max.x - min.x
         val dy = max.y - min.y
-        return if (dx >= dy) 0 else 1
+        return getMaxComponent(dx, dy)
     }
-
 }

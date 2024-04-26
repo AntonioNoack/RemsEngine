@@ -5,6 +5,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.white
+import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.flatten
 import org.apache.logging.log4j.LogManager
@@ -70,8 +71,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     override fun setCollapsed(element: PrefabSaveable, collapsed: Boolean) {
-        if (collapsed) notCollapsed.remove(element)
-        else notCollapsed.add(element)
+        notCollapsed.setContains(element, !collapsed)
     }
 
     override fun isCollapsed(element: PrefabSaveable): Boolean {
@@ -88,10 +88,11 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
         LOGGER.warn("Cannot add things")
     }
 
-    override fun focusOnElement(element: PrefabSaveable) {
+    override fun focusOnElement(element: PrefabSaveable): Boolean {
         // can we do that?
         // if we would, the selection would change, and our original panel would become invalid
         selectElements(listOf(element))
+        return true
     }
 
     override fun selectElements(elements: List<PrefabSaveable>) {

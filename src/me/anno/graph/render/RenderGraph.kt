@@ -159,8 +159,8 @@ object RenderGraph {
     private fun drawResult(endNode: ExprReturnNode, dst: Panel) {
         val texture = endNode.render(true)
         val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.width, dst.height)
-        val x = dst.x + (dst.width - w) / 2
-        val y = dst.y + (dst.height - h) / 2
+        val x = dst.x + (dst.width - w).shr(1)
+        val y = dst.y + (dst.height - h).shr(1)
         val applyToneMapping = endNode.getInput(6) == true
         drawTexture(x, y + h, w, -h, texture, false, -1, null, applyToneMapping)
     }

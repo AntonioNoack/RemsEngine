@@ -74,8 +74,6 @@ fun main() {
                 selected += elements
             }
 
-            override fun focusOnElement(element: Element) {}
-
             override fun openAddMenu(parent: Element) {
                 parent.add(Element())
             }

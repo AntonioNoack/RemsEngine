@@ -125,11 +125,11 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
         val text = text
-        val chars = text.codepoints().toList()
+        val chars = text.codepoints().asList()
         val start = if (suggestion.start == 0) emptyList() else chars.subList(0, suggestion.start)
         val end = chars.subList(suggestion.end, chars.size)
         val choiceCp = choice.codepoints()
-        this.text = (start + choiceCp.toList() + end).joinChars().toString()
+        this.text = (start + choiceCp.asList() + end).joinChars().toString()
         updateChars(true)
         setCursor(start.size + choiceCp.size) // set the cursor to after the edit
     }

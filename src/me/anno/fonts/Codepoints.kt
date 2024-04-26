@@ -7,47 +7,58 @@ package me.anno.fonts
 object Codepoints {
 
     // todo join multi-char emojis, too?
+    @JvmStatic
     private fun isHighSurrogate(high: Char): Boolean {
         return high.code in 0xd800..0xdbff
     }
 
+    @JvmStatic
     private fun isLowSurrogate(low: Char): Boolean {
         return low.code in 0xdc00..0xdfff
     }
 
-    private fun toCodepoint(high: Char, low: Char): Int {
-        return (high.code shl 10) + low.code - 56613888
+    @JvmStatic
+    private fun isSurrogatePair(high: Char, low: Char): Boolean {
+        return isHighSurrogate(high) and isLowSurrogate(low)
     }
 
+    @JvmStatic
+    private fun toCodepoint(high: Char, low: Char): Int {
+        return (high.code shl 10) + low.code - 0x35fdc00
+    }
+
+    @JvmStatic
     @Suppress("unused")
     fun CharSequence.needsCodepoints(): Boolean {
         for (i in 0 until length - 1) {
-            if (isHighSurrogate(this[i]) && isLowSurrogate(this[i + 1])) {
+            if (isSurrogatePair(this[i], this[i + 1])) {
                 return true
             }
         }
         return false
     }
 
+    @JvmStatic
     fun CharSequence.countCodepoints(): Int {
-        var len = length
+        var result = length
         for (i in 0 until length - 1) {
-            if (isHighSurrogate(this[i]) && isLowSurrogate(this[i + 1])) {
-                len--
+            if (isSurrogatePair(this[i], this[i + 1])) {
+                result--
             }
         }
-        return len
+        return result
     }
 
+    @JvmStatic
     fun CharSequence.codepoints(): IntArray {
         val result = IntArray(countCodepoints())
-        var ri = 0
-        for (wi in result.indices) {
-            result[wi] = if (ri + 1 < length &&
-                isHighSurrogate(this[ri]) &&
-                isLowSurrogate(this[ri + 1])
-            ) toCodepoint(this[ri++], this[ri++])
-            else this[ri++].code
+        var readIndex = 0
+        for (writeIndex in result.indices) {
+            val high = this[readIndex]
+            val low = this[kotlin.math.min(readIndex + 1, length - 1)]
+            val isPair = isSurrogatePair(high, low)
+            result[writeIndex] = if (isPair) toCodepoint(high, low) else high.code
+            readIndex += if (isPair) 2 else 1
         }
         return result
     }

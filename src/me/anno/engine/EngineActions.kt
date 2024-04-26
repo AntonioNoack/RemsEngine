@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.Build
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -9,7 +10,6 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.io.files.Reference.getReference
 import me.anno.io.utils.StringMap
-import me.anno.engine.Events.addEvent
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.ui.editor.code.CodeEditor
 import org.apache.logging.log4j.LogManager
@@ -137,9 +137,16 @@ object EngineActions {
             ActionManager.registerGlobalAction(name, action)
         }
 
-        CodeEditor.registerActions()
+        registerCodeEditorActions()
 
         ActionManager.createDefaultKeymap = EngineActions::createKeymap
+    }
+
+    private fun registerCodeEditorActions() {
+        try {
+            CodeEditor.registerActions()
+        } catch (ignored: NoClassDefFoundError) {
+        }
     }
 
     fun createKeymap(register: StringMap) {

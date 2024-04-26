@@ -8,6 +8,7 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.Vector2i
 import org.joml.Vector3i
@@ -52,13 +53,11 @@ fun main() {
         ) {
             override fun listRoots(): List<FileReference> = listOf(root)
             override fun selectElements(elements: List<FileReference>) {}
-            override fun focusOnElement(element: FileReference) {}
             override fun openAddMenu(parent: FileReference) {}
             override fun getChildren(element: FileReference) = element.listChildren()
             override fun isCollapsed(element: FileReference) = element !in notCollapsed
             override fun setCollapsed(element: FileReference, collapsed: Boolean) {
-                if (collapsed) notCollapsed.remove(element)
-                else notCollapsed.add(element)
+                notCollapsed.setContains(element, !collapsed)
             }
 
             override fun addChild(element: FileReference, child: Any, type: Char, index: Int): Boolean = false

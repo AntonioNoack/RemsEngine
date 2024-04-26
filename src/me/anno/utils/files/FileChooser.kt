@@ -76,7 +76,7 @@ object FileChooser {
                     .map { file -> file.toGlobalFile() }
                 submit.isInputAllowed = selected.isNotEmpty()
             }
-            filesList.alignmentX = AxisAlignment.CENTER
+            filesList.alignmentX = AxisAlignment.FILL
             filesList.base.enableSpellcheck = false
             filesList
         } else {

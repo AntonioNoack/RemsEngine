@@ -448,6 +448,18 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
+
+    fun isSubFolderOf(other: FileReference): Boolean {
+        return isSubFolderOf(other.absolutePath)
+    }
+
+    fun isSubFolderOf(other: String): Boolean {
+        val path = absolutePath
+        return path.length > other.length + 1 &&
+                path[other.length] == '/' &&
+                path.startsWith(other)
+    }
+
     override fun destroy() {
     }
 

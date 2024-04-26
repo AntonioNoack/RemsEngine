@@ -155,34 +155,36 @@ class TreeViewEntryPanel<V : Any>(
         return uiSymbol != null && x <= uiSymbol.lx1
     }
 
+    private fun onLeftClick(x: Float, element: V) {
+        // collapse, if you click on the symbol
+        // todo selecting multiple isn't working yet :/
+        val inFocusByParent = siblings.count2 { it is TreeViewEntryPanel<*> && it.isAnyChildInFocus }
+        LOGGER.debug(
+            "click -> ${siblings.size}, ${siblings.count2 { it is TreeViewEntryPanel<*> }}, $inFocusByParent, " +
+                    "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
+        )
+        if (Input.isShiftDown && inFocusByParent < 2) {
+            treeView.toggleCollapsed(element)
+            uiParent?.invalidateLayout()
+        } else if (isMouseOnSymbol(x)) {
+            treeView.toggleCollapsed(element)
+            uiParent?.invalidateLayout()
+        } else {
+            val elements = siblings.mapNotNull {
+                if (it == this) element
+                else if (it is TreeViewEntryPanel<*> && it.isAnyChildInFocus) {
+                    @Suppress("UNCHECKED_CAST")
+                    it.getElement() as V
+                } else null
+            }
+            treeView.selectElementsMaybe(elements)
+        }
+    }
+
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         val element = getElement()
         when (button) {
-            Key.BUTTON_LEFT -> {
-                // collapse, if you click on the symbol
-                // todo selecting multiple isn't working yet :/
-                val inFocusByParent = siblings.count2 { it is TreeViewEntryPanel<*> && it.isAnyChildInFocus }
-                LOGGER.debug(
-                    "click -> ${siblings.size}, ${siblings.count2 { it is TreeViewEntryPanel<*> }}, $inFocusByParent, " +
-                            "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
-                )
-                if (Input.isShiftDown && inFocusByParent < 2) {
-                    treeView.toggleCollapsed(element)
-                    uiParent?.invalidateLayout()
-                } else if (isMouseOnSymbol(x)) {
-                    treeView.toggleCollapsed(element)
-                    uiParent?.invalidateLayout()
-                } else {
-                    val elements = siblings.mapNotNull {
-                        if (it == this) element
-                        else if (it is TreeViewEntryPanel<*> && it.isAnyChildInFocus) {
-                            @Suppress("UNCHECKED_CAST")
-                            it.getElement() as V
-                        } else null
-                    }
-                    treeView.selectElementsMaybe(elements)
-                }
-            }
+            Key.BUTTON_LEFT -> onLeftClick(x, element)
             Key.BUTTON_RIGHT -> treeView.openAddMenu(element)
             else -> super.onMouseClicked(x, y, button, long)
         }
@@ -190,8 +192,12 @@ class TreeViewEntryPanel<V : Any>(
 
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
         when (button) {
-            Key.BUTTON_LEFT -> treeView.focusOnElement(getElement())
-            // Key.BUTTON_RIGHT -> toggleCollapsed()
+            Key.BUTTON_LEFT -> {
+                val element = getElement()
+                if (!treeView.focusOnElement(element)) {
+                    onLeftClick(x, element)
+                }
+            }
             else -> super.onDoubleClick(x, y, button)
         }
     }

@@ -1,5 +1,6 @@
 package me.anno.export.idea
 
+import me.anno.config.ConfigRef
 import me.anno.export.idea.IdeaLibrary.Companion.loadLibrary
 import me.anno.export.idea.IdeaModule.Companion.loadModule
 import me.anno.io.files.FileReference
@@ -14,6 +15,11 @@ class IdeaProject(val projectDir: FileReference) {
     val libraries = HashMap<String, IdeaLibrary>()
 
     companion object {
+
+        var kotlinc by ConfigRef(
+            "export.kotlin.stdlibLocation",
+            getReference("C:/Program Files/IntelliJ IDEA/plugins/Kotlin/kotlinc")
+        )
 
         fun loadProject(projectDir: FileReference): IdeaProject {
             val result = IdeaProject(projectDir)
@@ -40,8 +46,7 @@ class IdeaProject(val projectDir: FileReference) {
                         .replace("\$USER_HOME\$", OS.home.absolutePath)
                         // do we need to look up the environment variable for that?
                         .replace("\$MAVEN_REPOSITORY\$", OS.home.getChild(".m2/repository").absolutePath)
-                        // todo make this configurable
-                        .replace("\$KOTLIN_BUNDLED\$", "C:/Program Files/IntelliJ IDEA/plugins/Kotlin/kotlinc")
+                        .replace("\$KOTLIN_BUNDLED\$", kotlinc.absolutePath)
                 )
             }
         }

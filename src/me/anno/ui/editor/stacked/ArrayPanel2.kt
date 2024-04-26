@@ -25,6 +25,7 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
+import me.anno.utils.structures.Collections.setContains
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -120,10 +121,6 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     override fun selectElements(elements: List<IntRange>) {
-        // ...
-    }
-
-    override fun focusOnElement(element: IntRange) {
         // ...
     }
 
@@ -224,8 +221,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     override fun setCollapsed(element: IntRange, collapsed: Boolean) {
-        if (collapsed) notCollapsed.remove(element)
-        else notCollapsed.add(element)
+        notCollapsed.setContains(element, !collapsed)
     }
 
     override fun addChild(element: IntRange, child: Any, type: Char, index: Int): Boolean {

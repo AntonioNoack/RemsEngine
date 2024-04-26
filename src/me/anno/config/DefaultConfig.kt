@@ -66,11 +66,14 @@ object DefaultConfig : StringMap() {
             "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
         )
         addImportMappings("Text", "txt")
-        addImportMappings("Mesh", "obj", "mtl", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
+        addImportMappings(
+            "Mesh", "obj", "mtl", "fbx", "dae",
+            "gltf", "glb", "md2", "md5mesh", "vox",
+            "blend", "blend1",
+        )
         // not yet supported
         // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3", "wav", "m4a", "ogg", "opus")
-        addImportMappings("URL", "url", "lnk", "desktop")
         addImportMappings(
             "Container", "unitypackage",
             "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar",
@@ -78,7 +81,7 @@ object DefaultConfig : StringMap() {
         )
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar", "desktop")
         addImportMappings("Metadata", "json", "xml")
-        addImportMappings("Link", "url", "lnk")
+        addImportMappings("Link", "url", "lnk", "desktop")
     }
 
     fun addImportMappings(result: String, vararg extensions: String) {

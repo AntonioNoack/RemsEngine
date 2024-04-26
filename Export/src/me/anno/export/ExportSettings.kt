@@ -3,6 +3,7 @@ package me.anno.export
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
 import me.anno.export.idea.IdeaProject
+import me.anno.export.idea.IdeaProject.Companion.kotlinc
 import me.anno.export.platform.LinuxPlatforms
 import me.anno.export.platform.MacOSPlatforms
 import me.anno.export.platform.WindowsPlatforms
@@ -39,6 +40,8 @@ class ExportSettings : NamedSaveable() {
     var gameTitle = ""
     var configName = ""
     var versionNumber = 1
+
+    var minimalUI = false
 
     val projectRoots = arrayListOf(documents.getChild("IdeaProjects/RemsEngine"))
 
@@ -124,6 +127,9 @@ class ExportSettings : NamedSaveable() {
             .setChangeListener { versionNumber = it.toInt() })
         general.add(FileInput("First Scene", DefaultConfig.style, firstSceneRef, emptyList(), false)
             .addChangeListener { firstSceneRef = it })
+        val shared = getGroup(NameDesc("Shared Settings"), list)
+        shared.add(FileInput("Kotlinc Folder", style, kotlinc, emptyList(), true)
+            .addChangeListener { kotlinc = it })
         // platforms
         val platforms = getGroup(NameDesc("Platforms"), list)
         val linux = getGroup(NameDesc("Linux"), platforms)
@@ -180,6 +186,9 @@ class ExportSettings : NamedSaveable() {
                     }.setTooltip(file.toLocalPath())
             )
         }
+        val opt = getGroup(NameDesc("Space Optimization"), list)
+        opt.add(BooleanInput("Minimal UI", minimalUI, false, style)
+            .setChangeListener { minimalUI = it })
 
         // assets
         val assets = getGroup(NameDesc("Assets"), list)

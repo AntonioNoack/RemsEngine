@@ -1,5 +1,6 @@
 package me.anno.image
 
+import me.anno.maths.Maths.roundDiv
 import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.max
 import kotlin.math.min
@@ -10,13 +11,8 @@ object ImageScale {
      * cuts off excess of the image
      * */
     @JvmStatic
-    @Suppress("unused")
     fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): IntPair {
-        return if (imageWidth < imageHeight) {
-            IntPair(minSize, max(1, (imageHeight * minSize + imageWidth / 2) / imageWidth))
-        } else {
-            IntPair(max(1, (imageWidth * minSize + imageHeight / 2) / imageHeight), minSize)
-        }
+        return scaleMin(imageWidth, imageHeight, minSize, minSize)
     }
 
     /**
@@ -38,11 +34,7 @@ object ImageScale {
      * */
     @JvmStatic
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): IntPair {
-        return if (imageWidth > imageHeight) {
-            IntPair(maxSize, max(1, (imageHeight * maxSize + imageWidth / 2) / imageWidth))
-        } else {
-            IntPair(max(1, (imageWidth * maxSize + imageHeight / 2) / imageHeight), maxSize)
-        }
+        return scaleMax(imageWidth, imageHeight, maxSize, maxSize)
     }
 
     /**
@@ -52,15 +44,15 @@ object ImageScale {
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): IntPair {
         return if (imageWidth * maxHeight > imageHeight * maxWidth) {
             // width is the limit
-            IntPair(maxWidth, max(1, (imageHeight * maxWidth + imageWidth / 2) / imageWidth))
+            IntPair(maxWidth, max(1, roundDiv(imageHeight * maxWidth, imageWidth)))
         } else {
             // height is the limit
-            IntPair(max(1, (imageWidth * maxHeight + imageHeight / 2) / imageHeight), maxHeight)
+            IntPair(max(1, roundDiv(imageWidth * maxHeight, imageHeight)), maxHeight)
         }
     }
 
     @JvmStatic
-    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int = 5): IntPair {
+    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int): IntPair {
         return when {
             // not too tall or too wide
             max(imageWidth, imageHeight) < maxAspectRatio * min(imageWidth, imageHeight) -> {
@@ -76,5 +68,4 @@ object ImageScale {
             }
         }
     }
-
 }

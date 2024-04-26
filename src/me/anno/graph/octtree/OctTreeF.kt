@@ -17,8 +17,6 @@ abstract class OctTreeF<Data>(maxNumChildren: Int) :
         val dx = max.x - min.x
         val dy = max.y - min.y
         val dz = max.z - min.z
-        return if (dx >= dy && dx >= dz) 0 else
-            if (dy >= dx && dy >= dz) 1 else 2
+        return getMaxComponent(dx.toDouble(), dy.toDouble(), dz.toDouble())
     }
-
 }

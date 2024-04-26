@@ -44,8 +44,8 @@ object SignedDistanceField {
         }
 
         // the center, because we draw the pieces from the center
-        val ox = (stats.maxX + stats.minX) * +sdfResolution / stats.w
-        val oy = (stats.maxY + stats.minY) * -sdfResolution / stats.h // mirrored for OpenGL
+        val ox = +(stats.maxX + stats.minX) * sdfResolution / stats.w
+        val oy = -(stats.maxY + stats.minY) * sdfResolution / stats.h // mirrored for OpenGL
         return TextSDF(tex, Vector2f(ox, oy))
     }
 }

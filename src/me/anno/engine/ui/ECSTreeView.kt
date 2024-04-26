@@ -536,7 +536,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         EditorState.select(elements.filterIsInstance<PrefabSaveable>())
     }
 
-    override fun focusOnElement(element: Saveable) {
+    override fun focusOnElement(element: Saveable): Boolean {
         selectElements(listOf(element))
         // focus on the element by inverting the camera transform and such...
         val windowStack = window!!.windowStack
@@ -553,6 +553,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                 }
             }
         }
+        return true
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

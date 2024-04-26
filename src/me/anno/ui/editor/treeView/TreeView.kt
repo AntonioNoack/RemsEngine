@@ -57,8 +57,12 @@ abstract class TreeView<V : Any>(
     // Selection.select(element, null)
     abstract fun selectElements(elements: List<V>)
 
-    // zoomToObject
-    abstract fun focusOnElement(element: V)
+    /**
+     * zoom to object and return true; or if not applicable, return false
+     * */
+    open fun focusOnElement(element: V): Boolean {
+        return false
+    }
 
     abstract fun openAddMenu(parent: V)
 
@@ -342,7 +346,7 @@ abstract class TreeView<V : Any>(
         }
     }
 
-    fun createChildPanel(index: Int): TreeViewEntryPanel<*> {
+    open fun createChildPanel(index: Int): TreeViewEntryPanel<*> {
         val child = TreeViewEntryPanel(index, this, style)
         child.padding.left = 4
         // todo checkbox with custom icons
@@ -355,7 +359,7 @@ abstract class TreeView<V : Any>(
 
     abstract fun isValidElement(element: Any?): Boolean
 
-    fun toggleCollapsed(element: V) {
+    open fun toggleCollapsed(element: V) {
         setCollapsed(element, !isCollapsed(element))
     }
 

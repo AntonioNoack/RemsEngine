@@ -15,6 +15,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.image.thumbs.Thumbs
+import me.anno.io.utils.LinkCreator
 import me.anno.io.utils.TrashManager
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.ui.editor.files.FileExplorer
@@ -52,7 +53,7 @@ class JVMExtension : Plugin() {
         Spellchecking.checkImpl = SpellcheckingImpl::check
         AudioManager.audioDeviceHash = { AudioSystem.getMixerInfo()?.size ?: -1 }
         TrashManager.moveToTrashImpl = this::moveToTrash
-        FileExplorer.createLink = FileExplorerImpl::createLink
+        LinkCreator.createLink = FileExplorerImpl::createLink
         DefaultStyle.initDefaults() // reload default font size
     }
 

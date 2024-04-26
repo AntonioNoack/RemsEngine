@@ -95,8 +95,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun changeType() {
         val options = ArrayList<MenuOption>(library.typeList.size + 5)
-        for ((name, generator) in library.typeList) {
-            options.add(MenuOption(NameDesc(name, "", "")) { changeTo(generator()) })
+        for ((nameDesc, generator) in library.typeList) {
+            options.add(MenuOption(nameDesc) { changeTo(generator()) })
         }
         options.add(Menu.menuSeparator1)
         val parent = parent

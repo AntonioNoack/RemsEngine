@@ -1,8 +1,8 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
-import me.anno.io.files.FileReference
 import me.anno.engine.Events.addEvent
+import me.anno.io.files.FileReference
 
 open class FileContentImporter<V> {
 
@@ -47,18 +47,14 @@ open class FileContentImporter<V> {
             setName(directory, file.name)
             if (depth < DefaultConfig["import.depth.max", 3]) {
                 // isn't the import order more important than speed?
-                val fileList = file.listChildren()
-                if (fileList != null) {
-                    for (it in fileList) {
-                        if (!it.name.startsWith('.')) {
-                            addEvent {
-                                addChildFromFile(directory, it, useSoftLink, doSelect, depth + 1, callback)
-                            }
+                for (child in file.listChildren()) {
+                    if (!child.name.startsWith('.')) {
+                        addEvent {
+                            addChildFromFile(directory, child, useSoftLink, doSelect, depth + 1, callback)
                         }
                     }
                 }
             }
         } else import(parent, file, useSoftLink, doSelect, depth, callback)
     }
-
 }

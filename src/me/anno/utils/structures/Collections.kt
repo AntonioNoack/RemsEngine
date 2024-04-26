@@ -21,7 +21,7 @@ object Collections {
         }
         for (a in this) {
             for (b in other) {
-                    dst += transform(a, b)
+                dst += transform(a, b)
             }
         }
         return dst
@@ -47,5 +47,11 @@ object Collections {
             }
         }
         return dst
+    }
+
+    @JvmStatic
+    fun <V> MutableCollection<V>.setContains(element: V, shallContain: Boolean) {
+        if (shallContain) add(element)
+        else remove(element)
     }
 }

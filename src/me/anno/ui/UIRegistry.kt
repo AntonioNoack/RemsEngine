@@ -7,7 +7,6 @@ import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.ui.anim.AnimContainer
 import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation
-import me.anno.ui.base.image.IconPanel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton
@@ -17,6 +16,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.groups.TitledListY
+import me.anno.ui.base.image.IconPanel
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -34,6 +34,8 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.PureTextInputML
+import kotlin.reflect.KClass
+import kotlin.reflect.javaType
 
 object UIRegistry {
 
@@ -43,44 +45,50 @@ object UIRegistry {
         registerCustomClass(CanvasComponent())
 
         // ui containers
-        val style = DefaultConfig.style
         registerCustomClass(Font())
         registerCustomClass(Padding())
-        registerCustomClass { Panel(style) }
-        registerCustomClass { PanelListX(style) }
-        registerCustomClass { PanelListY(style) }
-        registerCustomClass { PanelStack(style) }
-        registerCustomClass { ScrollPanelX(style) }
-        registerCustomClass { ScrollPanelY(style) }
-        registerCustomClass { ScrollPanelXY(style) }
-        registerCustomClass { NineTilePanel(style) }
-        registerCustomClass { TitledListY(style) }
+        registerPanelClass(Panel::class)
+        registerPanelClass(PanelListX::class)
+        registerPanelClass(PanelListY::class)
+        registerPanelClass(PanelStack::class)
+        registerPanelClass(ScrollPanelX::class)
+        registerPanelClass(ScrollPanelY::class)
+        registerPanelClass(ScrollPanelXY::class)
+        registerPanelClass(NineTilePanel::class)
+        registerPanelClass(TitledListY::class)
 
         // ui animations
-        registerCustomClass { AnimContainer(style) }
+        registerPanelClass(AnimContainer::class)
         registerCustomClass(MoveAnimation())
         registerCustomClass(ScaleAnimation())
 
         // ui content
-        registerCustomClass { TextPanel(style) }
-        registerCustomClass { LinkPanel(style) }
-        registerCustomClass { SimpleTextPanel(style) }
-        registerCustomClass { IconPanel(style) }
-        registerCustomClass { TextButton(style) }
-        registerCustomClass { ImageButton(style) }
-        registerCustomClass { SpacerPanel(style) }
-        registerCustomClass { ColorChooser(style) }
-        registerCustomClass { ColorInput(style) }
-        registerCustomClass { BooleanInput(style) }
-        registerCustomClass { FloatInput(style) }
-        registerCustomClass { FloatVectorInput(style) }
-        registerCustomClass { IntInput(style) }
-        registerCustomClass { IntVectorInput(style) }
-        registerCustomClass { TextInput(style) }
-        registerCustomClass { TextInputML(style) }
-        registerCustomClass { PureTextInput(style) }
-        registerCustomClass { PureTextInputML(style) }
+        registerPanelClass(TextPanel::class)
+        registerPanelClass(LinkPanel::class)
+        registerPanelClass(SimpleTextPanel::class)
+        registerPanelClass(IconPanel::class)
+        registerPanelClass(TextButton::class)
+        registerPanelClass(ImageButton::class)
+        registerPanelClass(SpacerPanel::class)
+        registerPanelClass(ColorChooser::class)
+        registerPanelClass(ColorInput::class)
+        registerPanelClass(BooleanInput::class)
+        registerPanelClass(FloatInput::class)
+        registerPanelClass(FloatVectorInput::class)
+        registerPanelClass(IntInput::class)
+        registerPanelClass(IntVectorInput::class)
+        registerPanelClass(TextInput::class)
+        registerPanelClass(TextInputML::class)
+        registerPanelClass(PureTextInputML::class)
         // not finished:
-        // registerCustomClass { ConsoleInput(style) }
+        // registerPanelClass(ConsoleInput::class)
+    }
+
+    fun <V : Panel> registerPanelClass(clazz: KClass<V>) {
+        val constructor = clazz.constructors.first {
+            it.parameters.size == 1 &&
+                    it.parameters.first().type.classifier == Style::class
+        }
+        registerCustomClass { constructor.call(DefaultConfig.style) }
     }
 }

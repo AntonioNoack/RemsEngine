@@ -106,18 +106,20 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = ImageCache[file, false] ?: run {
-                LOGGER.warn("Missing texture for $file")
-                missingImage
-            }
+            val src = warnIfMissing(ImageCache[file, false], missingImage, file)
             createImage(src)
         }, {
-            val src = TextureCache[file, false] ?: run {
-                LOGGER.warn("Missing texture for $file")
-                missingTexture
-            }
+            val src = warnIfMissing(TextureCache[file, false], missingTexture, file)
             createImage(GPUImage(src))
         })
+    }
+
+    @JvmStatic
+    private fun <V> warnIfMissing(nullable: V?, ifNull: V, file: FileReference): V {
+        return if (nullable != null) nullable else {
+            LOGGER.warn("Missing texture for {}", file)
+            ifNull
+        }
     }
 
     @JvmStatic
@@ -163,10 +165,7 @@ object ImageReader {
     }
 
     fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {
-        return readImage(file, AsyncCacheData(), forGPU)
-    }
-
-    fun readImage(file: FileReference, data: AsyncCacheData<Image>, forGPU: Boolean): AsyncCacheData<Image> {
+        val data = AsyncCacheData<Image>()
         if (file is ImageReadable) {
             data.value = if (forGPU) file.readGPUImage() else file.readCPUImage()
         } else if (file is BundledRef || (file !is SignatureFile && file.length() < 10_000_000L)) { // < 10MB -> read directly

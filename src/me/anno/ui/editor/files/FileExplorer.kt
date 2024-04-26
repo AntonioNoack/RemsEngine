@@ -13,6 +13,7 @@ import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.utils.LinkCreator
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -517,7 +518,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     fun createLinksInto(files: List<FileReference>, folder: FileReference) {
         val progress = GFX.someWindow.addProgressBar("Creating Links", "Files", files.size.toDouble())
-        val createLink = createLink
+        val createLink = LinkCreator.createLink
         if (createLink != null) {
             var tmp: FileReference? = null
             loop@ for (dst in files) {
@@ -723,8 +724,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     companion object {
 
         var rightClickedFiles: Set<FileReference> = emptySet()
-
-        var createLink: ((src: FileReference, dst: FileReference, tmp: FileReference?) -> FileReference?)? = null
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FileExplorer::class)

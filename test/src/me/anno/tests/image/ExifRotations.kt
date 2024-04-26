@@ -4,7 +4,7 @@ import me.anno.image.jpg.ExifOrientation
 import me.anno.utils.OS
 
 fun main() {
-    val folder = OS.documents.getChild("IdeaProjects/VideoStudio/progress/exif")
+    val folder = OS.documents.getChild("IdeaProjects/RemsEngine/progress/exif")
     for (i in 1..8) {
         val src = folder.getChild("orientation_$i.jpg")
 

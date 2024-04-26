@@ -57,7 +57,7 @@ object DebugGPUStorage {
         override fun calculateSize(w: Int, h: Int) {
             super.calculateSize(w, h)
             val ws = windowStack
-            val (sw, sh) = scaleMaxPreview(getTexW(), getTexH(), min(w, ws.width), min(h, ws.height) - fontSize)
+            val (sw, sh) = scaleMaxPreview(getTexW(), getTexH(), min(w, ws.width), min(h, ws.height) - fontSize, 5)
             minW = sw
             minH = sh + fontSize
         }
@@ -65,7 +65,7 @@ object DebugGPUStorage {
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
             if (isFine()) {
-                val (w, h) = scaleMaxPreview(getTexW(), getTexH(), width, height - fontSize)
+                val (w, h) = scaleMaxPreview(getTexW(), getTexH(), width, height - fontSize, 5)
                 val xi = x + (this.width - w) / 2
                 val yi = y + fontSize + (this.height - fontSize - h) / 2
                 // transparency-showing background

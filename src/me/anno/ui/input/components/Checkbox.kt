@@ -16,6 +16,7 @@ import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 
+// todo optional rectangular checkboxes (?)
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 

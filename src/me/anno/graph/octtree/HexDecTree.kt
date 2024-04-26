@@ -18,12 +18,6 @@ abstract class HexDecTree<Data>(maxNumChildren: Int) :
         val dy = max.y - min.y
         val dz = max.z - min.z
         val dw = (max.w - min.w) // todo handle size like a factor (conditionally) (?)
-        return when (kotlin.math.max(kotlin.math.max(dx, dy), kotlin.math.max(dz, dw))) {
-            dx -> 0
-            dy -> 1
-            dz -> 2
-            else -> 3
-        }
+        return getMaxComponent(dx, dy, dz, dw)
     }
-
 }

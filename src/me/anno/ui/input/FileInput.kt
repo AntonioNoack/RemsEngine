@@ -78,7 +78,7 @@ open class FileInput(
                     }
                     FileChooser.selectFiles(
                         NameDesc(if (isDirectory) "Select folder" else "Select file"), !isDirectory,
-                        isDirectory, allowMultiples = false, toSave = false, file2.getParent(), emptyList()
+                        isDirectory, allowMultiples = false, toSave = true, file2.getParent(), emptyList()
                     ) { files ->
                         if (files.isNotEmpty()) {
                             setValue(files.first(), true)
