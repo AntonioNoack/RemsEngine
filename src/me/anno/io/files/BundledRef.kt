@@ -3,25 +3,24 @@ package me.anno.io.files
 import me.anno.Build
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.appendPath
-import me.anno.io.files.Reference.getReference
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URI
 
-// internally in the JAR
+/**
+ * files, that are included with the .jar file
+ * */
 class BundledRef(
-    private val resName: String, absolute: String = "$prefix$resName",
+    private val resName: String, absolute: String = "$PREFIX$resName",
     override val isDirectory: Boolean
 ) : FileReference(absolute) {
 
-    constructor(resName: String) : this(resName, "$prefix$resName", false)
+    constructor(resName: String) : this(resName, "$PREFIX$resName", false)
 
     override fun getChild(name: String): FileReference {
         val zfd = zipFileForDirectory
@@ -92,13 +91,13 @@ class BundledRef(
     }
 
     private val cachedParent by lazy {
-        // check whether / is in path
+        // check whether / is in path -> whether it's a child
         val li = resName.lastIndexOf('/')
         if (li >= 0) {
             val newName = resName.substring(0, li)
-            val newPath = absolutePath.substring(0, li + prefix.length)
+            val newPath = absolutePath.substring(0, li + PREFIX.length)
             BundledRef(newName, newPath, true)
-        } else jarAsZip2
+        } else FileRootRef // not truly correct, but probably better than InvalidRef
     }
 
     override fun getParent(): FileReference = cachedParent
@@ -113,8 +112,8 @@ class BundledRef(
 
         fun parse(fullPath: String): FileReference {
 
-            if (!fullPath.startsWith(prefix, true)) throw IllegalArgumentException()
-            val resName = fullPath.substring(prefix.length)
+            if (!fullPath.startsWith(PREFIX, true)) throw IllegalArgumentException()
+            val resName = fullPath.substring(PREFIX.length)
 
             // if asset folder is declared, and the asset is located there, use it for realtime-reloading
             val child = Build.assetsFolder.getChild(resName)
@@ -133,7 +132,7 @@ class BundledRef(
                 return if (hasSlash) {
                     findExistingReference(
                         resName.substring(0, lastSlash),
-                        fullPath.substring(0, prefix.length + lastSlash)
+                        fullPath.substring(0, PREFIX.length + lastSlash)
                     )?.getChild(resName.substring(lastSlash + 1))
                 } else null
             } catch (e: StackOverflowError) {
@@ -142,24 +141,6 @@ class BundledRef(
             }
         }
 
-        const val prefix = "res://"
-
-        // todo when we ship the game, we can just pack this data into some kind of txt file
-        //  - required data: HashSet<FileNameLowerCase>
-        private val jarAsZip3 by lazy {
-            try {
-                val uri = Companion::class.java
-                    .protectionDomain
-                    ?.codeSource
-                    ?.location
-                    ?.toURI()
-                if (uri != null) File(uri).absolutePath else null
-            } catch (e: NullPointerException) {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        private val jarAsZip2 by lazy { getReference(jarAsZip3) }
+        const val PREFIX = "res://"
     }
 }

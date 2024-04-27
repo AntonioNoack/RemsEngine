@@ -2,8 +2,9 @@ package me.anno.cache
 
 import me.anno.engine.Events.addEvent
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 
-open class AsyncCacheData<V> : ICacheData {
+open class AsyncCacheData<V> : ICacheData, Callback<V> {
 
     var hasValue = false
     var hasBeenDestroyed = false
@@ -23,11 +24,22 @@ open class AsyncCacheData<V> : ICacheData {
         return value
     }
 
+    @Deprecated(message = "Not supported on web")
+    fun waitFor(): V? {
+        Sleep.waitUntil(true) { hasValue }
+        return value
+    }
+
     fun waitForGFX(callback: (V?) -> Unit) {
         if (hasValue) callback(value)
         else addEvent(1) {
             waitForGFX(callback)
         }
+    }
+
+    override fun call(value: V?, exception: Exception?) {
+        this.value = value
+        exception?.printStackTrace()
     }
 
     override fun destroy() {

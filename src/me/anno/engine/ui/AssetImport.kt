@@ -272,26 +272,6 @@ object AssetImport {
         return name
     }
 
-    private fun findNameWithExt(srcFile: FileReference, isMainFolder: Boolean): String {
-        val fileName = srcFile.name.toAllowedFilename()
-        var name = fileName ?: srcFile.getParent().name
-        if (name.toIntOrNull() != null) {
-            name = "Scene"
-        }
-        if (isMainFolder && name == "Scene") {
-            // rename to file name
-            name = srcFile.getParent().name
-        }
-        if ('.' !in name) {
-            val signature = Signature.findNameSync(srcFile)
-            val extName = if (signature == "media") null else signature
-            if (extName != null) {
-                name = "$name.$extName"
-            }
-        }
-        return name
-    }
-
     private fun savePrefab(dstFolder: FileReference, name: String, newPrefab: Prefab): FileReference {
         val data = JsonStringWriter.toText(newPrefab, EngineBase.workspace).encodeToByteArray()
         return saveContent(dstFolder, name, "json", data)

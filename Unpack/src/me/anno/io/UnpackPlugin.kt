@@ -13,6 +13,7 @@ import me.anno.io.links.LNKReader
 import me.anno.io.links.URLReader
 import me.anno.io.links.WindowsShortcut
 import me.anno.io.unity.UnityReader
+import me.anno.io.zip.ExeSkipper
 import me.anno.io.zip.Inner7zFile
 import me.anno.io.zip.InnerRarFile
 import me.anno.io.zip.InnerTarFile
@@ -35,6 +36,7 @@ class UnpackPlugin : Plugin() {
             listOf("zip", "bz2", "lz4", "xar", "oar"),
             InnerZipFile.Companion::createZipRegistryV2
         )
+        InnerFolderCache.register("exe", ExeSkipper::readAsFolder)
         InnerFolderCache.register("7z") { src, callback ->
             val file = Inner7zFile.createZipRegistry7z(src) {
                 Inner7zFile.fileFromStream7z(src)

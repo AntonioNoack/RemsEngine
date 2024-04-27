@@ -190,16 +190,10 @@ object ImageReader {
         if (shouldIgnore(signature)) {
             data.value = null
         } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature, forGPU) { it, e ->
-                data.value = it
-                e?.printStackTrace()
-            }
+            tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
-            if (reader != null) reader(bytes) { it, e ->
-                data.value = it
-                e?.printStackTrace()
-            }
+            if (reader != null) reader(bytes, data)
         }
     }
 
@@ -208,16 +202,10 @@ object ImageReader {
         if (shouldIgnore(signature)) {
             data.value = null
         } else if (tryFFMPEG != null && shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature, forGPU) { it, e ->
-                data.value = it
-                e?.printStackTrace()
-            }
+            tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
-            if (reader != null) reader(file) { it, e ->
-                data.value = it
-                e?.printStackTrace()
-            }
+            if (reader != null) reader(file, data)
         }
     }
 

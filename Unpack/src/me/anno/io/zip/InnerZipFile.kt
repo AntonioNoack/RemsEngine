@@ -86,21 +86,36 @@ class InnerZipFile(
             return file
         }
 
-        fun fileFromStreamV2(file: FileReference, callback: Callback<ZipFile>) {
-            return if (file is FileFileRef) {
+        fun zipFileFromFile(file: FileReference, callback: Callback<ZipFile>) {
+            if (file is FileFileRef) {
                 callback.ok(ZipFile(file.file))
             } else {
-                file.readBytes { it, exc ->
-                    if (it != null) callback.ok(ZipFile(SeekableInMemoryByteChannel(it)))
-                    else callback.err(exc)
+                file.readBytes { bytes, exc ->
+                    if (bytes != null) zipFileFromBytes(bytes, callback)
+                    exc?.printStackTrace()
                 }
             }
         }
 
+        fun zipFileFromBytes(it: ByteArray, callback: Callback<ZipFile>) {
+            callback.ok(ZipFile(SeekableInMemoryByteChannel(it)))
+        }
+
         fun createZipRegistryV2(
             file0: FileReference,
+            bytes: ByteArray,
+            callback: Callback<InnerFolder>
+        ) = createZipRegistryV3(file0, callback) { zipFileFromBytes(bytes, it) }
+
+        fun createZipRegistryV2(
+            file0: FileReference,
+            callback: Callback<InnerFolder>
+        ) = createZipRegistryV3(file0, callback) { zipFileFromFile(file0, it) }
+
+        fun createZipRegistryV3(
+            file0: FileReference,
             callback: Callback<InnerFolder>,
-            getStream: (Callback<ZipFile>) -> Unit = { fileFromStreamV2(file0, it) }
+            getStream: (Callback<ZipFile>) -> Unit
         ) {
             val (file, registry) = createMainFolder(file0)
             var hasReadEntry = false
@@ -129,7 +144,6 @@ class InnerZipFile(
                     }
                 } else callback.err(exc)
             }
-            return
         }
     }
 }

@@ -1,15 +1,14 @@
 package me.anno.io.files.inner
 
-import me.anno.utils.structures.Callback
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
+import me.anno.utils.structures.Callback
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URI
 
 /**
  * a file, which is inside another file,

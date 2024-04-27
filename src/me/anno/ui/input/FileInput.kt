@@ -86,7 +86,7 @@ open class FileInput(
                     }
                 }
             }
-            tooltip = "Select the file in your default file explorer"
+            tooltip = "Select the file in a file-explorer window"
             textColor = textColor.withAlpha(0.5f)
             disableFocusColors()
         }

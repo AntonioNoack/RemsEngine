@@ -1,11 +1,10 @@
 package me.anno.io.files
 
-import me.anno.utils.structures.Callback
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.structures.Callback
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.net.URI
 
 object FileRootRef : FileReference("root") {
 

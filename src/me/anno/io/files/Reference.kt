@@ -139,7 +139,7 @@ object Reference {
     private fun createReference(str: String): FileReference {
 
         // internal resource
-        if (str.startsWith(BundledRef.prefix, true)) {
+        if (str.startsWith(BundledRef.PREFIX, true)) {
             return BundledRef.parse(str)
         }
 

@@ -10,7 +10,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.URI
 import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
@@ -32,12 +31,16 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+        var stream: InputStream? = null
         try {
-            callback.ok(inputStreamSync())
+            stream = inputStreamSync()
+            callback.ok(stream)
         } catch (_: IgnoredException) {
             callback.call(null, null)
         } catch (e: Exception) {
             callback.err(e)
+        } finally {
+            stream?.close()
         }
     }
 
@@ -58,6 +61,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             override fun markSupported() = base.markSupported()
             override fun read(p0: ByteArray, p1: Int, p2: Int) = base.read(p0, p1, p2)
             override fun read(p0: ByteArray) = base.read(p0)
+            override fun skip(n: Long): Long = base.skip(n)
             override fun close() {
                 base.close()
                 closed = true

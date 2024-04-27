@@ -2,19 +2,20 @@ package me.anno.io.numpy
 
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readBE32
+import me.anno.io.Streams.readBE32F
 import me.anno.io.Streams.readBE64
 import me.anno.io.Streams.readBE64F
-import me.anno.io.Streams.readLE64F
-import me.anno.io.Streams.readBE32F
-import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.readLE32F
 import me.anno.io.Streams.readLE64
+import me.anno.io.Streams.readLE64F
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.utils.types.Strings.indexOf2
-import me.anno.io.Streams.readNBytes2
 import java.io.DataInputStream
 import java.io.IOException
+import java.io.InputStream
 import java.nio.ByteOrder
 import kotlin.math.min
 
@@ -38,8 +39,12 @@ object NumPyReader {
     }
 
     fun readNPY(file: FileReference): NumPyData {
+        return readNPY(file.inputStreamSync())
+    }
 
-        val data = DataInputStream(file.inputStreamSync())
+    fun readNPY(input: InputStream): NumPyData {
+
+        val data = DataInputStream(input)
         for (c in magic) {
             if (data.read() != c.code)
                 throw IllegalArgumentException("Invalid header")

@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
 
@@ -16,5 +17,10 @@ object Buffers {
             put(i, this[i + 1])
             put(i + 1, t)
         }
+    }
+
+    @JvmStatic
+    fun ByteBuffer.inputStream(): InputStream {
+        return ByteBufferInputStream(this)
     }
 }
