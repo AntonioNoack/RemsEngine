@@ -11,13 +11,13 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
-import me.anno.io.files.inner.temporary.InnerTmpWriteFile
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.files.Files
 import org.apache.logging.log4j.LogManager
+import java.io.ByteArrayOutputStream
 
 object AssetImport {
 
@@ -139,11 +139,15 @@ object AssetImport {
         prefabMapping: HashMap<FileReference, FileReference>
     ): FileReference {
         var ext = srcFile.lcExtension
+        // storage-space optimization: without this, we'd write a BMP file
         val bytes = if (srcFile is ImageReadable) {
+            // finding better extension: component images are always .png, but their source might be jpg,
+            // so we can save lots of space by using the original format
             ext = srcFile.getParent().lcExtension.ifEmpty { srcFile.lcExtension }
-            val tmp = InnerTmpWriteFile("tmp.$ext")
-            srcFile.readCPUImage().write(tmp)
-            tmp.written.toByteArray()
+            // creating a temporary buffer, where we can write into
+            val tmp = ByteArrayOutputStream()
+            srcFile.readCPUImage().write(tmp, ext)
+            tmp.toByteArray()
         } else srcFile.readBytesSync()
         val dstFile = saveContent(
             dstFolder,
