@@ -22,7 +22,7 @@ object DeepImport {
         OfficialExtensions.initForTests()
         val dst = desktop.getChild("deepImport")
         dst.deleteRecursively()
-        // todo who and why is copying b.png and g.png???, and why not into textures folder?
+        // todo who and why is copying b.png and g.png?
         deepCopyImport(dst, listOf(downloads.getChild("3d/DamagedHelmet.glb")), null)
         assertEquals(
             Folder(
