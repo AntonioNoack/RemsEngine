@@ -23,21 +23,11 @@ class ImagePlugin : Plugin() {
         super.onEnable()
 
         // image loading
-        ImageCache.registerStreamReader("tga") { it, callback ->
-            callback.ok(TGAReader.read(it, false))
-        }
-        ImageCache.registerStreamReader("gimp") { it, callback ->
-            callback.ok(GimpImage.read(it))
-        }
-        ImageCache.registerStreamReader("exr") { it, callback ->
-            callback.ok(EXRReader.read(it))
-        }
-        ImageCache.registerStreamReader("qoi") { it, callback ->
-            callback.ok(QOIReader.read(it))
-        }
-        ImageCache.registerStreamReader("ico") { it, callback ->
-            callback.ok(ICOReader.read(it))
-        }
+        ImageCache.registerDirectStreamReader("tga") { TGAReader.read(it, false) }
+        ImageCache.registerDirectStreamReader("gimp", GimpImage::read)
+        ImageCache.registerDirectStreamReader("exr", EXRReader::read)
+        ImageCache.registerDirectStreamReader("qoi", QOIReader::read)
+        ImageCache.registerDirectStreamReader("ico", ICOReader::read)
 
         // image loading with extra details
         InnerFolderCache.register("gimp", GimpImage.Companion::readAsFolder)

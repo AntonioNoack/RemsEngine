@@ -5,21 +5,20 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
 import me.anno.io.files.FileReference
-import me.anno.utils.structures.Callback
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 object ImageCache : CacheSection("Image") {
 
-    val byteReaders = HashMap<String, (ByteArray, Callback<Image>) -> Unit>()
-    val fileReaders = HashMap<String, (FileReference, Callback<Image>) -> Unit>()
-    val streamReaders = HashMap<String, (InputStream, Callback<Image>) -> Unit>()
+    val byteReaders = HashMap<String, AsyncImageReader<ByteArray>>()
+    val fileReaders = HashMap<String, AsyncImageReader<FileReference>>()
+    val streamReaders = HashMap<String, AsyncImageReader<InputStream>>()
 
     fun registerReader(
         signature: String,
-        byteReader: (ByteArray, Callback<Image>) -> Unit,
-        fileReader: (FileReference, Callback<Image>) -> Unit,
-        streamReader: (InputStream, Callback<Image>) -> Unit
+        byteReader: AsyncImageReader<ByteArray>,
+        fileReader: AsyncImageReader<FileReference>,
+        streamReader: AsyncImageReader<InputStream>
     ) {
         // todo keep lists instead, and try all until one succeeds
         synchronized(this) {
@@ -31,16 +30,25 @@ object ImageCache : CacheSection("Image") {
 
     fun registerStreamReader(
         signature: String,
-        streamReader: (InputStream, Callback<Image>) -> Unit
+        streamReader: AsyncImageReader<InputStream>
     ) {
         registerReader(signature, { bytes, callback ->
-            streamReader(ByteArrayInputStream(bytes), callback)
+            streamReader.read(ByteArrayInputStream(bytes), callback)
         }, { fileRef, callback ->
             fileRef.inputStream { input, e ->
-                if (input != null) streamReader(input, callback)
+                if (input != null) streamReader.read(input, callback)
                 else callback.err(e)
             }
         }, streamReader)
+    }
+
+    fun registerDirectStreamReader(
+        signature: String,
+        streamReader: (InputStream) -> Image
+    ) {
+        registerStreamReader(signature) { stream, callback ->
+            callback.ok(streamReader(stream))
+        }
     }
 
     init {
@@ -58,8 +66,6 @@ object ImageCache : CacheSection("Image") {
             }
         }
     }
-
-    // EPS: like SVG, we could implement it, but we don't really need it that dearly...
 
     @JvmStatic
     operator fun get(file: FileReference, async: Boolean): Image? {

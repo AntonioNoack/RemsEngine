@@ -278,8 +278,7 @@ object Thumbs {
         }
     }
 
-    private fun readImage(bytes: ByteSlice?): AsyncCacheData<Image>? {
-        if (bytes == null) return null
+    private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {
         val file = InnerStreamFile("", "", InvalidRef, bytes::stream)
         return ImageReader.readImage(file, true)
     }
@@ -289,10 +288,10 @@ object Thumbs {
         callback: Callback<ITexture2D>,
         callback1: (Boolean) -> Unit
     ) {
-        val promise = readImage(dstFile)
-        if (promise == null) {
+        if (dstFile == null) {
             callback1(false)
         } else {
+            val promise = readImage(dstFile)
             promise.waitForGFX { image ->
                 if (image != null) {
                     val rotation = TextureReader.getRotation(srcFile)
@@ -375,8 +374,7 @@ object Thumbs {
                 val key = getCacheKey(srcFile, hash, size)
                 hdb.get(key, false) { byteSlice ->
                     // check all higher LODs for data: if they exist, use them instead
-                    val foundSolution = checkHigherResolutions(srcFile, size, hash, callback)
-                    if (!foundSolution) {
+                    checkHigherResolutions(srcFile, size, hash, callback) {
                         shallReturnIfExists(srcFile, byteSlice, callback) { foundExists ->
                             if (!foundExists) {
                                 generate(srcFile, key, size, callback)
@@ -392,32 +390,46 @@ object Thumbs {
 
     private fun checkHigherResolutions(
         srcFile: FileReference, size: Int, hash: Long,
-        callback: Callback<ITexture2D>
-    ): Boolean {
-        val idx = sizes.indexOf(size)
-        var foundSolution = false
-        for (i in idx + 1 until sizes.size) {
-            val sizeI = sizes[i]
+        callback: Callback<ITexture2D>,
+        ifFoundNothing: () -> Unit
+    ) {
+        val firstSizeIndexToCheck = sizes.indexOf(size) + 1
+        checkResolutionI(srcFile, size, hash, callback, ifFoundNothing, firstSizeIndexToCheck)
+    }
+
+    private fun checkResolutionI(
+        srcFile: FileReference, size: Int, hash: Long,
+        callback: Callback<ITexture2D>,
+        ifFoundNothing: () -> Unit, sizeIndex: Int,
+    ) {
+        if (sizeIndex < sizes.size) {
+            val sizeI = sizes[sizeIndex]
             val keyI = getCacheKey(srcFile, hash, sizeI)
             hdb.get(keyI, false) { bytes ->
                 if (bytes != null) {
-                    val image = readImage(bytes)?.waitForGFX()
-                    if (image != null) {
-                        // scale down (and save?)
-                        val rotation = TextureReader.getRotation(srcFile)
-                        val (w, h) = scaleMax(image.width, image.height, size)
-                        val newImage = image.resized(w, h, false)
-                        val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
-                        newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
-                            if (tex is Texture2D) tex.rotation = rotation
-                            callback.call(tex, exc)
-                        }
-                        foundSolution = true
+                    readImage(bytes).waitForGFX { image ->
+                        if (image != null) {
+                            scaleDownSolution(srcFile, size, image, callback)
+                        } else checkResolutionI(srcFile, size, hash, callback, ifFoundNothing, sizeIndex + 1)
                     }
-                }
+                } else checkResolutionI(srcFile, size, hash, callback, ifFoundNothing, sizeIndex + 1)
             }
+        } else ifFoundNothing()
+    }
+
+    private fun scaleDownSolution(
+        srcFile: FileReference, size: Int, image: Image,
+        callback: Callback<ITexture2D>,
+    ) {
+        // scale down (and save?)
+        val rotation = TextureReader.getRotation(srcFile)
+        val (w, h) = scaleMax(image.width, image.height, size)
+        val newImage = image.resized(w, h, false)
+        val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
+        newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
+            if (tex is Texture2D) tex.rotation = rotation
+            callback.call(tex, exc)
         }
-        return foundSolution
     }
 
     @JvmStatic
