@@ -470,12 +470,10 @@ object Thumbs {
             "sims", "lua-bytecode"
         )
         for (signature in ignored) {
-            registerExtension(signature) { _, _, _, callback ->
+            registerSignature(signature) { _, _, _, callback ->
                 callback.err(IgnoredException())
             }
         }
-
-        // todo compressed folders shouldn't have specific icon, only zip folder
     }
 
     @JvmStatic
@@ -529,8 +527,9 @@ object Thumbs {
                 reader(srcFile, dstFile, size, callback)
             } else try {
                 val base = readerByExtension[srcFile.lcExtension]
-                if (base != null) base(srcFile, dstFile, size, callback)
-                else {
+                if (base != null) {
+                    base(srcFile, dstFile, size, callback)
+                } else {
                     // todo thumbnails for Rem's Studio transforms
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
