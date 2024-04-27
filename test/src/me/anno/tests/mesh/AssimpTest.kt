@@ -10,7 +10,7 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     OfficialExtensions.initForTests()
-    // todo why is the engine sometimes complaining, that it can't read that texture?? :/
+    // done: why is the engine sometimes complaining, that it can't read that texture?? :/
     // the following code works fine, and confirms that GPU and CPU methods are working correctly
     HiddenOpenGLContext.createOpenGL()
     val source = downloads.getChild("3d/DamagedHelmet.glb/textures/1.jpg")

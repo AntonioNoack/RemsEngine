@@ -71,7 +71,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         val id = input.readInt()
         return when {
             id == -1 -> null
-            id >= +0 -> knownNames[id]
+            id >= 0 -> knownNames[id]
             else -> {
                 val length = -id - 2
                 val bytes = input.readNBytes2(length, true)
@@ -109,7 +109,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     private fun readBooleanArray() = BooleanArray(input.readInt()) { input.readBoolean() }
     private fun readCharArray() = CharArray(input.readInt()) { input.readChar() }
-    private fun readByteArray() = ByteArray(input.readInt()) { input.readByte() }
+    private fun readByteArray() = input.readNBytes2(input.readInt(), true)
     private fun readShortArray() = ShortArray(input.readInt()) { input.readShort() }
     private fun readIntArray() = IntArray(input.readInt()) { input.readInt() }
     private fun readLongArray() = LongArray(input.readInt()) { input.readLong() }

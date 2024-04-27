@@ -4,12 +4,12 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
-import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -294,7 +294,11 @@ class VOXReader {
             }
             rCAM -> {} // camera infos
             NOTE -> {} // notes?
-            IMAP -> indexMap = ByteArray(256) { bytes.get() }
+            IMAP -> {
+                val indexMap = ByteArray(256)
+                bytes.get(indexMap)
+                this.indexMap = indexMap
+            }
             else -> {
                 val idName = (0..3).joinToString("") { ((id shr it * 8) and 255).toChar().toString() }
                 LOGGER.warn("Unknown id $idName with $contentSize bytes content and $childrenBytes bytes of children")
@@ -351,7 +355,9 @@ class VOXReader {
 
     private fun readDictString(bytes: ByteBuffer): String {
         val size = bytes.int
-        return ByteArray(size) { bytes.get() }.decodeToString()
+        val tmp = ByteArray(size)
+        bytes.get(tmp)
+        return tmp.decodeToString()
     }
 
     companion object {

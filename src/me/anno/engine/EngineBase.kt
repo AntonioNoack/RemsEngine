@@ -334,7 +334,6 @@ abstract class EngineBase(
         @JvmStatic
         var idleFPS by ConfigRef("ui.window.idleFPS", 10)
 
-        // todo respect this, <= 0 is unlimited
         @JvmStatic
         var maxFPS by ConfigRef("ui.window.maxFPS", 0)
 

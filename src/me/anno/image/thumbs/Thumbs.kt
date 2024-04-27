@@ -32,7 +32,6 @@ import me.anno.utils.structures.Callback
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
@@ -191,9 +190,8 @@ object Thumbs {
         if (!isDirectory && length > 0) {
             inputStream(hashReadLimit.toLong()) { reader, _ ->
                 if (reader != null) {
-                    val bytes = reader.readNBytes2(hashReadLimit, false)
-                    reader.close()
-                    callback(baseHash xor CRC64.fromInputStream(ByteArrayInputStream(bytes)))
+                    val sampleBytes = reader.readNBytes2(hashReadLimit, false)
+                    callback(CRC64.update(sampleBytes, 0, sampleBytes.size, baseHash))
                 } else callback(baseHash)
             }
         } else callback(baseHash)

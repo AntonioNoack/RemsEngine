@@ -13,9 +13,14 @@ import java.util.concurrent.PriorityBlockingQueue
  * */
 object Events {
 
+    private class ScheduledTask(val time: Long, val runnable: () -> Unit) : Comparable<ScheduledTask> {
+        override fun compareTo(other: ScheduledTask): Int {
+            return time.compareTo(other.time)
+        }
+    }
+
     private val eventTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
-    private val scheduledTasks: Queue<Pair<Long, () -> Unit>> =
-        PriorityBlockingQueue(16) { a, b -> a.first.compareTo(b.first) }
+    private val scheduledTasks: Queue<ScheduledTask> = PriorityBlockingQueue(16)
 
     /**
      * schedules a task that will be executed on the main loop
@@ -29,7 +34,11 @@ object Events {
      * will wait at least deltaMillis before it is executed
      * */
     fun addEvent(deltaMillis: Long, event: () -> Unit) {
-        scheduledTasks.add(Pair(Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
+        if (deltaMillis <= 0) {
+            addEvent(event)
+        } else {
+            scheduledTasks.add(ScheduledTask(Time.nanoTime + deltaMillis * Maths.MILLIS_TO_NANOS, event))
+        }
     }
 
     fun workEventTasks() {
@@ -37,8 +46,8 @@ object Events {
         while (scheduledTasks.isNotEmpty()) {
             try {
                 val peeked = scheduledTasks.peek()!!
-                if (time >= peeked.first) {
-                    scheduledTasks.poll()!!.second.invoke()
+                if (time >= peeked.time) {
+                    scheduledTasks.poll()!!.runnable()
                 } else break
             } catch (e: Throwable) {
                 e.printStackTrace()
@@ -66,7 +75,7 @@ object Events {
         workEventTasks()
         while (scheduledTasks.isNotEmpty()) {
             try {
-                scheduledTasks.poll()!!.second.invoke()
+                scheduledTasks.poll()!!.runnable()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }

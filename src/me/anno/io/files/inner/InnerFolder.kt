@@ -13,6 +13,7 @@ import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
 import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream
+import java.nio.ByteBuffer
 
 /**
  * a file, which is inside another file,
@@ -48,7 +49,19 @@ open class InnerFolder(
     }
 
     override fun inputStreamSync(): InputStream {
-        throw IOException("File is directory") // could be thrown as well
+        return alias?.inputStreamSync() ?: warnIsDirectory()
+    }
+
+    override fun readBytesSync(): ByteArray {
+        return alias?.readBytesSync() ?: warnIsDirectory()
+    }
+
+    override fun readByteBufferSync(native: Boolean): ByteBuffer {
+        return alias?.readByteBufferSync(native) ?: warnIsDirectory()
+    }
+
+    private fun warnIsDirectory(): Nothing {
+        throw IOException("'$this' is directory") // could be thrown as well
     }
 
     override fun getChild(name: String): FileReference {

@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
-import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
 import me.anno.engine.ui.input.ComponentUI
@@ -94,7 +93,7 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
         val projectFolder = currentProject?.location ?: return
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath) &&
-            !files.all { AssetImport.isPureFile(it) }
+            !files.all { AssetImport.getPureTypeOrNull(it) != null }
         ) {
             openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Shallow-Copy Import")) {
@@ -284,9 +283,9 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
             fileOptions.add(openAsScene)
             fileOptions.add(assignMaterialToMeshes)
             folderOptions.add(openAsScene)
-            // create camera, material, shader, prefab, mesh, script, etc
+            // todo create shader (MaterialGraph), post-processing (ShaderGraph), render mode (RenderGraph),
+            //  mesh(?), visual script, Kotlin-script??, etc
             addOptionToCreateComponent("Entity")
-            addOptionToCreateComponent("Scene", "Entity", ScenePrefab)
             addOptionToCreateComponent("Material")
         }
     }

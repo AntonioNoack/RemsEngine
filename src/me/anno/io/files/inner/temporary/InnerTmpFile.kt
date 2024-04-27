@@ -8,10 +8,8 @@ import org.apache.logging.log4j.LogManager
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class InnerTmpFile private constructor(
-    name: String,
-    val uuid: Int
-) : InnerFile(name, name, false, InvalidRef) {
+abstract class InnerTmpFile private constructor(name: String, val uuid: Int) :
+    InnerFile(name, name, false, InvalidRef) {
 
     init {
         if (printTmpFiles) LOGGER.debug("Registered $name")

@@ -54,7 +54,7 @@ object DefaultAssets {
         val golden = Material.diffuse(0xf5ba6c.withAlpha(255))
         golden.roughnessMinMax.set(0.2f)
         golden.metallicMinMax.set(1f)
-        register("material/Golden.json", "Material", golden.ref)
+        register("materials/Golden.json", "Material", golden.ref)
         val glass = Material()
         glass.diffuseBase.w = 0.5f
         glass.roughnessMinMax.set(0f)

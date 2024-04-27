@@ -7,6 +7,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.ceilDiv
@@ -51,7 +52,7 @@ class GimpImage {
                     throw IOException("Magic doesn't match")
             }
             // could be made more efficient, but probably doesn't matter
-            val fileThing = ByteArray(5) { data.read().toByte() }.decodeToString()
+            val fileThing = data.readNBytes2(5, true).decodeToString()
             if (!fileThing.startsWith("textures/fileExplorer") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
                 throw IOException("Expected 'file' or 'v'-version")
             }
@@ -205,7 +206,9 @@ class GimpImage {
 
     fun readContent(data: ByteBuffer) {
 
-        val fileThing = ByteArray(5) { data.get() }.decodeToString()
+        val tmp = ByteArray(5)
+        data.get(tmp)
+        val fileThing = tmp.decodeToString()
         fileVersion = if (fileThing.startsWith("textures/fileExplorer")) {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
@@ -311,7 +314,9 @@ class GimpImage {
     private fun readString(data: ByteBuffer): String {
         val size = data.int - 1
         if (size == 0) return ""
-        val str = ByteArray(size) { data.get() }.decodeToString()
+        val tmp = ByteArray(size)
+        data.get(tmp)
+        val str = tmp.decodeToString()
         data.get() // \0
         return str
     }

@@ -53,7 +53,11 @@ class BinaryFile(val data: ByteBuffer) {
     }
 
     fun readString(length: Int): String {
-        return ByteArray(length) { data.get(index++) }.decodeToString()
+        val bytes = ByteArray(length)
+        data.position(index)
+        data.get(bytes)
+        index += length
+        return bytes.decodeToString()
     }
 
     /**

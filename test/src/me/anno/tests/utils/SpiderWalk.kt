@@ -91,7 +91,7 @@ fun main() {
             }
         }
     }.ref)).apply {
-        collisionMask = 0
+        collisionBits = 0
     }
 
     val query = NavMeshQuery(navMesh)

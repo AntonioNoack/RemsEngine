@@ -15,8 +15,10 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.structures.Hierarchical
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withFlag
+import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
@@ -26,10 +28,21 @@ import kotlin.reflect.KClass
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     @SerializedProperty
-    override var isEnabled = true
+    var flags = ENABLED_FLAG or COLLAPSED_FLAG
 
     @NotSerializedProperty
-    override var isCollapsed = true
+    override var isEnabled: Boolean
+        get() = flags.hasFlag(ENABLED_FLAG)
+        set(value) {
+            flags = flags.withFlag(ENABLED_FLAG, value)
+        }
+
+    @NotSerializedProperty
+    override var isCollapsed: Boolean
+        get() = flags.hasFlag(COLLAPSED_FLAG)
+        set(value) {
+            flags = flags.withFlag(COLLAPSED_FLAG, value)
+        }
 
     /**
      * if something goes wrong, set this field;
@@ -104,7 +117,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "isCollapsed" -> isCollapsed = value == true
             "nonCollapsed" -> isCollapsed = value != true
             else -> super.setProperty(name, value)
@@ -307,6 +320,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     companion object {
+
+        private const val ENABLED_FLAG = 1
+        private const val COLLAPSED_FLAG = 2
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {

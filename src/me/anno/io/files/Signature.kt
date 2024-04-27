@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.first2
@@ -157,9 +158,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
                     // maybe we could read them piece by piece...
                     file.inputStream(sampleSize.toLong()) { it, _ ->
                         if (it != null) {
-                            val bytes = it.use { input: InputStream ->
-                                ByteArray(sampleSize) { input.read().toByte() }
-                            }
+                            val bytes = it.readNBytes2(sampleSize, false)
                             callback(find(bytes))
                         } else callback(null)
                     }

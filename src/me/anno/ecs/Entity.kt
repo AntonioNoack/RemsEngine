@@ -31,10 +31,10 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
-import me.anno.utils.types.Booleans.hasFlag
-import me.anno.utils.types.Booleans.withFlag
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -75,8 +75,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             addComponent(c)
         }
     }
-
-    private var flags = 0
 
     @DebugProperty
     @NotSerializedProperty
@@ -121,7 +119,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var isCreated = false
+    var isCreated: Boolean
+        get() = flags.hasFlag(CREATED_FLAG)
+        set(value) {
+            flags = flags.withFlag(CREATED_FLAG, value)
+        }
+
     fun create() {
         if (isCreated) return
         transform.teleportUpdate()
@@ -184,9 +187,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         else entityOptionList
     }
 
-    // aabb cache for faster rendering and collision checks
     @DebugProperty
     @NotSerializedProperty
+    @Docs("Bounds in global space for faster collision tests and optimized rendering")
     val aabb: AABBd = AABBd()
 
     @DebugProperty
@@ -206,10 +209,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             flags = flags.withFlag(PHYSICS_CONTROLLED_FLAG, value)
         }
 
-    // collision mask for faster collision checks
     @DebugProperty
     @NotSerializedProperty
-    var collisionMask: Int = 0
+    @Docs("Mask of what colliders this Entity contains")
+    var collisionBits: Int = 0
 
     @PositionType
     @SerializedProperty
@@ -250,11 +253,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this
     }
 
-    fun setRotation(
-        radiansX: Double,
-        radiansY: Double,
-        radiansZ: Double
-    ): Entity {
+    fun setRotation(radiansX: Double, radiansY: Double, radiansZ: Double): Entity {
         rotation = rotation
             .identity()
             .rotateYXZ(radiansY, radiansX, radiansZ)
@@ -266,8 +265,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this
     }
 
-    fun setScale(sx: Double, sy: Double, sz: Double): Entity {
-        scale = scale.set(sx, sy, sz)
+    fun setScale(scaleX: Double, scaleY: Double, scaleZ: Double): Entity {
+        scale = scale.set(scaleX, scaleY, scaleZ)
         return this
     }
 
@@ -297,10 +296,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun canCollide(collisionMask: Int): Boolean {
-        return this.collisionMask.and(collisionMask) != 0
+        return this.collisionBits.and(collisionMask) != 0
     }
-
-    val staticMeshManager get() = getRoot(Entity::class).getComponent(StaticMeshManager::class)
 
     @DebugAction
     fun invalidateAABBsCompletely() {
@@ -348,9 +345,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         for (i in children.indices) {
             val child = children[i]
             child.validateMasks()
-            collisionMask = collisionMask or child.collisionMask
+            collisionMask = collisionMask or child.collisionBits
         }
-        this.collisionMask = collisionMask
+        this.collisionBits = collisionMask
         hasValidCollisionMask = true
     }
 
@@ -386,9 +383,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     @SerializedProperty
-    override var isEnabled = true
+    override var isEnabled: Boolean
+        get() = super.isEnabled
         set(value) {
-            field = value
+            super.isEnabled = value
             invalidatePhysics(false)
         }
 
@@ -725,7 +723,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         dst.hasValidAABB = hasValidAABB
         dst.aabb.set(aabb)
         dst.transform.set(transform)
-        dst.collisionMask = collisionMask
+        dst.collisionBits = collisionBits
         // first the structure
         val children = internalChildren
         val cloneEntities = dst.internalChildren
@@ -788,13 +786,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
         private val entityOptionList = listOf(Option(NameDesc("Entity", "Create a child entity", "")) { Entity() })
-        private const val VALID_COLLISION_MASK_FLAG = 1
-        private const val SPACE_FILLING_FLAG = 2
-        private const val RENDERABLES_FLAG = 4
-        private const val PHYSICS_CONTROLLED_FLAG = 8
-        private const val CONTROL_RECEIVER_FLAG = 16
-        private const val CREATED_FLAG = 32
-        private const val ON_UPDATE_FLAG = 64
-        private const val VALID_AABB_FLAG = 128
+        private const val VALID_COLLISION_MASK_FLAG = 4
+        private const val SPACE_FILLING_FLAG = 8
+        private const val RENDERABLES_FLAG = 16
+        private const val PHYSICS_CONTROLLED_FLAG = 32
+        private const val CONTROL_RECEIVER_FLAG = 64
+        private const val CREATED_FLAG = 128
+        private const val ON_UPDATE_FLAG = 256
+        private const val VALID_AABB_FLAG = 512
     }
 }

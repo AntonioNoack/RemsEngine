@@ -120,7 +120,8 @@ open class CodeEditor(style: Style) : Panel(style) {
         val state = language.getStartState()
         val text = content
         val stream = Stream(text)
-        val styles = ByteArray(text.length) { TokenType.ERROR.ordinal.toByte() }
+        val styles = ByteArray(text.length)
+        styles.fill(TokenType.ERROR.ordinal.toByte())
         this.styles = styles
         var variableNamesIndex = 0
         while (stream.index < text.length) {

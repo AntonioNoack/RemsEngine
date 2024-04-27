@@ -64,7 +64,7 @@ fun architectureUDPTest() {
     testServer.start(tcpPort, udpPort)
     fun startClient(name: String) {
         // start tcp client
-        // then send a udp message
+        // then send a UDP message
         val client = TCPClient(Socket("localhost", tcpPort), tcpProtocol, name)
         client.startClientSideAsync()
         client.udpPort = udpPort

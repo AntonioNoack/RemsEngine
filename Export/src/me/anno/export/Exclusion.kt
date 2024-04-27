@@ -67,6 +67,8 @@ object Exclusion {
         excludeFiles(sources, "me/anno/ui/custom", listOf("me/anno/ui/custom/CustomPanelType", "me/anno/ui/custom/UITypeLibrary"))
         excludeFiles(sources, "me/anno/ui/base/image")
         excludeFiles(sources, "me/anno/ui/base/buttons")
+        excludeFiles(sources, "textures") // I'm not too sure about this...
+        excludeFiles(sources, "assets/org/apache/commons") // what is this used for???
     }
 
     fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {
