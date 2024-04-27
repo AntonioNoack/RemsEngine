@@ -29,7 +29,6 @@ import me.anno.io.files.inner.InnerStreamFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
 import me.anno.utils.structures.Callback
-import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
@@ -55,21 +54,11 @@ object Thumbs {
 
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
 
-    private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
     var useCacheFolder = true
 
     val sphereMesh = UVSphereModel.createUVSphere(30, 30)
-
-    init {
-        var index = 0
-        for (size in sizes) {
-            while (index <= size) {
-                neededSizes[index++] = size
-            }
-        }
-    }
 
     @JvmStatic
     fun invalidate(file: FileReference, neededSize: Int) {
@@ -101,6 +90,7 @@ object Thumbs {
     @JvmStatic
     operator fun get(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
 
+        if (neededSize < 1) return null
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
             return TextureCache[file, timeout, async]
@@ -108,11 +98,9 @@ object Thumbs {
 
         // currently not supported
         if (file.isDirectory) return null
-
         // was deleted
         if (!file.exists) return null
 
-        if (neededSize < 1) return null
         val size = getSize(neededSize)
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
@@ -120,20 +108,18 @@ object Thumbs {
         val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             generate0(key, callback)
         }?.value
-        val value = when (texture) {
-            is GPUFrame -> if (texture.wasCreated) texture else null
-            is Texture2D -> if (texture.wasCreated && !texture.isDestroyed) texture else null
-            else -> texture
-        }
-        if (value != null) return value
+        return if (texture != null && texture.isCreated()) texture
+        else findSmallerThumbnail(size, file, lastModified)
+    }
+
+    private fun findSmallerThumbnail(size: Int, file: FileReference, lastModified: Long): ITexture2D? {
         // return lower resolutions, if they are available
-        var size1 = size shr 1
-        while (size1 >= sizes.first()) {
+        for (i in sizes.indexOf(size) - 1 downTo 0) {
+            val size1 = sizes[i]
             val key1 = ThumbnailKey(file, lastModified, size1)
             val gen = TextureCache.getEntryWithoutGenerator(key1, 50) as? AsyncCacheData<*>
             val tex = gen?.value as? ITexture2D
             if (tex != null) return tex
-            size1 = size1 shr 1
         }
         return null
     }
@@ -206,10 +192,9 @@ object Thumbs {
 
     @JvmStatic
     private fun getSize(neededSize: Int): Int {
-        if (neededSize < 1) return 0
-        return if (neededSize < neededSizes.size) {
-            neededSizes[neededSize]
-        } else sizes.last()
+        val i = sizes.binarySearch(neededSize)
+        return if (i < 0) sizes[max(min(-i - 1, sizes.lastIndex), 0)]
+        else neededSize
     }
 
     @JvmStatic
@@ -525,32 +510,35 @@ object Thumbs {
             is ImageReadable -> {
                 val image = if (useCacheFolder) srcFile.readCPUImage() else srcFile.readGPUImage()
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-                return
             }
-            is PrefabReadable -> {
-                AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
-                return
+            is PrefabReadable -> AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
+            else -> Signature.findName(srcFile) { signature ->
+                generate(srcFile, dstFile, size, signature, callback)
             }
         }
+    }
 
-        Signature.findName(srcFile) { signature ->
-            val reader = readerBySignature[signature]
-            if (reader != null) {
-                reader(srcFile, dstFile, size, callback)
-            } else try {
-                val base = readerByExtension[srcFile.lcExtension]
-                if (base != null) {
-                    base(srcFile, dstFile, size, callback)
-                } else {
-                    // todo thumbnails for Rem's Studio transforms
-                    // png, jpg, jpeg, ico, webp, mp4, ...
-                    ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
-                }
-            } catch (_: IgnoredException) {
-            } catch (e: Exception) {
-                e.printStackTrace()
-                LOGGER.warn("Could not load image from $srcFile: ${e.message}")
+    @JvmStatic
+    private fun generate(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        signature: String?, callback: Callback<ITexture2D>
+    ) {
+        val reader = readerBySignature[signature]
+        if (reader != null) {
+            reader(srcFile, dstFile, size, callback)
+        } else try {
+            val base = readerByExtension[srcFile.lcExtension]
+            if (base != null) {
+                base(srcFile, dstFile, size, callback)
+            } else {
+                // todo thumbnails for Rem's Studio transforms
+                // png, jpg, jpeg, ico, webp, mp4, ...
+                ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
             }
+        } catch (_: IgnoredException) {
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LOGGER.warn("Could not load image from $srcFile: ${e.message}")
         }
     }
 }

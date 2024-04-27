@@ -193,7 +193,8 @@ object ImageReader {
             tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
-            if (reader != null) reader(bytes, data)
+            if (reader != null) reader.read(bytes, data)
+            else data.value = null
         }
     }
 
@@ -205,7 +206,8 @@ object ImageReader {
             tryFFMPEG(file, signature, forGPU, data)
         } else {
             val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
-            if (reader != null) reader(file, data)
+            if (reader != null) reader.read(file, data)
+            else data.value = null
         }
     }
 
