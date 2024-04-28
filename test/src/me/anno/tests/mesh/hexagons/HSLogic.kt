@@ -1,10 +1,12 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.maths.chunks.spherical.Hexagon
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.ComputeShader
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.builder.Variable
+import me.anno.maths.chunks.spherical.Hexagon
 import org.joml.Vector3i
 import java.nio.ByteBuffer
 
@@ -165,14 +167,15 @@ class HSLogic(val world: HexagonSphereMCWorld) {
 }
 
 val tickShader = ComputeShader(
-    "logic", Vector3i(512, 1, 1), "" +
+    "logic", Vector3i(512, 1, 1), listOf(
+        Variable(GLSLType.V1I, "size")
+    ), "" +
             "struct Structure {\n" +
             "   uint other[8];\n" +
             "};\n" +
             "layout(std140, shared, binding = 0) readonly buffer structureBuffer { Structure structures[]; };\n" +
             "layout(std140, shared, binding = 1) readonly buffer srcBuffer { uint8 data; };\n" +
             "layout(std140, shared, binding = 2) writeonly buffer dstBuffer { uint8 data; };\n" +
-            "int size;\n" +
             "void main(){\n" +
             "   int index = int(gl_GlobalInvocationID.x);\n" +
             "   if(index < size){\n" +

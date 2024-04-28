@@ -3,7 +3,6 @@ package me.anno.video.formats.gpu
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.utils.Sleep
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import java.nio.ByteBuffer
@@ -101,13 +100,7 @@ class BlankFrameDetector {
         ): GPUFrame? {
 
             fun getFrame(delta: Int): GPUFrame? {
-                return if (async) {
-                    VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, true)
-                } else {
-                    Sleep.waitUntilDefined(true) {
-                        VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, true)
-                    }
-                }
+                return VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, async)
             }
 
             val f0 = getFrame(-3)

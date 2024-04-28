@@ -21,7 +21,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
-import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.LazyMap
 import java.io.InputStream
@@ -138,10 +137,6 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
     }
 
     abstract fun load(input: InputStream)
-
-    fun waitToLoad() {
-        waitForGFXThread(true) { isCreated || isDestroyed }
-    }
 
     open fun bindUVCorrection(shader: Shader) {
         val w = width

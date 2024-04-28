@@ -7,7 +7,6 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
-import me.anno.utils.structures.lists.Lists.createArrayList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
@@ -23,7 +22,7 @@ class Framebuffer3D(
     override var name: String,
     override var width: Int,
     override var height: Int,
-    val d: Int,
+    val depth: Int,
     val targets: List<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
@@ -53,7 +52,7 @@ class Framebuffer3D(
         Frame.lastPtr = pointer
         val w = width
         val h = height
-        val d = d
+        val d = depth
         if (w * h * d < 1) throw RuntimeException("Invalid framebuffer size $w x $h x $d")
         GFX.check()
         textures = targets.mapIndexed { index, target ->
@@ -197,38 +196,41 @@ class Framebuffer3D(
         }
     }
 
-    fun draw(renderer: Renderer, render: (side: Int) -> Unit) {
+    fun draw(renderer: Renderer, render: (z: Int) -> Unit) {
         GFXState.useFrame(this, renderer) {
             Frame.bind()
-            for (slice in 0 until d) {
+            for (z in 0 until depth) {
                 // update all attachments, updating the framebuffer texture targets
-                updateAttachments(slice)
+                updateAttachments(z)
                 val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
                 if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
-                render(slice)
+                render(z)
             }
         }
     }
 
-    fun updateAttachments(layer: Int) {
+    fun updateAttachments(z: Int) {
         val target = GL_TEXTURE_3D
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
             glFramebufferTexture3D(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index,
-                target, texture.pointer, 0, layer
+                target, texture.pointer, 0, z
             )
         }
         GFX.check()
         drawBuffersN(targets.size)
         GFX.check()
-        if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
-            val depthTexture = depthTexture!!
-            glFramebufferTexture3D(
-                GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                target, depthTexture.pointer, 0, layer
-            )
+        when (depthBufferType) {
+            DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
+                val depthTexture = depthTexture!!
+                glFramebufferTexture3D(
+                    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    target, depthTexture.pointer, 0, z
+                )
+            }
+            else -> {}
         }
         GFX.check()
     }

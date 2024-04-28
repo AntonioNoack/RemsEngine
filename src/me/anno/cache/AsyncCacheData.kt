@@ -1,6 +1,5 @@
 package me.anno.cache
 
-import me.anno.engine.Events.addEvent
 import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
 
@@ -31,9 +30,8 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
     }
 
     fun waitForGFX(callback: (V?) -> Unit) {
-        if (hasValue) callback(value)
-        else addEvent(1) {
-            waitForGFX(callback)
+        Sleep.waitUntil(true, { hasValue }) {
+            callback(value)
         }
     }
 

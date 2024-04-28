@@ -16,8 +16,8 @@ object VideoCacheImpl : CacheSection("Videos") {
         val file = key.file
         val scale = key.scale
         val signature = Signature.findNameSync(file)
-        val meta =
-            MediaMetadata.getMeta(file, signature, false) ?: throw RuntimeException("Meta was not found for $key!")
+        val meta = MediaMetadata.getMeta(file, signature, false)
+            ?: throw RuntimeException("Meta was not found for $key!")
         val data = VideoSlice(
             key, meta.videoWidth / scale, meta.videoHeight / scale,
             meta.videoWidth, meta.videoFPS, meta.videoFrameCount

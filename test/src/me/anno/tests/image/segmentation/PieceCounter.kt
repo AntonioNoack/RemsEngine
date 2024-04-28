@@ -2,17 +2,17 @@ package me.anno.tests.image.segmentation
 
 import me.anno.Engine
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import org.joml.AABBf
-import org.joml.Vector2i
+import org.joml.Vector3i
 
 fun main() {
     // inspired by https://www.invigon.de/de/products/stueckzaehlung,
@@ -26,7 +26,7 @@ fun main() {
     )
     // -> try maybe 16 variations?
     val shader = ComputeShader(
-        "correlation", Vector2i(16, 16), listOf(
+        "correlation", Vector3i(16, 16, 1), listOf(
             Variable(GLSLType.V1I, "x0"),
             Variable(GLSLType.V1I, "x1"),
             Variable(GLSLType.V1I, "y0"),

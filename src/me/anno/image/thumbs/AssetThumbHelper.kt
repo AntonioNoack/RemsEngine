@@ -331,12 +331,8 @@ object AssetThumbHelper {
 
     fun waitForTextures(textureSources: Collection<FileReference>, callback: () -> Unit) {
         val endTime = getEndTime()
-        Sleep.waitUntilAsync(true, {
+        Sleep.waitUntil(true, {
             doneCondition(textureSources, endTime)
-        }) { unit, _ ->
-            if (unit != null) {
-                callback()
-            }
-        }
+        }, callback)
     }
 }

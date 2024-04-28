@@ -4,7 +4,6 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
-import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeoutException
  * or you might wait for data from the GPU; if you are on the GFX thread, the GFX tasks still need to be run;
  * this class handles it all properly :)
  *
- * This class is not available on all platforms though! Use addEvent{} with a delta-millis-value instead.
+ * All synchronous functions in this class aren't available on all platforms though! Avoid them if possible.
  * */
 object Sleep {
 
@@ -40,14 +39,8 @@ object Sleep {
     }
 
     @JvmStatic
-    fun sleepABit10(canBeKilled: Boolean) {
-        checkShutdown(canBeKilled)
-        Thread.sleep(10)
-    }
-
-    @JvmStatic
-    fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
-        while (!condition()) {
+    fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean) {
+        while (!isFinished()) {
             sleepABit(canBeKilled)
         }
     }
@@ -108,16 +101,14 @@ object Sleep {
     }
 
     @JvmStatic
-    fun waitUntilAsync(canBeKilled: Boolean, isFinished: () -> Boolean, callback: Callback<Unit>) {
+    fun waitUntil(canBeKilled: Boolean, isFinished: () -> Boolean, callback: () -> Unit) {
         if (isFinished()) {
-            callback.ok(Unit)
-        } else if (canBeKilled && shutdown) {
-            callback.err(ShutdownException())
-        } else { // wait a little
+            callback()
+        } else if (!(canBeKilled && shutdown)) { // wait a little
             addEvent(1) {
-                waitUntilAsync(canBeKilled, isFinished, callback)
+                waitUntil(canBeKilled, isFinished, callback)
             }
-        }
+        } // else cancelled
     }
 
     @JvmStatic
@@ -142,5 +133,17 @@ object Sleep {
             value != null
         }
         return value!!
+    }
+
+    @JvmStatic
+    fun <V> waitUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?, callback: (V) -> Unit) {
+        val value = getValueOrNull()
+        if (value != null) {
+            callback(value)
+        } else if (!(canBeKilled && shutdown)) {
+            addEvent(1) {
+                waitUntilDefined(canBeKilled, getValueOrNull, callback)
+            }
+        } // else process cancelled
     }
 }

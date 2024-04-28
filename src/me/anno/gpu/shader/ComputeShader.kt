@@ -10,7 +10,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2i
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL46C
 
@@ -21,18 +20,6 @@ class ComputeShader(
     val groupSize: Vector3i,
     val source: String
 ) : GPUShader(shaderName) {
-
-    constructor(shaderName: String, localSize: Vector2i, source: String) :
-            this(shaderName, Vector3i(localSize, 1), source)
-
-    constructor(shaderName: String, localSize: Vector3i, source: String) :
-            this(shaderName, 430, localSize, source)
-
-    constructor(shaderName: String, localSize: Vector2i, variables: List<Variable>, source: String) :
-            this(shaderName, 430, Vector3i(localSize, 1), variables, source)
-
-    constructor(shaderName: String, version: Int, localSize: Vector2i, variables: List<Variable>, source: String) :
-            this(shaderName, version, Vector3i(localSize, 1), variables, source)
 
     constructor(shaderName: String, localSize: Vector3i, variables: List<Variable>, source: String) :
             this(shaderName, 430, localSize, variables, source)
@@ -96,22 +83,31 @@ class ComputeShader(
     }
 
     fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-        bindTexture1(slot, texture, mode)
+        // texture type could be derived from the shader and texture -> verify it?
+        // todo can we dynamically create shaders for the cases that we need? probably best :)
+        GL46C.glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
     }
 
     fun bindBuffer(slot: Int, buffer: OpenGLBuffer) {
-        bindBuffer1(slot, buffer)
+        buffer.ensureBuffer()
+        GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
     }
 
     /**
      * for array textures to bind a single layer
      * */
     fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-        bindTexture1(slot, texture, mode, layer)
+        GL46C.glBindImageTexture(
+            slot, texture.pointer, 0, false,
+            layer, mode.code, findFormat(texture.internalFormat)
+        )
     }
 
     fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
-        bindTexture1(slot, texture, mode)
+        GL46C.glBindImageTexture(
+            slot, texture.pointer, 0, true,
+            0, mode.code, findFormat(texture.internalFormat)
+        )
     }
 
     companion object {
@@ -119,27 +115,22 @@ class ComputeShader(
         @JvmStatic
         private val LOGGER = LogManager.getLogger(ComputeShader::class)
 
+        private fun getComputeWorkGroupCount(index: Int, ptr: IntArray): Int {
+            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, index, ptr)
+            return ptr[0]
+        }
+
         @JvmStatic
         val stats by lazy {
-            val tmp = IntArray(1)
-            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, tmp)
-            val sx = tmp[0]
-            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, tmp)
-            val sy = tmp[0]
-            GL46C.glGetIntegeri_v(GL46C.GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, tmp)
-            val sz = tmp[0]
-            GL46C.glGetIntegerv(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, tmp)
-            val maxUnitsPerGroup = tmp[0]
+            val ptr = IntArray(1)
+            val sx = getComputeWorkGroupCount(0, ptr)
+            val sy = getComputeWorkGroupCount(1, ptr)
+            val sz = getComputeWorkGroupCount(2, ptr)
+            GL46C.glGetIntegerv(GL46C.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, ptr)
+            val maxUnitsPerGroup = ptr[0]
             LOGGER.info("Max compute group count: $sx x $sy x $sz") // 65k³
             LOGGER.info("Max units per group: $maxUnitsPerGroup") // 1024
             intArrayOf(sx, sy, sz, maxUnitsPerGroup)
-        }
-
-        // texture type could be derived from the shader and texture -> verify it?
-        // todo can we dynamically create shaders for the cases that we need? probably best :)
-        @JvmStatic
-        fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-            GL46C.glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
 
         @JvmStatic
@@ -158,31 +149,6 @@ class ComputeShader(
             // depth formats are not supported! bind a color texture instead, and transfer the data from and to it...
             0 -> throw IllegalArgumentException("Texture hasn't been created yet")
             else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
-        }
-
-        @JvmStatic
-        fun bindBuffer1(slot: Int, buffer: OpenGLBuffer) {
-            buffer.ensureBuffer()
-            GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
-        }
-
-        /**
-         * for array textures to bind a single layer
-         * */
-        @JvmStatic
-        fun bindTexture1(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-            GL46C.glBindImageTexture(
-                slot, texture.pointer, 0, false,
-                layer, mode.code, findFormat(texture.internalFormat)
-            )
-        }
-
-        @JvmStatic
-        fun bindTexture1(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
-            GL46C.glBindImageTexture(
-                slot, texture.pointer, 0, true,
-                0, mode.code, findFormat(texture.internalFormat)
-            )
         }
     }
 

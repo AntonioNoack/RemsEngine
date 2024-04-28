@@ -58,9 +58,9 @@ object TextureCache : CacheSection("Texture") {
         val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ -> generateImageData(fileI) }
                 as? TextureReader
         return if (imageData != null) {
-            if (!imageData.hasValue && !asyncGenerator && !OS.isWeb) {
+            if (!asyncGenerator && !OS.isWeb) {
                 // the texture was forced to be loaded -> wait for it
-                Sleep.waitForGFXThread(true) { imageData.hasValue }
+                imageData.waitForGFX()
             }
             val texture = imageData.value
             if (texture != null && texture.isCreated()) texture else null
@@ -92,7 +92,7 @@ object TextureCache : CacheSection("Texture") {
         key: Any, timeout: Long, async: Boolean, limit: Int,
         generator: (callback: Callback<ITexture2D>) -> Unit
     ): LateinitTexture? {
-        return getEntryLimited(key, timeout, async, limit) {
+        val entry = getEntryLimited(key, timeout, async, limit) {
             val tex = LateinitTexture()
             generator { result, exc ->
                 tex.value = result
@@ -100,13 +100,10 @@ object TextureCache : CacheSection("Texture") {
                     exc.printStackTrace()
                 }
             }
-            if (!async) {
-                Sleep.waitForGFXThread(true) {
-                    tex.hasValue
-                }
-            }
             tex
         } as? LateinitTexture
+        if (!async) entry?.waitForGFX()
+        return entry
     }
 
     @Suppress("unused") // used in Rem's Studio

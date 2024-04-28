@@ -68,12 +68,15 @@ val mergeChannelsShader = ComputeShader(
             "layout(rgba8, binding = 1) uniform image3D zyx;\n" +
             "layout(rgba8, binding = 2) uniform image3D xzy;\n" +
             "layout(rgba8, binding = 3) uniform image3D dst;\n" +
+            // better max function: use max by alpha, not combine all colors:
+            //  just max() could introduce wrong colors, e.g. max(red, blue) should not become violet
+            "vec4 maxByAlpha(vec4 a, vec4 b){\n" +
+            "   return a.a >= b.a ? a : b;\n" +
+            "}\n" +
             "void main(){\n" +
             "   ivec3 uvw = ivec3(gl_GlobalInvocationID);\n" +
             "   if(all(lessThan(uvw, size))) {\n" +
-            // todo better max function: use max by alpha, not combine all colors
-            // it could introduce wrong colors, e.g. max(red, blue) should not become violet
-            "       imageStore(dst, uvw, max(max(\n" +
+            "       imageStore(dst, uvw, maxByAlpha(maxByAlpha(\n" +
             "           imageLoad(xyz, uvw),\n" +
             "           imageLoad(zyx, ivec3(size.z-1-uvw.z,uvw.y,uvw.x))),\n" +
             "           imageLoad(xzy, ivec3(uvw.x,size.z-1-uvw.z,size.y-1-uvw.y))\n" +
@@ -131,16 +134,18 @@ fun meshToSeparatedVoxels(
             dataXYZ.clearColor(0)
             val min = -mix(bounds.minZ, bounds.maxZ, z * invZ)
             val max = -mix(bounds.minZ, bounds.maxZ, (z + 1) * invZ)
-            transform.identity()
-            transform.ortho(bounds.minX, bounds.maxX, bounds.minY, bounds.maxY, min, max)
+            transform
+                .identity()
+                .ortho(bounds.minX, bounds.maxX, bounds.minY, bounds.maxY, min, max)
             drawMesh()
         }
         dataZYX.draw(renderer) { x ->
             dataZYX.clearColor(0)
             val min = mix(bounds.minX, bounds.maxX, x * invX)
             val max = mix(bounds.minX, bounds.maxX, (x + 1) * invX)
-            transform.identity()
-            transform.rotateY(PIf / 2f)
+            transform
+                .identity()
+                .rotateY(PIf / 2f)
             transform.ortho(min, max, bounds.minY, bounds.maxY, -bounds.maxZ, -bounds.minZ)
             drawMesh()
         }
@@ -148,9 +153,10 @@ fun meshToSeparatedVoxels(
             dataXZY.clearColor(0)
             val min = mix(bounds.maxY, bounds.minY, y * invY)
             val max = mix(bounds.maxY, bounds.minY, (y + 1) * invY)
-            transform.identity()
-            transform.rotateX(PIf / 2f)
-            transform.ortho(bounds.minX, bounds.maxX, min, max, -bounds.minZ, -bounds.maxZ)
+            transform
+                .identity()
+                .rotateX(PIf / 2f)
+                .ortho(bounds.minX, bounds.maxX, min, max, -bounds.minZ, -bounds.maxZ)
             drawMesh()
         }
         clock.stop("Mesh -> Dense Voxels")
@@ -229,7 +235,7 @@ fun mergeChannels(
     dataXZY: Framebuffer3D,
     dst: Texture3D = dataXYZ.getTexture0()
 ): Texture3D = mergeChannels(
-    dataXYZ.width, dataXYZ.height, dataXYZ.d,
+    dataXYZ.width, dataXYZ.height, dataXYZ.depth,
     dataXYZ.getTexture0(), dataZYX.getTexture0(), dataXZY.getTexture0(), dst
 )
 

@@ -66,26 +66,27 @@ object ImageThumbnails {
         val timeout = 50L
         var image: Image? = null
         val startTime = Time.nanoTime
-        Sleep.waitUntil(true) {
+        Sleep.waitUntil(true, {
             if (Time.nanoTime < startTime + totalNanos) {
                 image = ImageCache[srcFile, timeout, true]
                 image != null || ImageCache.hasFileEntry(srcFile, timeout)
             } else true
-        }
-        if (image == null) {
-            val ext = srcFile.lcExtension
-            when (val importType = ext.getImportType()) {
-                "Video" -> {
-                    LOGGER.info("Generating frame for $srcFile")
-                    generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+        }, {
+            if (image == null) {
+                val ext = srcFile.lcExtension
+                when (val importType = ext.getImportType()) {
+                    "Video" -> {
+                        LOGGER.info("Generating frame for $srcFile")
+                        generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+                    }
+                    // else nothing to do
+                    else -> {
+                        LOGGER.info("ImageCache failed, importType '$importType' != getImportType for $srcFile")
+                        TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
+                    }
                 }
-                // else nothing to do
-                else -> {
-                    LOGGER.info("ImageCache failed, importType '$importType' != getImportType for $srcFile")
-                    TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
-                }
-            }
-        } else Thumbs.transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
+            } else Thumbs.transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
+        })
     }
 
     private fun generateVideoFrame(
@@ -124,17 +125,17 @@ object ImageThumbnails {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = max(min((time * fps).roundToInt(), meta.videoFrameCount - 1), 0)
 
-        val src = Sleep.waitForGFXThreadUntilDefined(true) {
-            VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
-        }
-
-        Sleep.waitForGFXThread(true) { src.isCreated }
-
-        ThumbsRendering.renderToImage(
-            srcFile, false, dstFile, false,
-            Renderer.colorRenderer, true, callback, w, h
-        ) {
-            DrawTextures.drawTexture(0, 0, w, h, src)
-        }
+        Sleep.waitUntilDefined(true, {
+            val frame = VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
+            if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
+            else null
+        }, { frame ->
+            ThumbsRendering.renderToImage(
+                srcFile, false, dstFile, false,
+                Renderer.colorRenderer, true, callback, w, h
+            ) {
+                DrawTextures.drawTexture(0, 0, w, h, frame)
+            }
+        })
     }
 }

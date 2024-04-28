@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Reference
 import me.anno.utils.Sleep
 import me.anno.utils.files.Files
+import me.anno.utils.structures.Callback.Companion.mapCallback
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import java.awt.Toolkit
@@ -81,29 +82,37 @@ object ClipboardImpl {
             file.deleteOnExit()
             file
         }
-        val tmpFiles = files.map {
-            if (it is FileFileRef) it.file
-            else {
-                // create a temporary copy, that the OS understands
-                val tmp0 = copiedInternalFiles.reverse[it]
-                val ctr = AtomicInteger()
-                if (tmp0 != null) tmp0 else {
-                    val tmp = File(tmpFolder.value, it.name)
-                    copyHierarchy(
-                        it,
-                        Reference.getReference(tmp.absolutePath),
-                        { ctr.incrementAndGet() },
-                        { ctr.decrementAndGet() })
-                    Sleep.waitUntil(true) { ctr.get() == 0 } // wait for all copying to complete
-                    copiedInternalFiles[tmp] = it
-                    tmp
+        files.mapCallback<FileReference, File>(
+            { _, src, cb ->
+                if (src is FileFileRef) {
+                    cb.ok(src.file)
+                } else {
+                    // create a temporary copy, that the OS understands
+                    val tmp0 = copiedInternalFiles.reverse[src]
+                    val ctr = AtomicInteger()
+                    if (tmp0 != null) {
+                        cb.ok(tmp0)
+                    } else {
+                        val tmp = File(tmpFolder.value, src.name)
+                        copyHierarchy(
+                            src,
+                            Reference.getReference(tmp.absolutePath),
+                            { ctr.incrementAndGet() },
+                            { ctr.decrementAndGet() })
+                        // wait for all copying to complete
+                        Sleep.waitUntil(true, { ctr.get() == 0 }, {
+                            copiedInternalFiles[tmp] = src
+                            cb.ok(tmp)
+                        })
+                    }
                 }
-            }
-        }
-        Toolkit
-            .getDefaultToolkit()
-            .systemClipboard
-            .setContents(FileTransferable(tmpFiles), null)
+            }, { tmpFiles, err ->
+                err?.printStackTrace()
+                if (tmpFiles != null) {
+                    Toolkit.getDefaultToolkit().systemClipboard
+                        .setContents(FileTransferable(tmpFiles), null)
+                }
+            })
     }
 
     fun copyHierarchy(

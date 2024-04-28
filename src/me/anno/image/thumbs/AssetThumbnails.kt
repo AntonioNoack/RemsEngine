@@ -81,7 +81,7 @@ object AssetThumbnails {
         removeTextures(sceneTextures, srcFile)
         for (i in 0 until 3) { // make sure both are loaded
             AssetThumbHelper.waitForMeshes(scene)
-            AssetThumbHelper.waitForTextures(sceneTextures)
+            waitForTextures(sceneTextures)
         }
         scene.validateTransform()
         scene.getBounds()
@@ -233,7 +233,7 @@ object AssetThumbnails {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        AssetThumbHelper.waitForTextures(mesh, srcFile) {
+        waitForTextures(mesh, srcFile) {
             ThumbsRendering.renderToImage(
                 srcFile, false,
                 dstFile, true,
@@ -263,7 +263,7 @@ object AssetThumbnails {
         val mesh = comp.getMesh() as? Mesh ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        AssetThumbHelper.waitForTextures(comp, mesh, srcFile) {
+        waitForTextures(comp, mesh, srcFile) {
             ThumbsRendering.renderToImage(
                 srcFile, false,
                 dstFile, true,

@@ -10,17 +10,17 @@ import me.anno.installer.Installer
 import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonReader
+import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.language.Language
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Spellchecking.defaultLanguage
 import me.anno.language.spellcheck.Suggestion
-import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.Color
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import me.anno.utils.types.Strings.titlecase
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.titlecase
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -116,14 +116,7 @@ object SpellcheckingImpl {
     }
 
     private fun waitForDownload(dst: FileReference, callback: (FileReference) -> Unit) {
-        thread(name = "Spellchecking::waitForDownload") {
-            loop@ while (!Engine.shutdown) {
-                if (dst.exists) {
-                    callback(dst)
-                    break@loop
-                } else Sleep.sleepABit10(true)
-            }
-        }
+        Sleep.waitUntil(true, { dst.exists }, { callback(dst) })
     }
 
     private fun download(dst: FileReference, callback: (FileReference) -> Unit) {

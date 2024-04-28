@@ -63,8 +63,8 @@ fun main() {
     createClient("C")
 
     // 500ms
-    for (i in 0 until 50)
-        Sleep.sleepABit10(false)
+    for (i in 0 until 500)
+        Sleep.sleepABit(false)
 
     println("closing server")
 

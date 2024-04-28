@@ -70,9 +70,9 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
 
     private fun loadTexture() {
         when (if (OS.isWeb) null else Signature.findNameSync(file)) {
-            "dds", "media" -> return tryUsingVideoCache(file)
+            "dds", "media" -> tryUsingVideoCache(file)
+            else -> ImageReader.readImage(file, true).waitForGFX(::loadImage)
         }
-        ImageReader.readImage(file, true).waitForGFX(::loadImage)
     }
 
     private fun loadImage(image: Image?) {
@@ -101,13 +101,15 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
             LOGGER.warn("Cannot load $file using VideoCache")
             value = null
         } else {
-            val frame = Sleep.waitForGFXThreadUntilDefined(true) {
-                VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
-            }
-            frame.waitToLoad()
-            GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
-                value = frame.toTexture()
-            }
+            Sleep.waitUntilDefined(true, {
+                val frame = VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, true)
+                if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
+                else null
+            }, { frame ->
+                GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
+                    value = frame.toTexture()
+                }
+            })
         }
     }
 }

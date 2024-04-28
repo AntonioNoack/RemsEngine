@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.utils.structures.Callback
 import me.anno.image.Image
 import me.anno.image.ImageReader
 import me.anno.image.raw.GPUFrameImage
@@ -9,6 +8,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.io.IOException
 
@@ -25,8 +25,9 @@ object ImageReaderExt {
                     meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
                         val frame = frames.firstOrNull()
                         if (frame != null) {
-                            Sleep.waitForGFXThread(true) { frame.isCreated || frame.isDestroyed }
-                            callback.call(GPUFrameImage(frame), null)
+                            Sleep.waitUntil(true, { frame.isCreated || frame.isDestroyed }, {
+                                callback.call(GPUFrameImage(frame), null)
+                            })
                         } else callback.err(IOException("No frame was found"))
                     }
                 )

@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.shader.BufferCompute.createAccessors
@@ -11,12 +12,11 @@ import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.mesh.Shapes.flatCube
-import me.anno.engine.EngineBase
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
-import org.joml.Vector2i
-import org.lwjgl.opengl.GL46C.glMemoryBarrier
+import org.joml.Vector3i
 import org.lwjgl.opengl.GL46C.GL_SHADER_STORAGE_BARRIER_BIT
+import org.lwjgl.opengl.GL46C.glMemoryBarrier
 
 fun main() {
     // todo cube is no longer rotating??
@@ -29,7 +29,7 @@ fun rotatingCube() {
     val mesh = flatCube.front.clone() as Mesh
     mesh.ensureBuffer()
     val shader = ComputeShader(
-        "geometry", Vector2i(64, 1), listOf(
+        "geometry", Vector3i(64, 1, 1), listOf(
             Variable(GLSLType.M3x3, "rotation"),
             Variable(GLSLType.V1I, "size")
         ), "" +
