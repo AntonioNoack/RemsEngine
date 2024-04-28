@@ -4,6 +4,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
+import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -13,25 +15,25 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer3D
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture3D
+import me.anno.image.thumbs.AssetThumbHelper.listTextures
+import me.anno.image.thumbs.AssetThumbHelper.removeTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.smoothCube
-import me.anno.engine.EngineBase
-import me.anno.engine.OfficialExtensions
-import me.anno.extensions.ExtensionLoader
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
+import me.anno.utils.structures.lists.Lists.flatten
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -114,8 +116,13 @@ fun meshToSeparatedVoxels(
             mesh.draw(shader, i)
         }
     }
+    if (waitForTextures) {
+        val materials = mesh.materials
+        val textures = HashSet(materials.map { listTextures(it) }.flatten())
+        removeTextures(textures, mesh.ref)
+        waitForTextures(textures)
+    }
     GFXState.depthMode.use(DepthMode.FORWARD_ALWAYS) {
-        if (waitForTextures) waitForTextures(mesh, mesh.ref)
         val clock = Clock()
         val invX = 1f / blocksX
         val invY = 1f / blocksY

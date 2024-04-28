@@ -14,7 +14,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -32,6 +31,9 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
 import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
+import me.anno.image.thumbs.AssetThumbHelper.listTextures
+import me.anno.image.thumbs.AssetThumbHelper.removeTextures
+import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
@@ -72,18 +74,21 @@ object AssetThumbnails {
         callback: Callback<ITexture2D>
     ) {
         // todo draw gui (colliders), entity positions
+        val sceneMaterials = AssetThumbHelper.collectMaterials(scene)
+        val sceneTextures = HashSet(sceneMaterials.map {
+            listTextures(it)
+        }.flatten())
+        removeTextures(sceneTextures, srcFile)
         for (i in 0 until 3) { // make sure both are loaded
             AssetThumbHelper.waitForMeshes(scene)
-            AssetThumbHelper.waitForTextures(scene, srcFile)
+            AssetThumbHelper.waitForTextures(sceneTextures)
         }
         scene.validateTransform()
         scene.getBounds()
         val bounds = scene.aabb
         ThumbsRendering.renderToImage(
-            srcFile,
-            false,
-            dstFile,
-            true,
+            srcFile, false,
+            dstFile, true,
             Renderers.previewRenderer,
             true,
             callback,
@@ -154,23 +159,26 @@ object AssetThumbnails {
         size: Int,
         callback: Callback<ITexture2D>
     ) {
-        AssetThumbHelper.waitForTextures(materials.mapNotNull { MaterialCache[it] })
-        ThumbsRendering.renderMultiWindowImage(
-            srcFile, dstFile, materials.size, size, false,
-            Renderers.previewRenderer, callback
-        ) { it, _ ->
-            GFXState.blendMode.use(BlendMode.DEFAULT) {
-                GFX.checkIsGFXThread()
-                val mesh = Thumbs.sphereMesh
-                mesh.material = materials[it]
-                mesh.drawAssimp(
-                    matCameraMatrix,
-                    matModelMatrix,
-                    null,
-                    useMaterials = true,
-                    centerMesh = false,
-                    normalizeScale = false
-                )
+        listTextures(materials, srcFile) { textures ->
+            waitForTextures(textures) {
+                ThumbsRendering.renderMultiWindowImage(
+                    srcFile, dstFile, materials.size, size, false,
+                    Renderers.previewRenderer, callback
+                ) { it, _ ->
+                    GFXState.blendMode.use(BlendMode.DEFAULT) {
+                        GFX.checkIsGFXThread()
+                        val mesh = Thumbs.sphereMesh
+                        mesh.material = materials[it]
+                        mesh.drawAssimp(
+                            matCameraMatrix,
+                            matModelMatrix,
+                            null,
+                            useMaterials = true,
+                            centerMesh = false,
+                            normalizeScale = false
+                        )
+                    }
+                }
             }
         }
     }
@@ -225,22 +233,21 @@ object AssetThumbnails {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        AssetThumbHelper.waitForTextures(mesh, srcFile)
-        // sometimes black: because of vertex colors, which are black
-        // render everything without color
-        ThumbsRendering.renderToImage(
-            srcFile, false,
-            dstFile, true,
-            Renderers.simpleNormalRenderer,
-            true, callback, size, size
-        ) {
-            GFXState.cullMode.use(CullMode.BOTH) {
-                mesh.drawAssimp(
-                    1f, null,
-                    useMaterials = true,
-                    centerMesh = true,
-                    normalizeScale = true
-                )
+        AssetThumbHelper.waitForTextures(mesh, srcFile) {
+            ThumbsRendering.renderToImage(
+                srcFile, false,
+                dstFile, true,
+                Renderers.simpleNormalRenderer,
+                true, callback, size, size
+            ) {
+                GFXState.cullMode.use(CullMode.BOTH) {
+                    mesh.drawAssimp(
+                        1f, null,
+                        useMaterials = true,
+                        centerMesh = true,
+                        normalizeScale = true
+                    )
+                }
             }
         }
     }
@@ -256,22 +263,21 @@ object AssetThumbnails {
         val mesh = comp.getMesh() as? Mesh ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        AssetThumbHelper.waitForTextures(comp, mesh, srcFile)
-        // sometimes black: because of vertex colors, which are black
-        // render everything without color
-        ThumbsRendering.renderToImage(
-            srcFile, false,
-            dstFile, true,
-            Renderers.simpleNormalRenderer,
-            true, callback, size, size
-        ) {
-            GFXState.cullMode.use(CullMode.BOTH) {
-                mesh.drawAssimp(
-                    1f, comp,
-                    useMaterials = true,
-                    centerMesh = true,
-                    normalizeScale = true
-                )
+        AssetThumbHelper.waitForTextures(comp, mesh, srcFile) {
+            ThumbsRendering.renderToImage(
+                srcFile, false,
+                dstFile, true,
+                Renderers.simpleNormalRenderer,
+                true, callback, size, size
+            ) {
+                GFXState.cullMode.use(CullMode.BOTH) {
+                    mesh.drawAssimp(
+                        1f, comp,
+                        useMaterials = true,
+                        centerMesh = true,
+                        normalizeScale = true
+                    )
+                }
             }
         }
     }
@@ -304,22 +310,23 @@ object AssetThumbnails {
         size: Int,
         callback: Callback<ITexture2D>
     ) {
-        AssetThumbHelper.waitForTextures(material)
-        ThumbsRendering.renderToImage(
-            srcFile, false, dstFile, true, Renderers.previewRenderer,
-            true, callback, size, size
-        ) {
-            GFXState.blendMode.use(BlendMode.DEFAULT) {
-                val mesh = Thumbs.sphereMesh
-                mesh.material = srcFile
-                mesh.drawAssimp(
-                    matCameraMatrix,
-                    matModelMatrix,
-                    null,
-                    useMaterials = true,
-                    centerMesh = false,
-                    normalizeScale = false
-                )
+        waitForTextures(material, srcFile) {
+            ThumbsRendering.renderToImage(
+                srcFile, false, dstFile, true, Renderers.previewRenderer,
+                true, callback, size, size
+            ) {
+                GFXState.blendMode.use(BlendMode.DEFAULT) {
+                    val mesh = Thumbs.sphereMesh
+                    mesh.material = srcFile
+                    mesh.drawAssimp(
+                        matCameraMatrix,
+                        matModelMatrix,
+                        null,
+                        useMaterials = true,
+                        centerMesh = false,
+                        normalizeScale = false
+                    )
+                }
             }
         }
     }

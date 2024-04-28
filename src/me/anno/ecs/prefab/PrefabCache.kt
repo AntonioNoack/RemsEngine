@@ -21,8 +21,9 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.Logging.hash32
-import me.anno.utils.types.Strings.shorten
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
@@ -64,13 +65,18 @@ object PrefabCache : CacheSection("Prefab") {
         val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
-        } catch (e: UnknownClassException) {
-            e.printStackTrace()
-            null
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
+    }
+
+    fun getPrefabInstanceAsync(resource: FileReference?, depth: Int = maxPrefabDepth, callback: Callback<Saveable?>) {
+        getPrefabPairAsync(resource, { pair, err ->
+            if (pair != null) {
+                callback.ok(pair.instance ?: pair.prefab?.getSampleInstance(depth))
+            } else callback.err(err)
+        }, depth, prefabTimeout)
     }
 
     fun printDependencyGraph(prefab: FileReference): String {
@@ -237,7 +243,7 @@ object PrefabCache : CacheSection("Prefab") {
         return when {
             resource == null || resource == InvalidRef -> null
             resource is InnerLinkFile -> {
-                LOGGER.debug("[link] {} -> {}", resource, resource.link)
+                notifyLink(resource)
                 getPrefabPair(resource.link, depth, timeout, async)
             }
             resource is PrefabReadable -> {
@@ -246,13 +252,55 @@ object PrefabCache : CacheSection("Prefab") {
             }
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, timeout, async, ::loadPrefabPair)
-                if (entry is FileReadPrefabData && entry.hasValue && entry.value == null) {
-                    LOGGER.warn("Could not load $resource as prefab")
-                    return null
-                }
+                warnLoadFailedMaybe(resource, entry)
                 return entry as? FileReadPrefabData
             }
             else -> null
+        }
+    }
+
+    private fun getPrefabPairAsync(
+        resource: FileReference?,
+        callback: Callback<FileReadPrefabData?>,
+        depth: Int = maxPrefabDepth,
+        timeout: Long = prefabTimeout,
+    ) {
+        when {
+            resource == null || resource == InvalidRef -> {
+                callback.ok(null)
+            }
+            resource is InnerLinkFile -> {
+                notifyLink(resource)
+                getPrefabPairAsync(resource.link, callback, depth, timeout)
+            }
+            resource is PrefabReadable -> {
+                val prefab = resource.readPrefab()
+                val result = FileReadPrefabData(resource)
+                result.value = prefab
+                callback.ok(result)
+            }
+            resource.exists && !resource.isDirectory -> {
+                getFileEntryAsync(
+                    resource, false,
+                    timeout, true, ::loadPrefabPair
+                ) { entry, err ->
+                    warnLoadFailedMaybe(resource, entry)
+                    callback.call(entry as? FileReadPrefabData, err)
+                }
+            }
+            else -> {
+                callback.ok(null)
+            }
+        }
+    }
+
+    private fun notifyLink(resource: InnerLinkFile) {
+        LOGGER.debug("[link] {} -> {}", resource, resource.link)
+    }
+
+    private fun warnLoadFailedMaybe(resource: FileReference?, entry: Any?) {
+        if (entry is FileReadPrefabData && entry.hasValue && entry.value == null) {
+            LOGGER.warn("Could not load $resource as prefab")
         }
     }
 

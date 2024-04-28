@@ -2,7 +2,9 @@ package me.anno.utils
 
 import me.anno.Engine.shutdown
 import me.anno.Time
+import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -102,6 +104,19 @@ object Sleep {
             }
         } else {
             waitUntil(canBeKilled, isFinished)
+        }
+    }
+
+    @JvmStatic
+    fun waitUntilAsync(canBeKilled: Boolean, isFinished: () -> Boolean, callback: Callback<Unit>) {
+        if (isFinished()) {
+            callback.ok(Unit)
+        } else if (canBeKilled && shutdown) {
+            callback.err(ShutdownException())
+        } else { // wait a little
+            addEvent(1) {
+                waitUntilAsync(canBeKilled, isFinished, callback)
+            }
         }
     }
 

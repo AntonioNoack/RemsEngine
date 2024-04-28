@@ -1,18 +1,15 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.utils.MeshJoiner
-import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
@@ -30,51 +27,35 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         lru.clear()
     }
 
-    override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
-        if (ref == null || ref == InvalidRef) return null
-        ensureMeshClasses()
-        val value0 = lru[ref]
-        if (value0 !== Unit) return value0 as? Mesh
-        val data = cache.getFileEntry(ref, false, PrefabCache.prefabTimeout, async) { ref1, _ ->
-            val mesh: Mesh? = when (val instance = PrefabCache.getPrefabInstance(ref1, maxPrefabDepth, async)) {
-                is Mesh -> instance
-                is MeshComponent -> {
-                    // warning: if there is a dependency ring, this will produce a stack overflow
-                    val ref2 = instance.meshFile
-                    if (ref == ref2) null
-                    else get(ref2, async)
-                }
-                is MeshComponentBase -> instance.getMesh() as? Mesh
-                is Entity -> {
-                    val components = ArrayList<Component>(64)
-                    fun forAll(entity: Entity) {
-                        entity.validateTransform()
-                        for (child in entity.children) {
-                            if (child.isEnabled) {
-                                forAll(child)
-                            }
-                        }
-                        for (comp in entity.components) {
-                            if (comp.isEnabled && (comp is MeshComponentBase || comp is MeshSpawner)) {
-                                components.add(comp)
-                            }
+    override fun castInstance(instance: Saveable?, ref: FileReference): Mesh? {
+        return when (instance) {
+            is Mesh -> instance
+            is MeshComponentBase -> instance.getMesh() as? Mesh
+            is MeshSpawner -> joinMeshes(listOf(instance))
+            is Entity -> {
+                val components = ArrayList<Component>(64)
+                fun forAll(entity: Entity) {
+                    entity.validateTransform()
+                    for (child in entity.children) {
+                        if (child.isEnabled) {
+                            forAll(child)
                         }
                     }
-                    forAll(instance)
-                    joinMeshes(components)
+                    for (comp in entity.components) {
+                        if (comp.isEnabled && (comp is MeshComponentBase || comp is MeshSpawner)) {
+                            components.add(comp)
+                        }
+                    }
                 }
-                is MeshSpawner -> joinMeshes(listOf(instance))
-                null -> null
-                else -> {
-                    LOGGER.warn("Requesting mesh from ${instance.className}, cannot extract it")
-                    null
-                }
+                forAll(instance)
+                joinMeshes(components)
             }
-            CacheData(mesh)
-        } as? CacheData<*>
-        val value = data?.value as? Mesh
-        lru[ref] = value
-        return value
+            null -> null
+            else -> {
+                LOGGER.warn("Requesting mesh from ${instance.className}, cannot extract it")
+                null
+            }
+        }
     }
 
     private fun addMesh(

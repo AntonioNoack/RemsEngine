@@ -4,6 +4,7 @@ import me.anno.Time.nanoTime
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import kotlin.math.max
 
 class CacheEntry private constructor(
@@ -58,6 +59,13 @@ class CacheEntry private constructor(
         }
     }
 
+    fun callback(exception: Exception?, resultCallback: Callback<ICacheData>) {
+        resultCallback.call(
+            if (hasBeenDestroyed) null
+            else data, exception
+        )
+    }
+
     var deletingThreadName: String? = null
 
     fun destroy() {
@@ -70,5 +78,4 @@ class CacheEntry private constructor(
                 .printStackTrace()
         }
     }
-
 }

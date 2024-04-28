@@ -8,6 +8,7 @@ import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
@@ -94,10 +95,25 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         timeout: Long, asyncGenerator: Boolean,
         generator: (FileReference, Long) -> ICacheData?
     ): ICacheData? {
+        val validFile = getValidFile(file, allowDirectories) ?: return null
+        return getDualEntry(validFile, validFile.lastModified, timeout, asyncGenerator, generator)
+    }
+
+    fun getFileEntryAsync(
+        file: FileReference, allowDirectories: Boolean,
+        timeout: Long, asyncGenerator: Boolean,
+        generator: (FileReference, Long) -> ICacheData?,
+        callback: Callback<ICacheData>
+    ) {
+        val validFile = getValidFile(file, allowDirectories) ?: return callback.err(null)
+        getDualEntryAsync(validFile, validFile.lastModified, timeout, asyncGenerator, generator, callback)
+    }
+
+    fun getValidFile(file: FileReference, allowDirectories: Boolean): FileReference? {
         return when {
             !allowDirectories && file is InnerFolder -> {
                 val alias = file.alias ?: return null
-                getDualEntry(alias, alias.lastModified, timeout, asyncGenerator, generator)
+                getValidFile(alias, false)
             }
             file == InvalidRef -> null
             !file.exists -> {
@@ -108,7 +124,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 LOGGER.warn("[$name] Skipped loading $file, is a folder")
                 null
             }
-            else -> getDualEntry(file, file.lastModified, timeout, asyncGenerator, generator)
+            else -> file
         }
     }
 
@@ -194,7 +210,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             data = generator(key)
         } catch (_: IgnoredException) {
         } catch (e: FileNotFoundException) {
-            LOGGER.warn("FileNotFoundException: {}", e.message)
+            warnFileMissing(e)
         } catch (e: Exception) {
             return e
         }
@@ -207,11 +223,15 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             data = generator(key0, key1)
         } catch (_: IgnoredException) {
         } catch (e: FileNotFoundException) {
-            LOGGER.warn("FileNotFoundException: {}", e.message)
+            warnFileMissing(e)
         } catch (e: Exception) {
             return e
         }
         return data
+    }
+
+    private fun warnFileMissing(e: FileNotFoundException) {
+        LOGGER.warn("FileNotFoundException: {}", e.message)
     }
 
     private fun checkKey(key: Any?) {
@@ -364,7 +384,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
         generator: (V) -> ICacheData?,
-        resultCallback: (ICacheData?, Exception?) -> Unit
+        resultCallback: Callback<ICacheData>
     ) {
 
         checkKey(key)
@@ -381,13 +401,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val needsGenerator = entry.needsGenerator
         entry.update(timeoutMillis)
 
-        fun callback(exception: Exception?) {
-            resultCallback(
-                if (entry.hasBeenDestroyed) null
-                else entry.data, exception
-            )
-        }
-
         if (needsGenerator) {
             entry.hasGenerator = true
             if (asyncGenerator) {
@@ -396,20 +409,22 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     val value = generateSafely(key, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
-                    callback(value as? Exception)
+                    entry.callback(value as? Exception, resultCallback)
                 }
             } else {
                 val value = generateSafely(key, generator)
                 entry.data = value as? ICacheData
-                callback(value as? Exception)
+                entry.callback(value as? Exception, resultCallback)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 waitAsync("WaitingFor<$key>") {
                     entry.waitForValue(key)
-                    callback(null)
+                    entry.callback(null, resultCallback)
                 }
-            } else callback(null)
+            } else {
+                entry.callback(null, resultCallback)
+            }
         }
     }
 
@@ -417,7 +432,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         key0: V, key1: W, timeoutMillis: Long,
         asyncGenerator: Boolean,
         generator: (V, W) -> ICacheData?,
-        resultCallback: (ICacheData?, Exception?) -> Unit
+        resultCallback: Callback<ICacheData>
     ) {
 
         checkKey(key0)
@@ -435,13 +450,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val needsGenerator = entry.needsGenerator
         entry.update(timeoutMillis)
 
-        fun callback(exception: Exception?) {
-            resultCallback(
-                if (entry.hasBeenDestroyed) null
-                else entry.data, exception
-            )
-        }
-
         if (needsGenerator) {
             entry.hasGenerator = true
             if (asyncGenerator) {
@@ -450,20 +458,22 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     val value = generateDualSafely(key0, key1, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
-                    callback(value as? Exception)
+                    entry.callback(value as? Exception, resultCallback)
                 }
             } else {
                 val value = generateDualSafely(key0, key1, generator)
                 entry.data = value as? ICacheData
-                callback(value as? Exception)
+                entry.callback(value as? Exception, resultCallback)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 waitAsync("WaitingFor<$key0, $key1>") {
                     entry.waitForValue(key0 to key1)
-                    callback(null)
+                    entry.callback(null, resultCallback)
                 }
-            } else callback(null)
+            } else {
+                entry.callback(null, resultCallback)
+            }
         }
     }
 

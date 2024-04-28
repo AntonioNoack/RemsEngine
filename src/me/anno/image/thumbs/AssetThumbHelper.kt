@@ -4,11 +4,11 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
@@ -22,6 +22,10 @@ import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Callback
+import me.anno.utils.structures.Callback.Companion.mapCallback
+import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -38,10 +42,14 @@ object AssetThumbHelper {
     val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
     private val LOGGER = LogManager.getLogger(AssetThumbHelper::class)
 
-    private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
-        for (index in 0 until max(l0.size, l1.size)) {
-            val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
-            if (li != null && li != InvalidRef) run(li)
+    private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>): List<FileReference> {
+        return when {
+            l0.isEmpty() -> l1
+            l1.isEmpty() -> l0
+            else -> createArrayList(max(l0.size, l1.size)) { index ->
+                val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
+                if (li != null && li != InvalidRef) li else InvalidRef
+            }
         }
     }
 
@@ -52,14 +60,13 @@ object AssetThumbHelper {
     }
 
     fun createModelMatrix(): Matrix4x3f {
-        val modelMatrix = Matrix4x3f()
-        modelMatrix.translate(0f, 0f, -1f)// move the camera back a bit
-        modelMatrix.rotateX((15f).toRadians())// rotate it into a nice viewing angle
-        modelMatrix.rotateY((-25f).toRadians())
-        // calculate the scale, such that everything can be visible
-        // half, because it's half the size, 1.05f for a small border
-        modelMatrix.scale(1.05f * 0.5f)
-        return modelMatrix
+        return Matrix4x3f()
+            .translate(0f, 0f, -1f)// move the camera back a bit
+            .rotateX((15f).toRadians())// rotate it into a nice viewing angle
+            .rotateY((-25f).toRadians())
+            // calculate the scale, such that everything can be visible
+            // half, because it's half the size, 1.05f for a small border
+            .scale(1.05f * 0.5f)
     }
 
     fun Mesh.drawAssimp(
@@ -167,50 +174,48 @@ object AssetThumbHelper {
         } else false
     }
 
-    fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference) {
-        // wait for all textures
-        val textures = HashSet<FileReference>()
-        iterateMaterials(comp.materials, mesh.materials) { material ->
-            textures += listTextures(material)
-        }
-        textures.removeAll { it == InvalidRef }
-        textures.removeAll {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $srcFile")
-                true
-            } else false
-        }
-        waitForTextures(textures)
+    fun waitForTextures(comp: MeshComponentBase, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
+        waitForTextures(comp.materials, mesh, srcFile, callback)
     }
 
-    fun waitForTextures(mesh: Mesh, file: FileReference) {
+    fun waitForTextures(comp: List<FileReference>, mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
         // wait for all textures
-        val textures = HashSet<FileReference>()
-        for (material in mesh.materials) {
-            textures += listTextures(material)
-        }
-        textures.removeAll { it == InvalidRef }
-        textures.removeAll {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $file")
-                true
-            } else false
-        }
-        waitForTextures(textures)
+        iterateMaterials(comp, mesh.materials)
+            .mapCallback<FileReference, List<FileReference>>(
+                { _, ref, cb ->
+                    listTextures(ref, cb)
+                }, { res, err ->
+                    err?.printStackTrace()
+                    if (res != null) {
+                        val textures = res.flatten().toHashSet()
+                        removeTextures(textures, srcFile)
+                        waitForTextures(textures, callback)
+                    } else {
+                        callback()
+                    }
+                })
     }
 
-    fun waitForTextures(entity: Entity, srcFile: FileReference) {
-        // wait for all textures
-        val textures = HashSet<FileReference>()
-        collectTextures(entity, textures)
-        textures.removeAll { it == InvalidRef }
-        textures.removeAll {
-            if (!it.exists) {
-                LOGGER.warn("Missing texture $it by $srcFile")
-                true
-            } else false
+    fun waitForTextures(mesh: Mesh, srcFile: FileReference, callback: () -> Unit) {
+        waitForTextures(emptyList(), mesh, srcFile, callback)
+    }
+
+    fun waitForTextures(entity: Entity, srcFile: FileReference, callback: () -> Unit) {
+        collectTextures(entity, srcFile) { textures ->
+            waitForTextures(textures, callback)
         }
-        waitForTextures(textures)
+    }
+
+    fun removeTextures(textures: MutableSet<FileReference>, srcFile: FileReference) {
+        textures.removeAll { it == InvalidRef }
+        textures.removeAll { removeMissingTextureFile(it, srcFile) }
+    }
+
+    private fun removeMissingTextureFile(it: FileReference, srcFile: FileReference): Boolean {
+        return if (!it.exists) {
+            LOGGER.warn("Missing texture $it by $srcFile")
+            true
+        } else false
     }
 
     fun waitForMeshes(entity: Entity) {
@@ -221,15 +226,19 @@ object AssetThumbHelper {
         }
     }
 
-    fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
+    fun collectTextures(entity: Entity, srcFile: FileReference, callback: (Collection<FileReference>) -> Unit) {
+        listTextures(collectMaterials(entity).toList(), srcFile, callback)
+    }
+
+    fun collectMaterials(entity: Entity): HashSet<FileReference> {
+        val materials = HashSet<FileReference>()
         entity.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
             val mesh = comp.getMesh()
             if (mesh != null) {
-                iterateMaterials(comp.materials, mesh.materials) { material ->
-                    textures += listTextures(material)
-                }
+                materials += iterateMaterials(comp.materials, mesh.materials)
             } else warnMissingMesh(comp, null)
         }
+        return materials
     }
 
     fun warnMissingMesh(comp: MeshComponentBase, mesh: Mesh?) {
@@ -244,51 +253,89 @@ object AssetThumbHelper {
         LOGGER.warn(msg)
     }
 
-    fun listTextures(materialReference: FileReference): List<FileReference> {
-        if (materialReference == InvalidRef) return emptyList()
-        val material = MaterialCache[materialReference]
-        if (material == null) LOGGER.warn("Missing material '$materialReference'")
+    fun listTextures(matRef: FileReference): List<FileReference> {
+        if (matRef == InvalidRef) return emptyList()
+        val material = MaterialCache[matRef]
+        if (material == null) warnMissingMaterial(matRef)
         return material?.listTextures() ?: emptyList()
     }
 
-    fun waitForTextures(materials: List<Material>, timeout: Long = 25000) {
-        // listing all textures
-        // does not include personal materials / shaders...
-        val textures = ArrayList<FileReference>()
-        for (material in materials) {
-            textures += material.listTextures()
+    fun listTextures(matRef: FileReference?, callback: Callback<List<FileReference>>) {
+        if (matRef == null || matRef == InvalidRef) return callback.ok(emptyList())
+        MaterialCache.getAsync(matRef) { material, err ->
+            callback.ok(material?.listTextures() ?: emptyList())
+            err?.printStackTrace()
         }
-        waitForTextures(textures, timeout)
     }
 
-    fun waitForTextures(material: Material, timeout: Long = 25000) {
+    fun listTextures(matRefs: List<FileReference>, srcFile: FileReference, callback: (HashSet<FileReference>) -> Unit) {
+        return matRefs.mapCallback<FileReference, List<FileReference>>(
+            { _, matRef, cb -> listTextures(matRef, cb) },
+            { res, err ->
+                val textures = HashSet((res ?: emptyList()).flatten())
+                removeTextures(textures, srcFile)
+                callback(textures)
+                err?.printStackTrace()
+            })
+    }
+
+    private fun warnMissingMaterial(materialReference: FileReference) {
+        LOGGER.warn("Missing material '{}'", materialReference)
+    }
+
+    fun waitForTextures(material: Material, srcFile: FileReference, callback: () -> Unit) {
         // listing all textures
         // does not include personal materials / shaders...
-        val textures = material.listTextures().filter { it != InvalidRef && it.exists }
-        waitForTextures(textures, timeout)
+        val textures = material.listTextures().toHashSet()
+        removeTextures(textures, srcFile)
+        waitForTextures(textures, callback)
     }
 
-    fun waitForTextures(textures: Collection<FileReference>, timeout: Long = 25000) {
-        // 25s timeout, because unzipping all can take its time
-        // wait for textures
-        if (textures.isEmpty()) return
-        val endTime = Time.gameTimeN + timeout * Maths.MILLIS_TO_NANOS
+    private const val TEXTURE_TIMEOUT = 25000L
+    fun waitForTextures(textures: Collection<FileReference>) {
+        val endTime = getEndTime()
         Sleep.waitForGFXThread(true) {
-            if (Time.gameTimeN > endTime) {
-                // textures may be missing; just ignore them, if they cannot be read
-                textures
-                    .filter { !TextureCache.hasImageOrCrashed(it, timeout, true) }
-                    .forEach { LOGGER.warn("Missing texture $it") }
-                true
-            } else {
-                // all images should be requested every time, so we can load them in parallel
-                var hasAll = true
-                for (texture in textures) {
-                    if (!TextureCache.hasImageOrCrashed(texture, timeout, true)) {
-                        hasAll = false
-                    }
-                }
-                hasAll
+            doneCondition(textures, endTime)
+        }
+    }
+
+    private fun doneCondition(textures: Collection<FileReference>, endTime: Long): Boolean {
+        // textures may be missing; just ignore them, if they cannot be read
+        return if (Time.gameTimeN > endTime) {
+            warnMissingTextures(textures)
+            true
+        } else {
+            hasLoadedAllTextures(textures)
+        }
+    }
+
+    private fun getEndTime(): Long {
+        return Time.gameTimeN + TEXTURE_TIMEOUT * Maths.MILLIS_TO_NANOS
+    }
+
+    private fun hasLoadedAllTextures(textureSources: Collection<FileReference>): Boolean {
+        // all images should be requested every time, so we can load them in parallel
+        return textureSources.all { src ->
+            TextureCache.hasImageOrCrashed(src, TEXTURE_TIMEOUT, true)
+        }
+    }
+
+    private fun warnMissingTextures(textureSources: Collection<FileReference>) {
+        val timeout = TEXTURE_TIMEOUT
+        for (src in textureSources) {
+            if (!TextureCache.hasImageOrCrashed(src, timeout, true)) {
+                LOGGER.warn("Missing texture $src")
+            }
+        }
+    }
+
+    fun waitForTextures(textureSources: Collection<FileReference>, callback: () -> Unit) {
+        val endTime = getEndTime()
+        Sleep.waitUntilAsync(true, {
+            doneCondition(textureSources, endTime)
+        }) { unit, _ ->
+            if (unit != null) {
+                callback()
             }
         }
     }
