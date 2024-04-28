@@ -2,11 +2,11 @@ package me.anno.io.files
 
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
+import me.anno.image.thumbs.AssetThumbHelper
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.image.thumbs.Thumbs
-import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.maths.Maths.min
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
@@ -107,7 +107,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an input stream;
      * should be buffered for better performance
      * */
-    abstract fun inputStream(lengthLimit: Long = Long.MAX_VALUE, callback: Callback<InputStream>)
+    abstract fun inputStream(lengthLimit: Long, callback: Callback<InputStream>)
+    fun inputStream(callback: Callback<InputStream>) = inputStream(Long.MAX_VALUE, callback)
 
     /**
      * give access to an output stream;
@@ -134,43 +135,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    open fun inputStreamSync(): InputStream {
-        var e: Exception? = null
-        var d: InputStream? = null
-        inputStream { it, exc ->
-            e = exc
-            d = it
-        }
-        waitUntil(true) { e != null || d != null }
-        return d ?: throw e!!
-    }
+    open fun inputStreamSync(): InputStream = readSync(::inputStream)
+    open fun readBytesSync(): ByteArray = readSync(::readBytes)
+    open fun readTextSync(): String = readSync(::readText)
+    open fun readByteBufferSync(native: Boolean): ByteBuffer = readSync { readByteBuffer(native, it) }
 
-    open fun readBytesSync(): ByteArray {
+    private fun <V> readSync(method: (Callback<V>) -> Unit): V {
         var e: Exception? = null
-        var d: ByteArray? = null
-        readBytes { it, exc ->
-            e = exc
-            d = it
-        }
-        waitUntil(true) { e != null || d != null }
-        return d ?: throw e!!
-    }
-
-    open fun readTextSync(): String {
-        var e: Exception? = null
-        var d: String? = null
-        readText { it, exc ->
-            e = exc
-            d = it
-        }
-        waitUntil(true) { e != null || d != null }
-        return d ?: throw e!!
-    }
-
-    open fun readByteBufferSync(native: Boolean): ByteBuffer {
-        var e: Exception? = null
-        var d: ByteBuffer? = null
-        readByteBuffer(native) { it, exc ->
+        var d: V? = null
+        method { it, exc ->
             e = exc
             d = it
         }
@@ -204,14 +177,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
-        var e: Exception? = null
-        var d: ReadLineIterator? = null
-        readLines(lineLengthLimit) { it, exc ->
-            e = exc
-            d = it
-        }
-        waitUntil(true) { e != null || d != null }
-        return d ?: throw e!!
+        return readSync { readLines(lineLengthLimit, it) }
     }
 
     open fun writeFile(
