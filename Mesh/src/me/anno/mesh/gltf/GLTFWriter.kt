@@ -46,7 +46,8 @@ class GLTFWriter(
     val allDepsToBinary: Boolean = false,
     val packedDepsToBinary: Boolean = true,
     val maxNumBackPaths: Int = 0,
-) {
+    val json: ByteArrayOutputStream = ByteArrayOutputStream(1024)
+) : JsonWriter(json) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
@@ -71,7 +72,7 @@ class GLTFWriter(
         val max: String? = null
     )
 
-    private fun JsonWriter.copyRaw(v: String) {
+    private fun copyRaw(v: String) {
         // raw copy
         next()
         output.write(v.toByteArray())
@@ -83,9 +84,7 @@ class GLTFWriter(
     private val materials = HashMap<Material, Int>()
     private val meshes = HashMap<Pair<Mesh, List<FileReference>>, Int>()
 
-    private val json = ByteArrayOutputStream(1024)
     private val binary = ByteArrayOutputStream(4096)
-    private val writer = JsonWriter(json)
 
     private fun countMeshes(entity: Entity): Int {
         return entity.components.count {
@@ -117,14 +116,14 @@ class GLTFWriter(
         return idx
     }
 
-    private fun <K> write(name: String, map: Map<K, Int>, write: (K) -> Unit) {
+    private fun <K> writeArray(name: String, map: Map<K, Int>, write: (K) -> Unit) {
         if (map.isNotEmpty()) {
-            writer.attr(name)
-            writer.beginArray()
-            for ((k, _) in map.entries.sortedBy { it.value }) {
-                write(k)
+            attr(name)
+            writeArray {
+                for ((k, _) in map.entries.sortedBy { it.value }) {
+                    write(k)
+                }
             }
-            writer.endArray()
         }
     }
 
@@ -222,51 +221,46 @@ class GLTFWriter(
     }
 
     private fun writeSamplers() {
-        write("samplers", samplers) { (filtering, clamping) ->
+        writeArray("samplers", samplers) { (filtering, clamping) ->
             writeSampler(filtering, clamping)
         }
     }
 
     private fun writeSampler(filtering: Filtering, clamping: Clamping) {
-        writer.beginObject()
-        writer.attr("magFilter")
-        writer.write(filtering.mag)
-        writer.attr("minFilter")
-        writer.write(filtering.min)
-        writer.attr("wrapS")
-        writer.write(clamping.mode)
-        writer.attr("wrapT")
-        writer.write(clamping.mode)
-        writer.endObject()
+        writeObject {
+            attr("magFilter")
+            write(filtering.mag)
+            attr("minFilter")
+            write(filtering.min)
+            attr("wrapS")
+            write(clamping.mode)
+            attr("wrapT")
+            write(clamping.mode)
+        }
     }
 
     private fun writeBufferViews() {
-        writer.attr("bufferViews")
-        writer.beginArray()
-        for (i in views.indices) {
-            val view = views[i]
-            writeBufferView(view)
-        }
-        writer.endArray()
+        attr("bufferViews")
+        writeArray(views, ::writeBufferView)
     }
 
     private fun writeBufferView(bufferView: BufferView) {
-        writer.beginObject()
-        writer.attr("buffer")
-        writer.write(0)
-        writer.attr("byteOffset")
-        writer.write(bufferView.offset)
-        writer.attr("byteLength")
-        writer.write(bufferView.length)
-        if (bufferView.byteStride != 0) {
-            writer.attr("byteStride")
-            writer.write(bufferView.byteStride)
+        writeObject {
+            attr("buffer")
+            write(0)
+            attr("byteOffset")
+            write(bufferView.offset)
+            attr("byteLength")
+            write(bufferView.length)
+            if (bufferView.byteStride != 0) {
+                attr("byteStride")
+                write(bufferView.byteStride)
+            }
+            if (bufferView.target != 0) {
+                attr("target")
+                write(bufferView.target)
+            }
         }
-        if (bufferView.target != 0) {
-            writer.attr("target")
-            writer.write(bufferView.target)
-        }
-        writer.endObject()
     }
 
     private fun writeEntityAttributes(node: Entity) {
@@ -278,48 +272,70 @@ class GLTFWriter(
                     if (mesh != null) Pair(mesh, it.materials) else null
                 }
             if (mesh != null) {
-                writer.attr("mesh")
-                writer.write(meshes.getOrPut(mesh) { meshes.size })
+                attr("mesh")
+                write(meshes.getOrPut(mesh) { meshes.size })
             }
         }
 
         val name = node.name
         if (name.isNotEmpty()) {
-            writer.attr("name")
-            writer.write(name)
+            attr("name")
+            write(name)
         }
 
         val translation = node.transform.localPosition
         if (translation != Vector3d()) {
-            writer.attr("translation")
-            writer.write(translation)
+            attr("translation")
+            write(translation)
         }
 
         val rotation = node.transform.localRotation
         if (rotation != Quaterniond()) {
-            writer.attr("rotation")
-            writer.write(rotation)
+            attr("rotation")
+            write(rotation)
         }
 
         val scale = node.transform.localScale
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0) {
-            writer.attr("scale")
-            writer.write(scale)
+            attr("scale")
+            write(scale)
         }
     }
 
     private fun writeMaterials() {
-        write("materials", materials) { material ->
+        writeArray("materials", materials) { material ->
             writeMaterial(material)
         }
     }
 
-    private fun writeMaterial(material: Material) {
-        // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
-        writer.beginObject()
-        writer.attr("pbrMetallicRoughness")
-        writer.beginObject()
-        val sampler = if (
+    private fun writePbrMetallicRoughness(material: Material, sampler: Int) {
+        writeObject {
+            if (material.diffuseMap.exists) {
+                attr("baseColorTexture")
+                writeObject {
+                    attr("index")
+                    write(getTextureIndex(material.diffuseMap, sampler))
+                }
+            }
+            val color = material.diffuseBase
+            if (color != white4) {
+                attr("baseColorFactor")
+                val color1 = if (color.x in 0f..1f && color.y in 0f..1f && color.z in 0f..1f && color.w in 0f..1f) {
+                    material.diffuseBase
+                } else {
+                    Vector4f(clamp(color.x), clamp(color.y), clamp(color.z), clamp(color.w))
+                }
+                write(color1)
+            }
+            attr("metallicFactor")
+            write(material.metallicMinMax.y)
+            attr("roughnessFactor")
+            write(material.roughnessMinMax.y)
+        }
+    }
+
+    private fun findSampler(material: Material): Int {
+        return if (
             material.emissiveMap.exists ||
             material.diffuseMap.exists ||
             material.normalMap.exists ||
@@ -333,265 +349,239 @@ class GLTFWriter(
                 )
             ) { samplers.size }
         } else -1
-        if (material.diffuseMap.exists) {
-            writer.attr("baseColorTexture")
-            writer.beginObject()
-            writer.attr("index")
-            writer.write(getTextureIndex(material.diffuseMap, sampler))
-            writer.endObject()
-        }
-        val color = material.diffuseBase
-        if (color != white4) {
-            writer.attr("baseColorFactor")
-            val color1 = if (color.x in 0f..1f && color.y in 0f..1f && color.z in 0f..1f && color.w in 0f..1f) {
-                material.diffuseBase
-            } else {
-                Vector4f(clamp(color.x), clamp(color.y), clamp(color.z), clamp(color.w))
+    }
+
+    private fun writeMaterial(material: Material) {
+        // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
+        writeObject {
+            val sampler = findSampler(material)
+            attr("pbrMetallicRoughness")
+            writePbrMetallicRoughness(material, sampler)
+            if (material.isDoubleSided) {
+                attr("doubleSided")
+                write(true)
             }
-            writer.write(color1)
+            writeTextureProperty(material.emissiveMap, "emissiveTexture", sampler)
+            if (material.emissiveBase != black3) {
+                attr("emissiveFactor")
+                write(material.emissiveBase)
+            }
+            writeTextureProperty(material.normalMap, "normalTexture", sampler)
+            writeTextureProperty(material.occlusionMap, "occlusionTexture", sampler)
         }
-        writer.attr("metallicFactor")
-        writer.write(material.metallicMinMax.y)
-        writer.attr("roughnessFactor")
-        writer.write(material.roughnessMinMax.y)
-        writer.endObject()
-        if (material.isDoubleSided) {
-            writer.attr("doubleSided")
-            writer.write(true)
+    }
+
+    private fun writeTextureProperty(texture: FileReference, attrName: String, sampler: Int) {
+        if (texture.exists) {
+            attr(attrName)
+            writeObject {
+                attr("index")
+                write(getTextureIndex(texture, sampler))
+            }
         }
-        if (material.emissiveMap.exists) {
-            writer.attr("emissiveTexture")
-            writer.beginObject()
-            writer.attr("index")
-            writer.write(getTextureIndex(material.emissiveMap, sampler))
-            writer.endObject()
-        }
-        if (material.emissiveBase != black3) {
-            writer.attr("emissiveFactor")
-            writer.write(material.emissiveBase)
-        }
-        if (material.normalMap.exists) {
-            writer.attr("normalTexture")
-            writer.beginObject()
-            writer.attr("index")
-            writer.write(getTextureIndex(material.normalMap, sampler))
-            writer.endObject()
-        }
-        if (material.occlusionMap.exists) {
-            writer.attr("occlusionTexture")
-            writer.beginObject()
-            writer.attr("index")
-            writer.write(getTextureIndex(material.occlusionMap, sampler))
-            writer.endObject()
-        }
-        writer.endObject()
     }
 
     private fun writeMeshes() {
-        write("meshes", meshes) { (mesh, materialOverrides) ->
+        writeArray("meshes", meshes) { (mesh, materialOverrides) ->
             writeMesh(mesh, materialOverrides)
         }
     }
 
     private fun writeMesh(mesh: Mesh, materialOverrides: List<FileReference>) {
-        writer.beginObject()
+        writeObject {
 
-        mesh.getBounds()
-        mesh.ensureNorTanUVs()
+            mesh.ensureNorTanUVs()
 
-        val pos = mesh.positions!!
-        val bounds = mesh.getBounds()
-        val posI = createPositionsView(pos, bounds)
+            val pos = mesh.positions!!
+            val bounds = mesh.getBounds()
+            val posI = createPositionsView(pos, bounds)
 
-        val normal = mesh.normals
-        val norI = if (normal != null) createNormalsView(normal) else null
+            val normal = mesh.normals
+            val norI = if (normal != null) createNormalsView(normal) else null
 
-        val uv = mesh.uvs
-        val uvI = if (uv != null) createUVView(uv) else null
+            val uv = mesh.uvs
+            val uvI = if (uv != null) createUVView(uv) else null
 
-        val color = mesh.color0
-        val colorI = if (color != null) createColorView(color) else null
+            val color = mesh.color0
+            val colorI = if (color != null) createColorView(color) else null
 
-        writer.attr("primitives")
-        writer.beginArray()
+            attr("primitives")
+            writeArray {
+                fun writeMeshAttributes() {
+                    attr("attributes")
+                    writeObject {
 
-        fun writeMeshAttributes() {
-            writer.attr("attributes")
-            writer.beginObject()
+                        attr("POSITION")
+                        write(posI)
 
-            writer.attr("POSITION")
-            writer.write(posI)
+                        if (norI != null) {
+                            attr("NORMAL")
+                            write(norI)
+                        }
 
-            if (norI != null) {
-                writer.attr("NORMAL")
-                writer.write(norI)
+                        if (uvI != null) {
+                            attr("TEXCOORD_0")
+                            write(uvI)
+                        }
+
+                        if (colorI != null) {
+                            attr("COLOR_0")
+                            write(colorI)
+                        }
+
+                        // todo skinning and animation support
+                    }
+                }
+
+                // for each material add a primitive
+                val matIds = mesh.materialIds
+                val ownHelpers = mesh.helperMeshes == null
+                val helpers = if (matIds != null) {
+                    if (ownHelpers) mesh.createHelperMeshes(matIds, false)
+                    mesh.helperMeshes
+                } else null
+
+                fun getMaterial(i: Int): Material {
+                    return Pipeline.getMaterial(materialOverrides, mesh.materials, i)
+                }
+
+                if (helpers != null) {
+                    for ((i, helper) in helpers.withIndex()) {
+                        helper ?: continue
+                        val material = getMaterial(i)
+                        writeMeshHelper(helper, material, ::writeMeshAttributes)
+                    }
+                    if (ownHelpers) {
+                        // because they have no buffers
+                        mesh.helperMeshes = null
+                    }
+                } else {
+                    writeMesh1(mesh.indices, getMaterial(0), ::writeMeshAttributes)
+                }
             }
-
-            if (uvI != null) {
-                writer.attr("TEXCOORD_0")
-                writer.write(uvI)
-            }
-
-            if (colorI != null) {
-                writer.attr("COLOR_0")
-                writer.write(colorI)
-            }
-
-            // todo skinning and animation support
-
-            writer.endObject() // attr
         }
-
-        // for each material add a primitive
-        val matIds = mesh.materialIds
-        val ownHelpers = mesh.helperMeshes == null
-        val helpers = if (matIds != null) {
-            if (ownHelpers) mesh.createHelperMeshes(matIds, false)
-            mesh.helperMeshes
-        } else null
-
-        fun getMaterial(i: Int): Material {
-            return Pipeline.getMaterial(materialOverrides, mesh.materials, i)
-        }
-
-        if (helpers != null) {
-            for ((i, helper) in helpers.withIndex()) {
-                helper ?: continue
-                val material = getMaterial(i)
-                writeMeshHelper(helper, material, ::writeMeshAttributes)
-            }
-            if (ownHelpers) {
-                // because they have no buffers
-                mesh.helperMeshes = null
-            }
-        } else {
-            writeMesh1(mesh.indices, getMaterial(0), ::writeMeshAttributes)
-        }
-
-        writer.endArray() // primitives[]
-        writer.endObject() // mesh
     }
 
     private fun writeMesh1(indices: IntArray?, material: Material, writeMeshAttributes: () -> Unit) {
-        writer.beginObject()
-        writer.attr("mode")
-        writer.write(4) // triangles
+        writeObject {
+            attr("mode")
+            write(4) // triangles
 
-        writer.attr("material")
-        writer.write(materials.getOrPut(material) { materials.size })
+            attr("material")
+            write(materials.getOrPut(material) { materials.size })
 
-        if (indices != null) {
-            writer.attr("indices")
-            writer.write(createIndicesView(indices))
+            if (indices != null) {
+                attr("indices")
+                write(createIndicesView(indices))
+            }
+
+            writeMeshAttributes()
         }
-
-        writeMeshAttributes()
-        writer.endObject() // primitive
     }
 
-    private fun writeMeshHelper(helper: Mesh.HelperMesh, material: Material?, writeMeshAttributes: () -> Unit) {
-        writer.beginObject()
-        writer.attr("mode")
-        writer.write(4) // triangles
+    private fun writeMeshHelper(
+        helper: Mesh.HelperMesh,
+        material: Material?,
+        writeMeshAttributes: () -> Unit
+    ) {
+        writeObject {
+            attr("mode")
+            write(4) // triangles
 
-        if (material != null) {
-            writer.attr("material")
-            writer.write(materials.getOrPut(material) { materials.size })
+            if (material != null) {
+                attr("material")
+                write(materials.getOrPut(material) { materials.size })
+            }
+
+            val indices = helper.indices
+            attr("indices")
+            write(createIndicesView(indices))
+
+            writeMeshAttributes()
         }
-
-        val indices = helper.indices
-        writer.attr("indices")
-        writer.write(createIndicesView(indices))
-
-        writeMeshAttributes()
-        writer.endObject() // primitive
     }
 
     private fun writeTextures() {
-        write("textures", textures) { (source, sampler) ->
+        writeArray("textures", textures) { (source, sampler) ->
             writeTexture(source, sampler)
         }
     }
 
     private fun writeTexture(source: Int, sampler: Int) {
-        writer.beginObject()
-        writer.attr("source")
-        writer.write(source)
-        writer.attr("sampler")
-        writer.write(sampler)
-        writer.endObject()
+        writeObject {
+            attr("source")
+            write(source)
+            attr("sampler")
+            write(sampler)
+        }
     }
 
     private fun writeAccessors() {
-        writer.attr("accessors")
-        writer.beginArray()
-        for (i in accessors.indices) {
-            writeAccessor(accessors[i], i)
-        }
-        writer.endArray()
+        attr("accessors")
+        writeArrayIndexed(accessors, ::writeAccessor)
     }
 
-    private fun writeAccessor(acc: Accessor, i: Int) {
-        writer.beginObject()
-        writer.attr("bufferView")
-        writer.write(i)
-        writer.attr("type")
-        writer.write(acc.type)
-        writer.attr("componentType")
-        writer.write(acc.componentType)
-        writer.attr("count")
-        writer.write(acc.count)
-        if (acc.normalized) {
-            writer.attr("normalized")
-            writer.write(true)
+    private fun writeAccessor(i: Int, acc: Accessor) {
+        writeObject {
+            attr("bufferView")
+            write(i)
+            attr("type")
+            write(acc.type)
+            attr("componentType")
+            write(acc.componentType)
+            attr("count")
+            write(acc.count)
+            if (acc.normalized) {
+                attr("normalized")
+                write(true)
+            }
+            if (acc.min != null && acc.max != null) {
+                attr("min")
+                copyRaw(acc.min)
+                attr("max")
+                copyRaw(acc.max)
+            }
         }
-        if (acc.min != null && acc.max != null) {
-            writer.attr("min")
-            writer.copyRaw(acc.min)
-            writer.attr("max")
-            writer.copyRaw(acc.max)
-        }
-        writer.endObject()
     }
 
     private fun writeImages(dst: FileReference) {
         val dstParent = dst.getParent()
-        write("images", images) {
+        writeArray("images", images) {
             writeImage(dstParent, it)
         }
     }
 
     private fun writeImage(dstParent: FileReference, src: FileReference) {
-        writer.beginObject()
-        // if contains inaccessible assets, pack them, or write them to same directory
-        val sameFolder = src.getParent() == dstParent
-        val packed = src is InnerFile
-        if ((packed && packedDepsToFolder) || (!sameFolder && allDepsToFolder)) {
-            // copy the file
-            val newFile = dstParent.getChild(src.name)
-            newFile.writeFile(src) {}
-            writeURI(newFile.absolutePath)
-        } else {
-            val path = src.relativePathTo(dstParent, maxNumBackPaths)
-            if ((packed && packedDepsToBinary) || (!sameFolder && allDepsToBinary) || path == null) {
-                appendFile(src)
+        writeObject {
+            // if contains inaccessible assets, pack them, or write them to same directory
+            val sameFolder = src.getParent() == dstParent
+            val packed = src is InnerFile
+            if ((packed && packedDepsToFolder) || (!sameFolder && allDepsToFolder)) {
+                // copy the file
+                val newFile = dstParent.getChild(src.name)
+                newFile.writeFile(src) {}
+                writeURI(newFile.absolutePath)
             } else {
-                writeURI(path)
+                val path = src.relativePathTo(dstParent, maxNumBackPaths)
+                if ((packed && packedDepsToBinary) || (!sameFolder && allDepsToBinary) || path == null) {
+                    appendFile(src)
+                } else {
+                    writeURI(path)
+                }
             }
         }
-        writer.endObject()
     }
 
     private fun writeURI(uri: String) {
-        writer.attr("uri")
-        writer.write(uri)
+        attr("uri")
+        write(uri)
     }
 
     private fun appendFile(src: FileReference) {
         // "bufferView": 3,
         // "mimeType" : "image/jpeg"
-        writer.attr("bufferView")
-        writer.write(views.size)
+        attr("bufferView")
+        write(views.size)
         val pos0 = binary.size()
         src.inputStreamSync().copyTo(binary) // must be sync, or we'd need to unpack this loop
         val pos1 = binary.size()
@@ -602,91 +592,80 @@ class GLTFWriter(
             else -> null
         }
         if (ext != null) {
-            writer.attr("mimeType")
-            writer.write(ext)
+            attr("mimeType")
+            write(ext)
         }
-    }
-
-    private fun writeNodes() {
-        writer.attr("nodes")
-        writer.beginArray()
-        for (i in nodes.indices) {
-            writeNode(i, nodes[i])
-        }
-        writer.endArray()
     }
 
     private fun writeMeshCompAttributes(node: MeshComponent) {
         val name = node.name
         if (name.isNotEmpty()) {
-            writer.attr("name")
-            writer.write(name)
+            attr("name")
+            write(name)
         }
-
         val mesh = node.getMesh()
         if (mesh != null) {
-            writer.attr("mesh")
-            writer.write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })
+            attr("mesh")
+            write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })
         }
+    }
+
+    private fun writeNodes() {
+        attr("nodes")
+        writeArrayIndexed(nodes, ::writeNode)
     }
 
     private fun writeNode(i: Int, node: Any) {
-        writer.beginObject()
-
-        when (node) {
-            is Entity -> writeEntityAttributes(node)
-            is MeshComponent -> writeMeshCompAttributes(node)
-            else -> LOGGER.warn("Unknown node type $node")
-        }
-
-        val childrenI = children.getOrNull(i)
-        if (!childrenI.isNullOrEmpty()) {
-            writer.attr("children")
-            writer.beginArray()
-            for (child in childrenI) {
-                writer.write(child)
+        writeObject {
+            when (node) {
+                is Entity -> writeEntityAttributes(node)
+                is MeshComponent -> writeMeshCompAttributes(node)
+                else -> LOGGER.warn("Unknown node type $node")
             }
-            writer.endArray()
-        }
 
-        writer.endObject()
+            val childrenI = children.getOrNull(i)
+            if (!childrenI.isNullOrEmpty()) {
+                attr("children")
+                writeArray(childrenI, ::write)
+            }
+        }
     }
 
     private fun writeScenes() {
-        writer.attr("scenes")
-        writer.beginArray()
-        writer.beginObject() // scenes[0]
-        writer.attr("nodes")
-        writer.beginArray()
-        writer.write(0) // only root nodes
-        writer.endArray() // nodes
-        writer.endObject() // scenes[0]
-        writer.endArray() // scenes
+        attr("scenes")
+        writeArray {
+            writeObject {  // scenes[0]
+                attr("nodes")
+                writeArray {
+                    write(0) // only root nodes
+                }
+            }
+        }
     }
 
     private fun writeHeader() {
-        writer.attr("asset")
-        writer.beginObject()
-        writer.attr("generator")
-        writer.write("Rem's Engine")
-        writer.attr("version")
-        writer.write("2.0")
-        writer.endObject()
+        attr("asset")
+        writeObject {
+            attr("generator")
+            write("Rem's Engine")
+            attr("version")
+            write("2.0")
+        }
     }
 
     private fun writeBuffers() {
-        writer.attr("buffers")
-        writer.beginArray() // buffers
-        writer.beginObject() // buffers[0]
-        writer.attr("byteLength")
-        writer.write(binary.size())
-        writer.endObject() // buffers[0]
-        writer.endArray() // buffers
+        attr("buffers")
+        writeArray {
+            writeObject {
+                attr("byteLength")
+                write(binary.size())
+            }
+        }
     }
 
     private fun writeSceneIndex() {
-        writer.attr("scene")
-        writer.write(0)
+        attr("scene")
+        write(0)
     }
 
     private fun collectNodes(scene: Saveable) {
@@ -707,27 +686,22 @@ class GLTFWriter(
     }
 
     fun write(scene: Saveable, dst: FileReference) {
-
         collectNodes(scene)
-
-        writer.beginObject()
-
-        writeHeader()
-        writeSceneIndex()
-        writeScenes()
-        writeNodes()
-        writeMeshes()
-        writeMaterials()
-        writeTextures()
-        writeImages(dst)
-        writeSamplers()
-        writeBufferViews()
-        writeAccessors()
-        writeBuffers()
-
-        writer.endObject()
-        writer.finish()
-
+        writeObject {
+            writeHeader()
+            writeSceneIndex()
+            writeScenes()
+            writeNodes()
+            writeMeshes()
+            writeMaterials()
+            writeTextures()
+            writeImages(dst)
+            writeSamplers()
+            writeBufferViews()
+            writeAccessors()
+            writeBuffers()
+        }
+        finish()
         writeChunks(dst)
     }
 

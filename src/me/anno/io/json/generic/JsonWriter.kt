@@ -96,6 +96,34 @@ open class JsonWriter(val output: OutputStream) {
         first = false
     }
 
+    inline fun writeArray(writeElements: () -> Unit) {
+        beginArray()
+        writeElements()
+        endArray()
+    }
+
+    fun <V> writeArray(elements: List<V>, writeElement: (V) -> Unit) {
+       writeArray {
+           for (i in elements.indices) {
+               writeElement(elements[i])
+           }
+       }
+    }
+
+    fun <V> writeArrayIndexed(elements: List<V>, writeElement: (Int, V) -> Unit) {
+        writeArray {
+            for (i in elements.indices) {
+                writeElement(i, elements[i])
+            }
+        }
+    }
+
+    inline fun writeObject(writeAttributes: () -> Unit) {
+        beginArray()
+        writeAttributes()
+        endArray()
+    }
+
     fun finish() {
         output.close()
     }

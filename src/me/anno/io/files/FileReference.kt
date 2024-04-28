@@ -85,6 +85,16 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     abstract fun getChild(name: String): FileReference
 
+    abstract fun length(): Long
+
+    abstract fun delete(): Boolean
+
+    abstract fun mkdirs(): Boolean
+
+    abstract fun getParent(): FileReference
+
+    abstract fun renameTo(newName: FileReference): Boolean
+
     fun getChildOrNull(name: String): FileReference? =
         getChild(name).nullIfUndefined()
 
@@ -228,8 +238,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         writeBytes(byte2)
     }
 
-    abstract fun length(): Long
-
     open fun relativePathTo(basePath: FileReference, maxNumBackPaths: Int): String? {
         if (maxNumBackPaths < 1 && !absolutePath.startsWith(basePath.absolutePath)) return null
         val parts = absolutePath.split('/')
@@ -242,18 +250,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
         if (parts.size - matchingStartPaths > maxNumBackPaths) return null
         // calculate size for result
-        var resultSize = (baseParts.size - matchingStartPaths) * 3 - 1
+        var resultSize = (baseParts.size - matchingStartPaths) * 3
         for (i in matchingStartPaths until parts.size) {
             resultSize += parts[i].length + 1
         }
         val result = StringBuilder(resultSize)
         for (i in matchingStartPaths until baseParts.size) {
-            result.append("../")
+            result.append("/..")
         }
         for (i in matchingStartPaths until parts.size) {
+            result.append('/')
             result.append(parts[i])
-            if (i + 1 < parts.size) result.append('/')
         }
+        result.removeRange(0, 1)
         return result.toString()
     }
 
@@ -268,10 +277,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
         return null
     }
-
-    abstract fun delete(): Boolean
-
-    abstract fun mkdirs(): Boolean
 
     fun tryMkdirs(): Boolean {
         return try {
@@ -301,8 +306,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     private val zipFile get() = InnerFolderCache.readAsFolder(this, false)
 
-    abstract fun getParent(): FileReference
-
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)
     }
@@ -310,8 +313,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     fun getSiblingWithExtension(ext: String): FileReference {
         return getParent().getChild("$nameWithoutExtension.$ext")
     }
-
-    abstract fun renameTo(newName: FileReference): Boolean
 
     fun copyTo(
         dst: FileReference,
