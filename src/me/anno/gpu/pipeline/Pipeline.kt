@@ -13,6 +13,7 @@ import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
@@ -514,7 +515,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
-        val sampleMesh = Thumbs.sphereMesh
+        val sampleMesh = SimpleMesh.sphereMesh
 
         fun getMaterial(
             materialOverrides: List<FileReference>?,

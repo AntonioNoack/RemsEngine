@@ -183,6 +183,7 @@ class OutlineEffectNode : RenderViewNode(
                         "}\n"
             )
             shader.setTextureIndices("colorTex", "idTex")
+            shader.ignoreNameWarnings("samples")
             shader
         }
     }

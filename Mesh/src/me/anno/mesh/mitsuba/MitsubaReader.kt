@@ -2,6 +2,7 @@ package me.anno.mesh.mitsuba
 
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
@@ -537,7 +538,7 @@ object MitsubaReader {
                         when (val type = child.attributes["type"]) {
                             "sphere" -> {
                                 // spawn sphere
-                                meshRef = Thumbs.sphereMesh.ref
+                                meshRef = SimpleMesh.sphereMesh.ref
                             }
                             "serialized" -> {
                                 // read/reference serialized mesh

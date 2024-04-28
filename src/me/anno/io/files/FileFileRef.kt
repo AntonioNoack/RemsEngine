@@ -79,16 +79,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun readBytesSync() = file.readBytes()
 
-    override fun readText(callback: Callback<String>) {
-        try {
-            callback.ok(file.readText())
-        } catch (e: Exception) {
-            callback.err(e)
-        }
-    }
-
-    override fun readTextSync() = file.readText()
-
     override fun outputStream(append: Boolean): OutputStream {
         val ret = FileOutputStream(file, append).useBuffered()
         // when writing is finished, this should be called again

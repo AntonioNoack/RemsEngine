@@ -16,7 +16,7 @@ import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 
 class RenderSceneForwardNode : RenderViewNode(
-    "Render Scene",
+    "RenderSceneForward",
     listOf(
         "Int", "Width",
         "Int", "Height",

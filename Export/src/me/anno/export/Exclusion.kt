@@ -69,6 +69,22 @@ object Exclusion {
         excludeFiles(sources, "me/anno/ui/base/buttons")
         excludeFiles(sources, "textures") // I'm not too sure about this...
         excludeFiles(sources, "assets/org/apache/commons") // what is this used for???
+        excludeFiles(sources, "me/anno/image/thumbs")
+        excludeFiles(sources, "com/sun/jna") // moving to trash is quite niche when not using UI
+        excludeFiles(sources, "me/anno/jvm/utils/CommandLineUtils")
+        excludeFiles(sources, "org/apache/commons/cli/")
+        excludeFiles(sources, "org/jtransforms/")
+        excludeFiles(sources, "pl/edu/icm/jlargearrays/")
+        excludeFiles(sources, "org/apache/commons/math3/")
+        excludeFiles(sources, "kotlin/coroutines/")
+        excludeFiles(sources, "kotlin/time/")
+        excludeFiles(sources, "kotlin/streams/")
+        excludeFiles(sources, "kotlin/text/", listOf("kotlin/text/Regex", "kotlin/text/StringsKt", "kotlin/text/CharsKt", "kotlin/text/Charsets"))
+        excludeFiles(sources, "kotlin/io/", listOf("kotlin/io/CloseableKt", "kotlin/io/ByteStreamsKt", "kotlin/io/FilesKt"))
+        excludeFiles(sources, "kotlin/collections/unsigned/")
+        // todo add minimal kotlin reflections using JVM methods somehow...
+        // used in standard kotlin reflections:
+        // excludeFiles(sources, "kotlin/collections/builders/", listOf("kotlin/collections/builders/MapBuilder"))
     }
 
     fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {

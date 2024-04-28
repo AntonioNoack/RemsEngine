@@ -12,6 +12,7 @@ object Indexing {
         val input = ZipInputStream(src.inputStreamSync())
         while (!progress.isCancelled) {
             val entry = input.nextEntry ?: break
+            if (entry.isDirectory) continue
             sources[entry.name] = input.readBytes()
             progress.total++
         }
@@ -76,5 +77,4 @@ object Indexing {
             checkModule(name, module)
         }
     }
-
 }

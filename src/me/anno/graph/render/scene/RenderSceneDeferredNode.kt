@@ -30,7 +30,7 @@ import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.structures.lists.Lists.any2
 
 class RenderSceneDeferredNode : RenderViewNode(
-    "Render Scene",
+    "RenderSceneDeferred",
     listOf(
         "Int", "Width",
         "Int", "Height",
@@ -256,6 +256,7 @@ class RenderSceneDeferredNode : RenderViewNode(
                         ShaderStage("rsdn-expr", variables, expressions)
                             .add(extraFunctions.toString())
                     )
+                    builder.ignored.add("d_camRot")
 
                     shader = builder.create("rsdn-${outputs.joinToString { it.value.name }}")
                 }

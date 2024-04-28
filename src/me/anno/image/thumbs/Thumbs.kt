@@ -2,7 +2,6 @@ package me.anno.image.thumbs
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
-import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
@@ -57,8 +56,6 @@ object Thumbs {
     private const val timeout = 5000L
 
     var useCacheFolder = true
-
-    val sphereMesh = UVSphereModel.createUVSphere(30, 30)
 
     @JvmStatic
     fun invalidate(file: FileReference, neededSize: Int) {

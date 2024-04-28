@@ -4,21 +4,20 @@ import com.sun.jna.platform.FileUtils
 import me.anno.audio.openal.AudioManager
 import me.anno.config.DefaultStyle
 import me.anno.extensions.plugins.Plugin
-import me.anno.jvm.fonts.ContourImpl
-import me.anno.jvm.fonts.FontManagerImpl
 import me.anno.fonts.signeddistfields.Contour
 import me.anno.gpu.framebuffer.Screenshots
-import me.anno.jvm.images.ImageImpl
-import me.anno.jvm.images.MetadataImpl
-import me.anno.jvm.images.ThumbsImpl
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.utils.LinkCreator
 import me.anno.io.utils.TrashManager
+import me.anno.jvm.fonts.ContourImpl
+import me.anno.jvm.fonts.FontManagerImpl
+import me.anno.jvm.images.ImageWriterImpl
+import me.anno.jvm.images.MetadataImpl
+import me.anno.jvm.images.ThumbsImpl
 import me.anno.language.spellcheck.Spellchecking
-import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -41,12 +40,11 @@ class JVMExtension : Plugin() {
         super.onEnable()
         LOGGER.info("Process ID: ${getProcessID()}")
         ClipboardImpl.register()
-        Thumbs.registerSignature("exe", ThumbsImpl::generateSystemIcon)
         OpenFileExternallyImpl.register()
         MediaMetadata.registerSignatureHandler(100, "ImageIO", MetadataImpl::readImageIOMetadata)
         Screenshots.takeSystemScreenshotImpl = AWTRobot::takeScreenshot
         Contour.calculateContoursImpl = ContourImpl::calculateContours
-        ImageImpl.register()
+        ImageWriterImpl.register()
         AWTRobot.register()
         FontManagerImpl.register()
         FileWatchImpl.register()
@@ -55,6 +53,10 @@ class JVMExtension : Plugin() {
         TrashManager.moveToTrashImpl = this::moveToTrash
         LinkCreator.createLink = FileExplorerImpl::createLink
         DefaultStyle.initDefaults() // reload default font size
+        try { // thumbnail creation may be removed to reduce export size
+            Thumbs.registerSignature("exe", ThumbsImpl::generateSystemIcon)
+        } catch (ignored: NoClassDefFoundError) {
+        }
     }
 
     private fun getProcessID(): Int {

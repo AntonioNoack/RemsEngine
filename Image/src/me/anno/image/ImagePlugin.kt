@@ -28,6 +28,7 @@ class ImagePlugin : Plugin() {
         ImageCache.registerDirectStreamReader("exr", EXRReader::read)
         ImageCache.registerDirectStreamReader("qoi", QOIReader::read)
         ImageCache.registerDirectStreamReader("ico", ICOReader::read)
+        ImageImpl.register()
 
         // image loading with extra details
         InnerFolderCache.register("gimp", GimpImage.Companion::readAsFolder)

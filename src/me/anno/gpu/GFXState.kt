@@ -104,10 +104,12 @@ object GFXState {
         if (lastDepthMode == newValue) return
         glDepthFunc(newValue.id)
         val reversedDepth = newValue.reversedDepth
-        if (lastDepthMode?.reversedDepth != reversedDepth && supportsClipControl) {
-            glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
-        } else if (reversedDepth) {
-            LOGGER.warn("Reversed depth is not supported (because it's pointless without glClipControl")
+        if (lastDepthMode?.reversedDepth != reversedDepth) {
+            if (supportsClipControl) {
+                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+            } else {
+                LOGGER.warn("Reversed depth is not supported (because it's pointless without glClipControl")
+            }
         }
         lastDepthMode = newValue
     }

@@ -86,12 +86,12 @@ class TablePrinter {
             if (colTitles.isNotEmpty()) {
                 if (overTitles != null) {
                     for (i in 0 until totalLength)
-                        kotlin.io.print(overTitles)
-                    kotlin.io.println()
+                        print(overTitles)
+                    println()
                 }
                 // print titles
                 for (y in 0 until colTitles.maxOf { it.size }) {
-                    kotlin.io.print(prefix)
+                    print(prefix)
                     if (rowTitles.isNotEmpty()) {
                         // todo write here the table name :)
                         printValue(0, "", separator, false)
@@ -99,19 +99,19 @@ class TablePrinter {
                     for (x in 0 until min(columns.size, colTitles.size)) {
                         printValue(x + 1, colTitles[x].getOrNull(y) ?: "", separator, colTitleCentered[x])
                     }
-                    kotlin.io.println(suffix)
+                    println(suffix)
                 }
             }
             // print content lines
             for (yi in 0 until columns.maxOf { it.size }) {
                 if (underTitles != null) {
                     for (i in 0 until totalLength)
-                        kotlin.io.print(underTitles)
-                    kotlin.io.println()
+                        print(underTitles)
+                    println()
                 }
                 val data = columns.map { it[yi] }
                 for (y in 0 until data.maxOf { it.size }) {
-                    kotlin.io.print(prefix)
+                    print(prefix)
                     if (rowTitles.isNotEmpty()) {
                         // print row title
                         // todo center vertically (optional)
@@ -120,33 +120,33 @@ class TablePrinter {
                     for (x in data.indices) {
                         printValue(x + 1, data[x].getOrNull(y) ?: "", separator, IntPair(x, yi) in contentCentered)
                     }
-                    kotlin.io.println(suffix)
+                    println(suffix)
                 }
             }
             if (underContents != null) {
                 for (i in 0 until totalLength)
-                    kotlin.io.print(underContents)
-                kotlin.io.println()
+                    print(underContents)
+                println()
             }
         }
     }
 
     private fun printValue(x: Int, text: CharSequence, separator: CharSequence, centered: Boolean, space: Char = ' ') {
-        if (x > 0) kotlin.io.print(separator)
+        if (x > 0) print(separator)
         val x0 = offsets[x]
         val x1 = offsets[x + 1]
         val spacing = (x1 - x0) - text.length
         if (centered) {
             for (i in 0 until spacing / 2)
-                kotlin.io.print(space)
+                print(space)
         }
-        kotlin.io.print(text)
+        print(text)
         if (centered) {
             for (i in 1 until spacing / 2)
-                kotlin.io.print(space)
+                print(space)
         } else {
             for (i in 0 until spacing)
-                kotlin.io.print(space)
+                print(space)
         }
     }
 }

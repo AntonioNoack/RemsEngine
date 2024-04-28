@@ -13,6 +13,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
@@ -167,7 +168,7 @@ object AssetThumbnails {
                 ) { it, _ ->
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         GFX.checkIsGFXThread()
-                        val mesh = Thumbs.sphereMesh
+                        val mesh = SimpleMesh.sphereMesh
                         mesh.material = materials[it]
                         mesh.drawAssimp(
                             matCameraMatrix,
@@ -316,7 +317,7 @@ object AssetThumbnails {
                 true, callback, size, size
             ) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    val mesh = Thumbs.sphereMesh
+                    val mesh = SimpleMesh.sphereMesh
                     mesh.material = srcFile
                     mesh.drawAssimp(
                         matCameraMatrix,
