@@ -132,50 +132,34 @@ interface Hierarchical<V : Hierarchical<V>> {
         return if (lambda(v)) v else null
     }
 
-    val listOfHierarchy: Sequence<V>
-        get() {
-            val self = this
-            return sequence {
-                parent?.apply {
-                    yieldAll(listOfHierarchy)
-                }
-                @Suppress("unchecked_cast")
-                yield(self as V)
-            }
-        }
+    val listOfHierarchy: List<V>
+        get() = listOfHierarchyReversed.asReversed()
 
-    val listOfHierarchyReversed: Sequence<V>
+    val listOfHierarchyReversed: List<V>
         get() {
-            val self = this
-            return sequence {
-                @Suppress("unchecked_cast")
-                yield(self as V)
-                parent?.apply {
-                    yieldAll(listOfHierarchyReversed)
-                }
-            }
-        }
-
-    val listOfAll: Sequence<V>
-        get() = sequence {
+            val result = ArrayList<V>()
             @Suppress("unchecked_cast")
-            yield(this@Hierarchical as V)
-            val children = children
-            for (i in children.indices) {
-                yieldAll(children[i].listOfAll)
+            result.add(this as V)
+            var workerIndex = 0
+            while (workerIndex < result.size) {
+                val item = result[workerIndex++]
+                result.add(item.parent ?: continue)
             }
+            return result
         }
 
-    fun findFirstInAll(callback: (element: V) -> Boolean): V? {
-        @Suppress("unchecked_cast")
-        if (callback(this as V)) return this
-        val children = children
-        for (i in children.indices) {
-            val v = children[i].findFirstInAll(callback)
-            if (v != null) return v
+    val listOfAll: List<V>
+        get() {
+            val result = ArrayList<V>()
+            @Suppress("unchecked_cast")
+            result.add(this as V)
+            var workerIndex = 0
+            while (workerIndex < result.size) {
+                val item = result[workerIndex++]
+                result.addAll(item.children)
+            }
+            return result
         }
-        return null
-    }
 
     val indexInParent: Int
         get() {
@@ -230,5 +214,4 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
         return null
     }
-
 }

@@ -718,15 +718,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return firstOfHierarchical(filter, predicate) != null
     }
 
-    override val listOfAll: Sequence<Panel>
-        get() = sequence {
-            yield(this@Panel)
-            if (this@Panel is PanelGroup) {
-                for (child in this@Panel.children) {
-                    yieldAll(child.listOfAll)
-                }
-            }
-        }
+    override val listOfAll: List<Panel>
+        get() = super.listOfAll.filterIsInstance<Panel>()
 
     /**
      * does this panel contain the coordinate (x, y)?

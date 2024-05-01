@@ -59,9 +59,9 @@ open class ProgressBar(
      * marks the progress as cancelled;
      * if you skip work by detecting isCancelled, call finish anyway, so the progress bar can be removed from the UI!
      * */
-    fun cancel(isFinished: Boolean) {
+    fun cancel(hideProgressBar: Boolean) {
         isCancelled = true
-        if (isFinished) finish()
+        if (hideProgressBar) finish()
     }
 
     fun canBeRemoved(time: Long): Boolean {

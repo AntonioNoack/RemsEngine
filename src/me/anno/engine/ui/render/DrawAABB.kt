@@ -20,13 +20,13 @@ object DrawAABB {
 
         if (aabb.isEmpty()) return
 
-        val x0 = ((aabb.minX - pos.x) * worldScale)
-        val y0 = ((aabb.minY - pos.y) * worldScale)
-        val z0 = ((aabb.minZ - pos.z) * worldScale)
+        val x0 = (aabb.minX - pos.x) * worldScale
+        val y0 = (aabb.minY - pos.y) * worldScale
+        val z0 = (aabb.minZ - pos.z) * worldScale
 
-        val x1 = ((aabb.maxX - pos.x) * worldScale)
-        val y1 = ((aabb.maxY - pos.y) * worldScale)
-        val z1 = ((aabb.maxZ - pos.z) * worldScale)
+        val x1 = (aabb.maxX - pos.x) * worldScale
+        val y1 = (aabb.maxY - pos.y) * worldScale
+        val z1 = (aabb.maxZ - pos.z) * worldScale
 
         drawAABB(x0, y0, z0, x1, y1, z1, color)
     }
@@ -36,10 +36,18 @@ object DrawAABB {
         x1: Double, y1: Double, z1: Double,
         color: Int
     ) {
+        drawAABB(
+            x0.toFloat(), y0.toFloat(), z0.toFloat(),
+            x1.toFloat(), y1.toFloat(), z1.toFloat(), color
+        )
+    }
 
+    fun drawAABB(
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float,
+        color: Int
+    ) {
         ensureSize(lineSize * 12)
-
-        // loops simplified, so we potentially gain a little performance
 
         // dx
         addLine(x0, y0, z0, x1, y0, z0, color)

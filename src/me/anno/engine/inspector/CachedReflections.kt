@@ -164,11 +164,13 @@ class CachedReflections(
             val doneNames = HashSet<String>()
             val result = ArrayList<Pair<KClass<*>, List<String>>>(classes.size)
             val targetSize = allProperties.size
-            for (clazz2 in classes) {
+            for (ci in classes.indices) {
+                val clazz2 = classes[ci]
                 val partialResult = ArrayList<String>()
                 val reflections = clazz2.declaredMemberProperties
                     .filterIsInstance<KMutableProperty1<*, *>>()
-                for (property in reflections) {
+                for (pi in reflections.indices) {
+                    val property = reflections[pi]
                     val name = property.name
                     if (name !in allProperties) continue // not serialized
                     if (doneNames.add(name)) {
@@ -186,6 +188,7 @@ class CachedReflections(
             clazz: KClass<*>, allProperties: Map<String, CachedProperty>
         ): List<Pair<KClass<*>, List<String>>> {
             val classes = listClasses(clazz)
+            println("listing classes: $clazz -> $classes")
             return getPropertiesByDeclaringClass(classes, allProperties)
         }
 

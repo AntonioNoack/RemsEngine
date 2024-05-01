@@ -119,6 +119,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
 
     fun drawNumbered2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
         val s0 = log10(max(windowToCoordsDirY(height.toDouble()), 1e-308))
+        if (!s0.isFinite()) return
         val s1 = floor(s0)
         val s2 = 10.0.pow(s1)
         val sf = 1f - (s0 - s1).toFloat()
@@ -147,7 +148,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         val bgColor = backgroundColor
         var lx = 0f
         var ly = 0f
-        val v = lineBatch.start()
+        val batch = lineBatch.start()
         val thHalf = lineThickness * 0.5f
         val minY = y0 - thHalf
         val maxY = y1 + thHalf
@@ -155,15 +156,14 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
             val xd = x.toDouble()
             val xv = windowToCoordsX(xd)
             val yv = -getValue(funcIndex, xv)
-            val yd = coordsToWindowY(yv)
+            val yf = coordsToWindowY(yv).toFloat()
             val xf = xd.toFloat()
-            val yf = yd.toFloat()
             if (x > x0 && min(ly, yf) > minY && max(ly, yf) < maxY) {
                 drawLine(lx, ly, xf, yf, lineThickness, lineColor, bgColor, true)
             }
             lx = xf
             ly = yf
         }
-        lineBatch.finish(v)
+        lineBatch.finish(batch)
     }
 }

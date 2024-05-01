@@ -113,13 +113,14 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeBoolean("nonCollapsed", !isCollapsed, false)
+        writer.writeInt("flags", flags, true)
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
             "isCollapsed" -> isCollapsed = value == true
             "nonCollapsed" -> isCollapsed = value != true
+            "flags" -> flags = value as? Int ?: return
             else -> super.setProperty(name, value)
         }
     }
@@ -151,15 +152,18 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
     }
 
-    override val listOfAll: Sequence<PrefabSaveable>
-        get() = sequence {
-            yield(this@PrefabSaveable)
-            for (type in listChildTypes()) {
-                val children = getChildListByType(type)
-                for (i in children.indices) {
-                    yieldAll(children[i].listOfAll)
+    override val listOfAll: List<PrefabSaveable>
+        get() {
+            val result = ArrayList<PrefabSaveable>()
+            result.add(this)
+            var workerIndex = 0
+            while (workerIndex < result.size) {
+                val item = result[workerIndex++]
+                for (type in item.listChildTypes()) {
+                    result.addAll(item.getChildListByType(type))
                 }
             }
+            return result
         }
 
     // e.g., "ec" for child entities + child components
@@ -263,8 +267,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun copyInto(dst: PrefabSaveable) {
         dst.name = name
         dst.description = description
-        dst.isEnabled = isEnabled
-        dst.isCollapsed = isCollapsed
+        dst.flags = flags
         dst.prefab = prefab
         dst.prefabPath = prefabPath
     }
@@ -321,7 +324,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     companion object {
 
-        private const val ENABLED_FLAG = 1
+        const val ENABLED_FLAG = 1
         private const val COLLAPSED_FLAG = 2
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)

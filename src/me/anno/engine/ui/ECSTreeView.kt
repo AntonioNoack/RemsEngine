@@ -404,7 +404,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         val path = element.prefabPath
         val prefab = element.root.prefab
         if (prefab != null && prefab.isWritable)
-            prefab[path, "isCollapsed"] = collapsed
+            prefab[path, "flags"] = element.flags
 
         needsTreeUpdate = true
         invalidateLayout()

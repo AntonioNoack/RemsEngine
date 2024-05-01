@@ -6,6 +6,7 @@ import me.anno.export.Exclusion.excludeLWJGLFiles
 import me.anno.export.Exclusion.excludeNonMinimalUI
 import me.anno.export.Exclusion.excludeWebpFiles
 import me.anno.export.Indexing.indexProject
+import me.anno.export.reflect.Reflections.replaceReflections
 import me.anno.export.idea.IdeaProject
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -31,7 +32,10 @@ object ExportProcess {
         excludeJNAFiles(sources, settings)
         excludeWebpFiles(sources, settings)
         if (settings.minimalUI) {
-            excludeNonMinimalUI(sources)
+            excludeNonMinimalUI(sources, settings.useKotlynReflect)
+        }
+        if (settings.useKotlynReflect) {
+            replaceReflections(sources)
         }
 
         // todo build .jar file from export settings and current project

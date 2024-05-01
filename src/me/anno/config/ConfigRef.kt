@@ -10,6 +10,7 @@ import kotlin.reflect.KProperty
 class ConfigRef<V>(val key: String, val default: V) {
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): V {
+        val default = default
         @Suppress("UNCHECKED_CAST")
         return when (default) {
             is Int -> DefaultConfig[key, default]

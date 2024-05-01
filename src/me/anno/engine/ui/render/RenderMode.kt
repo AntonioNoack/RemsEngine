@@ -297,7 +297,26 @@ class RenderMode(
         /** visualize the triangle structure by giving each triangle its own color */
         val SHOW_TRIANGLES = RenderMode("Show Triangles", triangleVisRenderer)
 
-        val SHOW_AABB = RenderMode("Show AABBs", DEFAULT)
+        val SHOW_AABB = RenderMode(
+            "Show AABBs",
+            QuickPipeline()
+                .then1(
+                    RenderSceneDeferredNode(),
+                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                )
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then1(GizmoNode(), mapOf("AABBs" to true))
+                .then(FXAANode())
+                .finish()
+        )
         val PHYSICS = RenderMode("Physics", DEFAULT)
 
         val POST_OUTLINE = RenderMode(

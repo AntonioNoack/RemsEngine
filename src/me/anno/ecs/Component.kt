@@ -9,15 +9,17 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.io.base.BaseWriter
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
 abstract class Component : PrefabSaveable() {
 
-    override var isEnabled: Boolean = true
+    override var isEnabled: Boolean
+        get() = flags.hasFlag(ENABLED_FLAG)
         set(value) {
-            if (field != value) {
-                field = value
+            if (super.isEnabled != value) {
+                super.isEnabled = value
                 entity?.onChangeComponent(this)
                 if (value) onEnable()
                 else onDisable()

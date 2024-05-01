@@ -20,6 +20,7 @@ import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.ask
@@ -116,9 +117,37 @@ class ExportPlugin : Plugin() {
             openExportMenu(nameToLoad)
         }
 
+        fun runExport(preset: ExportSettings) {
+            val clock = Clock()
+            val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
+            progress.intFormatting = true
+            thread(name = "Export") {
+                try {
+                    ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
+                    clock.stop("Export")
+                    addEvent { msg(NameDesc("Export Finished!")) }
+                } catch (e: Exception) {
+                    LOGGER.warn("Export failed!", e)
+                    progress.cancel(true)
+                    addEvent { msg(NameDesc("Failed Export :/")) }
+                }
+            }
+        }
+
+        fun addSeparator(body: PanelList) {
+            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
+            body.add(SpacerPanel(0, 1, style.getChild("deep")))
+            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
+        }
+
         val body = PanelListY(style)
         fun createPresetUI(preset: ExportSettings) {
             body.clear()
+            // quick-button
+            body.add(TextButton("Export", style)
+                .addLeftClickListener {
+                    runExport(preset)
+                })
             // inputs
             preset.createInspector(body, style) { nameDesc, parent ->
                 val group = SettingCategory(nameDesc, style)
@@ -126,25 +155,11 @@ class ExportPlugin : Plugin() {
                 parent.add(group)
                 group.content
             }
-            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
-            body.add(SpacerPanel(0, 1, style.getChild("deep")))
-            body.add(SpacerPanel(0, 8, style).makeBackgroundTransparent())
+            addSeparator(body)
             // buttons
             body.add(TextButton("Export", style)
                 .addLeftClickListener {
-                    val clock = Clock()
-                    val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
-                    progress.intFormatting = true
-                    thread(name = "Export") {
-                        try {
-                            ExportProcess.execute(GameEngineProject.currentProject!!, preset, progress)
-                            clock.stop("Export")
-                            addEvent { msg(NameDesc("Export Finished!")) }
-                        } catch (e: Exception) {
-                            LOGGER.warn("Export failed!", e)
-                            addEvent { msg(NameDesc("Failed Export :/")) }
-                        }
-                    }
+                    runExport(preset)
                 })
             body.add(TextButton("Save Preset", style)
                 .addLeftClickListener {

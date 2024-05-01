@@ -120,9 +120,6 @@ object LineBuffer {
         x1: Float, y1: Float, z1: Float,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        // we have to ensure a mutex,
-        // and this is the only one, that makes sense
-        GFX.checkIsGFXThread()
         // ensure that there is enough space in bytes
         ensureSize(lineSize)
         // write two data points

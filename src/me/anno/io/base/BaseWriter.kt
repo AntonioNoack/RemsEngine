@@ -751,7 +751,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         writeInt(name, id, forceSaving)
                         return
                     }
-                } catch (e: NoSuchMethodException) {
+                } catch (ignored: NoSuchMethodException) {
                     // e.printStackTrace()
                 }
                 LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")

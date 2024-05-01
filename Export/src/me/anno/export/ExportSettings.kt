@@ -42,6 +42,7 @@ class ExportSettings : NamedSaveable() {
     var versionNumber = 1
 
     var minimalUI = false
+    var useKotlynReflect = false
 
     val projectRoots = arrayListOf(documents.getChild("IdeaProjects/RemsEngine"))
 
@@ -189,6 +190,10 @@ class ExportSettings : NamedSaveable() {
         val opt = getGroup(NameDesc("Space Optimization"), list)
         opt.add(BooleanInput("Minimal UI", minimalUI, false, style)
             .setChangeListener { minimalUI = it })
+        opt.add(BooleanInput(
+            "Kotlyn Reflect", "Minimized Kotlin reflections to reduce export size",
+            useKotlynReflect, false, style
+        ).setChangeListener { useKotlynReflect = it })
 
         // assets
         val assets = getGroup(NameDesc("Assets"), list)

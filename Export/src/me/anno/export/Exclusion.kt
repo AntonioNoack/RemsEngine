@@ -59,8 +59,9 @@ object Exclusion {
         excludeFiles(sources, settings.macosPlatforms.any, "native/mac/")
     }
 
-    fun excludeNonMinimalUI(sources: HashMap<String, ByteArray>) {
-        excludeFiles(sources, "me/anno/ui/editor", listOf("me/anno/ui/editor/stacked/Option.class"))
+    fun excludeNonMinimalUI(sources: HashMap<String, ByteArray>, customReflections: Boolean) {
+        excludeFiles(sources, "me/anno/ui/editor", listOf("me/anno/ui/editor/stacked/Option.class", "me/anno/ui/editor/OptionBar"))
+        excludeFiles(sources, "me/anno/engine/ui/input/")
         excludeFiles(sources, "me/anno/ui/input")
         excludeFiles(sources, "me/anno/ui/debug", listOf("me/anno/ui/debug/FrameTimings"))
         excludeFiles(sources, "me/anno/ui/anim")
@@ -70,6 +71,7 @@ object Exclusion {
         excludeFiles(sources, "textures") // I'm not too sure about this...
         excludeFiles(sources, "assets/org/apache/commons") // what is this used for???
         excludeFiles(sources, "me/anno/image/thumbs")
+        excludeFiles(sources, "net/boeckling/crc/")
         excludeFiles(sources, "com/sun/jna") // moving to trash is quite niche when not using UI
         excludeFiles(sources, "me/anno/jvm/utils/CommandLineUtils")
         excludeFiles(sources, "org/apache/commons/cli/")
@@ -82,9 +84,10 @@ object Exclusion {
         excludeFiles(sources, "kotlin/text/", listOf("kotlin/text/Regex", "kotlin/text/StringsKt", "kotlin/text/CharsKt", "kotlin/text/Charsets"))
         excludeFiles(sources, "kotlin/io/", listOf("kotlin/io/CloseableKt", "kotlin/io/ByteStreamsKt", "kotlin/io/FilesKt"))
         excludeFiles(sources, "kotlin/collections/unsigned/")
-        // todo add minimal kotlin reflections using JVM methods somehow...
-        // used in standard kotlin reflections:
-        // excludeFiles(sources, "kotlin/collections/builders/", listOf("kotlin/collections/builders/MapBuilder"))
+        excludeFiles(sources, "kotlin/sequences/")
+        if (customReflections) {
+            excludeFiles(sources, "kotlin/collections/builders/")
+        }
     }
 
     fun excludeFiles(sources: HashMap<String, ByteArray>, flag: Boolean, path: String) {

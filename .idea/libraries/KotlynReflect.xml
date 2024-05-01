@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="KotlynReflect">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/customized/KotlynReflect.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

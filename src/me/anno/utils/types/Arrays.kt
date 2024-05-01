@@ -44,4 +44,24 @@ object Arrays {
     fun <V> ArrayList<V>.copyInto(dst: MutableList<V>) {
         copyInto(dst, 0, 0, size)
     }
+
+    fun ByteArray.startsWith(other: ByteArray, i: Int): Boolean {
+        if (i < 0 || i > size - other.size) return false
+        for (j in other.indices) {
+            if (this[i + j] != other[j]) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun ByteArray.indexOf2(other: ByteArray, i0: Int): Int {
+        for (i in i0 until size - other.size) {
+            if (startsWith(other, i)) {
+                return i
+            }
+        }
+        return -1
+    }
+
 }

@@ -44,7 +44,7 @@ open class Saveable {
      * */
     open val className: String
         get() {
-            val clazz = this::class
+            val clazz = this::class.java
             return clazz.simpleName ?: clazz.toString()
         }
 
