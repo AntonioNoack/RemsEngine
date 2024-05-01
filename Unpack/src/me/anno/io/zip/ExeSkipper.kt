@@ -3,11 +3,11 @@ package me.anno.io.zip
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.OS.desktop
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.Callback
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
-import kotlin.test.assertEquals
 
 // read the contents of a .jar that was turned into a .exe
 //  also, once we understand it, it would be nice to create .exe files ourselves from .jar files...

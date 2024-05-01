@@ -1,10 +1,10 @@
 package me.anno.export.reflect.clazz
 
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.BooleanArrayList
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-import kotlin.test.assertEquals
 
 class Clazz(input: DataInputStream) {
 

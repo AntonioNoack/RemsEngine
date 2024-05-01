@@ -17,6 +17,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
@@ -40,7 +41,6 @@ import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
-import kotlin.test.assertNotEquals
 
 /**
  * holds rendering-related state,

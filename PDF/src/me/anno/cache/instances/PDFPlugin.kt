@@ -17,8 +17,8 @@ class PDFPlugin : Plugin() {
         super.onEnable()
         // pdf documents
         PDFCache.disableLoggers()
-        InnerFolderCache.register("pdf", PDFCache::readAsFolder)
-        Thumbs.registerSignature("pdf") { srcFile, dstFile, size, callback ->
+        InnerFolderCache.registerSignatures("pdf", PDFCache::readAsFolder)
+        Thumbs.registerSignatures("pdf") { srcFile, dstFile, size, callback ->
             srcFile.inputStream { it, exc ->
                 if (it != null) {
                     val ref = PDFCache.getDocumentRef(srcFile, it, borrow = true, async = false)

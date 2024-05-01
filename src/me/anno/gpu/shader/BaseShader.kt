@@ -155,13 +155,8 @@ open class BaseShader(
         return this
     }
 
-    fun ignoreNameWarnings(vararg names: String): BaseShader {
-        ignoredNameWarnings += names
-        return this
-    }
-
-    fun ignoreUniformWarning(name: String): BaseShader {
-        ignoredNameWarnings += name
+    fun ignoreNameWarnings(name: String): BaseShader {
+        ignoredNameWarnings += name.split(',')
         return this
     }
 

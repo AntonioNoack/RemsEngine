@@ -10,6 +10,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
@@ -19,7 +20,6 @@ import me.anno.utils.types.Strings.toFloat
 import me.anno.utils.types.Strings.toInt
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
-import kotlin.test.assertEquals
 
 /**
  * Reader for some ASCII Maya format; I don't know that much about it, or other versions,

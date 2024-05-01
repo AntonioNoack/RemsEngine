@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.utils.Clock
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW.GLFW_DECORATED
@@ -16,7 +17,6 @@ import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
 import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
-import kotlin.test.assertTrue
 
 /**
  * a class, which allows us to use OpenGL without visible window;

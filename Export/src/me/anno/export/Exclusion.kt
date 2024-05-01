@@ -15,7 +15,7 @@ object Exclusion {
         excludeFiles(sources, settings.windowsPlatforms.x86, "windows/x86/")
         excludeFiles(sources, settings.windowsPlatforms.x64, "windows/x64/")
 
-        excludeFiles(sources, settings.macosPlatforms.any, "org/lwjgl/system/macos/")
+        excludeFiles(sources, settings.macosPlatforms.any, "org/lwjgl/system/macosx/")
         excludeFiles(sources, settings.macosPlatforms.arm64, "macos/arm64/")
         excludeFiles(sources, settings.macosPlatforms.x64, "macos/x64/")
     }
@@ -60,17 +60,20 @@ object Exclusion {
     }
 
     fun excludeNonMinimalUI(sources: HashMap<String, ByteArray>, customReflections: Boolean) {
-        excludeFiles(sources, "me/anno/ui/editor", listOf("me/anno/ui/editor/stacked/Option.class", "me/anno/ui/editor/OptionBar"))
+        // UI in engine
+        excludeFiles(sources, "me/anno/ui/editor/", listOf("stacked/Option.class", "OptionBar"))
         excludeFiles(sources, "me/anno/engine/ui/input/")
-        excludeFiles(sources, "me/anno/ui/input")
-        excludeFiles(sources, "me/anno/ui/debug", listOf("me/anno/ui/debug/FrameTimings"))
-        excludeFiles(sources, "me/anno/ui/anim")
-        excludeFiles(sources, "me/anno/ui/custom", listOf("me/anno/ui/custom/CustomPanelType", "me/anno/ui/custom/UITypeLibrary"))
-        excludeFiles(sources, "me/anno/ui/base/image")
-        excludeFiles(sources, "me/anno/ui/base/buttons")
+        excludeFiles(sources, "me/anno/ui/input/")
+        excludeFiles(sources, "me/anno/ui/debug/", listOf("FrameTimings"))
+        excludeFiles(sources, "me/anno/ui/anim/")
+        excludeFiles(sources, "me/anno/ui/custom/", listOf("CustomPanelType", "UITypeLibrary"))
+        excludeFiles(sources, "me/anno/ui/base/image/")
+        excludeFiles(sources, "me/anno/ui/base/buttons/")
+        excludeFiles(sources, "me/anno/image/thumbs/") // mostly just used in UI
+        // other engine things
         excludeFiles(sources, "textures") // I'm not too sure about this...
         excludeFiles(sources, "assets/org/apache/commons") // what is this used for???
-        excludeFiles(sources, "me/anno/image/thumbs")
+        // other things...
         excludeFiles(sources, "net/boeckling/crc/")
         excludeFiles(sources, "com/sun/jna") // moving to trash is quite niche when not using UI
         excludeFiles(sources, "me/anno/jvm/utils/CommandLineUtils")
@@ -78,15 +81,24 @@ object Exclusion {
         excludeFiles(sources, "org/jtransforms/")
         excludeFiles(sources, "pl/edu/icm/jlargearrays/")
         excludeFiles(sources, "org/apache/commons/math3/")
+        // kotlin standard library
         excludeFiles(sources, "kotlin/coroutines/")
         excludeFiles(sources, "kotlin/time/")
         excludeFiles(sources, "kotlin/streams/")
-        excludeFiles(sources, "kotlin/text/", listOf("kotlin/text/Regex", "kotlin/text/StringsKt", "kotlin/text/CharsKt", "kotlin/text/Charsets"))
-        excludeFiles(sources, "kotlin/io/", listOf("kotlin/io/CloseableKt", "kotlin/io/ByteStreamsKt", "kotlin/io/FilesKt"))
+        excludeFiles(sources, "kotlin/text/", listOf("Regex", "StringsKt", "CharsKt", "Charsets"))
+        excludeFiles(sources, "kotlin/io/", listOf("CloseableKt", "ByteStreamsKt", "FilesKt"))
         excludeFiles(sources, "kotlin/collections/unsigned/")
         excludeFiles(sources, "kotlin/sequences/")
+        excludeFiles(sources, "kotlin/test/")
+        excludeFiles(sources, "kotlin/ranges/U")
+        // opengl
+        excludeFiles(sources, "org/lwjgl/opengl/", listOf("GL", "WGL"))
+        excludeFiles(sources, "org/lwjgl/opengl/WGLA")
+        excludeFiles(sources, "org/lwjgl/opengl/GLX")
+        // more of kotlin standard library
         if (customReflections) {
             excludeFiles(sources, "kotlin/collections/builders/")
+            excludeFiles(sources, "kotlin/text/Regex")
         }
     }
 
@@ -102,7 +114,8 @@ object Exclusion {
 
     fun excludeFiles(sources: HashMap<String, ByteArray>, path: String, except: List<String>) {
         sources.removeIf { (srcFile, _) ->
-            srcFile.startsWith(path) && except.none { srcFile.startsWith(it) }
+            val i = path.length
+            srcFile.startsWith(path) && except.none { srcFile.startsWith(it, i) }
         }
     }
 }

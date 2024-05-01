@@ -125,10 +125,11 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             registerHandler(signatureHandlers, order, key, handler)
         }
 
-        fun unregister(vararg keys: String) {
+        fun unregister(keys: String) {
+            val keys1 = keys.split(',')
             synchronized(signatureHandlers) {
-                typeHandlers.removeAll { it.second in keys }
-                signatureHandlers.removeAll { it.second in keys }
+                typeHandlers.removeAll { it.second in keys1 }
+                signatureHandlers.removeAll { it.second in keys1 }
             }
         }
 

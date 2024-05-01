@@ -28,35 +28,32 @@ class UnpackPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
 
-        DefaultConfig.addImportMappings("Asset", *AssetThumbHelper.unityExtensions.toTypedArray())
+        DefaultConfig.addImportMappings("Asset", AssetThumbHelper.unityExtensions)
         PrefabCache.unityReader = UnityReader::loadUnityFile
 
         // compressed folders
-        InnerFolderCache.register(
-            listOf("zip", "bz2", "lz4", "xar", "oar"),
-            InnerZipFile.Companion::createZipRegistryV2
-        )
-        InnerFolderCache.register("exe", ExeSkipper::readAsFolder)
-        InnerFolderCache.register("7z") { src, callback ->
+        InnerFolderCache.registerSignatures("zip,bz2,lz4,xar,oar", InnerZipFile.Companion::createZipRegistryV2)
+        InnerFolderCache.registerSignatures("exe", ExeSkipper::readAsFolder)
+        InnerFolderCache.registerSignatures("7z") { src, callback ->
             val file = Inner7zFile.createZipRegistry7z(src) {
                 Inner7zFile.fileFromStream7z(src)
             }
             callback.ok(file)
         }
-        InnerFolderCache.register("rar") { src, callback ->
+        InnerFolderCache.registerSignatures("rar") { src, callback ->
             val file = InnerRarFile.createZipRegistryRar(src) {
                 InnerRarFile.fileFromStreamRar(src)
             }
             callback.ok(file)
         }
-        InnerFolderCache.register("gzip", InnerTarFile.Companion::readAsGZip)
-        InnerFolderCache.register("tar", InnerTarFile.Companion::readAsGZip)
+        InnerFolderCache.registerSignatures("gzip", InnerTarFile.Companion::readAsGZip)
+        InnerFolderCache.registerSignatures("tar", InnerTarFile.Companion::readAsGZip)
 
         // Windows and Linux links
-        InnerFolderCache.register("lnk", LNKReader::readLNKAsFolder)
-        InnerFolderCache.register("url", URLReader::readURLAsFolder)
+        InnerFolderCache.registerSignatures("lnk", LNKReader::readLNKAsFolder)
+        InnerFolderCache.registerSignatures("url", URLReader::readURLAsFolder)
 
-        Thumbs.registerExtension("lnk") { srcFile, dstFile, size, callback ->
+        Thumbs.registerFileExtensions("lnk") { srcFile, dstFile, size, callback ->
             WindowsShortcut.get(srcFile) { link, exc ->
                 if (link != null) {
                     val iconFile = link.iconPath ?: link.absolutePath
@@ -66,12 +63,10 @@ class UnpackPlugin : Plugin() {
         }
 
         // try as an asset
-        for (ext in AssetThumbHelper.unityExtensions) {
-            Thumbs.registerExtension(ext, AssetThumbnails::generateAssetFrame)
-        }
+        Thumbs.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
 
         // register yaml generally for unity files?
-        InnerFolderCache.registerFileExtension(AssetThumbHelper.unityExtensions) { it, c ->
+        InnerFolderCache.registerFileExtensions(AssetThumbHelper.unityExtensions) { it, c ->
             val f = UnityReader.readAsFolder(it) as? InnerFolder
             c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
         }
@@ -79,9 +74,8 @@ class UnpackPlugin : Plugin() {
 
     override fun onDisable() {
         super.onDisable()
-        for (sig in listOf("zip", "bz2", "lz4", "xar", "oar", "7z", "rar", "gzip", "tar", "url")) {
-            InnerFolderCache.unregisterSignatures(sig)
-        }
+        InnerFolderCache.unregisterSignatures("zip,bz2,lz4,xar,oar,exe,7z,rar,gzip,tar,lnk,url")
+        InnerFolderCache.unregisterFileExtensions(AssetThumbHelper.unityExtensions)
         // unregister more?
         PrefabCache.unityReader = null
     }

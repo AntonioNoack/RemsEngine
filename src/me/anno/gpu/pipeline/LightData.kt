@@ -31,7 +31,7 @@ class LightData {
 
     val entries = LightType.entries.map {
         Entry(it)
-    }.toTypedArray()
+    }
 
     fun clear() {
         for (entry in entries) {

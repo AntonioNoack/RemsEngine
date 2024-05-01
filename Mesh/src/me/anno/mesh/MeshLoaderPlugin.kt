@@ -16,29 +16,29 @@ class MeshLoaderPlugin : Plugin() {
     override fun onEnable() {
 
         // read as folder
-        InnerFolderCache.register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh")) { it, c ->
+        InnerFolderCache.registerSignatures("fbx,gltf,dae,draco,md2,md5mesh") { it, c ->
             c.ok(AnimatedMeshesLoader.readAsFolder(it))
         }
-        InnerFolderCache.register("blend", BlenderReader::readAsFolder)
-        InnerFolderCache.register("obj", OBJReader.Companion::readAsFolder)
-        InnerFolderCache.register("mtl", MTLReader.Companion::readAsFolder)
-        InnerFolderCache.register("maya", MayaASCII2015::readAsFolder)
-        InnerFolderCache.register("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
-        InnerFolderCache.register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
+        InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
+        InnerFolderCache.registerSignatures("obj", OBJReader.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("mtl", MTLReader.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("maya", MayaASCII2015::readAsFolder)
+        InnerFolderCache.registerSignatures("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
+        InnerFolderCache.registerSignatures("mitsuba-scene", MitsubaReader::readSceneAsFolder)
 
         // thumbnails
-        Thumbs.registerSignature("blend", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignature("mitsuba-scene", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignature("mitsuba-meshes", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignature("maya", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("obj", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("fbx", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("gltf", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("glb", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("dae", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("md2", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("md5mesh", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerExtension("mtl") { srcFile, dstFile, size, callback ->
+        Thumbs.registerSignatures("blend", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("mitsuba-scene", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("mitsuba-meshes", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("maya", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("obj", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("fbx", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("gltf", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("glb", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("dae", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("md2", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("md5mesh", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("mtl") { srcFile, dstFile, size, callback ->
             // read as folder
             val children = InnerFolderCache.readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
             if (children.isNotEmpty()) {
@@ -57,10 +57,9 @@ class MeshLoaderPlugin : Plugin() {
     }
 
     override fun onDisable() {
-        for (ext in listOf(
-            "fbx", "gltf", "dae", "draco", "md2",
-            "md5mesh", "blend", "obj", "mtl",
-            "maya", "mitsuba-meshes", "mitsuba-scene"
-        )) InnerFolderCache.unregisterSignatures(ext)
+        InnerFolderCache.unregisterSignatures(
+            "fbx,gltf,dae,draco,md2,md5mesh,blend," +
+                    "obj,mtl,maya,mitsuba-meshes,mitsuba-scene"
+        )
     }
 }

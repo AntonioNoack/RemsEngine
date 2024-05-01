@@ -3,7 +3,7 @@ package me.anno.export.idea
 import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import kotlin.test.assertEquals
+import me.anno.utils.assertions.assertEquals
 
 class IdeaModule(val project: IdeaProject) {
     val moduleDependencies = ArrayList<String>()

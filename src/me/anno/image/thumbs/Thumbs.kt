@@ -3,6 +3,8 @@ package me.anno.image.thumbs
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.extensions.FileRegistry
+import me.anno.extensions.IFileRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
@@ -40,7 +42,7 @@ import kotlin.math.min
  *
  * // todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
  * */
-object Thumbs {
+object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
 
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
@@ -414,44 +416,6 @@ object Thumbs {
         }
     }
 
-    @JvmStatic
-    private val readerBySignature =
-        HashMap<String, (FileReference, HDBKey, Int, Callback<ITexture2D>) -> Unit>()
-
-    @JvmStatic
-    private val readerByExtension =
-        HashMap<String, (FileReference, HDBKey, Int, Callback<ITexture2D>) -> Unit>()
-
-    @JvmStatic
-    fun registerSignature(
-        signature: String,
-        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) -> Unit
-    ) {
-        readerBySignature[signature] = reader
-    }
-
-    @JvmStatic
-    fun unregisterSignatures(vararg signatures: String) {
-        for (signature in signatures) {
-            readerBySignature.remove(signature)
-        }
-    }
-
-    @JvmStatic
-    fun registerExtension(
-        extension: String,
-        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: Callback<ITexture2D>) -> Unit
-    ) {
-        readerByExtension[extension] = reader
-    }
-
-    @JvmStatic
-    fun unregisterExtensions(vararg extensions: String) {
-        for (extension in extensions) {
-            readerByExtension.remove(extension)
-        }
-    }
-
     init {
 
         TextThumbnails.register()
@@ -459,14 +423,9 @@ object Thumbs {
         AssetThumbnails.register()
         ImageThumbnails.register()
 
-        val ignored = listOf(
-            "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar",
-            "sims", "lua-bytecode"
-        )
-        for (signature in ignored) {
-            registerSignature(signature) { _, _, _, callback ->
-                callback.err(IgnoredException())
-            }
+        val ignored = "zip,bz2,tar,gzip,xz,lz4,7z,xar,sims,lua-bytecode"
+        registerSignatures(ignored) { _, _, _, callback ->
+            callback.err(IgnoredException())
         }
     }
 
@@ -520,13 +479,13 @@ object Thumbs {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         signature: String?, callback: Callback<ITexture2D>
     ) {
-        val reader = readerBySignature[signature]
-        if (reader != null) {
-            reader(srcFile, dstFile, size, callback)
+        val bySigGen = readerBySignature[signature]
+        if (bySigGen != null) {
+            bySigGen.generate(srcFile, dstFile, size, callback)
         } else try {
-            val base = readerByExtension[srcFile.lcExtension]
-            if (base != null) {
-                base(srcFile, dstFile, size, callback)
+            val byExtGen = readerByFileExtension[srcFile.lcExtension]
+            if (byExtGen != null) {
+                byExtGen.generate(srcFile, dstFile, size, callback)
             } else {
                 // todo thumbnails for Rem's Studio transforms
                 // png, jpg, jpeg, ico, webp, mp4, ...

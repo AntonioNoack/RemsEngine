@@ -40,7 +40,7 @@ object Logo {
     )
 
     init {
-        shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
+        shader.ignoreNameWarnings("normals,uvs,tangents,colors")
     }
 
     val frame by lazy { // lazy, so we can get GFX.maxSamples

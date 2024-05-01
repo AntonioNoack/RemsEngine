@@ -31,8 +31,8 @@ class ImagePlugin : Plugin() {
         ImageImpl.register()
 
         // image loading with extra details
-        InnerFolderCache.register("gimp", GimpImage.Companion::readAsFolder)
-        InnerFolderCache.register("svg", SVGMesh.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("gimp", GimpImage.Companion::readAsFolder)
+        InnerFolderCache.registerSignatures("svg", SVGMesh.Companion::readAsFolder)
 
         // extracting size information quickly
         MediaMetadata.registerSignatureHandler(100, "gimp") { file, signature, dst ->
@@ -70,12 +70,12 @@ class ImagePlugin : Plugin() {
         }
 
         // thumbnails
-        Thumbs.registerSignature("qoi", ImageThumbnails::generateImage)
-        Thumbs.registerSignature("jpg", ::generateJPGFrame)
-        Thumbs.registerSignature("ico", ::generateICOFrame)
-        Thumbs.registerExtension("tga", ::generateTGAFrame)
-        Thumbs.registerExtension("ico", ::generateICOFrame)
-        Thumbs.registerExtension("svg", ::generateSVGFrame)
+        Thumbs.registerSignatures("qoi", ImageThumbnails::generateImage)
+        Thumbs.registerSignatures("jpg", ::generateJPGFrame)
+        Thumbs.registerSignatures("ico", ::generateICOFrame)
+        Thumbs.registerFileExtensions("tga", ::generateTGAFrame)
+        Thumbs.registerFileExtensions("ico", ::generateICOFrame)
+        Thumbs.registerFileExtensions("svg", ::generateSVGFrame)
         ImageReader.readIcoLayers = ICOReader::readAllLayers
 
         // rotating jpegs
@@ -84,11 +84,11 @@ class ImagePlugin : Plugin() {
 
     override fun onDisable() {
         super.onDisable()
-        ImageCache.unregister("tga", "gimp", "exr", "qoi", "ico")
-        InnerFolderCache.unregisterSignatures("gimp", "svg")
-        Thumbs.unregisterSignatures("qoi", "jpg", "ico")
-        Thumbs.unregisterExtensions("tga", "ico", "tga/ico")
-        MediaMetadata.unregister("gimp", "qoi", "ico", "gimp")
+        ImageCache.unregister("tga,gimp,exr,qoi,ico")
+        InnerFolderCache.unregisterSignatures("gimp,svg")
+        Thumbs.unregisterSignatures("qoi,jpg,ico")
+        Thumbs.unregisterFileExtensions("tga,ico,tga,ico")
+        MediaMetadata.unregister("gimp,qoi,ico,gimp")
         TextureReader.findExifRotation = null
     }
 }

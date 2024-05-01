@@ -54,7 +54,7 @@ class JVMExtension : Plugin() {
         LinkCreator.createLink = FileExplorerImpl::createLink
         DefaultStyle.initDefaults() // reload default font size
         try { // thumbnail creation may be removed to reduce export size
-            Thumbs.registerSignature("exe", ThumbsImpl::generateSystemIcon)
+            Thumbs.registerSignatures("exe", ThumbsImpl::generateSystemIcon)
         } catch (ignored: NoClassDefFoundError) {
         }
     }

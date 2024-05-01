@@ -17,6 +17,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats
+import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -212,7 +213,7 @@ object PrefabCache : CacheSection("Prefab") {
                     } else loadPrefabFromFolder(file, callback)
                 }
                 else -> {
-                    if (signature in imageFormats || signature == "gimp" || signature == "webp") {
+                    if (signature in imageFormats1 || signature == "gimp" || signature == "webp") {
                         callback(ImageComponent(file), null)
                     } else loadPrefabFromFolder(file, callback)
                 }

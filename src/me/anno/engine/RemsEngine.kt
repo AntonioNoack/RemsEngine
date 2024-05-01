@@ -45,6 +45,8 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
 
+// todo bug: when changing the hierarchy, e.g. adding/removing, Entity.isCollapsed isn't preserved or loaded correctly
+
 // to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
 //  - see local variables for all execution units

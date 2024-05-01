@@ -16,13 +16,23 @@ interface LanguageTokenizer {
 
     companion object {
         @JvmStatic
-        fun fullMatch(vararg list: String): Collection<String> {
-            return if (list.size < 16) list.toList() else list.toHashSet()
+        fun fullMatch(pattern: String): Collection<String> {
+            return listOf(pattern)
         }
 
         @JvmStatic
-        fun partialMatch(vararg list: String): (CharSequence) -> Boolean {
-            return { tested -> list.any { pattern -> pattern.startsWith(tested) } }
+        fun fullMatch(list: List<String>): Collection<String> {
+            return if (list.size < 16) list else list.toHashSet()
+        }
+
+        @JvmStatic
+        fun partialMatch(pattern: String): (CharSequence) -> Boolean {
+            return { tested -> pattern.startsWith(tested) }
+        }
+
+        @JvmStatic
+        fun partialMatch(patterns: List<String>): (CharSequence) -> Boolean {
+            return { tested -> patterns.any { pattern -> pattern.startsWith(tested) } }
         }
     }
 }

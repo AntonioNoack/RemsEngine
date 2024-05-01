@@ -14,11 +14,11 @@ object LinkThumbnails {
     @JvmStatic
     @InternalAPI
     fun register() {
-        Thumbs.registerExtension("url") { srcFile, dstFile, size, callback ->
+        Thumbs.registerFileExtensions("url") { srcFile, dstFile, size, callback ->
             // try to read the url, and redirect to the icon
             findIconLineInTxtLink(srcFile, dstFile, size, "IconFile=", callback)
         }
-        Thumbs.registerExtension("desktop") { srcFile, dstFile, size, callback ->
+        Thumbs.registerFileExtensions("desktop") { srcFile, dstFile, size, callback ->
             // sample data by https://help.ubuntu.com/community/UnityLaunchersAndDesktopFiles:
             //[Desktop Entry]
             //Version=1.0

@@ -20,7 +20,7 @@ abstract class FrameReader<FrameType>(
     val frames = ArrayList<FrameType>(bufferLength)
     val parser = FFMPEGMetaParser()
 
-    override fun process(process: Process, vararg arguments: String) {
+    override fun process(process: Process, arguments: List<String>) {
         parseAsync(parser, process.errorStream)
         try {
             val frameCount = bufferLength

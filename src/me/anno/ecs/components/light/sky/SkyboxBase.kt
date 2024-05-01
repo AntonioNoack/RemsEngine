@@ -107,10 +107,9 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         val defaultShaderBase = SkyShaderBase("skyBase")
             .apply {
                 ignoreNameWarnings(
-                    "diffuseBase", "normalStrength", "emissiveBase",
-                    "roughnessMinMax", "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalClearCoat",
-                    "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
-                    "forceFieldColorCount", "forceFieldUVCount",
+                    "diffuseBase,normalStrength,emissiveBase,roughnessMinMax,metallicMinMax,occlusionStrength," +
+                            "finalTranslucency,finalClearCoat,tint,hasAnimation,localTransform,invLocalTransform," +
+                            "worldScale,tiling,forceFieldColorCount,forceFieldUVCount",
                 )
             }
     }

@@ -3,13 +3,16 @@ package me.anno.io.files.inner
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.extensions.FileRegistry
+import me.anno.extensions.IFileRegistry
 import me.anno.image.ImageReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
 import me.anno.mesh.vox.VOXReader
 
-object InnerFolderCache : CacheSection("InnerFolderCache") {
+object InnerFolderCache : CacheSection("InnerFolderCache"),
+    IFileRegistry<InnerFolderReader> by FileRegistry() {
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -19,61 +22,28 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
     // done display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
-    private val readerBySignature = HashMap<String, InnerFolderReader>(64)
-    private val readerByFileExtension = HashMap<String, InnerFolderReader>(64)
-
-    @Suppress("unused")
-    fun registerFileExtension(fileExtension: String, reader: InnerFolderReader) {
-        readerBySignature[fileExtension] = reader
-    }
-
-    fun registerFileExtension(fileExtensions: List<String>, reader: InnerFolderReader) {
-        for (signature in fileExtensions) {
-            readerBySignature[signature] = reader
-        }
-    }
-
-    fun register(signature: String, reader: InnerFolderReader) {
-        readerBySignature[signature] = reader
-    }
-
-    fun register(signatures: List<String>, reader: InnerFolderReader) {
-        for (signature in signatures) {
-            register(signature, reader)
-        }
-    }
-
-    fun unregisterSignatures(vararg signatures: String) {
-        for (signature in signatures) {
-            readerBySignature.remove(signature)
-        }
-    }
-
-    fun unregisterFileExtension(fileExtension: String) {
-        readerByFileExtension.remove(fileExtension)
-    }
-
     fun hasReaderForSignature(signature: String?): Boolean {
-        return signature != null && signature in readerBySignature
+        return signature in readerBySignature
     }
 
     fun hasReaderForFileExtension(lcExtension: String?): Boolean {
-        return lcExtension != null && (lcExtension in readerByFileExtension || lcExtension in readerBySignature)
+        return lcExtension in readerByFileExtension
     }
 
-    val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr", "qoi")
+    val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
+    val imageFormats1 = imageFormats.split(',')
 
     init {
         // meshes
         // to do all mesh extensions
-        register("vox", VOXReader.Companion::readAsFolder)
+        registerSignatures("vox", VOXReader.Companion::readAsFolder)
 
         // cannot be read by assimp anyway
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
         // to do all image formats
-        register(imageFormats, ImageReader::readAsFolder)
-        register("media", ImageReader::readAsFolder) // correct for webp, not for videos
+        registerSignatures(imageFormats, ImageReader::readAsFolder)
+        registerSignatures("media", ImageReader::readAsFolder) // correct for webp, not for videos
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {

@@ -50,44 +50,41 @@ object DefaultConfig : StringMap() {
     }
 
     fun defineDefaultFileAssociations() {
-
-        addImportMappings(
-            "Image",
-            "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2", "tga", "dds", "exr"
-        )
+        addImportMappings("Image", "png,jpg,jpeg,tiff,webp,svg,ico,psd,bmp,jp2,tga,dds,exr")
         addImportMappings("PDF", "pdf")
         addImportMappings("Cubemap-Equ", "hdr")
         addImportMappings(
             "Video",
-            "mp4", "m4p", "m4v", "gif", "webm",
-            "mpeg", "mp2", "mpg", "mpe", "mpv", "svi", "3gp", "3g2", "roq",
-            "nsv", "f4v", "f4p", "f4a", "f4b",
-            "avi", "flv", "vob", "wmv", "mkv", "ogg", "ogv", "drc",
-            "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
+            "mp4,m4p,m4v,gif,webm,mpeg,mp2,mpg,mpe,mpv,svi,3gp,3g2,roq," +
+                    "nsv,f4v,f4p,f4a,f4b,avi,flv,vob,wmv,mkv,ogg,ogv,drc,mov,qt,mts,m2ts,ts,rm,rmvb,viv,asf,amv"
         )
         addImportMappings("Text", "txt")
-        addImportMappings(
-            "Mesh", "obj", "mtl", "fbx", "dae",
-            "gltf", "glb", "md2", "md5mesh", "vox",
-            "blend", "blend1",
-        )
+        addImportMappings("Mesh", "obj,mtl,fbx,dae,gltf,glb,md2,md5mesh,vox,blend,blend1")
         // not yet supported
         // addImportMappings("Markdown", "md")
-        addImportMappings("Audio", "mp3", "wav", "m4a", "ogg", "opus")
+        addImportMappings("Audio", "mp3,wav,m4a,ogg,opus")
         addImportMappings(
-            "Container", "unitypackage",
-            "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar",
-            "npz" // numpy archive
+            "Container", "unitypackage," +
+                    "zip,7z,tar,gz,xz,rar,bz2,xar,oar," +
+                    "npz" // numpy archive
         )
-        addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar", "desktop")
-        addImportMappings("Metadata", "json", "xml")
-        addImportMappings("Link", "url", "lnk", "desktop")
+        addImportMappings("Executable", "exe,lib,dll,pyd,jar,desktop")
+        addImportMappings("Metadata", "json,xml")
+        addImportMappings("Link", "url,lnk,desktop")
     }
 
-    fun addImportMappings(result: String, vararg extensions: String) {
+    fun addImportMapping(result: String, extension: String) {
+        // get or set default
+        this["import.mapping.$extension", result]
+    }
+
+    fun addImportMappings(result: String, extensions: String) {
+        addImportMappings(result, extensions.split(','))
+    }
+
+    fun addImportMappings(result: String, extensions: Collection<String>) {
         for (extension in extensions) {
-            // get or set default
-            this["import.mapping.$extension", result]
+            addImportMapping(result, extension)
         }
     }
 

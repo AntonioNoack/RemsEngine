@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.cache.CacheData
 import me.anno.cache.FileCache
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.Sleep.waitUntil
@@ -9,7 +10,6 @@ import me.anno.video.VideoCache.framesPerSlice
 import me.anno.video.VideoCache.minSize
 import me.anno.video.VideoCache.scale
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.io.MediaMetadata
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
@@ -69,7 +69,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
         }
         dst.delete()
         object : FFMPEGStream(null, true) {
-            override fun process(process: Process, vararg arguments: String) {
+            override fun process(process: Process, arguments: List<String>) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
@@ -80,14 +80,16 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
 
             override fun destroy() {}
         }.run(
-            "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
-            "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time
-            "-i", "\"${src.absolutePath}\"",
-            "-filter:v",
-            "scale=\"$w:$h\"",
-            "-vframes", "$framesPerSlice", // exact amount needed? (less at the end)
-            "-c:a", "copy",
-            dst.absolutePath
+            listOf(
+                "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
+                "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time
+                "-i", "\"${src.absolutePath}\"",
+                "-filter:v",
+                "scale=\"$w:$h\"",
+                "-vframes", "$framesPerSlice", // exact amount needed? (less at the end)
+                "-c:a", "copy",
+                dst.absolutePath
+            )
         )
     }
 
@@ -105,6 +107,4 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     }
 
     private val LOGGER = LogManager.getLogger(VideoProxyCreator::class)
-
-
 }

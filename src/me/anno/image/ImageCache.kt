@@ -57,9 +57,9 @@ object ImageCache : CacheSection("Image") {
         }
     }
 
-    fun unregister(vararg signatures: String) {
+    fun unregister(signatures: String) {
         synchronized(this) {
-            for (signature in signatures) {
+            for (signature in signatures.split(',')) {
                 byteReaders.remove(signature)
                 fileReaders.remove(signature)
                 streamReaders.remove(signature)

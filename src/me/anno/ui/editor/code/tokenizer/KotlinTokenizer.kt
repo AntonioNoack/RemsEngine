@@ -6,9 +6,11 @@ object KotlinTokenizer : LanguageTokenizer {
 
     @JvmStatic
     private val keywords = LanguageTokenizer.fullMatch(
-        "public", "protected", "private", "fun", "class", "var", "val",
-        "return", "if", "else", "try", "catch", "while", "do", "when", "data",
-        "interface", "true", "false", ";", "this"
+        listOf(
+            "public", "protected", "private", "fun", "class", "var", "val",
+            "return", "if", "else", "try", "catch", "while", "do", "when", "data",
+            "interface", "true", "false", ";", "this"
+        )
     )
 
     @JvmStatic

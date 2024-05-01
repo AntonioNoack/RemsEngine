@@ -18,7 +18,7 @@ object FlatShaders {
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = alpha * texture(tex, uv); }"
-    ).apply { ignoreNameWarnings("samples", "posSize") }
+    ).apply { ignoreNameWarnings("samples,posSize") }
 
     val copyShaderMS = Shader(
         "copyMS", coordsList, coordsUVVertexShader, uvList, listOf(
@@ -73,7 +73,7 @@ object FlatShaders {
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")
-            ignoreNameWarnings("targetSamples", "d_camRot", "d_fovFactor", "reverseDepth")
+            ignoreNameWarnings("targetSamples,d_camRot,d_fovFactor,reverseDepth")
         }
     }
 

@@ -335,10 +335,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = Signature.findNameSync(this)
-        if (InnerFolderCache.hasReaderForFileExtension(lcExtension)) {
-            return true
-        }
-        if (InnerFolderCache.hasReaderForSignature(signature)) {
+        if (InnerFolderCache.hasReaderForFileExtension(lcExtension) || InnerFolderCache.hasReaderForSignature(signature)) {
             return true
         }
         return when (signature) { // todo these should be handled by InnerFolderCache...

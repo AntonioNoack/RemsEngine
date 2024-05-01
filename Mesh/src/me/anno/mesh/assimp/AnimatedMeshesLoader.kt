@@ -186,7 +186,7 @@ object AnimatedMeshesLoader {
         val animationReferences = if (hasSkeleton || hasAnimations) {
 
             val skeleton = Prefab("Skeleton")
-            skeleton["bones"] = boneList.toTypedArray()
+            skeleton["bones"] = boneList
             val skeletonsFolder = root.createChild("skeletons", null) as InnerFolder
             val skeletonPath = skeletonsFolder.createPrefabChild("Skeleton.json", skeleton)
 

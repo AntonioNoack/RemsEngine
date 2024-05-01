@@ -82,10 +82,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                         input, (startTime * fps).roundToInt(),
                         frameCount, nextFrameCallback, finishedCallback
                     ).run(
-                        *getImageSequenceArguments(
+                        getImageSequenceArguments(
                             input, signature, w, h, startTime, frameCount, fps,
                             originalWidth, originalFPS, totalFrameCount
-                        ).toTypedArray()
+                        )
                     )
                 } catch (_: ShutdownException) {
                 } catch (e: IOException) {
@@ -108,12 +108,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                        *getImageSequenceArguments(
+                        getImageSequenceArguments(
                             input, signature, w, h,
                             frameIndex / max(fps, 1e-3), frameCount, fps,
                             originalWidth, originalFPS,
                             totalFrameCount
-                        ).toTypedArray()
+                        )
                     )
                 } catch (_: ShutdownException) {
                 } catch (e: IOException) {
@@ -136,12 +136,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                        *getImageSequenceArguments(
+                        getImageSequenceArguments(
                             input, signature, w, h,
                             frameIndex / max(fps, 1e-3), frameCount, fps,
                             originalWidth, originalFPS,
                             totalFrameCount
-                        ).toTypedArray()
+                        )
                     )
                 } catch (_: ShutdownException) {
                 }
@@ -202,20 +202,22 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         ): AsyncCacheData<SoundBuffer> {
             val loader = FFMPEGAudio(input, MediaMetadata.getMeta(input, false)!!.audioChannels, sampleRate, duration)
             loader.run(
-                "-ss", "$startTime", // important!!!
-                "-i", input.absolutePath,
-                "-t", "$duration", // duration
-                "-ar", "$sampleRate",
-                // -aq quality, codec specific
-                "-f", "s16le", "-acodec", "pcm_s16le",
-                // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
-                // -> we need to remove it
-                // "-bitexact", // don't add a LIST-INFO chunk; we don't care
-                // wav is exported with length -1, which slick does not support
-                // ogg reports "error 34", and ffmpeg is slow
-                // "-c:a", "pcm_s16le", "-ac", "2",
-                "-"
-                // "pipe:1" // 1 = stdout, 2 = stdout
+                listOf(
+                    "-ss", "$startTime", // important!!!
+                    "-i", input.absolutePath,
+                    "-t", "$duration", // duration
+                    "-ar", "$sampleRate",
+                    // -aq quality, codec specific
+                    "-f", "s16le", "-acodec", "pcm_s16le",
+                    // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
+                    // -> we need to remove it
+                    // "-bitexact", // don't add a LIST-INFO chunk; we don't care
+                    // wav is exported with length -1, which slick does not support
+                    // ogg reports "error 34", and ffmpeg is slow
+                    // "-c:a", "pcm_s16le", "-ac", "2",
+                    "-"
+                    // "pipe:1" // 1 = stdout, 2 = stdout
+                )
             )
             return loader.result
         }
@@ -271,7 +273,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var width = 0
     var height = 0
 
-    abstract fun process(process: Process, vararg arguments: String)
+    abstract fun process(process: Process, arguments: List<String>)
 
     abstract fun destroy()
 
@@ -307,7 +309,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         }
     }
 
-    fun run(vararg arguments: String): FFMPEGStream {
+    fun run(arguments: List<String>): FFMPEGStream {
 
         if (isProcessCountLimited) Sleep.acquire(true, processLimiter)
 
@@ -315,10 +317,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpeg, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
-        builder.add(*arguments)
+        builder.addAll(arguments)
 
         val process = builder.start()
-        process(process, *arguments)
+        process(process, arguments)
         if (isProcessCountLimited) {
             waitForRelease(process)
         }

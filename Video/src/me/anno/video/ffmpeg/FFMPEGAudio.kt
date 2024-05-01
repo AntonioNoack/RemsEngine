@@ -32,7 +32,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
         if (channels !in 1..2) throw IllegalStateException("Unsupported number of audio channels: $channels")
     }
 
-    override fun process(process: Process, vararg arguments: String) {
+    override fun process(process: Process, arguments: List<String>) {
         // ("starting process for audio $sampleRate x $length")
         // (arguments)
         thread(name = "${file?.name}:error-stream") {

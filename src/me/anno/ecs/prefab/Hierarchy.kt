@@ -8,9 +8,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.engine.EngineBase
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
-import kotlin.test.assertTrue
 
 /**
  * utilities for Prefabs, adding things and such

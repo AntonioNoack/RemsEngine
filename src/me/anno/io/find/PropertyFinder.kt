@@ -1,8 +1,8 @@
 package me.anno.io.find
 
 import me.anno.io.Saveable
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.lists.Lists.pop
-import kotlin.test.assertEquals
 
 /**
  * this is used within Rem's Studio to keep references to properties inside objects even after reloading

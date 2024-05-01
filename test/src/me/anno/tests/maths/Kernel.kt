@@ -169,7 +169,7 @@ class Kernel(
     }
 }
 
-fun stack(vararg kernels: Kernel): Kernel {
+fun stack(kernels: List<Kernel>): Kernel {
     val sx = kernels.maxOf { it.sx }
     val sy = kernels.maxOf { it.sy }
     val sz = kernels.sumOf { it.sz }

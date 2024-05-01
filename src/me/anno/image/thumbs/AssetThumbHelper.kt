@@ -39,7 +39,8 @@ import kotlin.math.max
  * */
 object AssetThumbHelper {
 
-    val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
+    val unityExtensions = "mat,prefab,unity,asset,controller,meta"
+    val unityExtensions1 = unityExtensions.split(',')
     private val LOGGER = LogManager.getLogger(AssetThumbHelper::class)
 
     private fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>): List<FileReference> {

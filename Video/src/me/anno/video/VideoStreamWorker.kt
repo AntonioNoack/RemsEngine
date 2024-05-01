@@ -26,7 +26,7 @@ object VideoStreamWorker {
                 val parser = FFMPEGMetaParser()
                 val oldFrames = ArrayList<GPUFrame>()
                 var nextReadIndex = frameIndex0
-                override fun process(process: Process, vararg arguments: String) {
+                override fun process(process: Process, arguments: List<String>) {
                     parseAsync(parser, process.errorStream)
                     try {
                         waitForMetadata(parser)
@@ -120,13 +120,13 @@ object VideoStreamWorker {
             val w1 = w0 - w0.and(1)
             val h1 = h0 - h0.and(1)
             process.run(
-                *FFMPEGStream.getImageSequenceArguments(
+                FFMPEGStream.getImageSequenceArguments(
                     file, signature, w1, h1,
                     frameIndex0 / meta.videoFPS,
                     maxNumFrames, meta.videoFPS,
                     meta.videoWidth, meta.videoFPS,
                     meta.videoFrameCount
-                ).toTypedArray()
+                )
             )
         }
     }

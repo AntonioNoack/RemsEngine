@@ -99,7 +99,7 @@ object OpenFileExternallyImpl {
             when {
                 OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
                     val builder = BetterProcessBuilder(null, 3, true)
-                    builder.add("explorer.exe", "/select,", self.absolutePath)
+                    builder.addAll(listOf("explorer.exe", "/select,", self.absolutePath))
                     builder.start()
                 }
                 Desktop.isDesktopSupported() -> {
@@ -108,7 +108,7 @@ object OpenFileExternallyImpl {
                 }
                 OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
                     val builder = BetterProcessBuilder(null, 2, true)
-                    builder.add("xdg-open", self.absolutePath)
+                    builder.addAll(listOf("xdg-open", self.absolutePath))
                     builder.start()
                 }
                 else -> LOGGER.warn("File.openInExplorer() is not implemented on that platform")

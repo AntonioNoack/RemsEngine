@@ -8,7 +8,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.OS
-import kotlin.test.assertEquals
+import me.anno.utils.assertions.assertEquals
 
 class IdeaProject(val projectDir: FileReference) {
     val modules = HashMap<String, IdeaModule>()

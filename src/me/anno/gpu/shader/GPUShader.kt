@@ -317,13 +317,8 @@ abstract class GPUShader(val name: String) : ICacheData {
         ignoredNames += names
     }
 
-    fun ignoreNameWarnings(vararg names: String): GPUShader {
-        ignoredNames += names
-        return this
-    }
-
     fun ignoreNameWarnings(name: String): GPUShader {
-        ignoredNames += name
+        ignoredNames += name.split(',')
         return this
     }
 

@@ -4,7 +4,7 @@ import me.anno.export.idea.IdeaProject.Companion.parseFile
 import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
-import kotlin.test.assertEquals
+import me.anno.utils.assertions.assertEquals
 
 class IdeaLibrary(val project: IdeaProject, val name: String) {
     val jars = ArrayList<FileReference>()

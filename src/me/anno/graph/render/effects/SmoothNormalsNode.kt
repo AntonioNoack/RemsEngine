@@ -62,7 +62,7 @@ class SmoothNormalsNode : ActionNode(
                     "   result = vec4(UnpackNormal(normalZW ? normal.zw : normal.xy),1.0);\n" +
                     "}\n"
         ).apply {
-            ignoreNameWarnings("depthTex", "d_camRot")
+            ignoreNameWarnings("depthTex,d_camRot")
         }
 
         private val blurShader = Shader(

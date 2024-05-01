@@ -19,7 +19,6 @@ import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.roundToInt
-import kotlin.test.assertFalse
 
 abstract class AudioCreator(
     val durationSeconds: Double,
@@ -38,7 +37,6 @@ abstract class AudioCreator(
 
         output.delete()
         output.getParent().tryMkdirs()
-        assertFalse(output.exists)
 
         // todo allow different audio codecs (if required...)
         // quality:

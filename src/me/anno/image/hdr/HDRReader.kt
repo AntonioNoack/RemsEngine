@@ -1,6 +1,8 @@
 package me.anno.image.hdr
 
 import me.anno.image.raw.FloatImage
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -8,8 +10,6 @@ import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.pow
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * src/author: https://github.com/aicp7/HDR_file_readin

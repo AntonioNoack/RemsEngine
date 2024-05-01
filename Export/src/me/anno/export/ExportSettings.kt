@@ -37,6 +37,9 @@ class ExportSettings : NamedSaveable() {
 
     // todo TreeView for FilesToInclude/Exclude: check boxes on every level, and then state gets saved
 
+    // todo option to bundle ffmpeg to be fully self-contained
+    // todo could we use the Windows API to load video to optimize game size a little more, or not needing to unpack?
+
     var gameTitle = ""
     var configName = ""
     var versionNumber = 1

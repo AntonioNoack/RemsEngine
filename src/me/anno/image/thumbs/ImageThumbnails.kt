@@ -30,14 +30,14 @@ object ImageThumbnails {
     @JvmStatic
     @InternalAPI
     fun register() {
-        Thumbs.registerSignature("png", ::generateImage)
-        Thumbs.registerSignature("bmp", ::generateImage)
-        Thumbs.registerSignature("psd", ::generateImage)
-        Thumbs.registerSignature("dds", ::generateVideoFrame)
-        Thumbs.registerExtension("dds", ::generateVideoFrame)
-        Thumbs.registerExtension("webp", ::generateVideoFrame)
-        Thumbs.registerSignature("media", ::generateVideoFrame)
-        Thumbs.registerSignature("hdr", ::generateHDRImage)
+        Thumbs.registerSignatures("png", ::generateImage)
+        Thumbs.registerSignatures("bmp", ::generateImage)
+        Thumbs.registerSignatures("psd", ::generateImage)
+        Thumbs.registerSignatures("dds", ::generateVideoFrame)
+        Thumbs.registerFileExtensions("dds", ::generateVideoFrame)
+        Thumbs.registerFileExtensions("webp", ::generateVideoFrame)
+        Thumbs.registerSignatures("media", ::generateVideoFrame)
+        Thumbs.registerSignatures("hdr", ::generateHDRImage)
     }
 
     private fun generateHDRImage(

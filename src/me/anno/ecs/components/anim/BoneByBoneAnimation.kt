@@ -5,6 +5,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.resize
@@ -13,7 +14,6 @@ import me.anno.utils.types.Floats.f3s
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import kotlin.test.assertTrue
 
 /**
  * a basic animation for characters, where animated translation only exists at the root node

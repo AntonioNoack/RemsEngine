@@ -21,6 +21,7 @@ import me.anno.utils.Color.black3
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -30,7 +31,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
-import kotlin.test.assertEquals
 
 /**
  * writes a GLTF file from an Entity or Mesh,

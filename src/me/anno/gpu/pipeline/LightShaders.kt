@@ -210,9 +210,8 @@ object LightShaders {
             // first the ones for the deferred data
             // then the ones for the shadows
             shader.ignoreNameWarnings(
-                "tint", "invLocalTransform", "d_camRot", "d_fovFactor",
-                "defLayer0", "defLayer1", "defLayer2", "defLayer3",
-                "defLayer4", "defLayer5", "defLayer6", "defLayer7"
+                "tint,invLocalTransform,d_camRot,d_fovFactor," +
+                        "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,defLayer5,defLayer6,defLayer7"
             )
             shader
         }
@@ -389,9 +388,8 @@ object LightShaders {
         ), "void main(){ result = vec4(countPerPixel); }"
     ).apply {
         ignoreNameWarnings(
-            "cameraPosition", "cameraRotation", "invScreenSize", "receiveShadows",
-            "d_camRot", "d_fovFactor", "data0", "data1", "data2", "cutoff",
-            "lightSpaceToCamSpace", "camSpaceToLightSpace", "worldScale", "isDirectional"
+            "cameraPosition,cameraRotation,invScreenSize,receiveShadows,d_camRot,d_fovFactor," +
+                    "data0,data1,data2,cutoff,lightSpaceToCamSpace,camSpaceToLightSpace,worldScale,isDirectional"
         )
     }
 
@@ -428,10 +426,9 @@ object LightShaders {
         ), "void main(){ result = vec4(countPerPixel); }"
     ).apply {
         ignoreNameWarnings(
-            "normals", "uvs", "tangents", "colors", "receiveShadows",
-            "invScreenSize", "cameraPosition", "cameraRotation", "d_camRot", "d_fovFactor", "worldScale",
-            "data0", "data1", "data2", "cutoff", "lightSpaceToCamSpace", "camSpaceToLightSpace",
-            "receiveShadows", "isDirectional"
+            "normals,uvs,tangents,colors,receiveShadows,invScreenSize,cameraPosition,cameraRotation," +
+                    "d_camRot,d_fovFactor,worldScale,data0,data1,data2,cutoff," +
+                    "lightSpaceToCamSpace,camSpaceToLightSpace,receiveShadows,isDirectional"
         )
     }
 
@@ -508,11 +505,10 @@ object LightShaders {
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
             val shader = builder.create("lht${type.ordinal}")
             shader.ignoreNameWarnings(
-                "tint", "invLocalTransform", "colors",
-                "tangents", "uvs", "normals", "isDirectional",
-                "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
-                "receiveShadows", "countPerPixel", "worldScale", "cameraPosition", "invScreenSize",
-                "fullscreen", "prevLocalTransform", "data1", "cameraRotation"
+                "tint,invLocalTransform,colors,tangents,uvs,normals,isDirectional," +
+                        "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,receiveShadows," +
+                        "countPerPixel,worldScale,cameraPosition,invScreenSize,fullscreen," +
+                        "prevLocalTransform,data1,cameraRotation"
             )
             shader
         }

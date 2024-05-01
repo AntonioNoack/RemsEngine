@@ -59,9 +59,9 @@ object AssetThumbnails {
     private val LOGGER = LogManager.getLogger(AssetThumbnails::class)
 
     fun register() {
-        Thumbs.registerExtension("json", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignature("vox", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignature("maya", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("vox", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("maya", AssetThumbnails::generateAssetFrame)
     }
 
     // todo exclude lights from AABB calculations for thumbnails?

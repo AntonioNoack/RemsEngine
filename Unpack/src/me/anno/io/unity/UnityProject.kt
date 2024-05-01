@@ -77,7 +77,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 folder.hide()
                 files[guid] = folder
                 when (guidObject.lcExtension) {
-                    in AssetThumbHelper.unityExtensions -> {
+                    in AssetThumbHelper.unityExtensions1 -> {
                         val node = getYAML(guidObject)
                         parse(node, guid, folder)
                     }
