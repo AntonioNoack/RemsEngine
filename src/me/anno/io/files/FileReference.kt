@@ -22,10 +22,6 @@ import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.nio.ByteBuffer
 
-// todo when a file is changed, all inner files based on that need to be invalidated (editor only)
-// done when a file is changed, the metadata of it needs to be invalidated
-// idk only allocate each inner file once: create a static store of weak references
-
 /**
  * doesn't call toLowerCase() for each comparison,
  * so it's hopefully a lot faster
@@ -117,8 +113,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an input stream;
      * should be buffered for better performance
      * */
-    abstract fun inputStream(lengthLimit: Long, callback: Callback<InputStream>)
-    fun inputStream(callback: Callback<InputStream>) = inputStream(Long.MAX_VALUE, callback)
+    abstract fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>)
+    fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) = inputStream(lengthLimit, true, callback)
+    fun inputStream(callback: Callback<InputStream>) = inputStream(Long.MAX_VALUE, true, callback)
 
     /**
      * give access to an output stream;
@@ -150,10 +147,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun readTextSync(): String = readSync(::readText)
     open fun readByteBufferSync(native: Boolean): ByteBuffer = readSync { readByteBuffer(native, it) }
 
-    private fun <V> readSync(method: (Callback<V>) -> Unit): V {
+    private fun <V> readSync(reader: (Callback<V>) -> Unit): V {
         var e: Exception? = null
         var d: V? = null
-        method { it, exc ->
+        reader { it, exc ->
             e = exc
             d = it
         }
@@ -178,16 +175,20 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun readLines(lineLengthLimit: Int, callback: Callback<ReadLineIterator>) {
-        inputStream { it, exc ->
+        readLinesImpl(lineLengthLimit, true, callback)
+    }
+
+    open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
+        return readSync { readLinesImpl(lineLengthLimit, false, it) }
+    }
+
+    private fun readLinesImpl(lineLengthLimit: Int, closeStream: Boolean, callback: Callback<ReadLineIterator>) {
+        inputStream(Long.MAX_VALUE, closeStream) { it, exc ->
             if (it != null) {
                 val reader = it.bufferedReader()
                 callback.call(ReadLineIterator(reader, lineLengthLimit), null)
             } else callback.call(null, exc)
         }
-    }
-
-    open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
-        return readSync { readLines(lineLengthLimit, it) }
     }
 
     open fun writeFile(

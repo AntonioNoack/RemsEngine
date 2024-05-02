@@ -34,7 +34,7 @@ class Inner7zFile(
         override fun nextEntry(): SevenZArchiveEntry? = file.nextEntry
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         HeavyIterator.iterate(zipFile, object : IHeavyIterable<SevenZArchiveEntry, Iterate7z, ByteArray> {
             override fun openStream(source: FileReference) = Iterate7z(getZipStream())
             override fun hasInterest(stream: Iterate7z, item: SevenZArchiveEntry) =

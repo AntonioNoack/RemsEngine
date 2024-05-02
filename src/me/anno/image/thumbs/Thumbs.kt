@@ -173,7 +173,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
         val length = this.length()
         val baseHash = lastModified xor (454781903L * length)
         if (!isDirectory && length > 0) {
-            inputStream(hashReadLimit.toLong()) { reader, _ ->
+            inputStream(hashReadLimit.toLong(), true) { reader, _ ->
                 if (reader != null) {
                     val sampleBytes = reader.readNBytes2(hashReadLimit, false)
                     callback(CRC64.update(sampleBytes, 0, sampleBytes.size, baseHash))

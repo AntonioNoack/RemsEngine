@@ -27,7 +27,7 @@ class BundledRef(
         return zfd?.getChild(name) ?: parse(appendPath(absolutePath, name))
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         // needs to be the same package
         val stream = javaClass.classLoader.getResourceAsStream(resName)
         callback.call(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)

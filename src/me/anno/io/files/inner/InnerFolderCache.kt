@@ -17,8 +17,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
 
-    // todo read compressed exe files?
-
     // done display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 

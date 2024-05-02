@@ -11,6 +11,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.io.files.FileReference
+import me.anno.io.files.ReadLineIterator
 import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.InternalAPI
@@ -71,52 +72,58 @@ object TextThumbnails {
         val maxLineLength = maxLineCount * 5 / 2
         srcFile.readLines(maxLineLength) { itr, exc ->
             exc?.printStackTrace()
-            if (itr != null) {
-                var lines = itr
-                    .subList(0, maxLineCount)
-                    .toMutableList()
-                if (itr.hasNext()/*lines.size > maxLineCount*/) {
-                    lines = lines.subList(0, maxLineCount)
-                    lines[lines.lastIndex] = "..."
-                }
-                itr.close()
-                // remove empty lines at the end
-                while (lines.isNotEmpty() && lines.last().isEmpty()) {
-                    lines.removeAt(lines.lastIndex)
-                }
-                if (lines.isNotEmpty()) {
-                    val length = lines.maxOf { it.length }
-                    if (length > 0) {
-                        val sx = DrawTexts.monospaceFont.sampleWidth
-                        val sy = DrawTexts.monospaceFont.sizeInt
-                        val w = (length + 1) * sx
-                        val h = (lines.size + 1) * sy
-                        GFX.addGPUTask("textThumbs", w, h) {
-                            val transform = GFXx2D.transform
-                            transform.identity().scale(1f, -1f, 1f)
-                            val tex = Texture2D("textThumbs", w, h, 1)
-                            tex.create(TargetType.UInt8x3)
-                            GFXState.useFrame(tex, 0) {
-                                val tc = Color.black
-                                val bg = -1
-                                it.clearColor(bg)
-                                val x = sx.shr(1)
-                                for (yi in lines.indices) {
-                                    val line = lines[yi].trimEnd()
-                                    if (line.isNotEmpty()) {
-                                        val y = yi * sy + sy.shr(1)
-                                        DrawTexts.drawSimpleTextCharByChar(
-                                            x, y, 1, line, tc, bg
-                                        )
-                                    }
-                                }
-                            }
-                            transform.identity()
-                            callback.ok(tex)
-                        }
-                    }
+            val lines = getLines(itr, maxLineCount)
+            val length = lines.maxOfOrNull { it.length } ?: 0
+            if (length > 0) {
+                val sx = DrawTexts.monospaceFont.sampleWidth
+                val sy = DrawTexts.monospaceFont.sizeInt
+                val w = (length + 1) * sx
+                val h = (lines.size + 1) * sy
+                GFX.addGPUTask("textThumbs", w, h) {
+                    generateImage(lines, w, h, sx, sy, callback)
                 }
             }
         }
+    }
+
+    private fun generateImage(lines: List<String>, w: Int, h: Int, sx: Int, sy: Int, callback: Callback<ITexture2D>){
+        val transform = GFXx2D.transform
+        transform.identity().scale(1f, -1f, 1f)
+        val tex = Texture2D("textThumbs", w, h, 1)
+        tex.create(TargetType.UInt8x3)
+        GFXState.useFrame(tex, 0) {
+            val tc = Color.black
+            val bg = -1
+            it.clearColor(bg)
+            val x = sx.shr(1)
+            for (yi in lines.indices) {
+                val line = lines[yi].trimEnd()
+                if (line.isNotEmpty()) {
+                    val y = yi * sy + sy.shr(1)
+                    DrawTexts.drawSimpleTextCharByChar(
+                        x, y, 1, line, tc, bg
+                    )
+                }
+            }
+        }
+        transform.identity()
+        callback.ok(tex)
+    }
+
+    private fun getLines(itr: ReadLineIterator?, maxLineCount: Int): List<String> {
+        if (itr == null) return emptyList()
+        var lines = itr
+            .subList(0, maxLineCount)
+            .toMutableList()
+        if (itr.hasNext()/*lines.size > maxLineCount*/) {
+            lines = lines.subList(0, maxLineCount)
+            lines[lines.lastIndex] = "..."
+        }
+        itr.close()
+        // remove empty lines at the end
+        while (lines.isNotEmpty() && lines.last().isEmpty()) {
+            lines.removeAt(lines.lastIndex)
+        }
+        return lines
     }
 }

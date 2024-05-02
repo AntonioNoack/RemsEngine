@@ -1,4 +1,4 @@
-package me.anno.tests.files
+package me.anno.tests.tools
 
 import me.anno.image.ImageCache
 import me.anno.image.ImageScale.scaleMax

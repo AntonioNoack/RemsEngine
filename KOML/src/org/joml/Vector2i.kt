@@ -86,6 +86,9 @@ open class Vector2i(
         return (abs(x - this.x) + abs(y - this.y)).toLong()
     }
 
+    fun dot(ox: Int, oy: Int): Long = x * ox.toLong() + y * oy.toLong()
+    fun dot(other: Vector2i): Long = dot(other.x, other.y)
+
     @JvmOverloads
     fun add(v: Vector2i, dst: Vector2i = this) = dst.set(x + v.x, y + v.y)
 

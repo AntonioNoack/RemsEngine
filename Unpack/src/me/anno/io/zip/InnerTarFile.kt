@@ -40,7 +40,7 @@ class InnerTarFile(
         override fun nextEntry(): ArchiveEntry? = file.nextEntry
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         HeavyIterator.iterate(zipFile, object : IHeavyIterable<ArchiveEntry, ZipArchiveIterator, ByteArray> {
             override fun openStream(source: FileReference) = ZipArchiveIterator(getZipStream())
             override fun closeStream(source: FileReference, stream: ZipArchiveIterator) = stream.file.close()

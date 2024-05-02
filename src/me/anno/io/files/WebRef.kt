@@ -81,7 +81,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         return WebRef("$basePath/$name", emptyMap())
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         thread(name = "WebRef") {
             callback.ok(inputStreamSync())
         }

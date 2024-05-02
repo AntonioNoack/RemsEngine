@@ -30,7 +30,7 @@ class InnerZipFile(
 
     override fun length(): Long = size
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         HeavyAccess.access(zipSource, object : IHeavyAccess<ZipFile> {
 
             override fun openStream(source: FileReference, callback: Callback<ZipFile>) =

@@ -8,8 +8,9 @@ import java.io.InputStream
 
 object FileRootRef : FileReference("root") {
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) =
-        throw IOException()
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
+        callback.err(IOException("Cannot open root as stream"))
+    }
 
     override fun outputStream(append: Boolean) = throw IOException()
 

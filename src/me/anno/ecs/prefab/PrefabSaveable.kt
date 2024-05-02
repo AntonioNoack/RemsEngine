@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.Inspectable
@@ -28,15 +29,17 @@ import kotlin.reflect.KClass
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     @SerializedProperty
-    var flags = ENABLED_FLAG or COLLAPSED_FLAG
+    var flags = 0 // default shall always be zero
 
+    @DebugProperty
     @NotSerializedProperty
     override var isEnabled: Boolean
-        get() = flags.hasFlag(ENABLED_FLAG)
+        get() = !flags.hasFlag(DISABLE_FLAG)
         set(value) {
-            flags = flags.withFlag(ENABLED_FLAG, value)
+            flags = flags.withFlag(DISABLE_FLAG, !value)
         }
 
+    @DebugProperty
     @NotSerializedProperty
     override var isCollapsed: Boolean
         get() = flags.hasFlag(COLLAPSED_FLAG)
@@ -324,7 +327,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     companion object {
 
-        const val ENABLED_FLAG = 1
+        const val DISABLE_FLAG = 1
         private const val COLLAPSED_FLAG = 2
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)

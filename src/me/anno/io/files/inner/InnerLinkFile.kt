@@ -34,7 +34,7 @@ class InnerLinkFile(
         get() = link.isSomeKindOfDirectory
 
     override fun inputStreamSync(): InputStream = link.inputStreamSync()
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) =
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) =
         link.inputStream(lengthLimit, callback)
 
     override fun readBytesSync(): ByteArray = link.readBytesSync()

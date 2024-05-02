@@ -63,7 +63,7 @@ abstract class InnerFile(
         markAsModified()
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         val bytes = data
         when {
             size <= 0 -> callback.call(EmptyInputStream, null)

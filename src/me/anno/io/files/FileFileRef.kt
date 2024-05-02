@@ -30,7 +30,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
     }
 
-    override fun inputStream(lengthLimit: Long, callback: Callback<InputStream>) {
+    override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
         var stream: InputStream? = null
         try {
             stream = inputStreamSync()
@@ -40,7 +40,9 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         } catch (e: Exception) {
             callback.err(e)
         } finally {
-            stream?.close()
+            if (closeStream) {
+                stream?.close()
+            }
         }
     }
 

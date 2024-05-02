@@ -13,13 +13,18 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
     NextEntryIterator<String>() {
 
     private val builder = StringBuilder()
+    private var hasReachedEnd = false
     fun readLine(): String? {
         builder.clear()
+        if (hasReachedEnd) {
+            return null
+        }
         while (true) {
             when (val c = reader.read()) {
                 -1 -> { // eof
+                    hasReachedEnd = true
                     reader.close()
-                    return null
+                    return builder.toString()
                 }
                 '\n'.code -> return builder.toString()
                 '\r'.code -> {}// ignored
@@ -45,9 +50,7 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
 
     override fun nextEntry(): String? {
         return try {
-            val line = readLine()
-            if (line == null) reader.close()
-            line
+            readLine()
         } catch (e: IOException) {
             reader.close()
             null

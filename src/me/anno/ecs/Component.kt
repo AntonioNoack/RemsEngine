@@ -16,7 +16,7 @@ import org.joml.Matrix4x3d
 abstract class Component : PrefabSaveable() {
 
     override var isEnabled: Boolean
-        get() = flags.hasFlag(ENABLED_FLAG)
+        get() = super.isEnabled
         set(value) {
             if (super.isEnabled != value) {
                 super.isEnabled = value
