@@ -369,9 +369,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         camera.fovOrthographic = renderView.radius.toFloat()
     }
 
-    override val className: String
-        get() = "ControlScheme"
-
     companion object {
         private val LOGGER = LogManager.getLogger(ControlScheme::class)
     }

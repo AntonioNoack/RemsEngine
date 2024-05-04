@@ -38,7 +38,4 @@ class SplineControlPoint : Component() {
         dst.width = width
         dst.height = height
     }
-
-    override val className: String get() = "SplineControlPoint"
-
 }

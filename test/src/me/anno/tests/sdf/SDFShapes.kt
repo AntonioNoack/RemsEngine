@@ -1,7 +1,6 @@
 package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.Reference.getReference
@@ -122,7 +121,6 @@ fun createShapesScene(): Entity {
  * */
 fun main() {
 
-    ECSRegistry.initMeshes()
     OfficialExtensions.initForTests()
 
     // todo bug: these elements cannot be properly clicked -> all have same clickId

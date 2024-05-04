@@ -81,8 +81,6 @@ open class SDFCylinder : SDFSmoothShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFCylinder"
-
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         const val sdCylinder = "" +

@@ -1,6 +1,9 @@
 package me.anno.io.xml.generic
 
+import me.anno.io.json.generic.JsonReader.Companion.isHex
+import me.anno.io.json.generic.JsonReader.Companion.toHex
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.IOException
@@ -247,15 +250,33 @@ open class XMLReader {
         if (first != 0) str.append(first.toChar())
         while (true) {
             when (val char = input.read()) {
-                '\\'.code -> {
-                    when (val second = input.read()) {
-                        else -> throw RuntimeException("Special character \\${second.toChar()} not yet implemented")
-                    }
-                }
+                '\\'.code -> str.append(readEscapeSequence(input))
                 '<'.code -> return str.toString()
                 -1 -> throw EOFException()
                 else -> str.append(char.toChar())
             }
+        }
+    }
+
+    private fun readEscapeSequence(input: InputStream): CharSequence {
+        return when (val second = input.read().toChar()) {
+            'n' -> "\n"
+            'r' -> "\r"
+            't' -> "\t"
+            '\'' -> "'"
+            '"' -> "\""
+            '\\' -> "\\"
+            'u', 'U' -> {
+                val a = input.read().toChar()
+                val b = input.read().toChar()
+                val c = input.read().toChar()
+                val d = input.read().toChar()
+                if (!isHex(a) || !isHex(b) || !isHex(c) || !isHex(d)) {
+                    throw IOException("Expected 4 hex characters after \\u")
+                }
+                toHex(a, b, c, d).joinChars()
+            }
+            else -> throw RuntimeException("Special character \\$second not yet implemented")
         }
     }
 

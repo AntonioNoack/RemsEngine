@@ -12,7 +12,6 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache.transformMesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.ECSTreeView
@@ -133,7 +132,6 @@ fun getBiome(hexagon: Hexagon): Biome {
 fun main() {
 
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     workspace = documents.getChild("RemsEngine/YandereSim")
 

@@ -127,7 +127,4 @@ class SDFHalfSpace() : DistanceMapper() {
         dst as SDFHalfSpace
         dst.plane = plane
     }
-
-    override val className: String get() = "SDFHalfSpace"
-
 }

@@ -102,6 +102,4 @@ class DecalMaterial : Material() {
             DecalShader(layers)
         }
     }
-
-    override val className: String get() = "DecalMaterial"
 }

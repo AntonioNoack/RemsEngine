@@ -118,8 +118,6 @@ open class QuickInputScriptComponent : QuickScriptComponent(), InputListener {
         dst.mouseWheelScript = mouseWheelScript
     }
 
-    override val className: String get() = "QuickInputScriptComponent"
-
     inline fun callBoolFunction(code: String, defines: (scope: LuaValue) -> Unit): Boolean {
         val func = getFunction1(code, defines)
         if (func.isnil()) return false

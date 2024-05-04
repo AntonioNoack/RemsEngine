@@ -112,26 +112,16 @@ abstract class History<V : Any> : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("nextInsertIndex", nextInsertIndex)
-        synchronized(states) {
-            if (states.isNotEmpty()) {
-                var previous = states[0]
-                if (saveCompressed(writer, previous, null)) {
-                    // save compressed
-                    for (i in 1 until states.size) {
-                        val instance = states[i]
-                        if (instance != previous) {
-                            saveCompressed(writer, instance, previous)
-                        }
-                        previous = instance
-                    }
-                } else {
-                    writer.writeSomething(null, "states", states, true)
-                }
+        if (states.isNotEmpty()) {
+            synchronized(states) {
+                saveStates(writer)
             }
         }
     }
 
-    open fun saveCompressed(writer: BaseWriter, instance: V, previousInstance: V?): Boolean = false
+    open fun saveStates(writer: BaseWriter) {
+        writer.writeSomething(null, "states", states, true)
+    }
 
     override val approxSize get() = 1_500_000_000
 

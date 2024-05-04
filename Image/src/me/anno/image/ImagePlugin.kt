@@ -73,6 +73,7 @@ class ImagePlugin : Plugin() {
         Thumbs.registerSignatures("qoi", ImageThumbnails::generateImage)
         Thumbs.registerSignatures("jpg", ::generateJPGFrame)
         Thumbs.registerSignatures("ico", ::generateICOFrame)
+        Thumbs.registerSignatures("xml", ::generateSVGFrame)
         Thumbs.registerFileExtensions("tga", ::generateTGAFrame)
         Thumbs.registerFileExtensions("ico", ::generateICOFrame)
         Thumbs.registerFileExtensions("svg", ::generateSVGFrame)

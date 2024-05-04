@@ -43,8 +43,6 @@ class ColorField(
         this.height = constSize
     }
 
-    override val className: String get() = "ColorPaletteEntry"
-
     var color: Int
         get() = palette.getColor(paletteX, paletteY)
         set(value) = palette.setColor(paletteX, paletteY, value)

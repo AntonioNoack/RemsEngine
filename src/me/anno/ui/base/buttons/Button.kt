@@ -57,7 +57,4 @@ open class Button(
         dst as Button
         dst.isSquare = isSquare
     }
-
-    override val className: String get() = "Button"
-
 }

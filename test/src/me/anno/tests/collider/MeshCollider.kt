@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -16,8 +15,6 @@ import org.joml.Quaterniond
 fun main() {
 
     OfficialExtensions.initForTests()
-
-    ECSRegistry.init()
 
     val mesh = OS.documents.getChild("redMonkey.glb")
     val meshCollider = MeshCollider()

@@ -20,7 +20,7 @@ class AudioRecording {
 
     val buffer = ByteBufferPool.allocateDirect(sampleRate / 2)
 
-    init {
+    fun init() {
 
         ALBase.check()
 

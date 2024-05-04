@@ -2,7 +2,6 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -25,7 +24,6 @@ import kotlin.math.abs
  * */
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
     @Suppress("SpellCheckingInspection")
     val samples = listOf(
         // path and ideal detection

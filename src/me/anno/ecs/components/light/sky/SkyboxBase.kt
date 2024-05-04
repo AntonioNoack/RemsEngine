@@ -100,8 +100,6 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         dst.worldRotation.set(worldRotation)
     }
 
-    override val className: String get() = "SkyboxBase"
-
     companion object {
         val mesh = Shapes.smoothCube.back
         val defaultShaderBase = SkyShaderBase("skyBase")

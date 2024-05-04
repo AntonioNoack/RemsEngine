@@ -77,6 +77,4 @@ class GenericConstraint : Constraint<Generic6DofConstraint>() {
         dst.lowerAngleLimit.set(lowerAngleLimit)
         dst.upperAngleLimit.set(upperAngleLimit)
     }
-
-    override val className: String get() = "GenericConstraint"
 }

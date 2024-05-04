@@ -24,13 +24,7 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
         fun ensureClasses() {
             if ("Entity" !in Saveable.objectTypeRegistry) {
                 LOGGER.warn("Please call ECSRegistry.init() yourself!")
-                ECSRegistry.initMeshes()
-            }
-        }
-
-        fun ensureMeshClasses() {
-            if ("Entity" !in Saveable.objectTypeRegistry) {
-                ECSRegistry.initMeshes()
+                ECSRegistry.init()
             }
         }
     }
@@ -69,6 +63,7 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
         }
         ensureClasses()
         getPrefabInstanceAsync(ref, maxPrefabDepth) { instance, err ->
+            err?.printStackTrace()
             val value = castInstance(instance, ref)
             lru[ref] = value
             callback.ok(value)

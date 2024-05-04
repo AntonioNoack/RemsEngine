@@ -83,8 +83,6 @@ open class SDFBox : SDFSmoothShape() {
         dst.halfExtends.set(halfExtends)
     }
 
-    override val className: String get() = "SDFBox"
-
     companion object {
 
         fun sdBox(px: Float, py: Float, pz: Float, hx: Float, hy: Float, hz: Float): Float {

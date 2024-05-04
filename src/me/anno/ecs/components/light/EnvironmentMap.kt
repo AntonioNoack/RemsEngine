@@ -161,8 +161,6 @@ class EnvironmentMap : LightComponentBase() {
         // todo create irradiance mipmaps: blur & size down, just like bloom
     }
 
-    override val className: String get() = "EnvironmentMap"
-
     companion object {
 
         private val tmpV3 = Vector3d()

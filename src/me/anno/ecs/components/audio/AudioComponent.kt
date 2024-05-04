@@ -77,7 +77,4 @@ class AudioComponent : AudioComponentBase() {
         }
         return 1
     }
-
-    override val className: String get() = "AudioComponent"
-
 }

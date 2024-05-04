@@ -719,8 +719,6 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     // multiple elements can be selected
     override fun getMultiSelectablePanel() = this
 
-    override val className: String get() = "FileExplorer"
-
     companion object {
 
         var rightClickedFiles: Set<FileReference> = emptySet()

@@ -172,8 +172,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         } else false
     }
 
-    override val className: String get() = "CustomContainer"
-
     companion object {
 
         private val crossPath = getReference("res://textures/Cross.png")

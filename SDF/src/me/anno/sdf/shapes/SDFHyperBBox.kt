@@ -106,8 +106,6 @@ class SDFHyperBBox : SDFHyperCube() {
         dst.dynamicThickness = dynamicThickness
     }
 
-    override val className: String get() = "SDFHyperBBox"
-
     companion object {
         const val boundingBoxSDF4 = "" +
                 "float sdBoundingBox4(vec3 k, vec3 r, float w, vec4 b, float e){\n" +

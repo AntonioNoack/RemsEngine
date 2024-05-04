@@ -26,8 +26,7 @@ class AutoRefTest {
     @Test
     fun test() {
 
-        ECSRegistry.initMeshes()
-        ECSRegistry.initPrefabs()
+        ECSRegistry.init()
 
         val scene = createScene()
 

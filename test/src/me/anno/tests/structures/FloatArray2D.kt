@@ -33,7 +33,6 @@ fun main() {
 
         override fun isDefaultValue(): Boolean = false
         override val approxSize get() = -1
-        override val className get() = ""
     })
 
     val mesh = Mesh()

@@ -101,7 +101,4 @@ class SDFRandomRotation : SDFRandom() {
         dst.minAngleDegrees = minAngleDegrees
         dst.maxAngleDegrees = maxAngleDegrees
     }
-
-    override val className: String get() = "SDFRandomRotation"
-
 }

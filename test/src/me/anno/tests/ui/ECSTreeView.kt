@@ -7,7 +7,7 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 
 fun main() {
     disableRenderDoc()
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     val sample = Entity("Root")
     sample.add(Entity("Child 1")) // added before taking reference
     sample.add(Entity("Child 2")) // added before taking reference

@@ -86,6 +86,4 @@ class AnimController : Component() {
         dst as AnimController
         dst.graphSource = graphSource
     }
-
-    override val className: String get() = "AnimController"
 }

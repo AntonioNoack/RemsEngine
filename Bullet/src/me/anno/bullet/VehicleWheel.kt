@@ -172,6 +172,4 @@ class VehicleWheel : Component() {
         dst.brakeForceMultiplier = brakeForceMultiplier
         dst.frictionSlip = frictionSlip
     }
-
-    override val className: String get() = "VehicleWheel"
 }

@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
-import me.anno.ecs.components.mesh.ImageComponent
+import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.Path
@@ -16,7 +16,6 @@ import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.inner.InnerFolderCache.imageFormats
 import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
@@ -40,17 +39,18 @@ object PrefabCache : CacheSection("Prefab") {
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
     operator fun get(resource: FileReference?, async: Boolean): Prefab? =
-        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async))
+        pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async), async)
 
     operator fun get(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
         timeout: Long = prefabTimeout,
         async: Boolean = false
-    ): Prefab? = pairToPrefab(getPrefabPair(resource, depth, timeout, async))
+    ): Prefab? = pairToPrefab(getPrefabPair(resource, depth, timeout, async), async)
 
-    private fun pairToPrefab(pair: FileReadPrefabData?): Prefab? {
+    private fun pairToPrefab(pair: FileReadPrefabData?, async: Boolean): Prefab? {
         pair ?: return null
+        if (!async) pair.waitFor()
         val prefab = pair.prefab
         if (prefab != null) return prefab
         val instance = pair.instance
@@ -170,7 +170,7 @@ object PrefabCache : CacheSection("Prefab") {
             callback(file.readPrefab(), null)
             return
         }
-        if ("Prefab" !in Saveable.objectTypeRegistry) ECSRegistry.initPrefabs()
+        ECSRegistry.init()
         Signature.findName(file) { signature ->
             when (signature) {
                 "json" -> {
@@ -214,7 +214,7 @@ object PrefabCache : CacheSection("Prefab") {
                 }
                 else -> {
                     if (signature in imageFormats1 || signature == "gimp" || signature == "webp") {
-                        callback(ImageComponent(file), null)
+                        callback(ImagePlane(file), null)
                     } else loadPrefabFromFolder(file, callback)
                 }
             }
@@ -313,7 +313,8 @@ object PrefabCache : CacheSection("Prefab") {
             data.value = loaded
             if (loaded != null) FileWatch.addWatchDog(file)
             if (debugLoading) LOGGER.info(
-                "Loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${hash32(loaded)}"
+                "Loaded ${file.absolutePath.shorten(200)}, " +
+                        "got ${loaded?.className}@${hash32(loaded)}"
             )
             e?.printStackTrace()
         }

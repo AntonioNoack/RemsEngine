@@ -42,9 +42,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @DebugProperty
     @NotSerializedProperty
     override var isCollapsed: Boolean
-        get() = flags.hasFlag(COLLAPSED_FLAG)
+        get() = !flags.hasFlag(NOT_COLLAPSED_FLAG)
         set(value) {
-            flags = flags.withFlag(COLLAPSED_FLAG, value)
+            flags = flags.withFlag(NOT_COLLAPSED_FLAG, !value)
         }
 
     /**
@@ -328,7 +328,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     companion object {
 
         const val DISABLE_FLAG = 1
-        private const val COLLAPSED_FLAG = 2
+        private const val NOT_COLLAPSED_FLAG = 2
 
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {

@@ -82,6 +82,4 @@ open class FlowGraph : Graph() {
     fun getValue(input: NodeInput): Any? {
         return input.getValue()
     }
-
-    override val className: String get() = "FlowGraph"
 }

@@ -7,7 +7,4 @@ import me.anno.network.TCPClient
 class RemotePlayer : Player() {
     // would be defined on a server
     var connection: TCPClient? = null
-
-    override val className: String get() = "RemotePlayer"
-
 }

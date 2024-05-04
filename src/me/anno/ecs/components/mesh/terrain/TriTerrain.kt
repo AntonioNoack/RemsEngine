@@ -310,7 +310,4 @@ class TriTerrain : Component(), CustomEditMode {
         // copy or clone the data?
         // todo copy everything
     }
-
-    override val className: String get() = "TriTerrain"
-
 }

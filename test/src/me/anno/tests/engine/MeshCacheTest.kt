@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
@@ -12,7 +11,6 @@ import me.anno.utils.OS.documents
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
     // normals look broken, maybe scaled incorrectly???
     // transforms were broken -> is now fixed :)
     workspace = documents.getChild("RemsEngine/YandereSim")

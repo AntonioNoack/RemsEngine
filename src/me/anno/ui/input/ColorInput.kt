@@ -236,8 +236,6 @@ open class ColorInput(
         dst.setResetListener(contentView.resetListener)
     }
 
-    override val className: String get() = "ColorInput"
-
     companion object {
 
         fun pickColor(windowStack: WindowStack, style: Style, colorCallback: (Int) -> Unit) {

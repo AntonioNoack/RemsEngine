@@ -56,6 +56,4 @@ class RaycastTestComponent : Component() {
         dst.colliderMask = colliderMask
         dst.maxDistance = maxDistance
     }
-
-    override val className: String get() = "RaycastTest"
 }

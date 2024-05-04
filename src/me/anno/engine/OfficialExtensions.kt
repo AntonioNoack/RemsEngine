@@ -30,5 +30,6 @@ object OfficialExtensions {
     fun initForTests() {
         register()
         ExtensionLoader.load()
+        ECSRegistry.init()
     }
 }

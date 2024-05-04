@@ -3,7 +3,6 @@ package me.anno.tests.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
@@ -21,7 +20,6 @@ fun main() {
     // todo UI is invisible.. why???
 
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     // index sample project
     val folder = documents.getChild("RemsEngine/YandereSim")

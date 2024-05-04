@@ -116,6 +116,4 @@ class Camera : Component() {
         dst.far = far
         dst.fovY = fovY
     }
-
-    override val className: String get() = "Camera"
 }

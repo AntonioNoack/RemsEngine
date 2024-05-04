@@ -126,7 +126,4 @@ class BooleanInput(
         dst.isSelectedListener = isSelectedListener
         dst.value = value
     }
-
-    override val className: String get() = "BooleanInput"
-
 }

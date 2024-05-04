@@ -35,6 +35,4 @@ class TriplanarMaterial : Material() {
         dst.blendPreferY = blendPreferY
         dst.primaryTiling.set(primaryTiling)
     }
-
-    override val className: String get() = "TriplanarMaterial"
 }

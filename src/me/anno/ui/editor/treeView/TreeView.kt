@@ -409,8 +409,6 @@ abstract class TreeView<V : Any>(
         } else super.onKeyTyped(x, y, key)
     }
 
-    override val className: String get() = "TreeView"
-
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(TreeView::class)

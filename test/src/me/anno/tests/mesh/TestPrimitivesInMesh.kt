@@ -6,14 +6,12 @@ import me.anno.ecs.EntityQuery.sumComponentsInChildren
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.tests.LOGGER
 import me.anno.utils.OS.downloads
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.initMeshes()
     val file = downloads.getChild("3d/blender_chan.glb")
     val obj = PrefabCache[file] ?: throw IllegalStateException("Missing $file")
     val entity = obj.getSampleInstance() as Entity

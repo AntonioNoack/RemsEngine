@@ -6,7 +6,6 @@ import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
@@ -16,7 +15,6 @@ fun main() {
     // load fbx with incorrect path -> how do we display it?
     // we showed it like we loaded it,
     // now we try to correct it by indexing all files from the same zip :)
-    ECSRegistry.initMeshes()
     val path = getReference("E:/Assets/Sources/POLYGON_War_Pack_Source_Files.zip/POLYGON_War_Demo_Scene.fbx/Scene.json")
     val scene = getPrefabInstance(path) as Entity
     val matCache = HashSet<FileReference>()

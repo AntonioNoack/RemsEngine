@@ -19,7 +19,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
  * */
 
 fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.obj")): Panel {
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     EditorState.prefabSource = meshRef
     val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderer

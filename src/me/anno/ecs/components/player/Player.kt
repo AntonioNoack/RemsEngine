@@ -46,6 +46,4 @@ open class Player : Component() {
         dst.persistentInfo.clear()
         dst.persistentInfo.putAll(persistentInfo)
     }
-
-    override val className: String get() = "Player"
 }

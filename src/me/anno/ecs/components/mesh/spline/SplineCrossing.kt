@@ -259,7 +259,4 @@ class SplineCrossing : ProceduralMesh() {
         mesh.color0 = colors
         return mesh
     }
-
-    override val className: String get() = "SplineCrossing"
-
 }

@@ -29,7 +29,7 @@ fun main() {
     testUI("NavMeshSmall") {
 
         EngineBase.enableVSync = false
-        ECSRegistry.initMeshes()
+        ECSRegistry.init()
 
         val mask = 1 shl 16
         val world = Entity("World")

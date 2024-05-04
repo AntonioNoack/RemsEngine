@@ -266,7 +266,4 @@ class MessagePacket : Packet("MSG") {
             client.instance.messageLength += message.length
         }
     }
-
-    override val className: String
-        get() = "MessagePacket"
 }

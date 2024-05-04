@@ -163,8 +163,6 @@ open class Skybox : SkyboxBase() {
         dst.sunSpeed.set(sunSpeed)
     }
 
-    override val className: String get() = "Skybox"
-
     companion object {
 
         val defaultShader = SkyShader("skybox")

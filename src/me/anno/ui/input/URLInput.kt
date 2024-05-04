@@ -117,8 +117,6 @@ open class URLInput(
         } else super.onPasteFiles(x, y, files)
     }
 
-    override val className: String get() = "URLInput"
-
     companion object {
         private val LOGGER = LogManager.getLogger(URLInput::class)
     }

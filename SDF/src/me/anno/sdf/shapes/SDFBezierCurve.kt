@@ -155,8 +155,6 @@ class SDFBezierCurve : SDFShape() {
         dst.points = Array(points.size) { Vector4f(points[it]) }.toMutableList() as ArrayList<Vector4f>
     }
 
-    override val className: String get() = "SDFBezierCurve"
-
     companion object {
 
         val functions = HashMap<Int, String>()

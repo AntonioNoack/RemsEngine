@@ -45,6 +45,4 @@ class MoveAnimation(
             else -> super.setProperty(name, value)
         }
     }
-
-    override val className: String get() = "UIMoveAnimation"
 }

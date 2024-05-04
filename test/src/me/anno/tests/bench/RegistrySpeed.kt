@@ -9,8 +9,7 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     LogManager.disableLogger("Saveable")
     val clock = Clock()
-    OfficialExtensions.initForTests()
-    ECSRegistry.init() // ~2s
+    OfficialExtensions.initForTests() // ~1.6s
     clock.stop("First Time")
     ECSRegistry.hasBeenInited = false
     ECSRegistry.init() // ~0.01s

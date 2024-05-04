@@ -33,6 +33,4 @@ open class NumberInputComponent(val visibilityKey: String, style: Style) :
         copyInto(clone)
         return clone
     }
-
-    override val className = "NumberInputComponent"
 }

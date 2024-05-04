@@ -97,8 +97,6 @@ open class SDFPyramid : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFPyramid"
-
     companion object {
         const val sdPyramid = "" +
                 // not perfect, but better than the hollow pyramid from Inigo Quilez' page

@@ -6,7 +6,6 @@ import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
@@ -16,7 +15,6 @@ import org.apache.logging.log4j.LogManager
 fun main() {
 
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     LogManager.enableLogger("AnimatedMeshesLoader")
     val project = OS.documents.getChild("RemsEngine/YandereSim")

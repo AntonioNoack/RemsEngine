@@ -200,7 +200,4 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
         dst.maxRows = maxRows
         dst.isY = isY
     }
-
-    override val className: String
-        get() = "PanelList2D"
 }

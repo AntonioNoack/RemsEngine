@@ -1,6 +1,7 @@
 package me.anno.io.json.generic
 
 import me.anno.io.xml.ComparableStringBuilder
+import me.anno.utils.types.Strings.joinChars
 import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.IOException
@@ -11,6 +12,28 @@ import java.io.InputStream
  * this has no reflection support, so it is safe to use (except for OutOfMemoryError), but you have to implement the mapping yourself
  * */
 open class JsonReader(val data: InputStream) {
+
+    companion object {
+        fun isHex(c: Char): Boolean {
+            return c in '0'..'9' || c in 'A'..'F' || c in 'a'..'f'
+        }
+
+        fun toHex(c: Char): Int {
+            return when (c) {
+                in '0'..'9' -> c.code - 48
+                in 'a'..'f' -> c.code - 'a'.code + 10
+                else -> c.code - 'A'.code + 10
+            }
+        }
+
+        fun toHex(c: Char, d: Char): Int {
+            return toHex(c).shl(4) or toHex(d)
+        }
+
+        fun toHex(a: Char, b: Char, c: Char, d: Char): Int {
+            return toHex(a, b).shl(8) or toHex(c, d)
+        }
+    }
 
     constructor(data: ByteArray) : this(ByteArrayInputStream(data))
     constructor(data: String) : this(data.encodeToByteArray())
@@ -69,9 +92,10 @@ open class JsonReader(val data: InputStream) {
                             val b = next()
                             val c = next()
                             val d = next()
-                            if (!isHex(a) || !isHex(b) || !isHex(c) || !isHex(d))
+                            if (!isHex(a) || !isHex(b) || !isHex(c) || !isHex(d)) {
                                 throw JsonFormatException("Expected 4 hex characters after \\u")
-                            builder.append((toHex(a, b).shl(8) + toHex(c, d)).toChar())
+                            }
+                            builder.append(toHex(a, b, c, d).joinChars())
                         }
                         else -> throw RuntimeException("Unknown escape sequence \\$next1")
                     }
@@ -80,22 +104,6 @@ open class JsonReader(val data: InputStream) {
                 else -> builder.append(next0)
             }
         }
-    }
-
-    private fun isHex(c: Char): Boolean {
-        return c in '0'..'9' || c in 'A'..'F' || c in 'a'..'f'
-    }
-
-    private fun toHex(c: Char): Int {
-        return when (c) {
-            in '0'..'9' -> c.code - 48
-            in 'a'..'f' -> c.code - 'a'.code + 10
-            else -> c.code - 'A'.code + 10
-        }
-    }
-
-    private fun toHex(c: Char, d: Char): Int {
-        return toHex(c) * 4 + toHex(d)
     }
 
     fun skipString() {

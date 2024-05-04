@@ -375,8 +375,6 @@ open class AnimMeshComponent : MeshComponent() {
         dst.currWeights.set(currWeights)
     }
 
-    override val className: String get() = "AnimMeshComponent"
-
     companion object {
 
         val tmpMapping0 = createArrayList(256) { Matrix4x3f() }

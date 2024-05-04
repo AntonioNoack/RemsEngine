@@ -245,8 +245,6 @@ class PlanarReflection : LightComponentBase() {
         dst.far = far
     }
 
-    override val className: String get() = "PlanarReflection"
-
     companion object {
 
         val fullCubeBounds = AABBf(

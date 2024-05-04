@@ -142,7 +142,4 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         dst.base.placeholder = base.placeholder
         dst.base.backgroundColor = base.backgroundColor
     }
-
-    override val className: String get() = "TextInput"
-
 }

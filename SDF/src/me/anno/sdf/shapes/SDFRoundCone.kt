@@ -118,8 +118,6 @@ open class SDFRoundCone : SDFShape() {
         dst.helpers.set(helpers)
     }
 
-    override val className: String get() = "SDFRoundCone"
-
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez
         const val sdRoundCone = "" +

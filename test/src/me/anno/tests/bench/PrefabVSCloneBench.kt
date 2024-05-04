@@ -3,7 +3,6 @@ package me.anno.tests.bench
 import me.anno.Build
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
@@ -16,7 +15,6 @@ fun main() {
     // -> usable slowdown :)
     Build.isShipped = true // 20% faster, because validation of duplicate names is skipped
     val clock = Clock()
-    ECSRegistry.initMeshes()
     val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf")]!!
     clock.benchmark(50, 10000, "Prefab.clone") { // this is 7x faster, 11µs/instance
         prefab.createInstance() // calls sampleInstance.clone() internally

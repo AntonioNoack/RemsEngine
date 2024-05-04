@@ -35,6 +35,4 @@ open class HSVBox(
             }
         } else super.onMouseMoved(x, y, dx, dy)
     }
-
-    override val className: String get() = "HSVBox"
 }

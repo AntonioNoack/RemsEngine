@@ -40,7 +40,4 @@ class Vehicle : Rigidbody() {
         dst.maxSuspensionTravelCm = maxSuspensionTravelCm
         dst.frictionSlip = frictionSlip
     }
-
-    override val className: String get() = "Vehicle"
-
 }

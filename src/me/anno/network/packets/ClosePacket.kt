@@ -45,8 +45,6 @@ open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
         }
     }
 
-    override val className: String get() = "ClosePacket"
-
     companion object {
         private val LOGGER = LogManager.getLogger(ClosePacket::class)
     }

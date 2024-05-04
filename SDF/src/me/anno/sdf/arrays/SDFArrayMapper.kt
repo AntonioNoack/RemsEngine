@@ -227,8 +227,6 @@ class SDFArrayMapper : PositionMapper() {
         dst.cellSize = cellSize
     }
 
-    override val className: String get() = "SDFArray"
-
     companion object {
 
         fun maxMod2(p: Float, s: Float, c: Int): Float {

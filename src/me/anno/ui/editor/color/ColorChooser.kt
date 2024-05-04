@@ -280,8 +280,6 @@ open class ColorChooser(
         dst.rgba.set(rgba)
     }
 
-    override val className: String get() = "ColorChooser"
-
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)
         var circleBarRatio = 0.2f

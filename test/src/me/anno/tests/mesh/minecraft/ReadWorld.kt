@@ -210,8 +210,7 @@ fun main() {
     val clock = Clock()
     val worker = ProcessingGroup("Chunks", 1f)
 
-    ECSRegistry.initPrefabs()
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
 
     // load a section of a Minecraft world
     val scene = Entity("Scene")

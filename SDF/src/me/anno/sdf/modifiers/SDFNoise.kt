@@ -149,8 +149,6 @@ class SDFNoise : DistanceMapper() {
         dst.frequency = frequency
     }
 
-    override val className: String get() = "SDFNoise"
-
     private fun sdfHash(n: Float) = fract(sin(n) * 753.5453123f)
 
     private fun smoothstep(x: Float) = x * x * (3f - 2f * x)

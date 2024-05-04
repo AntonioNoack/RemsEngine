@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayHit
@@ -87,7 +86,6 @@ fun main() {
     OfficialExtensions.initForTests()
     val clock = Clock()
     forceLoadRenderDoc()
-    ECSRegistry.initMeshes()
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
     clock.stop("Loading mesh")

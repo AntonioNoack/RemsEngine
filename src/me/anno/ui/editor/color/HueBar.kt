@@ -18,6 +18,4 @@ class HueBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
         val x = x0 + ((x1 - x0) * chooser.hue).roundToInt()
         drawRect(x, y0, 1, y1 - y0, black)
     }
-
-    override val className: String get() = "HueBar"
 }

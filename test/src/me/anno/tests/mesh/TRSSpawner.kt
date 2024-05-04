@@ -18,7 +18,7 @@ fun main() {
     // fixed:
     // - size was missing, so the pipeline wasn't drawn
     // - order of operations was incorrect
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     val transforms = Array(25) {
         val x = it % 5
         val y = it / 5

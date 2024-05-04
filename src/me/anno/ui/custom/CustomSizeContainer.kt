@@ -156,6 +156,4 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
             else -> super.getCursor()
         }
     }
-
-    override val className: String get() = "CustomSizeContainer"
 }

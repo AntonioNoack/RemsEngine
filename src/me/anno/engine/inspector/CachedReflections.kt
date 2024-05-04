@@ -312,10 +312,10 @@ class CachedReflections(
         fun getEnumId(value: Any): Int? {
             // todo why is this not saved as an input for nodes when cloning???
             return try {
-                value::class.java.getField("id").get(value) as? Int
+                value.javaClass.getField("id").get(value) as? Int
             } catch (ignored: NoSuchFieldException) {
                 try {
-                    value::class.java.getMethod("getId").invoke(value) as? Int
+                    value.javaClass.getMethod("getId").invoke(value) as? Int
                 } catch (ignored: NoSuchMethodException) {
                     null
                 }

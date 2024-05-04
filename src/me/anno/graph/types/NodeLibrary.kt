@@ -1,10 +1,7 @@
 package me.anno.graph.types
 
-import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.graph.EnumNode
 import me.anno.graph.Node
-import me.anno.graph.NodeInput
-import me.anno.graph.NodeOutput
 import me.anno.graph.render.ColorNode
 import me.anno.graph.render.GameTime
 import me.anno.graph.render.RandomNode
@@ -68,8 +65,6 @@ import me.anno.graph.types.flow.vector.RotateF3ZNode
 import me.anno.graph.types.flow.vector.SeparateVector2f
 import me.anno.graph.types.flow.vector.SeparateVector3f
 import me.anno.graph.types.flow.vector.SeparateVector4f
-import me.anno.graph.types.states.StateMachine
-import me.anno.io.Saveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
 
@@ -83,12 +78,6 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
 
     constructor(vararg nodes: () -> Node) :
             this(nodes.toList())
-
-    fun register() {
-        for (node in nodes) {
-            registerCustomClass(node)
-        }
-    }
 
     companion object {
 
@@ -176,14 +165,5 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { GameTime() },
             { RandomNode() },
         )
-
-        fun registerClasses() {
-            registerCustomClass(NodeInput())
-            registerCustomClass(NodeOutput())
-            registerCustomClass(AnimStateNode())
-            // cloning this is complicated, so let's use a real constructor
-            registerCustomClass { StateMachine() }
-            flowNodes.register()
-        }
     }
 }

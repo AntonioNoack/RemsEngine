@@ -205,9 +205,6 @@ abstract class UniqueMeshRenderer<Key>(
         }
     }
 
-    override val className: String
-        get() = "UniqueMeshRenderer"
-
     companion object {
         private val LOGGER = LogManager.getLogger(UniqueMeshRenderer::class)
     }

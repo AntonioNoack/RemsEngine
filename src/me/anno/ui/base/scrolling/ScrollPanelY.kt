@@ -202,6 +202,4 @@ open class ScrollPanelY(
         copyInto(clone)
         return clone
     }
-
-    override val className: String get() = "ScrollPanelY"
 }

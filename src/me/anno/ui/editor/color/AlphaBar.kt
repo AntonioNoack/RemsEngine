@@ -36,6 +36,4 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
         HSVBoxMain.drawColoredAlpha(x, y, width, height, chooser, width.toFloat() / height, 1f, true)
         drawRect(dragX, y0, 1, y1 - y0, black)
     }
-
-    override val className: String get() = "AlphaBar"
 }

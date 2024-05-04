@@ -58,9 +58,6 @@ class UVSphereMapper : PositionMapper(), UVMapper {
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {}
 
-    override val className: String
-        get() = "UVSphereMapper"
-
     companion object {
         private const val uvSphere = "" +
                 "vec2 uvSphere(vec3 pos){\n" +

@@ -70,7 +70,4 @@ class BoneAttachmentComponent() : Component() {
         dst.bone = bone
         dst.animMeshComponent = getInClone(animMeshComponent, dst)
     }
-
-    override val className: String
-        get() = "AttachToBoneComponent"
 }

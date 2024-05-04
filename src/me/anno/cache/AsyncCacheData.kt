@@ -49,7 +49,7 @@ open class AsyncCacheData<V> : ICacheData, Callback<V> {
     override fun toString(): String {
         val value = value
         return if (value == null) {
-            "AsyncCacheData<null>(${hashCode()},$hasValue)"
+            "AsyncCacheData<null>(#${hashCode()},$hasValue)"
         } else {
             @Suppress("UNNECESSARY_NOT_NULL_ASSERTION") // not unnecessary, because Intellij complains without it
             "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hashCode()},$hasValue)"

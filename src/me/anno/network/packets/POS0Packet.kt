@@ -79,7 +79,4 @@ open class POS0Packet : Packet {
             else -> super.setProperty(name, value)
         }
     }
-
-    override val className: String get() = "POS0Packet"
-
 }

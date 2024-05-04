@@ -93,6 +93,4 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         dst.textColor = textColor
         dst.focusTextColor = focusTextColor
     }
-
-    override val className: String get() = "SimpleTextPanel"
 }

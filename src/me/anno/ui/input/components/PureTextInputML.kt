@@ -811,6 +811,4 @@ open class PureTextInputML(style: Style) :
         dst.placeholder = placeholder
         dst.focusTextColor = focusTextColor
     }
-
-    override val className: String get() = "PureTextInputML"
 }

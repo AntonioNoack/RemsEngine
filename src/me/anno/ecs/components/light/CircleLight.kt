@@ -45,8 +45,6 @@ class CircleLight : LightComponent(LightType.CIRCLE) {
         dst.radius = radius
     }
 
-    override val className: String get() = "CircleLight"
-
     companion object {
         // todo calculate how much light shines by reflections
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {

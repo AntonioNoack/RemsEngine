@@ -44,6 +44,4 @@ open class OrbitControls : CameraController() {
         camTransform.localRotation = camTransform.localRotation.identity()
             .rotateZ(rotation.z.toDouble()) // correct place? probably :)
     }
-
-    override val className: String get() = "OrbitControls"
 }

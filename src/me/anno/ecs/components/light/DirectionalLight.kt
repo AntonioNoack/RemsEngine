@@ -95,8 +95,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         dst.cutoff = cutoff
     }
 
-    override val className: String get() = "DirectionalLight"
-
     companion object {
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +

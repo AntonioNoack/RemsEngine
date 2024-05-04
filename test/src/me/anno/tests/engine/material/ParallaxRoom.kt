@@ -1,9 +1,9 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
@@ -15,9 +15,9 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.documents
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -151,6 +151,7 @@ object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
             ).add(ShaderLib.quatRot).add(ShaderLib.brightness)
                 // .add(ShaderLib.parallaxMapping)
                 .add(ShaderLib.blendColor)
+                .add(RendererLib.getReflectivity)
         )
     }
 }
@@ -189,6 +190,9 @@ fun main() {
         diffuseMap = documents.getChild("ParallaxRoom.png")
         roomDepth.set(0.05f, 0.2f, 0.5f, 1f)
     }.ref, Material().apply {
+        indexOfRefraction = 1f // disable parallax
+        metallicMinMax.set(1f)
+        roughnessMinMax.set(0.01f)
         diffuseMap = documents.getChild("ParallaxRoom.png")
         pipelineStage = TRANSPARENT_PASS
         shader = PRGlassShader
@@ -197,8 +201,8 @@ fun main() {
     // create a little skyscraper :)
     val scene = Entity()
     val pillar = flatCube.scaled(Vector3f(pi, ph, pi)).front
-    fun add(pos: Vector3d, mesh: Mesh, y: Int): Entity {
-        val entity = Entity(scene)
+    fun add(pos: Vector3d, mesh: Mesh, y: Int, name: String, parent: Entity): Entity {
+        val entity = Entity(name, parent)
         entity.position = pos
         entity.rotation = entity.rotation.rotateY(y * PI / 2)
         entity.add(MeshComponent(mesh))
@@ -209,36 +213,38 @@ fun main() {
     }.ref
 
     val sp = 2.0 * (1.0 + pi)
+    val bars = Entity("Front", scene)
     for (r in 0 until 4) {
+        val side = Entity("Side[$r]", bars)
         for (x in -xi..xi) {
             val z = (xi + 0.5) * sp
             add(
-                Vector3d(x * sp, ph.toDouble(), z)
-                    .rotateY(r * PI / 2), window, r
+                Vector3d((x - 0.5) * sp, ph.toDouble(), z)
+                    .rotateY(r * PI / 2), pillar, r,
+                "Pillar[$x]", side
             )
             add(
-                Vector3d((x - 0.5) * sp, ph.toDouble(), z)
-                    .rotateY(r * PI / 2), pillar, r
+                Vector3d(x * sp, ph.toDouble(), z)
+                    .rotateY(r * PI / 2), window, r,
+                "Window[$x]", side
             )
         }
     }
 
-    // roof
     add(
         Vector3d(0.0, ph * 2.0, 0.0),
         PlaneModel.createPlane().apply {
             material = pillar.material
-        }, 0
+        }, 0, "Roof", scene
     ).setScale(sp * (xi + 0.5))
 
-    // street
     add(
         Vector3d(),
         PlaneModel.createPlane().apply {
             material = Material().apply {
                 diffuseBase.set(0.3f, 0.3f, 0.3f, 1f)
             }.ref
-        }, 0
+        }, 0, "Street", scene
     ).setScale(1.5 * sp * (xi + 0.5))
 
     testSceneWithUI("Parallax Room", scene)

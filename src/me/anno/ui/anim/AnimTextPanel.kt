@@ -257,8 +257,6 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         }
     }
 
-    override val className: String get() = "AnimTextPanel"
-
     companion object {
 
         fun limitFps(time: Float, fps: Float) =

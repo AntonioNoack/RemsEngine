@@ -179,6 +179,4 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
     }
-
-    override val className: String get() = "PanelListX"
 }

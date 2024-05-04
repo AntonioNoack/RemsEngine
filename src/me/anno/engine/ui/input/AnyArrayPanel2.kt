@@ -37,9 +37,6 @@ open class AnyArrayPanel2(title: String, visibilityKey: String, val childType: S
         }
     }
 
-    override val className: String
-        get() = "AnyArrayPanel2"
-
     class ArrayPanelProperty(
         val anyArrayPanel: AnyArrayPanel2,
         val value: Any?,

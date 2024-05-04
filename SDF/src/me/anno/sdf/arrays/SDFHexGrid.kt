@@ -114,8 +114,6 @@ class SDFHexGrid : PositionMapper() {
         dst.dynamicSize = dynamicSize
     }
 
-    override val className: String get() = "SDFHexGrid"
-
     // todo how can we implement limits properly? distance modifier, which uses hex grid size :)
     companion object {
         const val hexScaleX = 1.7320508f

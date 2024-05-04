@@ -249,6 +249,4 @@ open class MeshCollider() : Collider() {
         dst.margin = margin
         dst.meshTransform.set(meshTransform)
     }
-
-    override val className: String get() = "MeshCollider"
 }

@@ -30,12 +30,9 @@ object ExtensionLoader {
     lateinit var modsFolder: FileReference
 
     @JvmField
-    val managers = listOf(
-        ModManager, PluginManager
-    )
+    val managers = listOf(ModManager, PluginManager)
 
-    @JvmField
-    val internally = ArrayList<ExtensionInfo>()
+    private val internally = ArrayList<ExtensionInfo>()
 
     @JvmStatic
     fun load() {

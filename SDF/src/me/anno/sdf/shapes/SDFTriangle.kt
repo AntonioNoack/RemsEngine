@@ -96,8 +96,6 @@ open class SDFTriangle : SDFShape() {
         dst.c.set(c)
     }
 
-    override val className: String get() = "SDFTriangle"
-
     companion object {
 
         fun calculateDistSq(

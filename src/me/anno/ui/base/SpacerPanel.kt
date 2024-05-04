@@ -32,6 +32,4 @@ open class SpacerPanel(var sizeX: Int, var sizeY: Int, style: Style) :
         dst.sizeX = sizeX
         dst.sizeY = sizeY
     }
-
-    override val className: String get() = "SpacerPanel"
 }

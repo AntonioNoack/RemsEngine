@@ -145,7 +145,7 @@ fun main() {
     // return testFindingChunks(sphere)
     // return testFindingChunks2(sphere)
 
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
 
     testSceneWithUI("HexSphere MC/2", Entity(HSChunkLoader(sphere, world))) {
         it.renderer.orbitCenter.set(0.0, 1.0, 0.0)

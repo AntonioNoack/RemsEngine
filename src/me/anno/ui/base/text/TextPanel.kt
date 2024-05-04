@@ -390,8 +390,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
-    override val className: String get() = "TextPanel"
-
     companion object {
         @JvmField
         val i0 = IntArray(0)

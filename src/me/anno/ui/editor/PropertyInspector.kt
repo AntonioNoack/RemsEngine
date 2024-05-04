@@ -158,8 +158,6 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         invalidate()
     }
 
-    override val className: String get() = "PropertyInspector"
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(PropertyInspector::class)

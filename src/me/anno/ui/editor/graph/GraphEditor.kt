@@ -300,6 +300,4 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
     }
 
     override fun canDeleteNode(node: Node) = true
-
-    override val className: String get() = "GraphEditor"
 }

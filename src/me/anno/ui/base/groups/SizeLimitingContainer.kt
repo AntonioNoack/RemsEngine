@@ -39,6 +39,4 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
             else -> super.setProperty(name, value)
         }
     }
-
-    override val className: String get() = "SizeLimitingContainer"
 }

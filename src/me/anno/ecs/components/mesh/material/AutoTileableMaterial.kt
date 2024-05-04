@@ -51,6 +51,4 @@ class AutoTileableMaterial : PlanarMaterialBase() {
         dst as AutoTileableMaterial
         dst.anisotropic = anisotropic
     }
-
-    override val className: String get() = "AutoTileableMaterial"
 }

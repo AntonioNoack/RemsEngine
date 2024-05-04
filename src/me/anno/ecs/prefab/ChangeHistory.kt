@@ -6,7 +6,6 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
-import me.anno.io.Saveable
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.EngineBase
@@ -25,7 +24,7 @@ class ChangeHistory : StringHistory() {
 
     override fun apply(prev: String, curr: String) {
         if (prev == curr) return
-        if ("CAdd" !in Saveable.objectTypeRegistry) {
+        if ("CAdd" !in objectTypeRegistry) {
             ECSRegistry.init()
         }
 

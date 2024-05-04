@@ -67,6 +67,4 @@ open class Texture3DBTMaterial : Material() {
         dst.size.set(size)
         // texture cannot be simply copied
     }
-
-    override val className: String get() = "Texture3DBTMaterial"
 }

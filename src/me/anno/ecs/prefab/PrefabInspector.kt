@@ -20,6 +20,7 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
@@ -550,7 +551,7 @@ class PrefabInspector(var reference: FileReference) {
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
-        JsonStringWriter.save(prefab, reference, workspace)
+        reference.writeText(JsonFormatter.format(JsonStringWriter.toText(prefab, workspace)))
         addEvent(500) { restoreSelected(selected) }
     }
 

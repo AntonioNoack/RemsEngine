@@ -2,13 +2,12 @@ package me.anno.tests.bench
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.engine.ECSRegistry
-import me.anno.jvm.HiddenOpenGLContext
+import me.anno.engine.OfficialExtensions
+import me.anno.gpu.texture.TextureCache
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.thumbs.AssetThumbnails
-import me.anno.image.thumbs.Thumbs
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
@@ -19,9 +18,7 @@ fun main() {
     // benchmark reading blender files, so we can make it faster
     //  -> reading files is quick, takes only 0.15s for a 393 MB file, which is fine imo (2.6 GB/s)
     HiddenOpenGLContext.createOpenGL()
-    ECSRegistry.initPrefabs()
-    ECSRegistry.initMeshes()
-    ECSRegistry.initLights()
+    OfficialExtensions.initForTests()
     val clock = Clock()
     LogManager.disableLogger("BlenderShaderTree")
     LogManager.disableLogger("BlenderFile")

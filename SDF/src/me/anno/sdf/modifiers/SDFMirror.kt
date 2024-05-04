@@ -129,8 +129,6 @@ class SDFMirror() : PositionMapper() {
         dst.useBranch = useBranch
     }
 
-    override val className: String get() = "SDFMirror"
-
     companion object {
         fun Planef.normalize3(): Planef {
             val sq = sq(dirX, dirY, dirZ)

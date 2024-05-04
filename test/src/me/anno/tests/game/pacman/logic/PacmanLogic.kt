@@ -1,6 +1,7 @@
 package me.anno.tests.game.pacman.logic
 
 import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.sq
 import me.anno.utils.structures.Collections.crossMap
 import me.anno.utils.structures.lists.Lists.any2
 import org.joml.Vector2f
@@ -154,10 +155,10 @@ open class PacmanLogic {
         player.tick(dt)
     }
 
-    val collectDistance = 0.3f
+    val collectDistanceSq = sq(0.3f)
     private fun checkCollectibles() {
         collectables.removeIf { collectible ->
-            if (collectible.distance(player.position) < collectDistance) {
+            if (collectible.distanceSquared(player.position) < collectDistanceSq) {
                 player.points++
                 onCollect(collectible)
                 true
@@ -167,9 +168,9 @@ open class PacmanLogic {
 
    open fun onCollect(collectible: Vector2f) {}
 
-    val killDistance = 0.5f
+    val killDistanceSq = sq(0.5f)
     private fun checkDeath() {
-        val isKilled = enemies.any2 { it.position.distance(player.position) < killDistance }
+        val isKilled = enemies.any2 { it.position.distanceSquared(player.position) < killDistanceSq }
         if (isKilled && !player.wasKilled) {
             player.lives--
         }

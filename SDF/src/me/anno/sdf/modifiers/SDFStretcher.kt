@@ -149,7 +149,4 @@ class SDFStretcher() : PositionMapper() {
         dst.halfExtends = halfExtends
         dst.accurateInsides = accurateInsides
     }
-
-    override val className: String get() = "SDFStretcher"
-
 }

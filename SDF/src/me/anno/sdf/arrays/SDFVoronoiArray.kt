@@ -382,8 +382,6 @@ class SDFVoronoiArray : PositionMapper() {
         dst.max = max
     }
 
-    override val className: String get() = "SDFVoronoiArray"
-
     companion object {
 
         // inspired by https://www.shadertoy.com/view/ldl3W8, Inigo Quilez

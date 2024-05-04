@@ -1,6 +1,5 @@
 package me.anno.tests.sdf
 
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -10,7 +9,6 @@ import me.anno.sdf.shapes.SDFBox
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     val array = SDFArrayMapper()
     array.cellSize.set(2f)

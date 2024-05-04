@@ -222,6 +222,4 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         dst.leftBounce = leftBounce
         dst.rightBounce = rightBounce
     }
-
-    override val className: String get() = "PanelFlipper"
 }

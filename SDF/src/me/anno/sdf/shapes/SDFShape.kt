@@ -16,7 +16,7 @@ import me.anno.sdf.VariableCounter
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
-open class SDFShape : SDFComponent(), DCPaintable {
+abstract class SDFShape : SDFComponent(), DCPaintable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(SDFShape::class)

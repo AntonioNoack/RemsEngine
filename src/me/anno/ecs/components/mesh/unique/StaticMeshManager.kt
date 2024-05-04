@@ -114,9 +114,6 @@ class StaticMeshManager : Component(), Renderable {
         }
     }
 
-    override val className: String
-        get() = "StaticMeshManager"
-
     companion object {
         val attributes = listOf(
             // total size: 32 bytes

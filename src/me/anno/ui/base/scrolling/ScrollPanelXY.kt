@@ -292,8 +292,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return clone
     }
 
-    override val className: String get() = "ScrollPanelXY"
-
     companion object {
 
         val scrollSpeed by ConfigRef("ui.scroll.speed", 30f)

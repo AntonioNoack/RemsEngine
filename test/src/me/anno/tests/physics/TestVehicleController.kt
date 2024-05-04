@@ -69,6 +69,4 @@ class TestVehicleController : Component(), InputListener {
         dst.brake = brake
         dst.smoothing = smoothing
     }
-
-    override val className: String get() = "TestVehicleController"
 }

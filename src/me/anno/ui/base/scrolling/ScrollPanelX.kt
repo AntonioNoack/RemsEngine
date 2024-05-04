@@ -196,6 +196,4 @@ open class ScrollPanelX(
         copyInto(clone)
         return clone
     }
-
-    override val className: String get() = "ScrollPanelX"
 }

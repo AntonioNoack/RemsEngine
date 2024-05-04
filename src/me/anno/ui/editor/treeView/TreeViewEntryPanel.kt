@@ -273,6 +273,4 @@ class TreeViewEntryPanel<V : Any>(
 
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
-
-    override val className: String get() = "TreeViewEntryPanel"
 }

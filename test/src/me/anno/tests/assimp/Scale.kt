@@ -2,7 +2,6 @@ package me.anno.tests.assimp
 
 import me.anno.Engine
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.maths.Maths.pow
 import me.anno.tests.LOGGER
@@ -20,7 +19,6 @@ fun main() {
         // downloads.getChild("3d/BrainStem.glb"), // correct (from the beginning)
     )
 
-    ECSRegistry.initMeshes()
     for (file in files) {
         val bounds = MeshCache[file, false]!!.getBounds()
         if (bounds.volume > pow(50f, 3f)) {

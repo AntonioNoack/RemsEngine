@@ -128,8 +128,6 @@ class SDFTriangleGrid : PositionMapper() {
         dst.cellSize.set(cellSize)
     }
 
-    override val className: String get() = "SDFTriangleGrid"
-
     companion object {
         // extracted from https://www.shadertoy.com/view/WtfGDX
         const val sdTriangleArray = "" +

@@ -236,8 +236,6 @@ open class FileInput(
         return entry
     }
 
-    override val className: String get() = "FileInput"
-
     companion object {
         private val LOGGER = LogManager.getLogger(FileInput::class)
     }

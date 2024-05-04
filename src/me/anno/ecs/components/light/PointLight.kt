@@ -130,8 +130,6 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
-    override val className: String get() = "PointLight"
-
     companion object {
 
         val falloff = "pow(max(0.0,1.0/length(lightPos)-1.0),2.0)"

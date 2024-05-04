@@ -86,7 +86,4 @@ class CapsuleCollider : Collider() {
         dst.halfHeight = halfHeight
         dst.radius = radius
     }
-
-    override val className: String get() = "CapsuleCollider"
-
 }

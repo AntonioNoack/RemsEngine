@@ -40,6 +40,4 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
         copyInto(clone)
         return clone
     }
-
-    override val className: String get() = "LinkPanel"
 }

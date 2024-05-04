@@ -103,8 +103,6 @@ open class SDFHexPrism : SDFSmoothShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFHexPrism"
-
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         val magic = Vector3f(-0.8660254f, 0.5f, 0.57735f)

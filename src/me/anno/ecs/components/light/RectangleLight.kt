@@ -54,8 +54,6 @@ class RectangleLight : LightComponent(LightType.RECTANGLE) {
         dst.height = height
     }
 
-    override val className: String get() = "RectangleLight"
-
     companion object {
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +

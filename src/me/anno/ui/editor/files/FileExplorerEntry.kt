@@ -868,8 +868,6 @@ open class FileExplorerEntry(
         println("${Strings.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
     }
 
-    override val className: String get() = "FileEntry"
-
     companion object {
 
         private var lastVideoOrAudioRef: FileReference? = null

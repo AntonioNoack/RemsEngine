@@ -57,7 +57,7 @@ abstract class Extension {
     fun registerListener(listener: Any): Int {
         if (!isRunning) return 0
         var ctr = 0
-        for (method in listener::class.java.methods) {
+        for (method in listener.javaClass.methods) {
             if (Modifier.isPublic(method.modifiers) &&
                 !Modifier.isAbstract(method.modifiers)
             ) {
@@ -85,7 +85,7 @@ abstract class Extension {
 
     fun onEvent(event: Event) {
         if (event.isCancelled) return
-        val listeners = listeners[event::class.java] ?: return
+        val listeners = listeners[event.javaClass] ?: return
         for (data in listeners) {
             try {
                 data.method.invoke(data.listener, event)

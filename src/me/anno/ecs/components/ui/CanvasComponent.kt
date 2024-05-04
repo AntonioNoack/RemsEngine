@@ -308,8 +308,6 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         return findPanel { panel, x, y -> panel.onMouseClicked(x, y, button, long) }
     }
 
-    override val className: String get() = "CanvasComponent"
-
     companion object {
         // a small z value against z-fighting
         private const val z = .001f

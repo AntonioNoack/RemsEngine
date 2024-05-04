@@ -72,8 +72,6 @@ class SpotLight : LightComponent(LightType.SPOT) {
         dst.near = near
     }
 
-    override val className: String get() = "SpotLight"
-
     companion object {
 
         private val pyramidMesh = Mesh().apply {

@@ -34,7 +34,4 @@ class FurMaterial : Material() {
         shaderOverrides["hairSharpness"] = TypeValue(GLSLType.V1F) { hairSharpness }
         shader = FurShader
     }
-
-    override val className: String
-        get() = "FurMaterial"
 }

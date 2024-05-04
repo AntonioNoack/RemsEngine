@@ -106,7 +106,4 @@ open class SettingCategory private constructor(
     override fun addChild(child: PrefabSaveable) {
         content.addChild(child)
     }
-
-    override val className: String
-        get() = "SettingCategory"
 }

@@ -5,26 +5,30 @@ open class FileRegistry<Value> : IFileRegistry<Value> {
     override val readerByFileExtension = HashMap<String, Value>(64)
 
     override fun registerFileExtensions(fileExtensions: String, reader: Value) {
-        for (fileExtension in fileExtensions.split(',')) {
-            readerBySignature[fileExtension] = reader
-        }
+        register(fileExtensions, reader, readerByFileExtension)
     }
 
     override fun registerSignatures(signatures: String, reader: Value) {
-        for (signature in signatures.split(',')) {
-            readerBySignature[signature] = reader
+        register(signatures, reader, readerBySignature)
+    }
+
+    private fun register(keys: String, reader: Value, readerByKey: HashMap<String, Value>) {
+        for (key in keys.split(',')) {
+            readerByKey[key] = reader
         }
     }
 
     override fun unregisterSignatures(signatures: String) {
-        for (signature in signatures.split(',')) {
-            readerBySignature.remove(signature)
-        }
+        unregister(signatures, readerBySignature)
     }
 
     override fun unregisterFileExtensions(fileExtensions: String) {
-        for (fileExtension in fileExtensions.split(',')) {
-            readerByFileExtension.remove(fileExtension)
+        unregister(fileExtensions, readerByFileExtension)
+    }
+
+    private fun unregister(keys: String, readerByKey: HashMap<String, Value>) {
+        for (key in keys.split(',')) {
+            readerByKey.remove(key)
         }
     }
 }

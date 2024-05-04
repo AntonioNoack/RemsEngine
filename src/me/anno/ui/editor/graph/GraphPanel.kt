@@ -632,8 +632,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     open fun canDeleteNode(node: Node): Boolean = false
 
-    override val className: String get() = "GraphEditor"
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(GraphPanel::class)

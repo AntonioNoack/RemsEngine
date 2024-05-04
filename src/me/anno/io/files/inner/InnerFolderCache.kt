@@ -20,14 +20,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     // done display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
-    fun hasReaderForSignature(signature: String?): Boolean {
-        return signature in readerBySignature
-    }
-
-    fun hasReaderForFileExtension(lcExtension: String?): Boolean {
-        return lcExtension in readerByFileExtension
-    }
-
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
 
@@ -49,34 +41,40 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         return data?.value as? InnerFolder
     }
 
+    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
+        return readAsFolder(file, timeoutMillis, async)
+    }
+
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
-            val signature = Signature.findNameSync(file1)
-            val ext = file1.lcExtension
-            if (signature == "json" && ext == "json") null
-            else {
-                val data = AsyncCacheData<InnerFolder?>()
-                val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
-                val callback = { folder: InnerFolder?, ec: Exception? ->
-                    if (file1 is InnerFile) file1.folder = folder
-                    data.value = folder
-                    ec?.printStackTrace()
-                    if (folder != null) { // todo remove watch dog when unloading it?
-                        FileWatch.addWatchDog(file1)
-                    }
-                }
-                if (reader != null) {
-                    reader(file1, callback)
-                } else data.value = null
-                data
-            }
+            generate(file1)
         } as? AsyncCacheData<*>
+        if (!async && data != null) data.waitFor()
         return data?.value as? InnerFile
     }
 
-    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
-        return readAsFolder(file, timeoutMillis, async)
+    private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
+        val signature = Signature.findNameSync(file1)
+        val ext = file1.lcExtension
+        val data = AsyncCacheData<InnerFolder?>()
+        if (signature == "json" && ext == "json") {
+            data.value = null
+        } else {
+            val reader = getReader(signature, ext)
+            val callback = { folder: InnerFolder?, ec: Exception? ->
+                if (file1 is InnerFile) file1.folder = folder
+                data.value = folder
+                ec?.printStackTrace()
+                if (folder != null) { // todo remove watch dog when unloading it?
+                    FileWatch.addWatchDog(file1)
+                }
+            }
+            if (reader != null) {
+                reader(file1, callback)
+            } else data.value = null
+        }
+        return data
     }
 
     fun splitParent(name: String): Pair<String, String> {

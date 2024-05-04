@@ -117,8 +117,6 @@ class SDFRotSym : PositionMapper() {
         dst.slices = slices
     }
 
-    override val className: String get() = "SDFRotSym"
-
     companion object {
 
         const val invTau = (1.0 / TAU).toFloat()

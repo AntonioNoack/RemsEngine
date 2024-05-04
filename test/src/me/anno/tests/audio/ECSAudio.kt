@@ -3,7 +3,6 @@ package me.anno.tests.audio
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.audio.AudioComponentBase
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.music
@@ -11,7 +10,6 @@ import me.anno.utils.OS.music
 fun main() {
 
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     // test 2d and 3d audio in a scene:
     // - local speaker

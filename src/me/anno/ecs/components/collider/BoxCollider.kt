@@ -75,7 +75,4 @@ class BoxCollider : Collider() {
         } * winding
 
     }
-
-    override val className: String get() = "BoxCollider"
-
 }

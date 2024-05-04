@@ -384,7 +384,6 @@ class Prefab : Saveable {
         return newInstance
     }
 
-    override val className: String get() = "Prefab"
     override val approxSize get() = 1_000_000_096
 
     override fun isDefaultValue(): Boolean =

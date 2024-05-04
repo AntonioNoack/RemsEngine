@@ -14,8 +14,6 @@ class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
 
     var indexFromTop = 0
 
-    override val className: String get() = "ConsoleInput"
-
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "MoveUp" -> moveUp()

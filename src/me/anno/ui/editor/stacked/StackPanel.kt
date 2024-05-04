@@ -124,8 +124,4 @@ abstract class StackPanel(
 
     abstract fun onAddComponent(component: Inspectable, index: Int)
     abstract fun onRemoveComponent(component: Inspectable)
-
-    override val className: String get() = "StackPanel"
-
-
 }

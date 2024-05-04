@@ -132,7 +132,4 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         dst.speed = speed
         dst.animations.addAll(animations.map { it.clone() })
     }
-
-    override val className: String get() = "AnimContainer"
-
 }

@@ -87,7 +87,4 @@ class SDFCollider : Collider(), CustomBulletCollider {
         dst.isConvex = isConvex
         dst.margin = margin
     }
-
-    override val className: String get() = "SDFCollider"
-
 }

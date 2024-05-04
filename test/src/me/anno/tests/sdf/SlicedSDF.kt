@@ -10,7 +10,6 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.shapes.PlaneModel
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -46,7 +45,6 @@ fun main() {
     // https://panoskarabelas.com/posts/screen_space_shadows/
 
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
 
     // todo render dust, fog, modelled by SDF
     // doesn't work yet :/, and I get black flickering :(

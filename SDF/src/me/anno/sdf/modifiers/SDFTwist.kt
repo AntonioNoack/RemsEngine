@@ -161,8 +161,6 @@ class SDFTwist : PositionMapper() {
         dst.dynamicDestination = dynamicDestination
     }
 
-    override val className: String get() = "SDFTwist"
-
     companion object {
 
         private fun absEqualsOne(r: Float): Boolean {

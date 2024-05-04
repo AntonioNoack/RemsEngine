@@ -72,6 +72,4 @@ class SDFRandomTranslation : SDFRandom() {
         dst.minTranslation = minTranslation
         dst.maxTranslation = maxTranslation
     }
-
-    override val className: String get() = "SDFRandomTranslation"
 }

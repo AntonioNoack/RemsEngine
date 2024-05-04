@@ -14,7 +14,7 @@ import me.anno.utils.types.Arrays.resize
 import kotlin.math.max
 
 // todo video component? :D
-class ImageComponent() : ProceduralMesh() {
+class ImagePlane() : ProceduralMesh() {
 
     constructor(source: FileReference) : this() {
         this.source = source
@@ -120,7 +120,7 @@ class ImageComponent() : ProceduralMesh() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as ImageComponent
+        dst as ImagePlane
         dst.async = async
         dst.source = source
         dst.alignmentX = alignmentX
@@ -135,8 +135,6 @@ class ImageComponent() : ProceduralMesh() {
         }
         return 10
     }
-
-    override val className: String get() = "ImagePlane"
 
     companion object {
         val indices = intArrayOf(0, 2, 1, 0, 3, 2)

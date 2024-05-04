@@ -98,8 +98,4 @@ open class LookAtComponent : Component() {
         dst.tiltY = tiltY
         dst.tiltZ = tiltZ
     }
-
-    override val className: String
-        get() = "BillboardTransformer"
-
 }

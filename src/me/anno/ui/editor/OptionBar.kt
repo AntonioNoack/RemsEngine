@@ -112,8 +112,6 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         }
     }
 
-    override val className: String get() = "OptionBar"
-
     val majors = HashMap<String, Major>()
     private val keyListeners = ExtraKeyListeners()
 }

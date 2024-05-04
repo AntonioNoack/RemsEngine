@@ -9,8 +9,7 @@ import org.apache.logging.log4j.LogManager
 
 fun main() {
 
-    ECSRegistry.initPrefabs()
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
 
     // load and display animated Blender files correctly:
     // done:

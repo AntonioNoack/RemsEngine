@@ -449,8 +449,6 @@ open class Rigidbody : Component() {
         dst.gravity.set(gravity)
     }
 
-    override val className: String get() = "Rigidbody"
-
     companion object {
         val gravity0 = Vector3d(0.0, -9.81, 0.0)
 

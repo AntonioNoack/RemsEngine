@@ -13,36 +13,59 @@ abstract class StringHistory : History<String>() {
     private var deltaStart = 0
     private var deltaEnd = 0
 
+    private fun decodeA(value: Int) {
+        deltaStart = value
+        deltaEnd = value
+    }
+
+    private fun decodeB(value: Int) {
+        deltaEnd = value
+    }
+
+    private fun decodeC(value: Int) {
+        deltaStart = value
+        deltaEnd = 0
+    }
+
+    private fun decodeD(value: String) {
+        val previous = states.last()
+        // if deltaEnd == 0, they will have the same length
+        if (deltaEnd == 0) deltaEnd = deltaStart + value.length
+        states.add(previous.substring(0, deltaStart) + value + previous.substring(deltaEnd))
+    }
+
     override fun setProperty(name: String, value: Any?) {
-        when (name) {
-            "s0", "a" -> {
-                if (value !is Int) return
-                deltaStart = value
-                deltaEnd = value
+        if (name == "compressedState") {
+            val values = (value as? List<*>)?.filterIsInstance<String>() ?: return
+            val letters = values.lastOrNull() ?: return
+            loop@ for (i in 0 until min(values.lastIndex, letters.length)) {
+                val element = values[i]
+                when (letters[i]) {
+                    'a' -> decodeA(element.toIntOrNull() ?: break@loop)
+                    'b' -> decodeB(element.toIntOrNull() ?: break@loop)
+                    'c' -> decodeC(element.toIntOrNull() ?: break@loop)
+                    'd' -> decodeD(element)
+                }
             }
-            "s1", "b" -> {
-                if (value !is Int) return
-                deltaEnd = value
+        } else {
+            val first = name.getOrNull(0) ?: ' '
+            when (first) {
+                'a' -> decodeA(value as? Int ?: return)
+                'b' -> decodeB(value as? Int ?: return)
+                'c' -> decodeC(value as? Int ?: return)
+                'd' -> decodeD(value.toString())
+                else -> super.setProperty(name, value)
             }
-            "t0", "c" -> {
-                if (value !is Int) return
-                deltaStart = value
-                deltaEnd = 0
-            }
-            "ds", "d" -> {
-                if (value !is String) return
-                val previous = states.last()
-                // if deltaEnd == 0, they will have the same length
-                if (deltaEnd == 0) deltaEnd = deltaStart + value.length
-                states.add(previous.substring(0, deltaStart) + value + previous.substring(deltaEnd))
-            }
-            else -> super.setProperty(name, value)
         }
     }
 
-    override fun saveCompressed(writer: BaseWriter, instance: String, previousInstance: String?): Boolean {
+    fun saveCompressed(
+        instance: String, previousInstance: String?,
+        dstLetters: StringBuilder, dstElements: ArrayList<String>
+    ) {
         if (previousInstance == null) {
-            writer.writeString("state", instance)
+            dstLetters.append('s')
+            dstElements.add(instance)
         } else {
             // find first different and last different index
             // save delta state
@@ -58,21 +81,40 @@ abstract class StringHistory : History<String>() {
                 s1--
             }
             if (s0 == 0 && s1 == instance.length) {
-                writer.writeString("state", instance)
+                dstLetters.append('s')
+                dstElements.add(instance)
             } else {
                 val s2 = s1 + deltaLength
                 if (s2 > s0) {
                     if (deltaLength == 0) {
-                        writer.writeInt("c", s0, true)
+                        dstLetters.append('c')
+                        dstElements.add(s0.toString())
                     } else {
-                        writer.writeInt("a", s0, true)
-                        writer.writeInt("b", s2)
+                        dstLetters.append("ab")
+                        dstElements.add(s0.toString())
+                        dstElements.add(s2.toString())
                     }
-                } else writer.writeInt("a", s0, true)
-                writer.writeString("d", instance.substring(s0, s1), true)
+                } else {
+                    dstLetters.append('a')
+                    dstElements.add(s0.toString())
+                }
+                dstLetters.append('d')
+                dstElements.add(instance.substring(s0, s1))
             }
         }
-        return true
+    }
+
+    override fun saveStates(writer: BaseWriter) {
+        val dstLetters = StringBuilder()
+        val dstElements = ArrayList<String>()
+        var previous: String? = null
+        for (i in states.indices) {
+            val instance = states[i]
+            saveCompressed(instance, previous, dstLetters, dstElements)
+            previous = instance
+        }
+        dstElements.add(dstLetters.toString())
+        writer.writeStringList("compressedState", dstElements)
     }
 
     override fun filter(v: Any?): String? = v as? String

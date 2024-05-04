@@ -1,6 +1,6 @@
 package me.anno.tests.engine.material
 
-import me.anno.ecs.components.mesh.ImageComponent
+import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.utils.TypeValueTex
 import me.anno.engine.ui.render.ECSMeshShader
@@ -39,7 +39,7 @@ fun main() {
     // create image plane
     val mask = getReference("res://textures/RGBMask.png")
     val image = getReference("res://textures/dig8.png")
-    val plane = ImageComponent()
+    val plane = ImagePlane()
     plane.material.apply {
         shader = ScreenShader
         diffuseBase.set(0f, 0f, 0f, 1f)

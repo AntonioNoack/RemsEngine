@@ -563,8 +563,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         bulletInstance?.setGravity(tmp)
     }
 
-    override val className: String get() = "BulletPhysics"
-
     companion object {
 
         init {

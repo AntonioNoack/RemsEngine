@@ -4,10 +4,12 @@ import org.joml.Vector2i
 
 class Player(node: Node) : Moveable(node) {
     val requestedMovement = Vector2i()
-    var lookLeft = false
-    var points = 0
-    var lives = 3
-    var wasKilled = false
+    var lookLeft = false // todo when we can load the ghost, rotate player and enemies in 3d
+    var points = 0 // todo visualize in 2d and 3d
+    var lives = 3 // todo visualize in 2d and 3d
+    var wasKilled = false // todo visualize in 2d and 3d
+
+    // todo slightly rotate player towards go-to-direction in 2d
 
     override fun findNext(): Node {
         val c = current.position

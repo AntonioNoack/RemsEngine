@@ -79,8 +79,6 @@ class SDFRegular : SDFSmoothShape() {
         return d - 1f
     }
 
-    override val className: String get() = "SDFRegular"
-
     companion object {
 
         private fun Vector4f.dot(o: Vector3f): Float {

@@ -70,9 +70,6 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
         graphEditor.isVisible = worldIsGraph
     }
 
-    override val className: String
-        get() = "SceneView"
-
     companion object {
 
         fun testSceneWithUI(title: String, source: FileReference, init: ((SceneView) -> Unit)? = null) {

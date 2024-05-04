@@ -187,6 +187,4 @@ class SDFArray2 : SDFGroupArray() {
         dst.count = count
         dst.cellSize = cellSize
     }
-
-    override val className: String get() = "SDFArray2"
 }

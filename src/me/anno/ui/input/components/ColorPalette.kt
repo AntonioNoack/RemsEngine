@@ -62,6 +62,4 @@ open class ColorPalette(
         // !! this can be incorrect, if the function references this special instance
         dst.onColorSelected = onColorSelected
     }
-
-    override val className: String get() = "ColorPalette"
 }

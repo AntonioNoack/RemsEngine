@@ -19,7 +19,4 @@ open class LocalPlayer : Player() {
         // probably we should implement a multi-renderView, which does that :)
 
     }
-
-    override val className: String get() = "LocalPlayer"
-
 }

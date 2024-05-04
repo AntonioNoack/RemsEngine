@@ -511,6 +511,4 @@ open class FloatVectorInput(
         dst.resetListener = resetListener
         dst.setValue(Vector4d(vxd, vyd, vzd, vwd), -1, false)
     }
-
-    override val className: String get() = "FloatVectorInput"
 }

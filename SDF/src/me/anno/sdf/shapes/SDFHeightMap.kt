@@ -209,7 +209,4 @@ class SDFHeightMap : SDFShape() {
             h0 = hi
         }
     }
-
-    override val className: String
-        get() = "SDFHeightMap"
 }

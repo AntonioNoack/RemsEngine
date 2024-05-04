@@ -42,7 +42,7 @@ class SimpleMeshTest(
 
     init {
         // for loading the mesh
-        if ("Mesh" !in Saveable.objectTypeRegistry) ECSRegistry.initMeshes()
+        ECSRegistry.init()
         rootEntity.add(MeshComponent(meshRef))
     }
 

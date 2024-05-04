@@ -106,8 +106,6 @@ class SDFOnion() : DistanceMapper() {
         dst.dynamicThickness = dynamicThickness
     }
 
-    override val className: String get() = "SDFOnion"
-
     companion object {
         const val sdRings = "" +
                 "float sdRings(float d, float t){\n" +

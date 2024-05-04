@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -28,7 +27,6 @@ fun main() {
 
     // todo why are all bricks unstable?
 
-    ECSRegistry.initMeshes()
     OfficialExtensions.initForTests()
 
     registerCustomClass(BoxCollider())

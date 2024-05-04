@@ -30,8 +30,6 @@ class SDFSphere : SDFShape() {
         return length(pos.x, pos.y, pos.z) - 1f + pos.w
     }
 
-    override val className: String get() = "SDFSphere"
-
     companion object {
 
         fun distanceToSphere(pos: Vector3f, dir: Vector3f, radius: Float): Float {

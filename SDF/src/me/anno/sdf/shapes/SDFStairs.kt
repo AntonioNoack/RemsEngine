@@ -124,8 +124,6 @@ class SDFStairs : SDF2DShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFStairs"
-
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         private const val stairsSDF = "" +

@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
@@ -57,8 +56,6 @@ fun createTestTerrain(): MeshComponent {
 fun main() {
     OfficialExtensions.initForTests()
     testUI3("World Builder") {
-
-        ECSRegistry.init()
 
         EngineBase.enableVSync = true
 

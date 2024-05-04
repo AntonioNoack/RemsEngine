@@ -183,8 +183,6 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         alignmentX = AxisAlignment.FILL
     }
 
-    override val className: String get() = "HSVBoxMain"
-
     companion object {
         fun drawColoredAlpha(
             x: Int, y: Int, w: Int, h: Int, chooser: ColorChooser,

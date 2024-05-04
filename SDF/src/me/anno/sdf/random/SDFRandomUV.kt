@@ -21,7 +21,4 @@ class SDFRandomUV : SDFRandom(), UVMapper {
     }
 
     override fun calcTransform(pos: Vector4f, seed: Int) {}
-
-    override val className: String get() = "SDFRandomUV"
-
 }

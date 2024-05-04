@@ -126,8 +126,6 @@ open class SDFHyperCube : SDFSmoothShape() {
         dst.w = w
     }
 
-    override val className: String get() = "SDFHyperCube"
-
     companion object {
 
         fun invProject(p: Vector4f, r: Vector3f): Vector4f {

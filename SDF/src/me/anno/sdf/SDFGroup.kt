@@ -592,6 +592,4 @@ open class SDFGroup : SDFComponent() {
             child
         })
     }
-
-    override val className: String get() = "SDFGroup"
 }

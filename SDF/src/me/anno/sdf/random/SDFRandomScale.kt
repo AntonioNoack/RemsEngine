@@ -89,6 +89,4 @@ class SDFRandomScale : SDFRandom() {
         dst.minScale = minScale
         dst.maxScale = maxScale
     }
-
-    override val className: String get() = "SDFRandomScale"
 }

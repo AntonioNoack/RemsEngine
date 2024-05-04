@@ -14,7 +14,7 @@ import me.anno.utils.OS.documents
 import kotlin.math.PI
 
 fun main() {
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     registerCustomClass(PlanarReflection())
     registerCustomClass(Skybox())
     val scene = Entity()

@@ -39,8 +39,9 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
         while (true) {
             when (reader.read()) {
                 -1 -> { // eof
+                    hasReachedEnd = true
                     reader.close()
-                    return null
+                    return builder.toString()
                 }
                 '\n'.code -> return builder.toString()
                 // everything else is ignored

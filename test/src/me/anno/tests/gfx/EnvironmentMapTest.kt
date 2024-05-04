@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.utils.MeshJoiner
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
@@ -23,7 +22,6 @@ import org.joml.Vector3d
 fun main() {
     OfficialExtensions.initForTests()
     // test environment map
-    ECSRegistry.init()
     val scene = Entity()
     scene.add(Entity().apply {
         position = Vector3d(2.8, 0.0, 0.0)

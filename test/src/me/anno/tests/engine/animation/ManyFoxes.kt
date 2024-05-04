@@ -46,9 +46,6 @@ class FoxSpeedController : Component() {
         localTime += speed * Time.deltaTime
         return 1
     }
-
-    override val className: String
-        get() = "FoxSpeedController"
 }
 
 /**
@@ -91,7 +88,7 @@ fun optimizeEntity(entity: Entity): Entity {
  * */
 fun main() {
 
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     registerCustomClass(FoxSpeedController())
 
     val scene = Entity()

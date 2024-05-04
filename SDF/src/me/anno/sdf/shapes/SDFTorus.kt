@@ -76,8 +76,6 @@ class SDFTorus : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFTorus"
-
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         private const val torusSDF = "" +

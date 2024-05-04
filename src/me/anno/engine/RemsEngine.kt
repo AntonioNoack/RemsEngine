@@ -107,8 +107,6 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         startClock.stop("Dictionary")
 
         // to avoid race conditions
-        ECSRegistry.initPrefabs()
-        ECSRegistry.initMeshes()
         ScenePrefab.prefab.value.getSampleInstance()
         startClock.stop("Sample Scene")
 

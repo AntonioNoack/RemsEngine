@@ -742,7 +742,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 // implement it?...
                 // if it is an enum, write its value
                 // enums always are Serializable
-                val clazz = value::class.java
+                val clazz = value.javaClass
                 try {
                     val getId = clazz.getMethod("getId")
                     val id = getId.invoke(value)

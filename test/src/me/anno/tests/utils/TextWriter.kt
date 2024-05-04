@@ -2,7 +2,6 @@ package me.anno.tests.utils
 
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.Reference.getReference
@@ -17,7 +16,6 @@ fun main() {
     OfficialExtensions.initForTests()
     // smileys were not saved correctly, why?
     // because the input stream reader was reading bytes, not chars
-    ECSRegistry.init()
     val smiley = "🤔"
     val text = CSet(Path.ROOT_PATH, smiley, 0)
     text.name = smiley

@@ -51,6 +51,4 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
         dst.damping = damping
         dst.lerpingSpeed = lerpingSpeed
     }
-
-    override val className: String get() = "PointConstraint"
 }

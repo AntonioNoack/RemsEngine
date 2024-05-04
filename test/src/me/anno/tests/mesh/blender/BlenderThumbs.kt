@@ -1,7 +1,6 @@
 package me.anno.tests.mesh.blender
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.render.PlayMode
@@ -12,7 +11,6 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
     testUI3("Blender Thumbnails") {
         val src = getReference("E:/Documents/Blender")
         val panel = CustomList(false, style)

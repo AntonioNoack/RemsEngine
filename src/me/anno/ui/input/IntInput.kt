@@ -171,6 +171,4 @@ open class IntInput(
         dst.changeListener = changeListener
         dst.savedDelta = savedDelta // ^^
     }
-
-    override val className: String get() = "IntInput"
 }

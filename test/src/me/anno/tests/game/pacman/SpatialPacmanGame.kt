@@ -95,7 +95,6 @@ fun spatialPacmanGame(): Entity {
     ).setRotation(-PI / 2, 0.0, 0.0)
 
     val walls = Entity("Walls", scene)
-    walls.isCollapsed = true
     for (wall in game.walls) {
         val wallThickness = 0.03
         val cx = (wall.start.x + wall.end.x) * 0.5
@@ -123,7 +122,6 @@ fun spatialPacmanGame(): Entity {
 
 
     val collectibles = Entity("Gems", scene)
-    collectibles.isCollapsed = true
     val collectibleMesh = IcosahedronModel.createIcosphere(3)
     collectibleMesh.materials = listOf(getReference("materials/Golden.json"))
     for (collectible in game.collectables) {

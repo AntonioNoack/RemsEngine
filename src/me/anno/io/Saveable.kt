@@ -13,7 +13,6 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
-import kotlin.reflect.full.superclasses
 
 /**
  * everything that should be saveable
@@ -44,7 +43,7 @@ open class Saveable {
      * */
     open val className: String
         get() {
-            val clazz = this::class.java
+            val clazz = this.javaClass
             return clazz.simpleName ?: clazz.toString()
         }
 
@@ -122,12 +121,19 @@ open class Saveable {
             return reflections.set(instance, name, value)
         }
 
+        interface IRegistryEntry {
+            val sampleInstance: Saveable
+            val classPath: String
+            fun generate(): Saveable
+        }
+
         class RegistryEntry(
-            val sampleInstance: Saveable,
+            override val sampleInstance: Saveable,
             private val generator: (() -> Saveable)? = null
-        ) {
+        ) : IRegistryEntry {
             private val clazz = sampleInstance.javaClass
-            fun generate(): Saveable = generator?.invoke() ?: clazz.newInstance()
+            override val classPath: String get() = clazz.name
+            override fun generate(): Saveable = generator?.invoke() ?: clazz.newInstance()
         }
 
         fun createOrNull(type: String): Saveable? {
@@ -141,21 +147,20 @@ open class Saveable {
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
         fun getClass(type: String): KClass<out Saveable>? {
-            val instance = objectTypeRegistry[type]?.sampleInstance ?: return superTypeRegistry[type]
+            val instance = objectTypeRegistry[type]?.sampleInstance ?: return null
             return instance::class
         }
 
-        fun getByClass(clazz: KClass<*>): RegistryEntry? {
-            return objectTypeByClass[clazz]
+        fun getByClass(clazz: KClass<*>): IRegistryEntry? {
+            return objectTypeByClass[clazz.java.name]
         }
 
-        fun <V : Saveable> getInstanceOf(clazz: KClass<V>): Map<String, RegistryEntry> {
+        fun <V : Saveable> getInstanceOf(clazz: KClass<V>): Map<String, IRegistryEntry> {
             return objectTypeRegistry.filterValues { clazz.isInstance(it.sampleInstance) }
         }
 
-        val objectTypeRegistry = HashMap<String, RegistryEntry>()
-        private val objectTypeByClass = HashMap<KClass<out Saveable>, RegistryEntry>()
-        private val superTypeRegistry = HashMap<String, KClass<out Saveable>>()
+        val objectTypeRegistry = HashMap<String, IRegistryEntry>()
+        private val objectTypeByClass = HashMap<String, IRegistryEntry>()
 
         fun checkInstance(instance0: Saveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
@@ -170,20 +175,11 @@ open class Saveable {
             }
         }
 
-        fun registerSuperClasses(clazz0: KClass<out Saveable>) {
-            var clazz = clazz0
-            while (true) {
-                superTypeRegistry[clazz.simpleName!!] = clazz
-                @Suppress("unchecked_cast")
-                clazz = (clazz.superclasses.firstOrNull() ?: break) as KClass<out Saveable>
-            }
-        }
-
         @JvmStatic
         fun registerCustomClass(className: String, constructor: () -> Saveable): RegistryEntry {
             val instance0 = constructor()
             checkInstance(instance0)
-            return register(className, RegistryEntry(instance0, constructor))
+            return registerCustomClass(className, RegistryEntry(instance0, constructor))
         }
 
         @JvmStatic
@@ -191,9 +187,9 @@ open class Saveable {
             checkInstance(sample)
             val className = sample.className
             return if (sample is PrefabSaveable) {
-                register(className, RegistryEntry(sample) { sample.clone() })
+                registerCustomClass(className, RegistryEntry(sample) { sample.clone() })
             } else {
-                register(className, RegistryEntry(sample))
+                registerCustomClass(className, RegistryEntry(sample))
             }
         }
 
@@ -201,7 +197,7 @@ open class Saveable {
         fun registerCustomClass(constructor: () -> Saveable): RegistryEntry {
             val instance0 = constructor()
             val className = instance0.className
-            val entry = register(className, RegistryEntry(instance0, constructor))
+            val entry = registerCustomClass(className, RegistryEntry(instance0, constructor))
             // dangerous to be done after
             // but this allows us to skip the full implementation of clone() everywhere
             checkInstance(instance0)
@@ -221,22 +217,27 @@ open class Saveable {
                 throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
             }
             checkInstance(sample)
-            return register(className ?: sample.className, RegistryEntry(sample))
+            return registerCustomClass(className ?: sample.className, RegistryEntry(sample))
         }
 
-        private fun register(className: String, entry: RegistryEntry): RegistryEntry {
-            val clazz = entry.sampleInstance::class
-            val oldInstance = objectTypeRegistry[className]?.sampleInstance
-            if (oldInstance != null && oldInstance::class != clazz) {
+        fun <Entry : IRegistryEntry> registerCustomClass(
+            className: String,
+            entry: Entry,
+            print: Boolean = true
+        ): Entry {
+            val clazz = entry.classPath
+            val oldInstance = objectTypeRegistry[className]?.classPath
+            if (oldInstance != null && oldInstance != clazz) {
                 LOGGER.warn(
                     "Overriding registered class {} from type {} with {}",
                     className, oldInstance::class, clazz
                 )
             }
-            LOGGER.info("Registering {}", className)
+            if (print) {
+                LOGGER.info("Registering {}", className)
+            }
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
-            registerSuperClasses(entry.sampleInstance::class)
             return entry
         }
     }

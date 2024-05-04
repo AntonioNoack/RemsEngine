@@ -51,8 +51,6 @@ class SDFHeart : SDF2DShape() {
         }
     }
 
-    override val className: String get() = "SDFHeart"
-
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         private const val heartSDF = "" +

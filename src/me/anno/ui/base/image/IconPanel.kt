@@ -23,7 +23,4 @@ open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel
         dst as IconPanel
         dst.internalPath = internalPath
     }
-
-    override val className: String get() = "IconPanel"
-
 }

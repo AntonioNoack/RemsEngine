@@ -17,8 +17,7 @@ import kotlin.test.assertEquals
 class TreeViewDragNDrop {
 
     init {
-        ECSRegistry.initPrefabs()
-        ECSRegistry.initMeshes()
+        ECSRegistry.init()
     }
 
     fun tested(): ECSTreeView {

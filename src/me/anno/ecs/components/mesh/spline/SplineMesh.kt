@@ -190,8 +190,6 @@ class SplineMesh : ProceduralMesh() {
         }
     }
 
-    override val className: String get() = "SplineMesh"
-
     companion object {
 
         fun generateLineMesh(

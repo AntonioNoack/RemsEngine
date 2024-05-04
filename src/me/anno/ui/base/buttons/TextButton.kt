@@ -182,6 +182,4 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
         dst as TextButton
         dst.aspectRatio = aspectRatio
     }
-
-    override val className: String get() = "TextButton"
 }

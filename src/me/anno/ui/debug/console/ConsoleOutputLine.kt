@@ -22,6 +22,4 @@ class ConsoleOutputLine(val list: PanelList, msg: String, style: Style) : TextPa
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
         onSelectAll(x, y)
     }
-
-    override val className: String get() = "ConsoleOutputLine"
 }

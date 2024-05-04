@@ -62,7 +62,4 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
         copyInto(clone)
         return clone
     }
-
-    override val className: String get() = "TitledListY"
-
 }

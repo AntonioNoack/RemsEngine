@@ -18,6 +18,4 @@ class Padding(l: Int, t: Int, r: Int, b: Int) : LTRB(l, t, r, b) {
     }
 
     fun clone(): Padding = Padding(left, top, right, bottom)
-
-    override val className: String get() = "Padding"
 }

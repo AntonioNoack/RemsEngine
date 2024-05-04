@@ -327,8 +327,6 @@ open class SDFMesh : SDFSmoothShape() {
         lastTris = null
     }
 
-    override val className: String get() = "SDFMesh"
-
     companion object {
 
         val funcCode = "" +

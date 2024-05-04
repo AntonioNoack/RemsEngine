@@ -89,8 +89,6 @@ open class SDFCone : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFCone"
-
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez
         const val sdCone = "" +

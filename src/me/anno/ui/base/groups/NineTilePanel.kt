@@ -107,7 +107,4 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         dst.children.clear()
         dst.children.addAll(children.map { it.clone() })
     }
-
-    override val className: String get() = "NineTilePanel"
-
 }

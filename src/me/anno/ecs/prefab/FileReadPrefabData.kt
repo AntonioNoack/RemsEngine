@@ -18,4 +18,8 @@ class FileReadPrefabData(val reference: FileReference) : AsyncCacheData<Saveable
         super.destroy()
         FileWatch.removeWatchDog(reference)
     }
+
+    override fun toString(): String {
+        return "FileReadPrefabData[${super.toString()}]"
+    }
 }

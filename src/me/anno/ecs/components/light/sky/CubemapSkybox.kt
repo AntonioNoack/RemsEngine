@@ -19,7 +19,4 @@ class CubemapSkybox : TextureSkybox() {
     }
 
     override fun getMesh(): Mesh = CubemapModel
-
-    override val className: String
-        get() = "CubemapSkybox"
 }

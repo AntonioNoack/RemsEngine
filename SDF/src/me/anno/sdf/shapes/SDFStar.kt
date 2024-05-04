@@ -102,8 +102,6 @@ class SDFStar : SDF2DShape() {
         dst.params.set(params)
     }
 
-    override val className: String get() = "SDFStar"
-
     companion object {
 
         private const val sdStar = "" +

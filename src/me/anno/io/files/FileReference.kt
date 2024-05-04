@@ -219,11 +219,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun writeText(text: String) {
-        val os = outputStream()
-        val wr = OutputStreamWriter(os)
-        wr.write(text)
-        wr.close()
-        os.close()
+        writeBytes(text.encodeToByteArray())
     }
 
     open fun writeBytes(bytes: ByteArray) {
@@ -336,7 +332,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = Signature.findNameSync(this)
-        if (InnerFolderCache.hasReaderForFileExtension(lcExtension) || InnerFolderCache.hasReaderForSignature(signature)) {
+        if (lcExtension in InnerFolderCache.readerByFileExtension || signature in InnerFolderCache.readerBySignature) {
             return true
         }
         return when (signature) { // todo these should be handled by InnerFolderCache...

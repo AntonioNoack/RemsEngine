@@ -581,8 +581,6 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         }
     }
 
-    override val className: String get() = "ECSTreeView"
-
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
 

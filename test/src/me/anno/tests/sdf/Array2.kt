@@ -2,7 +2,6 @@ package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
 import me.anno.sdf.CombinationMode
@@ -25,8 +24,7 @@ import me.anno.utils.types.Floats.toRadians
  * of that, a large donut with a heart-shaped cutout
  * */
 fun main() {
-    // OfficialExtensions.initForTests()
-    ECSRegistry.init()
+    OfficialExtensions.initForTests()
     SceneView.testSceneWithUI("SDFArray2", Entity().apply {
         add(SDFArray2().apply {
             maxSteps = 500

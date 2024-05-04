@@ -289,6 +289,4 @@ open class IntVectorInput(
         dst.resetListener = resetListener
         dst.setValue(vx, vy, vz, vw, false)
     }
-
-    override val className: String get() = "IntVectorInput"
 }

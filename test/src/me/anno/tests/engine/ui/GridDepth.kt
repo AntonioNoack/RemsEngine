@@ -9,7 +9,6 @@ fun main() {
     // grid depth is incorrect by some factor, fixed by mono-world-scale
     // -> fixed by multiplying with it :D
     workspace = documents.getChild("RemsEngine/YandereSim")
-    ECSRegistry.initPrefabs()
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     testSceneWithUI("GridDepth", workspace.getChild("Weapons.json"))
 }

@@ -60,6 +60,4 @@ open class Texture3DBTv2Material : Material() {
     override fun equals(other: Any?): Boolean {
         return other === this
     }
-
-    override val className: String get() = "Texture3DBTv2Material"
 }

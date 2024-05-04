@@ -118,7 +118,4 @@ class Rigidbody2d : Component() {
         dst.preventTunneling = preventTunneling
         dst.alwaysActive = alwaysActive
     }
-
-    override val className: String get() = "Rigidbody2d"
-
 }

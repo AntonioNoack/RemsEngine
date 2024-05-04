@@ -30,8 +30,7 @@ fun printTree(file: FileReference, instance: PrefabSaveable, depth: Int) {
 }
 
 fun main() {
-    ECSRegistry.initPrefabs()
-    ECSRegistry.initMeshes()
+    ECSRegistry.init()
     workspace = documents.getChild("RemsEngine/YandereSim")
     val meshFile = workspace.getChild("Outside/SM_Prop_Cafe_Chair_01.json")
     printTree(meshFile)

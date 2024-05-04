@@ -80,7 +80,4 @@ open class SDFPlane : SDFShape() {
         dst as SDFPlane
         dst.axis = axis
     }
-
-    override val className: String get() = "SDFPlane"
-
 }

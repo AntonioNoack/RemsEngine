@@ -197,6 +197,4 @@ open class FloatInput(
         dst.tooltip = tooltip
         dst.setValue(value, -1, false)
     }
-
-    override val className: String get() = "FloatInput"
 }

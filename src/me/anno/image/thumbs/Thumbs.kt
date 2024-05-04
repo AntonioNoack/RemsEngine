@@ -450,13 +450,13 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
         // upload the result to the gpu
         // save the file
 
-        if (OS.isWindows) {
+        if (OS.isWindows) { // these files should be ignored
             @Suppress("SpellCheckingInspection")
-            when (srcFile.absolutePath) {
-                "C:/pagefile.sys", "C:/hiberfil.sys",
-                "C:/DumpStack.log", "C:/DumpStack.log.tmp",
-                "C:/swapfile.sys" -> {
-                    callback.err(IOException("Cannot generate thumbnail"))
+            when (srcFile.name) {
+                "pagefile.sys", "hiberfil.sys",
+                "DumpStack.log", "DumpStack.log.tmp",
+                "swapfile.sys" -> {
+                    callback.err(null)
                     return
                 }
             }

@@ -941,8 +941,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.far = scaledFar.toFloat()
     }
 
-    override val className: String get() = "RenderView"
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(RenderView::class)

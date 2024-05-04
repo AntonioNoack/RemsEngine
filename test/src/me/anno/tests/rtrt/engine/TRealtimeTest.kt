@@ -3,7 +3,6 @@ package me.anno.tests.rtrt.engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.CullMode
@@ -32,7 +31,6 @@ import org.joml.Vector3f
 
 fun main() {
     OfficialExtensions.initForTests()
-    ECSRegistry.init()
     val clock = Clock()
     val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16, clock)
     run(tlas, cameraPosition, cameraRotation, fovZFactor)

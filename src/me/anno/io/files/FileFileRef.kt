@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.IgnoredException
+import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
@@ -31,17 +32,23 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        var stream: InputStream? = null
-        try {
-            stream = inputStreamSync()
-            callback.ok(stream)
-        } catch (_: IgnoredException) {
-            callback.call(null, null)
-        } catch (e: Exception) {
-            callback.err(e)
-        } finally {
-            if (closeStream) {
-                stream?.close()
+        if (GFX.isGFXThread()) {
+            thread(name = "inputStream($absolutePath)") {
+                inputStream(lengthLimit, closeStream, callback)
+            }
+        } else {
+            var stream: InputStream? = null
+            try {
+                stream = inputStreamSync()
+                callback.ok(stream)
+            } catch (_: IgnoredException) {
+                callback.call(null, null)
+            } catch (e: Exception) {
+                callback.err(e)
+            } finally {
+                if (closeStream) {
+                    stream?.close()
+                }
             }
         }
     }
@@ -51,7 +58,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         if (trackOpenStreamsMillis < 1) return base
         var closed = false
         val stack = Throwable("$this was not closed!")
-        thread {
+        thread(name = "inputStreamSync($absolutePath)") {
             Thread.sleep(trackOpenStreamsMillis)
             if (!closed) {
                 stack.printStackTrace()
@@ -86,11 +93,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         // when writing is finished, this should be called again
         LastModifiedCache.invalidate(file)
         return ret
-    }
-
-    override fun writeText(text: String) {
-        file.writeText(text)
-        LastModifiedCache.invalidate(file)
     }
 
     override fun writeBytes(bytes: ByteArray) {

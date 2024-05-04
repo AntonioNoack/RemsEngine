@@ -221,8 +221,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         )
     }
 
-    override val className: String get() = "Box2dPhysics"
-
     companion object {
         private val LOGGER = LogManager.getLogger(Box2dPhysics::class)
         val vec2f = Stack { Vec2() }

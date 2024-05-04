@@ -63,8 +63,6 @@ open class ScriptComponent : Component() {
         dst.source = source
     }
 
-    override val className: String get() = "ScriptComponent"
-
     companion object {
 
         @JvmStatic

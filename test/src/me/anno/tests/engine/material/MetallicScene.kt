@@ -2,7 +2,7 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
-import me.anno.ecs.components.mesh.ImageComponent
+import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
@@ -13,9 +13,12 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS.downloads
 
 fun main() {
+
+    OfficialExtensions.initForTests()
 
     // todo light shine around lamps
     //  particles in air, and viewing ray really close to light source
@@ -36,7 +39,7 @@ fun main() {
         sdfMaterials = listOf(redMetal.ref)
     })
     scene.add(Skybox())
-    scene.add(Entity("Image", ImageComponent().apply {
+    scene.add(Entity("Image", ImagePlane().apply {
         material.diffuseMap = getReference("res://icon.png")
         // todo way to split transparency rendering into opaque + transparent?
         //  - opaque (a == 1)

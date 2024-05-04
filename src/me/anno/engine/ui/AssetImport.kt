@@ -11,6 +11,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
@@ -273,7 +274,7 @@ object AssetImport {
     }
 
     private fun savePrefab(dstFolder: FileReference, name: String, newPrefab: Prefab): FileReference {
-        val data = JsonStringWriter.toText(newPrefab, EngineBase.workspace).encodeToByteArray()
+        val data = JsonFormatter.format(JsonStringWriter.toText(newPrefab, EngineBase.workspace)).encodeToByteArray()
         return saveContent(dstFolder, name, "json", data)
     }
 

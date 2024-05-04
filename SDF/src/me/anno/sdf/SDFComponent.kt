@@ -1017,8 +1017,6 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         dst.relativeMeshMargin = relativeMeshMargin
     }
 
-    override val className: String get() = "SDFComponent"
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(SDFComponent::class)
