@@ -5,11 +5,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.Saveable.Companion.IRegistryEntry
 import me.anno.io.files.ReadLineIterator
 import me.anno.io.files.Reference.getReference
+import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
-import org.apache.logging.log4j.LogManager
 
 object SaveableRegistry {
-    private val LOGGER get() = LogManager.getLogger(SaveableRegistry::class)
     private val styleClass = Style::class.java
 
     class LazyRegistryEntry(override val classPath: String) : IRegistryEntry {
@@ -39,26 +38,15 @@ object SaveableRegistry {
         }
     }
 
-    fun parse(lines: ReadLineIterator, callback: (name: String, classPath: String) -> Unit) {
-        for (line in lines) {
-            var colonIndex = line.indexOf(':')
-            if (colonIndex < 1) continue
-            val name = line.substring(0, colonIndex)
-            if (line[colonIndex + 1] == ' ') colonIndex++
-            val path = line.substring(colonIndex + 1)
-            callback(name, path)
-        }
-    }
-
-    fun register(lines: ReadLineIterator) {
-        parse(lines) { name, classPath ->
+    fun registerClasses(lines: ReadLineIterator) {
+        val pairs = SimpleYAMLReader.read(lines)
+        for ((name, classPath) in pairs) {
             Saveable.registerCustomClass(name, LazyRegistryEntry(classPath), print = false)
         }
-        LOGGER.info("Registered classes")
     }
 
     fun load() {
-        register(
+        registerClasses(
             getReference("res://saveables.yaml")
                 .readLinesSync(256)
         )

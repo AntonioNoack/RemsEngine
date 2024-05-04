@@ -146,7 +146,7 @@ object SimpleExpressionParser {
             if (!number.isValue()) continue
             if (i == 1 || when (this[i - 2]) {
                     is Double, is Vector -> false
-                    '*', '/', '^', ',' -> true
+                    '*', '/', '^', ',', '(' -> true
                     else -> false
                 }
             ) {

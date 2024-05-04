@@ -5,10 +5,9 @@ import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.utils.structures.Iterators.mapNotNull
-import me.anno.utils.structures.Iterators.toList
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import org.apache.logging.log4j.LogManager
@@ -23,16 +22,10 @@ object Installer {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(Installer::class)
 
-    private val mirrors = getReference("res://mirrors.txt")
-        .readLinesSync(1024).toList()
-        .mapNotNull {
-            val idx = it.indexOf(':')
-            if (idx > 0 && idx < it.length - 1) {
-                val key = it.substring(0, idx).trim()
-                val value = it.substring(idx + 1).trim()
-                key to value
-            } else null
-        }.associate { it }
+    private val mirrors = SimpleYAMLReader.read(
+        getReference("res://mirrors.yaml")
+            .readLinesSync(1024)
+    )
 
     @JvmStatic
     fun checkFFMPEGInstall() {

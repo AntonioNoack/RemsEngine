@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
+import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
@@ -471,14 +472,7 @@ class SVGMesh {
         val style = xml["style"]
         if (style != null) {
             val properties = style.split(';')
-            for (property in properties) {
-                val index = property.indexOf(':')
-                if (index in 1 until property.lastIndex) {
-                    val name = property.substring(0, index).trim()
-                    val value = property.substring(index + 1).trim()
-                    xml[name] = value
-                }
-            }
+            SimpleYAMLReader.read(properties.iterator(), xml.attributes)
         }
         val id = xml["id"]
         if (id != null) {

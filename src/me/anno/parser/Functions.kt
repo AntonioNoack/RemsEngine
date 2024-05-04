@@ -12,6 +12,7 @@ import kotlin.math.acos
 import kotlin.math.acosh
 import kotlin.math.asin
 import kotlin.math.asinh
+import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.atanh
 import kotlin.math.ceil
@@ -214,6 +215,8 @@ object Functions {
         constants["pi"] = PI
         constants["e"] = E
         constants["°"] = 1.0.toRadians()
+        constants["inf"] = Double.POSITIVE_INFINITY
+        constants["nan"] = Double.NaN
 
         functions0["rand"] = { Maths.random() }
 
@@ -281,7 +284,8 @@ object Functions {
 
         functions1["tan"] = { tan(it.toRadians()) }
         functions1["tangent"] = functions1["tan"]!!
-        functions2["atan"] = { x, y -> atan2(x, y) }
+        functions1["atan"] = { x -> atan(x).toDegrees() }
+        functions2["atan"] = { x, y -> atan2(x, y).toDegrees() }
         functions2["arctan"] = functions2["atan"]!!
         functions2["atan2"] = functions2["atan"]!!
         functions1["atanh"] = { atanh(it) }

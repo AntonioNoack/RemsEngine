@@ -10,11 +10,11 @@ import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
+import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import java.io.InputStream
 import java.net.URL
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
@@ -252,7 +252,7 @@ object ExtensionLoader {
                 val entry = zis.nextEntry ?: break
                 val name = entry.name
                 if (name.endsWith("extension.info") || name.endsWith("ext.info")) {
-                    return loadInfoFromTxt(file, zis)
+                    return loadInfoFromTxt(file)
                 }
             }
         }
@@ -297,82 +297,48 @@ object ExtensionLoader {
 
     @JvmStatic
     fun loadInfoFromTxt(modFile: FileReference, infoFile: FileReference = modFile): ExtensionInfo? {
-        return infoFile.inputStreamSync().use { input: InputStream -> loadInfoFromTxt(modFile, input) }
-    }
-
-    @JvmStatic
-    fun loadInfoFromTxt(file: FileReference, input: InputStream): ExtensionInfo? {
-        val reader = input.bufferedReader()
-        var name = ""
-        var version = ""
-        var description = ""
-        var authors = ""
-        var mainClass = ""
-        var isPluginNotMod = true
-        var dependencies = ""
-        var uuid = ""
-        var priority = 0.0
-        var minVersion = 0
-        var maxVersion = Int.MAX_VALUE
-        while (true) {
-            val line = reader.readLine() ?: break
-            val index = line.indexOf(':')
-            if (index > 0) {
-                val key = line.substring(0, index).trim()
-                val value = line.substring(index + 1).trim()
-                @Suppress("SpellCheckingInspection")
-                when (key.lowercase()) {
-                    "plugin-name", "pluginname", "name" -> {
-                        name = value
-                        isPluginNotMod = true
-                    }
-                    "plugin-class", "pluginclass" -> {
-                        mainClass = value
-                        isPluginNotMod = true
-                    }
-                    "mod-class", "modclass" -> {
-                        mainClass = value
-                        isPluginNotMod = false
-                    }
-                    "mainclass", "main-class" -> {
-                        mainClass = value
-                    }
-                    "mod-name", "modname" -> {
-                        name = value
-                        isPluginNotMod = false
-                    }
-                    "plugin-version", "mod-version", "pluginversion", "modversion" -> version = value
-                    "desc", "description", "mod-description", "moddescription",
-                    "plugin-description", "plugindescription" -> description = value
-                    "plugin-author", "plugin-authors",
-                    "mod-author", "mod-authors",
-                    "author", "authors" -> authors = value
-                    "moddependencies", "mod-dependencies",
-                    "plugindependencies", "plugin-dependencies",
-                    "dependencies" -> dependencies += "$value, "
-                    "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
-                    "minversion", "min-version" -> minVersion = value.toIntOrDefault(minVersion)
-                    "maxversion", "max-version" -> maxVersion = value.toIntOrDefault(maxVersion)
-                    "priority" -> priority = value.toDoubleOrNull() ?: priority
+        val properties = SimpleYAMLReader.read(infoFile.readLinesSync(1024))
+        val dependencies = ArrayList<String>()
+        val info = ExtensionInfo()
+        for ((key, value) in properties) {
+            @Suppress("SpellCheckingInspection")
+            when (key.lowercase()) {
+                "plugin-name", "pluginname", "name" -> {
+                    info.name = value
+                    info.isPluginNotMod = true
                 }
+                "plugin-class", "pluginclass" -> {
+                    info.mainClass = value
+                    info.isPluginNotMod = true
+                }
+                "mod-class", "modclass" -> {
+                    info.mainClass = value
+                    info.isPluginNotMod = false
+                }
+                "mainclass", "main-class" -> {
+                    info.mainClass = value
+                }
+                "mod-name", "modname" -> {
+                    info.name = value
+                    info.isPluginNotMod = false
+                }
+                "plugin-version", "mod-version", "pluginversion", "modversion" -> info.version = value
+                "desc", "description", "mod-description", "moddescription",
+                "plugin-description", "plugindescription" -> info.description = value
+                "plugin-author", "plugin-authors",
+                "mod-author", "mod-authors",
+                "author", "authors" -> info.authors = value
+                "moddependencies", "mod-dependencies",
+                "plugindependencies", "plugin-dependencies",
+                "dependencies" -> dependencies += value.split(',').filter { it.isNotBlank() }.map { it.trim() }
+                "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> info.uuid = value
+                "minversion", "min-version" -> info.minVersion = value.toIntOrDefault(info.minVersion)
+                "maxversion", "max-version" -> info.maxVersion = value.toIntOrDefault(info.maxVersion)
+                "priority" -> info.priority = value.toDoubleOrNull() ?: info.priority
             }
         }
-        uuid = uuid.trim()
-        if (uuid.isEmpty()) uuid = name.trim()
-        uuid = uuid.lowercase()
-        if (name.isNotEmpty()) {
-            val dependencyList =
-                dependencies.lowercase().split(',')
-                    .map { it.trim() }.filter { it.isNotEmpty() }
-            return ExtensionInfo(
-                uuid, file,
-                name, description, version, authors,
-                minVersion, maxVersion,
-                mainClass, isPluginNotMod,
-                priority, dependencyList
-            )
-        }
-        return null
+        if (info.uuid.isEmpty()) info.uuid = info.name.trim()
+        return if (info.name.isNotEmpty()) info else null
     }
 
     @JvmStatic

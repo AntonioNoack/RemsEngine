@@ -5,6 +5,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
+import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
 import me.anno.ui.input.EnumInput
 import me.anno.utils.types.Strings.indexOf2
@@ -19,20 +20,12 @@ import java.util.Locale
 object Dict {
 
     private val values = HashMap<String, String>()
-    private const val ext = "lang"
+    private const val EXTENSION = "lang"
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
-        for (line in text.split('\n')) {
-            val startIndex = line.indexOf(':')
-            if (startIndex >= 0) {
-                val key = line.substring(0, startIndex).trim()
-                val value = line.substring(startIndex + 1).trim()
-                if (value.isNotEmpty()) {
-                    values[key] = value
-                }
-            }
-        }
+        val lines = text.split('\n')
+        SimpleYAMLReader.read(lines.iterator(), values)
     }
 
     fun getLanguageName(text: String): String? {
@@ -73,9 +66,9 @@ object Dict {
         for (fileName in internalFiles) {
             options += load(getReference("res://lang/$fileName")) ?: continue
         }
-        val externalFiles = ConfigBasics.configFolder.getChild(ext).listChildren()
+        val externalFiles = ConfigBasics.configFolder.getChild(EXTENSION).listChildren()
         for (file in externalFiles) {
-            if (!file.isDirectory && file.lcExtension == ext) {
+            if (!file.isDirectory && file.lcExtension == EXTENSION) {
                 options += load(file) ?: continue
             }
         }
@@ -88,9 +81,9 @@ object Dict {
     fun getDefaultOption(): LanguageOption {
         val options = getOptions()
         val userLanguage = Locale.getDefault().language
-        val userLanguagePath = getReference("res://$ext/$userLanguage.$ext")
+        val userLanguagePath = getReference("res://$EXTENSION/$userLanguage.$EXTENSION")
         val userLanguageIsSupported = getReference(userLanguagePath).exists
-        val defaultLang0 = getReference("res://$ext/en.$ext")
+        val defaultLang0 = getReference("res://$EXTENSION/en.$EXTENSION")
         val defaultLang = if (userLanguageIsSupported) userLanguagePath else defaultLang0
         val currentLanguagePath = DefaultConfig["ui.language", defaultLang]
         return options.firstOrNull { it.path == currentLanguagePath }
