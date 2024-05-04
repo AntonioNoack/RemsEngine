@@ -1,15 +1,20 @@
 package me.anno.tests.game.pacman
 
 import me.anno.Time
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.OfficialExtensions
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.engine.ui.render.RenderView1
+import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.Reference.getReference
@@ -19,6 +24,7 @@ import me.anno.tests.game.pacman.logic.Moveable
 import me.anno.tests.game.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
+import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f
 import kotlin.math.PI
@@ -174,5 +180,11 @@ fun main() {
     // todo show lives and score
     disableRenderDoc()
     OfficialExtensions.initForTests()
-    testSceneWithUI("Flat Pacman", spatialPacmanGame())
+    val world = spatialPacmanGame()
+    val renderView = RenderView1(PlayMode.PLAYING, world, style)
+    val sceneView = SceneView(renderView, style)
+    val player = LocalPlayer()
+    renderView.localPlayer = player
+    world.getComponentInChildren(Camera::class)!!.use(player)
+    testPureUI("Spatial Pacman", sceneView)
 }
