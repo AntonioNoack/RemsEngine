@@ -34,6 +34,10 @@ import kotlin.reflect.KProperty
 
 object PropertyTracking {
     private val LOGGER = LogManager.getLogger(PropertyTracking::class)
+    private fun <V> createGetter(index: Int, getter: KProperty.Getter<V>): (Any?) -> Double {
+        return { it: Any? -> getDouble(getter.call(it), index, 0.0) }
+    }
+
     fun createTrackingButton(
         list: PanelList,
         insertAfter: PanelListX,
@@ -47,31 +51,31 @@ object PropertyTracking {
             Boolean::class,
             UByte::class, Byte::class, UShort::class, Short::class, UInt::class, Int::class,
             ULong::class, Long::class, Float::class, Double::class -> listOf(
-                { it: Any? -> getDouble(getter.call(it), 0.0) } to Color.white
+                createGetter(0, getter) to Color.white
             )
             Vector2f::class, Vector2d::class, Vector2i::class -> listOf(
-                { it: Any? -> getDouble(getter.call(it), 0, 0.0) } to axisXColor,
-                { it: Any? -> getDouble(getter.call(it), 1, 0.0) } to axisYColor,
+                createGetter(0, getter) to axisXColor,
+                createGetter(1, getter) to axisYColor,
             )
             Vector3f::class, Vector3d::class, Vector3i::class -> listOf(
-                { it: Any? -> getDouble(getter.call(it), 0, 0.0) } to axisXColor,
-                { it: Any? -> getDouble(getter.call(it), 1, 0.0) } to axisYColor,
-                { it: Any? -> getDouble(getter.call(it), 2, 0.0) } to axisZColor,
+                createGetter(0, getter) to axisXColor,
+                createGetter(1, getter) to axisYColor,
+                createGetter(2, getter) to axisZColor,
             )
             // todo AxisAngle?
             Vector4f::class, Vector4d::class, Vector4i::class, Quaternionf::class, Quaterniond::class -> listOf(
-                { it: Any? -> getDouble(getter.call(it), 0, 0.0) } to axisXColor,
-                { it: Any? -> getDouble(getter.call(it), 1, 0.0) } to axisYColor,
-                { it: Any? -> getDouble(getter.call(it), 2, 0.0) } to axisZColor,
-                { it: Any? -> getDouble(getter.call(it), 3, 0.0) } to axisWColor,
+                createGetter(0, getter) to axisXColor,
+                createGetter(1, getter) to axisYColor,
+                createGetter(2, getter) to axisZColor,
+                createGetter(3, getter) to axisWColor,
             )
             AABBf::class, AABBd::class -> listOf(
-                { it: Any? -> getDouble(getter.call(it), 0, 0.0) } to axisXColor,
-                { it: Any? -> getDouble(getter.call(it), 1, 0.0) } to axisYColor,
-                { it: Any? -> getDouble(getter.call(it), 2, 0.0) } to axisZColor,
-                { it: Any? -> getDouble(getter.call(it), 3, 0.0) } to axisXColor,
-                { it: Any? -> getDouble(getter.call(it), 4, 0.0) } to axisYColor,
-                { it: Any? -> getDouble(getter.call(it), 5, 0.0) } to axisZColor,
+                createGetter(0, getter) to axisXColor,
+                createGetter(1, getter) to axisYColor,
+                createGetter(2, getter) to axisZColor,
+                createGetter(3, getter) to axisXColor,
+                createGetter(4, getter) to axisYColor,
+                createGetter(5, getter) to axisZColor,
             )
             // do we need other types?
             else -> {

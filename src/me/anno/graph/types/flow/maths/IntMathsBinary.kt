@@ -1,51 +1,83 @@
 package me.anno.graph.types.flow.maths
 
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.min
+import me.anno.utils.types.Booleans.toLong
+import kotlin.math.abs
+import kotlin.math.max
+
 enum class IntMathsBinary(
     val id: Int,
-    val glsl: String,
-    val int: (a: Int, b: Int) -> Int,
-    val long: (a: Long, b: Long) -> Long
+    val glsl: String
 ) {
 
-    ADD(10, "a+b", { a, b -> a + b }, { a, b -> a + b }),
-    SUB(11, "a-b", { a, b -> a - b }, { a, b -> a - b }),
-    MUL(12, "a*b", { a, b -> a * b }, { a, b -> a * b }),
-    DIV(13, "a/b", { a, b -> if (b == 0) 0 else a / b }, { a, b -> if (b == 0L) 0 else a / b }),
-    MOD(14, "a%b", { a, b -> if (b == 0) 0 else a % b }, { a, b -> if (b == 0L) 0 else a % b }),
+    ADD(10, "a+b"),
+    SUB(11, "a-b"),
+    MUL(12, "a*b"),
+    DIV(13, "a/b"),
+    MOD(14, "a%b"),
 
-    LSL(20, "a<<b", { a, b -> a shl b }, { a, b -> a shl b.toInt() }),
-    LSR(21, "a>>>b", { a, b -> a ushr b }, { a, b -> a ushr b.toInt() }),
-    SHR(22, "a>>b", { a, b -> a shr b }, { a, b -> a shr b.toInt() }),
+    LSL(20, "a<<b"),
+    LSR(21, "a>>>b"),
+    SHR(22, "a>>b"),
 
-    AND(30, "a&b", { a, b -> a and b }, { a, b -> a and b }),
-    OR(31, "a|b", { a, b -> a or b }, { a, b -> a or b }),
-    XOR(32, "a^b", { a, b -> a xor b }, { a, b -> a xor b }),
-    NOR(33, "~(a|b)", { a, b -> (a or b).inv() }, { a, b -> (a or b).inv() }),
-    XNOR(34, "~(a^b)", { a, b -> (a xor b).inv() }, { a, b -> (a xor b).inv() }),
-    NAND(35, "~(a&b)", { a, b -> (a and b).inv() }, { a, b -> (a and b).inv() }),
+    AND(30, "a&b"),
+    OR(31, "a|b"),
+    XOR(32, "a^b"),
+    NOR(33, "~(a|b)"),
+    XNOR(34, "~(a^b)"),
+    NAND(35, "~(a&b)"),
 
-    LENGTH_SQUARED(40, "a*a+b*b", { a, b -> a * a + b * b }, { a, b -> a * a + b * b }),
-    ABS_DELTA(41, "abs(a-b)", { a, b -> kotlin.math.abs(a - b) }, { a, b -> kotlin.math.abs(a - b) }),
+    LENGTH_SQUARED(40, "a*a+b*b"),
+    ABS_DELTA(41, "abs(a-b)"),
     NORM1(
         42,
-        "abs(a)+abs(b)",
-        { a, b -> kotlin.math.abs(a) + kotlin.math.abs(b) },
-        { a, b -> kotlin.math.abs(a) + kotlin.math.abs(b) }),
-    AVG(43, "((a+b)>>1)", { a, b -> (a + b) shr 1 }, { a, b -> (a + b) shr 1 }),
+        "abs(a)+abs(b)"
+    ),
+    AVG(43, "((a+b)>>1)"),
     LENGTH(
-        44, "int(sqrt(a*a+b*b))",
-        { a, b -> kotlin.math.sqrt((a * a.toLong() + b * b.toLong()).toDouble()).toInt() },
-        { a, b -> kotlin.math.sqrt((a * a + b * b).toDouble()).toLong() }),
+        44, "int(sqrt(a*a+b*b))"
+    ),
     // POW(45,"int(pow(a,b))",{ a, b -> kotlin.math.pow(a.toDouble(), b.toDouble()).toInt() }, { a, b -> pow(a, b) }),
     // ROOT(46,"int(pow(a,1.0/b))",{ a, b -> me.anno.maths.Maths.pow(a.toDouble(), 1.0 / b) }, { a, b -> pow(a, 1 / b) }),
 
     // GEO_MEAN({ a, b -> kotlin.math.sqrt(a * b) }, { a, b -> kotlin.math.sqrt(a * b) }),
-    MIN(50, "min(a,b)", { a, b -> kotlin.math.min(a, b) }, { a, b -> kotlin.math.min(a, b) }),
-    MAX(51, "max(a,b)", { a, b -> kotlin.math.max(a, b) }, { a, b -> kotlin.math.max(a, b) }),
+    MIN(50, "min(a,b)"),
+    MAX(51, "max(a,b)"),
 
     // Kronecker delta
-    EQUALS(60, "a==b?1:0", { a, b -> if (a == b) 1 else 0 }, { a, b -> if (a == b) 1 else 0 }),
+    EQUALS(60, "a==b?1:0"),
 
     ;
 
+    fun long(a: Long, b: Long): Long {
+        return when (this) {
+            ADD -> a + b
+            SUB -> a - b
+            MUL -> a * b
+            DIV -> if (b == 0L) 0L else a / b
+            MOD -> if (b == 0L) 0L else a % b
+            LSL -> a shl b.toInt()
+            LSR -> a ushr b.toInt()
+            SHR -> a shr b.toInt()
+            AND -> a and b
+            OR -> a or b
+            XOR -> a xor b
+            NOR -> (a or b).inv()
+            XNOR -> (a xor b).inv()
+            NAND -> (a and b).inv()
+            LENGTH_SQUARED -> a * a + b * b
+            ABS_DELTA -> abs(a - b)
+            NORM1 -> abs(a) + abs(b)
+            AVG -> (a + b) shr 1
+            LENGTH -> length(a.toDouble(), b.toDouble()).toLong()
+            MIN -> min(a, b)
+            MAX -> max(a, b)
+            EQUALS -> (a == b).toLong()
+        }
+    }
+
+    fun int(a: Int, b: Int): Int {
+        return long(a.toLong(), b.toLong()).toInt()
+    }
 }

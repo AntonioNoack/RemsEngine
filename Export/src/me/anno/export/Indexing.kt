@@ -68,7 +68,6 @@ object Indexing {
                 for (libName in module.libraryDependencies) {
                     checkLibrary(project.libraries[libName]!!)
                 }
-                // todo we should not include the .jar, if it is an engine build... how?
                 val moduleOutFolder = project.projectDir.getChild("out/production/$name")
                 indexFolder(sources, moduleOutFolder, "", progress)
             }

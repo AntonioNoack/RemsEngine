@@ -94,8 +94,8 @@ class Path(
     fun getTypes() = accumulate { it.type }
     fun getIndices() = accumulate { it.index }
 
-    fun <V> accumulate(func: (Path) -> V): List<V> {
-        val list = ArrayList<V>()
+    inline fun <V> accumulate(func: (Path) -> V): List<V> {
+        val list = ArrayList<V>(depth)
         var item = this
         while (item != ROOT_PATH) {
             list.add(func(item))

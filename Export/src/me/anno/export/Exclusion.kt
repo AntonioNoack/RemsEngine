@@ -61,6 +61,7 @@ object Exclusion {
 
     fun excludeNonMinimalUI(sources: HashMap<String, ByteArray>, customReflections: Boolean) {
         // UI in engine
+        sources.removeIf { it.key.endsWith(".md") }
         excludeFiles(sources, "me/anno/ui/editor/", listOf("stacked/Option.class", "OptionBar"))
         excludeFiles(sources, "me/anno/engine/ui/input/")
         excludeFiles(sources, "me/anno/ui/input/")
@@ -69,7 +70,18 @@ object Exclusion {
         excludeFiles(sources, "me/anno/ui/custom/", listOf("CustomPanelType", "UITypeLibrary"))
         excludeFiles(sources, "me/anno/ui/base/image/")
         excludeFiles(sources, "me/anno/ui/base/buttons/")
+        excludeFiles(
+            sources, "me/anno/ui/base/groups/",
+            listOf("PanelGroup", "PanelContainer", "PanelList", "PanelStack", "NineTilePanel")
+        )
         excludeFiles(sources, "me/anno/image/thumbs/") // mostly just used in UI
+        excludeFiles(sources, "me/anno/engine/ui/ECSTreeView")
+        excludeFiles(sources, "me/anno/engine/ui/ECSFileExplorer")
+        excludeFiles(sources, "me/anno/engine/ui/scenetabs")
+        excludeFiles(sources, "me/anno/engine/ui/control/Blender")
+        excludeFiles(sources, "me/anno/engine/ui/control/Dragging")
+        excludeFiles(sources, "me/anno/maths/", listOf("Maths", "bvh"))
+        excludeFiles(sources, "me/anno/network/")
         // other engine things
         excludeFiles(sources, "textures") // I'm not too sure about this...
         excludeFiles(sources, "assets/org/apache/commons") // what is this used for???

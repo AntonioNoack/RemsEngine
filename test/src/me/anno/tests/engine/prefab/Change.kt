@@ -17,7 +17,7 @@ fun main() {
     val path = Path(p1, "m", 6, 'z')
     for (sample in listOf(
         CSet(path, "path", "z"),
-        CAdd(path, 'x', "Entity")
+        CAdd(path, 'x', "Entity", "Entity")
     )) {
         println(sample)
         val clone = JsonStringReader.read(JsonStringWriter.toText(sample, InvalidRef), InvalidRef, true).first()

@@ -9,6 +9,8 @@ class ValueNode private constructor(type: String, inputs: List<String>, outputs:
     private constructor(type: String, list: List<String>) :
             this(type, list, list)
 
+    @Suppress("unused")
+    constructor() : this("?") // for registry
     constructor(type: String) : this(type, listOf(type, "Value"))
 
     var type: String = type

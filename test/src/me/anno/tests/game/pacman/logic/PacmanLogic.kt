@@ -1,9 +1,13 @@
 package me.anno.tests.game.pacman.logic
 
+import me.anno.Time
+import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.Collections.crossMap
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector2i
 import kotlin.random.Random
@@ -36,7 +40,7 @@ open class PacmanLogic {
 
     val nodes = nodePositions
         .filter { it !in voidPositions }
-        .map { Node(it) }
+        .map { Node(Vector2f(it)) }
 
     val collectables = nodes.shuffled().subList(0, 10)
         .map { Vector2f(it.position) }.toMutableList()
@@ -44,8 +48,10 @@ open class PacmanLogic {
     // should be created before nodes are connected
     val player = Player(nodes.first())
 
-    fun wx(x0: Int, x1: Int, y: Int) = Wall(Vector2i(x0, y), Vector2i(x1, y))
-    fun wy(y0: Int, y1: Int, x: Int) = Wall(Vector2i(x, y0), Vector2i(x, y1))
+    fun wx(x0: Float, x1: Float, y: Float) = Wall(Vector2f(x0, y), Vector2f(x1, y))
+    fun wy(y0: Float, y1: Float, x: Float) = Wall(Vector2f(x, y0), Vector2f(x, y1))
+    fun wx(x0: Int, x1: Int, y: Int) = wx(x0.toFloat(), x1.toFloat(), y.toFloat())
+    fun wy(y0: Int, y1: Int, x: Int) = wy(y0.toFloat(), y1.toFloat(), x.toFloat())
     val walls = listOf(
         wx(0, 10, 0),
         wx(0, 10, 10),
@@ -113,21 +119,21 @@ open class PacmanLogic {
         val posToNode = nodes.associateBy { it.position }
         for (node in nodes) {
             if (node.position.x > 0 &&
-                walls.none { it.start.x == it.end.x && node.position.x == it.start.x && node.position.y in it.start.y until it.end.y }
+                walls.none { it.start.x == it.end.x && node.position.x == it.start.x && node.position.y in it.start.y..it.end.y - 1f }
             ) { // add a path to the left
-                connect(node, posToNode[Vector2i(node.position).sub(1, 0)])
+                connect(node, posToNode[Vector2f(node.position).sub(1f, 0f)])
             }
             if (node.position.y > 0 &&
-                walls.none { it.start.y == it.end.y && node.position.y == it.start.y && node.position.x in it.start.x until it.end.x }
+                walls.none { it.start.y == it.end.y && node.position.y == it.start.y && node.position.x in it.start.x..it.end.x - 1f }
             ) { // add a path to the top
-                connect(node, posToNode[Vector2i(node.position).sub(0, 1)])
+                connect(node, posToNode[Vector2f(node.position).sub(0f, 1f)])
             }
         }
     }
 
     val minEnemyDistanceSq = ceilDiv(size.lengthSquared(), 4)
     val enemies = nodes.filter { it.position.lengthSquared() > minEnemyDistanceSq }
-        .shuffled().subList(0, 5).map(::Enemy)
+        .shuffled().subList(0, 4).map(::Enemy)
 
     private fun tickEnemies(dt: Float) {
         for (enemy in enemies) {
@@ -158,7 +164,7 @@ open class PacmanLogic {
     val collectDistanceSq = sq(0.3f)
     private fun checkCollectibles() {
         collectables.removeIf { collectible ->
-            if (collectible.distanceSquared(player.position) < collectDistanceSq) {
+            if (collectible.distanceSquared(player.currPosition) < collectDistanceSq) {
                 player.points++
                 onCollect(collectible)
                 true
@@ -166,11 +172,11 @@ open class PacmanLogic {
         }
     }
 
-   open fun onCollect(collectible: Vector2f) {}
+    open fun onCollect(collectible: Vector2f) {}
 
     val killDistanceSq = sq(0.5f)
     private fun checkDeath() {
-        val isKilled = enemies.any2 { it.position.distanceSquared(player.position) < killDistanceSq }
+        val isKilled = enemies.any2 { it.currPosition.distanceSquared(player.currPosition) < killDistanceSq }
         if (isKilled && !player.wasKilled) {
             player.lives--
         }
@@ -182,5 +188,15 @@ open class PacmanLogic {
             tickPlayer(dt)
             tickEnemies(dt)
         }
+    }
+
+    fun updateControls() {
+        val dx = Input.isKeyDown(Key.KEY_D).toInt() - Input.isKeyDown(Key.KEY_A).toInt()
+        val dy = Input.isKeyDown(Key.KEY_S).toInt() - Input.isKeyDown(Key.KEY_W).toInt()
+        if ((dx != 0).toInt() + (dy != 0).toInt() == 1) {
+            player.requestedMovement.set(dx.toFloat(), dy.toFloat())
+            if (dx != 0) player.lookLeft = dx < 0
+        }
+        tick(Time.deltaTime.toFloat())
     }
 }

@@ -27,14 +27,6 @@ import me.anno.utils.OS.documents
 
 class ExportSettings : NamedSaveable() {
 
-    // todo:
-    //  - which platforms to support (LWJGL libraries) -> Linux, Windows, MacOS, x86/arm
-    //  - exclude classes from ECSRegistry via
-    //      a) reflections (as their implementation -> fail save),
-    //      b) renaming them inside the .class file?,
-    //      c) rewriting the file using the Kotlin compiler
-    //      d) replacing their .class files with stubs? (still registered, but without any content) <- might be the cleanest solution
-
     // todo TreeView for FilesToInclude/Exclude: check boxes on every level, and then state gets saved
 
     // todo option to bundle ffmpeg to be fully self-contained

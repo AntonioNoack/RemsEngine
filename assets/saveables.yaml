@@ -115,6 +115,7 @@ LookAtComponent: me.anno.ecs.components.mesh.LookAtComponent
 LuaAnimTextPanel: me.anno.lua.ui.LuaAnimTextPanel
 Material: me.anno.ecs.components.mesh.material.Material
 MaterialReturnNode: me.anno.graph.render.MaterialReturnNode
+ValueNode: me.anno.graph.types.flow.maths.ValueNode
 MathB2Node: me.anno.graph.types.flow.maths.MathB2Node
 MathB3Node: me.anno.graph.types.flow.maths.MathB3Node
 MathD1Node: me.anno.graph.types.flow.maths.MathD1Node

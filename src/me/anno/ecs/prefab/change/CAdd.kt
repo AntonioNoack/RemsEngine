@@ -31,13 +31,6 @@ class CAdd() : Change() {
         this.nameId = nameId
     }
 
-    constructor(
-        parentPath: Path,
-        type: Char,
-        clazzName: String,
-        prefab: FileReference = InvalidRef
-    ) : this(parentPath, type, clazzName, clazzName, prefab)
-
     fun withPath(path: Path, changeId: Boolean): CAdd {
         val nameId = if (changeId) Path.generateRandomId() else nameId
         return CAdd(path, type, clazzName, nameId, prefab)

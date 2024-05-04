@@ -7,24 +7,22 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.input.Input
-import me.anno.input.Key
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths.dtTo01
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.game.pacman.logic.Moveable
 import me.anno.tests.game.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
-import me.anno.ui.UIColors.midOrange
+import me.anno.ui.UIColors.darkOrange
 import me.anno.utils.Color.toVecRGBA
-import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -34,26 +32,31 @@ class PacmanControls(
 ) : Component() {
 
     val baseCameraHeight = camEntity.position.y
-    fun setPos(moveable: Moveable, entity: Entity) {
-        val pos = entity.transform.localPosition
-        pos.x = moveable.position.x + 0.5
-        pos.z = moveable.position.y + 0.5
-        entity.transform.localPosition = pos
-        entity.transform.smoothUpdate()
+    fun setPos(moveable: Moveable, entity: Entity, mixDt: Float) {
+        val transform = entity.transform
+        val pos = transform.localPosition
+        val rot = transform.localRotation
+        val currPosition = moveable.currPosition
+        val prevPosition = moveable.prevPosition
+        pos.x = currPosition.x + 0.5
+        pos.z = currPosition.y + 0.5
+        if (currPosition.distanceSquared(prevPosition) > 1e-5f) {
+            val angle = atan2(
+                currPosition.x - prevPosition.x,
+                currPosition.y - prevPosition.y
+            )
+            rot.identity().rotateY(angle.toDouble())
+        }
+        prevPosition.lerp(currPosition, mixDt)
+        transform.localPosition = pos
+        transform.localRotation = rot
+        transform.smoothUpdate()
         entity.invalidateOwnAABB()
     }
 
-    // todo when a gem is collected, it needs to be removed from the field
-
     override fun onUpdate(): Int {
         // controls
-        val dx = Input.isKeyDown(Key.KEY_D).toInt() - Input.isKeyDown(Key.KEY_A).toInt()
-        val dy = Input.isKeyDown(Key.KEY_S).toInt() - Input.isKeyDown(Key.KEY_W).toInt()
-        if ((dx != 0).toInt() + (dy != 0).toInt() == 1) {
-            game.player.requestedMovement.set(dx, dy)
-            if (dx != 0) game.player.lookLeft = dx < 0
-        }
-        game.tick(Time.deltaTime.toFloat())
+        game.updateControls()
         // update visuals
         val rv = RenderView.currentInstance
         if (rv != null) {
@@ -62,12 +65,13 @@ class PacmanControls(
             camEntity.transform.localPosition = pos
             camEntity.transform.smoothUpdate()
         }
+        val mixDt = dtTo01(Time.deltaTime.toFloat() * 5f)
         for (i in game.enemies.indices) {
             val enemy = game.enemies[i]
             val entity = enemies.children[i]
-            setPos(enemy, entity)
+            setPos(enemy, entity, mixDt)
         }
-        setPos(game.player, player)
+        setPos(game.player, player, mixDt)
         return 1
     }
 }
@@ -134,7 +138,7 @@ fun spatialPacmanGame(): Entity {
 
     val playerMaterial = Material().apply {
         roughnessMinMax.set(0.2f)
-        midOrange.toVecRGBA(diffuseBase)
+        darkOrange.toVecRGBA(diffuseBase)
     }
 
     val ghostMaterial = Material().apply {
@@ -145,18 +149,19 @@ fun spatialPacmanGame(): Entity {
     }
 
     val enemies = Entity("Enemies", scene)
-    val enemyMesh = IcosahedronModel.createIcosphere(3)
-    enemyMesh.materials = listOf(ghostMaterial.ref)
+    val enemyMesh = getReference("res://meshes/CuteGhost.fbx")
     for (enemy in game.enemies) {
         val entity = Entity(enemies)
-            .setPosition(enemy.position.x + 0.5, 0.5, enemy.position.y + 0.5)
-            .setScale(0.3)
-        entity.add(MeshComponent(enemyMesh))
+            .setPosition(enemy.currPosition.x + 0.5, 0.0, enemy.currPosition.y + 0.5)
+            .setScale(0.1)
+        val comp = MeshComponent(enemyMesh)
+        comp.materials = listOf(ghostMaterial.ref)
+        entity.add(comp)
     }
 
     val player = Entity("Player", scene)
-        .setPosition(0.0, 0.2, 0.0)
-        .setScale(0.2)
+        .setPosition(0.0, 0.0, 0.0)
+        .setScale(0.1)
     player.add(MeshComponent(enemyMesh).apply {
         materials = listOf(playerMaterial.ref)
     })
@@ -168,7 +173,6 @@ fun spatialPacmanGame(): Entity {
 fun main() {
     // todo show lives and score
     disableRenderDoc()
-    OfficialExtensions.register()
-    DefaultAssets.init()
+    OfficialExtensions.initForTests()
     testSceneWithUI("Flat Pacman", spatialPacmanGame())
 }

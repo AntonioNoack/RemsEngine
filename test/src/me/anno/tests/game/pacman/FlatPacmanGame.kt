@@ -1,6 +1,5 @@
 package me.anno.tests.game.pacman
 
-import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -10,8 +9,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.input.Input
-import me.anno.input.Key
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.tests.game.pacman.logic.PacmanLogic
@@ -19,7 +16,6 @@ import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
-import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 
 // textures are from https://www.flaticon.com/ from Tahsin Tahil (Pacman.png), Freepik (Gem.png) and Creative Squad (Ghost.png)
@@ -30,14 +26,7 @@ class FlatPacmanGame : Panel(style) {
     val game = PacmanLogic()
     override fun onUpdate() {
         super.onUpdate()
-        // parse controls
-        val dx = Input.isKeyDown(Key.KEY_D).toInt() - Input.isKeyDown(Key.KEY_A).toInt()
-        val dy = Input.isKeyDown(Key.KEY_S).toInt() - Input.isKeyDown(Key.KEY_W).toInt()
-        if ((dx != 0).toInt() + (dy != 0).toInt() == 1) {
-            game.player.requestedMovement.set(dx, dy)
-            if (dx != 0) game.player.lookLeft = dx < 0
-        }
-        game.tick(Time.deltaTime.toFloat())
+        game.updateControls()
         invalidateDrawing()
     }
 
@@ -104,13 +93,13 @@ class FlatPacmanGame : Panel(style) {
 
         val enemyTexture = TextureCache[enemyPath, true] ?: missingTexture
         for (enemy in game.enemies) {
-            drawTex(enemy.position, 0.2f, enemyTexture)
+            drawTex(enemy.currPosition, 0.2f, enemyTexture)
         }
 
         val playerTexture = TextureCache[playerPath, true] ?: missingTexture
         val lookLeft = game.player.lookLeft
         drawTex(
-            game.player.position, if (lookLeft) 0.8f else 0.2f, if (lookLeft) 0.2f else 0.8f,
+            game.player.currPosition, if (lookLeft) 0.8f else 0.2f, if (lookLeft) 0.2f else 0.8f,
             0.2f, 0.8f, playerTexture
         )
     }

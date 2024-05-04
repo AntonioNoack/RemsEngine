@@ -964,7 +964,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
         private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>(64)
 
-        private fun <V> registerReader(
+        private fun <V> register1(
             type: SimpleType, v0: V,
             reader: JsonReaderBase.() -> V
         ) {
@@ -973,7 +973,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             readers[type.array2d] = { obj, name -> obj.setProperty(name, readArray2D(type, v0) { reader() }) }
         }
 
-        private fun <V, W> registerReader2(
+        private fun <V, W> register2(
             type: SimpleType, v0: W,
             reader1: JsonReaderBase.() -> V,
             readerN: JsonReaderBase.() -> W
@@ -984,42 +984,42 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
 
         init {
-            registerReader2(SimpleType.BYTE, ByteArray(0), { readByte() }, { readByteArray() })
-            registerReader2(SimpleType.SHORT, ShortArray(0), { readShort() }, { readShortArray() })
-            registerReader2(SimpleType.INT, IntArray(0), { readInt() }, { readIntArray() })
-            registerReader2(SimpleType.LONG, LongArray(0), { readLong() }, { readLongArray() })
-            registerReader2(SimpleType.FLOAT, FloatArray(0), { readFloat() }, { readFloatArray() })
-            registerReader2(SimpleType.DOUBLE, DoubleArray(0), { readDouble() }, { readDoubleArray() })
-            registerReader2(SimpleType.BOOLEAN, BooleanArray(0), { readBool() }, { readBoolArray() })
-            registerReader2(SimpleType.CHAR, CharArray(0), { readChar() }, { readCharArray() })
-            registerReader2(SimpleType.COLOR, IntArray(0), { readInt() }, { readIntArray() })
-            registerReader(SimpleType.STRING, "") { readStringValue() }
-            registerReader(SimpleType.REFERENCE, InvalidRef) { readFile() }
-            registerReader(SimpleType.VECTOR2F, Vector2f()) { readVector2f() }
-            registerReader(SimpleType.VECTOR3F, Vector3f()) { readVector3f() }
-            registerReader(SimpleType.VECTOR4F, Vector4f()) { readVector4f() }
-            registerReader(SimpleType.VECTOR2D, Vector2d()) { readVector2d() }
-            registerReader(SimpleType.VECTOR3D, Vector3d()) { readVector3d() }
-            registerReader(SimpleType.VECTOR4D, Vector4d()) { readVector4d() }
-            registerReader(SimpleType.VECTOR2I, Vector2i()) { readVector2i() }
-            registerReader(SimpleType.VECTOR3I, Vector3i()) { readVector3i() }
-            registerReader(SimpleType.VECTOR4I, Vector4i()) { readVector4i() }
-            registerReader(SimpleType.QUATERNIONF, Quaternionf()) { readQuaternionf() }
-            registerReader(SimpleType.QUATERNIOND, Quaterniond()) { readQuaterniond() }
-            registerReader(SimpleType.AABBF, AABBf()) { readAABBf() }
-            registerReader(SimpleType.AABBD, AABBd()) { readAABBd() }
-            registerReader(SimpleType.PLANEF, Planef()) { readPlanef() }
-            registerReader(SimpleType.PLANED, Planed()) { readPlaned() }
-            registerReader(SimpleType.MATRIX2X2F, Matrix2f()) { readMatrix2x2() }
-            registerReader(SimpleType.MATRIX3X2F, Matrix3x2f()) { readMatrix3x2() }
-            registerReader(SimpleType.MATRIX3X3F, Matrix3f()) { readMatrix3x3() }
-            registerReader(SimpleType.MATRIX4X3F, Matrix4x3f()) { readMatrix4x3() }
-            registerReader(SimpleType.MATRIX4X4F, Matrix4f()) { readMatrix4x4() }
-            registerReader(SimpleType.MATRIX2X2D, Matrix2d()) { readMatrix2x2d() }
-            registerReader(SimpleType.MATRIX3X2D, Matrix3x2d()) { readMatrix3x2d() }
-            registerReader(SimpleType.MATRIX3X3D, Matrix3d()) { readMatrix3x3d() }
-            registerReader(SimpleType.MATRIX4X3D, Matrix4x3d()) { readMatrix4x3d() }
-            registerReader(SimpleType.MATRIX4X4D, Matrix4d()) { readMatrix4x4d() }
+            register2(SimpleType.BYTE, ByteArray(0), JsonReaderBase::readByte, JsonReaderBase::readByteArray)
+            register2(SimpleType.SHORT, ShortArray(0), JsonReaderBase::readShort, JsonReaderBase::readShortArray)
+            register2(SimpleType.INT, IntArray(0), JsonReaderBase::readInt, JsonReaderBase::readIntArray)
+            register2(SimpleType.LONG, LongArray(0), JsonReaderBase::readLong, JsonReaderBase::readLongArray)
+            register2(SimpleType.FLOAT, FloatArray(0), JsonReaderBase::readFloat, JsonReaderBase::readFloatArray)
+            register2(SimpleType.DOUBLE, DoubleArray(0), JsonReaderBase::readDouble, JsonReaderBase::readDoubleArray)
+            register2(SimpleType.BOOLEAN, BooleanArray(0), JsonReaderBase::readBool, JsonReaderBase::readBoolArray)
+            register2(SimpleType.CHAR, CharArray(0), JsonReaderBase::readChar, JsonReaderBase::readCharArray)
+            register2(SimpleType.COLOR, IntArray(0), JsonReaderBase::readInt, JsonReaderBase::readIntArray)
+            register1(SimpleType.STRING, "", JsonReaderBase::readStringValue)
+            register1(SimpleType.REFERENCE, InvalidRef, JsonReaderBase::readFile)
+            register1(SimpleType.VECTOR2F, Vector2f(), JsonReaderBase::readVector2f)
+            register1(SimpleType.VECTOR3F, Vector3f(), JsonReaderBase::readVector3f)
+            register1(SimpleType.VECTOR4F, Vector4f(), JsonReaderBase::readVector4f)
+            register1(SimpleType.VECTOR2D, Vector2d(), JsonReaderBase::readVector2d)
+            register1(SimpleType.VECTOR3D, Vector3d(), JsonReaderBase::readVector3d)
+            register1(SimpleType.VECTOR4D, Vector4d(), JsonReaderBase::readVector4d)
+            register1(SimpleType.VECTOR2I, Vector2i(), JsonReaderBase::readVector2i)
+            register1(SimpleType.VECTOR3I, Vector3i(), JsonReaderBase::readVector3i)
+            register1(SimpleType.VECTOR4I, Vector4i(), JsonReaderBase::readVector4i)
+            register1(SimpleType.QUATERNIONF, Quaternionf(), JsonReaderBase::readQuaternionf)
+            register1(SimpleType.QUATERNIOND, Quaterniond(), JsonReaderBase::readQuaterniond)
+            register1(SimpleType.AABBF, AABBf(), JsonReaderBase::readAABBf)
+            register1(SimpleType.AABBD, AABBd(), JsonReaderBase::readAABBd)
+            register1(SimpleType.PLANEF, Planef(), JsonReaderBase::readPlanef)
+            register1(SimpleType.PLANED, Planed(), JsonReaderBase::readPlaned)
+            register1(SimpleType.MATRIX2X2F, Matrix2f(), JsonReaderBase::readMatrix2x2)
+            register1(SimpleType.MATRIX3X2F, Matrix3x2f(), JsonReaderBase::readMatrix3x2)
+            register1(SimpleType.MATRIX3X3F, Matrix3f(), JsonReaderBase::readMatrix3x3)
+            register1(SimpleType.MATRIX4X3F, Matrix4x3f(), JsonReaderBase::readMatrix4x3)
+            register1(SimpleType.MATRIX4X4F, Matrix4f(), JsonReaderBase::readMatrix4x4)
+            register1(SimpleType.MATRIX2X2D, Matrix2d(), JsonReaderBase::readMatrix2x2d)
+            register1(SimpleType.MATRIX3X2D, Matrix3x2d(), JsonReaderBase::readMatrix3x2d)
+            register1(SimpleType.MATRIX3X3D, Matrix3d(), JsonReaderBase::readMatrix3x3d)
+            register1(SimpleType.MATRIX4X3D, Matrix4x3d(), JsonReaderBase::readMatrix4x3d)
+            register1(SimpleType.MATRIX4X4D, Matrix4d(), JsonReaderBase::readMatrix4x4d)
         }
 
         private const val black = 255.shl(24).toLong()

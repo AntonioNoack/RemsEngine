@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.Graph
 import me.anno.io.Saveable.Companion.IRegistryEntry
 import me.anno.io.files.ReadLineIterator
 import me.anno.io.files.Reference.getReference
@@ -33,7 +34,7 @@ object SaveableRegistry {
 
         override fun generate(): Saveable {
             val sampleInstance = sampleInstance
-            return if (sampleInstance is PrefabSaveable) sampleInstance.clone()
+            return if (sampleInstance is PrefabSaveable && sampleInstance !is Graph) sampleInstance.clone()
             else newInstance()
         }
     }
