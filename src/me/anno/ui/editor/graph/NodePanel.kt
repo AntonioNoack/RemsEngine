@@ -455,9 +455,7 @@ class NodePanel(
                 val idx = (if (input) node.inputs else node.outputs).indexOf(connector)
                 val idx1 = idx + 1
                 val knownTypes = (gp.library.allNodes.map { it.first } + (gp.graph?.nodes ?: emptyList()))
-                    .asSequence()
-                    .map { n -> (n.inputs + n.outputs).map { it.type } }
-                    .flatten()
+                    .flatMap { n -> (n.inputs + n.outputs).map { it.type } }
                     .toHashSet()
                 val addableTypes = knownTypes.filter { type ->
                     if (input) node.canAddInput(type, idx1)

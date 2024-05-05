@@ -7,7 +7,7 @@ var ctr = 0
 fun build(src: List<FileReference>, dst: FileReference, path: String) {
     if (src.first().isDirectory) {
         dst.tryMkdirs()
-        val srcChildren = src.map { it.listChildren() }.flatten().map { it.name }.toHashSet()
+        val srcChildren = src.flatMap { it.listChildren() }.map { it.name }.toHashSet()
         for (srcI in srcChildren) {
             val srcII = src.map { it.getChild(srcI) }.filter { it.exists }
             build(srcII, dst.getChild(srcI), "$path/${srcI}")
@@ -138,7 +138,7 @@ fun build(src: List<FileReference>, dst: FileReference, path: String) {
 fun clear(src: List<FileReference>, dst: FileReference, path: String) {
     if (src.first().isDirectory) {
         dst.tryMkdirs()
-        val srcChildren = src.map { it.listChildren() }.flatten().map { it.name }.toHashSet()
+        val srcChildren = src.flatMap { it.listChildren() }.map { it.name }.toHashSet()
         for (srcI in srcChildren) {
             val srcII = src.map { it.getChild(srcI) }.filter { it.exists }
             clear(srcII, dst.getChild(srcI), "$path/${srcI}")

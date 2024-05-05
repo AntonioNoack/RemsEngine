@@ -43,7 +43,7 @@ class TreeViewDragNDrop {
     fun checkPrefab(prefab: Prefab, adds: List<CAdd>, sets: List<CSet>) {
         assertContentEquals(adds, prefab.adds.entries
             .sortedBy { it.key.depth }
-            .map { it.value }.flatten()
+            .flatMap { it.value }
         )
         assertContentEquals(
             sets.sortedBy(::getSortingName),

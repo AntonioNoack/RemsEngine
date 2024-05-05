@@ -25,7 +25,6 @@ import me.anno.tests.game.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
-import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -37,7 +36,6 @@ class PacmanControls(
     val enemies: Entity, val player: Entity
 ) : Component() {
 
-    val baseCameraHeight = camEntity.position.y
     fun setPos(moveable: Moveable, entity: Entity, mixDt: Float) {
         val transform = entity.transform
         val pos = transform.localPosition
@@ -60,16 +58,18 @@ class PacmanControls(
         entity.invalidateOwnAABB()
     }
 
+    val baseCameraHeight = camEntity.position.y
     override fun onUpdate(): Int {
         // controls
         game.updateControls()
         // update visuals
         val rv = RenderView.currentInstance
         if (rv != null) {
-            val pos = camEntity.transform.localPosition
+            val transform = camEntity.transform
+            val pos = transform.localPosition
             pos.y = baseCameraHeight * rv.height.toDouble() / min(rv.width, rv.height)
-            camEntity.transform.localPosition = pos
-            camEntity.transform.smoothUpdate()
+            transform.localPosition = pos
+            transform.smoothUpdate()
         }
         val mixDt = dtTo01(Time.deltaTime.toFloat() * 5f)
         for (i in game.enemies.indices) {
@@ -89,7 +89,6 @@ fun spatialPacmanGame(): Entity {
 
     val collectibleLookup = HashMap<Vector2f, Entity>()
     val scene = Entity("Scene")
-    val camEntity = Entity("Camera", scene)
     val game = object : PacmanLogic() {
         override fun onCollect(collectible: Vector2f) {
             collectibleLookup[collectible]!!.removeFromParent()
@@ -97,80 +96,71 @@ fun spatialPacmanGame(): Entity {
     }
 
     val wallHeight = 0.50
-    val camera = Camera()
-    camEntity.add(camera)
-    camEntity.setPosition(
-        game.size.x * 0.5, max(game.size.x, game.size.y) * 0.55 + wallHeight,
-        game.size.y * 0.5
-    ).setRotation(-PI / 2, 0.0, 0.0)
+    val camEntity = Entity("Camera", scene)
+        .setPosition(game.size.x * 0.5, max(game.size.x, game.size.y) * 0.55 + wallHeight, game.size.y * 0.5)
+        .setRotation(-PI / 2, 0.0, 0.0)
+        .add(Camera())
 
     val walls = Entity("Walls", scene)
-    for (wall in game.walls) {
+    for ((start, end) in game.walls) {
         val wallThickness = 0.03
-        val cx = (wall.start.x + wall.end.x) * 0.5
-        val cz = (wall.start.y + wall.end.y) * 0.5
-        val wallE = Entity(walls)
+        val cx = (start.x + end.x) * 0.5
+        val cz = (start.y + end.y) * 0.5
+        Entity(walls)
             .setPosition(cx, wallHeight * 0.5, cz)
             .setScale(
-                wallThickness + (wall.end.x - wall.start.x) * 0.5, wallHeight * 0.5,
-                wallThickness + (wall.end.y - wall.start.y) * 0.5,
+                wallThickness + (end.x - start.x) * 0.5, wallHeight * 0.5,
+                wallThickness + (end.y - start.y) * 0.5,
             )
-        wallE.add(MeshComponent(flatCube.front))
+            .add(MeshComponent(flatCube.front))
     }
 
     for (pos in game.voidPositions) {
-        val block = Entity(walls)
+        Entity(walls)
             .setPosition(pos.x + 0.5, 0.0, pos.y + 0.5)
             .setScale(0.5)
-        block.add(MeshComponent(flatCube.front))
+            .add(MeshComponent(flatCube.front))
     }
 
-    val floor = Entity("Floor", scene)
+    Entity("Floor", scene)
         .setPosition(game.size.x * 0.5, -1.0, game.size.y * 0.5)
         .setScale(game.size.x * 0.5, 1.0, game.size.y * 0.5)
-    floor.add(MeshComponent(flatCube.front))
-
+        .add(MeshComponent(flatCube.front))
 
     val collectibles = Entity("Gems", scene)
     val collectibleMesh = IcosahedronModel.createIcosphere(3)
     collectibleMesh.materials = listOf(getReference("materials/Golden.json"))
-    for (collectible in game.collectables) {
-        val entity = Entity(collectibles)
-            .setPosition(collectible.x + 0.5, 0.15, collectible.y + 0.5)
+    for (pos in game.collectables) {
+        collectibleLookup[pos] = Entity(collectibles)
+            .setPosition(pos.x + 0.5, 0.15, pos.y + 0.5)
             .setScale(0.13)
-        entity.add(MeshComponent(collectibleMesh))
-        collectibleLookup[collectible] = entity
+            .add(MeshComponent(collectibleMesh))
     }
 
-    val playerMaterial = Material().apply {
+    val playerMaterial = Material.diffuse(darkOrange).apply {
         roughnessMinMax.set(0.2f)
-        darkOrange.toVecRGBA(diffuseBase)
     }
 
-    val ghostMaterial = Material().apply {
+    val ghostMaterial = Material.diffuse(cornFlowerBlue).apply {
         metallicMinMax.set(1f)
         roughnessMinMax.set(0.2f)
-        cornFlowerBlue.toVecRGBA(diffuseBase)
         pipelineStage = PipelineStage.TRANSPARENT
     }
 
     val enemies = Entity("Enemies", scene)
     val enemyMesh = getReference("res://meshes/CuteGhost.fbx")
     for (enemy in game.enemies) {
-        val entity = Entity(enemies)
+        Entity(enemies)
             .setPosition(enemy.currPosition.x + 0.5, 0.0, enemy.currPosition.y + 0.5)
             .setScale(0.1)
-        val comp = MeshComponent(enemyMesh)
-        comp.materials = listOf(ghostMaterial.ref)
-        entity.add(comp)
+            .add(MeshComponent(enemyMesh, ghostMaterial))
     }
 
     val player = Entity("Player", scene)
         .setPosition(0.0, 0.0, 0.0)
         .setScale(0.1)
-    player.add(MeshComponent(enemyMesh).apply {
-        materials = listOf(playerMaterial.ref)
-    })
+        .add(MeshComponent(enemyMesh, playerMaterial))
+
     scene.add(PacmanControls(game, camEntity, enemies, player))
 
     return scene

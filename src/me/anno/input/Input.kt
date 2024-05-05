@@ -690,8 +690,7 @@ object Input {
                     is List<*> -> {
                         if (first.isNotEmpty() && first.all { it is FileReference }) {
                             val fullFileList = inFocus.mapNotNull { it as? List<*> }
-                                .map { it.filterIsInstance<FileReference>() }
-                                .flatten()
+                                .flatMap { it.filterIsInstance<FileReference>() }
                             copyFiles(fullFileList)
                         } else defaultCopy()
                     }

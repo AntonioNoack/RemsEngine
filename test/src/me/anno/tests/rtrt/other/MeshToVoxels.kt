@@ -22,7 +22,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture3D
-import me.anno.image.thumbs.AssetThumbHelper.listTextures
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.AssetThumbHelper.removeTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
 import me.anno.maths.Maths.PIf
@@ -33,7 +33,6 @@ import me.anno.mesh.Shapes.smoothCube
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Clock
 import me.anno.utils.OS.downloads
-import me.anno.utils.structures.lists.Lists.flatten
 import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -121,7 +120,7 @@ fun meshToSeparatedVoxels(
     }
     if (waitForTextures) {
         val materials = mesh.materials
-        val textures = HashSet(materials.map { listTextures(it) }.flatten())
+        val textures = HashSet(materials.flatMap(AssetThumbHelper::listTextures))
         removeTextures(textures, mesh.ref)
         waitForTextures(textures)
     }

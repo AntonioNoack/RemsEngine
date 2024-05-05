@@ -4,10 +4,10 @@ import org.joml.Vector2f
 
 class Player(node: Node) : Moveable(node) {
     val requestedMovement = Vector2f()
-    var lookLeft = false // todo when we can load the ghost, rotate player and enemies in 3d
+    var lookLeft = false
     var points = 0 // todo visualize in 2d and 3d
     var lives = 3 // todo visualize in 2d and 3d
-    var wasKilled = false // todo visualize in 2d and 3d
+    var wasKilled = false // todo visualize in 2d and 3d; todo restart logic
 
     // todo slightly rotate player towards go-to-direction in 2d
 

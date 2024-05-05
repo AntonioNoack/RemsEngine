@@ -70,8 +70,7 @@ abstract class MeshJoiner<V>(
             dstMesh.materials = firstMaterial
         } else {
             val uniqueMaterials = elements
-                .map { getMaterials(it) }
-                .flatten().toSet().toList()
+                .flatMap { getMaterials(it) }.toSet().toList()
             materialToId = uniqueMaterials.withIndex().associate { it.value to it.index }
             dstMesh.materials = uniqueMaterials
         }

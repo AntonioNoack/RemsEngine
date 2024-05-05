@@ -151,7 +151,7 @@ class HierarchicalDatabase(
     }
 
     private fun optimizeStorage(sf: StorageFile) {
-        val files = sf.folders.map { it.files.values }.flatten()
+        val files = sf.folders.flatMap { it.files.values }
         if (FileAllocation.shouldOptimize(files, sf.size)) {
             // load and manipulate storage
             synchronized(sf) {

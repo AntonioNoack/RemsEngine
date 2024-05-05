@@ -46,13 +46,11 @@ class FlatPacmanGame : Panel(style) {
 
         fun x(xi: Float) = ox + scale * xi
         fun y(yi: Float) = oy + scale * yi
-        fun x(xi: Int) = x(xi.toFloat())
-        fun y(yi: Int) = y(yi.toFloat())
 
         // walls
-        for (wall in game.walls) {
+        for ((start, end) in game.walls) {
             drawLine(
-                x(wall.start.x), y(wall.start.y), x(wall.end.x), y(wall.end.y), 2f,
+                x(start.x), y(start.y), x(end.x), y(end.y), 2f,
                 white, backgroundColor, false
             )
         }

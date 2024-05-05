@@ -7,7 +7,6 @@ import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.white
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.structures.lists.Lists.flatten
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -79,9 +78,9 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     override fun getChildren(element: PrefabSaveable): List<PrefabSaveable> {
-        return element.listChildTypes().map { type ->
+        return element.listChildTypes().flatMap { type ->
             element.getChildListByType(type)
-        }.flatten()
+        }
     }
 
     override fun openAddMenu(parent: PrefabSaveable) {
@@ -98,9 +97,9 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     override fun selectElements(elements: List<PrefabSaveable>) {
         val sample = elements.firstOrNull2 { sameSceneRefInput.clazz.isInstance(it) }
             ?: elements.mapNotNull { instance ->
-                instance.listChildTypes().map { type ->
+                instance.listChildTypes().flatMap { type ->
                     instance.getChildListByType(type)
-                }.flatten().firstOrNull { child ->
+                }.firstOrNull { child ->
                     sameSceneRefInput.clazz.isInstance(child)
                 }
             }.firstOrNull2() ?: sameSceneRefInput.value

@@ -42,7 +42,7 @@ class CachedReflections(
     }
 
     val propertiesByClassList by lazy {
-        propertiesByClass.map { it.second }.flatten()
+        propertiesByClass.flatMap { it.second }
     }
 
     val serializedProperties = allProperties.filter { it.value.serialize }

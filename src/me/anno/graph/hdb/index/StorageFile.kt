@@ -11,8 +11,7 @@ class StorageFile(val index: Int) {
 
     val files: ArrayList<File>
         get() = ArrayList(
-            folders.map { it.files.values }
-                .flatten()
+            folders.flatMap { it.files.values }
                 .sortedBy { it.range.first }
         )
 

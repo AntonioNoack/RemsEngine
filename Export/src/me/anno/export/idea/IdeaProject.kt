@@ -62,12 +62,11 @@ class IdeaProject(val projectDir: FileReference) {
                 .first { it.type == "component" && it["name"] == "ProjectModuleManager" }
             val node2 = node1.children.filterIsInstance<XMLNode>()
                 .first { it.type == "modules" }
-            return node2.children.asSequence()
+            return node2.children
                 .filterIsInstance<XMLNode>()
                 .filter { it.type == "module" }
                 .mapNotNull { it["filepath"] }
                 .map { parseFile(it, projectDir) }
-                .toList()
         }
     }
 }

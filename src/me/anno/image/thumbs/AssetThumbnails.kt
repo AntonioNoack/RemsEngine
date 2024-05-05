@@ -76,9 +76,7 @@ object AssetThumbnails {
     ) {
         // todo draw gui (colliders), entity positions
         val sceneMaterials = AssetThumbHelper.collectMaterials(scene)
-        val sceneTextures = HashSet(sceneMaterials.map {
-            listTextures(it)
-        }.flatten())
+        val sceneTextures = HashSet(sceneMaterials.flatMap(AssetThumbHelper::listTextures))
         removeTextures(sceneTextures, srcFile)
         for (i in 0 until 3) { // make sure both are loaded
             AssetThumbHelper.waitForMeshes(scene)

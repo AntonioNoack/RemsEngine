@@ -7,10 +7,10 @@ import me.anno.ecs.EntityStats.totalNumEntities
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
@@ -43,11 +43,10 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
-import me.anno.utils.types.Strings.camelCaseToTitle
-import me.anno.utils.types.Strings.shorten
-import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
+import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 
 open class ECSTreeView(style: Style) : TreeView<Saveable>(
@@ -195,7 +194,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                     } else Path.ROOT_PATH)
                     val adds = selfAdd + srcPrefab.adds.entries
                         .sortedBy { it.key.depth }
-                        .map { (_, v) ->
+                        .flatMap { (_, v) ->
                             v.mapNotNull {
                                 val isSelf = it.matches(oldRoot)
                                 val isUnderSelf = oldRoot.getRestIfStartsWith(it.path, 0)
@@ -204,7 +203,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
                                     it.withPath(path1, false)
                                 } else null
                             }
-                        }.flatten()
+                        }
                     val sets = srcPrefab.sets.mapNotNull { path, k, v ->
                         val newPath = oldRoot.getRestIfStartsWith(path, 0)
                         if (newPath != null) {

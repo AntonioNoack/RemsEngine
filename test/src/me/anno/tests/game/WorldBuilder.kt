@@ -33,6 +33,8 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.PI
 
+// todo bug: icons are missing
+
 // done:
 //  - placing objects
 //  - rotating objects
@@ -77,7 +79,7 @@ fun main() {
             mainFolder.getChild("Environments"),
             mainFolder.getChild("Buildings"),
             mainFolder.getChild("Props"),
-        ).map { it.listChildren() }.flatten()
+        ).flatMap { it.listChildren() }
 
         val buildMenu = PanelList2D(false, null, style)
         buildMenu.scaleChildren = true

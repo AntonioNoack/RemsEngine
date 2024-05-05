@@ -166,11 +166,11 @@ fun main() {
 
     class Link(val input: Element, val output: Element, var colX: Int)
 
-    val links = nodes.map { input ->
+    val links = nodes.flatMap { input ->
         input.outputs
             .filter { it in canBeReached }
             .map { Link(input, it, -1) }
-    }.flatten()
+    }
     val sortingHat = ArrayList<Guy>(links.size)
     for (link in links) {
         val a = link.input.rowY

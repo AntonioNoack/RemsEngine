@@ -48,7 +48,7 @@ class RenderSceneDeferredNode : RenderViewNode(
 
     companion object {
         fun listLayers(type: String?): List<String> {
-            return DeferredLayerType.values.map {
+            return DeferredLayerType.values.flatMap {
                 listOf(
                     type ?: when (it.workDims) {
                         1 -> "Float"
@@ -58,7 +58,7 @@ class RenderSceneDeferredNode : RenderViewNode(
                         else -> throw IllegalStateException()
                     }, if (it.name == "Color") "Diffuse" else it.name
                 )
-            }.flatten()
+            }
         }
 
         val inList = listLayers(null)

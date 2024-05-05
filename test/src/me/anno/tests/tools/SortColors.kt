@@ -20,10 +20,10 @@ fun main() {
     val image = ImageCache[src, false]!!
     val intImage = image.createIntImage()
     val sortedY = intImage.data.sortedBy { it.g() }
-    val sortedX = (0 until image.height).map { y ->
+    val sortedX = (0 until image.height).flatMap { y ->
         val i0 = y * image.width
         sortedY.subList(i0, i0 + image.width).sortedBy { it.r() }
-    }.flatten().toIntArray()
+    }.toIntArray()
     val sorted = IntImage(image.width, image.height, sortedX, false)
     sorted.write(desktop.getChild("sorted.png"))
     val corners = sampleCorners(sorted, 6, 6)
