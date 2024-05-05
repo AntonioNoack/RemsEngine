@@ -28,8 +28,7 @@ abstract class InnerTmpFile private constructor(name: String, val uuid: Int) :
         else "tmp://$prefix.$uuid.$ext", uuid
     )
 
-    override fun toLocalPath(workspace: FileReference) =
-        absolutePath
+    override fun toLocalPath(workspace: FileReference) = absolutePath
 
     companion object { // only works if extension does not contain dots
         @JvmField

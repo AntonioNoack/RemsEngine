@@ -26,11 +26,11 @@ object UnityPackage {
                     val name = pathname0.readTextSync()
                     val meta = value.getChild("asset.meta")
                     val metaFile = if (meta is InnerTarFile) {
-                        createEntryArchive(parent, "$name.meta", meta, registry)
+                        createArchiveEntry(parent, "$name.meta", meta, registry)
                     } else null
                     val asset = value.getChild("asset")
                     val assetFile = if (asset is InnerTarFile) {
-                        createEntryArchive(parent, name, asset, registry)
+                        createArchiveEntry(parent, name, asset, registry)
                     } else null
                     if (metaFile != null && assetFile != null) {
                         unityArchive.project.register(guid, assetFile)
@@ -53,7 +53,7 @@ object UnityPackage {
         }
     }
 
-    fun createEntryArchive(
+    fun createArchiveEntry(
         zipFile: FileReference,
         name: String,
         original: InnerTarFile,

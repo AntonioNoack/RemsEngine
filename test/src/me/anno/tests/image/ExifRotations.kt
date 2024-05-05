@@ -20,6 +20,8 @@ fun main() {
 
         // before we had implemented and checked our version :)
         // println(ImageData.getRotation(src))
-        println(ExifOrientation.findRotation(src))
+        ExifOrientation.findRotation(src) { rot, _ ->
+            println(rot)
+        }
     }
 }

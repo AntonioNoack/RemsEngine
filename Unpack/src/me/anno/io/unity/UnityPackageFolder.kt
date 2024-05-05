@@ -7,21 +7,20 @@ class UnityPackageFolder(root: FileReference) : InnerFolder(root) {
 
     val project = UnityProject(this)
 
-    override fun listChildren(): List<FileReference> {
-        synchronized(project) {
-            // index all files
-            for (guid in project.files.keys) {
-                project.getGuidFolder(guid)
-            }
-            return super.listChildren() + project.files.values
+    init {
+        // index all files
+        for (guid in project.files.keys) {
+            project.getGuidFolder(guid)
         }
     }
 
+    override fun listChildren(): List<FileReference> {
+        return super.listChildren() + project.files.values
+    }
+
     override fun getChild(name: String): FileReference {
-        return synchronized(project) {
-            super.getChild(name).nullIfUndefined()
+        return super.getChild(name).nullIfUndefined()
                 ?: project.getGuidFolder(name)
-        }
     }
 
 }

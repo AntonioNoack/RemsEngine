@@ -16,6 +16,7 @@ import me.anno.io.files.Signature
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 
@@ -32,16 +33,16 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
 
         // injected by ImagePlugin
         @JvmField
-        var findExifRotation: ((FileReference) -> ImageTransform?)? = null
+        var findExifRotation: ((FileReference, Callback<ImageTransform?>) -> Unit)? = null
 
         @JvmStatic
-        fun getRotation(src: FileReference): ImageTransform? {
-            if (src == InvalidRef || src.isDirectory) return null
+        fun getRotation(src: FileReference, callback: Callback<ImageTransform?>) {
+            if (src == InvalidRef || src.isDirectory) return callback.ok(null)
             // which files can contain exif metadata?
             // according to https://exiftool.org/TagNames/EXIF.html,
             // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
-            val findRotation = findExifRotation ?: return null
-            return findRotation(src)
+            val findRotation = findExifRotation ?: return callback.ok(null)
+            findRotation(src, callback)
         }
     }
 
@@ -87,9 +88,11 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
                 value = null
             }
             else -> {
-                val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
-                texture.rotation = getRotation(file)
-                texture.create(image, true, ::callback)
+                getRotation(file) { rot, _ ->
+                    val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
+                    texture.rotation = rot
+                    texture.create(image, true, ::callback)
+                }
             }
         }
     }

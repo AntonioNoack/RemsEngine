@@ -64,16 +64,18 @@ abstract class InnerFile(
     }
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        val bytes = data
+        val data = data
         when {
             size <= 0 -> callback.call(EmptyInputStream, null)
-            bytes != null -> callback.call(ByteArrayInputStream(bytes), null)
+            data != null -> callback.call(ByteArrayInputStream(data), null)
             else -> callback.ok(inputStreamSync())
         }
     }
 
     override fun readBytes(callback: Callback<ByteArray>) {
-        callback.ok(data ?: readBytesSync())
+        val data = data
+        if (data != null) callback.ok(data)
+        else super.readBytes(callback)
     }
 
     override fun readBytesSync(): ByteArray {

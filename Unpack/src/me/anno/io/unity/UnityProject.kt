@@ -45,10 +45,6 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         }
     }
 
-    fun request(guid: String, fileId: String): FileReference {
-        return getGuidFolder(guid).getChild(fileId)
-    }
-
     fun parse(node: YAMLNode, guid: String, file: InnerFolder) {
         readUnityObjects(node, guid, this, file)
     }
@@ -117,10 +113,10 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     }
 
     fun getMeta(metaFile: FileReference): YAMLNode {
-        return if (metaFile.extension != "meta") {
-            getMeta(metaFile.getSibling(metaFile.name + ".meta"))
-        } else {
+        return if (metaFile.extension == "meta") {
             getYAML(metaFile)
+        } else {
+            getMeta(metaFile.getSibling(metaFile.name + ".meta"))
         }
     }
 

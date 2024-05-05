@@ -10,6 +10,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
+import me.anno.io.zip.internal.SevenZHeavyIterator
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
@@ -30,32 +31,8 @@ class Inner7zFile(
 
     override var signature: Signature? = null
 
-    class Iterate7z(val file: SevenZFile) : NextEntryIterator<SevenZArchiveEntry>() {
-        override fun nextEntry(): SevenZArchiveEntry? = file.nextEntry
-    }
-
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        HeavyIterator.iterate(zipFile, object : IHeavyIterable<SevenZArchiveEntry, Iterate7z, ByteArray> {
-            override fun openStream(source: FileReference) = Iterate7z(getZipStream())
-            override fun hasInterest(stream: Iterate7z, item: SevenZArchiveEntry) =
-                item.name == relativePath
-
-            override fun process(
-                stream: Iterate7z,
-                item: SevenZArchiveEntry,
-                previous: ByteArray?,
-                index: Int,
-                total: Int
-            ): ByteArray {
-                val bytes = previous ?: stream.file.getInputStream(item).readBytes()
-                callback.ok(ByteArrayInputStream(bytes))
-                return bytes
-            }
-
-            override fun closeStream(source: FileReference, stream: Iterate7z) {
-                stream.file.close()
-            }
-        })
+        HeavyIterator.iterate(zipFile, SevenZHeavyIterator(this, callback))
     }
 
     companion object {

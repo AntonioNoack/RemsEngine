@@ -1,9 +1,7 @@
 package me.anno.io.zip
 
 import com.github.junrar.Archive
-import com.github.junrar.Volume
 import com.github.junrar.exception.RarException
-import com.github.junrar.io.IReadOnlyAccess
 import com.github.junrar.rarfile.FileHeader
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -12,6 +10,7 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
+import me.anno.io.zip.internal.RarVolume
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -22,48 +21,6 @@ class InnerRarFile(
 ) : InnerFile(absolutePath, relativePath, false, parent), SignatureFile {
 
     override var signature: Signature? = null
-
-    class ZipReadOnlyAccess(val bytes: ByteArray) : IReadOnlyAccess {
-
-        var pos = 0
-        override fun setPosition(p0: Long) {
-            pos = p0.toInt()
-        }
-
-        override fun getPosition(): Long = pos.toLong()
-        override fun read(): Int {
-            return if (pos < bytes.size) bytes[pos++].toInt().and(255) else -1
-        }
-
-        override fun read(p0: ByteArray?, p1: Int, p2: Int): Int {
-            p0!!
-            if (pos >= bytes.size) return 0
-            if (pos + p2 >= bytes.size) {
-                // how much is available
-                return read(p0, p1, bytes.size - pos)
-            }
-            for (i in 0 until p2) {
-                p0[i + p1] = bytes[pos + i]
-            }
-            return p2
-        }
-
-        override fun readFully(p0: ByteArray?, p1: Int): Int {
-            return read(p0, p1, p0!!.size - p1)
-        }
-
-        override fun close() {}
-    }
-
-    class ZipVolume(val a: Archive, val file: FileReference) : Volume {
-        val bytes by lazy { file.readBytesSync() }
-        override fun getReadOnlyAccess(): IReadOnlyAccess {
-            return ZipReadOnlyAccess(bytes)
-        }
-
-        override fun getLength(): Long = file.length()
-        override fun getArchive(): Archive = a
-    }
 
     companion object {
 
@@ -77,7 +34,7 @@ class InnerRarFile(
                 Archive { a, v ->
                     // see FileArchive as an example
                     if (v == null) {
-                        ZipVolume(a, file)
+                        RarVolume(a, file)
                     } else TODO("joined rar-s not yet supported")
                 }
             }

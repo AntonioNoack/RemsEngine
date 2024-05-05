@@ -2,30 +2,33 @@ package me.anno.image.jpg
 
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Buffers.skip
-import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadataNode
+
 object ExifOrientation {
 
-    fun findRotation(src: FileReference): ImageTransform? {
-        return src.inputStreamSync().use { input0: InputStream ->
-            val input = ImageIO.createImageInputStream(input0)
-            var rot: ImageTransform? = null
-            for (reader in ImageIO.getImageReaders(input)) {
-                try {
-                    reader.input = input
-                    rot = getExifOrientation(reader, 0)
-                    if (rot != null) break
-                } catch (_: Exception) {
-                } finally {
-                    reader.dispose()
+    fun findRotation(src: FileReference, callback: Callback<ImageTransform?>) {
+        src.inputStream { input0, err ->
+            if (input0 != null) {
+                val input = ImageIO.createImageInputStream(input0)
+                var rot: ImageTransform? = null
+                for (reader in ImageIO.getImageReaders(input)) {
+                    try {
+                        reader.input = input
+                        rot = getExifOrientation(reader, 0)
+                        if (rot != null) break
+                    } catch (_: Exception) {
+                    } finally {
+                        reader.dispose()
+                    }
                 }
-            }
-            rot
+                callback.ok(rot)
+            } else callback.err(err)
         }
     }
 

@@ -33,7 +33,6 @@ import me.anno.utils.structures.Callback
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -199,15 +198,15 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
     @JvmStatic
     private fun upload(
         srcFile: FileReference,
-        checkRotation: Boolean,
-        dst: Image,
+        checkRotation: Boolean, dst: Image,
         callback: Callback<ITexture2D>
     ) {
-        val rotation = if (checkRotation) TextureReader.getRotation(srcFile) else null
-        val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
-        dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
-            if (tex is Texture2D) tex.rotation = rotation
-            callback.call(tex, exc)
+        TextureReader.getRotation(if (checkRotation) srcFile else InvalidRef) { rot, _ ->
+            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
+            dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
+                if (tex is Texture2D) tex.rotation = rot
+                callback.call(tex, exc)
+            }
         }
     }
 
@@ -278,13 +277,14 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
             val promise = readImage(dstFile)
             promise.waitForGFX { image ->
                 if (image != null) {
-                    val rotation = TextureReader.getRotation(srcFile)
-                    addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-                        val texture = Texture2D(srcFile.name, image, true)
-                        texture.rotation = rotation
-                        callback.ok(texture)
+                    TextureReader.getRotation(srcFile) { rot, _ ->
+                        addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
+                            val texture = Texture2D(srcFile.name, image, true)
+                            texture.rotation = rot
+                            callback.ok(texture)
+                        }
+                        callback1(true)
                     }
-                    callback1(true)
                 } else callback1(false)
             }
         }
@@ -406,13 +406,14 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
         callback: Callback<ITexture2D>,
     ) {
         // scale down (and save?)
-        val rotation = TextureReader.getRotation(srcFile)
-        val (w, h) = scaleMax(image.width, image.height, size)
-        val newImage = image.resized(w, h, false)
-        val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
-        newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
-            if (tex is Texture2D) tex.rotation = rotation
-            callback.call(tex, exc)
+        TextureReader.getRotation(srcFile) { rot, _ ->
+            val (w, h) = scaleMax(image.width, image.height, size)
+            val newImage = image.resized(w, h, false)
+            val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
+            newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
+                if (tex is Texture2D) tex.rotation = rot
+                callback.call(tex, exc)
+            }
         }
     }
 

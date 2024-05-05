@@ -9,6 +9,8 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
@@ -17,12 +19,10 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.random
-import me.anno.engine.EngineBase
-import me.anno.engine.OfficialExtensions
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.custom.CustomList
@@ -32,8 +32,6 @@ import me.anno.utils.types.Vectors.normalToQuaternionY2
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.PI
-
-// todo bug: icons are missing
 
 // done:
 //  - placing objects
@@ -79,7 +77,11 @@ fun main() {
             mainFolder.getChild("Environments"),
             mainFolder.getChild("Buildings"),
             mainFolder.getChild("Props"),
-        ).flatMap { it.listChildren() }
+        ).flatMap {
+            it.listChildren().filter { file ->
+                file.lcExtension != "meta"
+            }
+        }
 
         val buildMenu = PanelList2D(false, null, style)
         buildMenu.scaleChildren = true

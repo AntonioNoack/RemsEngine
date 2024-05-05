@@ -3,7 +3,6 @@ package me.anno.io.zip
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.HeavyIterator
-import me.anno.io.files.inner.IHeavyIterable
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
@@ -11,12 +10,11 @@ import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
+import me.anno.io.zip.internal.TarHeavyIterator
 import me.anno.utils.structures.Callback
-import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -34,32 +32,10 @@ class InnerTarFile(
 
     override var signature: Signature? = null
 
-    override fun length(): Long = size
-
-    class ZipArchiveIterator(val file: ArchiveInputStream) : NextEntryIterator<ArchiveEntry>() {
-        override fun nextEntry(): ArchiveEntry? = file.nextEntry
-    }
-
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        HeavyIterator.iterate(zipFile, object : IHeavyIterable<ArchiveEntry, ZipArchiveIterator, ByteArray> {
-            override fun openStream(source: FileReference) = ZipArchiveIterator(getZipStream())
-            override fun closeStream(source: FileReference, stream: ZipArchiveIterator) = stream.file.close()
-            override fun hasInterest(stream: ZipArchiveIterator, item: ArchiveEntry) = item.name == readingPath
-
-            override fun process(
-                stream: ZipArchiveIterator,
-                item: ArchiveEntry, previous: ByteArray?,
-                index: Int, total: Int
-            ): ByteArray {
-                val bytes = previous ?: stream.file.readBytes()
-                callback.ok(ByteArrayInputStream(bytes))
-                return bytes
-            }
-        })
-    }
-
-    override fun outputStream(append: Boolean): OutputStream {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        val data = data
+        if (data != null) super.inputStream(lengthLimit, closeStream, callback)
+        else HeavyIterator.iterate(zipFile, TarHeavyIterator(this, callback))
     }
 
     companion object {

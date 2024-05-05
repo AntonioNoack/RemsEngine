@@ -10,6 +10,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.SignatureFile
 import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
+import me.anno.io.zip.internal.ZipHeavyAccess
 import me.anno.utils.structures.Callback
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -28,25 +29,8 @@ class InnerZipFile(
 
     override var signature: Signature? = null
 
-    override fun length(): Long = size
-
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        HeavyAccess.access(zipSource, object : IHeavyAccess<ZipFile> {
-
-            override fun openStream(source: FileReference, callback: Callback<ZipFile>) =
-                getZipStream(callback)
-
-            override fun closeStream(source: FileReference, stream: ZipFile) = stream.close()
-
-            override fun process(stream: ZipFile) {
-                val entry = stream.getEntry(relativePath)
-                callback.ok(stream.getInputStream(entry).readBytes().inputStream())
-            }
-        }) { callback.err(it) }
-    }
-
-    override fun outputStream(append: Boolean): OutputStream {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        HeavyAccess.access(zipSource, ZipHeavyAccess(this, callback)) { callback.err(it) }
     }
 
     companion object {

@@ -91,5 +91,5 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
      * opening a packed stream again would be really expensive for large packages;
      * is there a better strategy than this?? maybe index a few on every go to load something
      * */
-    var sizeLimit = 20_000_000L
+    var sizeLimit = 500_000L
 }

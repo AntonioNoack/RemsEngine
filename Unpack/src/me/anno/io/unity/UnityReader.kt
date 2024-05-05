@@ -10,8 +10,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.inner.InnerPrefabFile
@@ -21,6 +21,7 @@ import me.anno.io.yaml.generic.YAMLNode
 import me.anno.io.yaml.generic.YAMLReader.beautify
 import me.anno.io.yaml.generic.YAMLReader.parseYAML
 import me.anno.utils.ColorParsing.parseHex
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -871,7 +872,7 @@ object UnityReader {
         }
     }
 
-    fun readAsAsset(file: FileReference, callback: (FileReference?, Exception?) -> Unit) {
+    fun readAsAsset(file: FileReference, callback: Callback<FileReference?>) {
         val project = findUnityProject(file)
         if (project == null) {
             LOGGER.warn("No project found in $file")
@@ -881,21 +882,21 @@ object UnityReader {
                     val node = parseYAML(s.bufferedReader(), true)
                     val tmpFolder = InnerFolder(file)
                     val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
-                    if (objects !== tmpFolder) callback(null, null)
-                    else callback(objects.listChildren().firstOrNull(), null)
-                } else callback(null, e)
+                    if (objects !== tmpFolder) callback.ok(null)
+                    else callback.ok(objects.listChildren().firstOrNull())
+                } else callback.err(e)
             }
         } else {
             LOGGER.debug("Found unity project for {}: {} :)", file, project)
             val objects = project.getGuidFolder(file)
             val scene = objects.getChild("Scene.json")
             if (scene != InvalidRef) {
-                callback(scene, null)
+                callback.ok(scene)
                 return
             }
             val children = objects.listChildren()
             if (children.size <= 1) {
-                callback(children.firstOrNull(), null)
+                callback.ok(children.firstOrNull())
                 return
             }
             val meta = project.getMeta(file)
@@ -907,7 +908,7 @@ object UnityReader {
                 // get the object with the lowest id
                 children.minByOrNull { it.nameWithoutExtension.toLongOrDefault(Long.MAX_VALUE) }
             }
-            callback(file2, null)
+            callback.ok(file2)
         }
     }
 
