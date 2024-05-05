@@ -6,14 +6,13 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
@@ -47,8 +46,8 @@ class MotionBlurNode : ActionNode(
 
         val samples = getIntInput(1)
         val shutter = getFloatInput(2)
-        val color = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: missingTexture
-        val motion = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: blackTexture
+        val color = (getInput(3) as? Texture)?.texOrNull ?: missingTexture
+        val motion = (getInput(4) as? Texture)?.texOrNull ?: blackTexture
 
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             val shader = shader

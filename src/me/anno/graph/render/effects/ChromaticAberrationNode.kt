@@ -5,12 +5,11 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
@@ -37,7 +36,7 @@ class ChromaticAberrationNode : ActionNode(
 
     override fun executeAction() {
         val strength = getFloatInput(1) * 0.001f
-        val color = ((getInput(5) as? Texture)?.tex as? Texture2D)
+        val color = (getInput(5) as? Texture)?.texOrNull
         if (color == null) {
             setOutput(1, Texture(missingTexture))
         } else {

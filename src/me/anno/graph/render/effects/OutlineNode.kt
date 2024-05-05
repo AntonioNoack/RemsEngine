@@ -5,14 +5,14 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
@@ -55,13 +55,13 @@ class OutlineNode : ActionNode(
         val offset = getFloatInput(2)
         val outlineColor = getInput(3) as Vector4f
         val weights = getInput(4) as Vector3f
-        val color = ((getInput(5) as? Texture)?.tex as? Texture2D) ?: blackTexture
+        val color = (getInput(5) as? Texture)?.texOrNull ?: blackTexture
         val normalT = getInput(6) as? Texture
         val normalZW = normalT?.mapping == "zw"
-        val normal = (normalT?.tex as? Texture2D) ?: blackTexture
-        val depth = ((getInput(7) as? Texture)?.tex as? Texture2D) ?: whiteTexture
+        val normal = normalT?.texOrNull ?: normalTexture
+        val depth = (getInput(7) as? Texture)?.texOrNull ?: whiteTexture
         val illT = getInput(8) as? Texture
-        val illuminated = ((illT)?.tex as? Texture2D) ?: whiteTexture
+        val illuminated = illT?.texOrNull ?: whiteTexture
 
         if (strength <= 0f) { // disabled
             setOutput(1, illT)

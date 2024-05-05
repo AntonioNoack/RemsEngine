@@ -10,7 +10,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
@@ -31,7 +30,7 @@ class ToneMappingNode : ActionNode(
         val color = getInput(1) as? Texture
         val result = if (getBoolInput(3)) {
             val exposure = getFloatInput(2)
-            val source = (color?.tex as? Texture2D) ?: return
+            val source = color?.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, false, 1, DepthBufferType.NONE]
             GFXState.useFrame(result) {
                 val shader = shader

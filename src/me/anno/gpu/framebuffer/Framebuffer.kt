@@ -125,7 +125,7 @@ class Framebuffer(
      * Framebuffer with single sample for blitting;
      * null, if this Framebuffer already just has a single sample
      * */
-    var ssBuffer = if (samples > 1)
+    val ssBuffer = if (withMultisampling)
         Framebuffer("$name.ss", width, height, 1, targets, depthBufferType)
     else null
 
@@ -146,10 +146,14 @@ class Framebuffer(
             needsBlit = true
             ssBuffer?.checkSession()
             depthTexture?.checkSession()
+            depthAttachment?.checkSession()
+            renderBufferAllocated = 0L
+            internalDepthRenderbuffer = 0
+            colorRenderBuffers = null
             val textures = textures
             if (textures != null) {
-                for (texture in textures) {
-                    texture.checkSession()
+                for (i in textures.indices) {
+                    textures[i].checkSession()
                 }
             }
             GFX.check()
@@ -452,43 +456,6 @@ class Framebuffer(
         GFX.check()
     }
 
-    fun copyColorTo(dst: Framebuffer, srcI: Int, dstI: Int, mask: Int) {
-
-        GFX.check()
-
-        ensure()
-        dst.ensure()
-
-        bindFramebuffer(GL_FRAMEBUFFER, pointer)
-        drawBuffers1(srcI)
-
-        bindFramebuffer(GL_FRAMEBUFFER, dst.pointer)
-        drawBuffers1(dstI)
-
-        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
-        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-
-        glBlitFramebuffer(
-            0, 0, width, height,
-            0, 0, dst.width, dst.height,
-            mask, GL_NEAREST
-        )
-
-        bindFramebuffer(GL_FRAMEBUFFER, pointer)
-        drawBuffersN(targets.size)
-
-        bindFramebuffer(GL_FRAMEBUFFER, dst.pointer)
-        drawBuffersN(dst.targets.size)
-
-        GFX.check()
-
-        // restore the old binding
-        Frame.invalidate()
-        Frame.bind()
-
-        GFX.check()
-    }
-
     fun checkIsComplete() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
@@ -501,8 +468,8 @@ class Framebuffer(
 
     override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         checkSession()
-        if (withMultisampling) {
-            val ssBuffer = ssBuffer!!
+        val ssBuffer = ssBuffer
+        if (ssBuffer != null) {
             copyIfNeeded(ssBuffer)
             ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
@@ -512,8 +479,8 @@ class Framebuffer(
 
     override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         GFX.check()
-        if (withMultisampling) {
-            val ssBuffer = ssBuffer!!
+        val ssBuffer = ssBuffer
+        if (ssBuffer != null) {
             copyIfNeeded(ssBuffer)
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
@@ -541,8 +508,7 @@ class Framebuffer(
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
         if (ssBuffer != null) {
-            ssBuffer?.destroyExceptTextures(deleteDepth)
-            ssBuffer = null
+            ssBuffer.destroyExceptTextures(deleteDepth)
             destroy()
         } else {
             destroyFramebuffer()

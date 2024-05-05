@@ -14,8 +14,7 @@ class RarReadOnlyAccess(val bytes: ByteArray) : IReadOnlyAccess {
         return if (pos < bytes.size) bytes[pos++].toInt().and(255) else -1
     }
 
-    override fun read(p0: ByteArray?, p1: Int, p2: Int): Int {
-        p0!!
+    override fun read(p0: ByteArray, p1: Int, p2: Int): Int {
         if (pos >= bytes.size) return 0
         if (pos + p2 >= bytes.size) {
             // how much is available
@@ -27,8 +26,8 @@ class RarReadOnlyAccess(val bytes: ByteArray) : IReadOnlyAccess {
         return p2
     }
 
-    override fun readFully(p0: ByteArray?, p1: Int): Int {
-        return read(p0, p1, p0!!.size - p1)
+    override fun readFully(p0: ByteArray, p1: Int): Int {
+        return read(p0, p1, p0.size - p1)
     }
 
     override fun close() {}

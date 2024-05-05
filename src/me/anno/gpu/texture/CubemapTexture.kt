@@ -88,7 +88,7 @@ open class CubemapTexture(
         }
     }
 
-    fun checkSession() {
+    override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0

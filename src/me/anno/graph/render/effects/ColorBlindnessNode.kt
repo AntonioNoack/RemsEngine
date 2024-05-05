@@ -8,7 +8,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.CombineLightsNode
@@ -32,7 +31,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
         val color = getInput(1) as? Texture
         val strength = getFloatInput(2)
         val result = if (strength != 0f) {
-            val source = (color?.tex as? Texture2D) ?: return
+            val source = color?.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, true, 1, DepthBufferType.NONE]
             GFXState.useFrame(result) {
                 val shader = shader

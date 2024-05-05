@@ -1,11 +1,10 @@
 package me.anno.graph.render.effects
 
-import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
@@ -57,35 +56,36 @@ class SSRNode : ActionNode(
         val fineSteps = getIntInput(6) // 10
         val applyToneMapping = getBoolInput(7)
 
-        val illuminated = (getInput(8) as? Texture)?.tex ?: return
+        val illuminated = (getInput(8) as? Texture)?.texOrNull ?: return
 
-        val color = (getInput(9) as? Texture)?.tex ?: whiteTexture
+        val color = (getInput(9) as? Texture)?.texOrNull ?: whiteTexture
         // we might use this again later...
         // val emissive = (getInput(10) as? Texture)?.tex ?: blackTexture
 
         val normal = getInput(11) as? Texture
         val normalZW = normal?.mapping == "zw"
-        val normalT = ((normal)?.tex as? Texture2D) ?: whiteTexture
+        val normalT = normal?.texOrNull ?: whiteTexture
 
         val metallic = getInput(12) as? Texture
         val roughness = getInput(13) as? Texture
         val depthT = getInput(14) as? Texture ?: return
+        val depthTT = depthT.texOrNull ?: return
 
         val transform = RenderState.cameraMatrix
 
         val samples = 1
         val framebuffer = FBStack["ssr", width, height, 4, true, samples, DepthBufferType.NONE]
 
-        val metallicT = metallic?.tex ?: whiteTexture
+        val metallicT = metallic?.texOrNull ?: whiteTexture
         val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
         else metallic?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: singleToVector["r"]!!
 
-        val roughnessT = roughness?.tex ?: whiteTexture
+        val roughnessT = roughness?.texOrNull ?: whiteTexture
         val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
         else roughness?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: black4
 
         val result = ScreenSpaceReflections.compute(
-            depthT.tex, depthT.mask!!,
+            depthTT, depthT.mask!!,
             normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
             transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )

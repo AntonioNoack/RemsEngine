@@ -29,7 +29,10 @@ interface ITexture2D : ICacheData {
     val locallyAllocated: Long
     val internalFormat: Int
 
+    fun checkSession()
+
     fun isCreated(): Boolean {
+        checkSession()
         return wasCreated && !isDestroyed
     }
 

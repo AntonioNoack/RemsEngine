@@ -405,7 +405,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             typeValues[name] = TypeValueV2(type) {
                 when (val tex = node.getValue()) {
                     is ITexture2D -> filter(currentShader, name, tex, linear)
-                    is Texture -> if (type == GLSLType.S2DMS) tex.texMS ?: tex.tex else tex.tex
+                    is Texture -> if (type == GLSLType.S2DMS) tex.texMS else tex.tex
                     else -> TextureLib.missingTexture
                 }
             }

@@ -152,7 +152,7 @@ open class Texture2D(
     var pointer = 0
     var session = 0
 
-    fun checkSession() {
+    override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0

@@ -89,7 +89,7 @@ open class Texture2DArray(
 
     override var isHDR = false
 
-    fun checkSession() {
+    override fun checkSession() {
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0

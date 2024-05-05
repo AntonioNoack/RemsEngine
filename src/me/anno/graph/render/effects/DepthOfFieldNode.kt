@@ -16,7 +16,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
@@ -61,8 +60,8 @@ class DepthOfFieldNode : ActionNode(
         val spherical = getFloatInput(5)
 
         val applyToneMapping = getBoolInput(6)
-        val color = ((getInput(7) as? Texture)?.tex as? Texture2D) ?: return // this is incorrect for tinted color!
-        val depth = ((getInput(8) as? Texture)?.tex as? Texture2D) ?: return
+        val color = (getInput(7) as? Texture)?.texOrNull ?: return // this is incorrect for tinted color!
+        val depth = (getInput(8) as? Texture)?.texOrNull ?: return
 
         val result = render(
             color, depth, spherical, focusPoint, focusScale,

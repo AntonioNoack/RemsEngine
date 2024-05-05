@@ -10,16 +10,15 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
@@ -56,8 +55,8 @@ class HeightExpFogNode : RenderViewNode(
 
     override fun executeAction() {
         val color0 = getInput(7) as? Texture
-        val color = (color0?.tex as? Texture2D)
-        val depth = ((getInput(8) as? Texture)?.tex as? Texture2D)
+        val color = color0?.texOrNull
+        val depth = (getInput(8) as? Texture)?.texOrNull
         val relativeDistance = max(getFloatInput(1), 0f)
         val fogStrength = max(getFloatInput(2), 0f)
         if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {

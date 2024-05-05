@@ -290,7 +290,7 @@ class FSR2v2 : ICacheData {
         view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightNBuffer1)
+        view.drawSceneLights(buffer, tex.texOrNull as Texture2D, tex.mask!!, lightNBuffer1)
 
         val ssao = TextureLib.blackTexture
         val pw = x1 - x0
@@ -316,7 +316,7 @@ class FSR2v2 : ICacheData {
                     val depth = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
                     calculate(
                         baseSameDepth1.getTexture0() as Texture2D,
-                        depth.tex as Texture2D, depth.mapping,
+                        depth.texOrNull as Texture2D, depth.mapping,
                         deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
                         deferred.zw(DeferredLayerType.NORMAL),
                         motion.getTexture0() as Texture2D,

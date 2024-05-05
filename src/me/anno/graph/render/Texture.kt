@@ -29,8 +29,10 @@ class Texture private constructor(
     constructor(tex: ITexture2D, texMS: ITexture2D?, mapping: String, encoding: DeferredLayerType?) :
             this(tex, texMS ?: tex, mapping, encoding, white4)
 
-    val isDestroyed get() = tex is Texture2D && tex.isDestroyed
+    val isDestroyed get() = tex.isDestroyed
     val mask get() = singleToVector[mapping]
+    val texOrNull get() = if(tex.isCreated()) tex else null
+    val texMSOrNull get() = if(texMS.isCreated()) texMS else null
 
     override fun toString(): String {
         return if (tex == whiteTexture) {

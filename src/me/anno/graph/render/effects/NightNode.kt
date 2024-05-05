@@ -16,6 +16,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
@@ -47,8 +48,8 @@ class NightNode : RenderViewNode(
         val strength = getFloatInput(1)
         val skyDarkening = getFloatInput(2)
         val color0 = getInput(3) as? Texture
-        val color = (color0?.tex as? Texture2D)
-        val depth = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: depthTexture
+        val color = color0?.texOrNull
+        val depth = (getInput(4) as? Texture)?.texOrNull ?: depthTexture
         if (color == null || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {

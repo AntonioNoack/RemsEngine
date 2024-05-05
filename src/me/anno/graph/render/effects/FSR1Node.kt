@@ -58,7 +58,7 @@ class FSR1Node : ActionNode(
         if (width < 1 || height < 1) return
 
         val sharpness = getFloatInput(3)
-        val color = (getInput(4) as? Texture)?.tex ?: whiteTexture
+        val color = (getInput(4) as? Texture)?.texOrNull ?: whiteTexture
 
         useFrame(width, height, true, f0, copyRenderer) {
             FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)

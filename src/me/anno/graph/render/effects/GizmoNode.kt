@@ -11,7 +11,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.render.Texture
@@ -61,9 +61,9 @@ class GizmoNode : RenderViewNode(
             grid = renderView.drawGridWhenEditing
         }
 
-        val colorT = ((getInput(7) as? Texture)?.tex as? Texture2D)
+        val colorT = (getInput(7) as? Texture)?.texOrNull
         val depth = getInput(8) as? Texture
-        val depthT = (depth?.tex as? Texture2D)
+        val depthT = depth?.texOrNull
 
         val readsDepth = isOutputUsed(outputs[2]) && GFX.maxSamples > 1 // else we can't cast to Framebuffeer
         val framebuffer = FBStack[
@@ -95,7 +95,7 @@ class GizmoNode : RenderViewNode(
             )
         }
 
-        fun copyColorAndDepth(colorT: Texture2D?, depthT: Texture2D?, framebuffer: Framebuffer) {
+        fun copyColorAndDepth(colorT: ITexture2D?, depthT: ITexture2D?, framebuffer: Framebuffer) {
             useFrame(framebuffer) {
                 renderPurely {
                     GFX.copyColorAndDepth(

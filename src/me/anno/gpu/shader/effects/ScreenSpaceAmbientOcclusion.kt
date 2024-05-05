@@ -247,7 +247,8 @@ object ScreenSpaceAmbientOcclusion {
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
-            if (lastSamples != samples) { // || Input.isShiftDown
+            sampleKernel.checkSession()
+            if (lastSamples != samples || !sampleKernel.isCreated()) {
                 // generate random kernel
                 generateSampleKernel(samples)
                 lastSamples = samples

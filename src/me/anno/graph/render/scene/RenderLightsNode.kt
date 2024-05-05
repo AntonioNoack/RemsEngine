@@ -163,7 +163,7 @@ class RenderLightsNode : RenderViewNode(
         if (width < 1 || height < 1 || samples < 1) return
 
         val depthTexture0 = getInput(depthIndex) as? Texture
-        val depthTexture = depthTexture0?.tex as? Texture2D ?: return // if no depth is given, we can return 0
+        val depthTexture = depthTexture0?.texOrNull as? Texture2D ?: return // if no depth is given, we can return 0
         val depthT = depthTexture.owner
 
         val useDepth = depthT != null

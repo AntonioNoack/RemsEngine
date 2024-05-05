@@ -6,14 +6,13 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
@@ -52,8 +51,8 @@ class GodRaysNode : ActionNode(
         val falloff = getInput(2) as Vector3f
         val sunColor = getInput(3) as Vector3f
         val sunPosition = getInput(4) as Vector2f
-        val color = ((getInput(5) as? Texture)?.tex as? Texture2D) ?: return
-        val depth = ((getInput(6) as? Texture)?.tex as? Texture2D) ?: return
+        val color = (getInput(5) as? Texture)?.texOrNull ?: return
+        val depth = (getInput(6) as? Texture)?.texOrNull ?: return
 
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             val shader = shader

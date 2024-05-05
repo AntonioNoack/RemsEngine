@@ -71,7 +71,7 @@ class ShapedBlurNode() : ActionNode(
     override fun executeAction() {
         // todo a formula could be connected, and this would break the texture-thing...
         val tex0 = getInput(1) as? Texture
-        val tex1 = tex0?.tex ?: whiteTexture
+        val tex1 = tex0?.texOrNull ?: whiteTexture
         val scale = getFloatInput(2)
         val gamma = getFloatInput(3)
         val output = if (scale > 0f && tex1 != whiteTexture && gamma > 0f) {

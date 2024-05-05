@@ -1,9 +1,8 @@
 package me.anno.graph.render.effects
 
-import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
+import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
@@ -41,12 +40,13 @@ class SSAONode : ActionNode(
 
         val normal = getInput(5) as? Texture ?: return fail()
         val normalZW = normal.mapping == "zw"
-        val normalT = ((normal).tex as? Texture2D) ?: whiteTexture
+        val normalT = normal.texOrNull ?: normalTexture
         val depthT = (getInput(6) as? Texture) ?: return fail()
+        val depthTT = depthT.texOrNull ?: return fail()
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion
-            .compute(depthT.tex, depthT.mapping, normalT, normalZW, transform, strength, radiusScale, samples, blur)
+            .compute(depthTT, depthT.mapping, normalT, normalZW, transform, strength, radiusScale, samples, blur)
 
         setOutput(1, Texture.texture(result, 0, "r", null))
     }

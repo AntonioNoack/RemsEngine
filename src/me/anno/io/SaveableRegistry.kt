@@ -11,9 +11,16 @@ import me.anno.ui.Style
 
 object SaveableRegistry {
     private val styleClass = Style::class.java
+    private val saveableClass = Saveable::class.java
 
     class LazyRegistryEntry(override val classPath: String) : IRegistryEntry {
-        private val clazz by lazy { Class.forName(classPath) } // is this ok, if it throws???
+        private val clazz by lazy {
+            try {
+                Class.forName(classPath)
+            } catch (ifModuleMissing: ClassNotFoundException) {
+                saveableClass
+            }
+        }
 
         private val constructor by lazy {
             clazz.constructors.firstOrNull {

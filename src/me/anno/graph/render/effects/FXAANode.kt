@@ -3,9 +3,8 @@ package me.anno.graph.render.effects
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.effects.FXAA
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.types.flow.actions.ActionNode
@@ -28,7 +27,7 @@ class FXAANode : ActionNode(
 
     override fun executeAction() {
         val threshold = getFloatInput(1)
-        val color = ((getInput(2) as? Texture)?.tex as? Texture2D) ?: return // ignored tint!!
+        val color = (getInput(2) as? Texture)?.texOrNull ?: return // ignored tint!!
         val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             FXAA.render(color, threshold)

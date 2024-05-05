@@ -284,7 +284,7 @@ class RenderSceneDeferredNode : RenderViewNode(
 
     fun defineInputs(framebuffer: IFramebuffer) {
         val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
-        val prepassDepth = (getInput(inputIndex) as? Texture)?.tex
+        val prepassDepth = (getInput(inputIndex) as? Texture)?.texOrNull
         if (prepassDepth != null) {
             GFX.copyColorAndDepth(blackTexture, prepassDepth)
             // todo we need a flag whether this is a prepass

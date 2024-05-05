@@ -16,7 +16,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
@@ -45,8 +44,8 @@ class AnimeOutlineNode : RenderViewNode(
         val strength = getFloatInput(1)
         val sensitivity = getFloatInput(2)
         val color0 = getInput(3) as? Texture
-        val color = color0?.tex as? Texture2D
-        val depth = (getInput(4) as? Texture)?.tex as? Texture2D
+        val color = color0?.texOrNull
+        val depth = (getInput(4) as? Texture)?.texOrNull
         if (color == null || depth == null || sensitivity <= 0f || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {

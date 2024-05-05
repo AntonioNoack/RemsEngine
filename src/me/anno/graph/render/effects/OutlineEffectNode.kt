@@ -9,6 +9,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
@@ -115,10 +116,15 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v1i("numGroups", numGroupsI)
                 shader.v1i("samples", samples)
                 shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
-                (if (useMS) color.texMS else color.tex).bindTrulyNearest(0)
-                (if (useMS) ids.texMS else ids.tex).bindTrulyNearest(1)
+                bind(color, 0, useMS)
+                bind(ids, 1, useMS)
                 SimpleBuffer.flat01.draw(shader)
             }
+        }
+
+        private fun bind(texture: Texture, index: Int, useMS: Boolean) {
+            val tex = (if (useMS) texture.texMSOrNull else texture.texOrNull) ?: blackTexture
+            tex.bindTrulyNearest(index)
         }
 
         val shader = Array(2) {

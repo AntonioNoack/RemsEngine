@@ -80,8 +80,8 @@ class RenderSceneForwardNode : RenderViewNode(
         pipeline.bakeSkybox(skyboxResolution)
 
         val drawSky = getIntInput(9)
-        val prepassColor = (getInput(10) as? Texture)?.tex
-        val prepassDepth = (getInput(11) as? Texture)?.tex
+        val prepassColor = (getInput(10) as? Texture)?.texOrNull
+        val prepassDepth = (getInput(11) as? Texture)?.texOrNull
 
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode
@@ -112,7 +112,7 @@ class RenderSceneForwardNode : RenderViewNode(
     }
 
     fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {
-        if (prepassDepth != null) {
+        if (prepassDepth != null && prepassDepth.isCreated()) {
             GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth)
         } else {
             if (prepassColor != null && prepassColor != blackTexture) {
