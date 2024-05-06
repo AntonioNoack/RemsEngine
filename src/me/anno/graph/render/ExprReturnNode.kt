@@ -27,8 +27,8 @@ class ExprReturnNode : ReturnNode(
         throw ReturnThrowable(this)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         shader?.destroy()
     }
 }

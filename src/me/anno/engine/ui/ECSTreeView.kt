@@ -269,7 +269,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     override fun destroy(element: Saveable) {
-        if (element is PrefabSaveable) element.onDestroy()
+        if (element is PrefabSaveable) element.destroy()
     }
 
     private fun getWarning(element: PrefabSaveable): String? {

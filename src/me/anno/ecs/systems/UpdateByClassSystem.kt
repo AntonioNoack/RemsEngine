@@ -28,20 +28,4 @@ abstract class UpdateByClassSystem : System() {
             update(sample, instances)
         }
     }
-
-    override fun onEnable(childSystem: System) {
-        val child = (childSystem as? UpdateByClassSystem)?.components ?: return
-        for ((clazz, componentsByChild) in child) {
-            val comp = components.getOrPut(clazz) { HashSet() }
-            comp.addAll(componentsByChild)
-        }
-    }
-
-    override fun onDisable(childSystem: System) {
-        val child = (childSystem as? UpdateByClassSystem)?.components ?: return
-        for ((clazz, componentsByChild) in child) {
-            val comp = components[clazz] ?: continue
-            comp.removeAll(componentsByChild)
-        }
-    }
 }

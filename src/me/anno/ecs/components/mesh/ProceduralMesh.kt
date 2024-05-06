@@ -68,8 +68,8 @@ abstract class ProceduralMesh : MeshComponentBase() {
         return 32
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         data.destroy()
     }
 }

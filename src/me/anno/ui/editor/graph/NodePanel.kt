@@ -247,8 +247,8 @@ class NodePanel(
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         cachedTexture?.destroy()
     }
 

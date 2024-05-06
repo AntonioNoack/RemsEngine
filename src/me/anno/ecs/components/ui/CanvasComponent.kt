@@ -246,8 +246,8 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         framebuffer?.destroy()
         framebuffer = null
         internalMesh.destroy()

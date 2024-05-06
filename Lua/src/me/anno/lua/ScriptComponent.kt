@@ -52,9 +52,9 @@ open class ScriptComponent : Component() {
         return callIntFunction("onUpdate", source, this, 1)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        callFunction("onDestroy", source, this)
+    override fun destroy() {
+        super.destroy()
+        callFunction("destroy", source, this)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

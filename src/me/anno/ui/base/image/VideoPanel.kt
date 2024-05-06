@@ -105,8 +105,8 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
         )
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         stream.destroy()
     }
 

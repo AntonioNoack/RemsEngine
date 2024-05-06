@@ -4,10 +4,10 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 
 /**
- * a simple class to keep track of stack-like-historic states,
+ * Keep track of stack-like-historic states,
  * with the ability to go forward and backward in time; no branching is supported
  *
- * when you want to use this as a saveable object, V must be saveable as well
+ * To use this as a Saveable, V must be Saveable as well
  * */
 class History<V> : Saveable {
 

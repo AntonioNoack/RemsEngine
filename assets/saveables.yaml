@@ -1,6 +1,7 @@
 AnimContainer: me.anno.ui.anim.AnimContainer
 AnimController: me.anno.ecs.components.anim.graph.AnimController
 AnimMeshComponent: me.anno.ecs.components.anim.AnimMeshComponent
+AnimRenderer: me.anno.ecs.components.anim.AnimMeshComponent
 AnimStateNode: me.anno.ecs.components.anim.graph.AnimStateNode
 AnimationState: me.anno.ecs.components.anim.AnimationState
 AnimeOutlineNode: me.anno.graph.render.effects.AnimeOutlineNode
@@ -286,7 +287,6 @@ StartNode: me.anno.graph.types.flow.StartNode
 StateMachine: me.anno.graph.types.states.StateMachine
 StateNode: me.anno.graph.types.states.StateNode
 StaticMeshManager: me.anno.ecs.components.mesh.unique.StaticMeshManager
-Systems: me.anno.ecs.systems.Systems
 TextButton: me.anno.ui.base.buttons.TextButton
 TextInput: me.anno.ui.input.TextInput
 TextInputML: me.anno.ui.input.TextInputML

@@ -205,15 +205,10 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         dst.duration = duration
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        previewData?.destroy()
-        previewData = null
-    }
-
     override fun destroy() {
         super.destroy()
-        onDestroy()
+        previewData?.destroy()
+        previewData = null
     }
 
     override val approxSize get() = 100

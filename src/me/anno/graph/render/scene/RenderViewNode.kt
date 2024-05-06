@@ -21,8 +21,8 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
     open fun invalidate() {
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         invalidate()
         framebuffer?.destroy()
     }

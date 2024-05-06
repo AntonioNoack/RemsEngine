@@ -45,8 +45,8 @@ class FSR1Node : ActionNode(
     private val f0 = Framebuffer("fsr1-0", 1, 1, listOf(TargetType.UInt8x4))
     private val f1 = Framebuffer("fsr1-1", 1, 1, listOf(TargetType.UInt8x4))
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         f0.destroy()
         f1.destroy()
     }

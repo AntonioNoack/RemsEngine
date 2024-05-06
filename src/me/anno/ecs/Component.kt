@@ -84,7 +84,7 @@ abstract class Component : PrefabSaveable() {
 
     open fun onCreate() {}
 
-    override fun onDestroy() {}
+    override fun destroy() {}
 
     open fun onEnable() {}
     open fun onDisable() {}

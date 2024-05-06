@@ -31,20 +31,6 @@ class MeshRenderSystem : System(), Renderable {
         }
     }
 
-    override fun onEnable(childSystem: System) {
-        if (childSystem is MeshRenderSystem) {
-            meshes.addAll(childSystem.meshes)
-            others.addAll(childSystem.others)
-        }
-    }
-
-    override fun onDisable(childSystem: System) {
-        if (childSystem is MeshRenderSystem) {
-            meshes.removeAll(childSystem.meshes)
-            others.removeAll(childSystem.others)
-        }
-    }
-
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
         var clickIdI = 0
         for (c in meshes) {
@@ -62,5 +48,10 @@ class MeshRenderSystem : System(), Renderable {
             }
         }
         return clickIdI
+    }
+
+    override fun clear() {
+        meshes.clear()
+        others.clear()
     }
 }

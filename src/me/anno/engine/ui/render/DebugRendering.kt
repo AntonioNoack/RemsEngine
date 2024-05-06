@@ -114,12 +114,12 @@ object DebugRendering {
         val camera = EditorState.selection
             .firstOrNull { it is Camera } ?: EditorState.selection
             .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponent(Camera::class) else null }
-        if (camera is Camera && !Input.isShiftDown) {
+        if (camera is Camera) {
             // todo this is incorrect for orthographic cameras, I think
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3
             val h = (y1 - y0 + 1) / 3
-            val buffer = view.base1Buffer
+            val buffer = view.buffers.base1Buffer
             val renderer = Renderers.pbrRenderer
             // todo is tone mapping used? adjust parameter for drawScene
             view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)

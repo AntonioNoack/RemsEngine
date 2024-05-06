@@ -168,7 +168,7 @@ open class Texture2DArray(
         }
     }
 
-    fun create(images: Array<Image>, sync: Boolean) {
+    fun create(images: List<Image>, sync: Boolean) {
         // todo we could detect monochrome and such :)
         val intData = IntArray(width * height * layers)
         var i0 = 0

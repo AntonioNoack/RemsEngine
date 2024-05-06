@@ -18,6 +18,7 @@ import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
+import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.distance
@@ -110,7 +111,7 @@ object StaticMeshesLoader {
         // obj files should use our custom importer
         var file = file0
         val signature = Signature.findNameSync(file)
-        if (signature == "dae" && aiGetVersionMajor() < 5) {
+        if ((signature == "dae" || signature == "xml") && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)
             val xml = XMLReader().read(file.inputStreamSync())!!

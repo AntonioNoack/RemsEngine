@@ -229,8 +229,8 @@ class PlanarReflection : LightComponentBase() {
         return clickId // not itself clickable
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         lastBuffer?.destroy()
         lastBuffer = null
     }

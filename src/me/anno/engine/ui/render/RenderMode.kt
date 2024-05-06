@@ -26,6 +26,7 @@ import me.anno.graph.render.effects.FSR1Node
 import me.anno.graph.render.effects.FXAANode
 import me.anno.graph.render.effects.GizmoNode
 import me.anno.graph.render.effects.HeightExpFogNode
+import me.anno.graph.render.effects.MSAAHelperNode
 import me.anno.graph.render.effects.MotionBlurNode
 import me.anno.graph.render.effects.NightNode
 import me.anno.graph.render.effects.OutlineEffectNode
@@ -68,21 +69,27 @@ class RenderMode(
 
     companion object {
 
+        private val deferredNodeSettings = mapOf(
+            "Stage" to PipelineStage.OPAQUE,
+            "Skybox Resolution" to 256,
+            "Draw Sky" to 1
+        )
+
+        private val decalNodeSettings = mapOf("Stage" to PipelineStage.DECAL)
+        private val transparentNodeSettings = mapOf("Stage" to PipelineStage.TRANSPARENT)
+
         val values = ArrayList<RenderMode>()
 
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -94,13 +101,10 @@ class RenderMode(
         val WITHOUT_POST_PROCESSING = RenderMode(
             "Without Post-Processing",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
                 .finish()
         )
@@ -108,16 +112,14 @@ class RenderMode(
         val MSAA_DEFERRED = RenderMode(
             "MSAA Deferred",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL, "Samples" to 8))
-                .then1(RenderLightsNode(), mapOf("Samples" to 8))
+                .then(MSAAHelperNode())
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
+                .then(RenderLightsNode())
                 .then(SSAONode())
-                .then1(CombineLightsNode(), mapOf("Samples" to 8))
+                .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT, "Samples" to 8))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -174,6 +176,7 @@ class RenderMode(
         val LIGHT_SUM_MSAA = RenderMode(
             "Light Sum MSAAx8",
             QuickPipeline()
+                .then(MSAAHelperNode())
                 .then1(RenderSceneDeferredNode(), mapOf("Samples" to 8))
                 .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
                 .then1(ToneMappingNode(), mapOf("Exposure" to 0x22 / 255f))
@@ -250,17 +253,15 @@ class RenderMode(
 
         val FSR_MSAA_X4 = RenderMode(
             "FSR+MSAAx4", QuickPipeline()
+                .then(MSAAHelperNode())
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1, "Samples" to 8)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then1(RenderLightsNode(), mapOf("Samples" to 8))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
+                .then(RenderLightsNode())
                 .then(SSAONode())
-                .then1(CombineLightsNode(), mapOf("Samples" to 8))
+                .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
                 .then(FSR1Node())
@@ -275,16 +276,13 @@ class RenderMode(
             "Nearest 4x",
             QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then1(GizmoNode(), mapOf("Samples" to 8))
                 .finish()
@@ -300,16 +298,13 @@ class RenderMode(
         val SHOW_AABB = RenderMode(
             "Show AABBs",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -322,16 +317,13 @@ class RenderMode(
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then(OutlineEffectNode())
@@ -351,16 +343,13 @@ class RenderMode(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then(DepthOfFieldNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
@@ -370,16 +359,13 @@ class RenderMode(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
@@ -389,17 +375,14 @@ class RenderMode(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
                 .finish()
@@ -408,11 +391,8 @@ class RenderMode(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(DepthTestNode())
                 .then(GizmoNode())
                 .finish()
@@ -420,16 +400,13 @@ class RenderMode(
 
         fun postProcessGraph(node: ActionNode): FlowGraph {
             return QuickPipeline()
-                .then1(
-                    RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
-                )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderSceneDeferredNode(), deferredNodeSettings)
+                .then1(RenderSceneDeferredNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderSceneForwardNode(), transparentNodeSettings)
                 .then(node)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())

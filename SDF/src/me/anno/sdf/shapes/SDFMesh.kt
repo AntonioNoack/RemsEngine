@@ -319,8 +319,8 @@ open class SDFMesh : SDFSmoothShape() {
         dst.meshFile = meshFile
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         lastBlas?.destroy()
         lastTris?.destroy()
         lastBlas = null

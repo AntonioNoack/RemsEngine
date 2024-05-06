@@ -18,6 +18,7 @@ import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.Callback
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import java.io.OutputStream
 import kotlin.math.floor
@@ -398,8 +399,8 @@ abstract class Image(
         }
     }
 
-    open fun split(sx: Int, sy: Int): Array<Image> {
-        return Array(sx * sy) {
+    open fun split(sx: Int, sy: Int): List<Image> {
+        return createArrayList(sx * sy) {
             val ix = it % sx
             val iy = it / sx
             val x0 = ix * width / sx

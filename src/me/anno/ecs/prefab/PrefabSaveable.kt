@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -26,7 +27,7 @@ import kotlin.reflect.KClass
 /**
  * base class for things that can be saved as a Prefab
  * */
-abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
+abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, ICacheData {
 
     @SerializedProperty
     var flags = 0 // default shall always be zero
@@ -275,7 +276,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         dst.prefabPath = prefabPath
     }
 
-    override fun onDestroy() {}
+    override fun destroy() {}
 
     @NotSerializedProperty
     override val symbol: String = ""

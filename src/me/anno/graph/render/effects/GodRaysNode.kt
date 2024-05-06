@@ -40,8 +40,8 @@ class GodRaysNode : ActionNode(
 
     private val framebuffer = Framebuffer(name, 1, 1, listOf(TargetType.Float16x3))
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         framebuffer.destroy()
     }
 

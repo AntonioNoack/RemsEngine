@@ -17,7 +17,6 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
@@ -41,10 +40,8 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
@@ -113,8 +110,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val editorCamera = Camera()
     val editorCameraNode = Entity(editorCamera)
 
-    val isFinalRendering get() = playMode != PlayMode.EDITING
-
     var renderMode = RenderMode.DEFAULT
 
     var radius = 50.0
@@ -126,54 +121,25 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     }
 
+    // todo move this to OrbitController
     val orbitCenter = Vector3d()
     val orbitRotation = Quaterniond()
         .rotateX((-30.0).toRadians())
 
-    private val deferred = DeferredRenderer.deferredSettings!!
-
-    val baseNBuffer1 = deferred.createBaseBuffer("DeferredBuffers-main", 1)
-    private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
-    private val depthType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, depthType)
-    val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, depthType)
-
-    private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", listOf(TargetType.Float16x4))
-    private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", listOf(TargetType.Float16x4))
+    val buffers = RenderBuffers()
 
     private var entityBaseClickId = 0
 
-    val pipeline = Pipeline(deferred)
-    private val stage0 = PipelineStageImpl(
-        "default",
-        Sorting.NO_SORTING,
-        MAX_FORWARD_LIGHTS,
-        null,
-        DepthMode.CLOSE,
-        true,
-        CullMode.FRONT,
-        pbrModelShader
-    )
-
-    init {
-        pipeline.defaultStage = stage0
-        pipeline.stages.add(stage0)
-    }
+    val pipeline = buffers.pipeline
 
     override val canDrawOverBorders get() = true
 
     override fun destroy() {
         super.destroy()
         // all framebuffers that we own need to be freed
-        light1Buffer.destroy()
-        lightNBuffer1.destroy()
-        baseSameDepth1.destroy()
-        base1Buffer.destroy()
-        base8Buffer.destroy()
-        baseNBuffer1.destroy()
+        buffers.destroy()
         editorCameraNode.destroy()
         fsr22.destroy()
-        pipeline.destroy()
     }
 
     open fun updateEditorCameraTransform() {
@@ -264,7 +230,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             drawTextCenter("Scene Not Found!")
         }
 
-        if (!isFinalRendering) {
+        if (playMode == PlayMode.EDITING) {
             DebugRendering.showShadowMapDebug(this)
             DebugRendering.showCameraRendering(this, x0, y0, x1, y1)
         }
@@ -284,6 +250,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun updatePipelineStage0(renderMode: RenderMode) {
+        val stage0 = pipeline.stages.firstOrNull() ?: return
         stage0.depthMode = depthMode
         stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
         stage0.sorting = Sorting.FRONT_TO_BACK
@@ -294,10 +261,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // multi-sampled buffer
         return when {
             // msaa, single target
-            renderMode == RenderMode.MSAA_FORWARD -> base8Buffer
+            renderMode == RenderMode.MSAA_FORWARD -> buffers.base8Buffer
             // aliased, multi-target
-            renderer == DeferredRenderer -> baseNBuffer1
-            else -> base1Buffer
+            renderer == DeferredRenderer -> buffers.baseNBuffer1
+            else -> buffers.base1Buffer
         }
     }
 
@@ -325,10 +292,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun findAspectRatio(): Float {
         var aspect = width.toFloat() / height
 
-        val layers = deferred.storageLayers
+        val layers = buffers.deferred.storageLayers
         val size = when (renderMode) { /* 1 for light, 1 for depth */
             RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1 + GFX.supportsDepthTextures.toInt()
-            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt()
+            RenderMode.ALL_DEFERRED_LAYERS -> buffers.deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt()
             else -> 1
         }
 
@@ -418,28 +385,28 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             RenderMode.FSR2_X8, RenderMode.FSR2_X2 -> {
                 drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
                 fsr22.render(
-                    this, w, h, x0, y0, x1, y1, buffer, deferred,
-                    lightNBuffer1, baseSameDepth1
+                    this, w, h, x0, y0, x1, y1, buffer, buffers.deferred,
+                    buffers.lightNBuffer1, buffers.baseSameDepth1
                 )
             }
             RenderMode.LIGHT_COUNT -> {
-                val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
+                val lightBuffer = if (buffer == buffers.base1Buffer) buffers.light1Buffer else buffers.lightNBuffer1
                 DebugRendering.drawLightCount(
                     this, x0, y0, w, h,
-                    renderer, buffer, lightBuffer, deferred
+                    renderer, buffer, lightBuffer, buffers.deferred
                 )
             }
             RenderMode.ALL_DEFERRED_BUFFERS -> {
-                val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
+                val lightBuffer = if (buffer == buffers.base1Buffer) buffers.light1Buffer else buffers.lightNBuffer1
                 DebugRendering.drawAllBuffers(
                     this, w, h, x0, y0, x1, y1,
-                    renderer, buffer, lightBuffer, deferred
+                    renderer, buffer, lightBuffer, buffers.deferred
                 )
             }
             RenderMode.ALL_DEFERRED_LAYERS -> {
                 DebugRendering.drawAllLayers(
                     this, w, h, x0, y0, x1, y1,
-                    renderer, buffer, lightNBuffer1, deferred
+                    renderer, buffer, buffers.lightNBuffer1, buffers.deferred
                 )
             }
             else -> {
@@ -717,8 +684,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
             Frame.bind()
             val depthMode = depthMode
+            val stage0 = pipeline.stages.firstOrNull()
             GFXState.depthMode.use(depthMode) {
-                stage0.depthMode = depthMode
+                stage0?.depthMode = depthMode
                 dst.clearDepth()
             }
 

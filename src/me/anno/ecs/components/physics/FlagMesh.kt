@@ -157,8 +157,8 @@ class FlagMesh : MeshComponent() {
         return 1
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         tex0.destroy()
         tex1.destroy()
     }

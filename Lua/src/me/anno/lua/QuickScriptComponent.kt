@@ -37,8 +37,8 @@ open class QuickScriptComponent : Component() {
     }
 
     @DebugAction
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         callFunction(destroyScript)
     }
 

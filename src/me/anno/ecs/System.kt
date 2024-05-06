@@ -21,6 +21,5 @@ abstract class System : PrefabSaveable() {
 
     open fun onUpdate() {}
 
-    abstract fun onEnable(childSystem: System)
-    abstract fun onDisable(childSystem: System)
+    open fun clear() {}
 }

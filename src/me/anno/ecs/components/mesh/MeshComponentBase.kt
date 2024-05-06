@@ -207,8 +207,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         dst.isInstanced = isInstanced
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         manager?.unregister(this)
     }
 

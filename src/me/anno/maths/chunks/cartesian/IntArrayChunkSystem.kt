@@ -5,8 +5,7 @@ package me.anno.maths.chunks.cartesian
  * */
 abstract class IntArrayChunkSystem(
     bitsX: Int, bitsY: Int, bitsZ: Int,
-    val defaultElement: Int,
-    initialCapacity: Int = 256
+    val defaultElement: Int
 ) : ChunkSystem<IntArray, Int>(bitsX, bitsY, bitsZ) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: IntArray)

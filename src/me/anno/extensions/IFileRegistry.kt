@@ -7,7 +7,7 @@ interface IFileRegistry<Value> {
     fun registerSignatures(signatures: String, reader: Value)
     fun unregisterSignatures(signatures: String)
     fun unregisterFileExtensions(fileExtensions: String)
-    fun getReader(signatures: String?, fileExtensions: String): Value? {
-        return readerBySignature[signatures] ?: readerByFileExtension[fileExtensions]
+    fun getReader(signature: String?, fileExtension: String): Value? {
+        return readerBySignature[signature] ?: readerByFileExtension[fileExtension]
     }
 }

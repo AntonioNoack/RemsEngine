@@ -24,16 +24,16 @@ object AnyToDouble {
 
     @JvmStatic
     fun getDouble(any: Any?, index: Int, defaultValue: Double): Double {
-        return any[index, defaultValue]
+        return any.get(index, defaultValue)
     }
 
     @JvmStatic
     fun getDouble(any: Any?, defaultValue: Double): Double {
-        return any[0, defaultValue]
+        return any.get(0, defaultValue)
     }
 
     @JvmStatic
-    operator fun Any?.get(index: Int, defaultValue: Double): Double {
+    private fun Any?.get(index: Int, defaultValue: Double): Double {
         return when (this) {
             null -> defaultValue
             is Boolean -> when (index) {
@@ -80,24 +80,9 @@ object AnyToDouble {
                 0 -> this
                 else -> defaultValue
             }
-            is Vector2f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                else -> defaultValue
-            }
-            is Vector3f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                else -> defaultValue
-            }
-            is Vector4f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                3 -> w.toDouble()
-                else -> defaultValue
-            }
+            is Vector2f -> if (index in 0 until 2) get(index).toDouble() else defaultValue
+            is Vector3f -> if (index in 0 until 3) get(index).toDouble() else defaultValue
+            is Vector4f -> if (index in 0 until 4) get(index).toDouble() else defaultValue
             is Planef -> when (index) {
                 0 -> dirX.toDouble()
                 1 -> dirY.toDouble()
@@ -112,24 +97,9 @@ object AnyToDouble {
                 3 -> w.toDouble()
                 else -> defaultValue
             }
-            is Vector2d -> when (index) {
-                0 -> x
-                1 -> y
-                else -> defaultValue
-            }
-            is Vector3d -> when (index) {
-                0 -> x
-                1 -> y
-                2 -> z
-                else -> defaultValue
-            }
-            is Vector4d -> when (index) {
-                0 -> x
-                1 -> y
-                2 -> z
-                3 -> w
-                else -> defaultValue
-            }
+            is Vector2d -> if (index in 0 until 2) get(index) else defaultValue
+            is Vector3d -> if (index in 0 until 3) get(index) else defaultValue
+            is Vector4d -> if (index in 0 until 4) get(index) else defaultValue
             is Planed -> when (index) {
                 0 -> dirX
                 1 -> dirY
@@ -144,24 +114,9 @@ object AnyToDouble {
                 3 -> w
                 else -> defaultValue
             }
-            is Vector2i -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                else -> defaultValue
-            }
-            is Vector3i -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                else -> defaultValue
-            }
-            is Vector4i -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                3 -> w.toDouble()
-                else -> defaultValue
-            }
+            is Vector2i -> if (index in 0 until 2) get(index).toDouble() else defaultValue
+            is Vector3i -> if (index in 0 until 3) get(index).toDouble() else defaultValue
+            is Vector4i -> if (index in 0 until 4) get(index).toDouble() else defaultValue
             is AABBf -> when (index) {
                 0 -> minX.toDouble()
                 1 -> minY.toDouble()

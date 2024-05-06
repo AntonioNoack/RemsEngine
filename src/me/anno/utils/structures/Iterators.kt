@@ -94,4 +94,22 @@ object Iterators {
     fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): List<V> {
         return skip(startIndex).take(endIndex - startIndex)
     }
+
+    fun <V> Iterator<V>?.then(other: Iterator<V>?): Iterator<V>? {
+        val self = this
+        if (self == null || !self.hasNext()) return other
+        if (other == null) return this
+        return object : Iterator<V> {
+            private var useOther = false
+            override fun hasNext(): Boolean {
+                return self.hasNext() || other.hasNext()
+            }
+
+            override fun next(): V {
+                useOther = useOther || !self.hasNext()
+                return if (useOther) other.next()
+                else self.next()
+            }
+        }
+    }
 }

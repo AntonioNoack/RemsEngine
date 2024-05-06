@@ -184,7 +184,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         // when we set nothing, everything should be identity, right? yes, correct
 
         val srcBones = srcSkel.associateBy { it.name }
-        val dstToSrc = dstBoneIndexToSrcName ?: return dst
+        val dstToSrc = dstBoneIndexToSrcName
         val tmpM = Matrix4x3f()
         val tmpV = Vector3f()
         val tmpQ = Quaternionf()

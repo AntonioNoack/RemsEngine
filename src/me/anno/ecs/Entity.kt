@@ -577,7 +577,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     override fun destroy() {
         isCreated = false
         for (component in components) {
-            component.onDestroy()
+            component.destroy()
         }
         val parent = parent as? Entity
         if (parent != null) {
@@ -742,8 +742,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             cloneComponents.add(component)
         }
     }
-
-    override fun onDestroy() {}
 
     override val symbol: String
         get() = ""

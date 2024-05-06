@@ -69,12 +69,6 @@ import kotlin.math.max
  * */
 class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
-    var deferred: DeferredSettings? = deferred
-        set(value) {
-            field = value
-            lightStage.deferred = value
-        }
-
     // pipelines, that we need:
     //  - 3d world,
     //  - transparency
@@ -86,8 +80,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     var ignoredComponent: Component? = null
     var superMaterial: Material? = null
 
-    @Type("List<PipelineStage>")
-    @SerializedProperty
     val stages = ArrayList<PipelineStageImpl>()
 
     val lightStage = LightPipelineStage(deferred)
@@ -111,6 +103,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     val reflectionCullingPlane = Planed()
 
     var applyToneMapping = true
+
+    var transparentPass: TransparentPass = GlassPass()
 
     fun disableReflectionCullingPlane() {
         reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
@@ -190,8 +184,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             .invert()
         stage.add(light, transform)
     }
-
-    var transparentPass: TransparentPass = GlassPass()
 
     fun bakeSkybox(resolution: Int) {
         if (resolution <= 0) {

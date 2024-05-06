@@ -202,8 +202,8 @@ class ShaderGraphNode : ActionNode(
         setOutput(1, buffer.getTexture0())
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         shader?.destroy()
     }
 }

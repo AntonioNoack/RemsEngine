@@ -41,13 +41,11 @@ object SearchAlgorithm {
             runOnUIThread {
                 self.removeOldFiles()
                 val parent = self.folder.getParent()
-                if (parent != null) {
-                    if (self.shouldShowFile(parent)) {
-                        // option to go up a folder
-                        val entry = self.createEntry(true, parent)
-                        self.content2d += entry
-                        self.invalidateLayout()
-                    }
+                if (self.shouldShowFile(parent)) {
+                    // option to go up a folder
+                    val entry = self.createEntry(true, parent)
+                    self.content2d += entry
+                    self.invalidateLayout()
                 }
             }
         }

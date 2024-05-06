@@ -24,20 +24,6 @@ class LightRenderSystem() : System(), Renderable {
         }
     }
 
-    override fun onEnable(childSystem: System) {
-        if (childSystem is LightRenderSystem) {
-            lights.addAll(childSystem.lights)
-            skyboxes.addAll(childSystem.skyboxes)
-        }
-    }
-
-    override fun onDisable(childSystem: System) {
-        if (childSystem is LightRenderSystem) {
-            lights.removeAll(childSystem.lights)
-            skyboxes.removeAll(childSystem.skyboxes)
-        }
-    }
-
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
         for (c in lights) {
             val e = c.entity ?: continue
@@ -46,5 +32,10 @@ class LightRenderSystem() : System(), Renderable {
             }
         }
         return clickId
+    }
+
+    override fun clear() {
+        lights.clear()
+        skyboxes.clear()
     }
 }

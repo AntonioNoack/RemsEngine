@@ -339,8 +339,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         return 1
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         stopWorker()
     }
 

@@ -23,16 +23,14 @@ object SaveableRegistry {
         }
 
         private val constructor by lazy {
-            clazz.constructors.firstOrNull {
-                it.parameterCount == 1 && it.parameters[0].type == styleClass
-            } ?: clazz.constructors.first {
-                it.parameterCount == 0
+            clazz.constructors.first {
+                (it.parameterCount == 0) || (it.parameterCount == 1 && it.parameters[0].type == styleClass)
             }
         }
 
         private fun newInstance(): Saveable {
             return (if (constructor.parameterCount == 0) constructor.newInstance()
-            else constructor.newInstance(style)) as Saveable
+            else constructor.newInstance(style)) as? Saveable ?: Saveable()
         }
 
         override val sampleInstance: Saveable by lazy {

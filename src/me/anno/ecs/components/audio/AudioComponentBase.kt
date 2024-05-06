@@ -253,8 +253,8 @@ abstract class AudioComponentBase : Component() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         stop()
     }
 

@@ -5,8 +5,7 @@ package me.anno.maths.chunks.cartesian
  * */
 abstract class MapChunkSystem<Element>(
     bitsX: Int, bitsY: Int, bitsZ: Int,
-    val defaultElement: Element,
-    initialCapacity: Int = 256
+    val defaultElement: Element
 ) : ChunkSystem<HashMap<Int, Element>, Element>(bitsX, bitsY, bitsZ) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: HashMap<Int, Element>)

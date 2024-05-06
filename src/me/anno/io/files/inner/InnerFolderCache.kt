@@ -62,16 +62,15 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
             data.value = null
         } else {
             val reader = getReader(signature, ext)
-            val callback = { folder: InnerFolder?, ec: Exception? ->
-                if (file1 is InnerFile) file1.folder = folder
-                data.value = folder
-                ec?.printStackTrace()
-                if (folder != null) { // todo remove watch dog when unloading it?
-                    FileWatch.addWatchDog(file1)
-                }
-            }
             if (reader != null) {
-                reader(file1, callback)
+                reader(file1) { folder, err ->
+                    if (file1 is InnerFile) file1.folder = folder
+                    data.value = folder
+                    err?.printStackTrace()
+                    if (folder != null) { // todo remove watch dog when unloading it?
+                        FileWatch.addWatchDog(file1)
+                    }
+                }
             } else data.value = null
         }
         return data

@@ -2,6 +2,9 @@ package me.anno.utils.structures.maps
 
 import me.anno.utils.structures.maps.Maps.removeIf
 
+/**
+ * map with automatic reverse map
+ * */
 class BiMap<K, V>(capacity: Int = 16) : HashMap<K, V>(capacity) {
     val reverse = HashMap<V, K>(capacity)
 

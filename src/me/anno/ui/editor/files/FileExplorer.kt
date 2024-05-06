@@ -379,8 +379,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
 
     val searchTask = UpdatingTask("FileExplorer-Query") {}
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         searchTask.destroy()
     }
 

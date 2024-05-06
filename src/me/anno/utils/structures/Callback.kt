@@ -17,6 +17,10 @@ fun interface Callback<V> {
 
     companion object {
 
+        /**
+         * joins all callbacks; starts generator functions serially, but you could easily make them
+         * multithreaded by starting a thread for each task in process()
+         * */
         fun <V, W : Any> List<V>.mapCallback(
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<List<W>>
@@ -29,6 +33,10 @@ fun interface Callback<V> {
                 }
         }
 
+        /**
+         * joins all callbacks; starts generator functions serially, but you could easily make them
+         * multithreaded by starting a thread for each task in process()
+         * */
         fun <V, W : Any> Set<V>.mapCallback(
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<Set<W>>
@@ -38,6 +46,10 @@ fun interface Callback<V> {
             }
         }
 
+        /**
+         * joins all callbacks; starts generator functions serially, but you could easily make them
+         * multithreaded by starting a thread for each task in process()
+         * */
         fun <K, V, W : Any> Map<K, V>.mapCallback(
             process: (K, V, Callback<W>) -> Unit,
             callback: Callback<Map<K, W>>
@@ -62,7 +74,7 @@ fun interface Callback<V> {
             }
         }
 
-        fun <K, W : Any> Map<K, W>.cleanup() {
+        private fun <K, W : Any> Map<K, W>.cleanup() {
             // cleanup: destroy all temporary results
             for (wi in values) {
                 if (wi is ICacheData) {

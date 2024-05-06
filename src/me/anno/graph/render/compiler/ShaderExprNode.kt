@@ -34,8 +34,8 @@ class ShaderExprNode : ActionNode(
         setOutput(1, render(true))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         shader?.destroy()
         shader = null
     }

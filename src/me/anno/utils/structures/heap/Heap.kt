@@ -2,6 +2,9 @@ package me.anno.utils.structures.heap
 
 import me.anno.utils.structures.lists.Lists.swap
 
+/**
+ * helper for heaps: heaps are data structures that make inserting and extracting the min/max fast
+ * */
 object Heap {
 
     fun parent(pos: Int): Int {

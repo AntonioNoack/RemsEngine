@@ -56,8 +56,8 @@ open class MeshComponent() : MeshComponentBase() {
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         occlusionQuery?.destroy()
         occlusionQuery = null
     }

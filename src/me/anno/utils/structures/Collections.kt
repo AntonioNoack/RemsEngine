@@ -10,7 +10,7 @@ object Collections {
     @JvmStatic
     fun <A, B, R : MutableCollection<Pair<A, B>>> Collection<A>.cross(
         other: Collection<B>, dst: R
-    ): R = crossMap(other, dst) { a, b -> a to b }
+    ): R = crossMap(other, dst, ::Pair)
 
     @JvmStatic
     fun <A, B, C, R : MutableCollection<C>> Collection<A>.crossMap(
@@ -30,7 +30,7 @@ object Collections {
     @JvmStatic
     fun <A, B, C, R : MutableCollection<Triple<A, B, C>>> Collection<A>.cross(
         other: Collection<B>, other2: Collection<C>, dst: R
-    ): R = crossMap(other, other2, dst) { a, b, c -> Triple(a, b, c) }
+    ): R = crossMap(other, other2, dst, ::Triple)
 
     @JvmStatic
     fun <A, B, C, D, R : MutableCollection<D>> Collection<A>.crossMap(

@@ -324,12 +324,12 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         return dst
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         val components = internalComponents
         for (index in components.indices) {
             val child = components[index]
-            if (child.isEnabled) child.onDestroy()
+            if (child.isEnabled) child.destroy()
         }
     }
 

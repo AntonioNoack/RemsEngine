@@ -90,7 +90,7 @@ class CAdd() : Change() {
             }
             loadedPrefab.createInstance()
         } else {
-            when (val newInstance1 = Saveable.createOrNull(clazzName)) {
+            when (val newInstance1 = createOrNull(clazzName)) {
                 is PrefabSaveable -> newInstance1
                 null -> throw UnknownClassException(clazzName)
                 else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")

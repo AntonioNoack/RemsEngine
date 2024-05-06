@@ -18,8 +18,8 @@ class CountingInputStream(src: InputStream) : FilterInputStream(src) {
         return b
     }
 
-    override fun read(b: ByteArray, off: Int, len: Int): Int {
-        val r = super.read(b, off, len)
+    override fun read(buffer: ByteArray, off: Int, len: Int): Int {
+        val r = super.read(buffer, off, len)
         if (r > 0) position += r
         return r
     }

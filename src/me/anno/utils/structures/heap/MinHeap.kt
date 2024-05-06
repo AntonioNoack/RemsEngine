@@ -3,6 +3,8 @@ package me.anno.utils.structures.heap
 import me.anno.utils.structures.lists.Lists.swap
 
 /**
+ * fast data structure for inserting elements, and extracting the minimum element
+ *
  * base implementation from
  * https://www.geeksforgeeks.org/min-heap-in-java/
  *

@@ -115,8 +115,8 @@ class Skeleton : PrefabSaveable(), Renderable {
         return clickId
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun destroy() {
+        super.destroy()
         previewData?.destroy()
         previewData = null
     }

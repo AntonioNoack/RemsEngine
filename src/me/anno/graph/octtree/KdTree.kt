@@ -1,5 +1,8 @@
 package me.anno.graph.octtree
 
+import me.anno.utils.structures.Iterators.then
+import java.util.Collections.emptyIterator
+
 /**
  * a generic node for quad trees and oct trees, or more/fewer dimensions;
  * just specify a different type of point
@@ -193,19 +196,12 @@ abstract class KdTree<Point, Data>(
         return sum
     }
 
-    override fun iterator(): Iterator<Data> =
-        sequence {
-            val left = left
-            val right = right
-            if (left != null && right != null) {
-                yieldAll(left.iterator())
-                yieldAll(right.iterator())
-            }
-            val children = children
-            if (children != null) {
-                yieldAll(children.iterator())
-            }
-        }.iterator()
+    override fun iterator(): Iterator<Data> {
+        var iter = left?.iterator()
+        iter = iter.then(right?.iterator())
+        iter = iter.then(children?.iterator())
+        return iter ?: emptyIterator()
+    }
 
     fun remove(d: Data, minI: Point = getMin(d), maxI: Point = getMax(d)): Boolean {
         val left = left

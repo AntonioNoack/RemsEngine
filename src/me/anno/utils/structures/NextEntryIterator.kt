@@ -1,5 +1,8 @@
 package me.anno.utils.structures
 
+/**
+ * Iterator for generator functions that return null or something
+ * */
 abstract class NextEntryIterator<V: Any> : Iterator<V> {
 
     abstract fun nextEntry(): V?

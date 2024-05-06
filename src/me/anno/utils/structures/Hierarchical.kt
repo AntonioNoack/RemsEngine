@@ -66,13 +66,6 @@ interface Hierarchical<V : Hierarchical<V>> {
     val root: V
         get() = parent?.root ?: this as V
 
-    fun onDestroy()
-
-    fun destroy() {
-        // removeFromParent()
-        onDestroy()
-    }
-
     @Suppress("unchecked_cast", "unused")
     fun listOfHierarchy(callback: (V) -> Unit) {
         parent?.listOfHierarchy(callback)

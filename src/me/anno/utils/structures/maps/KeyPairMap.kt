@@ -3,6 +3,9 @@ package me.anno.utils.structures.maps
 import me.anno.utils.structures.lists.PairArrayList
 import me.anno.utils.structures.maps.Maps.removeIf
 
+/**
+ * map, where each key is a pair
+ * */
 open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     Iterable<PairArrayList<KFewOnly, Value>> {
 
