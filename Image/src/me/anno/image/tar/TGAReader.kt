@@ -3,10 +3,10 @@ package me.anno.image.tar
 import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
-import me.anno.utils.Color
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.skipN
+import me.anno.utils.Color
+import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.min
@@ -174,55 +174,80 @@ object TGAReader {
         return ByteImage(width, height, format, rawData)
     }
 
+    @JvmStatic
+    private fun flipX1(i0: Int, i1: Int, data: ByteArray, i2: Int) {
+        var j = i2
+        for (i in i0 until i1) {
+            val t = data[i]
+            data[i] = data[j]
+            data[j] = t
+            j--
+        }
+    }
+
+    @JvmStatic
+    private fun flipX2(i0: Int, i1: Int, data: ByteArray, i2: Int) {
+        var j = i2
+        for (i in i0 until i1 step 2) {
+            val t0 = data[i]
+            val t1 = data[i + 1]
+            data[i] = data[j]
+            data[i + 1] = data[j + 1]
+            data[j] = t0
+            data[j + 1] = t1
+            j -= 2
+        }
+    }
+
+    @JvmStatic
+    private fun flipX3(i0: Int, i1: Int, data: ByteArray, i2: Int) {
+        var j = i2
+        for (i in i0 until i1 step 3) {
+            val t0 = data[i]
+            val t1 = data[i + 1]
+            val t2 = data[i + 2]
+            data[i] = data[j]
+            data[i + 1] = data[j + 1]
+            data[i + 2] = data[j + 2]
+            data[j] = t0
+            data[j + 1] = t1
+            data[j + 2] = t2
+            j -= 3
+        }
+    }
+
+    @JvmStatic
+    private fun flipX4(i0: Int, i1: Int, data: ByteArray, i2: Int) {
+        var j = i2
+        for (i in i0 until i1 step 4) {
+            val t0 = data[i]
+            val t1 = data[i + 1]
+            val t2 = data[i + 2]
+            val t3 = data[i + 3]
+            data[i] = data[j]
+            data[i + 1] = data[j + 1]
+            data[i + 2] = data[j + 2]
+            data[i + 3] = data[j + 3]
+            data[j] = t0
+            data[j + 1] = t1
+            data[j + 2] = t2
+            data[j + 3] = t3
+            j -= 4
+        }
+    }
+
+    @JvmStatic
     private fun flipX(data: ByteArray, width: Int, height: Int, c: Int) {
         val dx = c * (width shr 1)
         for (y in 0 until height) {
             val i0 = y * width * c
             val i1 = i0 + dx
-            var i2 = i0 + c * (width - 1)
+            val i2 = i0 + c * (width - 1)
             when (c) {
-                1 -> for (i in i0 until i1) {
-                    val t = data[i]
-                    data[i] = data[i2]
-                    data[i2] = t
-                    i2--
-                }
-                2 -> for (i in i0 until i1 step 2) {
-                    val t0 = data[i]
-                    val t1 = data[i + 1]
-                    data[i] = data[i2]
-                    data[i + 1] = data[i2 + 1]
-                    data[i2] = t0
-                    data[i2 + 1] = t1
-                    i2 -= 2
-                }
-                3 -> for (i in i0 until i1 step 3) {
-                    val t0 = data[i]
-                    val t1 = data[i + 1]
-                    val t2 = data[i + 2]
-                    data[i] = data[i2]
-                    data[i + 1] = data[i2 + 1]
-                    data[i + 2] = data[i2 + 2]
-                    data[i2] = t0
-                    data[i2 + 1] = t1
-                    data[i2 + 2] = t2
-                    i2 -= 3
-                }
-                4 -> for (i in i0 until i1 step 4) {
-                    val t0 = data[i]
-                    val t1 = data[i + 1]
-                    val t2 = data[i + 2]
-                    val t3 = data[i + 3]
-                    data[i] = data[i2]
-                    data[i + 1] = data[i2 + 1]
-                    data[i + 2] = data[i2 + 2]
-                    data[i + 3] = data[i2 + 3]
-                    data[i2] = t0
-                    data[i2 + 1] = t1
-                    data[i2 + 2] = t2
-                    data[i2 + 3] = t3
-                    i2 -= 4
-                }
+                1 -> flipX1(i0, i1, data, i2)
+                2 -> flipX2(i0, i1, data, i2)
+                3 -> flipX3(i0, i1, data, i2)
+                4 -> flipX4(i0, i1, data, i2)
             }
         }
     }
@@ -230,12 +255,9 @@ object TGAReader {
     @JvmStatic
     private fun readColorMapped(
         pixelDepth: Int,
-        width: Int,
-        height: Int,
-        flip: Boolean,
-        rawData: ByteArray,
-        dl: Int,
-        dis: InputStream,
+        width: Int, height: Int,
+        flip: Boolean, rawData: ByteArray,
+        dl: Int, dis: InputStream,
         cMapEntries: IntArray
     ): Int {
         var rawDataIndex = 0
@@ -290,12 +312,9 @@ object TGAReader {
     @JvmStatic
     private fun readTrueColor(
         pixelDepth: Int,
-        width: Int,
-        height: Int,
-        flip: Boolean,
-        rawData: ByteArray,
-        dl: Int,
-        dis: InputStream
+        width: Int, height: Int,
+        flip: Boolean, rawData: ByteArray,
+        dl: Int, dis: InputStream
     ): Int {
         var rawDataIndex = 0
         return when (pixelDepth) {
@@ -336,12 +355,9 @@ object TGAReader {
     @JvmStatic
     private fun readGrayscale(
         pixelDepth: Int,
-        width: Int,
-        height: Int,
-        flip: Boolean,
-        rawData: ByteArray,
-        dl: Int,
-        dis: InputStream
+        width: Int, height: Int,
+        flip: Boolean, rawData: ByteArray,
+        dl: Int, dis: InputStream
     ): Int {
         for (y in 0 until height) {
             var rawDataIndex = (if (flip) y else height - 1 - y) * width * dl
@@ -359,12 +375,9 @@ object TGAReader {
     @JvmStatic
     private fun readTrueColorRLE(
         pixelDepth: Int,
-        width: Int,
-        height: Int,
-        flip: Boolean,
-        rawData: ByteArray,
-        dl: Int,
-        dis: InputStream
+        width: Int, height: Int,
+        flip: Boolean, rawData: ByteArray,
+        dl: Int, dis: InputStream
     ): Int {
 
         val format: Int

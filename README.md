@@ -130,7 +130,6 @@ Some depend on local files, which you might not have, but most should work, and 
 ### UI
 
 - event based UI library
-- spellchecking in most input fields
 - 3d gizmos
 - real-time graph editors
     - materials (shaders)
@@ -142,7 +141,7 @@ Some depend on local files, which you might not have, but most should work, and 
 - Android-inspired layout system
 - text inputs have integrated spellchecking
 - all kinds of other value inputs
-- drawn on GPU with OpenGL
+- rendered on GPU with OpenGL
 - controller support
     - works for UI automatically
     - you can even use your controller in other programs as a mouse, while Rem's Engine/Studio is running :3

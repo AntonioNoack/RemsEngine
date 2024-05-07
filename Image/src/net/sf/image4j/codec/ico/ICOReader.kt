@@ -62,13 +62,12 @@ object ICOReader {
             40 -> {
                 // read XOR bitmap
                 // BMPDecoder bmp = new BMPDecoder(is);
-                val infoHeader = BMPDecoder.readInfoHeader(input1, info)
+                val infoHeader = BMPDecoder.readInfoHeader(input1)
                 val andHeader = InfoHeader(infoHeader)
-                andHeader.height = infoHeader.height / 2
+                andHeader.height = infoHeader.height shr 1
                 val xorHeader = InfoHeader(infoHeader)
                 xorHeader.height = andHeader.height
                 andHeader.bitCount = 1
-                andHeader.numColors = 2
 
                 // for now, just read all the raster data (xor + and)
                 // and store as separate images
@@ -249,10 +248,10 @@ object ICOReader {
             // the best layer can have its size incorrectly written as 0 x 0,
             // if this is the case, read the size more directly
             ensureOffset(input1, bestLayer, bestLayer.index)
-            return when (val info = input1.readLE32()) {
+            return when (input1.readLE32()) {
                 40 -> {
                     // bitmap
-                    val infoHeader = BMPDecoder.readInfoHeader(input1, info)
+                    val infoHeader = BMPDecoder.readInfoHeader(input1)
                     IntPair(infoHeader.width, infoHeader.height)
                 }
                 PNG_MAGIC_LE -> {

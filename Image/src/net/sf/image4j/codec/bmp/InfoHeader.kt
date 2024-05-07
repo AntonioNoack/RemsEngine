@@ -1,13 +1,8 @@
-/*
- * InfoHeader.java
- *
- * Created on 10 May 2006, 08:10
- *
- */
 package net.sf.image4j.codec.bmp
 
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.io.Streams.skipN
 import me.anno.utils.structures.CountingInputStream
 
 /**
@@ -16,14 +11,8 @@ import me.anno.utils.structures.CountingInputStream
  */
 class InfoHeader {
 
-    var size = 0
     var width = 0
     var height = 0
-
-    /**
-     * The number of planes, which should always be 1.
-     */
-    var planes: Short = 0
 
     /**
      * The bit count, which represents the colour depth (bits per pixel).
@@ -42,51 +31,22 @@ class InfoHeader {
     var compression = 0
 
     /**
-     * The compressed size of the image in bytes, or 0 if compression is 0.
-     */
-    var imageSize = 0
-
-    var pixelsPerMeterX = 0
-    var pixelsPerMeterY = 0
-
-    /**
-     * Number of colours actually used in the bitmap.
-     */
-    var numUsedColors = 0
-
-    /**
-     * Number of important colours (0 = all).
-     */
-    var numImportantColors = 0
-
-    /**
      * Calculated number of colours, based on the colour depth specified by [sBitCount][.sBitCount].
      */
-    var numColors = 0
+    val numColors get() = 1 shl bitCount
 
     constructor(input: CountingInputStream) {
-        // Size of InfoHeader structure = 40
-        size = input.readLE32()
-        init(input, size)
-    }
-
-    constructor(input: CountingInputStream, infoSize: Int) {
-        init(input, infoSize)
-    }
-
-    fun init(input: CountingInputStream, infoSize: Int) {
-        size = infoSize
         width = input.readLE32()
         height = input.readLE32()
-        planes = input.readLE16().toShort()
+        /*planes = */input.readLE16()
         bitCount = input.readLE16()
-        numColors = 1 shl bitCount
         compression = input.readLE32()
-        imageSize = input.readLE32()
-        pixelsPerMeterX = input.readLE32()
-        pixelsPerMeterY = input.readLE32()
-        numUsedColors = input.readLE32()
-        numImportantColors = input.readLE32()
+        input.skipN(20)
+        // imageSize = input.readLE32()
+        // pixelsPerMeterX = input.readLE32()
+        // pixelsPerMeterY = input.readLE32()
+        // numUsedColors = input.readLE32()
+        // numImportantColors = input.readLE32()
     }
 
     /**
@@ -94,17 +54,9 @@ class InfoHeader {
      * @param source the source to copy
      */
     constructor(source: InfoHeader) {
-        numImportantColors = source.numImportantColors
-        numUsedColors = source.numUsedColors
         compression = source.compression
         height = source.height
         width = source.width
-        imageSize = source.imageSize
-        numColors = source.numColors
-        size = source.size
-        pixelsPerMeterX = source.pixelsPerMeterX
-        pixelsPerMeterY = source.pixelsPerMeterY
         bitCount = source.bitCount
-        planes = source.planes
     }
 }

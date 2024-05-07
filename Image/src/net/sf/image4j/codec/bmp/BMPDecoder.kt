@@ -3,6 +3,7 @@ package net.sf.image4j.codec.bmp
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.CountingInputStream
 import net.sf.image4j.Utils
 import java.io.EOFException
@@ -13,8 +14,6 @@ import java.io.InputStream
  * Decodes images in BMP format.
  * Creates a new instance of BMPDecoder and reads the BMP data from the source.
  *
- * @param input the source <tt>InputStream</tt> from which to read the BMP data
- * @throws IOException if an error occurs
  * @author Ian McDonagh
  */
 object BMPDecoder {
@@ -51,12 +50,7 @@ object BMPDecoder {
     }
 
     @JvmStatic
-    private fun readInfoHeader(lis: CountingInputStream) =
-        InfoHeader(lis)
-
-    @JvmStatic
-    fun readInfoHeader(lis: CountingInputStream, infoSize: Int) =
-        InfoHeader(lis, infoSize)
+    fun readInfoHeader(lis: CountingInputStream) = InfoHeader(lis)
 
     /**
      * Reads the BMP data from the given <tt>InputStream</tt> using the information
@@ -309,7 +303,7 @@ object BMPDecoder {
     @JvmStatic
     fun read(input: InputStream): Image {
 
-        val lis = CountingInputStream(CountingInputStream(input))
+        val lis = CountingInputStream(input)
 
         /* header [14] */
 
@@ -331,6 +325,7 @@ object BMPDecoder {
         lis.readLE32()
 
         /* info header [40] */
+        assertEquals(40, lis.readLE32()) // header size
         val infoHeader = readInfoHeader(lis)
 
         /* Color table and Raster data */
