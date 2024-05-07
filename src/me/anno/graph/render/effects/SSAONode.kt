@@ -13,7 +13,7 @@ import me.anno.utils.Color.black4
 class SSAONode : ActionNode(
     "Screen Space Ambient Occlusion",
     listOf(
-        "Int", "Samples",
+        "Int", "SSAO Samples",
         "Float", "Strength",
         "Float", "Radius Scale",
         "Bool", "Blur",
@@ -31,9 +31,7 @@ class SSAONode : ActionNode(
 
     override fun executeAction() {
 
-        val samples = getIntInput(1)
-        if (samples < 1) return fail()
-
+        val ssaoSamples = getIntInput(1)
         val strength = getFloatInput(2)
         val radiusScale = getFloatInput(3)
         val blur = getBoolInput(4)
@@ -46,7 +44,7 @@ class SSAONode : ActionNode(
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion
-            .compute(depthTT, depthT.mapping, normalT, normalZW, transform, strength, radiusScale, samples, blur)
+            .compute(depthTT, depthT.mapping, normalT, normalZW, transform, strength, radiusScale, ssaoSamples, blur)
 
         setOutput(1, Texture.texture(result, 0, "r", null))
     }

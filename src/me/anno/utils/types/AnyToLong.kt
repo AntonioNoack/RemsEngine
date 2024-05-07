@@ -10,20 +10,20 @@ object AnyToLong {
     }
 
     @JvmStatic
-    fun getLong(any: Any?, index: Int, defaultValue: Long): Long {
-        return when (any) {
+    fun getLong(value: Any?, index: Int, defaultValue: Long): Long {
+        return when (value) {
             null -> defaultValue
             is Long -> when (index) {
-                0 -> any
+                0 -> value
                 else -> defaultValue
             }
             is ULong -> when (index) {
-                0 -> any.toLong()
+                0 -> value.toLong()
                 else -> defaultValue
             }
-            is CharSequence -> any.toLongOrDefault(defaultValue)
+            is CharSequence -> value.toLongOrDefault(defaultValue)
             else -> {
-                val v = AnyToDouble.getDouble(index, Double.NaN)
+                val v = AnyToDouble.getDouble(value, index, Double.NaN)
                 return if (v.isNaN()) defaultValue else v.toLong()
             }
         }

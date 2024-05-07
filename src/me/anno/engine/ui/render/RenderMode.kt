@@ -36,6 +36,7 @@ import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.effects.SmoothNormalsNode
 import me.anno.graph.render.effects.ToneMappingNode
 import me.anno.graph.render.scene.CombineLightsNode
+import me.anno.graph.render.scene.DrawSkyMode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.render.scene.RenderSceneForwardNode
@@ -72,7 +73,7 @@ class RenderMode(
         private val deferredNodeSettings = mapOf(
             "Stage" to PipelineStage.OPAQUE,
             "Skybox Resolution" to 256,
-            "Draw Sky" to 1
+            "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
         )
 
         private val decalNodeSettings = mapOf("Stage" to PipelineStage.DECAL)
@@ -129,10 +130,13 @@ class RenderMode(
 
         val CLICK_IDS = RenderMode("ClickIds (Random)", randomIdRenderer)
 
+        // todo this mode is broken, no longer showing log2-pattern
         val DEPTH = RenderMode("Depth", attributeRenderers[DeferredLayerType.DEPTH])
 
         val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
+        // todo forward deserves bloom
+        // todo helmet has much too faint smudges in forward rendering -> why?
         val FORWARD = RenderMode("Forward", Renderers.pbrRenderer)
         val MSAA_FORWARD = RenderMode("MSAA Forward", Renderers.pbrRenderer)
 

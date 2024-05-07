@@ -202,18 +202,6 @@ class SphereTriangle(
         return root.getTriangle(v, maxTriangleSize, generateIfMissing)
     }
 
-    fun all(): Sequence<SphereTriangle> = sequence {
-        yield(this@SphereTriangle)
-        val childXX = childXX
-        val childAB = childAB
-        val childBC = childBC
-        val childCA = childCA
-        if (childXX != null) yieldAll(childXX.all())
-        if (childAB != null) yieldAll(childAB.all())
-        if (childBC != null) yieldAll(childBC.all())
-        if (childCA != null) yieldAll(childCA.all())
-    }
-
     fun forEach(maxLevels: Int, shallCheckChildren: (SphereTriangle) -> Boolean) {
         if (shallCheckChildren(this) && level < maxLevels) {
             ensureChildren()

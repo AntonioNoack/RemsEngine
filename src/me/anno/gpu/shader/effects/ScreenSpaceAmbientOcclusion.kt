@@ -42,12 +42,12 @@ object ScreenSpaceAmbientOcclusion {
     private val MAX_SAMPLES = Maths.max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 
     private val sampleKernel = Texture2D("sampleKernel", MAX_SAMPLES, 1, 1)
-    private val sampleKernel0 = FloatArray(MAX_SAMPLES * 4)
+    private val sampleKernelData = FloatArray(MAX_SAMPLES * 4)
 
     private fun generateSampleKernel(samples: Int, seed: Long = 1234L) {
         val random = Random(seed)
         var j = 0
-        val data = sampleKernel0
+        val data = sampleKernelData
         for (i in 0 until samples) {
             val f01 = (i + 1f) / samples
             var x: Float
@@ -66,13 +66,17 @@ object ScreenSpaceAmbientOcclusion {
             data[j++] = z * f
             j++
         }
+        println("Creating sample kernel, x$samples, ${data.joinToString()}")
         sampleKernel.createRGBA(data, false)
     }
 
     // tiled across the screen; e.g., 4x4 texture size
     // because of that, we probably could store it in the shader itself
     // 2*16 values ~ just two matrices
-    private fun generateRandomTexture(random: Random, w: Int, h: Int = w): Texture2D {
+    @Suppress("SameParameterValue")
+    private fun generateRandomTexture(random: Random, tex: Texture2D) {
+        val w = tex.width
+        val h = tex.height
         val data = ByteBufferPool.allocateDirect(4 * w * h)
         for (i in 0 until w * h) {
             val nx = random.nextFloat() * 2 - 1
@@ -88,12 +92,10 @@ object ScreenSpaceAmbientOcclusion {
             data.put(-1)
         }
         data.flip()
-        val tex = Texture2D("ssao-noise", w, h, 1)
         tex.createRGBA(data, false)
-        return tex
     }
 
-    private var random4x4: Texture2D? = null
+    private val random4x4 = Texture2D("ssao-noise", 4, 4, 1)
 
     // 2 passes: occlusion factor, then blurring
     private val occlusionShader = createOcclusionShader(false)
@@ -228,11 +230,8 @@ object ScreenSpaceAmbientOcclusion {
         enableBlur: Boolean
     ): IFramebuffer {
 
-        var random4x4 = random4x4
-        random4x4?.checkSession()
-        if (random4x4 == null || !random4x4.wasCreated) {
-            random4x4 = generateRandomTexture(Random(1234L), 4)
-            this.random4x4 = random4x4
+        if (!random4x4.isCreated()) {
+            generateRandomTexture(Random(1234L), random4x4)
         }
 
         // resolution can be halved to improve performance
@@ -247,7 +246,6 @@ object ScreenSpaceAmbientOcclusion {
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
-            sampleKernel.checkSession()
             if (lastSamples != samples || !sampleKernel.isCreated()) {
                 // generate random kernel
                 generateSampleKernel(samples)

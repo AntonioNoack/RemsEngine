@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager
 class ObjectPool<V>(
     private val createInstance: () -> V,
     private val resetInstance: (V) -> Unit,
-    private val destroy: (V) -> Unit,
+    private val destroyFunc: (V) -> Unit,
     private val freeInstance: (V) -> Unit,
     checkDoubleReturns: Boolean,
     initialSize: Int = 16,
@@ -44,7 +44,7 @@ class ObjectPool<V>(
                 } else map.add(v)
             }
         }
-        destroy(v)
+        destroyFunc(v)
         synchronized(this) {
             if (data.size >= maxSize) {
                 // we're at the limit, and can't destroy elements

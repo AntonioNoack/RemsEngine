@@ -1,8 +1,8 @@
 package me.anno.graph.render.compiler
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -183,7 +183,7 @@ class ShaderGraphNode : ActionNode(
         val w = getIntInput(1)
         val h = getIntInput(2)
         val channels = clamp(getIntInput(3), 1, 4)
-        val samples = getIntInput(4)
+        val samples = clamp(getIntInput(4), 1, GFX.maxSamples)
         var buffer = buffer
         if (buffer == null || buffer.width != w || buffer.height != h) {
             buffer?.destroy()

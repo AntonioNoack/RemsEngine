@@ -344,24 +344,6 @@ object Triangles {
     }
 
     /**
-     * calculates ((b-a) x (c-a)) * n
-     * without any allocations
-     * */
-    @JvmStatic
-    fun subCrossDot(a: Vector3d, b: Vector3d, c: Vector3d, n: Vector3d): Double {
-        val x0 = b.x - a.x
-        val y0 = b.y - a.y
-        val z0 = b.z - a.z
-        val x1 = c.x - a.x
-        val y1 = c.y - a.y
-        val z1 = c.z - a.z
-        val rx = y0 * z1 - y1 * z0
-        val ry = z0 * x1 - x0 * z1
-        val rz = x0 * y1 - y0 * x1
-        return n.dot(rx, ry, rz)
-    }
-
-    /**
      * calculates (b-a) x (c-a)
      * without any allocations
      * */
@@ -377,54 +359,6 @@ object Triangles {
         val ry = z0 * x1 - x0 * z1
         val rz = x0 * y1 - y0 * x1
         return dst.set(rx, ry, rz)
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3f, dir: Vector3f, px: Float, py: Float, pz: Float): Float {
-        val tmp = JomlPools.vec3f.borrow()
-        return tmp.set(start).sub(px, py, pz)
-            .cross(dir).length()
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3d, dir: Vector3d, px: Double, py: Double, pz: Double): Double {
-        val tmp = JomlPools.vec3d.borrow()
-        return tmp.set(start).sub(px, py, pz)
-            .cross(dir).length()
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3f, dir: Vector3f, p: Vector3f): Float {
-        val tmp = JomlPools.vec3f.borrow()
-        return tmp.set(start).sub(p)
-            .cross(dir).length()
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3d, dir: Vector3d, p: Vector3d): Double {
-        val tmp = JomlPools.vec3d.borrow()
-        return tmp.set(start).sub(p)
-            .cross(dir).length()
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3f, dir: Vector3f, p: Vector3d): Float {
-        val tmp = JomlPools.vec3f.borrow()
-        return tmp.set(start).sub(p.x.toFloat(), p.y.toFloat(), p.z.toFloat())
-            .cross(dir).length()
-    }
-
-    @JvmStatic
-    @Suppress("unused")
-    fun linePointDistance(start: Vector3d, dir: Vector3d, p: Vector3f): Double {
-        val tmp = JomlPools.vec3d.borrow()
-        return tmp.set(start).sub(p)
-            .cross(dir).length()
     }
 
     @JvmStatic
@@ -485,24 +419,6 @@ object Triangles {
         val cy = az * bx - ax * bz
         val cz = ax * by - ay * bx
         return cx * dx + cy * dy + cz * dz
-    }
-
-    @JvmStatic
-    fun getSideSign(px: Float, py: Float, ax: Float, ay: Float, bx: Float, by: Float): Float {
-        val dx0 = ax - px
-        val dy0 = ay - py
-        val dx1 = bx - px
-        val dy1 = by - py
-        return dx1 * dy0 - dy1 * dx0
-    }
-
-    @JvmStatic
-    fun getSideSign(px: Double, py: Double, ax: Double, ay: Double, bx: Double, by: Double): Double {
-        val dx0 = ax - px
-        val dy0 = ay - py
-        val dx1 = bx - px
-        val dy1 = by - py
-        return dx1 * dy0 - dy1 * dx0
     }
 
     @JvmStatic
@@ -568,43 +484,6 @@ object Triangles {
     }
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
-    @JvmStatic
-    fun rayTriangleIntersection(
-        origin: Vector3f, direction: Vector3f,
-        a: Vector3f, b: Vector3f, c: Vector3f,
-        maxDistance: Float,
-        allowBackside: Boolean
-    ): Pair<Vector3f, Float>? {
-        val ba = b - a
-        val ca = c - a
-        val n = ba.cross(ca, Vector3f())
-        val d = n.dot(a)
-        val t = (d - n.dot(origin)) / n.dot(direction)
-        return if (t in 0f..maxDistance) {
-            val q = Vector3f(direction).mul(t).add(origin)
-            var sum = 0
-            if (subCrossDot(a, b, q, n) < 0f) sum++
-            if (subCrossDot(b, c, q, n) < 0f) sum++
-            if (subCrossDot(c, a, q, n) < 0f) sum++
-            if (sum == 0 || (allowBackside && sum == 3)) q to t else null
-        } else null
-    }
-
-    @JvmStatic
-    fun rayTriangleIntersect(
-        origin: Vector3f, direction: Vector3f,
-        a: Vector3f, b: Vector3f, c: Vector3f,
-        maxDistance: Float,
-        allowBackside: Boolean
-    ): Boolean {
-        val t0 = JomlPools.vec3f.create()
-        val t1 = JomlPools.vec3f.create()
-        val dist = if (allowBackside) rayTriangleIntersection(origin, direction, a, b, c, maxDistance, t0, t1)
-        else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, t0, t1)
-        JomlPools.vec3f.sub(2)
-        return dist.isFinite()
-    }
-
     @JvmStatic
     fun rayTriangleIntersect(
         origin: Vector3d, direction: Vector3d,

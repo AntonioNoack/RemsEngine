@@ -14,6 +14,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
+import me.anno.maths.Maths.clamp
 
 class RenderSceneForwardNode : RenderViewNode(
     "RenderSceneForward",
@@ -26,7 +27,7 @@ class RenderSceneForwardNode : RenderViewNode(
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
-        "Int", "Draw Sky", // -1 = before, 0 = don't, 1 = after
+        "Enum<me.anno.graph.render.scene.DrawSkyMode>", "Draw Sky",
     ) + listLayers(),
     // list all available deferred layers
     listLayers()
@@ -50,7 +51,7 @@ class RenderSceneForwardNode : RenderViewNode(
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
         setInput(8, 0) // don't bake skybox
-        setInput(9, 0) // don't draw sky
+        setInput(9, DrawSkyMode.DONT_DRAW_SKY)
     }
 
     // todo can we serialize a renderer somehow? make an enum from it???
@@ -60,8 +61,8 @@ class RenderSceneForwardNode : RenderViewNode(
 
         val width = getIntInput(1)
         val height = getIntInput(2)
-        val samples = getIntInput(3)
-        if (width < 1 || height < 1 || samples < 1) return
+        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+        if (width < 1 || height < 1) return
 
         val stage = getInput(4) as PipelineStage
         // val sorting = getInput(5) as Int
@@ -79,7 +80,7 @@ class RenderSceneForwardNode : RenderViewNode(
         val skyboxResolution = getIntInput(8)
         pipeline.bakeSkybox(skyboxResolution)
 
-        val drawSky = getIntInput(9)
+        val drawSky = getInput(9) as DrawSkyMode
         val prepassColor = (getInput(10) as? Texture)?.texOrNull
         val prepassDepth = (getInput(11) as? Texture)?.texOrNull
 
@@ -87,7 +88,7 @@ class RenderSceneForwardNode : RenderViewNode(
         val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
             defineInputs(framebuffer, prepassColor, prepassDepth)
-            if (drawSky == -1) {
+            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
                 pipeline.drawSky()
             }
             val stageImpl = pipeline.stages.getOrNull(stage.id)
@@ -100,7 +101,7 @@ class RenderSceneForwardNode : RenderViewNode(
                     stageImpl.bindDraw(pipeline)
                 }
             }
-            if (drawSky == 1) {
+            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
                 pipeline.drawSky()
             }
             pipeline.defaultStage.depthMode = depthMode

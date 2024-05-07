@@ -201,6 +201,7 @@ class PipelineStageImpl(
             shader.v1f("worldScale", RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             shader.v4f("cameraRotation", RenderState.cameraRotation)
+            shader.v1b("reverseDepth", GFX.supportsClipControl)
         }
 
         fun bindRandomness(shader: GPUShader) {

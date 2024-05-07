@@ -135,6 +135,7 @@ object AnyToDouble {
                 5 -> maxZ
                 else -> defaultValue
             }
+            is Enum<*> -> ordinal.toDouble()
             is CharSequence -> toString()
                 .replace(',', '.')
                 .toDoubleOrNull() ?: defaultValue

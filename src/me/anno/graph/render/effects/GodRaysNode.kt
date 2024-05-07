@@ -16,6 +16,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.maths.Maths.clamp
 import org.joml.Vector2f
 import org.joml.Vector3f
 
@@ -47,7 +48,7 @@ class GodRaysNode : ActionNode(
 
     override fun executeAction() {
 
-        val samples = getIntInput(1)
+        val samples = clamp(getIntInput(1), 1, GFX.maxSamples)
         val falloff = getInput(2) as Vector3f
         val sunColor = getInput(3) as Vector3f
         val sunPosition = getInput(4) as Vector2f

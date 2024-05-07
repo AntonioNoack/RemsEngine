@@ -1,29 +1,29 @@
 package me.anno.tests.utils
 
-import me.anno.config.DefaultConfig
-import me.anno.maths.chunks.spherical.SphereTriangle
-import me.anno.maths.chunks.spherical.SphericalHierarchy
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.PlayMode
+import me.anno.ecs.components.mesh.utils.MeshJoiner
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
+import me.anno.maths.chunks.spherical.SphereTriangle
+import me.anno.maths.chunks.spherical.SphericalHierarchy
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.tetrahedron
-import me.anno.ui.debug.TestEngine
+import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import kotlin.math.abs
 
 fun main() {
 
+    OfficialExtensions.initForTests()
+
     // todo normals are inverted... why??
+    // todo screen is empty... why???
 
     // simple test for spherical hierarchy
 
@@ -57,7 +57,7 @@ fun main() {
             } else {
                 // mix green color
                 mixARGB(0x057a24, 0x7abd64, clamp(2f * v / (1f - waterLevel)))
-            }
+            } or black
         }
 
         private fun put(i: Int, local: Vector3d) {
@@ -106,71 +106,68 @@ fun main() {
         // baseShape.copy(mesh)
         testSceneWithUI("SphericalWorld", mesh)
     } else {
-        TestEngine.testUI3("SphericalWorld") {
-            val relativeDetail = 0.1
-            val detailFactor = sq(relativeDetail)
-            val oldPosition = Vector3d()
-            val proceduralMesh = object : ProceduralMesh() {
-                override fun onUpdate(): Int {
-                    if (RenderState.cameraPosition.distanceSquared(RenderState.prevCameraPosition) > 0.0) {
-                        generateMesh(getMesh())
-                        oldPosition.set(RenderState.cameraPosition)
-                        if (changed) invalidateMesh()
-                    }
-                    return super.onUpdate()
+        val relativeDetail = 0.1
+        val detailFactor = sq(relativeDetail)
+        val oldPosition = Vector3d()
+        val proceduralMesh = object : ProceduralMesh() {
+            override fun onUpdate(): Int {
+                if (RenderState.cameraPosition.distanceSquared(RenderState.prevCameraPosition) > 0.0) {
+                    generateMesh(getMesh())
+                    oldPosition.set(RenderState.cameraPosition)
+                    if (changed) invalidateMesh()
                 }
+                return super.onUpdate()
+            }
 
-                var changed = false
-                var nextIndex = 0
-                fun add(triangle: SphereTriangle) {
-                    val index = nextIndex
-                    if (index >= elements.size) {
-                        elements.add(triangle)
-                    } else {
-                        if (elements[index] != triangle) {
-                            elements[index] = triangle
-                            changed = true
-                        }
+            var changed = false
+            var nextIndex = 0
+            fun add(triangle: SphereTriangle) {
+                val index = nextIndex
+                if (index >= elements.size) {
+                    elements.add(triangle)
+                } else {
+                    if (elements[index] != triangle) {
+                        elements[index] = triangle
+                        changed = true
                     }
-                    this.nextIndex++
                 }
+                this.nextIndex++
+            }
 
-                override fun generateMesh(mesh: Mesh) {
-                    val oldSize = elements.size
-                    nextIndex = 0
-                    changed = false
-                    sphereWorld.forEach { triangle ->
-                        // calculate distance to triangle
-                        val distanceSq = triangle.globalCenter.distanceSquared(RenderState.cameraPosition)
-                        // check whether it is small enough
-                        if (sq(triangle.size) < distanceSq * detailFactor ||
-                            (triangle.globalA.dot(RenderState.cameraDirection) > 0.0 &&
-                                    triangle.globalB.dot(RenderState.cameraDirection) > 0.0 &&
-                                    triangle.globalC.dot(RenderState.cameraDirection) > 0.0)
-                        ) {
-                            // add children as well to hide seams
-                            // todo only add children if that edge has a change in level
-                            // todo for that, get neighbors
-                            triangle.ensureChildren()
-                            add(triangle.childXX!!)
-                            add(triangle.childAB!!)
-                            add(triangle.childBC!!)
-                            add(triangle.childCA!!)
-                            add(triangle)
-                            false
-                        } else true
-                    }
-                    // only invalidate, if mesh actually changes
-                    if (oldSize != elements.size) changed = true
-                    for (i in elements.lastIndex downTo nextIndex)
-                        elements.removeAt(i)
-                    if (changed) {
-                        meshBuilder.join(mesh, elements)
-                    }
+            override fun generateMesh(mesh: Mesh) {
+                val oldSize = elements.size
+                nextIndex = 0
+                changed = false
+                sphereWorld.forEach { triangle ->
+                    // calculate distance to triangle
+                    val distanceSq = triangle.globalCenter.distanceSquared(RenderState.cameraPosition)
+                    // check whether it is small enough
+                    if (sq(triangle.size) < distanceSq * detailFactor ||
+                        (triangle.globalA.dot(RenderState.cameraDirection) > 0.0 &&
+                                triangle.globalB.dot(RenderState.cameraDirection) > 0.0 &&
+                                triangle.globalC.dot(RenderState.cameraDirection) > 0.0)
+                    ) {
+                        // add children as well to hide seams
+                        // todo only add children if that edge has a change in level
+                        // todo for that, get neighbors
+                        triangle.ensureChildren()
+                        add(triangle.childXX!!)
+                        add(triangle.childAB!!)
+                        add(triangle.childBC!!)
+                        add(triangle.childCA!!)
+                        add(triangle)
+                        false
+                    } else true
+                }
+                // only invalidate, if mesh actually changes
+                if (oldSize != elements.size) changed = true
+                for (i in elements.lastIndex downTo nextIndex)
+                    elements.removeAt(i)
+                if (changed) {
+                    meshBuilder.join(mesh, elements)
                 }
             }
-            EditorState.prefabSource = proceduralMesh.ref
-            SceneView(PlayMode.EDITING, DefaultConfig.style)
         }
+        testSceneWithUI("SphericalWorld", proceduralMesh)
     }
 }

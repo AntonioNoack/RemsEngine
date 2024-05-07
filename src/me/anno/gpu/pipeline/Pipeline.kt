@@ -112,7 +112,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     fun findStage(material: Material): PipelineStageImpl {
         val stage0 = material.pipelineStage.id
-        while (stages.size <= stage0) {
+        for (i in stages.size .. stage0) {
             stages.add(
                 when (stages.size) {
                     OPAQUE_PASS.id -> defaultStage

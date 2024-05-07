@@ -404,26 +404,7 @@ class MainStage {
         }
 
         if (isFragmentStage && Variable(GLSLType.V1F, "finalAlpha") in defined) {
-            code.append("#ifndef CUSTOM_DITHER\n")
-            when (ditherMode) {
-                DitherMode.ALPHA_THRESHOLD_INV255 -> {
-                    code.append("if(finalAlpha<${1f / 255f}) { discard; }\n")
-                }
-                DitherMode.ALPHA_THRESHOLD_HALF -> {
-                    code.append("if(finalAlpha<0.5) { discard; }\n")
-                }
-                DitherMode.ALPHA_THRESHOLD_ONE -> {
-                    code.append("if(finalAlpha<1.0) { discard; }\n")
-                }
-                DitherMode.DITHER2X2 -> {
-                    code.append("if(dither2x2(finalAlpha)) { discard; }\n")
-                }
-                DitherMode.DRAW_EVERYTHING -> {
-                    code.append("// draw everything\n")
-                }
-                else -> throw NotImplementedError()
-            }
-            code.append("#endif\n")
+            code.append("#ifndef CUSTOM_DITHER\n").append(ditherMode.glslSnipped).append("#endif\n")
         }
 
         // write to the outputs for fragment shader
@@ -438,8 +419,8 @@ class MainStage {
                         code.append("BuildColor = vec4(1.0);\n")
                     }
                     outputSum == 4 && lastOutputs.size == 1 -> {
-                        code.append("BuildColor = ")
-                            .append(lastOutputs[0].name).append(";\n")
+                        val name = lastOutputs[0].name
+                        code.append("BuildColor = ").append(name).append(";\n")
                     }
                     outputSum in 1..4 -> {
                         code.append("BuildColor = vec4(")
@@ -448,7 +429,7 @@ class MainStage {
                             code.append(lastOutputs[i].name)
                         }
                         for (i in outputSum until 4) {
-                            code.append(",1")
+                            code.append(",1.0")
                         }
                         code.append(");\n")
                     }

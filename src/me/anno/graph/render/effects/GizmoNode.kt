@@ -18,6 +18,7 @@ import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderViewNode
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
+import me.anno.maths.Maths.clamp
 
 class GizmoNode : RenderViewNode(
     "Gizmos",
@@ -50,8 +51,8 @@ class GizmoNode : RenderViewNode(
 
         val width = getIntInput(1)
         val height = getIntInput(2)
-        val samples = getIntInput(3)
-        if (width < 1 || height < 1 || samples < 1) return
+        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+        if (width < 1 || height < 1) return
 
         var grid = getIntInput(4)
         val aabbs = getBoolInput(5)

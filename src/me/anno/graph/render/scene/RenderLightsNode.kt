@@ -30,6 +30,7 @@ import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
+import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 
@@ -159,8 +160,8 @@ class RenderLightsNode : RenderViewNode(
 
         val width = getIntInput(1)
         val height = getIntInput(2)
-        val samples = getIntInput(3)
-        if (width < 1 || height < 1 || samples < 1) return
+        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+        if (width < 1 || height < 1) return
 
         val depthTexture0 = getInput(depthIndex) as? Texture
         val depthTexture = depthTexture0?.texOrNull as? Texture2D ?: return // if no depth is given, we can return 0

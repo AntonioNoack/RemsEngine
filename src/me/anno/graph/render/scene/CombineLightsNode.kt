@@ -1,6 +1,7 @@
 package me.anno.graph.render.scene
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality
@@ -28,6 +29,7 @@ import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.types.flow.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.types.flow.ReturnNode
+import me.anno.maths.Maths.clamp
 
 /**
  * combines diffuse, emissive, and light into a single, final color
@@ -124,8 +126,8 @@ class CombineLightsNode : RenderViewNode(
 
         val width = getIntInput(1)
         val height = getIntInput(2)
-        val samples = getIntInput(3)
-        if (width < 1 || height < 1 || samples < 1) return
+        val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
+        if (width < 1 || height < 1) return
 
         val applyToneMapping = getBoolInput(4)
 

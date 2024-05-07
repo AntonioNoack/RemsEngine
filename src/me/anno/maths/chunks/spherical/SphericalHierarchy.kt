@@ -131,15 +131,6 @@ open class SphericalHierarchy(
     /**
      * iterate over all loaded triangles of all LODs, e.g., to save them
      * */
-    fun all() = sequence {
-        for (triangle in triangles) {
-            yieldAll(triangle.all())
-        }
-    }
-
-    /**
-     * iterate over all loaded triangles of all LODs, e.g., to save them
-     * */
     fun forEach(shallCheckChildren: (SphereTriangle) -> Boolean) =
         forEach(shallCheckChildren, maxLevels)
 

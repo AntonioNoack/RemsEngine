@@ -1,15 +1,16 @@
 package me.anno.graph.render.effects
 
-import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.CombineLightsNode
+import me.anno.graph.render.scene.DrawSkyMode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneDeferredNode
 import me.anno.graph.render.scene.RenderSceneForwardNode
@@ -83,7 +84,11 @@ class FSR1Node : ActionNode(
                 .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
                 .then1(
                     RenderSceneDeferredNode(),
-                    mapOf("Stage" to PipelineStage.OPAQUE, "Skybox Resolution" to 256, "Draw Sky" to 1)
+                    mapOf(
+                        "Stage" to PipelineStage.OPAQUE,
+                        "Skybox Resolution" to 256,
+                        "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
+                    )
                 )
                 .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())

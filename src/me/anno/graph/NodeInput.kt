@@ -167,10 +167,10 @@ class NodeInput : NodeConnector {
         }
         if (src != null) currValue = src.currValue
         if (graph != null) lastValidId = graph.validId
-        val value = currValue
+        var value = currValue
         // validate type
         val validator = typeValidators[type]
-        currValue = when {
+        value = when {
             validator != null -> validator(value)
             type.startsWith("List<") -> value as? List<*> ?: emptyList<Any?>()
             type.startsWith("Enum<") -> value as? Enum<*>
@@ -179,6 +179,7 @@ class NodeInput : NodeConnector {
                 value
             }
         }
-        return currValue
+        currValue = value
+        return value
     }
 }
