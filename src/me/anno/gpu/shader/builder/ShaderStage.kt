@@ -2,8 +2,8 @@ package me.anno.gpu.shader.builder
 
 class ShaderStage(
     val callName: String,
-    var variables: List<Variable>,
-    var body: String
+    variables: List<Variable>,
+    val body: String
 ) {
 
     constructor(callName: String, variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :
@@ -15,7 +15,19 @@ class ShaderStage(
         extractFunctions(body)
     }
 
+    var variables: List<Variable> = variables
+        private set
+
     val attributes get() = variables.filter { it.inOutMode == VariableMode.ATTR }
+    private val variablesByName by lazy { variables.groupBy { it.name } }
+
+    fun getVariablesByName(name: String): List<Variable> {
+        return variablesByName[name] ?: emptyList()
+    }
+
+    fun addVariables(variable: List<Variable>) {
+        variables += variable
+    }
 
     val functions = ArrayList<Function>()
 
@@ -33,14 +45,6 @@ class ShaderStage(
 
     fun define(value: String): ShaderStage {
         defines += value
-        return this
-    }
-
-    fun prepend(other: ShaderStage): ShaderStage {
-        variables += other.variables
-        body = other.body + body
-        functions.addAll(other.functions)
-        defines.addAll(other.defines)
         return this
     }
 

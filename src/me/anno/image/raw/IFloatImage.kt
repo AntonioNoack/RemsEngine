@@ -125,9 +125,27 @@ abstract class IFloatImage(
      * */
     abstract fun setValue(index: Int, channel: Int, value: Float): Float
 
-    abstract fun normalize(): IFloatImage
+    fun toFloatImage(mustCopy: Boolean = false): FloatImage {
+        return if (this is FloatImage) {
+            if (mustCopy) clone() else this
+        } else {
+            val dstImage = FloatImage(width, height, numChannels, map)
+            for (c in 0 until numChannels) {
+                for (i in 0 until width * height) {
+                    dstImage.setValue(i, c, getValue(i, c))
+                }
+            }
+            dstImage
+        }
+    }
 
-    abstract fun reinhard(): IFloatImage
+    open fun normalize(): IFloatImage {
+        return toFloatImage().normalize()
+    }
+
+    open fun reinhard(): IFloatImage {
+        return toFloatImage().reinhard()
+    }
 
     fun getColor(f: Float) = clamp(f * 255f, 0f, 255f).toInt()
 
@@ -151,5 +169,4 @@ abstract class IFloatImage(
             }
         }
     }
-
 }

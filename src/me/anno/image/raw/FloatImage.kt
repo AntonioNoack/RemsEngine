@@ -17,6 +17,9 @@ class FloatImage(
     map: ColorMap = LinearColorMap.default
 ) : IFloatImage(width, height, channels, map) {
 
+    constructor(width: Int, height: Int, channels: Int, map: ColorMap) :
+            this(width, height, channels, FloatArray(width * height * channels), map)
+
     /**
      * gets the value on the field
      * */
@@ -76,7 +79,7 @@ class FloatImage(
     fun normalized() = clone().normalize()
 
     fun clone(): FloatImage {
-        return FloatImage(width, height, numChannels, data.copyOf())
+        return FloatImage(width, height, numChannels, data.copyOf(), map)
     }
 
     override fun normalize(): FloatImage {

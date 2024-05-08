@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.Events.addEvent
 import me.anno.engine.serialization.NotSerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -12,6 +13,8 @@ import org.joml.Matrix4x3d
  * todo animated procedural meshes -> GPUMesh maybe?
  * */
 abstract class ProceduralMesh : MeshComponentBase() {
+
+    abstract fun generateMesh(mesh: Mesh)
 
     val data = Mesh()
 
@@ -35,8 +38,12 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     @DebugAction
     fun invalidateMesh() {
-        needsUpdate1 = true
-        // todo register for rare update? instead of onUpdate()
+        if(!needsUpdate1) {
+            needsUpdate1 = true
+            addEvent(1) {
+                getMesh()
+            }
+        }
     }
 
     override fun getMesh(): Mesh {
@@ -54,8 +61,6 @@ abstract class ProceduralMesh : MeshComponentBase() {
         return super.fillSpace(globalTransform, aabb)
     }
 
-    abstract fun generateMesh(mesh: Mesh)
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as ProceduralMesh
@@ -63,13 +68,9 @@ abstract class ProceduralMesh : MeshComponentBase() {
         dst.materials = materials
     }
 
-    override fun onUpdate(): Int {
-        getMesh()
-        return 32
-    }
-
     override fun destroy() {
         super.destroy()
         data.destroy()
+        needsUpdate1 = false
     }
 }

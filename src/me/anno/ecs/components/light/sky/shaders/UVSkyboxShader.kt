@@ -9,10 +9,12 @@ object UVSkyboxShader : SkyShaderBase("uv-skybox") {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val stages = super.createFragmentStages(key)
-        stages.last().variables += listOf(
-            Variable(GLSLType.S2D, "skyTexture"),
-            Variable(GLSLType.V1B, "applyInverseToneMapping"),
-            Variable(GLSLType.V1F, "maxBrightness")
+        stages.last().addVariables(
+            listOf(
+                Variable(GLSLType.S2D, "skyTexture"),
+                Variable(GLSLType.V1B, "applyInverseToneMapping"),
+                Variable(GLSLType.V1F, "maxBrightness")
+            )
         )
         return stages
     }

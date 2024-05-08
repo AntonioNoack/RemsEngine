@@ -77,22 +77,30 @@ class ShaderBuilder(val name: String) {
         }
     }
 
+    private fun handleWorkToDataAccessors(settings: DeferredSettings) {
+        val addedVariables = ArrayList<Variable>()
+        for (layer in settings.semanticLayers) {
+            val w2d = layer.type.workToData
+            val idx = w2d.indexOf('.')
+            if (idx > 0) {
+                addedVariables.add(Variable(GLSLType.V4F, w2d.substring(0, idx)))
+            }
+        }
+        if (addedVariables.isNotEmpty()) {
+            if (fragment.stages.isEmpty()) {
+                fragment.stages.add(ShaderStage("?", addedVariables, ""))
+            } else {
+                fragment.stages.last().addVariables(addedVariables)
+            }
+        }
+    }
+
     fun create(suffix: String? = null): Shader {
 
         val settings = settings
         val ditherMode = GFXState.ditherMode.currentValue
         if (settings != null) {
-            if (fragment.stages.isEmpty()) {
-                fragment.stages.add(ShaderStage("?", emptyList(), ""))
-            }
-            val lastStage = fragment.stages.last()
-            for (layer in settings.semanticLayers) {
-                val w2d = layer.type.workToData
-                val idx = w2d.indexOf('.')
-                if (idx > 0) {
-                    lastStage.variables += Variable(GLSLType.V4F, w2d.substring(0, idx))
-                }
-            }
+            handleWorkToDataAccessors(settings)
         }
 
         // combine the code
@@ -106,29 +114,27 @@ class ShaderBuilder(val name: String) {
         var bridgeIndex = 0
         for (variable in vertexDefined) {
             val name = variable.name
-            if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {
+            if (vertex.stages.any { it.getVariablesByName(name).any { v -> v.isOutput } }) {
                 for (stage in fragment.stages) {
-                    if (stage.variables.any { it.isInput && name == it.name }) {
+                    val byName = stage.getVariablesByName(name)
+                    if (byName.any { it.isInput } && byName.any { it.isModified }) {
                         // the stage uses it -> might be relevant
-                        if (stage.variables.any { it.isModified && name == it.name }) {
-                            // the stage also exports it ->
-                            bridgeVariablesV2F[variable] =
-                                Variable(variable.type, "bridge_${bridgeIndex++}", variable.arraySize)
-                        }
-                    }/* else if (stage.variables.any { it.isOutput && name == it.name }) {
-                        // this stage outputs it, but does not import it -> theoretically,
-                        // we can skip the bridge here completely;
-                        // in practice, idk whether variable shadowing is allowed like that
-                    }*/
+                        // and also exports it -> build a bridge
+                        val bridge = Variable(variable.type, "vf_bridge_${bridgeIndex++}", variable.arraySize)
+                        bridgeVariablesV2F[variable] = bridge
+                    }
                 }
-            } else if (vertex.stages.any { it.variables.any { v -> v.name == name && !v.isOutput } }) {
-                for (stage in fragment.stages) {
-                    if (stage.variables.any { it.isInput && name == it.name }) {
-                        bridgeVariablesI2F[variable] =
-                            Variable(variable.type, "bridge_${bridgeIndex++}", variable.arraySize)
-                                .apply {
-                                    isFlat = variable.isFlat
-                                }
+            } else if ( // the following types cannot be used as varyings...
+                !(variable.type.isSampler || variable.type == GLSLType.V1B || variable.type == GLSLType.V2B ||
+                        variable.type == GLSLType.V3B || variable.type == GLSLType.V4B)
+            ) { // test if we need an attribute-fragment-bridge
+                if (vertex.stages.any { it.getVariablesByName(name).any { v -> v.isAttribute } }) {
+                    for (stage in fragment.stages) {
+                        if (stage.getVariablesByName(name).any { it.isInput }) {
+                            val bridge = Variable(variable.type, "attr_bridge_${bridgeIndex++}", variable.arraySize)
+                            bridge.isFlat = variable.isFlat
+                            bridgeVariablesI2F[variable] = bridge
+                        }
                     }
                 }
             }
@@ -171,38 +177,5 @@ class ShaderBuilder(val name: String) {
             }
         }
         shader.ignoreNameWarnings(stage.variables.filter { !it.isAttribute }.map { it.name })
-    }
-
-    companion object {
-
-        /***
-         * a little auto-formatting
-         */
-        fun indent(text: String): String {
-            val lines = text.split("\n")
-            val result = StringBuilder(lines.size * 3)
-            var depth = 0
-            for (i in lines.indices) {
-                if (i > 0) result.append('\n')
-                val line0 = lines[i]
-                val line1 = line0.trim()
-                var endIndex = line1.indexOf("//")
-                if (endIndex < 0) endIndex = line1.length
-                val line2 = line1.substring(0, endIndex)
-                val depthDelta =
-                    line2.count { it == '(' || it == '{' || it == '[' } - line2.count { it == ')' || it == ']' || it == '}' }
-                val firstDepth = when (line2.getOrElse(0) { '-' }) {
-                    ')', '}', ']' -> true
-                    else -> false
-                }
-                if (firstDepth) depth += depthDelta
-                for (j in 0 until depth) {
-                    result.append("  ")
-                }
-                if (!firstDepth) depth += depthDelta
-                result.append(line2)
-            }
-            return result.toString()
-        }
     }
 }
