@@ -60,13 +60,13 @@ open class VideoPanel(source: FileReference, meta: MediaMetadata, playAudio: Boo
             }
         }
 
-    var stream = VideoStream(source, meta, playAudio, LoopingState.PLAY_ONCE, -1)
+    var stream = VideoStream(source, meta, playAudio, LoopingState.PLAY_ONCE, meta.videoFPS, -1)
         private set
 
     private fun reload() {
         stream.destroy()
         val meta = MediaMetadata.getMeta(source, false)!!
-        stream = VideoStream(source, meta, playAudio, looping, max(width, height))
+        stream = VideoStream(source, meta, playAudio, looping, meta.videoFPS, max(width, height))
     }
 
     fun stop() {

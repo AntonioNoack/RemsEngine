@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
  * */
 class BlankFrameDetector {
 
-    private val pixels = IntArray(samples)
+    private val pixels = IntArray(NUM_SAMPLES)
 
     fun putRGBA(data: ByteBuffer) {
         val ris = randomIndexSequence
@@ -67,9 +67,9 @@ class BlankFrameDetector {
             val p2 = pixels
             val p4 = frame4.pixels
             var outliers = 0
-            val threshold = (samples * outlierThreshold).toInt()
+            val threshold = (NUM_SAMPLES * outlierThreshold).toInt()
             if (threshold == 0) return false
-            for (i in 0 until samples) {
+            for (i in 0 until NUM_SAMPLES) {
                 outliers += isBlankFrameRGBA(p0[i], p2[i], p4[i])
                 if (outliers >= threshold) {
                     if (!hasWarned) {
@@ -89,8 +89,8 @@ class BlankFrameDetector {
 
         private val LOGGER = LogManager.getLogger(BlankFrameDetector::class)
 
-        private const val samples = 250
-        private val randomIndexSequence = FloatArray(samples) { Maths.random().toFloat() }
+        private const val NUM_SAMPLES = 250
+        private val randomIndexSequence = FloatArray(NUM_SAMPLES) { Maths.random().toFloat() }
             .apply { sort() }
 
         fun getFrame(
@@ -98,10 +98,12 @@ class BlankFrameDetector {
             timeout: Long, meta: MediaMetadata, async: Boolean,
             threshold: Float = 1f
         ): GPUFrame? {
-
-            fun getFrame(delta: Int): GPUFrame? {
-                return VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, async)
+            return getFrame(threshold) { delta ->
+                VideoCache.getVideoFrame(src, scale, frameIndex + delta, bufferSize, fps, timeout, meta, async)
             }
+        }
+
+        fun getFrame(threshold: Float = 1f, getFrame: (delta: Int) -> GPUFrame?): GPUFrame? {
 
             val f0 = getFrame(-3)
             val f1 = getFrame(-2)
@@ -125,22 +127,25 @@ class BlankFrameDetector {
             frameIndex: Int, bufferSize: Int,
             fps: Double, threshold: Float = 1f
         ): Boolean? {
-
-            fun getFrame(delta: Int): GPUFrame? {
+            return isBlankFrameNullable(threshold) { delta ->
                 val frameIndex2 = frameIndex + delta
                 val bufferIndex = frameIndex2 / bufferSize
-                return VideoCache.getVideoFrameWithoutGenerator(src, scale, frameIndex2, bufferIndex, bufferSize, fps)
+                VideoCache.getVideoFrameWithoutGenerator(src, scale, frameIndex2, bufferIndex, bufferSize, fps)
             }
+        }
+
+        fun isBlankFrameNullable(
+            threshold: Float = 1f,
+            getFrame: (delta: Int) -> GPUFrame?
+        ): Boolean? {
 
             val f1 = getFrame(-2)
             val f3 = getFrame(+0)
             val f5 = getFrame(+2)
 
-            return when {
-                f3 != null && f1 != null && f5 != null ->
-                    f3.isBlankFrame(f1, f5, threshold)
-                else -> null
-            }
+            return if (f3 != null && f1 != null && f5 != null) {
+                f3.isBlankFrame(f1, f5, threshold)
+            } else null
         }
 
         @Suppress("unused")

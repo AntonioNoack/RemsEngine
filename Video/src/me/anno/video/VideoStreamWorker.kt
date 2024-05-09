@@ -17,7 +17,7 @@ import kotlin.concurrent.thread
 
 object VideoStreamWorker {
     private val LOGGER = LogManager.getLogger(VideoStreamWorker::class)
-    fun runVideoStreamWorker(self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, maxSize: Int) {
+    fun runVideoStreamWorker(self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, fps: Double, maxSize: Int) {
         val file = self.file
         val meta = self.meta
         thread(name = "Stream/$id/${file.name}") {
@@ -122,8 +122,8 @@ object VideoStreamWorker {
             process.run(
                 FFMPEGStream.getImageSequenceArguments(
                     file, signature, w1, h1,
-                    frameIndex0 / meta.videoFPS,
-                    maxNumFrames, meta.videoFPS,
+                    frameIndex0 / fps,
+                    maxNumFrames, fps,
                     meta.videoWidth, meta.videoFPS,
                     meta.videoFrameCount
                 )

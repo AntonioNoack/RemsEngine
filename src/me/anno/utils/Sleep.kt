@@ -80,6 +80,11 @@ object Sleep {
         waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
+    @JvmStatic
+    fun acquire(canBeKilled: Boolean, semaphore: Semaphore, callback: () -> Unit) {
+        waitUntil(canBeKilled, semaphore::tryAcquire, callback)
+    }
+
     private fun warnIfGFXMissing() {
         if (GFX.glThread == null) {
             LOGGER.warn("Missing OpenGL Thread! Maybe waiting forever.")

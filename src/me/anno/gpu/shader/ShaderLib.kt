@@ -625,7 +625,7 @@ object ShaderLib {
         vararg ignored: String
     ): BaseShader {
         val shader = BaseShader(shaderName, vertexVariables, vertexShader, varyings, fragmentVariables, fragmentShader)
-        shader.setTextureIndices(textures)
+        if (textures.isNotEmpty()) shader.setTextureIndices(textures)
         shader.ignoreNameWarnings(ignored.toList())
         return shader
     }

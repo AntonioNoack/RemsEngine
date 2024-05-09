@@ -362,11 +362,6 @@ open class Texture2DArray(
                 glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            // whenever the base mipmap is changed, the mipmaps will be updated :)
-            // todo it seems like this needs to be called manually in WebGL
-            glTexParameteri(target, GL14.GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
-            // is called afterward anyway
-            // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)

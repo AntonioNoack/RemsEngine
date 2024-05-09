@@ -11,14 +11,14 @@ import me.anno.video.formats.gpu.GPUFrame
 import java.util.concurrent.atomic.AtomicInteger
 
 // todo configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
-class VideoStream(
+open class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
     var playAudio: Boolean, var looping: LoopingState,
-    var maxSize: Int,
+    val fps: Double, var maxSize: Int,
 ) : ICacheData {
 
     companion object {
-        var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, maxSize: Int) -> Unit)? =
+        var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, fps: Double, maxSize: Int) -> Unit)? =
             null
     }
 
@@ -61,7 +61,7 @@ class VideoStream(
 
     fun startWorker(frameIndex0: Int, maxNumFrames: Int) {
         val id = workerId.incrementAndGet()
-        runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames, maxSize)
+        runVideoStreamWorker?.invoke(this, id, frameIndex0, maxNumFrames, fps, maxSize)
     }
 
     fun stop() {
@@ -118,27 +118,30 @@ class VideoStream(
         return looping[time0, meta.videoDuration]
     }
 
-    private fun getFrameIndex(): Int {
-        return looping[(getTime() * meta.videoFPS).toInt(), meta.videoFrameCount - 1]
+    open fun getFrameIndex(): Int {
+        return looping[(getTime() * fps).toInt(), meta.videoFrameCount - 1]
     }
 
     fun getFrame(): GPUFrame? {
-        val index = getFrameIndex()
+        return getFrame(getFrameIndex())
+    }
+
+    fun getFrame(frameIndex: Int): GPUFrame? {
         if (isPlaying) {
-            if (index == meta.videoFrameCount - 1 && looping == LoopingState.PLAY_ONCE) {
+            if (frameIndex == meta.videoFrameCount - 1 && looping == LoopingState.PLAY_ONCE) {
                 stop()
             }
-            if (index < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
+            if (frameIndex < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
                 stop()
                 start() // todo don't discard audio?
                 lastRequestedFrame = 0
-                return getFrame()
+                return getFrame(frameIndex)
             }
         }
-        lastRequestedFrame = index
+        lastRequestedFrame = frameIndex
         return synchronized(sortedFrames) {
             val goodFrames = sortedFrames
-                .filter { it.first <= index && it.second.isCreated }
+                .filter { it.first <= frameIndex && it.second.isCreated }
                 .maxByOrNull { it.first }
             goodFrames ?: sortedFrames.firstOrNull { it.second.isCreated }
         }?.second

@@ -442,7 +442,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             bufferLength, fps, timeout, meta, true
                         )
                         // to do implement other types, too??
-                        if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStages[""]) {
+                        if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStageMono) {
                             val tex2 = tex.getTextures()[0]
                             filter(currentShader, name, tex2, linear)
                         } else TextureLib.blackTexture

@@ -333,7 +333,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     companion object {
 
         private var lastTime = 0L
-        private val lastTimeStr = StringBuilder(8)
+        private val lastTimeStr = StringBuilder(16)
         private var logFileStream: OutputStream? = null
 
         fun getLogFileStream(): OutputStream? {
@@ -356,33 +356,41 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         }
 
         fun getTimeStamp(): CharSequence {
-            val updateInterval = 500 * MILLIS_TO_NANOS
+            val updateInterval = MILLIS_TO_NANOS shr 1
             val time = Time.nanoTime / updateInterval
             synchronized(Unit) {
                 if (!(time == lastTime && lastTimeStr.isNotEmpty())) {
                     val calendar = Calendar.getInstance()
+                    val millis = calendar.get(Calendar.MILLISECOND)
                     val seconds = calendar.get(Calendar.SECOND)
                     val minutes = calendar.get(Calendar.MINUTE)
                     val hours = calendar.get(Calendar.HOUR_OF_DAY)
-                    formatTime(hours, minutes, seconds)
+                    formatTime(hours, minutes, seconds, millis)
                     lastTime = time
                 }
             }
             return lastTimeStr
         }
 
-        private fun formatTime(h: Int, m: Int, s: Int) {
+        private fun formatTime(hours: Int, minutes: Int, seconds: Int, millis: Int) {
             if (lastTimeStr.isEmpty()) {
-                lastTimeStr.append("hh:mm:ss")
+                lastTimeStr.append("hh:mm:ss.sss")
             }
-            formatTime(h, 0)
-            formatTime(m, 3)
-            formatTime(s, 6)
+            format10s(hours, 0)
+            format10s(minutes, 3)
+            format10s(seconds, 6)
+            format100s(millis, 9)
         }
 
-        private fun formatTime(h: Int, i: Int) {
+        private fun format10s(h: Int, i: Int) {
             lastTimeStr[i] = '0' + (h / 10)
             lastTimeStr[i + 1] = '0' + (h % 10)
+        }
+
+        @Suppress("SameParameterValue")
+        private fun format100s(h: Int, i: Int) {
+            format10s(h / 10, i)
+            lastTimeStr[i + 2] = '0' + (h % 10)
         }
     }
 }

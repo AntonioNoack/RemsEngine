@@ -23,11 +23,12 @@ import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.LazyMap
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
-abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, val code: Int) : ICacheData {
+abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int, val code: Int) : ICacheData {
 
     init {
         if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
@@ -43,57 +44,27 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
     }
 
     fun get3DShaderPlanar(): BaseShader {
-        val key = getShaderStage()
-        return shaderMap3d.getOrPut(key) {
-            ShaderLib.createShader(
-                "3d-${this::class.simpleName}", ShaderLib.v3Dl, ShaderLib.v3D, ShaderLib.y3D,
-                key.variables.filter { !it.isOutput } + listOf(
-                    Variable(GLSLType.V4F, "tiling"),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                ), "" +
-                        "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
-                        "   uv = (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-                        "   return texture(tex, uv);\n" +
-                        "}\n" +
-                        "void main(){\n" +
-                        "   vec2 finalUV = uv;\n" +
-                        "   vec4 color;\n" +
-                        key.body +
-                        "   finalColor = color.rgb;\n" +
-                        "   finalAlpha = color.a;\n" +
-                        "}", listOf("tex")
-            )
-        }
+        return shaderMap3d[getShaderStage()]
     }
 
     fun get2DShader(): Shader {
-        val key = getShaderStage()
-        return shaderMap2d.getOrPut(key) {
-            Shader(
-                "2d-${this::class.simpleName}",
-                ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
-                ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
-                    Variable(GLSLType.V4F, "color", VariableMode.OUT),
-                ), "" +
-                        "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
-                        "   return texture(tex,uv);\n" +
-                        "}\n" +
-                        "void main(){\n" +
-                        "   vec2 finalUV = uv;\n" +
-                        key.body +
-                        "}"
-            )
-        }
+        return shaderMap2d[getShaderStage()]
     }
 
-    abstract fun getShaderStage(): ShaderStage
+    open fun getShaderStage(): ShaderStage = swizzleStage0
 
     abstract fun getTextures(): List<Texture2D>
 
-    abstract fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping)
+    fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
+        val tex = getTextures()
+        for (i in tex.lastIndex downTo 0) {
+            tex[i].bind(offset + i, nearestFiltering, clamping)
+        }
+    }
 
-    abstract fun getByteSize(): Long
+    open fun getByteSize(): Long {
+        return width.toLong() * height.toLong() * numChannels.toLong()
+    }
 
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
         for ((index, texture) in tex.withIndex().reversed()) {
@@ -184,20 +155,79 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         return texture
     }
 
+    fun warnAlreadyDestroyed() {
+        LogManager.getLogger(this::class)
+            .warn("Frame is already destroyed!")
+    }
+
     companion object {
         @JvmField
         val creationLimiter = Semaphore(32)
-        const val frameAlreadyDestroyed = "Frame is already destroyed!"
-        val swizzleStages = LazyMap<String, ShaderStage> { swizzle ->
-            ShaderStage(
-                "YUV", listOf(
-                    Variable(GLSLType.V2F, "finalUV"),
-                    Variable(GLSLType.S2D, "tex"),
-                    Variable(GLSLType.V4F, "color", VariableMode.OUT)
-                ), "color = getTexture(tex, finalUV)$swizzle;\n"
+
+        @JvmField
+        val swizzleStage0 = ShaderStage(
+            "loadTex", listOf(
+                Variable(GLSLType.V2F, "finalUV"),
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V4F, "color", VariableMode.OUT)
+            ), "color = getTexture(tex, finalUV);\n"
+        )
+
+        @JvmField
+        val swizzleStageBGRA = ShaderStage(
+            "loadTex", listOf(
+                Variable(GLSLType.V2F, "finalUV"),
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V4F, "color", VariableMode.OUT)
+            ), "color = getTexture(tex, finalUV).bgra;\n"
+        )
+
+        @JvmField
+        val swizzleStageMono = ShaderStage(
+            "loadTex", listOf(
+                Variable(GLSLType.V2F, "finalUV"),
+                Variable(GLSLType.S2D, "tex"),
+                Variable(GLSLType.V4F, "color", VariableMode.OUT)
+            ), "color = vec4(getTexture(tex, finalUV).xxx,1.0);\n"
+        )
+
+        private val shaderMap2d = LazyMap<ShaderStage, Shader> { key ->
+            Shader(
+                "2d-${this::class.simpleName}",
+                ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader,
+                ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
+                    Variable(GLSLType.V4F, "color", VariableMode.OUT),
+                ), "" +
+                        "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
+                        "   return texture(tex,uv);\n" +
+                        "}\n" +
+                        "void main(){\n" +
+                        "   vec2 finalUV = uv;\n" +
+                        key.body +
+                        "}"
             )
         }
-        val shaderMap2d = HashMap<ShaderStage, Shader>()
-        val shaderMap3d = HashMap<ShaderStage, BaseShader>()
+
+        private val shaderMap3d = LazyMap<ShaderStage, BaseShader> { key ->
+            ShaderLib.createShader(
+                "3d-${this::class.simpleName}", ShaderLib.v3Dl, ShaderLib.v3D, ShaderLib.y3D,
+                key.variables.filter { !it.isOutput } + listOf(
+                    Variable(GLSLType.V4F, "tiling"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                ), "" +
+                        "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
+                        "   uv = (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+                        "   return texture(tex, uv);\n" +
+                        "}\n" +
+                        "void main(){\n" +
+                        "   vec2 finalUV = uv;\n" +
+                        "   vec4 color;\n" +
+                        key.body +
+                        "   finalColor = color.rgb;\n" +
+                        "   finalAlpha = color.a;\n" +
+                        "}", listOf("tex")
+            )
+        }
     }
 }

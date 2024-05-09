@@ -887,7 +887,7 @@ open class FileExplorerEntry(
         }
 
         fun startVideoPlayback(file: FileReference, meta: MediaMetadata, maxSize: Int) {
-            val video = VideoStream(file, meta, false, LoopingState.PLAY_LOOP, maxSize)
+            val video = VideoStream(file, meta, false, LoopingState.PLAY_LOOP, meta.videoFPS, maxSize)
             video.start(-hoverPlaybackDelay)
             this.video = video
             lastVideoOrAudioRef = file

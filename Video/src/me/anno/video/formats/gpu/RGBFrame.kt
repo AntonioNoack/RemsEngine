@@ -1,25 +1,16 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
-import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
 
-open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
+open class RGBFrame(w: Int, h: Int, numChannels: Int, code: Int) : GPUFrame(w, h, numChannels, code) {
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(RGBFrame::class)
-    }
+    constructor(w: Int, h: Int) : this(w, h, 3, -1)
 
-    val rgb = Texture2D("rgb-frame", w, h, 1)
-
-    override fun getByteSize(): Long {
-        return width * height * 3L
-    }
+    val rgb = Texture2D("rgb-frame", width, height, 1)
 
     override fun load(input: InputStream) {
         if (isDestroyed) return
@@ -42,19 +33,15 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
         }
         data.flip()
         blankDetector.putRGBA(data)
-        Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("RGB", width, height) {
-            if (!isDestroyed && !rgb.isDestroyed) {
-                rgb.createRGB(data, false)
-            } else LOGGER.warn(frameAlreadyDestroyed)
-            creationLimiter.release()
+        Sleep.acquire(true, creationLimiter) {
+            GFX.addGPUTask("RGB", width, height) {
+                if (!isDestroyed && !rgb.isDestroyed) {
+                    rgb.createRGB(data, false)
+                } else warnAlreadyDestroyed()
+                creationLimiter.release()
+            }
         }
     }
 
-    override fun getShaderStage() = swizzleStages[""]
     override fun getTextures(): List<Texture2D> = listOf(rgb)
-
-    override fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
-        rgb.bind(offset, nearestFiltering, clamping)
-    }
 }

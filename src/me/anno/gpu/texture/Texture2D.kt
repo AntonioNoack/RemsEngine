@@ -456,6 +456,7 @@ open class Texture2D(
     fun afterUpload(isHDR: Boolean, bytesPerPixel: Int, channels: Int) {
         locallyAllocated = allocate(locallyAllocated, width * height * bytesPerPixel.toLong())
         wasCreated = true
+        hasMipmap = false
         this.isHDR = isHDR
         this.channels = channels
         filtering(filtering)
@@ -1041,8 +1042,6 @@ open class Texture2D(
         }
     }
 
-    var autoUpdateMipmaps = true
-
     private fun filtering(filtering: Filtering) {
         if (withMultisampling) {
             this.filtering = Filtering.TRULY_NEAREST
@@ -1056,7 +1055,8 @@ open class Texture2D(
             // MipmapCalculator.generateMipmaps(this)
             val t1 = Time.nanoTime
             if (t1 - t0 > MILLIS_TO_NANOS) {
-                LOGGER.warn("glGenerateMipmap took ${((t1 - t0).toFloat() / MILLIS_TO_NANOS).f1()} ms for $width x $height")
+                val dt = ((t1 - t0).toFloat() / MILLIS_TO_NANOS)
+                LOGGER.warn("glGenerateMipmap took {} ms for {} x {}]", dt.f1(), width, height)
             }
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -1064,9 +1064,6 @@ open class Texture2D(
                 glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            // whenever the base mipmap is changed, the mipmaps will be updated :)
-            // todo it seems like this needs to be called manually in WebGL
-            glTexParameteri(target, GL14.GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)

@@ -112,8 +112,6 @@ class Framebuffer(
 
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
-    var autoUpdateMipmaps = true
-
     // multiple targets, layout=x require shader version 330+
     // use bindFragDataLocation instead
 
@@ -206,16 +204,19 @@ class Framebuffer(
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
 
-        // todo is this fine? might cost a lot ot performance...
         val textures = textures
         if (textures != null) {
-            for (texture in textures) {
-                texture.hasMipmap = false
-                texture.filtering = Filtering.TRULY_NEAREST
+            for (i in textures.indices) {
+                invalidateTexture(textures[i])
             }
         }
-        depthTexture?.hasMipmap = false
-        depthTexture?.filtering = Filtering.TRULY_NEAREST
+        invalidateTexture(depthTexture)
+    }
+
+    private fun invalidateTexture(texture: Texture2D?) {
+        texture ?: return
+        texture.hasMipmap = false
+        texture.filtering = Filtering.TRULY_NEAREST
     }
 
     private fun ensureSize(newWidth: Int, newHeight: Int) {
@@ -262,7 +263,6 @@ class Framebuffer(
         if (textures == null) {
             textures = targets.mapIndexed { index, target ->
                 val texture = Texture2D("$name-tex[$index]", w, h, samples)
-                texture.autoUpdateMipmaps = autoUpdateMipmaps
                 texture.owner = this
                 texture.create(target)
                 GFX.check()
@@ -309,7 +309,6 @@ class Framebuffer(
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 if (GFX.supportsDepthTextures) {
                     val depthTexture = this.depthTexture ?: Texture2D("$name-depth", w, h, samples).apply {
-                        autoUpdateMipmaps = this@Framebuffer.autoUpdateMipmaps
                         createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                         owner = this@Framebuffer
                     }
