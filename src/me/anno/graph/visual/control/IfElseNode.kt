@@ -4,8 +4,7 @@ import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
 
-class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs),
-    GLSLFlowNode {
+class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSLFlowNode {
 
     init {
         setInput(0, false)

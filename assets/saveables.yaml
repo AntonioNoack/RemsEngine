@@ -103,6 +103,7 @@ ImageButton: me.anno.ui.base.buttons.ImageButton
 ImagePanelBase: me.anno.ui.base.image.ImagePanelBase
 ImagePlane: me.anno.ecs.components.mesh.ImagePlane
 ImportedAnimation: me.anno.ecs.components.anim.ImportedAnimation
+InlineBranchNode: me.anno.graph.visual.control.InlineBranchNode
 IntInput: me.anno.ui.input.IntInput
 IntVectorInput: me.anno.ui.input.IntVectorInput
 LODMeshComponent: me.anno.ecs.components.mesh.LODMeshComponent

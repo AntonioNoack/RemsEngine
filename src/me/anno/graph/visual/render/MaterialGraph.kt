@@ -67,7 +67,7 @@ object MaterialGraph {
                     "Vector2f" -> "vec2("
                     "Vector3f" -> "vec3("
                     "Vector4f" -> {
-                        suffix = ",1.0)"
+                        suffix = "),1.0)"
                         "vec4(vec3("
                     }
                     else -> return null

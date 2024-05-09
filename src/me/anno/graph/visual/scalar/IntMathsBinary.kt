@@ -15,7 +15,7 @@ enum class IntMathsBinary(
     SUB(11, "a-b"),
     MUL(12, "a*b"),
     DIV(13, "a/b"),
-    MOD(14, "a%b"),
+    MOD(14, "mod(a,b)"), // correct?
 
     LSL(20, "a<<b"),
     LSR(21, "a>>>b"),
@@ -30,14 +30,9 @@ enum class IntMathsBinary(
 
     LENGTH_SQUARED(40, "a*a+b*b"),
     ABS_DELTA(41, "abs(a-b)"),
-    NORM1(
-        42,
-        "abs(a)+abs(b)"
-    ),
+    NORM1(42, "abs(a)+abs(b)"),
     AVG(43, "((a+b)>>1)"),
-    LENGTH(
-        44, "int(sqrt(a*a+b*b))"
-    ),
+    LENGTH(44, "int(sqrt(a*a+b*b))"),
     // POW(45,"int(pow(a,b))",{ a, b -> kotlin.math.pow(a.toDouble(), b.toDouble()).toInt() }, { a, b -> pow(a, b) }),
     // ROOT(46,"int(pow(a,1.0/b))",{ a, b -> me.anno.maths.Maths.pow(a.toDouble(), 1.0 / b) }, { a, b -> pow(a, 1 / b) }),
 

@@ -17,7 +17,7 @@ enum class FloatMathsBinary(
     SUB(1, "a-b"),
     MUL(2, "a*b"),
     DIV(3, "a/b"),
-    MOD(4, "a%b"),
+    MOD(4, "mod(a,b)"),
     POW(5, "pow(a,b)"),
     ROOT(6, "pow(a,1.0/b)"),
 

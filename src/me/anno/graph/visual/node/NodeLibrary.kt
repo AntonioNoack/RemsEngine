@@ -6,6 +6,7 @@ import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.graph.visual.scalar.CompareNode
 import me.anno.graph.visual.scalar.ValueNode
 import me.anno.graph.visual.EnumNode
+import me.anno.graph.visual.control.InlineBranchNode
 import me.anno.io.Saveable
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
@@ -47,6 +48,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                 { SetLocalVariableNode(typeName) }
             } + typeNames.map { typeName ->
                 { ValueNode(typeName) }
+            } + typeNames.map { typeName ->
+                { InlineBranchNode(typeName) }
             } + NODE_CLASS_NAMES.split(',').map { name ->
                 { Saveable.create(name) as Node }
             }

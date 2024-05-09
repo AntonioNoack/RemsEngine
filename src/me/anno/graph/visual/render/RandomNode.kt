@@ -7,6 +7,7 @@ import org.joml.Vector2f
 import kotlin.math.sin
 
 // todo make input and output vec4s :)
+@Suppress("unused") // todo all unused nodes/classes just need tests
 class RandomNode : CalculationNode("Random", listOf("Vector2f", "Seed"), listOf("Float", "Result")), GLSLFuncNode {
 
     init {
