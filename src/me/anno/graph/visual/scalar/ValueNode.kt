@@ -1,10 +1,14 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.CalculationNode
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GLSLExprNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.io.base.BaseWriter
 
 class ValueNode private constructor(type: String, inputs: List<String>, outputs: List<String>) :
-    CalculationNode(type, inputs, outputs) {
+    CalculationNode(type, inputs, outputs), GLSLExprNode {
 
     private constructor(type: String, list: List<String>) :
             this(type, list, list)
@@ -22,6 +26,10 @@ class ValueNode private constructor(type: String, inputs: List<String>, outputs:
         }
 
     override fun calculate() = getInput(0)
+
+    override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
+        g.expr(n.inputs[0])
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

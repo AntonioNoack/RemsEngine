@@ -3,6 +3,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -18,7 +19,8 @@ class CrossProductF2 : ComputeNode("Vector2f Cross", listOf("Vector2f", "A", "Ve
     }
 }
 
-class CrossProductF3 : ComputeNode("Vector3f Cross", listOf("Vector3f", "A", "Vector3f", "B"), "Vector3f"), GLSLFuncNode {
+class CrossProductF3 : ComputeNode("Vector3f Cross", listOf("Vector3f", "A", "Vector3f", "B"), "Vector3f"),
+    GLSLFuncNode {
     override fun getShaderFuncName(outputIndex: Int): String = "cross"
     override fun compute() {
         val a = getInput(0) as Vector3f

@@ -1,6 +1,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.EnumNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
 val dataD1 = MathNode.MathNodeData(
     FloatMathsUnary.entries,

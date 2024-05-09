@@ -21,12 +21,12 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.ReturnNode
+import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.Lists.any2
 
@@ -219,9 +219,12 @@ class RenderSceneDeferredNode : RenderViewNode(
                         extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
                     }
 
+                    assert(builder.isEmpty())
                     var expressions = outputs.joinToString("") { (i, type) ->
                         val nameI = type.glslName
-                        val exprI = expr(inputs[firstInputIndex + i])
+                        expr(inputs[firstInputIndex + i])
+                        val exprI = builder.toString()
+                        builder.clear()
                         "$nameI = $exprI;\n"
                     }
 

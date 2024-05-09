@@ -1,7 +1,7 @@
 package me.anno.graph.visual.render.scene
 
 import me.anno.graph.visual.CalculationNode
-import me.anno.graph.visual.scalar.GLSLConstNode
+import me.anno.graph.visual.render.compiler.GLSLConstNode
 import org.joml.Vector2f
 
 open class ShaderConstNode(name: String, val type: String, val glsl: String) :

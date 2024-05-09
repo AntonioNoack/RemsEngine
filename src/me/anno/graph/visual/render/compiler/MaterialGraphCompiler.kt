@@ -9,9 +9,10 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
-import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.render.DiscardNode
 import me.anno.graph.visual.render.MaterialGraph
 import me.anno.graph.visual.render.MaterialGraph.kotlinToGLSL
 import me.anno.graph.visual.render.MaterialReturnNode
@@ -34,14 +35,21 @@ class MaterialGraphCompiler(
                     val c = node.inputs[i + 1]
                     if (shallExport(l, c)) {
                         // set value :)
-                        val x = expr(c)
                         builder.append(l.glslName).append("=")
                         // clamping could be skipped, if we were sure that the value is within bounds
-                        when (if (l.highDynamicRange) null else l.workToData) {
-                            "*0.5+0.5" -> builder.append("clamp(").append(x).append(",-1.0,1.0)")
-                            "" -> builder.append("clamp(").append(x).append(",0.0,1.0)")
-                            null -> builder.append(x)
-                            else -> builder.append(x)
+                        if (l.highDynamicRange) {
+                            expr(c)
+                        } else when (l.workToData) {
+                            "*0.5+0.5" -> {
+                                builder.append("clamp(")
+                                expr(c)
+                                builder.append(",-1.0,1.0)")
+                            }
+                            else -> {
+                                builder.append("clamp(")
+                                expr(c)
+                                builder.append(",0.0,1.0)")
+                            }
                         }
                         builder.append(";\n")
                     } // else skip this
@@ -49,7 +57,7 @@ class MaterialGraphCompiler(
                 // jump to return
                 builder.append("return false;\n")
             }
-            is me.anno.graph.visual.render.DiscardNode -> {
+            is DiscardNode -> {
                 builder.append("return true;\n")
             }
             else -> throw NotImplementedError(node.className)
@@ -76,8 +84,7 @@ class MaterialGraphCompiler(
             }
         }
 
-        val exportedLayers = findExportSet(start, me.anno.graph.visual.render.MaterialGraph.layers)
-        processedNodes.clear()
+        val exportedLayers = findExportSet(start, MaterialGraph.layers)
         for (i in MaterialGraph.layers.indices) {
             if (exportedLayers[i]) {
                 val l = MaterialGraph.layers[i]
@@ -99,7 +106,7 @@ class MaterialGraphCompiler(
         /////////////////////////////////////////////////////
         // body, defines variables
 
-        if (createTree(start, 1))
+        if (buildCode(start, 1))
             builder.append("return false;\n")
         builder.append("}\n")
 

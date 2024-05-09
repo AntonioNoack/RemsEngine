@@ -1,7 +1,10 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
 val dataI1 = MathNode.MathNodeData(
     IntMathsUnary.entries,

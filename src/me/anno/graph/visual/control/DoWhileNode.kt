@@ -1,9 +1,12 @@
 package me.anno.graph.visual.control
 
-import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GLSLFlowNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 
-class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, WhileNode.outputs) {
+class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, WhileNode.outputs),
+    GLSLFlowNode {
 
     override fun execute(): NodeOutput {
         val graph = graph as FlowGraph
@@ -25,4 +28,16 @@ class DoWhileNode : FixedControlFlowNode("Do While Loop", WhileNode.inputs, Whil
         return getOutputNodes(1)
     }
 
+    override fun buildCode(g: GraphCompiler, depth: Int): Boolean {
+        val body = getOutputNode(0)
+        val cc = g.constEval(inputs[1])
+        if (body != null && cc != false) {
+            g.builder.append("do {")
+            g.buildCode(body, depth + 1)
+            g.builder.append("} while((\n")
+            g.expr(inputs[1])
+            g.builder.append(") && (budget--)>0);\n")
+        }
+        return g.buildCode(getOutputNode(1), depth)
+    }
 }

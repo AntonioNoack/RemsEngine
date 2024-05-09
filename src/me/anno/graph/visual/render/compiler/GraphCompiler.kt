@@ -17,6 +17,10 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
+import me.anno.graph.visual.ReturnNode
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
@@ -27,26 +31,6 @@ import me.anno.graph.visual.render.MaterialGraph.types
 import me.anno.graph.visual.render.MaterialReturnNode
 import me.anno.graph.visual.render.MovieNode
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.TextureNode
-import me.anno.graph.visual.render.scene.TextureNode2
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.visual.ReturnNode
-import me.anno.graph.visual.StartNode
-import me.anno.graph.visual.actions.PrintNode
-import me.anno.graph.visual.control.DoWhileNode
-import me.anno.graph.visual.control.ForNode
-import me.anno.graph.visual.control.IfElseNode
-import me.anno.graph.visual.control.WhileNode
-import me.anno.graph.visual.local.GetLocalVariableNode
-import me.anno.graph.visual.local.SetLocalVariableNode
-import me.anno.graph.visual.scalar.CompareNode
-import me.anno.graph.visual.scalar.GLSLConstNode
-import me.anno.graph.visual.scalar.GLSLFuncNode
-import me.anno.graph.visual.scalar.ValueNode
-import me.anno.graph.visual.vector.SeparateVector2f
-import me.anno.graph.visual.vector.SeparateVector3f
-import me.anno.graph.visual.vector.SeparateVector4f
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.white4
@@ -55,17 +39,21 @@ import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
 import me.anno.video.VideoCache
 import me.anno.video.formats.gpu.GPUFrame
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 
 abstract class GraphCompiler(val g: FlowGraph) {
+    companion object {
+        private val LOGGER = LogManager.getLogger(GraphCompiler::class)
+    }
 
     abstract val currentShader: Shader
 
     val builder = StringBuilder()
-    val processedNodes = HashSet<Node>(g.nodes.size)
+    val recursionCheck = HashSet<Node>(g.nodes.size)
 
     val typeValues = HashMap<String, TypeValue>()
 
@@ -118,145 +106,122 @@ abstract class GraphCompiler(val g: FlowGraph) {
         } else return an.type
     }
 
-    fun expr(out: NodeOutput, n: Node): String {
+    fun appendVec4(c: Vector4f) {
+        builder.append("vec4(")
+            .append(c.x).append(',')
+            .append(c.y).append(',')
+            .append(c.z).append(',')
+            .append(c.w).append(')')
+    }
+
+    private fun buildExpression(out: NodeOutput, n: Node) {
         val v = conDefines[out]
-        if (v != null) return v
-        return when (n) {
-            is GLSLFuncNode -> {
-                val c = n.outputs.indexOf(out)
-                val name = n.getShaderFuncName(c)
-                typeToFunc.getOrPut(name) { defineFunc(name, kotlinToGLSL(out.type), n.defineShaderFunc(c)) }
-                "$name(${n.inputs.joinToString(",") { expr(it) }})"
-            }
-            is GLSLConstNode -> n.getGLSLName(n.outputs.indexOf(out))
-            is SeparateVector2f, is SeparateVector3f, is SeparateVector4f -> {
-                val c = n.outputs.indexOf(out)
-                val a = expr(n.inputs[0])
-                "($a).${"xyzw"[c]}"
-            }
-            is GetLocalVariableNode -> getLocalVarName(n.key, n.type)
-            is SetLocalVariableNode -> getLocalVarName(n.key, n.type)
-            is CompareNode -> {
-                val inputs = n.inputs
-                val an = inputs[0]
-                val bn = inputs[1]
-                val a = expr(an)
-                val b = convert(bn.type, aType(an, bn), expr(bn))!!
-                val symbol = n.compType.glslName
-                "($a)$symbol($b)"
-            }
-            is ValueNode -> expr(n.inputs[0])
-            is TextureNode -> {
-                val uv = expr(n.inputs[0])
-                val texName = textures.getOrPut(n.file) {
-                    val linear = constEval(n.inputs[1]) == true
-                    // todo different color repeat modes in GLSL
-                    Pair("tex1I${textures.size}", linear)
-                }.first
-                "texture($texName,$uv)"
-            }
-            is TextureNode2 -> {
-                val uv = expr(n.inputs[1])
-                val input = out.others.firstOrNull() as? NodeInput
-                if (input != null) {
-                    val texName = textures2.getOrPut(input) {
-                        val linear = constEval(n.inputs[2]) == true
-                        val currValue = input.currValue
-                        val useMS = currValue is Texture2D && currValue.samples > 1
-                        // todo different color repeat modes in GLSL
-                        Triple(
-                            "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}",
-                            if (useMS) GLSLType.S2DMS else GLSLType.S2D,
-                            linear
-                        )
-                    }
-                    if (texName.second == GLSLType.S2DMS) {
-                        "texelFetch(${texName.first},ivec2($uv*textureSize(${texName.first})),gl_SampleID)"
-                    } else "texture(${texName.first},$uv)"
-                } else "vec4(1.0,0.0,1.0,1.0)"
-            }
-            is MovieNode -> {
-                val uv = expr(n.inputs[0])
-                val texName = movies.getOrPut(n) {
-                    val linear = constEval(n.inputs[1]) == true
-                    Pair("movI${movies.size}", linear)
-                }.first
-                "texture($texName,$uv)"
-            }
-            is me.anno.graph.visual.render.ColorNode -> {
-                val c = n.value
-                "vec4(${c.x},${c.y},${c.z},${c.w})"
-            }
-            is me.anno.graph.visual.render.GameTime -> {
-                val key = "uGameTime"
-                typeValues.getOrPut(key) {
-                    TypeValueV2(GLSLType.V1F) { Time.gameTime.toFloat() }
-                }
-                key
-            }
-            else -> when (out.type) {
-                "Texture" -> {
-                    val input = out.others.firstOrNull() as? NodeInput
-                    val tex = input?.getValue() as? Texture
-                    if (tex != null) {
-                        val tint = tex.color
-                        val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
-                        val tex1 = if (tex.tex != whiteTexture) {
-                            val currValue = input.currValue as? Texture
-                            val currValue1 = currValue?.texMS
-                            val useMS = currValue1 != null && currValue1.samples > 1
-                            val texName = textures2.getOrPut(input) {
-                                val name =
-                                    "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}"
-                                val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
-                                Triple(name, type, true)
-                            }
-                            val base = if (texName.second == GLSLType.S2DMS) {
-                                "texelFetch(${texName.first},ivec2(uv*vec2(textureSize(${texName.first}))),gl_SampleID)"
-                            } else "texture(${texName.first},uv)"
-                            "$base${if (tintStr != null) "*$tintStr" else ""}"
-                        } else tintStr ?: "1.0"
-                        val map = tex.mapping
-                        val tex2 = if (map.isEmpty()) tex1 else "$tex1.$map"
-                        val enc = tex.encoding
-                        if (enc != null) "(${enc.dataToWork}($tex2))" else tex2
-                    } else "((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))"
-                }
-                else -> throw IllegalArgumentException("Unknown node type ${out.type} by ${n.javaClass.name}")
-            }
+        if (v != null) {
+            builder.append(v)
+            return
+        }
+        when {
+            n is GLSLExprNode -> n.buildExprCode(this, out, n)
+            out.type == "Texture" -> buildTextureExpression(out)
+            else -> throw IllegalArgumentException("Unknown node type ${out.type} by ${n.className}")
         }
     }
 
-    fun expr(input: NodeInput): String {
+    private fun buildTextureExpression(out: NodeOutput) {
+        val input = out.others.firstOrNull() as? NodeInput
+        val tex = input?.getValue() as? Texture
+        if (tex != null) {
+            val map = tex.mapping
+            val enc = tex.encoding
+            val tint = tex.color
+            if (enc != null) {
+                builder.append('(').append(enc.dataToWork).append("(")
+            }
+            if (tex.tex != whiteTexture) {
+                val currValue = input.currValue as? Texture
+                val currValue1 = currValue?.texMS
+                val useMS = currValue1 != null && currValue1.samples > 1
+                val texName = textures2.getOrPut(input) {
+                    val name =
+                        "tex2I${out.name.filter { it in 'A'..'Z' || it in 'a'..'z' }}${textures2.size}"
+                    val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
+                    Triple(name, type, true)
+                }
+                if (texName.second == GLSLType.S2DMS) {
+                    builder.append("texelFetch(").append(texName.first)
+                        .append(",ivec2(uv*vec2(textureSize(").append(texName.first)
+                        .append("))),gl_SampleID)")
+                } else {
+                    builder.append("texture(").append(texName.first).append(",uv)")
+                }
+                if (tint != white4) {
+                    builder.append('*')
+                    appendVec4(tint)
+                }
+            } else appendVec4(tint)
+            if (map.isNotEmpty()) {
+                builder.append('.').append(map)
+            }
+            if (enc != null) {
+                builder.append("))")
+            }
+        } else {
+            builder.append("((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))")
+        }
+    }
+
+    fun expr(input: NodeInput) {
         if (input.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
         val other = input.others.firstOrNull()
         if (other is NodeOutput) { // it is connected
             val aType0 = aType(other, input)
-            return convert(aType0, input.type, expr(other, other.node!!))
-                ?: throw IllegalStateException("Cannot convert ${other.type}->$aType0 to ${input.type}!")
+            convert(builder, aType0, input.type) {
+                buildExpression(other, other.node!!)
+            } ?: throw IllegalStateException("Cannot convert ${other.type}->$aType0 to ${input.type}!")
+            return
         }
         val v = input.currValue
-        return (when (input.type) {
-            "Float", "Double" -> AnyToFloat.getFloat(v, 0, input.defaultValue as? Float ?: 0f)
-            "Int", "Long" -> AnyToLong.getLong(v, 0, input.defaultValue as? Long ?: 0L)
+        when (input.type) {
+            "Float", "Double" -> builder.append(AnyToFloat.getFloat(v, 0, input.defaultValue as? Float ?: 0f))
+            "Int", "Long" -> builder.append(AnyToLong.getLong(v, 0, input.defaultValue as? Long ?: 0L))
             "Vector2f" -> {
-                if (v !is Vector2f) return "vec2(0)"
-                "vec2(${v.x},${v.y})"
+                if (v is Vector2f) {
+                    builder.append("vec2(")
+                        .append(v.x).append(',')
+                        .append(v.y).append(')')
+                } else {
+                    builder.append("vec2(0.0)")
+                }
             }
             "Vector3f" -> {
-                if (v !is Vector3f) return "vec3(0)"
-                "vec3(${v.x},${v.y},${v.z})"
+                if (v is Vector3f) {
+                    builder.append("vec3(")
+                        .append(v.x).append(',')
+                        .append(v.y).append(',')
+                        .append(v.z).append(')')
+                } else {
+                    builder.append("vec3(0.0)")
+                }
             }
             "Vector4f" -> {
-                if (v !is Vector4f) return "vec4(0)"
-                "vec4(${v.x},${v.y},${v.z},${v.w})"
+                if (v is Vector4f) {
+                    builder.append("vec4(")
+                        .append(v.x).append(',')
+                        .append(v.y).append(',')
+                        .append(v.z).append(',')
+                        .append(v.w).append(')')
+                } else {
+                    builder.append("vec4(0.0)")
+                }
             }
             "Bool", "Boolean" -> {
-                if (v !is Boolean) return "false"
-                v.toString()
+                builder.append(
+                    if (v !is Boolean) "false"
+                    else v.toString()
+                )
             }
             else -> throw IllegalArgumentException("Unknown type ${input.type}")
-        }).toString()
+        }
     }
 
     fun constEval(c: NodeInput): Any? {
@@ -269,97 +234,25 @@ abstract class GraphCompiler(val g: FlowGraph) {
     /**
      * creates code; returns true, if extra return is needed
      * */
-    fun createTree(n: Node?, depth: Int): Boolean {
+    fun buildCode(n: Node?, depth: Int): Boolean {
         n ?: return true
-        if (!processedNodes.add(n)) {
-            throw IllegalStateException("Illegal loop for ${n.javaClass.name}")
+        if (!recursionCheck.add(n)) {
+            throw IllegalStateException("Illegal loop for ${n.className}; Recursion isn't supported")
         }
-        return when (n) {
-            is StartNode -> createTree(n.getOutputNode(0), depth)
-            is ForNode -> {
-                val ki = loopIndexCtr++
-                val body = n.getOutputNode(0)
-                if (body != null) {
-                    val startValue = expr(n.inputs[1])
-                    val endValue = expr(n.inputs[2])
-                    val step = expr(n.inputs[3])
-                    val desc = expr(n.inputs[4])
-                    builder.append(
-                        "" +
-                                "bool d$ki=$desc;\n" +
-                                "for(int i$ki=$startValue-(d$ki?1:0);d$ki?i$ki>=$endValue:i$ki<$endValue;i$ki+=$step){\n"
-                    )
-                    createTree(body, depth + 1)
-                    builder.append("}\n")
-                }
-                createTree(n.getOutputNode(2), depth)
-            }
-            is ReturnNode -> {
-                handleReturnNode(n)
-                false
-            }
-            is WhileNode -> {
-                val body = n.getOutputNode(0)
-                val cc = constEval(n.inputs[1])
-                if (body != null && cc != false) {
-                    val cond = expr(n.inputs[1])
-                    builder.append("while((").append(cond).append(") && (budget--)>0){\n")
-                    createTree(body, depth + 1)
-                    builder.append("}\n")
-                }
-                createTree(n.getOutputNode(1), depth)
-            }
-            is DoWhileNode -> {
-                val body = n.getOutputNode(0)
-                val cc = constEval(n.inputs[1])
-                if (body != null && cc != false) {
-                    builder.append("do {")
-                    createTree(body, depth + 1)
-                    val cond = expr(n.inputs[1])
-                    builder.append("} while((\n").append(cond).append(") && (budget--)>0);\n")
-                }
-                createTree(n.getOutputNode(1), depth)
-            }
-            is IfElseNode -> {
-                val ifTrue = n.getOutputNode(0)
-                val ifFalse = n.getOutputNode(1)
-                // constant eval if possible
-                when (constEval(n.inputs[1])) {
-                    true -> createTree(ifTrue, depth)
-                    false -> createTree(ifFalse, depth)
-                    else -> {
-                        val cond = expr(n.inputs[1])
-                        if (ifTrue != null && ifFalse != null) {
-                            builder.append("if(").append(cond).append("){\n")
-                            val x = createTree(ifTrue, depth)
-                            builder.append("} else {\n")
-                            val y = createTree(ifFalse, depth)
-                            builder.append("}\n")
-                            x || y
-                        } else if (ifTrue != null || ifFalse != null) {
-                            builder.append(if (ifTrue != null) "if((" else "if(!(")
-                            builder.append(cond)
-                            builder.append(")){\n")
-                            val tmp = createTree(ifTrue ?: ifFalse, depth)
-                            builder.append("}\n")
-                            tmp
-                        } else true// else nothing
-                    }
-                }
-            }
-            is SetLocalVariableNode -> {
-                if (n.type != "?") {
-                    val value = expr(n.inputs[2])
-                    builder.append(getLocalVarName(n.key, n.type))
-                        .append("=").append(value).append(";\n")
-                }
-                // continue
-                createTree(n.getOutputNode(0), depth)
-            }
+        val answer = when (n) {
+            is GLSLFlowNode -> n.buildCode(this, depth)
             // we could use it later for debugging :)
-            is PrintNode -> createTree(n.getOutputNode(0), depth)
-            else -> throw NotImplementedError("Unsupported node type ${n.javaClass.name}")
+            is ActionNode -> {
+                LOGGER.warn("Ignored unknown type ${n.className}, implement GLSLFlowNode maybe")
+                buildCode(n.getOutputNode(0), depth)
+            }
+            else -> {
+                LOGGER.warn("Unsupported node type ${n.className}")
+                true
+            }
         }
+        recursionCheck.remove(n)
+        return answer
     }
 
     fun filter(shader: Shader, name: String, tex: ITexture2D, linear: Boolean): ITexture2D {
@@ -413,42 +306,50 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun defineMovies() {
         for ((node, data) in movies) {
             val (name, linear) = data
-            typeValues[name] =
-                TypeValueV2(GLSLType.S2D) {
-                    val file = node.file
-                    val meta = MediaMetadata.getMeta(file, true)
-                    if (meta != null && meta.hasVideo) {
-                        val time1 = Time.nanoTime
-                        if (time1 != g.lastInvalidation) {
-                            g.invalidate()
-                            g.lastInvalidation = time1
-                        }
-                        val time = node.getFloatInput(2)
-                        val frameCount = max(1, meta.videoFrameCount)
-                        var frameIndex = (time * meta.videoFPS).toInt() % frameCount
-                        if (frameIndex < 0) frameIndex += frameCount
-                        val bufferLength = 64
-                        val timeout = 1000L
-                        val fps = meta.videoFPS
-                        // load future and previous frames
-                        for (di in -2..2) {
-                            if (di != 0) VideoCache.getVideoFrame(
-                                file, 1, (frameIndex + bufferLength * di) % frameCount,
-                                bufferLength, fps, timeout, meta, true
-                            )
-                        }
-                        val tex = VideoCache.getVideoFrame(
-                            file, 1, frameIndex,
-                            bufferLength, fps, timeout, meta, true
-                        )
-                        // to do implement other types, too??
-                        if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStageMono) {
-                            val tex2 = tex.getTextures()[0]
-                            filter(currentShader, name, tex2, linear)
-                        } else TextureLib.blackTexture
-                    } else TextureLib.blackTexture
-                }
+            typeValues[name] = TypeValueV2(GLSLType.S2D) {
+                getMovieTexture(node, name, linear)
+            }
         }
+    }
+
+    private fun getMovieTexture(node: MovieNode, name: String, linear: Boolean): ITexture2D {
+        val file = node.file
+        val meta = MediaMetadata.getMeta(file, true)
+        return if (meta != null && meta.hasVideo) {
+            getMovieTexture(node, name, linear, meta)
+        } else TextureLib.blackTexture
+    }
+
+    private fun getMovieTexture(node: MovieNode, name: String, linear: Boolean, meta: MediaMetadata): ITexture2D {
+        val file = node.file
+        val time1 = Time.nanoTime
+        if (time1 != g.lastInvalidation) {
+            g.invalidate()
+            g.lastInvalidation = time1
+        }
+        val time = node.getFloatInput(2)
+        val frameCount = max(1, meta.videoFrameCount)
+        var frameIndex = (time * meta.videoFPS).toInt() % frameCount
+        if (frameIndex < 0) frameIndex += frameCount
+        val bufferLength = 64
+        val timeout = 1000L
+        val fps = meta.videoFPS
+        // load future and previous frames
+        for (di in -2..2) {
+            if (di != 0) VideoCache.getVideoFrame(
+                file, 1, (frameIndex + bufferLength * di) % frameCount,
+                bufferLength, fps, timeout, meta, true
+            )
+        }
+        val tex = VideoCache.getVideoFrame(
+            file, 1, frameIndex,
+            bufferLength, fps, timeout, meta, true
+        )
+        // to do implement other types, too??
+        return if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStageMono) {
+            val tex2 = tex.getTextures()[0]
+            filter(currentShader, name, tex2, linear)
+        } else TextureLib.blackTexture
     }
 
     fun defineBudget(builder: StringBuilder, budget: Int) {
@@ -456,33 +357,47 @@ abstract class GraphCompiler(val g: FlowGraph) {
     }
 
     fun findExportSet(start: Node, layers: List<DeferredLayerType>): BooleanArrayList {
-        processedNodes.clear()
         val exportedLayers = BooleanArrayList(layers.size)
-        fun traverse(node: Node?) {
-            node ?: return
-            if (!processedNodes.add(node)) {
-                throw IllegalStateException("Illegal loop for ${node.javaClass.name}")
-            }
-            val outputs = node.outputs
-            for (i in outputs.indices) {
-                val output = outputs[i]
-                if (output.type == "Flow") {
-                    val inputs = output.others
-                    for (j in inputs.indices) {
-                        traverse(inputs[j].node)
-                    }
-                }
-            }
-            if (node is MaterialReturnNode) {
-                for (i in layers.indices) {
-                    if (!exportedLayers[i] && shallExport(layers[i], node.inputs[i + 1])) {
-                        exportedLayers[i] = true
-                    }
+        findExportSetTraverse(start, layers, exportedLayers, 0)
+        return exportedLayers
+    }
+
+    private fun findExportSetTraverse(
+        node: Node,
+        layers: List<DeferredLayerType>,
+        exportedLayers: BooleanArrayList,
+        depth: Int
+    ) {
+        if (!recursionCheck.add(node)) {
+            throw IllegalStateException("Illegal loop for ${node.className}: Recursion isn't supported")
+        }
+        val outputs = node.outputs
+        for (i in outputs.indices) {
+            val output = outputs[i]
+            if (output.type == "Flow") {
+                val inputs = output.others
+                for (j in inputs.indices) {
+                    val nodeJ = inputs[j].node ?: continue
+                    findExportSetTraverse(nodeJ, layers, exportedLayers, depth + 1)
                 }
             }
         }
-        traverse(start)
-        return exportedLayers
+        recursionCheck.remove(node)
+        if (node is MaterialReturnNode) {
+            findExportSetMark(node, layers, exportedLayers)
+        }
+    }
+
+    private fun findExportSetMark(
+        node: MaterialReturnNode,
+        layers: List<DeferredLayerType>,
+        exportedLayers: BooleanArrayList
+    ) {
+        for (i in layers.indices) {
+            if (!exportedLayers[i] && shallExport(layers[i], node.inputs[i + 1])) {
+                exportedLayers[i] = true
+            }
+        }
     }
 
     fun finish(): Pair<Shader, Map<String, TypeValue>> {

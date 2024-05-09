@@ -2,6 +2,11 @@ package me.anno.graph.visual.local
 
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GLSLExprNode
+import me.anno.graph.visual.render.compiler.GLSLFlowNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.io.base.BaseWriter
 
 class SetLocalVariableNode(type: String = "?") :
@@ -9,7 +14,7 @@ class SetLocalVariableNode(type: String = "?") :
         "SetLocal",
         listOf("String", "Name", type, "New Value"),
         listOf(type, "Current Value")
-    ) {
+    ), GLSLFlowNode, GLSLExprNode {
 
     var type: String = type
         set(value) {
@@ -51,6 +56,20 @@ class SetLocalVariableNode(type: String = "?") :
             "type" -> type = value as? String ?: return
             else -> super.setProperty(name, value)
         }
+    }
+
+    override fun buildCode(g: GraphCompiler, depth: Int): Boolean {
+        if (type != "?") {
+            g.builder.append(g.getLocalVarName(key, type)).append("=")
+            g.expr(inputs[2])
+            g.builder.append(";\n")
+        }
+        // continue
+        return g.buildCode(getOutputNode(0), depth)
+    }
+
+    override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
+        g.builder.append(g.getLocalVarName(key, type))
     }
 
     companion object {

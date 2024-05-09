@@ -1,8 +1,10 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.CalculationNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.visual.scalar.GLSLFuncNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f

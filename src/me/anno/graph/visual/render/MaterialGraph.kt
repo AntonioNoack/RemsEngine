@@ -26,76 +26,153 @@ object MaterialGraph {
         }
     }
 
-    fun convert(srcType: String, dstType: String, expr: String): String? {
-        if (srcType == dstType) return expr
-        if (srcType == "Boolean") return convert("Bool", dstType, expr)
-        else if (dstType == "Boolean") return convert(srcType, "Bool", expr)
-        return when (srcType) {
-            "Bool" -> when (dstType) {
-                "Int", "Long" -> "$expr?1:0"
-                "Float", "Double" -> "$expr?1.0:0.0"
-                "Vector2f" -> "vec2($expr?1.0:0.0)"
-                "Vector3f" -> "vec3($expr?1.0:0.0)"
-                "Vector4f" -> "vec4(vec3($expr?1.0:0.0),1.0)"
-                else -> null
+    fun convert(builder: StringBuilder, srcType: String, dstType: String, expr: () -> Unit): Unit? {
+        if (srcType == dstType) return expr()
+        if (srcType == "Boolean") return convert(builder, "Bool", dstType, expr)
+        else if (dstType == "Boolean") return convert(builder, srcType, "Bool", expr)
+        when (srcType) {
+            "Bool" -> {
+                var prefix = ""
+                val suffix = when (dstType) {
+                    "Int", "Long" -> "?1:0"
+                    "Float", "Double" -> "?1.0:0.0"
+                    "Vector2f" -> {
+                        prefix = "vec2("
+                        "?1.0:0.0)"
+                    }
+                    "Vector3f" -> {
+                        prefix = "vec3("
+                        "?1.0:0.0)"
+                    }
+                    "Vector4f" -> {
+                        prefix = "vec4(vec3("
+                        "?1.0:0.0),1.0)"
+                    }
+                    else -> return null
+                }
+                exprAppend(builder, prefix, suffix, expr)
             }
-            "Float", "Double" -> when (dstType) {
-                "Bool" -> "$expr!=0.0"
-                "Float", "Double" -> expr
-                "Int", "Long" -> "int($expr)"
-                "Vector2f" -> "vec2($expr)"
-                "Vector3f" -> "vec3($expr)"
-                "Vector4f" -> "vec4(vec3($expr),1.0)"
-                else -> null
+            "Float", "Double" -> {
+                var suffix = ")"
+                val prefix = when (dstType) {
+                    "Bool" -> {
+                        suffix = "!=0.0)"
+                        "("
+                    }
+                    "Float", "Double" -> {
+                        suffix = ""
+                        ""
+                    }
+                    "Int", "Long" -> "int("
+                    "Vector2f" -> "vec2("
+                    "Vector3f" -> "vec3("
+                    "Vector4f" -> {
+                        suffix = ",1.0)"
+                        "vec4(vec3("
+                    }
+                    else -> return null
+                }
+                exprAppend(builder, prefix, suffix, expr)
             }
-            "Int", "Long" -> when (dstType) {
-                "Bool" -> "$expr!=0"
-                "Float", "Double" -> "float($expr)"
-                "Vector2f" -> "vec2($expr)"
-                "Vector3f" -> "vec3($expr)"
-                "Vector4f" -> "vec4($expr)"
-                else -> null
+            "Int", "Long" -> {
+                var suffix = ")"
+                val prefix = when (dstType) {
+                    "Bool" -> {
+                        suffix = "!=0)"
+                        "("
+                    }
+                    "Int", "Long" -> {
+                        suffix = ""
+                        ""
+                    }
+                    "Float", "Double" -> "float("
+                    "Vector2f" -> "vec2("
+                    "Vector3f" -> "vec3("
+                    "Vector4f" -> "vec4("
+                    else -> return null
+                }
+                exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector2f" -> when (dstType) {
-                "Bool" -> "($expr).x!=0.0"
-                "Float", "Double" -> "($expr).x"
-                "Vector3f" -> "vec3($expr,0.0)"
-                "Vector4f" -> "vec4($expr,0.0,1.0)"
-                else -> null
+            "Vector2f" -> {
+                var prefix = "("
+                val suffix = when (dstType) {
+                    "Bool" -> ").x!=0.0"
+                    "Float", "Double" -> ").x"
+                    "Vector3f" -> {
+                        prefix = "vec3("
+                        ",0.0)"
+                    }
+                    "Vector4f" -> {
+                        prefix = "vec4("
+                        ",0.0,1.0)"
+                    }
+                    else -> return null
+                }
+                exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector3f" -> when (dstType) {
-                "Bool" -> "($expr).x!=0.0"
-                "Float", "Double" -> "($expr).x"
-                "Vector2f" -> "($expr).xy"
-                "Vector4f" -> "vec4($expr,1.0)"
-                else -> null
+            "Vector3f" -> {
+                var prefix = "("
+                val suffix = when (dstType) {
+                    "Bool" -> ").x!=0.0"
+                    "Float", "Double" -> ").x"
+                    "Vector2f" -> ").xy"
+                    "Vector4f" -> {
+                        prefix = "vec4("
+                        ",1.0)"
+                    }
+                    else -> return null
+                }
+                exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector4f" -> when (dstType) {
-                "Bool" -> "($expr).x!=0.0"
-                "Float", "Double" -> "($expr).x"
-                "Vector2f" -> "($expr).xy"
-                "Vector3f" -> "($expr).xyz"
-                "Texture" -> expr
-                else -> null
+            "Vector4f" -> {
+                val suffix = when (dstType) {
+                    "Bool" -> ".x!=0.0"
+                    "Float", "Double" -> ".x"
+                    "Vector2f" -> ".xy"
+                    "Vector3f" -> ".xyz"
+                    "Texture" -> ""
+                    else -> return null
+                }
+                exprAppend(builder, "(", ")", suffix, expr)
             }
-            "ITexture2D" -> when (dstType) {
-                "Bool" -> "texture($expr,uv).x!=0.0"
-                "Float", "Double" -> "texture($expr,uv).x"
-                "Vector2f" -> "texture($expr,uv).xy"
-                "Vector3f" -> "texture($expr,uv).xyz"
-                "Vector4f" -> "texture($expr,uv)"
-                else -> null
+            "ITexture2D" -> {
+                val suffix = when (dstType) {
+                    "Bool" -> ".x!=0.0"
+                    "Float", "Double" -> ".x"
+                    "Vector2f" -> ".xy"
+                    "Vector3f" -> ".xyz"
+                    "Vector4f" -> ""
+                    else -> return null
+                }
+                exprAppend(builder, "texture(", ",uv)", suffix, expr)
             }
-            else -> null
+            else -> return null
         }
+        return Unit
+    }
+
+    private fun exprAppend(
+        builder: StringBuilder, prefix: String, preSuffix: String, suffix: String,
+        expr: () -> Unit
+    ) {
+        builder.append(prefix)
+        expr()
+        builder.append(preSuffix).append(suffix)
+    }
+
+    private fun exprAppend(builder: StringBuilder, prefix: String, suffix: String, expr: () -> Unit) {
+        builder.append(prefix)
+        expr()
+        builder.append(suffix)
     }
 
     val colorWithAlpha = DeferredLayerType(
         "Color", "finalColorA", 4,
         DeferredLayerType.COLOR.defaultWorkValue.toARGB() or black
     )
+
     val layers = listOf(
-        MaterialGraph.colorWithAlpha,
+        colorWithAlpha,
         DeferredLayerType.EMISSIVE,
         DeferredLayerType.NORMAL,
         DeferredLayerType.TANGENT,
@@ -132,5 +209,4 @@ object MaterialGraph {
             )
         )
     }
-
 }

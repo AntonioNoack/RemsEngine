@@ -3,6 +3,7 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d

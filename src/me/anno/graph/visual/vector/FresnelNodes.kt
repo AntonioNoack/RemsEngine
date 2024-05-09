@@ -2,11 +2,12 @@ package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.CalculationNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.visual.scalar.GLSLFuncNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
 
+@Suppress("unused")
 class FresnelNode3 : CalculationNode(
     "Vector3f Fresnel",
     listOf("Vector3f", "CamSpace Position", "Vector3f", "Normal", "Float", "Power"),

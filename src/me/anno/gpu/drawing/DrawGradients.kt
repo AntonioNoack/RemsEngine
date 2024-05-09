@@ -19,7 +19,7 @@ import org.joml.Vector4f
  * */
 object DrawGradients {
 
-    val flatShaderGradient = LazyMap<ShaderStage?, BaseShader> { key ->
+    private val flatShaderGradient = LazyMap<ShaderStage?, BaseShader> { key ->
         ShaderLib.createShader(
             "flatShaderGradient", listOf(
                 Variable(GLSLType.V2F, "coords", VariableMode.ATTR),

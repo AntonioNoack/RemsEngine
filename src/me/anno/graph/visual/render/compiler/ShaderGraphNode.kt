@@ -140,9 +140,12 @@ class ShaderGraphNode : ActionNode(
             // not being used, as we only have an expression
             override fun handleReturnNode(node: ReturnNode) {
                 when (node) {
-                    is SGNReturn -> builder.append("result = ").append(expr(node.inputs[1]))
-                        .append("; return false;\n")
-                    is me.anno.graph.visual.render.DiscardNode -> builder.append("return true;\n")
+                    is SGNReturn -> {
+                        builder.append("result = ")
+                        expr(node.inputs[1])
+                        builder.append("; return false;\n")
+                    }
+                    is DiscardNode -> builder.append("return true;\n")
                     else -> throw NotImplementedError(node.className)
                 }
             }
@@ -153,7 +156,7 @@ class ShaderGraphNode : ActionNode(
                 val start = g.nodes.filterIsInstance<StartNode>().first()
                 builder.append("bool calc(inout vec4 result){\n")
                 defineBudget(builder, budget)
-                if (createTree(start, 1)) {
+                if (buildCode(start, 1)) {
                     // missing return statement
                     builder.append("return true;\n")
                 }

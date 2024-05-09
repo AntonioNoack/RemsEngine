@@ -13,10 +13,10 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.graph.visual.Graph
-import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.Graph
 import me.anno.graph.visual.ReturnNode
+import me.anno.graph.visual.node.NodeInput
 import me.anno.maths.Maths
 import org.joml.Vector4f
 
@@ -62,7 +62,10 @@ interface ExpressionRenderer {
                 val shader: Shader
 
                 init {
-                    val expr = expr(inputs[1])
+                    assert(builder.isEmpty())
+                    expr(inputs[1])
+                    val expr = builder.toString()
+                    builder.clear()
                     defineLocalVars(builder)
                     val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +

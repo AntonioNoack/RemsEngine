@@ -82,10 +82,13 @@ class CombineLightsNode : RenderViewNode(
                     DeferredLayerType.OCCLUSION.glslName,
                     "ambientOcclusion"
                 )
+                assert(builder.isEmpty())
                 val expressions = sizes.indices
                     .joinToString("") { i ->
                         val nameI = names[i]
-                        val exprI = expr(inputs[firstInputIndex + i])
+                        expr(inputs[firstInputIndex + i])
+                        val exprI = builder.toString()
+                        builder.clear()
                         "$nameI=$exprI;\n"
                     }
                 defineLocalVars(builder)

@@ -3,6 +3,7 @@ package me.anno.graph.visual.scalar
 import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.ComputeNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
 class NotNode : ComputeNode("Binary Not", listOf("Boolean", "Value"), "Boolean") {
     override fun compute() {

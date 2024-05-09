@@ -1,7 +1,7 @@
 package me.anno.graph.visual.render
 
 import me.anno.graph.visual.CalculationNode
-import me.anno.graph.visual.scalar.GLSLFuncNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.maths.Maths.fract
 import org.joml.Vector2f
 import kotlin.math.sin

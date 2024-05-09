@@ -2,10 +2,14 @@ package me.anno.graph.visual.local
 
 import me.anno.graph.visual.CalculationNode
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GLSLExprNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.io.base.BaseWriter
 
 class GetLocalVariableNode(type: String = "?") :
-    CalculationNode("", inputs, listOf(type, "Value")) {
+    CalculationNode("", inputs, listOf(type, "Value")), GLSLExprNode {
 
     constructor(key: String, type: String) : this(type) {
         setInput(0, key)
@@ -35,6 +39,10 @@ class GetLocalVariableNode(type: String = "?") :
         val key = getInput(0)
         val graph = graph as FlowGraph
         return graph.localVariables[key]
+    }
+
+    override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
+        g.builder.append(g.getLocalVarName(key, type))
     }
 
     override fun save(writer: BaseWriter) {

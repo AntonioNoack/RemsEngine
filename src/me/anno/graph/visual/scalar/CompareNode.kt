@@ -1,6 +1,11 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.MaterialGraph.convert
+import me.anno.graph.visual.render.compiler.GLSLExprNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
@@ -11,7 +16,8 @@ import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Logging.hash32raw
 
-class CompareNode(type: String = "?") : ComputeNode("Compare", listOf(type, "A", type, "B"), outputs) {
+class CompareNode(type: String = "?") :
+    ComputeNode("Compare", listOf(type, "A", type, "B"), outputs), GLSLExprNode {
 
     // todo long & double & bool value node as inputs for some nodes
 
@@ -79,6 +85,18 @@ class CompareNode(type: String = "?") : ComputeNode("Compare", listOf(type, "A",
             else -> apply(compare(a, b))
         }
         setOutput(0, c)
+    }
+
+    override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
+        val inputs = n.inputs
+        val symbol = compType.glslName
+        val an = inputs[0]
+        val bn = inputs[1]
+        g.builder.append('(')
+        g.expr(an) // first component
+        g.builder.append(')').append(symbol).append('(')
+        convert(g.builder, bn.type, g.aType(an, bn)) { g.expr(bn) }!! // second component
+        g.builder.append(')')
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {

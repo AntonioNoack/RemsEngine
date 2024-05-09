@@ -1,10 +1,12 @@
 package me.anno.graph.visual
 
 import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import kotlin.math.max
 
 open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "Return") :
-    FlowGraphNode(name, inputBase + returnValues, emptyList()) {
+    FlowGraphNode(name, inputBase + returnValues, emptyList()), GLSLFlowNode {
 
     constructor(name: String) : this(emptyList(), name)
 
@@ -18,6 +20,11 @@ open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "
     }
 
     class ReturnThrowable(val node: ReturnNode) : Throwable()
+
+    override fun buildCode(g: GraphCompiler, depth: Int): Boolean {
+        g.handleReturnNode(this)
+        return false
+    }
 
     companion object {
         @JvmStatic

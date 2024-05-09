@@ -4,12 +4,12 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
-import me.anno.graph.visual.node.Node
-import me.anno.graph.visual.render.MaterialReturnNode
-import me.anno.graph.visual.render.compiler.MaterialGraphCompiler
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.StartNode
+import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.MaterialGraph
+import me.anno.graph.visual.render.MaterialReturnNode
+import me.anno.graph.visual.render.compiler.MaterialGraphCompiler
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine
 import me.anno.ui.editor.graph.GraphEditor
@@ -19,12 +19,14 @@ fun main() {
     OfficialExtensions.initForTests()
 
     val g = object : FlowGraph() {
+        private val unusedBuilder = StringBuilder()
         override fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
             if (srcType == "Texture") return when (dstType) {
                 "Boolean", "Bool", "Int", "Float", "Vector2f", "Vector3f", "Vector4f" -> true
                 else -> false
             }
-            return MaterialGraph.convert(srcType, dstType, "") != null
+            unusedBuilder.clear()
+            return MaterialGraph.convert(unusedBuilder, srcType, dstType) {} != null
         }
     }
 

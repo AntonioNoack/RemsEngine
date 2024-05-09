@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.render.MaterialGraph.kotlinToGLSL
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.io.base.BaseWriter

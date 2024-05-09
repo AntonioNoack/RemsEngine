@@ -1,11 +1,26 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.render.compiler.GLSLExprNode
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SeparateVector2f : ComputeNode("Separate Vector2f", inputs, outputs) {
+interface SeparateVectorNode : GLSLExprNode {
+    override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
+        val c = n.outputs.indexOf(out)
+        g.builder.append('(')
+        g.expr(n.inputs[0]) // vector
+        g.builder.append(").").append("xyzw"[c])
+    }
+}
+
+class SeparateVector2f : ComputeNode("Separate Vector2f", inputs, outputs), SeparateVectorNode {
 
     init {
         setInput(0, Vector2f())
@@ -23,7 +38,7 @@ class SeparateVector2f : ComputeNode("Separate Vector2f", inputs, outputs) {
     }
 }
 
-class SeparateVector3f : ComputeNode("Separate Vector3f", inputs, outputs) {
+class SeparateVector3f : ComputeNode("Separate Vector3f", inputs, outputs), SeparateVectorNode {
 
     init {
         setInput(0, Vector3f())
@@ -42,7 +57,7 @@ class SeparateVector3f : ComputeNode("Separate Vector3f", inputs, outputs) {
     }
 }
 
-class SeparateVector4f : ComputeNode("Separate Vector4f", inputs, outputs) {
+class SeparateVector4f : ComputeNode("Separate Vector4f", inputs, outputs), SeparateVectorNode {
 
     init {
         setInput(0, Vector4f(0f, 0f, 0f, 1f))
