@@ -3,7 +3,7 @@ package me.anno.tests.ui.input
 import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
-import me.anno.graph.render.NodeGroup
+import me.anno.graph.visual.render.NodeGroup
 import me.anno.ui.editor.graph.GraphEditor
 import me.anno.ui.UIColors
 import me.anno.ui.base.SpyPanel

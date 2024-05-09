@@ -18,6 +18,11 @@ import java.nio.ByteBuffer
 import kotlin.math.hypot
 
 // inspired by https://www.shadertoy.com/view/XdVBWd "Cubic Bezier - 2D BBox " from Inigo Quilez
+/**
+ * Draw lines, quadratic, cubic curves and the like in UI.
+ * The edges will be drawn smooth, subpixel-rendering for even sharper curves hasn't been implemented yet though.
+ * todo subpixel-rendering (eval the curve at R,G,B offsets somehow?)
+ * */
 object DrawCurves {
 
     val lineBatch = object : Batch(

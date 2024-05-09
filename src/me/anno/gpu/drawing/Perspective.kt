@@ -7,18 +7,6 @@ import kotlin.math.tan
 
 object Perspective {
 
-    fun Matrix4f.perspective2(
-        fovYRadians: Float,
-        aspectRatio: Float,
-        near: Float,
-        far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
-        cx: Float, cy: Float,
-        reverseDepth: Boolean = GFXState.depthMode.currentValue.reversedDepth
-    ): Matrix4f {
-        setPerspective(this, fovYRadians, aspectRatio, near, far, cx, cy, reverseDepth)
-        return this
-    }
-
     fun setPerspective(
         viewTransform: Matrix4f,
         fovYRadians: Float,
@@ -86,5 +74,4 @@ object Perspective {
             setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }
     }
-
 }

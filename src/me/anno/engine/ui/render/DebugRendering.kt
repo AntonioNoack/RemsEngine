@@ -32,7 +32,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.graph.render.Texture
+import me.anno.graph.visual.render.Texture
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.base.components.AxisAlignment

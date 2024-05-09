@@ -2,21 +2,21 @@ package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView
-import me.anno.graph.Node
-import me.anno.graph.NodeInput
-import me.anno.graph.NodeOutput
-import me.anno.graph.render.MaterialGraph
-import me.anno.graph.render.MaterialReturnNode
-import me.anno.graph.render.compiler.MaterialGraphCompiler
-import me.anno.graph.types.FlowGraph
-import me.anno.graph.types.flow.StartNode
-import me.anno.ui.editor.graph.GraphEditor
-import me.anno.io.Saveable
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.render.MaterialReturnNode
+import me.anno.graph.visual.render.compiler.MaterialGraphCompiler
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.StartNode
+import me.anno.graph.visual.render.MaterialGraph
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine
+import me.anno.ui.editor.graph.GraphEditor
 
 fun main() {
+
+    OfficialExtensions.initForTests()
 
     val g = object : FlowGraph() {
         override fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {
@@ -61,12 +61,6 @@ fun main() {
             }
         }
         ge.library = MaterialGraph.library
-        // register everything for copying
-        Saveable.registerCustomClass(NodeInput())
-        Saveable.registerCustomClass(NodeOutput())
-        for (element in ge.library.nodes) {
-            Saveable.registerCustomClass(element)
-        }
         ge.addChangeListener { _, isNodePositionChange ->
             if (!isNodePositionChange) {
                 compile()

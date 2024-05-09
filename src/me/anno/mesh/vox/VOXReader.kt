@@ -4,11 +4,15 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
+import me.anno.io.Signature.le32Signature
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
+import me.anno.mesh.vox.VoxPalette.defaultPalette
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.Color.argb
 import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -26,14 +30,14 @@ class VOXReader {
         return "#${idCtr++}"
     }
 
-    fun read(bytes: ByteBuffer): VOXReader {
+    fun read(bytes: ByteBuffer, callback: Callback<VOXReader>) {
 
         //val t0 = Time.nanoTime
         bytes.order(ByteOrder.LITTLE_ENDIAN)
         bytes.position(0)
 
-        if (bytes.capacity() < 8) throw IOException("VOXFile is too small")
-        if (bytes.int != VOX) throw IOException("Incorrect magic")
+        if (bytes.capacity() < 8) callback.err(IOException("VOXFile is too small"))
+        if (bytes.int != VOX) callback.err(IOException("Incorrect magic"))
         /* val version = */ bytes.int // always 150
 
         readChunk(bytes)
@@ -48,7 +52,7 @@ class VOXReader {
         // val t1 = Time.nanoTime
         // LOGGER.info("Used ${(t1-t0)*1e-9}s to read vox file")
 
-        return this
+        callback.ok(this)
     }
 
     private fun createDefaultNode() {
@@ -365,13 +369,15 @@ class VOXReader {
         fun readAsFolder(src: FileReference, callback: Callback<InnerFolder>) {
             src.readByteBuffer(false) { bytes, exc ->
                 if (bytes != null) {
-                    val reader = VOXReader().read(bytes)
-                    callback.ok(readAsFolder(reader, src))
+                    VOXReader().read(bytes) { reader, err ->
+                        if (err != null) callback.err(err)
+                        else callback.ok(readAsFolder(reader!!, src))
+                    }
                 } else callback.err(exc)
             }
         }
 
-        fun readAsFolder(reader: VOXReader, src: FileReference): InnerFolder {
+        private fun readAsFolder(reader: VOXReader, src: FileReference): InnerFolder {
             val folder = InnerFolder(src)
             val meshes = InnerFolder(folder, "meshes")
             val meshReferences = reader.models.mapIndexed { index, mesh ->
@@ -389,63 +395,25 @@ class VOXReader {
 
         private val LOGGER = LogManager.getLogger(VOXReader::class)
 
-        fun encode(str: String) = str.mapIndexed { index, it -> it.code.shl(index * 8) }.sum()
-
         // old stuff
-        private val VOX = encode("VOX ")
-        private val MAIN = encode("MAIN")
-        private val PACK = encode("PACK")
-        private val SIZE = encode("SIZE")
-        private val BLOCK_DATA = encode("XYZI")
-        private val RGBA = encode("RGBA")
-        private val MATv1 = encode("MATT")
+        private val VOX = le32Signature("VOX ")
+        private val MAIN = le32Signature("MAIN")
+        private val PACK = le32Signature("PACK")
+        private val SIZE = le32Signature("SIZE")
+        private val BLOCK_DATA = le32Signature("XYZI")
+        private val RGBA = le32Signature("RGBA")
+        private val MATv1 = le32Signature("MATT")
 
         // new stuff
         // https://github.com/ephtracy/voxel-model/issues/19
-        private val MATv2 = encode("MATL")
-        private val nSHP = encode("nSHP")
-        private val nTRN = encode("nTRN")
-        private val nGRP = encode("nGRP")
-        private val LAYER = encode("LAYR")
-        private val rOBJ = encode("rOBJ")
-        private val rCAM = encode("rCAM")
-        private val NOTE = encode("NOTE")
-        private val IMAP = encode("IMAP")
-
-        // we could store it in a large list, but this algorithm probably is shorter
-        val defaultPalette: IntArray
-
-        init {
-
-            val defaultPalette0 = IntArray(256)
-            var i = 1
-
-            // {ff,cc,99,66,33,00}³
-            for (b in 0 until 6) {
-                val bv = (15 - b * 3)
-                for (g in 0 until 6) {
-                    val gv = bv + (15 - g * 3).shl(8)
-                    for (r in 0 until 6) {
-                        val rv = gv + (15 - r * 3).shl(16)
-                        defaultPalette0[i++] = rv * 0x11
-                    }
-                }
-            }
-
-            // black comes last
-            i--
-
-            // extra tones with just one channel none-black
-            for (channel in 0 until 4) {
-                val mul = if (channel != 3) 0x11 shl (channel * 8) else 0x111111
-                for (value in 14 downTo 1) {
-                    if (value % 3 != 0) {
-                        defaultPalette0[i++] = value * mul
-                    }
-                }
-            }
-
-            defaultPalette = defaultPalette0
-        }
+        private val MATv2 = le32Signature("MATL")
+        private val nSHP = le32Signature("nSHP")
+        private val nTRN = le32Signature("nTRN")
+        private val nGRP = le32Signature("nGRP")
+        private val LAYER = le32Signature("LAYR")
+        private val rOBJ = le32Signature("rOBJ")
+        private val rCAM = le32Signature("rCAM")
+        private val NOTE = le32Signature("NOTE")
+        private val IMAP = le32Signature("IMAP")
     }
 }

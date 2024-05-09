@@ -26,7 +26,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
-import me.anno.graph.render.Texture
+import me.anno.graph.visual.render.Texture
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Quaterniond

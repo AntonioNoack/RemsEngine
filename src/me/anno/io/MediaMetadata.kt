@@ -9,9 +9,9 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
-import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.formatTime
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
@@ -86,8 +86,6 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         videoFrameCount = 1
         duration = Double.POSITIVE_INFINITY // actual value isn't really well-defined
     }
-
-    override fun destroy() {}
 
     fun setImageByStream(callback: (InputStream) -> IntPair): Boolean {
         ready = false

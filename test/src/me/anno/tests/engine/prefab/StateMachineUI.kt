@@ -4,10 +4,10 @@ import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.graph.types.flow.control.IfElseNode
-import me.anno.graph.types.flow.maths.NotNode
-import me.anno.graph.types.flow.maths.ValueNode
-import me.anno.graph.types.states.StateMachine
+import me.anno.graph.visual.control.IfElseNode
+import me.anno.graph.visual.scalar.NotNode
+import me.anno.graph.visual.scalar.ValueNode
+import me.anno.graph.visual.states.StateMachine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.OS.desktop

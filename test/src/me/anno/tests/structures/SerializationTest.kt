@@ -49,7 +49,7 @@ fun main() {
     val text = instance.toString()
     logger.info(text)
 
-    Saveable.registerCustomClass("Test") { TestClass() }
+    Saveable.registerCustomClass("Test", TestClass::class)
     val copiedInstance = JsonStringReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
 }

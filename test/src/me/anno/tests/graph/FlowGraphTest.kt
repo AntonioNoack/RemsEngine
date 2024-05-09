@@ -1,14 +1,14 @@
 package me.anno.tests.graph
 
-import me.anno.graph.types.FlowGraph
-import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.graph.types.flow.control.ForNode
-import me.anno.graph.types.flow.local.GetLocalVariableNode
-import me.anno.graph.types.flow.local.SetLocalVariableNode
-import me.anno.graph.types.flow.maths.FloatMathsBinary
-import me.anno.graph.types.flow.maths.IntMathsBinary
-import me.anno.graph.types.flow.maths.MathD2Node
-import me.anno.graph.types.flow.maths.MathL2Node
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.control.ForNode
+import me.anno.graph.visual.local.GetLocalVariableNode
+import me.anno.graph.visual.local.SetLocalVariableNode
+import me.anno.graph.visual.scalar.FloatMathsBinary
+import me.anno.graph.visual.scalar.IntMathsBinary
+import me.anno.graph.visual.scalar.MathD2Node
+import me.anno.graph.visual.scalar.MathL2Node
 import me.anno.utils.Color
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

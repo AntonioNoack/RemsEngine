@@ -12,6 +12,10 @@ fun assertEquals(a: Any?, b: Any?, message: String = "expected equal values") {
     if (a != b) throw IllegalStateException(message)
 }
 
+fun assertEquals(a: Int, b: Int, message: String = "expected equal values") {
+    if (a != b) throw IllegalStateException(message)
+}
+
 fun assertNotEquals(a: Any?, b: Any?, message: String = "expected different values") {
     if (a == b) throw IllegalStateException(message)
 }

@@ -1,6 +1,5 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 
@@ -55,7 +54,7 @@ class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWri
         }
 
         fun save(entry: Saveable, file: FileReference, workspace: FileReference) {
-            file.outputStream().useBuffered().use {
+            file.outputStream().use {
                 val writer = JsonStreamWriter(it, workspace)
                 writer.add(entry)
                 writer.writeAllInList()
@@ -63,7 +62,7 @@ class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWri
         }
 
         fun save(data: Collection<Saveable>, file: FileReference, workspace: FileReference) {
-            file.outputStream().useBuffered().use {
+            file.outputStream().use {
                 val writer = JsonStreamWriter(it, workspace)
                 for (entry in data) writer.add(entry)
                 writer.writeAllInList()

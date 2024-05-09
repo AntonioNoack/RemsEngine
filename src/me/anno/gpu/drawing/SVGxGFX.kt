@@ -15,6 +15,9 @@ import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.round
 
+/**
+ * Draws scalable vector graphics.
+ * */
 object SVGxGFX {
 
     fun draw3DSVG(
@@ -54,7 +57,6 @@ object SVGxGFX {
             GFX.check()
             buffer.draw(shader)
             GFX.check()
-
         } else {
 
             // uv[1] = (uv[0]-0.5) * tiling.xy + 0.5 + tiling.zw

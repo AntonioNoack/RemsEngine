@@ -99,47 +99,6 @@ object FlatShaders {
                 "}"
     )
 
-    val flatShaderGradient = ShaderLib.createShader(
-        "flatShaderGradient", listOf(
-            Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "posSize"),
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V4F, "uvs"),
-            Variable(GLSLType.V4F, "lColor"),
-            Variable(GLSLType.V4F, "rColor"),
-            Variable(GLSLType.V1B, "inXDirection"),
-        ), "" +
-                ShaderLib.yuv2rgb +
-                "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                "   color = (inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor;\n" +
-                "   color = color * color;\n" + // srgb -> linear
-                "   uv = mix(uvs.xy, uvs.zw, coords);\n" +
-                "}", listOf(
-            Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")
-        ), listOf(
-            Variable(GLSLType.V1I, "code"),
-            Variable(GLSLType.S2D, "tex0"),
-            Variable(GLSLType.S2D, "tex1"),
-        ), "" +
-                ShaderLib.yuv2rgb +
-                "void main(){\n" +
-                "   vec4 texColor;\n" +
-                "   if(uv.x >= 0.0 && uv.x <= 1.0){\n" +
-                "       switch(code){\n" +
-                "           case 0: texColor = texture(tex0, uv).gbar;break;\n" + // ARGB
-                "           case 1: texColor = texture(tex0, uv).bgra;break;\n" + // BGRA
-                "           case 2: \n" +
-                "               vec3 yuv = vec3(texture(tex0, uv).r, texture(tex1, uv).xy);\n" +
-                "               texColor = vec4(yuv2rgb(yuv), 1.0);\n" +
-                "               break;\n" + // YUV
-                "           default: texColor = texture(tex0, uv);\n" + // RGBA
-                "       }\n" +
-                "   } else texColor = vec4(1.0);\n" +
-                "   gl_FragColor = sqrt(color) * texColor;\n" +
-                "}", listOf("tex0", "tex1")
-    )
-
     val flatShaderTexture = BaseShader(
         "flatShaderTexture",
         ShaderLib.uiVertexShaderList,

@@ -51,7 +51,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
-import me.anno.graph.render.RenderGraph
+import me.anno.graph.visual.render.RenderGraph
 import me.anno.input.Input
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp

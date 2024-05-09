@@ -9,7 +9,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.graph.render.RenderGraphEditor
+import me.anno.graph.visual.render.RenderGraphEditor
 import me.anno.tests.gfx.metalRoughness
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI

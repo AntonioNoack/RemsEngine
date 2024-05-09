@@ -17,6 +17,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+/**
+ * Draws a rectangle with rounded corners;
+ * todo subpixel-rendering not yet implemented.
+ * */
 @Suppress("unused")
 object DrawRounded {
 

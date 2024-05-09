@@ -1027,7 +1027,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     override fun destroy() {
-        super.destroy()
         // todo only if we were not cloned...
         destroyHelperMeshes()
         clearGPUData()

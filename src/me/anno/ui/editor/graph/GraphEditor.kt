@@ -2,11 +2,11 @@ package me.anno.ui.editor.graph
 
 import me.anno.engine.EngineBase
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.graph.Graph
-import me.anno.graph.Node
-import me.anno.graph.NodeConnector
-import me.anno.graph.NodeInput
-import me.anno.graph.types.NodeLibrary
+import me.anno.graph.visual.Graph
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeConnector
+import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.node.NodeLibrary
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.SaveableArray

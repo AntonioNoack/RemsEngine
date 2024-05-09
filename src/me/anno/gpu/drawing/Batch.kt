@@ -1,11 +1,14 @@
 package me.anno.gpu.drawing
 
-import me.anno.Time
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 
+/**
+ * draws many shapes at once;
+ * optimization, because drawCalls can be very expensive
+ * */
 abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attribute>, val batchSize: Int = 65536) {
 
     var active = false

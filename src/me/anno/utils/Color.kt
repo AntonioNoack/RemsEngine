@@ -117,10 +117,11 @@ object Color {
 
     @JvmStatic
     @Docs("Creates an ARGB color from r,g,b,a integers; clamps values")
-    fun rgba(r: Int, g: Int, b: Int, a: Int): Int = clamp(r, 0, 255).shl(16) or
-            clamp(g, 0, 255).shl(8) or
-            clamp(b, 0, 255) or
-            clamp(a, 0, 255).shl(24)
+    fun rgba(r: Int, g: Int, b: Int, a: Int): Int =
+        clamp(r, 0, 255).shl(16) or
+                clamp(g, 0, 255).shl(8) or
+                clamp(b, 0, 255) or
+                clamp(a, 0, 255).shl(24)
 
     @JvmStatic
     @Docs("Creates an ARGB color from r,g,b,a integers; clamps values; crashes on NaNs")

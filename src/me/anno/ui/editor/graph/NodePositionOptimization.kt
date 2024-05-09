@@ -1,6 +1,6 @@
 package me.anno.ui.editor.graph
 
-import me.anno.graph.Node
+import me.anno.graph.visual.node.Node
 import me.anno.maths.Optimization
 
 object NodePositionOptimization {

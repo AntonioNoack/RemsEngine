@@ -5,11 +5,11 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.graph.Graph
-import me.anno.graph.Node
-import me.anno.graph.NodeConnector
-import me.anno.graph.NodeInput
-import me.anno.graph.render.NodeGroup
+import me.anno.graph.visual.Graph
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeConnector
+import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.render.NodeGroup
 import me.anno.input.Key
 import me.anno.io.Saveable
 import me.anno.io.SaveableArray

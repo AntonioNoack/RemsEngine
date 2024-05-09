@@ -1,8 +1,12 @@
 package me.anno.gpu.shader.effects
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.GFXx3D.shader3DBoxBlur
+import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
@@ -18,6 +22,25 @@ import kotlin.math.max
  * */
 object BoxBlur {
 
+    private fun draw3DBoxBlur(
+        stack: Matrix4fArrayList,
+        steps: Int, w: Int, h: Int,
+        isFirst: Boolean
+    ) {
+        val shader = shader3DBoxBlur
+        shader.use()
+        transformUniform(shader, stack)
+        if (isFirst) {
+            shader.v2f("stepSize", 0f, 1f / h)
+            shader.v1i("steps", steps)
+        } else {
+            shader.v2f("stepSize", 1f / w, 0f)
+            shader.v1i("steps", steps)
+        }
+        SimpleBuffer.flat01.draw(shader)
+        GFX.check()
+    }
+
     private fun drawBlur(
         target: IFramebuffer,
         w: Int, h: Int,
@@ -28,7 +51,7 @@ object BoxBlur {
     ) {
         // step1
         useFrame(target, Renderer.copyRenderer) {
-            GFXx3D.draw3DBoxBlur(localTransform, steps, w, h, isFirst)
+            draw3DBoxBlur(localTransform, steps, w, h, isFirst)
         }
         target.bindTexture0(
             resultIndex,

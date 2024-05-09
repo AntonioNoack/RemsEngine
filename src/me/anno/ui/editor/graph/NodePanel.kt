@@ -14,10 +14,10 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.graph.Node
-import me.anno.graph.NodeConnector
-import me.anno.graph.NodeInput
-import me.anno.graph.NodeOutput
+import me.anno.graph.visual.node.Node
+import me.anno.graph.visual.node.NodeConnector
+import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.node.NodeOutput
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc

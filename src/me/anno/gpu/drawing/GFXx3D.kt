@@ -11,7 +11,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.utils.Color.white4
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame
@@ -131,15 +130,6 @@ object GFXx3D {
         shader.v4f("tint", color)
     }
 
-    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
-        matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
-        val tex = TextureLib.whiteTexture
-        draw3DTiledCubemap(
-            matrix, tex, tex.width, tex.height, color,
-            Filtering.NEAREST, tex.clamping!!, null
-        )
-    }
-
     fun shader3DUniforms(shader: Shader, transform: Matrix4f?, color: Int) {
         transformUniform(shader, transform)
         shader.v4f("tint", color)
@@ -180,55 +170,6 @@ object GFXx3D {
         shader.use()
         shader3DUniforms(shader, stack, w, h, color, tiling)
         texture.bind(0, filtering, clamping)
-        SimpleBuffer.flat01.draw(shader)
-        GFX.check()
-    }
-
-    fun draw3DTiledCubemap(
-        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f?,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
-    ) {
-        val shader = ShaderLib.shader3DTiledCubemap.value
-        shader.use()
-        shader3DUniforms(shader, stack, w, h, color, tiling)
-        texture.bind(0, filtering, clamping)
-        UVProjection.TiledCubemap.mesh.draw(shader, 0)
-        GFX.check()
-    }
-
-    fun draw3DGaussianBlur(
-        stack: Matrix4fArrayList,
-        size: Float, w: Int, h: Int,
-        threshold: Float, isFirst: Boolean,
-        isFullscreen: Boolean
-    ) {
-        val shader = shader3DGaussianBlur
-        shader.use()
-        transformUniform(shader, stack)
-        if (isFirst) shader.v2f("stepSize", 0f, 1f / h)
-        else shader.v2f("stepSize", 1f / w, 0f)
-        shader.v1f("steps", size * h)
-        shader.v1f("threshold", threshold)
-        val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
-        buffer.draw(shader)
-        GFX.check()
-    }
-
-    fun draw3DBoxBlur(
-        stack: Matrix4fArrayList,
-        steps: Int, w: Int, h: Int,
-        isFirst: Boolean
-    ) {
-        val shader = shader3DBoxBlur
-        shader.use()
-        transformUniform(shader, stack)
-        if (isFirst) {
-            shader.v2f("stepSize", 0f, 1f / h)
-            shader.v1i("steps", steps)
-        } else {
-            shader.v2f("stepSize", 1f / w, 0f)
-            shader.v1i("steps", steps)
-        }
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }

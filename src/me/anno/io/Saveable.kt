@@ -112,15 +112,6 @@ open class Saveable {
             return reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
         }
 
-        fun get(instance: Any, name: String): Any? {
-            return getReflections(instance)[instance, name]
-        }
-
-        fun set(instance: Any, name: String, value: Any?): Boolean {
-            val reflections = getReflections(instance)
-            return reflections.set(instance, name, value)
-        }
-
         interface IRegistryEntry {
             val sampleInstance: Saveable
             val classPath: String
@@ -156,7 +147,9 @@ open class Saveable {
         }
 
         fun <V : Saveable> getInstanceOf(clazz: KClass<V>): Map<String, IRegistryEntry> {
-            return objectTypeRegistry.filterValues { clazz.isInstance(it.sampleInstance) }
+            return objectTypeRegistry.filterValues {
+                clazz.isInstance(it.sampleInstance)
+            }
         }
 
         val objectTypeRegistry = HashMap<String, IRegistryEntry>()
@@ -173,13 +166,6 @@ open class Saveable {
                     throw RuntimeException("${instance0::class}.clone() is incorrect, returns ${clone::class} instead")
                 }
             }
-        }
-
-        @JvmStatic
-        fun registerCustomClass(className: String, constructor: () -> Saveable): RegistryEntry {
-            val instance0 = constructor()
-            checkInstance(instance0)
-            return registerCustomClass(className, RegistryEntry(instance0, constructor))
         }
 
         @JvmStatic

@@ -3,8 +3,8 @@ package me.anno.tests.shader
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur
 import me.anno.gpu.texture.TextureCache
-import me.anno.graph.render.Texture
-import me.anno.graph.render.effects.ShapedBlurNode
+import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.effects.ShapedBlurNode
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha

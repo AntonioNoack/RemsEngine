@@ -7,26 +7,24 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.graph.AnimController
 import me.anno.ecs.components.anim.graph.AnimStateNode
-import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FORCE_ONCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FADE
+import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FORCE_ONCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.LOOP
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SOURCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SPEED
-import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
-import me.anno.graph.types.states.StateMachine
-import me.anno.ui.editor.graph.GraphEditor
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.graph.visual.states.StateMachine
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.ui.editor.graph.GraphEditor
 import me.anno.utils.OS.downloads
 
 fun main() {
 
     // todo looks ok, but not perfect yet
 
-    ECSRegistry.init()
-    registerCustomClass { StateMachine() }
+    OfficialExtensions.initForTests()
 
     val entity = Entity()
     val renderer = AnimMeshComponent()

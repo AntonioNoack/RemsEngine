@@ -2,15 +2,15 @@ package me.anno.tests.engine.effect
 
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.graph.render.QuickPipeline
-import me.anno.graph.render.effects.BloomNode
-import me.anno.graph.render.effects.GizmoNode
-import me.anno.graph.render.effects.SSAONode
-import me.anno.graph.render.effects.SSRNode
-import me.anno.graph.render.scene.CombineLightsNode
-import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneDeferredNode
-import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.graph.visual.render.QuickPipeline
+import me.anno.graph.visual.render.effects.BloomNode
+import me.anno.graph.visual.render.effects.GizmoNode
+import me.anno.graph.visual.render.effects.SSAONode
+import me.anno.graph.visual.render.effects.SSRNode
+import me.anno.graph.visual.render.scene.CombineLightsNode
+import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.utils.OS.downloads
 
 // todo implement ray-traced global illumination

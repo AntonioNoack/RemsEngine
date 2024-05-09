@@ -12,7 +12,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.graph.types.states.StateMachine
+import me.anno.graph.visual.states.StateMachine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.engine.serialization.NotSerializedProperty

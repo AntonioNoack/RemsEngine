@@ -2,10 +2,10 @@ package me.anno.network
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.io.Signature.be32Signature
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
-import me.anno.utils.Color.argb
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.ThreadLocal2
 import java.io.IOException
@@ -16,7 +16,7 @@ import kotlin.math.abs
 open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtocol) {
 
     constructor(bigEndianMagic: String, networkProtocol: NetworkProtocol) :
-            this(convertMagic(bigEndianMagic), networkProtocol)
+            this(be32Signature(bigEndianMagic), networkProtocol)
 
     private val packets = HashMap<Int, Any>()
     var pingDelayMillis = 500
@@ -50,7 +50,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
      * register a parallel packet; will create at most one instance per client
      * */
     fun register(magic: String, parallelPacket: () -> Packet) {
-        register(convertMagic(magic), parallelPacket)
+        register(be32Signature(magic), parallelPacket)
     }
 
     fun find(id: Int): Any? {
@@ -133,18 +133,4 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         client.close()
         server?.removeClient(client)
     }
-
-    companion object {
-        fun convertMagic(string: String): Int {
-            return when (string.length) {
-                0 -> 0
-                1 -> argb(string[0].code, 0, 0, 0)
-                2 -> argb(string[0].code, string[1].code, 0, 0)
-                3 -> argb(string[0].code, string[1].code, string[2].code, 0)
-                4 -> argb(string[0].code, string[1].code, string[2].code, string[3].code)
-                else -> throw IllegalArgumentException("Magic length must be <= 4")
-            }
-        }
-    }
-
 }

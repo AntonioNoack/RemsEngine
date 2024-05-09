@@ -206,7 +206,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     }
 
     override fun destroy() {
-        super.destroy()
         previewData?.destroy()
         previewData = null
     }

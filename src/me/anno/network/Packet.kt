@@ -1,9 +1,9 @@
 package me.anno.network
 
 import me.anno.io.Saveable
-import me.anno.io.base.BaseWriter
-import me.anno.network.Protocol.Companion.convertMagic
+import me.anno.io.Signature.be32Signature
 import me.anno.io.Streams.readNBytes2
+import me.anno.io.base.BaseWriter
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -12,7 +12,7 @@ import java.io.IOException
 
 open class Packet(var bigEndianMagic: Int) : Saveable() {
 
-    constructor(bigEndianMagic: String) : this(convertMagic(bigEndianMagic))
+    constructor(bigEndianMagic: String) : this(be32Signature(bigEndianMagic))
 
     /** < 0 = unknown, and needs to be buffered */
     open val size = -1

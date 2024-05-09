@@ -1,9 +1,9 @@
 package me.anno.tests.utils
 
-import me.anno.graph.NodeInput
-import me.anno.graph.NodeOutput
-import me.anno.graph.types.flow.local.GetLocalVariableNode
-import me.anno.graph.types.flow.local.SetLocalVariableNode
+import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.graph.visual.local.GetLocalVariableNode
+import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.InvalidRef

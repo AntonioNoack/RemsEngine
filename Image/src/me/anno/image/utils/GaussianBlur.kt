@@ -2,7 +2,10 @@ package me.anno.image.utils
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.GFXx3D.shader3DGaussianBlur
+import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -20,6 +23,24 @@ import kotlin.math.min
 object GaussianBlur {
 
     private val LOGGER = LogManager.getLogger(GaussianBlur::class)
+
+    private fun draw3DGaussianBlur(
+        stack: Matrix4fArrayList,
+        size: Float, w: Int, h: Int,
+        threshold: Float, isFirst: Boolean,
+        isFullscreen: Boolean
+    ) {
+        val shader = shader3DGaussianBlur
+        shader.use()
+        transformUniform(shader, stack)
+        if (isFirst) shader.v2f("stepSize", 0f, 1f / h)
+        else shader.v2f("stepSize", 1f / w, 0f)
+        shader.v1f("steps", size * h)
+        shader.v1f("threshold", threshold)
+        val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
+        buffer.draw(shader)
+        GFX.check()
+    }
 
     @JvmStatic
     fun gaussianBlur(
@@ -66,7 +87,7 @@ object GaussianBlur {
         // step1
         GFXState.useFrame(w, h, true, target, Renderer.copyRenderer) {
             target.clearDepth()
-            GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
+            draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
         target.bindTexture0(
             resultIndex,

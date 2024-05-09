@@ -228,29 +228,28 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     @Suppress("unused")
-    fun printIdTypes() {
+    fun printIdStructs() {
         for (struct in structs) {
             if (struct.fields.first().type.name == "ID") {
-                LOGGER.info(
-                    "class ${struct.type.name}:\n${
-                        struct.byName.entries.filter { !it.key.startsWith("_pad") }
-                            .joinToString("\n") { "\t${it.key}: ${it.value}" }
-                    }"
-                )
+                printStruct(struct)
             }
         }
     }
 
     @Suppress("unused")
-    fun printTypes() {
+    fun printStructs() {
         for (struct in structs) {
-            LOGGER.info(
-                "class ${struct.type.name}:\n${
-                    struct.byName.entries.filter { !it.key.startsWith("_pad") }
-                        .joinToString("\n") { "\t${it.key}: ${it.value}" }
-                }"
-            )
+            printStruct(struct)
         }
+    }
+
+    private fun printStruct(struct: DNAStruct){
+        LOGGER.info(
+            "class ${struct.type.name}:\n${
+                struct.byName.entries.filter { !it.key.startsWith("_pad") }
+                    .joinToString("\n") { "\t${it.key}: ${it.value}" }
+            }"
+        )
     }
 
     fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
