@@ -27,7 +27,7 @@ enum class FloatMathsTernary(
 
     ;
 
-    fun double(a: Double, b: Double, c: Double): Double {
+    fun calculate(a: Double, b: Double, c: Double): Double {
         return when (this) {
             CLAMP -> clamp(a, b, c)
             MEDIAN -> median(a, b, c)
@@ -43,6 +43,6 @@ enum class FloatMathsTernary(
     }
 
     fun float(a: Float, b: Float, c: Float): Float {
-        return double(a.toDouble(), b.toDouble(), c.toDouble()).toFloat()
+        return calculate(a.toDouble(), b.toDouble(), c.toDouble()).toFloat()
     }
 }

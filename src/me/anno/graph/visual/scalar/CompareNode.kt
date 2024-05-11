@@ -4,37 +4,18 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.MaterialGraph.convert
 import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.graph.visual.vector.vectorTypes
 import me.anno.utils.Logging.hash32raw
 import me.anno.utils.structures.maps.LazyMap
 
-enum class CompareMode(val id: Int, val glsl: String) {
-    LESS_THAN(0, "<"),
-    LESS_OR_EQUALS(1, "<="),
-    EQUALS(2, "=="),
-    GREATER_THAN(3, ">"),
-    GREATER_OR_EQUALS(4, ">="),
-    NOT_EQUALS(5, "!="),
-    IDENTICAL(6, "=="),
-    NOT_IDENTICAL(7, "!=")
-}
-
-val compareMathData = LazyMap<String, MathNodeData<CompareMode>> { type ->
-    MathNodeData(
-        CompareMode.entries, listOf(type, type), "Boolean",
-        CompareMode::id, CompareMode::glsl
-    )
-}
-
-private val types = "?,String,Boolean,Float,Int,Vector2f,Vector3f,Vector4f".split(',')
-
-class CompareNode() : TypedMathNode<CompareMode>(compareMathData, types) {
+class CompareNode() : TypedMathNode<CompareMode>(data, types) {
 
     constructor(type: String) : this() {
-        setType(type)
+        setDataType(type)
     }
 
     fun apply(delta: Int): Boolean {
-        return when (type) {
+        return when (enumType) {
             CompareMode.LESS_THAN -> delta < 0
             CompareMode.LESS_OR_EQUALS -> delta <= 0
             CompareMode.EQUALS -> delta == 0
@@ -65,7 +46,7 @@ class CompareNode() : TypedMathNode<CompareMode>(compareMathData, types) {
     override fun compute() {
         val a = getInput(0)
         val b = getInput(1)
-        val v = when (type) {
+        val v = when (enumType) {
             CompareMode.IDENTICAL -> a === b
             CompareMode.NOT_IDENTICAL -> a !== b
             else -> apply(compare(a, b))
@@ -75,7 +56,7 @@ class CompareNode() : TypedMathNode<CompareMode>(compareMathData, types) {
 
     override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
         val inputs = n.inputs
-        val symbol = type.glsl
+        val symbol = enumType.glsl
         val an = inputs[0]
         val bn = inputs[1]
         g.builder.append('(')
@@ -83,5 +64,15 @@ class CompareNode() : TypedMathNode<CompareMode>(compareMathData, types) {
         g.builder.append(')').append(symbol).append('(')
         convert(g.builder, bn.type, g.aType(an, bn)) { g.expr(bn) }!! // second component
         g.builder.append(')')
+    }
+
+    companion object {
+        private val data = LazyMap<String, MathNodeData<CompareMode>> { type ->
+            MathNodeData(
+                CompareMode.entries, listOf(type, type), "Boolean",
+                CompareMode::id, CompareMode::glsl
+            )
+        }
+        private val types = "?,String,Boolean,Float,Int,Double,Long".split(',') + vectorTypes
     }
 }

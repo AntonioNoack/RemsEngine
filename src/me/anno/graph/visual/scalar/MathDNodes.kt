@@ -1,45 +1,55 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.scalar
 
-import me.anno.graph.visual.EnumNode
-import me.anno.graph.visual.render.compiler.GLSLFuncNode
+import me.anno.graph.visual.FlowGraphNodeUtils.getDoubleInput
+import me.anno.utils.structures.maps.LazyMap
 
-val dataD1 = MathNodeData(
-    FloatMathsUnary.entries,
-    listOf("Double"), "Double",
-    FloatMathsUnary::id, FloatMathsUnary::glsl
-)
+private val types = "Float,Double".split(',')
 
-class MathD1Node : MathNode<FloatMathsUnary>(dataD1), EnumNode, GLSLFuncNode {
+private val dataD1 = LazyMap { type: String ->
+    MathNodeData(
+        FloatMathsUnary.entries,
+        listOf(type), type,
+        FloatMathsUnary::id, FloatMathsUnary::glsl
+    )
+}
+
+class MathF1Node : TypedMathNode<FloatMathsUnary>(dataD1, types) {
     override fun compute() {
-        setOutput(0, type.double(getInput(0) as Double))
+        setOutput(0, enumType.double(getDoubleInput(0)))
     }
 }
 
-val dataD2 = MathNodeData(
-    FloatMathsBinary.entries,
-    listOf("Double", "Double"), "Double",
-    FloatMathsBinary::id, FloatMathsBinary::glsl
-)
+private val dataD2 = LazyMap { type: String ->
+    MathNodeData(
+        FloatMathsBinary.entries,
+        listOf(type, type), type,
+        FloatMathsBinary::id, FloatMathsBinary::glsl
+    )
+}
 
-class MathD2Node : MathNode<FloatMathsBinary>(dataD2), EnumNode, GLSLFuncNode {
+class MathF2Node : TypedMathNode<FloatMathsBinary>(dataD2, types) {
     override fun compute() {
-        setOutput(0, type.double(getInput(0) as Double, getInput(1) as Double))
+        setOutput(0, enumType.double(getDoubleInput(0), getDoubleInput(1)))
     }
 }
 
-val dataD3 = MathNodeData(
-    FloatMathsTernary.entries,
-    listOf("Double", "Double", "Double"), "Double",
-    FloatMathsTernary::id, FloatMathsTernary::glsl
-)
+private val dataD3 = LazyMap { type: String ->
+    MathNodeData(
+        FloatMathsTernary.entries,
+        listOf(type, type, type), type,
+        FloatMathsTernary::id, FloatMathsTernary::glsl
+    )
+}
 
-class MathD3Node : MathNode<FloatMathsTernary>(dataD3), EnumNode, GLSLFuncNode {
+class MathF3Node : TypedMathNode<FloatMathsTernary>(dataD3, types) {
     override fun compute() {
         setOutput(
-            0, type.double(
-                getInput(0) as Double,
-                getInput(1) as Double,
-                getInput(2) as Double
+            0, enumType.calculate(
+                getDoubleInput(0),
+                getDoubleInput(1),
+                getDoubleInput(2)
             )
         )
     }

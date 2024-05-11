@@ -7,8 +7,8 @@ import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.graph.visual.scalar.FloatMathsBinary
 import me.anno.graph.visual.scalar.IntMathsBinary
-import me.anno.graph.visual.scalar.MathD2Node
-import me.anno.graph.visual.scalar.MathL2Node
+import me.anno.graph.visual.scalar.MathF2Node
+import me.anno.graph.visual.scalar.MathI2Node
 import me.anno.utils.Color
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -18,8 +18,8 @@ object FlowGraphTest {
     @Test
     fun testSimpleCalculation() {
         val g = FlowGraph()
-        val n0 = MathD2Node().apply { type = FloatMathsBinary.ADD }
-        val n1 = MathD2Node().apply { type = FloatMathsBinary.DIV }
+        val n0 = MathF2Node().setDataType("Double").setEnumType(FloatMathsBinary.ADD)
+        val n1 = MathF2Node().setDataType("Double").setEnumType(FloatMathsBinary.DIV)
         n0.connectTo(n1, 0)
         n0.setInputs(listOf(1.0, 2.0))
         n1.setInput(1, 2.0)
@@ -59,8 +59,8 @@ object FlowGraphTest {
         val forNode = ForNode()
         forNode.setInputs(listOf(null, 1L, 5L, 1L))
         initNode.connectTo(forNode)
-        val mulNode = MathL2Node()
-        mulNode.type = IntMathsBinary.MUL
+        val mulNode = MathI2Node().setDataType("Long")
+        mulNode.enumType = IntMathsBinary.MUL
         val getNode = GetLocalVariableNode("var", "?")
         forNode.connectTo(1, mulNode, 0)
         getNode.connectTo(0, mulNode, 1)

@@ -45,7 +45,7 @@ enum class IntMathsBinary(
 
     ;
 
-    fun long(a: Long, b: Long): Long {
+    fun calculate(a: Long, b: Long): Long {
         return when (this) {
             ADD -> a + b
             SUB -> a - b
@@ -70,9 +70,5 @@ enum class IntMathsBinary(
             MAX -> max(a, b)
             EQUALS -> (a == b).toLong()
         }
-    }
-
-    fun int(a: Int, b: Int): Int {
-        return long(a.toLong(), b.toLong()).toInt()
     }
 }

@@ -12,7 +12,13 @@ interface GLSLFuncNode : GLSLExprNode {
     override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
         val c = n.outputs.indexOf(out)
         val name = getShaderFuncName(c)
-        g.typeToFunc.getOrPut(name) { g.defineFunc(name, kotlinToGLSL(out.type), defineShaderFunc(c)) }
+        g.typeToFunc.getOrPut(name) {
+            var shaderFunc = defineShaderFunc(c)
+            if (!shaderFunc.isNullOrEmpty() && shaderFunc[0] != '(') { // short form
+                shaderFunc = "(${shaderFuncPrefix(n)}){return $shaderFunc;}"
+            }
+            g.defineFunc(name, kotlinToGLSL(out.type), shaderFunc)
+        }
         g.builder.append(name).append('(')
         // function arguments
         val inputs = n.inputs
@@ -21,5 +27,13 @@ interface GLSLFuncNode : GLSLExprNode {
             g.expr(inputs[ni])
         }
         g.builder.append(')')
+    }
+
+    companion object {
+        fun shaderFuncPrefix(n: Node): String {
+            return (n.inputs.indices step 2).joinToString(",") { i ->
+                kotlinToGLSL(n.inputs[i].type) + " " + ('a' + i)
+            }
+        }
     }
 }

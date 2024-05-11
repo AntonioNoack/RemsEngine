@@ -13,8 +13,8 @@ abstract class TypedMathNode<V : Enum<V>>(
             data.enumValues.map { enumType ->
                 @Suppress("UNCHECKED_CAST")
                 val clone = this.clone() as TypedMathNode<V>
-                clone.type = enumType
-                clone.setType(valueType)
+                clone.enumType = enumType
+                clone.setDataType(valueType)
                 clone
             }
         }
@@ -27,12 +27,12 @@ abstract class TypedMathNode<V : Enum<V>>(
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "dataType" -> setType(value.toString())
+            "dataType" -> setDataType(value.toString())
             else -> super.setProperty(name, value)
         }
     }
 
-    fun setType(type: String): TypedMathNode<V> {
+    fun setDataType(type: String): TypedMathNode<V> {
         data = dataMap[type]
         updateNameDesc()
         return this

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.ComputeNode
@@ -11,7 +13,7 @@ class NotNode : ComputeNode("Binary Not", listOf("Boolean", "Value"), "Boolean")
     }
 }
 
-val dataB2 = MathNodeData(
+private val dataB2 = MathNodeData(
     BooleanMathsBinary.entries,
     listOf("Boolean", "Boolean"), "Boolean",
     BooleanMathsBinary::id, BooleanMathsBinary::glsl
@@ -19,11 +21,11 @@ val dataB2 = MathNodeData(
 
 class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, type.compute(getBoolInput(0), getBoolInput(1)))
+        setOutput(0, enumType.compute(getBoolInput(0), getBoolInput(1)))
     }
 }
 
-val dataB3 = MathNodeData(
+private val dataB3 = MathNodeData(
     BooleanMathsTernary.entries,
     listOf("Boolean", "Boolean", "Boolean"), "Boolean",
     BooleanMathsTernary::id, BooleanMathsTernary::glsl
@@ -31,6 +33,6 @@ val dataB3 = MathNodeData(
 
 class MathB3Node : MathNode<BooleanMathsTernary>(dataB3), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, type.compute(getBoolInput(0), getBoolInput(1), getBoolInput(2)))
+        setOutput(0, enumType.compute(getBoolInput(0), getBoolInput(1), getBoolInput(2)))
     }
 }

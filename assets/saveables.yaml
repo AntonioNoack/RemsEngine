@@ -48,10 +48,7 @@ ConsoleOutputPanel: me.anno.ui.debug.ConsoleOutputPanel
 ControlFlowGraph: me.anno.graph.visual.ControlFlowGraph
 ControllerCalibration: me.anno.input.controller.ControllerCalibration
 ConvexCollider: me.anno.ecs.components.collider.ConvexCollider
-CrossProductD2: me.anno.graph.visual.scalar.CrossProductD2
-CrossProductD3: me.anno.graph.visual.scalar.CrossProductD3
-CrossProductF2: me.anno.graph.visual.scalar.CrossProductF2
-CrossProductF3: me.anno.graph.visual.scalar.CrossProductF3
+CrossProductNode: me.anno.graph.visual.vector.CrossProductNode
 CubemapSkybox: me.anno.ecs.components.light.sky.CubemapSkybox
 CylinderCollider: me.anno.ecs.components.collider.CylinderCollider
 DataFlowGraph: me.anno.graph.visual.DataFlowGraph
@@ -63,12 +60,7 @@ DepthToNormalNode: me.anno.graph.visual.render.effects.DepthToNormalNode
 DirectionalLight: me.anno.ecs.components.light.DirectionalLight
 DiscardNode: me.anno.graph.visual.render.DiscardNode
 DoWhileNode: me.anno.graph.visual.control.DoWhileNode
-DotProductD2: me.anno.graph.visual.scalar.DotProductD2
-DotProductD3: me.anno.graph.visual.scalar.DotProductD3
-DotProductD4: me.anno.graph.visual.scalar.DotProductD4
-DotProductF2: me.anno.graph.visual.scalar.DotProductF2
-DotProductF3: me.anno.graph.visual.scalar.DotProductF3
-DotProductF4: me.anno.graph.visual.scalar.DotProductF4
+DotProductNode: me.anno.graph.visual.vector.DotProductNode
 ECSTreeView: me.anno.engine.ui.ECSTreeView
 Entity: me.anno.ecs.Entity
 EnvironmentMap: me.anno.ecs.components.light.EnvironmentMap
@@ -120,9 +112,6 @@ Material: me.anno.ecs.components.mesh.material.Material
 MaterialReturnNode: me.anno.graph.visual.render.MaterialReturnNode
 MathB2Node: me.anno.graph.visual.scalar.MathB2Node
 MathB3Node: me.anno.graph.visual.scalar.MathB3Node
-MathD1Node: me.anno.graph.visual.scalar.MathD1Node
-MathD2Node: me.anno.graph.visual.scalar.MathD2Node
-MathD3Node: me.anno.graph.visual.scalar.MathD3Node
 MathF1XNode: me.anno.graph.visual.vector.MathF1XNode
 MathF2XNode: me.anno.graph.visual.vector.MathF2XNode
 MathF3XNode: me.anno.graph.visual.vector.MathF3XNode
@@ -132,9 +121,6 @@ MathF3Node: me.anno.graph.visual.scalar.MathF3Node
 MathI1Node: me.anno.graph.visual.scalar.MathI1Node
 MathI2Node: me.anno.graph.visual.scalar.MathI2Node
 MathI3Node: me.anno.graph.visual.scalar.MathI3Node
-MathL1Node: me.anno.graph.visual.scalar.MathL1Node
-MathL2Node: me.anno.graph.visual.scalar.MathL2Node
-MathL3Node: me.anno.graph.visual.scalar.MathL3Node
 Mesh: me.anno.ecs.components.mesh.Mesh
 MeshCollider: me.anno.ecs.components.collider.MeshCollider
 MeshComponent: me.anno.ecs.components.mesh.MeshComponent
@@ -150,9 +136,7 @@ NodeGroup: me.anno.graph.visual.render.NodeGroup
 NodeInput: me.anno.graph.visual.node.NodeInput
 NodeOutput: me.anno.graph.visual.node.NodeOutput
 NormalMap: me.anno.graph.visual.render.NormalMap
-NormalizeNode2: me.anno.graph.visual.vector.NormalizeNode2
-NormalizeNode3: me.anno.graph.visual.vector.NormalizeNode3
-NormalizeNode4: me.anno.graph.visual.vector.NormalizeNode4
+NormalizeNode: me.anno.graph.visual.vector.NormalizeNode
 NotNode: me.anno.graph.visual.scalar.NotNode
 OptionBar: me.anno.ui.editor.OptionBar
 OrbitControls: me.anno.ecs.components.camera.control.OrbitControls

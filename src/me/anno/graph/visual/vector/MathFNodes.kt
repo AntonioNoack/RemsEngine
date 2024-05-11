@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.scalar.FloatMathsBinary
@@ -23,9 +25,9 @@ private val dataF1X = LazyMap { type: String ->
 class MathF1XNode : TypedMathNode<FloatMathsUnary>(dataF1X, types) {
     override fun compute() {
         val v: Any = when (val a = getInput(0)) {
-            is Vector2f -> Vector2f(type.float(a.x), type.float(a.y))
-            is Vector3f -> Vector3f(type.float(a.x), type.float(a.y), type.float(a.z))
-            is Vector4f -> Vector4f(type.float(a.x), type.float(a.y), type.float(a.z), type.float(a.w))
+            is Vector2f -> Vector2f(enumType.float(a.x), enumType.float(a.y))
+            is Vector3f -> Vector3f(enumType.float(a.x), enumType.float(a.y), enumType.float(a.z))
+            is Vector4f -> Vector4f(enumType.float(a.x), enumType.float(a.y), enumType.float(a.z), enumType.float(a.w))
             else -> throw NotImplementedError()
         }
         setOutput(0, v)
@@ -47,25 +49,25 @@ class MathF2XNode : TypedMathNode<FloatMathsBinary>(dataF22, types) {
             is Vector2f -> {
                 b as Vector2f
                 Vector2f(
-                    type.float(a.x, b.x),
-                    type.float(a.y, b.y)
+                    enumType.float(a.x, b.x),
+                    enumType.float(a.y, b.y)
                 )
             }
             is Vector3f -> {
                 b as Vector3f
                 Vector3f(
-                    type.float(a.x, b.x),
-                    type.float(a.y, b.y),
-                    type.float(a.z, b.z)
+                    enumType.float(a.x, b.x),
+                    enumType.float(a.y, b.y),
+                    enumType.float(a.z, b.z)
                 )
             }
             is Vector4f -> {
                 b as Vector4f
                 Vector4f(
-                    type.float(a.x, b.x),
-                    type.float(a.y, b.y),
-                    type.float(a.z, b.z),
-                    type.float(a.w, b.w)
+                    enumType.float(a.x, b.x),
+                    enumType.float(a.y, b.y),
+                    enumType.float(a.z, b.z),
+                    enumType.float(a.w, b.w)
                 )
             }
             else -> throw NotImplementedError()
@@ -91,27 +93,27 @@ class MathF3XNode : TypedMathNode<FloatMathsTernary>(dataF3X, types) {
                 b as Vector2f
                 c as Vector2f
                 Vector2f(
-                    type.float(a.x, b.x, c.x),
-                    type.float(a.y, b.y, c.y)
+                    enumType.float(a.x, b.x, c.x),
+                    enumType.float(a.y, b.y, c.y)
                 )
             }
             is Vector3f -> {
                 b as Vector3f
                 c as Vector3f
                 Vector3f(
-                    type.float(a.x, b.x, c.x),
-                    type.float(a.y, b.y, c.y),
-                    type.float(a.z, b.z, c.z)
+                    enumType.float(a.x, b.x, c.x),
+                    enumType.float(a.y, b.y, c.y),
+                    enumType.float(a.z, b.z, c.z)
                 )
             }
             is Vector4f -> {
                 b as Vector4f
                 c as Vector4f
                 Vector4f(
-                    type.float(a.x, b.x, c.x),
-                    type.float(a.y, b.y, c.y),
-                    type.float(a.z, b.z, c.z),
-                    type.float(a.w, b.w, c.w)
+                    enumType.float(a.x, b.x, c.x),
+                    enumType.float(a.y, b.y, c.y),
+                    enumType.float(a.z, b.z, c.z),
+                    enumType.float(a.w, b.w, c.w)
                 )
             }
             else -> throw NotImplementedError()

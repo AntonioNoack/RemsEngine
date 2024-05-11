@@ -24,14 +24,12 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
     companion object {
 
         private const val NODE_CLASS_NAMES = "" +
-                "ConfigGetBoolNode,ConfigGetIntNode,ConfigGetFloatNode,ForNode,IfElseNode,WhileNode,DoWhileNode," +
-                "PrintNode,NotNode,MathB2Node,MathB3Node,MathL1Node,MathL2Node,MathL3Node,MathI1Node,MathI2Node," +
-                "MathI3Node,MathD1Node,MathD2Node,MathD3Node,MathF1Node,MathF2Node,MathF3Node,MathF1XNode,MathF2XNode," +
-                "MathF3XNode,DotProductF2,DotProductF3,DotProductF4," +
-                "DotProductD2,DotProductD3,DotProductD4," +
-                "CrossProductF2,CrossProductF3,CrossProductD2,CrossProductD3," +
+                "ConfigGetBoolNode,ConfigGetIntNode,ConfigGetFloatNode,ForNode,IfElseNode,WhileNode,DoWhileNode,PrintNode," +
+                "NotNode,MathB2Node,MathB3Node,MathI1Node,MathI2Node,MathI3Node,MathF1Node,MathF2Node,MathF3Node," +
+                "MathF1XNode,MathF2XNode,MathF3XNode," +
+                "DotProductNode,CrossProductNode,NormalizeNode," +
                 "RotateF2Node,RotateF3XNode,RotateF3YNode,RotateF3ZNode," +
-                "NormalizeNode2,NormalizeNode3,NormalizeNode4,FresnelNode3," +
+                "FresnelNode3," +
                 "CompareNode,CombineVector2f,CombineVector3f,CombineVector4f," +
                 "SeparateVector2f,SeparateVector3f,SeparateVector4f,ColorNode,GameTime,RandomNode," +
                 "VectorLengthNode,VectorDistanceNode"

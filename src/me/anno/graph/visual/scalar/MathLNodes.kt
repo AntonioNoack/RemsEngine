@@ -3,40 +3,49 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.EnumNode
+import me.anno.graph.visual.FlowGraphNodeUtils.getLongInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
+import me.anno.utils.structures.maps.LazyMap
 
-val dataL1 = MathNodeData(
-    IntMathsUnary.entries,
-    listOf("Long"), "Long",
-    IntMathsUnary::id, IntMathsUnary::glsl
-)
+private val types = "Int,Long".split(',')
+private val dataI1 = LazyMap { type: String ->
+    MathNodeData(
+        IntMathsUnary.entries,
+        listOf(type), type,
+        IntMathsUnary::id, IntMathsUnary::glsl
+    )
+}
 
-class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLFuncNode {
+class MathI1Node : TypedMathNode<IntMathsUnary>(dataI1, types) {
     override fun compute() {
-        setOutput(0, type.long(getInput(0) as Long))
+        setOutput(0, enumType.long(getLongInput(0)))
     }
 }
 
-val dataL2 = MathNodeData(
-    IntMathsBinary.entries,
-    listOf("Long", "Long"), "Long",
-    IntMathsBinary::id, IntMathsBinary::glsl
-)
+private val dataI2 = LazyMap { type: String ->
+    MathNodeData(
+        IntMathsBinary.entries,
+        listOf(type, type), type,
+        IntMathsBinary::id, IntMathsBinary::glsl
+    )
+}
 
-class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLFuncNode {
+class MathI2Node : TypedMathNode<IntMathsBinary>(dataI2, types), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long))
+        setOutput(0, enumType.calculate(getLongInput(0), getLongInput(1)))
     }
 }
 
-val dataL3 = MathNodeData(
-    IntMathsTernary.entries,
-    listOf("Long", "Long", "Long"), "Long",
-    IntMathsTernary::id, IntMathsTernary::glsl
-)
+private val dataI3 = LazyMap { type: String ->
+    MathNodeData(
+        IntMathsTernary.entries,
+        listOf(type, type, type), type,
+        IntMathsTernary::id, IntMathsTernary::glsl
+    )
+}
 
-class MathL3Node : MathNode<IntMathsTernary>(dataL3), EnumNode, GLSLFuncNode {
+class MathI3Node : TypedMathNode<IntMathsTernary>(dataI3, types), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long, getInput(2) as Long))
+        setOutput(0, enumType.long(getLongInput(0), getLongInput(1), getLongInput(2)))
     }
 }

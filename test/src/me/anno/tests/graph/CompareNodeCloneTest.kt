@@ -16,7 +16,7 @@ class CompareNodeCloneTest {
     fun testUpdateName() {
         val node = CompareNode("Type")
         assertEquals("Type Less Than", node.name)
-        node.type = CompareMode.LESS_OR_EQUALS
+        node.enumType = CompareMode.LESS_OR_EQUALS
         assertEquals("Type Less Or Equals", node.name)
     }
 
@@ -40,7 +40,7 @@ class CompareNodeCloneTest {
     fun testSerialization() {
         registerCustomClass(CompareNode())
         val node = CompareNode("Type")
-        node.type = CompareMode.LESS_OR_EQUALS
+        node.enumType = CompareMode.LESS_OR_EQUALS
         val clone = JsonStringReader.readFirst<CompareNode>(JsonStringWriter.toText(node, InvalidRef), InvalidRef)
         assertEquals(node.toString(), clone.toString())
         assertEquals(node.name, clone.name)
