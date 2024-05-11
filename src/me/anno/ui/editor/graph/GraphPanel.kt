@@ -38,6 +38,7 @@ import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log2
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -121,6 +122,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         return nodeToPanel.getOrPut(node) {
             val panel = NodePanel(node, this, style)
             children.add(panel)
+            panel.parent = this
             panel.window = window
             invalidateLayout()
             panel
@@ -175,8 +177,9 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (lineThickness < 0 || lineThicknessBold < 0) {
             val window = window
             if (window != null) {
-                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(window.height / 120f).roundToInt())
-                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(window.height / 50f).roundToInt())
+                val size = max(window.height, 0)
+                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(size / 120f).roundToInt())
+                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(size / 50f).roundToInt())
             }
         }
     }

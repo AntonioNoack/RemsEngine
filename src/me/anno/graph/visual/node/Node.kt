@@ -7,11 +7,11 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 
 abstract class Node() : PrefabSaveable() {
@@ -209,13 +209,10 @@ abstract class Node() : PrefabSaveable() {
      * you need to clone all connectors, their values (names, descriptions, types, ...), and potentially neighboring nodes
      * */
     override fun clone(): Node {
-        // not ideal, but probably good enough for now and manual graph creation
-        if (!isConnected()) {
-            val clone = this.javaClass.newInstance()
-            copyInto(clone)
-            return clone
-        }
-        return JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
+        return if (isConnected()) {
+            // not ideal, but probably good enough for now and manual graph creation
+            JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
+        } else super.clone() as Node
     }
 
     override fun copyInto(dst: PrefabSaveable) {

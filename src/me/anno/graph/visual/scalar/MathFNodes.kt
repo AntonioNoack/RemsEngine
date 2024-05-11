@@ -6,10 +6,10 @@ import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
-val dataF1 = MathNode.MathNodeData(
+val dataF1 = MathNodeData(
     FloatMathsUnary.entries,
     listOf("Float"), "Float",
-    { it.id }, { it.glsl }
+    FloatMathsUnary::id, FloatMathsUnary::glsl
 )
 
 class MathF1Node : MathNode<FloatMathsUnary>(dataF1), EnumNode, GLSLFuncNode {
@@ -18,10 +18,10 @@ class MathF1Node : MathNode<FloatMathsUnary>(dataF1), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataF2 = MathNode.MathNodeData(
+val dataF2 = MathNodeData(
     FloatMathsBinary.entries,
     listOf("Float", "Float"), "Float",
-    { it.id }, { it.glsl }
+    FloatMathsBinary::id, FloatMathsBinary::glsl
 )
 
 class MathF2Node : MathNode<FloatMathsBinary>(dataF2), EnumNode, GLSLFuncNode {
@@ -30,10 +30,10 @@ class MathF2Node : MathNode<FloatMathsBinary>(dataF2), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataF3 = MathNode.MathNodeData(
+val dataF3 = MathNodeData(
     FloatMathsTernary.entries,
     listOf("Float", "Float", "Float"), "Float",
-    { it.id }, { it.glsl }
+    FloatMathsTernary::id, FloatMathsTernary::glsl
 )
 
 class MathF3Node : MathNode<FloatMathsTernary>(dataF3), EnumNode, GLSLFuncNode {

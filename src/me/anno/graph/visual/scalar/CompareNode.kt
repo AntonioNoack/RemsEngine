@@ -1,60 +1,46 @@
 package me.anno.graph.visual.scalar
 
-import me.anno.graph.visual.ComputeNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.MaterialGraph.convert
-import me.anno.graph.visual.render.compiler.GLSLExprNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
-import me.anno.io.base.BaseWriter
-import me.anno.language.translation.NameDesc
-import me.anno.ui.Style
-import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.graph.GraphEditor
-import me.anno.ui.editor.graph.GraphPanel
-import me.anno.ui.input.EnumInput
 import me.anno.utils.Logging.hash32raw
+import me.anno.utils.structures.maps.LazyMap
 
-class CompareNode(type: String = "?") :
-    ComputeNode("Compare", listOf(type, "A", type, "B"), outputs), GLSLExprNode {
+enum class CompareMode(val id: Int, val glsl: String) {
+    LESS_THAN(0, "<"),
+    LESS_OR_EQUALS(1, "<="),
+    EQUALS(2, "=="),
+    GREATER_THAN(3, ">"),
+    GREATER_OR_EQUALS(4, ">="),
+    NOT_EQUALS(5, "!="),
+    IDENTICAL(6, "=="),
+    NOT_IDENTICAL(7, "!=")
+}
 
-    // todo long & double & bool value node as inputs for some nodes
+val compareMathData = LazyMap<String, MathNodeData<CompareMode>> { type ->
+    MathNodeData(
+        CompareMode.entries, listOf(type, type), "Boolean",
+        CompareMode::id, CompareMode::glsl
+    )
+}
 
-    var compType = Mode.LESS_THAN
+private val types = "?,String,Boolean,Float,Int,Vector2f,Vector3f,Vector4f".split(',')
 
-    var type: String = type
-        set(value) {
-            field = value
-            inputs[0].type = value
-            inputs[1].type = value
-            name = if (value == "?") "Compare"
-            else "Compare $value"
-        }
+class CompareNode() : TypedMathNode<CompareMode>(compareMathData, types) {
 
-    init {
-        if (type != "?") name = "Compare $type"
-    }
-
-    enum class Mode(val id: Int, val niceName: String, val glslName: String) {
-        LESS_THAN(0, "<", "<"),
-        LESS_OR_EQUALS(1, "<=", "<="),
-        EQUALS(2, "==", "=="),
-        MORE_THAN(3, ">", ">"),
-        MORE_OR_EQUALS(4, ">=", ">="),
-        NOT_EQUALS(5, "!=", "!="),
-        IDENTICAL(6, "===", "=="),
-        NOT_IDENTICAL(7, "!==", "!=")
+    constructor(type: String) : this() {
+        setType(type)
     }
 
     fun apply(delta: Int): Boolean {
-        return when (compType) {
-            Mode.LESS_THAN -> delta < 0
-            Mode.LESS_OR_EQUALS -> delta <= 0
-            Mode.EQUALS -> delta == 0
-            Mode.MORE_THAN -> delta > 0
-            Mode.MORE_OR_EQUALS -> delta >= 0
-            Mode.NOT_EQUALS -> delta != 0
+        return when (type) {
+            CompareMode.LESS_THAN -> delta < 0
+            CompareMode.LESS_OR_EQUALS -> delta <= 0
+            CompareMode.EQUALS -> delta == 0
+            CompareMode.GREATER_THAN -> delta > 0
+            CompareMode.GREATER_OR_EQUALS -> delta >= 0
+            CompareMode.NOT_EQUALS -> delta != 0
             else -> false
         }
     }
@@ -77,19 +63,19 @@ class CompareNode(type: String = "?") :
     }
 
     override fun compute() {
-        val a = inputs[0].getValue()
-        val b = inputs[1].getValue()
-        val c = when (compType) {
-            Mode.IDENTICAL -> a === b
-            Mode.NOT_IDENTICAL -> a !== b
+        val a = getInput(0)
+        val b = getInput(1)
+        val v = when (type) {
+            CompareMode.IDENTICAL -> a === b
+            CompareMode.NOT_IDENTICAL -> a !== b
             else -> apply(compare(a, b))
         }
-        setOutput(0, c)
+        setOutput(0, v)
     }
 
     override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
         val inputs = n.inputs
-        val symbol = compType.glslName
+        val symbol = type.glsl
         val an = inputs[0]
         val bn = inputs[1]
         g.builder.append('(')
@@ -97,38 +83,5 @@ class CompareNode(type: String = "?") :
         g.builder.append(')').append(symbol).append('(')
         convert(g.builder, bn.type, g.aType(an, bn)) { g.expr(bn) }!! // second component
         g.builder.append(')')
-    }
-
-    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-        if (g is GraphEditor) {
-            list += EnumInput(
-                "Type", true, compType.name,
-                Mode.entries.map { NameDesc(it.niceName) }, style
-            ).setChangeListener { _, index, _ ->
-                compType = Mode.entries[index]
-                g.onChange(false)
-            }
-        } else list.add(TextPanel("Type: ${compType.name}", style))
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeString("type", type)
-        writer.writeEnum("compType", compType)
-    }
-
-    override fun setProperty(name: String, value: Any?) {
-        when (name) {
-            "type" -> type = value as? String ?: return
-            "compType", "type2" -> {
-                if (value !is Int) return
-                compType = Mode.entries.getOrNull(value) ?: compType
-            }
-            else -> super.setProperty(name, value)
-        }
-    }
-
-    companion object {
-        val outputs = listOf("Boolean", "Result")
     }
 }

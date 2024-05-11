@@ -22,14 +22,16 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
+import me.anno.ui.input.InputPanel
 import me.anno.utils.files.FileChooser
+import me.anno.utils.structures.lists.Lists.mapFirstNotNull
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -101,6 +103,11 @@ object Input {
 
     val isMouseLocked: Boolean
         get() = mouseLockWindow?.isInFocus == true && mouseLockPanel != null
+
+    fun skipCharTyped(codepoint: Int): Boolean {
+        return isKeyDown(Key.KEY_LEFT_ALT) &&
+                codepoint < 128 && codepoint.toChar().lowercaseChar() in 'a'..'z'
+    }
 
     fun unlockMouse() {
         mouseLockWindow = null
@@ -212,17 +219,20 @@ object Input {
         keyModState = mods
     }
 
+    private fun callKeyEventIsCancelled(window: OSWindow, key: Key, type: UIEventType): Boolean {
+        val event = UIEvent(
+            window.currentWindow,
+            window.mouseX, window.mouseY,
+            key, type
+        ).call()
+        return event.isCancelled
+    }
+
     fun onKeyPressed(window: OSWindow, key: Key, nanoTime: Long) {
         window.framesSinceLastInteraction = 0
         keysDown[key] = nanoTime
         keysWentDown += key
-        val event = UIEvent(
-            window.currentWindow,
-            window.mouseX,
-            window.mouseY, key,
-            UIEventType.KEY_DOWN
-        ).call()
-        if (!event.isCancelled) {
+        if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_DOWN)) {
             window.windowStack.inFocus0
                 ?.onKeyDown(window.mouseX, window.mouseY, key)
             ActionManager.onKeyDown(window, key)
@@ -234,13 +244,7 @@ object Input {
         window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
-        val event = UIEvent(
-            window.currentWindow,
-            window.mouseX,
-            window.mouseY, key,
-            UIEventType.KEY_UP
-        ).call()
-        if (!event.isCancelled) {
+        if (!callKeyEventIsCancelled(window, key, UIEventType.KEY_UP)) {
             window.windowStack.inFocus0?.onKeyUp(window.mouseX, window.mouseY, key)
             ActionManager.onKeyUp(window, key)
         }
@@ -250,14 +254,7 @@ object Input {
     fun onKeyTyped(window: OSWindow, key: Key) {
 
         window.framesSinceLastInteraction = 0
-
-        val event = UIEvent(
-            window.currentWindow,
-            window.mouseX,
-            window.mouseY, key,
-            UIEventType.KEY_TYPED
-        ).call()
-        if (event.isCancelled) {
+        if (callKeyEventIsCancelled(window, key, UIEventType.KEY_TYPED)) {
             return
         }
 
@@ -293,27 +290,8 @@ object Input {
                     if (isShiftDown || isControlDown
                         || !inFocus0.isKeyInput()
                         || !inFocus0.acceptsChar('\t'.code)
-                    ) {
-                        // switch between input elements
-                        val root = inFocus0.rootPanel
-                        // todo make groups, which are not empty, inputs?
-                        val list = root.listOfAll.filter { it.canBeSeen && it.isKeyInput() }.toList()
-                        val index = list.indexOf(inFocus0)
-                        if (index > -1) {
-                            var next = list
-                                .subList(index + 1, list.size)
-                                .firstOrNull()
-                            if (next == null) {
-                                // LOGGER.info("no more text input found, starting from top")
-                                // restart from top
-                                next = list.firstOrNull()
-                            }// else LOGGER.info(next)
-                            if (next != null) {
-                                inFocus.clear()
-                                inFocus += next
-                            }
-                        }// else error, child missing
-                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
+                    ) tabToNextInput(inFocus0, isAltDown)
+                    else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
                 }
             }
             Key.KEY_ESCAPE -> {
@@ -327,6 +305,43 @@ object Input {
             else -> {}
         }
         inFocus0?.onKeyTyped(mouseX, mouseY, key)
+    }
+
+    fun tabToNextInput(inFocus0: Panel, backwards: Boolean) {
+        // switch between input elements
+        val root = inFocus0.rootPanel
+        // todo make non-empty category-settings inputs, so we can toggle them?
+        //  does that already work by chance?
+        val inputPanels = ArrayList<Panel>()
+        fun isInput(it: Panel): Boolean {
+            return it is InputPanel<*> && it.isEnabled && it.isKeyInput()
+        }
+        root.forAllVisiblePanels {
+            if (isInput(it)) {
+                inputPanels.add(it)
+            }
+        }
+        val index = inFocus0.listOfHierarchy.mapFirstNotNull {
+            val idx = inputPanels.indexOf(it)
+            if (idx >= 0) idx else null
+        }
+        var next = inputPanels.firstOrNull()
+        if (index != null) {
+            val delta = if (backwards) -1 else +1 // alt+tab goes backwards :3
+            next = inputPanels.getOrNull(index + delta)
+            if (next == null) {
+                // restart from other end
+                next = if (backwards) inputPanels.lastOrNull() else inputPanels.firstOrNull()
+            }
+            if (next != null) {
+                next.scrollTo() // in case it would be off-screen
+                next.requestFocus()
+            }
+        }
+        if (next != null) {
+            next.scrollTo() // in case it would be off-screen
+            next.requestFocus()
+        }
     }
 
     fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {

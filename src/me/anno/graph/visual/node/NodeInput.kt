@@ -94,7 +94,7 @@ class NodeInput : NodeConnector {
                     is Texture -> v.tex
                     is ITexture2D -> v
                     else -> null
-                }.run { if (this is Texture2D && isDestroyed) null else this }
+                }?.createdOrNull()
             }
             registerType("Texture2D") { v ->
                 when (v) {

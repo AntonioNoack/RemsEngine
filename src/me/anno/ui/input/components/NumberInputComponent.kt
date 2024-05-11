@@ -17,7 +17,7 @@ open class NumberInputComponent(val visibilityKey: String, style: Style) :
     @Suppress("unused")
     var indexInProperty = 0
 
-    override var isVisible: Boolean
+    override var isEnabled: Boolean
         get() = InputVisibility[visibilityKey] // can be null in constructor
         set(_) {}
 

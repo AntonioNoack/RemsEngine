@@ -5,12 +5,7 @@ import me.anno.graph.visual.node.NodeLibrary
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 
-// todo bug: <tab> in vector input not switching to next one
-
 // todo quat to vec?
-
-// todo create post-process graph with stages...
-// todo use that for general rendering instead of our pre-defined attempts :)
 
 object MaterialGraph {
 
@@ -27,11 +22,9 @@ object MaterialGraph {
     }
 
     fun convert(builder: StringBuilder, srcType: String, dstType: String, expr: () -> Unit): Unit? {
-        if (srcType == dstType) return expr()
-        if (srcType == "Boolean") return convert(builder, "Bool", dstType, expr)
-        else if (dstType == "Boolean") return convert(builder, srcType, "Bool", expr)
+        if (srcType == dstType || kotlinToGLSL(srcType) == kotlinToGLSL(dstType)) return expr()
         when (srcType) {
-            "Bool" -> {
+            "Bool", "Boolean" -> {
                 var prefix = ""
                 val suffix = when (dstType) {
                     "Int", "Long" -> "?1:0"
@@ -55,7 +48,7 @@ object MaterialGraph {
             "Float", "Double" -> {
                 var suffix = ")"
                 val prefix = when (dstType) {
-                    "Bool" -> {
+                    "Bool", "Boolean" -> {
                         suffix = "!=0.0)"
                         "("
                     }
@@ -77,7 +70,7 @@ object MaterialGraph {
             "Int", "Long" -> {
                 var suffix = ")"
                 val prefix = when (dstType) {
-                    "Bool" -> {
+                    "Bool", "Boolean" -> {
                         suffix = "!=0)"
                         "("
                     }
@@ -96,7 +89,7 @@ object MaterialGraph {
             "Vector2f" -> {
                 var prefix = "("
                 val suffix = when (dstType) {
-                    "Bool" -> ").x!=0.0"
+                    "Bool", "Boolean" -> ").x!=0.0"
                     "Float", "Double" -> ").x"
                     "Vector3f" -> {
                         prefix = "vec3("
@@ -113,7 +106,7 @@ object MaterialGraph {
             "Vector3f" -> {
                 var prefix = "("
                 val suffix = when (dstType) {
-                    "Bool" -> ").x!=0.0"
+                    "Bool", "Boolean" -> ").x!=0.0"
                     "Float", "Double" -> ").x"
                     "Vector2f" -> ").xy"
                     "Vector4f" -> {
@@ -126,7 +119,7 @@ object MaterialGraph {
             }
             "Vector4f" -> {
                 val suffix = when (dstType) {
-                    "Bool" -> ".x!=0.0"
+                    "Bool", "Boolean" -> ".x!=0.0"
                     "Float", "Double" -> ".x"
                     "Vector2f" -> ".xy"
                     "Vector3f" -> ".xyz"
@@ -137,7 +130,7 @@ object MaterialGraph {
             }
             "ITexture2D" -> {
                 val suffix = when (dstType) {
-                    "Bool" -> ".x!=0.0"
+                    "Bool", "Boolean" -> ".x!=0.0"
                     "Float", "Double" -> ".x"
                     "Vector2f" -> ".xy"
                     "Vector3f" -> ".xyz"
@@ -191,7 +184,7 @@ object MaterialGraph {
         // DeferredLayerType.INDEX_OF_REFRACTION,
     )
 
-    val types = listOf(
+    val floatVecTypes = listOf(
         "Float",
         "Vector2f",
         "Vector3f",

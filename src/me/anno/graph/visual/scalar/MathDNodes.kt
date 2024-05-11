@@ -3,10 +3,10 @@ package me.anno.graph.visual.scalar
 import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
-val dataD1 = MathNode.MathNodeData(
+val dataD1 = MathNodeData(
     FloatMathsUnary.entries,
     listOf("Double"), "Double",
-    { it.id }, { it.glsl }
+    FloatMathsUnary::id, FloatMathsUnary::glsl
 )
 
 class MathD1Node : MathNode<FloatMathsUnary>(dataD1), EnumNode, GLSLFuncNode {
@@ -15,10 +15,10 @@ class MathD1Node : MathNode<FloatMathsUnary>(dataD1), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataD2 = MathNode.MathNodeData(
+val dataD2 = MathNodeData(
     FloatMathsBinary.entries,
     listOf("Double", "Double"), "Double",
-    { it.id }, { it.glsl }
+    FloatMathsBinary::id, FloatMathsBinary::glsl
 )
 
 class MathD2Node : MathNode<FloatMathsBinary>(dataD2), EnumNode, GLSLFuncNode {
@@ -27,10 +27,11 @@ class MathD2Node : MathNode<FloatMathsBinary>(dataD2), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataD3 = MathNode.MathNodeData(
+val dataD3 = MathNodeData(
     FloatMathsTernary.entries,
     listOf("Double", "Double", "Double"), "Double",
-    { it.id }, { it.glsl })
+    FloatMathsTernary::id, FloatMathsTernary::glsl
+)
 
 class MathD3Node : MathNode<FloatMathsTernary>(dataD3), EnumNode, GLSLFuncNode {
     override fun compute() {

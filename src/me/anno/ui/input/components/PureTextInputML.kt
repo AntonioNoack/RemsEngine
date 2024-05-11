@@ -25,17 +25,26 @@ import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
-import kotlin.math.abs
 
 // todo hovering over spell correction can reset the cursor (WTF), fix that
 open class PureTextInputML(style: Style) :
     ScrollPanelXY(Padding(0), style),
     InputPanel<String>,
     TextStyleable {
+
+    companion object {
+
+        var lastChangeTime = 0L
+        val blinkVisible get() = !((Time.nanoTime - lastChangeTime) ushr 29).hasFlag(1L)
+
+        fun notifyCursorTyped() {
+            lastChangeTime = Time.nanoTime
+        }
+    }
 
     private val cursor1 = CursorPosition(0, 0)
     private val cursor2 = CursorPosition(0, 0)
@@ -72,6 +81,11 @@ open class PureTextInputML(style: Style) :
 
     private var enterListener: ((text: String) -> Unit)? = null
     private var resetListener: (() -> String?)? = null
+
+    override fun requestFocus(exclusive: Boolean) {
+        super.requestFocus(exclusive)
+        notifyCursorTyped()
+    }
 
     fun setEnterListener(listener: (text: String) -> Unit): PureTextInputML {
         enterListener = listener
@@ -153,15 +167,6 @@ open class PureTextInputML(style: Style) :
     @NotSerializedProperty
     private var lastText = ""
 
-    @NotSerializedProperty
-    private var lastChangeTime = 0L
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateDrawing()
-            }
-        }
-
     private val changeListeners = ArrayList<(text: String) -> Unit>()
 
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
@@ -169,7 +174,6 @@ open class PureTextInputML(style: Style) :
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val actualChildren = (child as PanelListY).children
     private val scrollbarStartY get() = if (minW > width) actualChildren.last().run { y + height - 3 } else y + height
-    private val wasJustChanged get() = abs(Time.nanoTime - lastChangeTime) < 200_000_000
     val styleSample get() = actualChildren[0] as TextPanel
 
     private fun updateLines() {
@@ -218,6 +222,14 @@ open class PureTextInputML(style: Style) :
                 override fun onCopyRequested(x: Float, y: Float): Any? {
                     return this@PureTextInputML.onCopyRequested(x, y)
                 }
+
+                override fun isKeyInput(): Boolean {
+                    return this@PureTextInputML.isKeyInput()
+                }
+
+                override fun acceptsChar(char: Int): Boolean {
+                    return this@PureTextInputML.acceptsChar(char)
+                }
             }
             panel.enableSpellcheck = enableSpellcheck
             content.add(panel)
@@ -234,10 +246,9 @@ open class PureTextInputML(style: Style) :
     private var lastClick = 0L
     override fun onUpdate() {
         super.onUpdate()
-        val blinkVisible = (((Time.nanoTime - lastClick) / 500_000_000L) % 2L == 0L)
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
-        showBars = isInFocus && (blinkVisible || wasJustChanged)
+        showBars = isInFocus && blinkVisible
         if (showBars != oldShowBars) invalidateDrawing()
     }
 
@@ -256,7 +267,7 @@ open class PureTextInputML(style: Style) :
         loadTexturesSync.push(loadTextSync)
         super.onDraw(x0, y0, x1, y1)
         val children = actualChildren
-        val examplePanel = children.firstOrNull2() as? TextPanel ?: return
+        val examplePanel = children.firstOrNull() as? TextPanel ?: return
         val font = examplePanel.font
         val textSize = font.sizeInt
         val textColor = examplePanel.textColor or black
@@ -417,7 +428,7 @@ open class PureTextInputML(style: Style) :
 
     fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
-            lastChangeTime = Time.nanoTime
+            notifyCursorTyped()
             for (cp in insertion.codepoints()) {
                 insert(cp, false)
             }
@@ -447,7 +458,7 @@ open class PureTextInputML(style: Style) :
     }
 
     fun insert(insertion: Int, notify: Boolean) {
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         deleteSelection()
         when (insertion) {
             '\n'.code -> {
@@ -487,7 +498,7 @@ open class PureTextInputML(style: Style) :
     fun deleteBefore(force: Boolean) {
         if (lastDelete != Time.lastTimeNanos || force) {
             lastDelete = Time.lastTimeNanos
-            lastChangeTime = Time.nanoTime
+            notifyCursorTyped()
             if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
                 if (cursor1.x == 0) {
                     // join lines
@@ -543,8 +554,8 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        if (isInputAllowed && !Input.isAltDown) {
-            lastChangeTime = Time.nanoTime
+        if (isInputAllowed && !Input.skipCharTyped(codepoint)) {
+            notifyCursorTyped()
             addKey(codepoint)
         } else super.onCharTyped(x, y, codepoint)
     }
@@ -578,7 +589,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
     }
 
     private fun moveLeft() {
@@ -605,7 +616,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
     }
 
     private fun moveUp() {
@@ -621,7 +632,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
     }
 
     private fun moveDown() {
@@ -637,7 +648,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {

@@ -59,7 +59,8 @@ class PrefabInspector(var reference: FileReference) {
 
     val prefab: Prefab
         get() {
-            val prefab = PrefabCache[reference] ?: throw NullPointerException("Missing prefab of $reference")
+            val prefab = PrefabCache[reference]
+                ?: throw NullPointerException("Missing prefab of $reference, ${reference::class.simpleName}")
             val history = prefab.history ?: ChangeHistory().apply {
                 put(serialize(prefab))
             }

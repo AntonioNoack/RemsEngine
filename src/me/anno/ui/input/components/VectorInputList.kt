@@ -6,7 +6,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.InputVisibility
 
 class VectorInputList(val visibilityKey: String, style: Style) : PanelListX(style) {
-    override var isVisible: Boolean
+    override var isEnabled: Boolean
         get() = InputVisibility[visibilityKey]
         set(_) {}
 

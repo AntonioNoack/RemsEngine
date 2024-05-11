@@ -313,13 +313,13 @@ abstract class GPUShader(val name: String) : ICacheData {
         return this
     }
 
-    fun ignoreNameWarnings(names: Collection<String>) {
-        ignoredNames += names
+    fun ignoreNameWarnings(names: Collection<String>): GPUShader {
+        ignoredNames.addAll(names)
+        return this
     }
 
-    fun ignoreNameWarnings(name: String): GPUShader {
-        ignoredNames += name.split(',')
-        return this
+    fun ignoreNameWarnings(names: String): GPUShader {
+        return ignoreNameWarnings(names.split(','))
     }
 
     fun getUniformLocation(name: String, warnIfMissing: Boolean = true): Int {

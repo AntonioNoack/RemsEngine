@@ -101,7 +101,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         invalidateRecursively(entity)
     }
 
-    fun registerNonStatic(entity: Entity, isStatic: Boolean, bodyWithScale: BodyWithScale<ExternalRigidBody>){
+    fun registerNonStatic(entity: Entity, isStatic: Boolean, bodyWithScale: BodyWithScale<ExternalRigidBody>) {
         if (isStatic) {
             nonStaticRigidBodies.remove(entity)
         } else {
@@ -144,15 +144,37 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     abstract fun removeConstraints(entity: Entity)
 
-    fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
+    fun <V : Component> getValidComponents(root: Entity, clazz: KClass<V>): List<V> {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
-        return sequence {
-            @Suppress("unchecked_cast")
-            yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
-            for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent(rigidComponentClass, false)) {
-                    yieldAll(getValidComponents(child, clazz))
-                }
+        val dst = ArrayList<V>()
+        val tmp = ArrayList<Entity>()
+        tmp.add(root)
+        while (tmp.isNotEmpty()) { // non-recursive should be faster
+            val entity = tmp.removeLast()
+            collectValidComponents(entity, clazz, dst)
+            collectNextEntities(entity, tmp)
+        }
+        return dst
+    }
+
+    private fun <V : Component> collectValidComponents(entity: Entity, clazz: KClass<V>, dst: ArrayList<V>) {
+        val components = entity.components
+        for (i in components.indices) {
+            val comp = components[i]
+            if (comp.isEnabled && clazz.isInstance(comp)) {
+                @Suppress("unchecked_cast")
+                dst.add(comp as V)
+            }
+        }
+    }
+
+    private fun collectNextEntities(entity: Entity, tmp: ArrayList<Entity>) {
+        val children = entity.children
+        for (i in children.indices) {
+            // only collect colliders, which are appropriate for this: stop at any other rigidbody
+            val child = children[i]
+            if (child.isEnabled && !child.hasComponent(rigidComponentClass, false)) {
+                tmp.add(child)
             }
         }
     }

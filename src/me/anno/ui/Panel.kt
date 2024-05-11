@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -12,7 +13,6 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
@@ -24,9 +24,9 @@ import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
-import me.anno.utils.types.Strings.shorten
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -108,12 +108,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return this
     }
 
-    open var isVisible = true
+    var isVisible: Boolean
+        get() = isEnabled
         set(value) {
-            if (field != value) {
-                field = value
-                invalidateLayout()
-            }
+            isEnabled = value
         }
 
     @NotSerializedProperty
@@ -624,108 +622,91 @@ open class Panel(val style: Style) : PrefabSaveable() {
         )
     }
 
-    fun listOfPanelHierarchy(callback: (Panel) -> Unit) {
-        uiParent?.listOfPanelHierarchy(callback)
+    override val listOfAll: List<Panel>
+        get() = listOfChildren(null)
+
+    val listOfVisible: List<Panel>
+        get() = listOfChildren(Panel::isVisible)
+
+    open fun forAllPanels(callback: (Panel) -> Unit) {
         callback(this)
-    }
-
-    fun listOfPanelHierarchyReversed(callback: (Panel) -> Unit) {
-        callback(this)
-        uiParent?.listOfPanelHierarchy(callback)
-    }
-
-    val listOfPanelHierarchy: Sequence<Panel>
-        get() = sequence {
-            val p = uiParent
-            if (p != null) yieldAll(p.listOfPanelHierarchy)
-            yield(this@Panel)
-        }
-
-    val listOfPanelHierarchyReversed: Sequence<Panel>
-        get() = sequence {
-            yield(this@Panel)
-            val p = uiParent
-            if (p != null) yieldAll(p.listOfPanelHierarchyReversed)
-        }
-
-    fun listOfVisible(callback: (Panel) -> Unit) {
-        if (canBeSeen) {
-            callback(this)
-            if (this is PanelGroup) {
-                for (child in children) {
-                    child.forAllPanels(callback)
-                }
-            }
-        }
-    }
-
-    val listOfVisible: Sequence<Panel>
-        get() = sequence {
-            if (canBeSeen) {
-                yield(this@Panel)
-                if (this@Panel is PanelGroup) {
-                    for (child in this@Panel.children) {
-                        yieldAll(child.listOfVisible)
-                    }
-                }
-            }
-        }
-
-    fun forAllPanels(callback: (Panel) -> Unit) {
-        callback(this)
-        if (this is PanelGroup) {
-            val children = children
-            for (i in children.indices) {
-                val child = children[i]
-                child.parent = this
-                child.forAllPanels(callback)
-            }
+        val children = (this as? PanelGroup)?.children ?: return
+        for (i in children.indices) {
+            children[i].forAllPanels(callback)
         }
     }
 
     open fun forAllVisiblePanels(callback: (Panel) -> Unit) {
-        if (canBeSeen) callback(this)
+        if (!isVisible) return
+        callback(this)
+        val children = (this as? PanelGroup)?.children ?: return
+        for (i in children.indices) {
+            children[i].forAllVisiblePanels(callback)
+        }
     }
 
     fun firstOfAll(predicate: (Panel) -> Boolean): Panel? {
-        if (predicate(this)) return this
-        if (this is PanelGroup) {
-            for (child in children) {
-                val first = child.firstOfAll(predicate)
-                if (first != null) return first
-            }
-        }
-        return null
+        return firstInChildren(null, predicate)
     }
 
     fun any(predicate: (Panel) -> Boolean): Boolean {
         return firstOfAll(predicate) != null
     }
 
-    fun firstOfHierarchical(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Panel? {
-        if (!filter(this)) return null
+    fun firstInChildren(filter: ((Panel) -> Boolean)?, predicate: (Panel) -> Boolean): Panel? {
+        if (filter != null && !filter(this)) return null
         if (predicate(this)) return this
-        if (this is PanelGroup) {
-            for (child in children) {
-                val first = child.firstOfAll(predicate)
-                if (first != null) return first
-            }
+        val children = (this as? PanelGroup)?.children ?: return null
+        // recursion could be made linear
+        for (i in children.indices) {
+            val child = children[i]
+            val hit = child.firstInChildren(filter, predicate)
+            if (hit != null) return hit
         }
         return null
     }
 
-    fun anyHierarchical(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Boolean {
-        return firstOfHierarchical(filter, predicate) != null
+    fun listOfChildren(filter: ((Panel) -> Boolean)?): List<Panel> {
+        if (filter != null && !filter(this)) {
+            return emptyList()
+        }
+        val dst = ArrayList<Panel>()
+        dst.add(this)
+        var i = 0
+        while (i < dst.size) {
+            val pi = dst[i++]
+            val children = (pi as? PanelGroup)?.children ?: continue
+            if (filter == null) { // faster version
+                dst.addAll(children)
+            } else {
+                addChildrenIf(children, dst, filter)
+            }
+        }
+        return dst
     }
 
-    override val listOfAll: List<Panel>
-        get() = super.listOfAll.filterIsInstance<Panel>()
+    private fun addChildrenIf(
+        children: List<Panel>, dst: ArrayList<Panel>,
+        filter: (Panel) -> Boolean
+    ): List<Panel> {
+        for (ci in children.indices) {
+            val ch = children[ci]
+            if (filter(ch)) {
+                dst.add(ch)
+            }
+        }
+        return dst
+    }
+
+    fun anyInChildren(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Boolean {
+        return firstInChildren(filter, predicate) != null
+    }
 
     /**
      * does this panel contain the coordinate (x, y)?
      * does not consider overlap
      * */
-    fun contains(x: Int, y: Int, margin: Int = 0) =
+    fun contains(x: Int, y: Int, margin: Int = 0): Boolean =
         (x - this.x) in -margin until width + margin && (y - this.y) in -margin until height + margin
 
     /**
@@ -734,7 +715,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
      *
      * panels are aligned on full coordinates, so there is no advantage in calling this function
      * */
-    fun contains(x: Float, y: Float, margin: Int = 0) = contains(x.toInt(), y.toInt(), margin)
+    fun contains(x: Float, y: Float, margin: Int = 0): Boolean = contains(x.toInt(), y.toInt(), margin)
 
     /**
      * when shift/ctrl clicking on items to select multiples...
@@ -835,7 +816,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "weight" -> weight = value as? Float ?: return
             "backgroundRadius" -> backgroundRadius = value as? Float ?: return
             "backgroundOutlineThickness" -> backgroundOutlineThickness = value as? Float ?: return

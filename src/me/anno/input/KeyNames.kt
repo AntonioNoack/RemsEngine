@@ -16,7 +16,7 @@ object KeyNames {
         constructor() : this(
             Input.isControlDown,
             Input.isShiftDown,
-            Input.isAltDown,
+            Input.isKeyDown(Key.KEY_RIGHT_ALT),
             Input.isSuperDown,
             Input.keysDown.keys.toHashSet()
         )

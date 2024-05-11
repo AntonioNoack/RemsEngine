@@ -10,7 +10,7 @@ import kotlin.math.sqrt
 
 enum class FloatMathsBinary(
     val id: Int,
-    val glsl: String
+    val glsl: String,
 ) {
 
     ADD(0, "a+b"),
@@ -34,6 +34,12 @@ enum class FloatMathsBinary(
     ATAN2(40, "atan(a,b)"),
 
     ;
+
+    val supportsVectors: Boolean
+        get() = when (this) {
+            LENGTH, LENGTH_SQUARED -> false
+            else -> true
+        }
 
     fun double(a: Double, b: Double): Double {
         return when (this) {

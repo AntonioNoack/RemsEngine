@@ -23,6 +23,7 @@ import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.Color.withAlpha
 
 @Suppress("MemberVisibilityCanBePrivate")
 class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
@@ -47,6 +48,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             }
         }
 
+    // todo show the background renderer, when edited graph is RenderGraph
     var graphEditor: GraphEditor = GraphEditor(null, style)
 
     init {
@@ -66,8 +68,9 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
         editControls.isVisible = !worldIsGraph && editing
         playControls.isVisible = !worldIsGraph && !editing
         renderer.controlScheme = if (editing) editControls else playControls
-        renderer.isVisible = !worldIsGraph
         graphEditor.isVisible = worldIsGraph
+        graphEditor.makeBackgroundTransparent()
+        // graphEditor.backgroundColor = graphEditor.backgroundColor.withAlpha(127)
     }
 
     companion object {

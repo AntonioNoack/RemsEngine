@@ -16,7 +16,7 @@ import kotlin.math.max
 
 class NumberType(
     defaultValue: Any,
-    val components: Int,
+    val numComponents: Int,
     val unitScale: Float,
     val hasLinear: Boolean,
     val hasExponential: Boolean,
@@ -33,10 +33,10 @@ class NumberType(
     val defaultValue = acceptOrNull(clamp(defaultValue))
         ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
 
-    override fun toString() = "Type[${defaultValue::class.simpleName} x $components]"
+    override fun toString() = "Type[${defaultValue::class.simpleName} x $numComponents]"
 
     fun withDefaultValue(defaultValue: Any): NumberType = NumberType(
-        defaultValue, components, unitScale, hasLinear, hasExponential,
+        defaultValue, numComponents, unitScale, hasLinear, hasExponential,
         clampFunc, acceptOrNull
     )
 

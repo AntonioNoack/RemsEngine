@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.util.Stack
@@ -24,7 +23,7 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
 
     // typically few elements, so a list
     val inFocus = ArrayList<Panel>()
-    val inFocus0 get() = inFocus.firstOrNull2()
+    val inFocus0 get() = inFocus.firstOrNull()
 
     /**
      * transforms the on-OS-window cursor position to local coordinates

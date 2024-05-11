@@ -23,8 +23,8 @@ object RockTypes {
     val sand = RockType(4, NameDesc("Sand"), mapOf(hardness to 0f), 0xffeeaa)
 
     val rockTypes = listOf(stone, rock, clay, sand)
-    val rockById = rockTypes.associateBy { it.id }
-    val rockTextures = Array(rockTypes.maxOf { it.id } + 1) { id ->
+    val rockById = rockTypes.associateBy(RockType::id)
+    val rockTextures = Array(rockTypes.maxOf(RockType::id) + 1) { id ->
         rockById[id]?.texture ?: skyColor
     }
 }

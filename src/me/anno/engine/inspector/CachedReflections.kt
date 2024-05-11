@@ -188,7 +188,6 @@ class CachedReflections(
             clazz: KClass<*>, allProperties: Map<String, CachedProperty>
         ): List<Pair<KClass<*>, List<String>>> {
             val classes = listClasses(clazz)
-            println("listing classes: $clazz -> $classes")
             return getPropertiesByDeclaringClass(classes, allProperties)
         }
 

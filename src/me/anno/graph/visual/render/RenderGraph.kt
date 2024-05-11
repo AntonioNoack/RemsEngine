@@ -28,6 +28,7 @@ import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
@@ -157,12 +158,13 @@ object RenderGraph {
     }
 
     private fun drawResult(endNode: ExprReturnNode, dst: Panel) {
-        val texture = endNode.render(true)
+        val tex = endNode.render(true)
+        val texture = tex.texOrNull ?: return
         val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.width, dst.height)
         val x = dst.x + (dst.width - w).shr(1)
         val y = dst.y + (dst.height - h).shr(1)
-        val applyToneMapping = endNode.getInput(6) == true
-        drawTexture(x, y + h, w, -h, texture, false, -1, null, applyToneMapping)
+        val applyToneMapping = endNode.getBoolInput(6)
+        drawTexture(x, y + h, w, -h, texture, true, tex.color, null, applyToneMapping)
     }
 
     // todo sample sky (tex) node

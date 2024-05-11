@@ -5,10 +5,10 @@ package me.anno.graph.visual.scalar
 import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
-val dataL1 = MathNode.MathNodeData(
+val dataL1 = MathNodeData(
     IntMathsUnary.entries,
     listOf("Long"), "Long",
-    { it.id }, { it.glsl }
+    IntMathsUnary::id, IntMathsUnary::glsl
 )
 
 class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLFuncNode {
@@ -17,10 +17,10 @@ class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataL2 = MathNode.MathNodeData(
+val dataL2 = MathNodeData(
     IntMathsBinary.entries,
     listOf("Long", "Long"), "Long",
-    { it.id }, { it.glsl }
+    IntMathsBinary::id, IntMathsBinary::glsl
 )
 
 class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLFuncNode {
@@ -29,10 +29,10 @@ class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLFuncNode {
     }
 }
 
-val dataL3 = MathNode.MathNodeData(
+val dataL3 = MathNodeData(
     IntMathsTernary.entries,
     listOf("Long", "Long", "Long"), "Long",
-    { it.id }, { it.glsl }
+    IntMathsTernary::id, IntMathsTernary::glsl
 )
 
 class MathL3Node : MathNode<IntMathsTernary>(dataL3), EnumNode, GLSLFuncNode {

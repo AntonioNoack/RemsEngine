@@ -102,7 +102,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
                 }.firstOrNull { child ->
                     sameSceneRefInput.clazz.isInstance(child)
                 }
-            }.firstOrNull2() ?: sameSceneRefInput.value
+            }.firstOrNull() ?: sameSceneRefInput.value
         if (sample != null) {
             @Suppress("unchecked_cast")
             sameSceneRefInput.setValue(sample as V, true)

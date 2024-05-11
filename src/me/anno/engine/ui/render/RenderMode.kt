@@ -66,6 +66,8 @@ class RenderMode(
 
     init {
         values.add(this)
+        renderGraph?.name = name
+        superMaterial?.name = name
     }
 
     companion object {

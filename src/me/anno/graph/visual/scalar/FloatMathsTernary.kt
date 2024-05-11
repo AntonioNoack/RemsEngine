@@ -3,6 +3,7 @@ package me.anno.graph.visual.scalar
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.median
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.smoothStep
 import me.anno.maths.Maths.unmix
 
 enum class FloatMathsTernary(
@@ -18,6 +19,7 @@ enum class FloatMathsTernary(
     MIX_CLAMPED(4, "mix(a,b,clamp(c,0.0,1.0))"),
     UNMIX_CLAMPED(5, "clamp((a-b)/(c-b),0.0,1.0)"),
 
+    SMOOTHSTEP3(6, "smoothstep(a,b,c)"), // min,max,x
 
     ADD3(10, "a+b+c"),
     MUL3(12, "a*b*c"),
@@ -33,6 +35,7 @@ enum class FloatMathsTernary(
             UNMIX -> unmix(a, b, c)
             MIX_CLAMPED -> mix(a, b, clamp(c))
             UNMIX_CLAMPED -> clamp(unmix(a, b, c))
+            SMOOTHSTEP3 -> smoothStep(unmix(a, b, c))
             ADD3 -> a + b + c
             MUL3 -> a * b * c
             MUL_ADD -> a * b + c

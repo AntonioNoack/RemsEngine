@@ -1,7 +1,7 @@
 package me.anno.graph.visual.scalar
 
-import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.ComputeNode
+import me.anno.graph.visual.EnumNode
 import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 
@@ -11,10 +11,10 @@ class NotNode : ComputeNode("Binary Not", listOf("Boolean", "Value"), "Boolean")
     }
 }
 
-val dataB2 = MathNode.MathNodeData(
+val dataB2 = MathNodeData(
     BooleanMathsBinary.entries,
     listOf("Boolean", "Boolean"), "Boolean",
-    { it.id }, { it.glsl }
+    BooleanMathsBinary::id, BooleanMathsBinary::glsl
 )
 
 class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLFuncNode {
@@ -23,10 +23,10 @@ class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLFuncNode 
     }
 }
 
-val dataB3 = MathNode.MathNodeData(
+val dataB3 = MathNodeData(
     BooleanMathsTernary.entries,
     listOf("Boolean", "Boolean", "Boolean"), "Boolean",
-    { it.id }, { it.glsl }
+    BooleanMathsTernary::id, BooleanMathsTernary::glsl
 )
 
 class MathB3Node : MathNode<BooleanMathsTernary>(dataB3), EnumNode, GLSLFuncNode {

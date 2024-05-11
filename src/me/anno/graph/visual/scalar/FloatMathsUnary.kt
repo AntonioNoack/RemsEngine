@@ -41,17 +41,16 @@ enum class FloatMathsUnary(
     ROUND(3, "round(a)"),
     CEIL(4, "ceil(a)"),
     FRACT(5, "fract(a)"),
-    TRUNC(5, "float(int(a))"),
+    TRUNCATE(5, "float(int(a))"),
 
     LN(10, "log(a)"),
     LN1P(11, "log(1.0+a)"),
     LOG2(12, "log2(a)"),
-    LOG10(13, "log10(a)"),
+    LOG10(13, "log2(a)/log2(10.0)"),
 
     EXP(20, "exp(a)"),
     EXPM1(21, "exp(a)-1.0"),
 
-    // todo unable to find compatible overloaded function "pow(float, vec3)"
     EXP2(22, "pow(2.0, a)"),
     EXP10(23, "pow(10.0, a)"),
     SQRT(26, "sqrt(a)"),
@@ -60,6 +59,7 @@ enum class FloatMathsUnary(
 
     ONE_MINUS(30, "1.0-a"),
     INVERT(31, "1.0/a"),
+    SMOOTHSTEP(32, "a*a*(3.0-2.0*a)"),
 
     SIN(40, "sin(a)"),
     COS(41, "cos(a)"),
@@ -87,7 +87,7 @@ enum class FloatMathsUnary(
             CEIL -> ceil(a)
             ROUND -> round(a)
             FRACT -> fract(a)
-            TRUNC -> truncate(a)
+            TRUNCATE -> truncate(a)
             LN -> ln(a)
             LN1P -> ln1p(a)
             LOG2 -> log2(a)
@@ -101,6 +101,7 @@ enum class FloatMathsUnary(
             INV_SQRT -> 1.0 / sqrt(a)
             ONE_MINUS -> 1.0 - a
             INVERT -> 1.0 / a
+            SMOOTHSTEP -> a * a * (3.0 - 2.0 * a)
             SIN -> sin(a)
             COS -> cos(a)
             TAN -> tan(a)

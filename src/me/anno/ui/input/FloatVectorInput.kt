@@ -45,14 +45,14 @@ open class FloatVectorInput(
     constructor(title: String, visibilityKey: String, type: NumberType, style: Style) :
             this(title, visibilityKey, type, style, { FloatInput("", visibilityKey, type, style) })
 
-    constructor(style: Style) : this("", "", NumberType.FLOAT, style)
+    constructor(style: Style) : this("", "", NumberType.VEC4, style)
 
     @Suppress("unused")
     constructor(
         title: String, visibilityKey: String, value: Quaternionf,
         type: NumberType = NumberType.QUATERNION, style: Style
     ) : this(title, visibilityKey, type, style) {
-        if (type.components == 3) {
+        if (type.numComponents == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
             val value2 = value.toEulerAnglesDegrees()
             setValue(value2, false)
@@ -117,7 +117,7 @@ open class FloatVectorInput(
         setValue(value, -1, false)
     }
 
-    private val components: Int = type.components
+    private val components: Int = type.numComponents
     private val valueFields = ArrayList<FloatInput>(components)
 
     private var resetListener: (() -> Any?)? = null
@@ -453,7 +453,7 @@ open class FloatVectorInput(
             // also we decided the value ourselves, so we know the value
             when (val value = resetListener()) {
                 is Quaternionf -> {
-                    if (type.components == 3) {
+                    if (type.numComponents == 3) {
                         val comp = value.toEulerAnglesDegrees()
                         valueFields[0].setValue(comp.x, false)
                         valueFields[1].setValue(comp.y, false)
@@ -466,7 +466,7 @@ open class FloatVectorInput(
                     }
                 }
                 is Quaterniond -> {
-                    if (type.components == 3) {
+                    if (type.numComponents == 3) {
                         val comp = value.toEulerAnglesDegrees()
                         valueFields[0].setValue(comp.x, -1, false)
                         valueFields[1].setValue(comp.y, -1, false)

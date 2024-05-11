@@ -21,33 +21,6 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         }
     }
 
-    override fun forAllVisiblePanels(callback: (Panel) -> Unit) {
-        if (canBeSeen) {
-            callback(this)
-            val children = children
-            for (i in visibleIndex0 until visibleIndex1) {
-                val child = children[i]
-                child.parent = this
-                child.forAllVisiblePanels(callback)
-            }
-        }
-    }
-
-    override fun updateChildrenVisibility(mx: Int, my: Int, canBeHovered: Boolean) {
-
-        val vi0 = visibleIndex0
-        val vi1 = visibleIndex1
-        val idx0 = max(min(vi0, lpx), 0)
-        val idx1 = min(max(vi1, lpy), children.size)
-        lpx = vi0
-        lpy = vi1
-
-        val children = children
-        for (i in idx0 until idx1) {
-            children[i].updateVisibility(mx, my, canBeHovered)
-        }
-    }
-
     override fun getChildPanelAt(x: Int, y: Int): Panel? {
         val children = children
         for (i in visibleIndex1 - 1 downTo visibleIndex0) {

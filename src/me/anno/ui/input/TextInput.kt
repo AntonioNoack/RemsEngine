@@ -33,7 +33,7 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         base.backgroundColor = backgroundColor
     }
 
-    override var isVisible: Boolean
+    override var isEnabled: Boolean
         get() = InputVisibility[visibilityKey]
         set(_) {}
 

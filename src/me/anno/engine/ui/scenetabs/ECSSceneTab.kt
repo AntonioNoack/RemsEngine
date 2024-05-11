@@ -21,6 +21,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
+import me.anno.graph.visual.Graph
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -48,9 +49,9 @@ import org.joml.Vector3d
 
 class ECSSceneTab(
     val inspector: PrefabInspector,
-    var file: FileReference,
+    file: FileReference,
     val playMode: PlayMode,
-    name: String = findName(file)
+    name: String = findName(inspector.reference)
 ) : TextPanel(name, DefaultConfig.style) {
 
     constructor(
@@ -62,6 +63,8 @@ class ECSSceneTab(
     init {
         padding.set(6, 2, 6, 2)
     }
+
+    val file get() = inspector.reference
 
     // different tabs have different "cameras"
     var radius = 50.0
@@ -129,6 +132,7 @@ class ECSSceneTab(
                 if (dstSkeleton != null) bounds.union(skeletalBounds(dstSkeleton))
                 resetCamera(bounds, true)
             }
+            is Graph -> {} // idc
             else -> LOGGER.warn("Please implement bounds for class ${root.className}")
         }
     }
@@ -270,8 +274,7 @@ class ECSSceneTab(
 
     override fun onUpdate() {
         super.onUpdate()
-        file = getReference(file.absolutePath)
-        inspector.reference = file
+        inspector.update()
         backgroundColor = when {
             ECSSceneTabs.currentTab == this -> mixARGB(originalBGColor, white, 0.2f)
             ECSSceneTabs.currentTab?.playMode == PlayMode.PLAY_TESTING -> mixARGB(originalBGColor, black, 0.1f)

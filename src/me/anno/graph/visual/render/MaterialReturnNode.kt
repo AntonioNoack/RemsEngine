@@ -27,7 +27,7 @@ class MaterialReturnNode : ReturnNode(outputs) {
     companion object {
         val outputs = MaterialGraph.layers.flatMap {
             listOf(
-                MaterialGraph.types[it.workDims - 1],
+                MaterialGraph.floatVecTypes[it.workDims - 1],
                 it.name.upperSnakeCaseToTitle()
             )
         }

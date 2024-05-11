@@ -48,7 +48,7 @@ open class Graph : PrefabSaveable() {
         }
     }
 
-    fun add(node: Node): Node {
+    fun <V: Node> add(node: V): V {
         node.graph?.remove(node)
         nodes.add(node)
         node.graph = this

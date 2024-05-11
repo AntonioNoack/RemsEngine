@@ -1,6 +1,5 @@
 package me.anno.ui.editor.code
 
-import me.anno.Time
 import me.anno.engine.history.StringHistory
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.Font
@@ -26,6 +25,8 @@ import me.anno.ui.editor.code.tokenizer.LuaTokenizer
 import me.anno.ui.editor.code.tokenizer.Stream
 import me.anno.ui.editor.code.tokenizer.TokenType
 import me.anno.ui.input.components.CursorPosition
+import me.anno.ui.input.components.PureTextInputML.Companion.blinkVisible
+import me.anno.ui.input.components.PureTextInputML.Companion.notifyCursorTyped
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.arrays.IntSequence
@@ -194,12 +195,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     var firstLineZero = false
     var showCursor = false
 
-    private var lastChangeTime = 0L
-
-    var blinkingIntervalNanos = 500_000_000L
-
     override fun onUpdate() {
-        val blinkVisible = ((Time.nanoTime - lastChangeTime) / blinkingIntervalNanos).and(1L) == 0L
         val sb = showCursor
         showCursor = isInFocus && blinkVisible
         if (sb != showCursor) invalidateDrawing()
@@ -391,7 +387,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     fun left(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         if (c.x == 0 && c.y > 0) {
             c.set(content.getLineLength(c.y - 1), c.y - 1)
         } else {
@@ -400,13 +396,13 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     fun up(c: CursorPosition = cursor1) {
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         if (c.y <= 0) c.set(0, 0)
         else c.set(c.x, c.y - 1)
     }
 
     fun down(c: CursorPosition = cursor1) {
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         val lc = content.lineCount
         if (c.y + 1 >= lc) c.set(content.getLineLength(lc - 1), lc - 1)
         else c.set(c.x, c.y + 1)
@@ -414,7 +410,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     fun right(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         if (c.x >= content.getLineLength(c.y) && c.y + 1 < content.lineCount) {
             // set to next line
             c.set(0, c.y + 1)
@@ -499,7 +495,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     override fun onSelectAll(x: Float, y: Float) {
         cursor0.set(0, 0)
         cursor1.set(content.getLineLength(content.lineCount - 1), content.lineCount - 1)
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         invalidateDrawing()
     }
 
@@ -513,7 +509,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     var isInputAllowed = true
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
-        if (isInputAllowed && !Input.isAltDown) {
+        if (isInputAllowed && !Input.skipCharTyped(codepoint)) {
             val suggestion = lastSuggestion
             val variable = lastVariable
             if (codepoint == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
@@ -558,7 +554,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     private fun onChangeText(updateHistory: Boolean = true, notify: Boolean = true) {
         recalculateColors()
         invalidateLayout()
-        lastChangeTime = Time.nanoTime
+        notifyCursorTyped()
         if (updateHistory) history.put(content.toString())
         if (notify) changeListener(this, content)
     }
@@ -603,7 +599,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         cursor.y = ((y - (this.y + padding.top)) / lineHeight).toInt()
         clampCursor(cursor)
         if (cursor.x != ox || cursor.y != oy) {
-            lastChangeTime = Time.nanoTime
+            notifyCursorTyped()
             invalidateDrawing()
         }
     }

@@ -205,7 +205,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     fun invalidateInspector() {
         for (window in windowStack) {
-            for (panel in window.panel.listOfVisible) {
+            window.panel.forAllVisiblePanels { panel ->
                 when (panel) {
                     is PropertyInspector -> {
                         panel.invalidate()

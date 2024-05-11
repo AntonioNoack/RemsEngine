@@ -3,6 +3,8 @@ package me.anno.io.base
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
+import me.anno.gpu.texture.ITexture2D
+import me.anno.graph.visual.render.Texture
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -763,6 +765,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 bytes.close()
                 writeByteArray(name, bytes0.toByteArray())*/
             }
+            is Texture, is ITexture2D -> {}
             else -> {
                 val msg =
                     "saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?"

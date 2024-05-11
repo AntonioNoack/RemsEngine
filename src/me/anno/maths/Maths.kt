@@ -149,6 +149,15 @@ object Maths {
     }
 
     @JvmStatic
+    fun smoothStep(x: Double): Double {
+        return when {
+            x <= 0.0 -> 0.0
+            x < 1.0 -> x * x * (3.0 - 2.0 * x)
+            else -> 1.0
+        }
+    }
+
+    @JvmStatic
     fun smoothStepUnsafe(x: Float): Float {
         return x * x * (3f - 2f * x)
     }
@@ -157,7 +166,6 @@ object Maths {
     fun smoothStepUnsafe(x: Double): Double {
         return x * x * (3.0 - 2.0 * x)
     }
-
 
     @JvmStatic
     fun smoothStepGradientUnsafe(x: Float): Float {

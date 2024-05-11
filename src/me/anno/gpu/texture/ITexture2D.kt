@@ -65,6 +65,10 @@ interface ITexture2D : ICacheData {
 
     fun wrapAsFramebuffer(): IFramebuffer
 
+    fun createdOrNull(): ITexture2D? {
+        return if (isCreated()) this else null
+    }
+
     fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
         return VRAMToRAM.createImage(width, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
             VRAMToRAM.drawTexturePure(-x2, -y2, width, height, this, !withAlpha)

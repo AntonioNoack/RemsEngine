@@ -52,7 +52,7 @@ open class IntVectorInput(
         setValue(value, -1, false)
     }
 
-    private val components: Int get() = type.components
+    private val components: Int get() = type.numComponents
     private val valueFields = ArrayList<IntInput>(components)
 
     private var resetListener: (() -> Any?)? = null

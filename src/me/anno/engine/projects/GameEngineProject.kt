@@ -99,7 +99,7 @@ class GameEngineProject() : NamedSaveable() {
         EngineBase.workspace = location
 
         // if last scene is invalid, create a valid scene
-        if (lastScene == "") {
+        if (lastScene == "" || lastScene.startsWith("tmp://")) {
             lastScene = location.getChild("Scene.json").absolutePath
             LOGGER.info("Set scene to $lastScene")
         }

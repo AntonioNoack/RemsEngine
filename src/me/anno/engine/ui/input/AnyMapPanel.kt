@@ -41,7 +41,7 @@ open class AnyMapPanel(
         valuePanelPtr.value = valuePanel
 
         val list = object: PanelListX(style){
-            override var isVisible: Boolean
+            override var isEnabled: Boolean
                 get() = InputVisibility[visibilityKey]
                 set(_) {}
         }

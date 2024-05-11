@@ -238,9 +238,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
         private fun invalidateUI(windowStack: WindowStack = GFX.someWindow.windowStack) {
             for (window in windowStack) {
-                for (panel in window.panel.listOfVisible) {
-                    panel.onPropertiesChanged()
-                }
+                window.panel.forAllVisiblePanels(Panel::onPropertiesChanged)
             }
         }
     }

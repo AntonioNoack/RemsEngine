@@ -1,4 +1,4 @@
-package me.anno.graph.visual.scalar
+package me.anno.graph.visual.vector
 
 import org.joml.Vector2d
 import org.joml.Vector2f

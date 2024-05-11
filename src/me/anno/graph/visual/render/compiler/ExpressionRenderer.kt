@@ -12,11 +12,11 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.Graph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
 import org.joml.Vector4f
 
@@ -35,7 +35,7 @@ interface ExpressionRenderer {
         setInput(1, Vector4f(1f, 0f, 1f, 1f))
         setInput(2, 256)
         setInput(3, 256)
-        setInput(4, 4)
+        setInput(4, 3)
         setInput(5, 1)
     }
 
@@ -44,49 +44,63 @@ interface ExpressionRenderer {
         shader = null
     }
 
-    fun render(fp: Boolean): ITexture2D {
+    private fun createShader(): Shader {
+        val compiler = object : GraphCompiler(graph as FlowGraph) {
 
-        // todo if input matches request, just return directly
+            // not being used, as we only have an expression
+            override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
 
+            val shader: Shader
+
+            init {
+                assert(builder.isEmpty())
+                expr(inputs[1])
+                val expr = builder.toString()
+                builder.clear()
+                defineLocalVars(builder)
+                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
+                        listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +
+                        DepthTransforms.depthVars
+                shader = Shader(
+                    "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader,
+                    ShaderLib.uvList, variables, extraFunctions.toString() +
+                            builder.toString() +
+                            "void main(){\n" +
+                            "   result = $expr;\n" +
+                            "}\n"
+                )
+                shader.setTextureIndices(variables.filter { it.type.isSampler }.map { it.name })
+                shader.ignoreNameWarnings("d_camRot,d_orthoMat")
+            }
+
+            override val currentShader: Shader get() = shader
+        }
+        typeValues = compiler.typeValues
+        return compiler.shader
+    }
+
+    fun render(fp: Boolean): Texture {
+
+        // trivial fast path:
+        if (inputs[1].others.isEmpty()) {
+            return Texture(Vector4f(1f, 0f, 1f, 1f))
+        }
+
+        // fast path:
+        if (inputs[1].others.firstOrNull()?.type == "Texture") {
+            val directReturn = getInput(1)
+            if (directReturn is Texture) {
+                return directReturn
+            }
+        }
+
+        // slow path:
         val w = getInput(2) as Int
         val h = getInput(3) as Int
         val channels = Maths.clamp(getInput(4) as Int, 1, 4)
         val samples = Maths.clamp(getInput(5) as Int, 1, GFX.maxSamples)
 
-        val shader = shader ?: kotlin.run {
-            val compiler = object : GraphCompiler(graph as FlowGraph) {
-
-                // not being used, as we only have an expression
-                override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
-
-                val shader: Shader
-
-                init {
-                    assert(builder.isEmpty())
-                    expr(inputs[1])
-                    val expr = builder.toString()
-                    builder.clear()
-                    defineLocalVars(builder)
-                    val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
-                            listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +
-                            DepthTransforms.depthVars
-                    shader = Shader(
-                        "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader,
-                        ShaderLib.uvList, variables, extraFunctions.toString() +
-                                builder.toString() +
-                                "void main(){\n" +
-                                "   result = $expr;\n" +
-                                "}\n"
-                    )
-                    shader.setTextureIndices(variables.filter { it.type.isSampler }.map { it.name })
-                    shader.ignoreNameWarnings("d_camRot")
-                }
-
-                override val currentShader: Shader get() = shader
-            }
-            typeValues = compiler.typeValues
-            compiler.shader
-        }
+        val shader = shader ?: createShader()
         this.shader = shader
 
         val buffer = FBStack["expr-renderer", w, h, channels, fp, samples, DepthBufferType.NONE]
@@ -104,6 +118,6 @@ interface ExpressionRenderer {
             }
         }
 
-        return buffer.getTexture0()
+        return Texture.texture(buffer, 0)
     }
 }

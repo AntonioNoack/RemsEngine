@@ -5,10 +5,10 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.io.config.ConfigBasics.cacheFolder
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
@@ -109,7 +109,7 @@ fun main() {
         }
     }
 
-    nodes.sortBy { it.id }
+    nodes.sortBy(Element::id)
     canBeReached.retainAll(nodes.toSet())
 
     println("${nodes.size} elements reachable out of ${elements.count { it != null }}")
@@ -329,7 +329,6 @@ fun main() {
                 (p1.x - p0.x).toInt(), 1,
                 lineColor
             )
-
         }
 
         // var prevNode: Element? = null
@@ -380,10 +379,8 @@ fun main() {
                     AxisAlignment.CENTER
                 )
             }*/
-
         }
 
 
     }
-
 }

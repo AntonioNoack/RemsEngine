@@ -36,8 +36,6 @@ object ScreenSpaceAmbientOcclusion {
     // why is this soo expensive on my RTX3070?
     // memory limited...
 
-    // todo option to calculate normals from depth for forward-ssao
-
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = Maths.max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 
@@ -66,7 +64,6 @@ object ScreenSpaceAmbientOcclusion {
             data[j++] = z * f
             j++
         }
-        println("Creating sample kernel, x$samples, ${data.joinToString()}")
         sampleKernel.createRGBA(data, false)
     }
 

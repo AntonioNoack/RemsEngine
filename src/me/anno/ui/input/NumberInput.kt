@@ -81,10 +81,6 @@ abstract class NumberInput<BaseType>(
         if (focused1) {
             isSelectedListener?.invoke()
         }
-        /*if(RemsStudio.hideUnusedProperties){
-            val focused2 = focused1 || (owningProperty != null && owningProperty == selectedProperty)
-            inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        }*/
         super.onDraw(x0, y0, x1, y1)
         when (this) {
             is IntInput -> updateValueMaybe()

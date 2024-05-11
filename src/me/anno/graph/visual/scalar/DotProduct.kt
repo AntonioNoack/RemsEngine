@@ -11,6 +11,9 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 
+// todo define an abstract class TypedNode, that can handle different types
+// todo also create an abstract class AnyTypeNode, that can handle any type, and has an enum-like-or-sth select for the type
+
 class DotProductF2 : ComputeNode("Vector2f Dot", listOf("Vector2f", "A", "Vector2f", "B"), "Float"), GLSLFuncNode {
     override fun getShaderFuncName(outputIndex: Int): String = "dot"
     override fun compute() {

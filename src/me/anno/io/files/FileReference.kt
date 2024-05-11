@@ -106,7 +106,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun validate(): FileReference {
-        return if (isValid) this else getReference(absolutePath)
+        return if (isValid) this
+        else getReference(absolutePath).ifUndefined(this)
     }
 
     /**

@@ -35,7 +35,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
 ) : TitledListY(title, visibilityKey, style), InputPanel<Type>, TextStyleable {
 
     val list = object : PanelListX(style) {
-        override var isVisible: Boolean
+        override var isEnabled: Boolean
             get() = InputVisibility[visibilityKey]
             set(_) {}
     }
@@ -64,13 +64,13 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
                 containsType(dragged) -> 4
                 dragged != null -> -2
                 // check if hovered element is potentially it xD
-                rootPanel.anyHierarchical({ it.isHovered }) {
+                rootPanel.anyInChildren({ it.isHovered }) {
                     it is TreeViewEntryPanel<*> && clazz.isInstance(it.getElement())
                 } -> 3
-                rootPanel.anyHierarchical({ it.isHovered }) {
+                rootPanel.anyInChildren({ it.isHovered }) {
                     it.isHovered && it is TreeViewEntryPanel<*> && containsType(it.getElement())
                 } -> 2
-                rootPanel.anyHierarchical({ it.isHovered }) {
+                rootPanel.anyInChildren({ it.isHovered }) {
                     it.isHovered && it is TreeViewEntryPanel<*> && it.getElement() is PrefabSaveable
                 } -> -1
                 else -> 0

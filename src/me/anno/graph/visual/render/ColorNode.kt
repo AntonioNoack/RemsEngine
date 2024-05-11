@@ -28,7 +28,7 @@ class ColorNode : ComputeNode("Color", emptyList(), listOf("Vector4f", "Color", 
     }
 
     override fun buildExprCode(g: GraphCompiler, out: NodeOutput, n: Node) {
-        g.appendVec4(value)
+        g.appendVector4f(value)
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {

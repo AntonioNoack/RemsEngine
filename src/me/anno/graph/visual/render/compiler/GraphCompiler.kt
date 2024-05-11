@@ -26,8 +26,8 @@ import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.MaterialGraph.convert
+import me.anno.graph.visual.render.MaterialGraph.floatVecTypes
 import me.anno.graph.visual.render.MaterialGraph.kotlinToGLSL
-import me.anno.graph.visual.render.MaterialGraph.types
 import me.anno.graph.visual.render.MaterialReturnNode
 import me.anno.graph.visual.render.MovieNode
 import me.anno.graph.visual.render.Texture
@@ -102,27 +102,21 @@ abstract class GraphCompiler(val g: FlowGraph) {
             val dim = enc?.workDims ?: map.length
             return if (dim == 0) {
                 if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
-            } else types[dim - 1]
+            } else floatVecTypes[dim - 1]
         } else return an.type
-    }
-
-    fun appendVec4(c: Vector4f) {
-        builder.append("vec4(")
-            .append(c.x).append(',')
-            .append(c.y).append(',')
-            .append(c.z).append(',')
-            .append(c.w).append(')')
     }
 
     private fun buildExpression(out: NodeOutput, n: Node) {
         val v = conDefines[out]
         if (v != null) {
             builder.append(v)
-            return
-        }
-        when {
-            n is GLSLExprNode -> n.buildExprCode(this, out, n)
-            out.type == "Texture" -> buildTextureExpression(out)
+        } else if (n is GLSLExprNode) {
+            n.buildExprCode(this, out, n)
+        } else when (out.type) {
+            "Texture" -> buildTextureExpression(out)
+            "Bool", "Boolean", "Float", "Double", "Int", "Long", "Vector2f", "Vector3f", "Vector4f" -> {
+                appendSimple(out.type, out.currValue, out.defaultValue)
+            }
             else -> throw IllegalArgumentException("Unknown node type ${out.type} by ${n.className}")
         }
     }
@@ -156,9 +150,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 }
                 if (tint != white4) {
                     builder.append('*')
-                    appendVec4(tint)
+                    appendVector4f(tint)
                 }
-            } else appendVec4(tint)
+            } else appendVector4f(tint)
             if (map.isNotEmpty()) {
                 builder.append('.').append(map)
             }
@@ -167,6 +161,56 @@ abstract class GraphCompiler(val g: FlowGraph) {
             }
         } else {
             builder.append("((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))")
+        }
+    }
+
+    fun appendVector2f(v: Any?) {
+        if (v is Vector2f) {
+            builder.append("vec2(")
+                .append(v.x).append(',')
+                .append(v.y).append(')')
+        } else {
+            builder.append("vec2(0.0)")
+        }
+    }
+
+    fun appendVector3f(v: Any?) {
+        if (v is Vector3f) {
+            builder.append("vec3(")
+                .append(v.x).append(',')
+                .append(v.y).append(',')
+                .append(v.z).append(')')
+        } else {
+            builder.append("vec3(0.0)")
+        }
+    }
+
+    fun appendVector4f(v: Any?) {
+        if (v is Vector4f) {
+            builder.append("vec4(")
+                .append(v.x).append(',')
+                .append(v.y).append(',')
+                .append(v.z).append(',')
+                .append(v.w).append(')')
+        } else {
+            builder.append("vec4(0.0)")
+        }
+    }
+
+    private fun appendSimple(type: String?, v: Any?, defaultValue: Any?) {
+        when (type) {
+            "Float", "Double" -> builder.append(AnyToFloat.getFloat(v, 0, defaultValue as? Float ?: 0f))
+            "Int", "Long" -> builder.append(AnyToLong.getLong(v, 0, defaultValue as? Long ?: 0L))
+            "Vector2f" -> appendVector2f(v)
+            "Vector3f" -> appendVector3f(v)
+            "Vector4f" -> appendVector4f(v)
+            "Bool", "Boolean" -> {
+                builder.append(
+                    if (v !is Boolean) "false"
+                    else v.toString()
+                )
+            }
+            else -> throw IllegalArgumentException("Unknown type $type")
         }
     }
 
@@ -179,48 +223,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 buildExpression(other, other.node!!)
             } ?: throw IllegalStateException("Cannot convert ${other.type}->$aType0 to ${input.type}!")
             return
-        }
-        val v = input.currValue
-        when (input.type) {
-            "Float", "Double" -> builder.append(AnyToFloat.getFloat(v, 0, input.defaultValue as? Float ?: 0f))
-            "Int", "Long" -> builder.append(AnyToLong.getLong(v, 0, input.defaultValue as? Long ?: 0L))
-            "Vector2f" -> {
-                if (v is Vector2f) {
-                    builder.append("vec2(")
-                        .append(v.x).append(',')
-                        .append(v.y).append(')')
-                } else {
-                    builder.append("vec2(0.0)")
-                }
-            }
-            "Vector3f" -> {
-                if (v is Vector3f) {
-                    builder.append("vec3(")
-                        .append(v.x).append(',')
-                        .append(v.y).append(',')
-                        .append(v.z).append(')')
-                } else {
-                    builder.append("vec3(0.0)")
-                }
-            }
-            "Vector4f" -> {
-                if (v is Vector4f) {
-                    builder.append("vec4(")
-                        .append(v.x).append(',')
-                        .append(v.y).append(',')
-                        .append(v.z).append(',')
-                        .append(v.w).append(')')
-                } else {
-                    builder.append("vec4(0.0)")
-                }
-            }
-            "Bool", "Boolean" -> {
-                builder.append(
-                    if (v !is Boolean) "false"
-                    else v.toString()
-                )
-            }
-            else -> throw IllegalArgumentException("Unknown type ${input.type}")
+        } else {
+            appendSimple(input.type, input.currValue, input.defaultValue)
         }
     }
 
