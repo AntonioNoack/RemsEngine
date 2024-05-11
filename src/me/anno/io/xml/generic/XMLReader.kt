@@ -62,15 +62,7 @@ open class XMLReader {
         builder.clear()
         while (true) {
             when (val char = read()) {
-                '\\'.code -> {
-                    when (val second = read()) {
-                        '\\'.code -> builder.append('\\')
-                        else -> {
-                            builder.append('\\')
-                            builder.append(second.toChar())
-                        }
-                    }
-                }
+                '\\'.code -> builder.append(readEscapeSequence(this))
                 startSymbol -> return builder
                 -1 -> throw EOFException()
                 else -> builder.append(char.toChar())
@@ -247,10 +239,11 @@ open class XMLReader {
     fun readString(first: Int, input: InputStream): String {
         val str = valueBuilder
         str.clear()
-        if (first != 0) str.append(first.toChar())
+        if (first != 0) {
+            str.append(first.toChar())
+        }
         while (true) {
             when (val char = input.read()) {
-                '\\'.code -> str.append(readEscapeSequence(input))
                 '<'.code -> return str.toString()
                 -1 -> throw EOFException()
                 else -> str.append(char.toChar())

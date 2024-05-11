@@ -33,7 +33,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
 import me.anno.utils.Color.a
@@ -44,6 +43,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -309,7 +309,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (!readSerializableProperty(name, value)) {
+        if(name == "boneIndices" && value is IntArray ){
+            boneIndices = ByteArray(value.size){ value[it].toByte()}
+        } else if (!readSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
     }

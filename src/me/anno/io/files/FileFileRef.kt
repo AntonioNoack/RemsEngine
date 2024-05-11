@@ -44,7 +44,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             } catch (_: IgnoredException) {
                 callback.call(null, null)
             } catch (e: Exception) {
-                callback.err(e)
+                callback.err(Exception("Failure reading '$this'", e))
             } finally {
                 if (closeStream) {
                     stream?.close()
