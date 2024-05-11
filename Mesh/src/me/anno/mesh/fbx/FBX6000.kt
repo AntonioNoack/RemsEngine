@@ -10,7 +10,6 @@ import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.structures.CountingInputStream
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -56,7 +55,7 @@ object FBX6000 {
         val version = stream.readLE32()
         LOGGER.debug("Version: $version")
 
-        fun v(): Any {
+        fun readValue(): Any {
             return when (val code = stream.read()) {
                 'I'.code -> stream.readLE32()
                 'D'.code -> stream.readLE64F()
@@ -101,18 +100,18 @@ object FBX6000 {
                 }
                 1 -> {
                     if (dataLength < 1) throw IllegalStateException()
-                    val value = v()
+                    val value = readValue()
                     stack.last().getOrPut(key) { ArrayList() }.add(value)
                 }
                 else -> {
                     if (key == "Property") {
                         val value = ArrayList<Any>(type)
-                        for (i in 0 until type) value.add(v())
+                        for (i in 0 until type) value.add(readValue())
                         stack.last().getOrPut(key) { ArrayList() }.add(value)
                     } else {
                         val value = stack.last().getOrPut(key) { ArrayList() }
                         value.ensureCapacity(value.size + type)
-                        for (i in 0 until type) value.add(v())
+                        for (i in 0 until type) value.add(readValue())
                     }
                 }
             }

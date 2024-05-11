@@ -32,11 +32,7 @@ open class Vector2d(
     fun set(xy: FloatArray) = set(xy[0].toDouble(), xy[1].toDouble())
 
     operator fun get(component: Int): Double {
-        return when (component) {
-            0 -> x
-            1 -> y
-            else -> throw IllegalArgumentException()
-        }
+        return if (component == 0) x else y
     }
 
     fun get(dst: Vector2f): Vector2f {
@@ -53,10 +49,10 @@ open class Vector2d(
 
     operator fun set(component: Int, value: Double) = setComponent(component, value)
     fun setComponent(component: Int, value: Double): Vector2d {
-        when (component) {
-            0 -> x = value
-            1 -> y = value
-            else -> throw IllegalArgumentException()
+        if (component == 0) {
+            x = value
+        } else {
+            y = value
         }
         return this
     }

@@ -389,16 +389,12 @@ open class Matrix2d {
     }
 
     fun getRow(row: Int, dst: Vector2d): Vector2d {
-        when (row) {
-            0 -> {
-                dst.x = m00
-                dst.y = m10
-            }
-            1 -> {
-                dst.x = m01
-                dst.y = m11
-            }
-            else -> throw IndexOutOfBoundsException()
+        if (row == 0) {
+            dst.x = m00
+            dst.y = m10
+        } else {
+            dst.x = m01
+            dst.y = m11
         }
         return dst
     }
@@ -408,31 +404,23 @@ open class Matrix2d {
     }
 
     fun setRow(row: Int, x: Double, y: Double): Matrix2d {
-        when (row) {
-            0 -> {
-                m00 = x
-                m10 = y
-            }
-            1 -> {
-                m01 = x
-                m11 = y
-            }
-            else -> throw IndexOutOfBoundsException()
+        if (row == 0) {
+            m00 = x
+            m10 = y
+        } else {
+            m01 = x
+            m11 = y
         }
         return this
     }
 
     fun getColumn(column: Int, dst: Vector2d): Vector2d {
-        when (column) {
-            0 -> {
-                dst.x = m00
-                dst.y = m01
-            }
-            1 -> {
-                dst.x = m10
-                dst.y = m11
-            }
-            else -> throw IndexOutOfBoundsException()
+        if (column == 0) {
+            dst.x = m00
+            dst.y = m01
+        } else {
+            dst.x = m10
+            dst.y = m11
         }
         return dst
     }
@@ -442,33 +430,22 @@ open class Matrix2d {
     }
 
     fun setColumn(column: Int, x: Double, y: Double): Matrix2d {
-        when (column) {
-            0 -> {
-                m00 = x
-                m01 = y
-            }
-            1 -> {
-                m10 = x
-                m11 = y
-            }
-            else -> throw IndexOutOfBoundsException()
+        if (column == 0) {
+            m00 = x
+            m01 = y
+        } else {
+            m10 = x
+            m11 = y
         }
         return this
     }
 
     operator fun get(column: Int, row: Int): Double {
-        when (column) {
-            0 -> return when (row) {
-                0 -> m00
-                1 -> m01
-                else -> throw IndexOutOfBoundsException()
-            }
-            1 -> when (row) {
-                0 -> return m10
-                1 -> return m11
-            }
+        return if (column == 0) {
+            if (row == 0) m00 else m01
+        } else {
+            if (row == 0) m10 else m11
         }
-        throw IndexOutOfBoundsException()
     }
 
     operator fun set(column: Int, row: Int, value: Double): Matrix2d {
@@ -478,24 +455,22 @@ open class Matrix2d {
                     m00 = value
                     this
                 }
-                1 -> {
+                else -> {
                     m01 = value
                     this
                 }
-                else -> throw IndexOutOfBoundsException()
             }
-            1 -> when (row) {
+            else -> when (row) {
                 0 -> {
                     m10 = value
                     return this
                 }
-                1 -> {
+                else -> {
                     m11 = value
                     return this
                 }
             }
         }
-        throw IndexOutOfBoundsException()
     }
 
     @JvmOverloads

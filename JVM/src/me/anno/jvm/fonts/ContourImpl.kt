@@ -6,6 +6,7 @@ import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.awt.Font
 import java.awt.font.FontRenderContext
@@ -14,6 +15,8 @@ import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
 
 object ContourImpl {
+
+    private val LOGGER = LogManager.getLogger(ContourImpl::class)
 
     fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): List<Contour> {
         return calculateContours((FontManager.getFont(font) as AWTFont).awtFont, text)
@@ -66,7 +69,9 @@ object ContourImpl {
                     p0 = p3
                 }
                 PathIterator.SEG_MOVETO -> {
-                    if (segments.isNotEmpty()) throw RuntimeException("move to is only allowed after close or at the start...")
+                    if (segments.isNotEmpty()) {
+                        LOGGER.warn("move to is only allowed after close or at the start...")
+                    }
                     p0 = Vector2f(x1, y1) // is one move too much...
                 }
                 PathIterator.SEG_CLOSE -> {

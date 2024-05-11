@@ -3051,13 +3051,12 @@ open class Matrix4x3d {
                 dst.z = m21
                 dst.w = m31
             }
-            2 -> {
+            else -> {
                 dst.x = m02
                 dst.y = m12
                 dst.z = m22
                 dst.w = m32
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -3076,13 +3075,12 @@ open class Matrix4x3d {
                 m21 = src.z
                 m31 = src.w
             }
-            2 -> {
+            else -> {
                 m02 = src.x
                 m12 = src.y
                 m22 = src.z
                 m32 = src.w
             }
-            else -> throw IndexOutOfBoundsException()
         }
         flags = 0
         return this

@@ -15,7 +15,7 @@ open class Vector2f(
     constructor(v: Vector2f) : this(v.x, v.y)
     constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
     constructor(xy: FloatArray) : this(xy[0], xy[1])
-    constructor(v: Vector2d): this(v.x.toFloat(), v.y.toFloat())
+    constructor(v: Vector2d) : this(v.x.toFloat(), v.y.toFloat())
 
     @JvmOverloads
     fun set(x: Float, y: Float = x): Vector2f {
@@ -33,11 +33,7 @@ open class Vector2f(
     fun set(xy: FloatArray, i: Int) = set(xy[i], xy[i + 1])
 
     operator fun get(component: Int): Float {
-        return when (component) {
-            0 -> x
-            1 -> y
-            else -> throw IllegalArgumentException()
-        }
+        return if (component == 0) x else y
     }
 
     fun get(dst: Vector2f) = dst.set(x, y)
@@ -49,10 +45,10 @@ open class Vector2f(
 
     operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector2f {
-        when (component) {
-            0 -> x = value
-            1 -> y = value
-            else -> throw IllegalArgumentException()
+        if (component == 0) {
+            x = value
+        } else {
+            y = value
         }
         return this
     }

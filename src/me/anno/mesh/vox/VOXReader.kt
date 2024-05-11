@@ -10,9 +10,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.mesh.vox.VoxPalette.defaultPalette
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.utils.Color.argb
 import me.anno.utils.Color.convertABGR2ARGB
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -22,6 +20,7 @@ import org.joml.Vector3i
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.max
 
 class VOXReader {
 
@@ -117,9 +116,10 @@ class VOXReader {
 
     private val nodes = ArrayList<VOXNode>()
     private fun getNode(id: Int): VOXNode {
-        if (id < 0) throw IndexOutOfBoundsException()
-        while (nodes.size <= id) nodes.add(VOXNode())
-        return nodes[id]
+        val index = max(id, 0) // make this at least a little crash-safe
+        // (still can crash with OOM, if id is really large)
+        while (nodes.size <= index) nodes.add(VOXNode())
+        return nodes[index]
     }
 
     private var layerNegative = VOXLayer("Default Layer")

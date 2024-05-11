@@ -91,7 +91,7 @@ enum class CombinationMode(
     },
     INTERPOLATION(5, "sdInt", listOf(sdInt), false) {
         override fun combine(d0: Float, d1: Float, k: Float, group: SDFGroup): Float {
-            throw NotImplementedError()
+            return 0f // shouldn't be called on this value!!! (but I want to avoid throwing exceptions)
         }
     },
     PIPE(10, "sdPipe", listOf(hgFunctions), false) {

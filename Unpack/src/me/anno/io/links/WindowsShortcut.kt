@@ -31,8 +31,7 @@ import java.text.ParseException
  * ISBN: 0-596-00907-0
  * http://www.oreilly.com/catalog/swinghks/
  */
-@Suppress("SpellCheckingInspection")
-class WindowsShortcut(data: ByteArray) {
+class WindowsShortcut {
 
     var isDirectory = false
         private set
@@ -64,9 +63,11 @@ class WindowsShortcut(data: ByteArray) {
     var iconPath: String? = null
         private set
 
-    init {
+    fun read(data: ByteArray): Exception? {
         try {
-            if (!isMagicPresent(data)) throw IOException("Invalid shortcut; magic is missing")
+            if (!isMagicPresent(data)) {
+                return IOException("Invalid shortcut; magic is missing")
+            }
 
             // get the flags byte
             val flags = data[0x14].toInt()
@@ -139,8 +140,9 @@ class WindowsShortcut(data: ByteArray) {
                 nextStringStart += stringLen + 2
             }
         } catch (e: IndexOutOfBoundsException) {
-            throw ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
+            return ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
         }
+        return null
     }
 
     companion object {
@@ -149,13 +151,15 @@ class WindowsShortcut(data: ByteArray) {
          * an arbitrary limit, that hopefully never is passed;
          * prevents loading gigabytes for corrupted link files
          * */
-        private const val maxLength = 1 shl 16
+        private const val LENGTH_LIMIT = 1 shl 16
 
         fun get(file: FileReference, callback: Callback<WindowsShortcut>) {
             file.inputStream { it, exc ->
                 if (it != null) {
-                    val data = it.readNBytes2(maxLength, false)
-                    callback.ok(WindowsShortcut(data))
+                    val data = it.readNBytes2(LENGTH_LIMIT, false)
+                    val data1 = WindowsShortcut()
+                    val err = data1.read(data)
+                    callback.call(if (err != null) null else data1, err)
                 } else callback.err(exc)
             }
         }

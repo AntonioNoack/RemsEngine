@@ -98,7 +98,7 @@ object BIImage {
                     }
                 }
             }
-            else -> throw NotImplementedError()
+            else -> throw NotImplementedError("BufferedImage.type[${image.type}]")
         }
     }
 

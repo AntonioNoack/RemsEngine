@@ -40,8 +40,7 @@ open class Vector4i(
             0 -> x
             1 -> y
             2 -> z
-            3 -> w
-            else -> throw IllegalArgumentException()
+            else -> w
         }
     }
 
@@ -68,8 +67,10 @@ open class Vector4i(
             0
         } else if (absY < absZ && absY < absW) {
             1
+        } else if (absZ < absW) {
+            2
         } else {
-            if (absZ < absW) 2 else 3
+            3
         }
     }
 
@@ -78,8 +79,7 @@ open class Vector4i(
             0 -> x = value
             1 -> y = value
             2 -> z = value
-            3 -> w = value
-            else -> throw IllegalArgumentException()
+            else -> w = value
         }
         return this
     }

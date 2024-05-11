@@ -3813,13 +3813,12 @@ open class Matrix4d {
                 dest.z = m22
                 dest.w = m32
             }
-            3 -> {
+            else -> {
                 dest.x = m03
                 dest.y = m13
                 dest.z = m23
                 dest.w = m33
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dest
     }
@@ -3841,12 +3840,11 @@ open class Matrix4d {
                 dest.y = m12
                 dest.z = m22
             }
-            3 -> {
+            else -> {
                 dest.x = m03
                 dest.y = m13
                 dest.z = m23
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dest
     }
@@ -3856,8 +3854,7 @@ open class Matrix4d {
             0 -> _m00(src.x)._m10(src.y)._m20(src.z)._m30(src.w)._properties(0)
             1 -> _m01(src.x)._m11(src.y)._m21(src.z)._m31(src.w)._properties(0)
             2 -> _m02(src.x)._m12(src.y)._m22(src.z)._m32(src.w)._properties(0)
-            3 -> _m03(src.x)._m13(src.y)._m23(src.z)._m33(src.w)._properties(0)
-            else -> throw IndexOutOfBoundsException()
+            else -> _m03(src.x)._m13(src.y)._m23(src.z)._m33(src.w)._properties(0)
         }
     }
 

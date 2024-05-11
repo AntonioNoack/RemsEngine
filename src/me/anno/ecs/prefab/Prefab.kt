@@ -72,8 +72,7 @@ class Prefab : Saveable {
             invalidateInstance()
         }
 
-    fun find(path: Path, depth: Int = 0): CAdd? {
-        if (depth > 0) throw NotImplementedError()
+    fun find(path: Path): CAdd? {
         return adds[path.parent]?.firstOrNull {
             it.nameId == path.nameId
         }

@@ -1492,8 +1492,7 @@ open class Matrix3d {
         return when (row) {
             0 -> dest.set(m00, m10, m20)
             1 -> dest.set(m01, m11, m21)
-            2 -> dest.set(m02, m12, m22)
-            else -> throw IndexOutOfBoundsException()
+            else -> dest.set(m02, m12, m22)
         }
     }
 
@@ -1513,12 +1512,11 @@ open class Matrix3d {
                 m11 = y
                 m21 = z
             }
-            2 -> {
+            else -> {
                 m02 = x
                 m12 = y
                 m22 = z
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return this
     }
@@ -1527,8 +1525,7 @@ open class Matrix3d {
         return when (column) {
             0 -> dest.set(m00, m01, m02)
             1 -> dest.set(m10, m11, m12)
-            2 -> dest.set(m20, m21, m22)
-            else -> throw IndexOutOfBoundsException()
+            else -> dest.set(m20, m21, m22)
         }
     }
 
@@ -1548,12 +1545,11 @@ open class Matrix3d {
                 m11 = y
                 m12 = z
             }
-            2 -> {
+            else -> {
                 m20 = x
                 m21 = y
                 m22 = z
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return this
     }

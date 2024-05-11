@@ -59,8 +59,7 @@ open class Vector3d(
         when (component) {
             0 -> x = value
             1 -> y = value
-            2 -> z = value
-            else -> throw IllegalArgumentException()
+            else -> z = value
         }
         return this
     }
@@ -739,8 +738,7 @@ open class Vector3d(
         return when (component) {
             0 -> x
             1 -> y
-            2 -> z
-            else -> throw IllegalArgumentException()
+            else -> z
         }
     }
 

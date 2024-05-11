@@ -26,18 +26,14 @@ open class Vector2i(
     fun set(xy: IntArray) = set(xy[0], xy[1])
 
     operator fun get(component: Int): Int {
-        return when (component) {
-            0 -> x
-            1 -> y
-            else -> throw IllegalArgumentException()
-        }
+        return if (component == 0) x else y
     }
 
     fun setComponent(component: Int, value: Int): Vector2i {
-        when (component) {
-            0 -> x = value
-            1 -> y = value
-            else -> throw IllegalArgumentException()
+        if (component == 0) {
+            x = value
+        } else {
+            y = value
         }
         return this
     }

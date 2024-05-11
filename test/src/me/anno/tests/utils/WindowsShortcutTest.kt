@@ -20,17 +20,19 @@ fun main() {
     )
     for (name in names) {
         val file = getReference(name)
-        val link = WindowsShortcut(file.readBytesSync())
-        LOGGER.info(
-            "------ $name -----\n" +
-                    "getRealFilename: ${link.absolutePath}\n" +
-                    "getDescription: ${link.description}\n" +
-                    "getRelativePath: ${link.relativePath}\n" +
-                    "getWorkingDirectory: ${link.workingDirectory}\n" +
-                    "getCommandLineArguments: ${link.commandLineArguments}\n" +
-                    "isLocal: ${link.isLocalResource}\n" +
-                    "isDirectory: ${link.isDirectory}\n" +
-                    "iconPath: ${link.iconPath}"
-        )
+        WindowsShortcut.get(file) { link, err ->
+            err?.printStackTrace()
+            if (link != null) LOGGER.info(
+                "------ $name -----\n" +
+                        "getRealFilename: ${link.absolutePath}\n" +
+                        "getDescription: ${link.description}\n" +
+                        "getRelativePath: ${link.relativePath}\n" +
+                        "getWorkingDirectory: ${link.workingDirectory}\n" +
+                        "getCommandLineArguments: ${link.commandLineArguments}\n" +
+                        "isLocal: ${link.isLocalResource}\n" +
+                        "isDirectory: ${link.isDirectory}\n" +
+                        "iconPath: ${link.iconPath}"
+            )
+        }
     }
 }

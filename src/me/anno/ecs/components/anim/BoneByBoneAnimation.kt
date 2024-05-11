@@ -11,6 +11,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f3s
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -159,7 +160,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "boneCount" -> boneCount = value as? Int ?: return
             "frameCount" -> frameCount = value as? Int ?: return
             "globalTransform" -> globalTransform.set(value as? Matrix4x3f ?: return)
@@ -329,7 +330,7 @@ class BoneByBoneAnimation() : Animation() {
         for (j in bones.indices) {
             val bone = bones[j]
             val pj = bone.parentId
-            if (pj >= j) throw IllegalStateException("Bones out of order, $j -> $pj")
+            if (pj >= j) LOGGER.warn("Bones out of order, $j -> $pj")
         }
         for (i in frames.indices) {
             val frame = frames[i]
@@ -380,6 +381,7 @@ class BoneByBoneAnimation() : Animation() {
     companion object {
 
         private val f0 = FloatArray(0)
+        private val LOGGER = LogManager.getLogger(BoneByBoneAnimation::class)
 
         fun fromImported(
             bindPose: Matrix4x3f,
@@ -476,13 +478,6 @@ class BoneByBoneAnimation() : Animation() {
 
         fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
             return parentSkinning.mul(bindPose, dst)
-        }
-
-        fun format(m: Matrix4x3f): String {
-            return "[[${m.m00.f3s()} ${m.m01.f3s()} ${m.m02.f3s()}] " +
-                    "[${m.m10.f3s()} ${m.m11.f3s()} ${m.m12.f3s()}] " +
-                    "[${m.m20.f3s()} ${m.m21.f3s()} ${m.m22.f3s()}] " +
-                    "[${m.m30.f3s()}, ${m.m31.f3s()}, ${m.m32.f3s()}]]"
         }
     }
 }

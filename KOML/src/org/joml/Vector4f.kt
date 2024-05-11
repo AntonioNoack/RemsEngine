@@ -55,8 +55,7 @@ open class Vector4f(
             0 -> x = value
             1 -> y = value
             2 -> z = value
-            3 -> w = value
-            else -> throw IllegalArgumentException()
+            else -> w = value
         }
         return this
     }
@@ -493,8 +492,7 @@ open class Vector4f(
             0 -> x
             1 -> y
             2 -> z
-            3 -> w
-            else -> throw IllegalArgumentException()
+            else -> w
         }
     }
 

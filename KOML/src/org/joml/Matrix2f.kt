@@ -345,11 +345,10 @@ open class Matrix2f {
                 dst.x = m00
                 dst.y = m10
             }
-            1 -> {
+            else -> {
                 dst.x = m01
                 dst.y = m11
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -364,11 +363,10 @@ open class Matrix2f {
                 m00 = x
                 m10 = y
             }
-            1 -> {
+            else -> {
                 m01 = x
                 m11 = y
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return this
     }
@@ -379,11 +377,10 @@ open class Matrix2f {
                 dst.x = m00
                 dst.y = m01
             }
-            1 -> {
+            else -> {
                 dst.x = m10
                 dst.y = m11
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return dst
     }
@@ -398,55 +395,39 @@ open class Matrix2f {
                 m00 = x
                 m01 = y
             }
-            1 -> {
+            else -> {
                 m10 = x
                 m11 = y
             }
-            else -> throw IndexOutOfBoundsException()
         }
         return this
     }
 
     operator fun get(column: Int, row: Int): Float {
-        when (column) {
-            0 -> return when (row) {
+        return when (column) {
+            0 -> when (row) {
                 0 -> m00
-                1 -> m01
-                else -> throw IndexOutOfBoundsException()
+                else -> m01
             }
-            1 -> when (row) {
-                0 -> return m10
-                1 -> return m11
+            else -> when (row) {
+                0 -> m10
+                else -> m11
             }
         }
-        throw IndexOutOfBoundsException()
     }
 
     operator fun set(column: Int, row: Int, value: Float): Matrix2f {
         when (column) {
-            0 -> return when (row) {
-                0 -> {
-                    m00 = value
-                    this
-                }
-                1 -> {
-                    m01 = value
-                    this
-                }
-                else -> throw IndexOutOfBoundsException()
+            0 -> when (row) {
+                0 -> m00 = value
+                else -> m01 = value
             }
-            1 -> when (row) {
-                0 -> {
-                    m10 = value
-                    return this
-                }
-                1 -> {
-                    m11 = value
-                    return this
-                }
+            else -> when (row) {
+                0 -> m10 = value
+                else -> m11 = value
             }
         }
-        throw IndexOutOfBoundsException()
+        return this
     }
 
     @JvmOverloads
