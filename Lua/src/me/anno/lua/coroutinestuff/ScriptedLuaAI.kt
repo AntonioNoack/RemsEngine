@@ -44,9 +44,4 @@ class ScriptedLuaAI : Component() {
         return super.onUpdate()
     }
 
-    override fun clone(): Component {
-        val vm = defineVM()
-        TODO("Not yet implemented")
-    }
-
 }

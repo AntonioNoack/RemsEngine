@@ -19,7 +19,10 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     override fun getOptionsByType(type: Char) = getPanelOptions(this)
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         val children = children
-        if (child is Panel && children is MutableList) children.add(index, child)
+        if (child is Panel && children is MutableList) {
+            children.add(index, child)
+            child.parent = this
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

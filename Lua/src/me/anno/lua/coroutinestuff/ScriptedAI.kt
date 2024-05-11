@@ -18,9 +18,4 @@ class ScriptedAI : Component() {
         }
         return 1
     }
-
-    override fun clone(): ScriptedAI {
-        throw RuntimeException()
-    }
-
 }

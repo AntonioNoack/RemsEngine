@@ -214,7 +214,7 @@ object VisualNovel {
             val shownTextPanel = TextPanel(style)
 
             init {
-                children.add(shownTextPanel)
+                addChild(shownTextPanel)
                 shownTextPanel.backgroundRadiusCorners = CORNER_TOP_LEFT or CORNER_TOP_RIGHT
                 shownTextPanel.backgroundRadius = 15f
                 shownTextPanel.padding.set(10)

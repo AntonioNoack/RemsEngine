@@ -147,7 +147,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
 
     fun insert(index: Int, value: EntryType) {
         values.add(index - 1, value)
-        children.add(index, createPanel(value))
+        addChild(index, createPanel(value))
         onChange()
         invalidateLayout()
     }
@@ -184,7 +184,11 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                         val clone: Any? = when (val value = values[index - 1]) {
                             is String, is Prefab, is FileReference -> value
                             is PrefabSaveable -> value.clone()
-                            is Saveable -> JsonStringReader.read(JsonStringWriter.toText(value, InvalidRef), InvalidRef, true)
+                            is Saveable -> JsonStringReader.read(
+                                JsonStringWriter.toText(value, InvalidRef),
+                                InvalidRef,
+                                true
+                            )
                             else -> value // may be incorrect
                         }
                         @Suppress("unchecked_cast")
@@ -197,8 +201,8 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
             openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Add Entry")) {
                     val value = newValue()
+                    addChild(createPanel(value))
                     values.add(value)
-                    children.add(createPanel(value))
                     onChange()
                     invalidateLayout()
                 },
@@ -211,5 +215,4 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
             ))
         } else super.onMouseClicked(x, y, button, long)
     }
-
 }

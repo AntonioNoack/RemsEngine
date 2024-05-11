@@ -206,8 +206,6 @@ object SDFComposer {
                                             // proper material calculation
                                             "   vec3 localHit = localPos + ray.x * localDir;\n" +
                                             "   vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-                                            // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
-                                            // todo calculate tangent from dFdx(uv) and dFdy(uv)
                                             "   finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
                                             "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                                             discardByCullingPlane + // respect reflection plane

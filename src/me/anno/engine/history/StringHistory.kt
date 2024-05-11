@@ -45,6 +45,7 @@ abstract class StringHistory : History<String>() {
                     'b' -> decodeB(element.toIntOrNull() ?: break@loop)
                     'c' -> decodeC(element.toIntOrNull() ?: break@loop)
                     'd' -> decodeD(element)
+                    's' -> states.add(element)
                 }
             }
         } else {

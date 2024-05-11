@@ -23,8 +23,6 @@ import kotlin.math.roundToInt
 /**
  * joins multiple sdf components together, like a folder;
  * can also join them using special operations like subtraction, xor, and logical and (see type)
- *
- * todo this class is quite long, it would be nice if we could move more stuff into CombinationMode/JoiningStyle
  * */
 open class SDFGroup : SDFComponent() {
 

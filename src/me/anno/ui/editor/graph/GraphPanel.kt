@@ -121,9 +121,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     fun getNodePanel(node: Node): NodePanel {
         return nodeToPanel.getOrPut(node) {
             val panel = NodePanel(node, this, style)
-            children.add(panel)
-            panel.parent = this
-            panel.window = window
+            addChild(panel)
             invalidateLayout()
             panel
         }
@@ -132,8 +130,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     fun getNodeGroupPanel(group: NodeGroup): NodeGroupPanel {
         return nodeToPanel2.getOrPut(group) {
             val panel = NodeGroupPanel(group, this, style)
-            children.add(0, panel)
-            panel.window = window
+            addChild(0, panel)
             invalidateLayout()
             panel
         }

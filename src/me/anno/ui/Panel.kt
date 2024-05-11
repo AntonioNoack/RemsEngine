@@ -632,7 +632,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         callback(this)
         val children = (this as? PanelGroup)?.children ?: return
         for (i in children.indices) {
-            children[i].forAllPanels(callback)
+            val child = children[i]
+            child.parent = this // meh :/, but we sometimes forget to set it...
+            child.forAllPanels(callback)
         }
     }
 
@@ -641,7 +643,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         callback(this)
         val children = (this as? PanelGroup)?.children ?: return
         for (i in children.indices) {
-            children[i].forAllVisiblePanels(callback)
+            val child = children[i]
+            child.parent = this // meh :/, but we sometimes forget to set it...
+            child.forAllVisiblePanels(callback)
         }
     }
 

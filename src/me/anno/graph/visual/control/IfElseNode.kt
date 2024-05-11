@@ -30,18 +30,18 @@ class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSL
                     g.builder.append("if(")
                     g.expr(inputs[1]) // condition
                     g.builder.append("){\n")
-                    val x = g.buildCode(ifTrue, depth)
+                    val needsReturnT = g.buildCode(ifTrue, depth)
                     g.builder.append("} else {\n")
-                    val y = g.buildCode(ifFalse, depth)
+                    val needsReturnF = g.buildCode(ifFalse, depth)
                     g.builder.append("}\n")
-                    x || y
+                    needsReturnT || needsReturnF
                 } else {
                     g.builder.append(if (ifTrue != null) "if((" else "if(!(")
                     g.expr(inputs[1]) // condition
                     g.builder.append(")){\n")
-                    val tmp = g.buildCode(ifTrue ?: ifFalse, depth)
+                    val needsExtraReturn = g.buildCode(ifTrue ?: ifFalse, depth)
                     g.builder.append("}\n")
-                    tmp
+                    needsExtraReturn
                 }
             }
         }
