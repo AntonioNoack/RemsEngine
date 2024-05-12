@@ -14,7 +14,7 @@ open class ReturnNode(returnValues: List<String> = emptyList(), name: String = "
     override fun execute(): NodeOutput? {
         values.clear()
         for (i in 1 until inputs.size) {
-            values.add(getInput(1))
+            values.add(getInput(i))
         }
         throw ReturnThrowable(this) // escape from loops and such
     }
