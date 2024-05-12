@@ -7,8 +7,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.actions.ActionNode
 
 class BloomNode : ActionNode(

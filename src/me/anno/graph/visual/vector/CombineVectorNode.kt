@@ -1,8 +1,5 @@
 package me.anno.graph.visual.vector
 
-import me.anno.graph.visual.FlowGraphNodeUtils.getDoubleInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.graph.visual.scalar.TypedNode
 import me.anno.graph.visual.scalar.TypedNodeData

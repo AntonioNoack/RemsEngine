@@ -15,7 +15,6 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.actions.ActionNode
 import org.joml.Vector3f
 import org.joml.Vector4f

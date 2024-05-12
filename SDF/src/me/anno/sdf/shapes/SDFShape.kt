@@ -36,7 +36,6 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
         super.copyInto(dst)
         dst as SDFShape
         dst.dynamicSize = dynamicSize
-        // clone.material = material
         dst.materialId = materialId
     }
 
@@ -53,25 +52,20 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
     ) {
         builder.append(")")
         if (offsetName != null) {
-            builder.append("+")
-            builder.append(offsetName)
+            builder.append("+").append(offsetName)
         }
         builder.append(")")
         if (scaleName != null) {
-            builder.append('*')
-            builder.append(scaleName)
+            builder.append('*').append(scaleName)
         }
         if (localReliability != 1f) {
-            builder.append('*')
-            builder.appendUniform(uniforms, GLSLType.V1F) { localReliability }
+            builder.append('*').appendUniform(uniforms, GLSLType.V1F) { localReliability }
         }
-        builder.append(",")
-        builder.appendUniform(uniforms, GLSLType.V1F) {
+        builder.append(",").appendUniform(uniforms, GLSLType.V1F) {
             val currentRenderer = currentRenderer
-            if (currentRenderer == Renderer.idRenderer) clickId.toFloat()
-            else materialId.toFloat()
-        }
-        builder.append(",uv);\n")
+            val id = if (currentRenderer == Renderer.idRenderer) clickId else materialId
+            id.toFloat()
+        }.append(",uv);\n")
     }
 
     fun smartMinEnd(

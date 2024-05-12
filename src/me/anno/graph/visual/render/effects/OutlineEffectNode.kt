@@ -12,7 +12,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min

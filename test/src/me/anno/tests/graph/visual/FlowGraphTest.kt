@@ -1,6 +1,7 @@
 package me.anno.tests.graph.visual
 
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.FlowGraphNode
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.control.ForNode
 import me.anno.graph.visual.local.GetLocalVariableNode
@@ -9,6 +10,7 @@ import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.scalar.IntMathBinary
 import me.anno.graph.visual.scalar.MathF2Node
 import me.anno.graph.visual.scalar.MathI2Node
+import me.anno.maths.Maths.factorial
 import me.anno.utils.Color
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -24,7 +26,7 @@ object FlowGraphTest {
         n0.setInputs(listOf(1.0, 2.0))
         n1.setInput(1, 2.0)
         g.addAll(n0, n1)
-        assertEquals(1.5, g.executeThenGetOutput(n1))
+        assertEquals(1.5, g.execute(n1).getOutput(0))
     }
 
     @Test
@@ -53,11 +55,18 @@ object FlowGraphTest {
 
     @Test
     fun testLocalVariablesByCalculatingFactorial() {
+        val (g, initNode) = createFactorialGraph(4)
+        g.execute(initNode)
+        g.requestId()
+        assertEquals(4L.factorial(), g.localVariables["var"])
+    }
+
+    fun createFactorialGraph(n: Int): Pair<FlowGraph, FlowGraphNode> {
         val g = FlowGraph()
         val initNode = SetLocalVariableNode("var", 1)
         initNode.color = Color.black or 0x112233
         val forNode = ForNode()
-        forNode.setInputs(listOf(null, 1L, 5L, 1L))
+        forNode.setInputs(listOf(null, 1L, 1L + n, 1L)) // flow, start, end, step
         initNode.connectTo(forNode)
         val mulNode = MathI2Node().setDataType("Long").setEnumType(IntMathBinary.MUL)
         val getNode = GetLocalVariableNode("var", "?")
@@ -67,8 +76,6 @@ object FlowGraphTest {
         forNode.connectTo(setNode)
         mulNode.connectTo(0, setNode, 2)
         g.addAll(initNode, forNode, mulNode, getNode, setNode)
-        g.execute(initNode)
-        g.requestId()
-        assertEquals(24L, g.localVariables["var"])
+        return Pair(g, initNode)
     }
 }

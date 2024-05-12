@@ -11,7 +11,7 @@ import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
 import java.io.InputStream
 
-class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
+class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
 
     companion object {
         val yuvStage = ShaderStage(

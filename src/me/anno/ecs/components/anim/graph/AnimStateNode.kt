@@ -6,9 +6,6 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getFileInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.states.StateNode
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

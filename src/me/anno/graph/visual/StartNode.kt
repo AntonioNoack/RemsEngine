@@ -8,7 +8,7 @@ open class StartNode(funcArguments: List<String> = emptyList()) :
     FlowGraphNode("Start", emptyList(), flow + funcArguments), GLSLFlowNode {
 
     override fun execute(): NodeOutput? {
-        return outputs.getOrNull(0)
+        return outputs[0]
     }
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {

@@ -6,7 +6,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.actions.ActionNode
 
 /**

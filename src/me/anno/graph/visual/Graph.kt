@@ -10,15 +10,17 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 
-// todo for editing just copy them
-// todo for the final shader graph, maybe just use versions, e.g. v01, v02, and the user can select the base for their graph
+// for editing just copy them;
+// for the final shader graph, maybe just use versions, e.g. v01, v02, and the user can select the base for their graph
+//  -> no, we use multiple graphs
 
-// todo shader graph = dependency & processing graph
-// todo render pipeline graph = dependency & processing graph
-// todo scripting graphs = flow graph
-// todo animations graphs = state graphs
-// todo play graphs/story-graphs, e.g. with Q&As
-// todo many game-internal machines could be built with state machines :3
+// render pipeline graph = dependency & processing graph
+// shader graph = dependency & processing graph
+//  -> kind of...
+// done: scripting graphs = flow graph
+// done: animations graphs = state graphs
+// done: play graphs/story-graphs, e.g. with Q&As (test folder)
+// many game-internal machines could be built with state machines :3
 
 open class Graph : PrefabSaveable() {
 
@@ -96,8 +98,6 @@ open class Graph : PrefabSaveable() {
 
     open fun canConnectTo(self: NodeConnector, other: NodeConnector): Boolean {
         if (self.javaClass == other.javaClass) return false
-        // todo when connecting flows, ensure that no loops are formed between primary inputs
-        //  secondary flow inputs could be used for "break" or such
         return if (self is NodeInput) {
             canConnectTypeToOtherType(self.type, other.type)
         } else {

@@ -38,15 +38,15 @@ class MathF1XNode : TypedMathNode<FloatMathUnary>(dataF1X, vectorTypes) {
     override fun compute() {
         val t = enumType
         val v = when (val a = getInput(0)) {
-            is Vector2f -> Vector2f(t.float(a.x), t.float(a.y))
-            is Vector3f -> Vector3f(t.float(a.x), t.float(a.y), t.float(a.z))
-            is Vector4f -> Vector4f(t.float(a.x), t.float(a.y), t.float(a.z), t.float(a.w))
-            is Vector2d -> Vector2d(t.double(a.x), t.double(a.y))
-            is Vector3d -> Vector3d(t.double(a.x), t.double(a.y), t.double(a.z))
-            is Vector4d -> Vector4d(t.double(a.x), t.double(a.y), t.double(a.z), t.double(a.w))
-            is Vector2i -> Vector2i(t.int(a.x), t.int(a.y))
-            is Vector3i -> Vector3i(t.int(a.x), t.int(a.y), t.int(a.z))
-            is Vector4i -> Vector4i(t.int(a.x), t.int(a.y), t.int(a.z), t.int(a.w))
+            is Vector2f -> Vector2f(t.f32(a.x), t.f32(a.y))
+            is Vector3f -> Vector3f(t.f32(a.x), t.f32(a.y), t.f32(a.z))
+            is Vector4f -> Vector4f(t.f32(a.x), t.f32(a.y), t.f32(a.z), t.f32(a.w))
+            is Vector2d -> Vector2d(t.f64(a.x), t.f64(a.y))
+            is Vector3d -> Vector3d(t.f64(a.x), t.f64(a.y), t.f64(a.z))
+            is Vector4d -> Vector4d(t.f64(a.x), t.f64(a.y), t.f64(a.z), t.f64(a.w))
+            is Vector2i -> Vector2i(t.i32(a.x), t.i32(a.y))
+            is Vector3i -> Vector3i(t.i32(a.x), t.i32(a.y), t.i32(a.z))
+            is Vector4i -> Vector4i(t.i32(a.x), t.i32(a.y), t.i32(a.z), t.i32(a.w))
             else -> throw NotImplementedError()
         }
         setOutput(0, v)

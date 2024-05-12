@@ -66,6 +66,7 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
 
     fun setEnumType(type: V): MathNode<V> {
         enumType = type
+        onTypeChange()
         return this
     }
 

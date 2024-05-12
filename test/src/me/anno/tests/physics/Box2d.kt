@@ -21,6 +21,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.angleDifference
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Triangles.subCross
 import org.jbox2d.collision.shapes.PolygonShape
@@ -271,7 +272,7 @@ fun test3() {
                 val y0i = y + this.height / 2 - (center.y * scale).toFloat()
                 val scale = scale.toFloat()
 
-                val bg = backgroundColor
+                val bg = backgroundColor.withAlpha(0)
 
                 val th = 1f
                 val cl = -1

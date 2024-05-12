@@ -44,8 +44,6 @@ import org.lwjgl.opengl.GL46C.glGenBuffers
 import org.lwjgl.opengl.GL46C.nglBufferData
 import java.nio.IntBuffer
 
-// todo sims game with baked, high quality lighting
-
 fun main() {
 
     OfficialExtensions.initForTests()

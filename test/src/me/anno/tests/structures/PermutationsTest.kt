@@ -16,6 +16,6 @@ object PermutationsTest {
             ctr++
             assertTrue(all.add(it.toList()))
         }
-        assertEquals(base.size.factorial(), ctr)
+        assertEquals(base.size.factorial().toInt(), ctr)
     }
 }

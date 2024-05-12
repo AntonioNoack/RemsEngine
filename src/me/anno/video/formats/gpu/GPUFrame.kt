@@ -28,7 +28,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
-abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int, val code: Int) : ICacheData {
+abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) : ICacheData {
 
     init {
         if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")

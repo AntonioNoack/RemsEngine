@@ -10,8 +10,7 @@ import me.anno.io.base.BaseWriter
 class ValueNode private constructor(type: String, inputs: List<String>, outputs: List<String>) :
     CalculationNode(type, inputs, outputs), GLSLExprNode {
 
-    private constructor(type: String, list: List<String>) :
-            this(type, list, list)
+    private constructor(type: String, list: List<String>) : this(type, list, list)
 
     @Suppress("unused")
     constructor() : this("?") // for registry

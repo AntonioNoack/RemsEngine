@@ -3,8 +3,10 @@ package me.anno.graph.visual
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeInput
 
-// visual coding language
-// we enter the graph somewhere, do processing, and then exit some time
+/**
+ * visual coding language;
+ * we enter the graph somewhere, do processing, and then exit some time
+ * */
 open class FlowGraph : Graph() {
 
     var validId = 0
@@ -57,16 +59,6 @@ open class FlowGraph : Graph() {
         for (i in inputs.indices) {
             execute(inputs[i])
         }
-    }
-
-    fun executeThenGetOutputs(input: Node): List<Any?> {
-        val node = execute(input)
-        return node.outputs.map { it.currValue }
-    }
-
-    fun executeThenGetOutput(input: Node): Any? {
-        val node = execute(input)
-        return node.outputs.firstOrNull()?.currValue
     }
 
     fun getValue(input: NodeInput): Any? {

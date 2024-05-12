@@ -23,7 +23,6 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 
 /**
  * cheap and easy night effect;

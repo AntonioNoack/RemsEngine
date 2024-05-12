@@ -1,6 +1,5 @@
 package me.anno.graph.visual.vector
 
-import me.anno.graph.visual.FlowGraphNodeUtils.getDoubleInput
 import me.anno.graph.visual.scalar.TypedNode
 import me.anno.graph.visual.scalar.TypedNodeData
 import me.anno.utils.structures.maps.LazyMap

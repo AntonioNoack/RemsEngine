@@ -75,9 +75,8 @@ abstract class Node() : PrefabSaveable() {
         return inputs.any { !it.isEmpty() } || outputs.any { !it.isEmpty() }
     }
 
-    fun getOutput(index: Int): Any? {
-        return outputs.getOrNull(index)?.currValue
-    }
+    fun getInput(index: Int): Any? = inputs[index].getValue()
+    fun getOutput(index: Int): Any? = outputs.getOrNull(index)?.currValue
 
     fun setOutput(index: Int, value: Any?) {
         val output = outputs[index]

@@ -1,7 +1,6 @@
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.EnumNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getLongInput
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import me.anno.utils.structures.maps.LazyMap

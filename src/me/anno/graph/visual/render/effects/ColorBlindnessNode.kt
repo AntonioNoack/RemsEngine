@@ -14,7 +14,6 @@ import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.actions.ActionNode
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) :

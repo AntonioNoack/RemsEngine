@@ -7,7 +7,7 @@ import me.anno.utils.Sleep
 import me.anno.video.formats.gpu.I444Frame.Companion.yuvStage
 import java.io.InputStream
 
-class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
+class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3) {
 
     private val w2 get() = (width + 1) ushr 1
     private val h2 get() = (height + 1) ushr 1

@@ -1,6 +1,5 @@
 package me.anno.tests.mesh
 
-import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
@@ -18,11 +17,11 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -49,7 +48,12 @@ class SimpleMeshTest(
     override val canDrawOverBorders get() = true
 
     override fun onUpdate() {
-        rootEntity.rotation = rootEntity.rotation.rotateZ(Time.deltaTime * 1.0)
+        val window = window ?: return
+        val mx = window.mouseX - (x + width / 2) + 0.1f // to avoid 0/0
+        val my = window.mouseY - (y + height / 2)
+        rootEntity.rotation = rootEntity.rotation
+            .identity()
+            .rotateZ(atan2(my, mx).toDouble())
         invalidateDrawing()
     }
 
@@ -78,7 +82,7 @@ class SimpleMeshTest(
             else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)
-            pipeline.singlePassWithSky(true)
+            pipeline.singlePassWithSky(false)
         }
         if (msaa) {
             // if we changed the framebuffer, blit the result onto the target framebuffer
@@ -88,9 +92,8 @@ class SimpleMeshTest(
 }
 
 fun main() {
-    // todo MSAA is broken... why?
     OfficialExtensions.initForTests()
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
-    testUI3("UIMesh") { SimpleMeshTest(false, attributeRenderers[DeferredLayerType.COLOR]) }
+    testUI3("UIMesh") { SimpleMeshTest(true, attributeRenderers[DeferredLayerType.COLOR]) }
 }

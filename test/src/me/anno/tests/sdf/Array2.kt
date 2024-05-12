@@ -59,9 +59,6 @@ fun main() {
             cellSize.set(10f, 2f, 5f)
             count.set(1000)
             relativeOverlap.set(2.5f / 10f, 2.5f / 2f, 2.5f / 5f)
-            // todo file input for sdfMaterials: add/create new materials (even if just temporary)
-            //  todo add option to then save them after creation
-            // todo try material for sphere
             addChild(SDFGroup().apply {
                 smoothness = 0.1f
                 if (false) addChild(SDFRandomRotation().apply {

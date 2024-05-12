@@ -17,8 +17,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp

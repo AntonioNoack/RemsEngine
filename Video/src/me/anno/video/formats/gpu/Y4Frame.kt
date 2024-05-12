@@ -6,7 +6,7 @@ import me.anno.io.Streams.readNBytes2
 import me.anno.utils.Sleep
 import java.io.InputStream
 
-class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1, -1) {
+class Y4Frame(w: Int, h: Int) : GPUFrame(w, h, 1) {
 
     val y = Texture2D("y4", width, height, 1)
 

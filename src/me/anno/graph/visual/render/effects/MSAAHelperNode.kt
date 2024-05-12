@@ -1,6 +1,5 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.actions.ActionNode
 
 /**

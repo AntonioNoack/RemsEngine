@@ -142,6 +142,14 @@ object SDFComposer {
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : SDFShader(tree) {
+            override fun createForwardShader(key: ShaderKey): Shader {
+                return super.createForwardShader(key).apply { printCode() }
+            }
+
+            override fun createDeferredShader(key: ShaderKey): Shader {
+                return super.createDeferredShader(key).apply { printCode() }
+            }
+
             override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
                 // instancing is not supported
                 val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
@@ -365,8 +373,8 @@ object SDFComposer {
     val partClickIds = "" +
             "if(renderIds){\n" +
             "   int intId = int(ray.y);\n" +
-            "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
-            "} else tint = vec4(1.0);\n"
+            "   finalId = vec4(vec3(float((intId>>0)&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
+            "} else finalId = vec4(1.0);\n"
 
     val showNumberOfSteps = "" +
             "if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
@@ -451,6 +459,6 @@ object SDFComposer {
         Variable(GLSLType.SCube, "reflectionMap"),
         Variable(GLSLType.V1B, "renderIds"),
         Variable(GLSLType.V2F, "renderSize"),
-        Variable(GLSLType.V4F, "tint", VariableMode.OUT),
+        Variable(GLSLType.V4F, "finalId", VariableMode.OUT),
     ) + depthVars
 }

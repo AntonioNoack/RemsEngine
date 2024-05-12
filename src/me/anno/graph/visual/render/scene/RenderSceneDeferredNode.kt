@@ -22,8 +22,6 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler

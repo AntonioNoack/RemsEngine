@@ -18,11 +18,10 @@ class BlankFrameDetector {
 
     fun putRGBA(data: ByteBuffer) {
         val ris = randomIndexSequence
-        val size = data.remaining() / 4
+        val size = data.remaining() shr 2
         if (size > 0) for (i in ris.indices) {
             val pixelIndex = (size * ris[i]).toInt()
-            val rgba = data.getInt(pixelIndex * 4)
-            pixels[i] = pixels[i] or rgba
+            pixels[i] = data.getInt(pixelIndex * 4)
         }
     }
 
@@ -45,8 +44,8 @@ class BlankFrameDetector {
     }
 
     private fun isBlankFrameRGBA(c0: Int, c2: Int, c4: Int): Int {
-        val b = 0xff
-        val g = 0xff00
+        val b = 0x0000ff
+        val g = 0x00ff00
         val r = 0xff0000
         val s3 = 24
         var sum = 0

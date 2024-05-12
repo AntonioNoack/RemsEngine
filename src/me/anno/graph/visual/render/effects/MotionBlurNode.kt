@@ -16,8 +16,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.maths.Maths.clamp
 

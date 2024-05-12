@@ -1,7 +1,6 @@
 package me.anno.graph.visual.control
 
 import me.anno.graph.visual.CalculationNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLExprNode

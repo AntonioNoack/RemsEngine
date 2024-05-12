@@ -26,8 +26,6 @@ import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.ReturnNode
 import me.anno.maths.Maths.clamp
 

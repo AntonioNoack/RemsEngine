@@ -17,7 +17,7 @@ import kotlin.math.sign
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-@Suppress("unused")
+@Suppress("unused", "ConstPropertyName")
 object Maths {
 
     const val TAU = PI * 2.0
@@ -105,7 +105,7 @@ object Maths {
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
     @JvmStatic
-    private val randomInst = Random(Time.nanoTime)
+    private val randomInst = Random(Time.startTime)
 
     @JvmStatic
     fun random(): Double = synchronized(randomInst) { randomInst.nextDouble() }
@@ -638,7 +638,12 @@ object Maths {
     fun align(size: Long, rem: Long): Long = ceilDiv(size, rem) * rem
 
     @JvmStatic
-    fun Int.factorial(): Int {
+    fun Int.factorial(): Long {
+        return toLong().factorial()
+    }
+
+    @JvmStatic
+    fun Long.factorial(): Long {
         if (this < 2) return 1
         var prod = this
         var n = this

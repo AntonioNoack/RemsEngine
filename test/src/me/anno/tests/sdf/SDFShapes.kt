@@ -28,14 +28,16 @@ import me.anno.sdf.shapes.SDFStairs
 import me.anno.sdf.shapes.SDFStar
 import me.anno.sdf.shapes.SDFTorus
 import me.anno.sdf.shapes.SDFTriangle
-import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import org.joml.Vector3f
 
-fun createShapesScene(): Entity {
+fun createShapesScene(limit: Int): Entity {
 
+    var ctr = 0
     val scene = Entity()
     fun place(shape: SDFComponent, pos: Vector3f) {
+        if (ctr++ >= limit) return
         shape.position.set(pos)
         scene.add(shape)
     }
@@ -118,13 +120,11 @@ fun createShapesScene(): Entity {
 
 /**
  * Scene, which shows most SDF shapes
+ *
+ *     // todo bug: these elements cannot be properly clicked -> all have same clickId
+ *     // todo bug: even when I select one, the gizmos isn't shown at the right place
  * */
 fun main() {
-
     OfficialExtensions.initForTests()
-
-    // todo bug: these elements cannot be properly clicked -> all have same clickId
-    // todo bug: even when I select one, the gizmos isn't shown at the right place
-
-    testSceneWithUI("SDF Shapes", createShapesScene())
+    testSceneWithUI("SDF Shapes", createShapesScene(10))
 }

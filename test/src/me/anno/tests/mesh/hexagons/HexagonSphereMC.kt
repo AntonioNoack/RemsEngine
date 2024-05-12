@@ -279,9 +279,6 @@ fun destroyMesh(mesh: Mesh) {
 
 fun main() {
 
-    // todo shadows are broken!!! :/
-    // todo rendering uses finalPosition...
-
     val n = 100
     val (hexagons, _) = createHexSphere(n)
     val world = HexagonSphereMCWorld(HexagonSphere(n, 1))

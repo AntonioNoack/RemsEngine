@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render
 
 import me.anno.graph.visual.CalculationNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import org.joml.Matrix3f
 import org.joml.Vector3f

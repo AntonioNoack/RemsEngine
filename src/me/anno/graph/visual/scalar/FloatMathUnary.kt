@@ -79,7 +79,7 @@ enum class FloatMathUnary(
 
     ;
 
-    fun double(a: Double): Double {
+    fun f64(a: Double): Double {
         return when (this) {
             ABS -> abs(a)
             NEG -> -a
@@ -119,12 +119,12 @@ enum class FloatMathUnary(
         }
     }
 
-    fun float(a: Float): Float {
-        return double(a.toDouble()).toFloat()
+    fun f32(a: Float): Float {
+        return f64(a.toDouble()).toFloat()
     }
 
-    fun int(a: Int): Int {
-        return double(a.toDouble()).toInt()
+    fun i32(a: Int): Int {
+        return f64(a.toDouble()).toInt()
     }
 
     companion object {

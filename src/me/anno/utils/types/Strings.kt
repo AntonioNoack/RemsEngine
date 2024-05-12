@@ -114,13 +114,13 @@ object Strings {
         return index
     }
 
-    const val defaultImportType = "Text"
+    private const val DEFAULT_IMPORT_TYPE = "Text"
 
     @JvmStatic
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString()
             ?: DefaultConfig["import.mapping.${lowercase()}"]?.toString()
-            ?: DefaultConfig["import.mapping.*"]?.toString() ?: defaultImportType
+            ?: DefaultConfig["import.mapping.*"]?.toString() ?: DEFAULT_IMPORT_TYPE
 
     // 00:57:28.87 -> 57 * 60 + 28.87
     @JvmStatic
@@ -436,7 +436,7 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.titlecase(): CharSequence {
-        return if (!isEmpty() && first().isLowerCase()) {
+        return if (isNotEmpty() && first().isLowerCase()) {
             first().uppercase() + substring(1)
         } else this
     }
@@ -456,17 +456,17 @@ object Strings {
 
     // todo S looks off -> probably incorrect (check out Courier New in Rem's Studio)
     @Suppress("SpellCheckingInspection")
-    private const val smallCapsMagic = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+    private const val SMALL_CAPS_ALPHABET = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
 
     @JvmStatic
     @Suppress("unused")
     fun Char.smallCaps(): Char {
-        return if (this in 'a'..'z') smallCapsMagic[this.code - 'a'.code] else this
+        return if (this in 'a'..'z') SMALL_CAPS_ALPHABET[this.code - 'a'.code] else this
     }
 
     @JvmStatic
     fun Char.normalCaps(): Char {
-        val idx = smallCapsMagic.indexOf(this)
+        val idx = SMALL_CAPS_ALPHABET.indexOf(this)
         return if (idx >= 0) ('a' + idx) else this
     }
 

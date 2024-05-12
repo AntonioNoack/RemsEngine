@@ -1,6 +1,5 @@
 package me.anno.graph.visual.scalar
 
-import me.anno.graph.visual.FlowGraphNodeUtils.getDoubleInput
 import me.anno.graph.visual.node.Node
 import me.anno.utils.structures.maps.LazyMap
 
@@ -20,7 +19,7 @@ private val dataD1 = LazyMap { type: String ->
 
 class MathF1Node : TypedMathNode<FloatMathUnary>(dataD1, types) {
     override fun compute() {
-        setOutputI(enumType.double(getDoubleInput(0)))
+        setOutputI(enumType.f64(getDoubleInput(0)))
     }
 }
 

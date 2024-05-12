@@ -1,7 +1,6 @@
 package me.anno.graph.visual.vector
 
 import me.anno.graph.visual.CalculationNode
-import me.anno.graph.visual.FlowGraphNodeUtils.getFloatInput
 import me.anno.graph.visual.render.compiler.GLSLFuncNode
 import org.joml.Vector2f
 import kotlin.math.cos

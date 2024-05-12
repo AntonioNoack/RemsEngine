@@ -28,7 +28,6 @@ import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getBoolInput
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode

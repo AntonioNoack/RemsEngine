@@ -92,7 +92,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                     Variable(GLSLType.V4F, "finalId"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
-                ), "if(finalAlpha < 0.01) discard; finalResult = finalId;\n"
+                ), "if(finalAlpha < 0.01) { discard; }\nfinalResult = finalId;\n"
             )
         )
 

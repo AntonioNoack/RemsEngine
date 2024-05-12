@@ -28,7 +28,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.FlowGraphNodeUtils.getIntInput
 import me.anno.graph.visual.ReturnNode
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.toInt

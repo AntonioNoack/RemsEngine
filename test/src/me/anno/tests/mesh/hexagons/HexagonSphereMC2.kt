@@ -158,6 +158,7 @@ fun main() {
 
 val worker = ProcessingGroup("worldGen", 4)
 
+// todo use UniqueMeshRenderer for better performance
 class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) : Component() {
     val dir = Vector3f()
     val pos = Vector3d()
@@ -222,5 +223,3 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
         return 1
     }
 }
-
-// todo smooth normals using gaussian blur: this will smooth edges :3

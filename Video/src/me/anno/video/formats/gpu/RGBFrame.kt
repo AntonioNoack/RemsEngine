@@ -6,9 +6,9 @@ import me.anno.utils.Sleep
 import java.io.EOFException
 import java.io.InputStream
 
-open class RGBFrame(w: Int, h: Int, numChannels: Int, code: Int) : GPUFrame(w, h, numChannels, code) {
+open class RGBFrame(w: Int, h: Int, numChannels: Int) : GPUFrame(w, h, numChannels) {
 
-    constructor(w: Int, h: Int) : this(w, h, 3, -1)
+    constructor(w: Int, h: Int) : this(w, h, 3)
 
     val rgb = Texture2D("rgb-frame", width, height, 1)
 

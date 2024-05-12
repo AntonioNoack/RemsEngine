@@ -1,14 +1,14 @@
 package me.anno.graph.visual.states
 
 import me.anno.graph.visual.node.Node
-import me.anno.graph.visual.ControlFlowGraph
+import me.anno.graph.visual.FlowGraph
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 
 /**
  * given an initial state, compute the next state & update internal values
  * */
-class StateMachine : ControlFlowGraph() {
+class StateMachine : FlowGraph() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(StateMachine::class)
