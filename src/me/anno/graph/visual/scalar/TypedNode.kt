@@ -13,10 +13,10 @@ abstract class TypedNode(
     val dataMap: LazyMap<String, TypedNodeData>,
     val valueTypes: List<String>,
     var data: TypedNodeData = dataMap[valueTypes.first()]
-) : ComputeNode(data.name, data.inputs, data.outputType), EnumNode, GLSLFuncNode {
+) : ComputeNode(data.name, data.inputs, data.outputs), EnumNode, GLSLFuncNode {
 
     init {
-        updateNameDesc()
+        onTypeChange()
     }
 
     override fun getShaderFuncName(outputIndex: Int) = data.glsl.first
@@ -25,7 +25,7 @@ abstract class TypedNode(
     override fun listNodes(): List<Node> {
         return valueTypes.map { type ->
             val clone = clone() as TypedNode
-            clone.setType(type)
+            clone.setDataType(type)
             clone
         }
     }
@@ -37,24 +37,35 @@ abstract class TypedNode(
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "dataType" -> setType(value.toString())
+            "dataType" -> setDataType(value.toString())
             else -> super.setProperty(name, value)
         }
     }
 
-    fun setType(type: String): TypedNode {
+    fun setDataType(type: String): TypedNode {
         data = dataMap[type]
-        updateNameDesc()
+        onTypeChange()
         return this
     }
 
     init {
         // init name and description
-        updateNameDesc()
+        onTypeChange()
     }
 
-    fun updateNameDesc() {
+    fun onTypeChange() {
+        val data = data
         name = data.name
         description = data.glsl.first
+        for (i in inputs.indices) {
+            val input = inputs[i]
+            input.type = data.inputs[i * 2]
+            input.name = data.inputs[i * 2 + 1]
+        }
+        for (i in outputs.indices) {
+            val output = outputs[i]
+            output.type = data.outputs[i * 2]
+            output.name = data.outputs[i * 2 + 1]
+        }
     }
 }

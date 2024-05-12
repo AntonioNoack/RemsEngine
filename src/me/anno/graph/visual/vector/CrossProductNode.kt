@@ -8,7 +8,6 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 
-@Suppress("unused")
 class CrossProductNode : TypedNode(crossData, types) {
     override fun compute() {
         val b = getInput(1)
@@ -29,7 +28,7 @@ class CrossProductNode : TypedNode(crossData, types) {
                 "$type Cross",
                 if (type[6] == '2') "cross$type" to "a.x*b.y-a.y*b.x" else "cross" to null,
                 listOf(type, "A", type, "B"),
-                if (type.last() == 'f') "Float" else "Double"
+                listOf(getVectorTypeF(type), "Result")
             )
         }
     }

@@ -3,7 +3,7 @@ package me.anno.graph.visual.scalar
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.median
 
-enum class IntMathsTernary(
+enum class IntMathTernary(
     val id: Int,
     val glsl: String
 ) {

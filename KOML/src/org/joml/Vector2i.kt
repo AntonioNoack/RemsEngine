@@ -7,12 +7,18 @@ import kotlin.math.sqrt
 open class Vector2i(
     @JvmField var x: Int,
     @JvmField var y: Int
-) {
+): Vector() {
 
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)
     constructor(v: Vector2i) : this(v.x, v.y)
     constructor(xy: IntArray) : this(xy[0], xy[1])
+
+    override val numComponents: Int get() = 2
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toInt())
+    }
 
     @JvmOverloads
     fun set(x: Int, y: Int = x): Vector2i {

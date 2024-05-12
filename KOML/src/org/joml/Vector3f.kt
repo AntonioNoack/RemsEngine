@@ -19,7 +19,7 @@ open class Vector3f(
     @JvmField var x: Float,
     @JvmField var y: Float,
     @JvmField var z: Float
-) {
+) : Vector() {
 
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
@@ -31,6 +31,12 @@ open class Vector3f(
     constructor(xyz: FloatArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
     constructor(xyz: FloatArray) : this(xyz, 0)
     constructor(x: Int, y: Int, z: Int) : this(x.toFloat(), y.toFloat(), z.toFloat())
+
+    override val numComponents: Int get() = 3
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toFloat())
+    }
 
     fun set(v: Vector3f): Vector3f = set(v.x, v.y, v.z)
     fun set(v: Vector3d): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())

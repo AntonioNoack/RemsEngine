@@ -19,7 +19,7 @@ open class Vector3d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double,
-) {
+): Vector() {
 
     constructor() : this(0.0, 0.0, 0.0)
     constructor(v: Double) : this(v, v, v)
@@ -34,6 +34,12 @@ open class Vector3d(
     constructor(xyz: FloatArray, i: Int) : this(xyz[i], xyz[i + 1], xyz[i + 2])
     constructor(xyz: DoubleArray) : this(xyz, 0)
     constructor(xyz: FloatArray) : this(xyz, 0)
+
+    override val numComponents: Int get() = 3
+    override fun getComp(i: Int): Double = get(i)
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v)
+    }
 
     fun set(v: Vector3d): Vector3d = set(v.x, v.y, v.z)
     fun set(v: Vector3i): Vector3d = set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())

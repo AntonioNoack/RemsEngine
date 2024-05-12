@@ -5,12 +5,30 @@ open class Planef(
     @JvmField var dirY: Float,
     @JvmField var dirZ: Float,
     @JvmField var distance: Float
-) {
+) : Vector() {
 
     constructor() : this(0f, 0f, 0f, 0f)
 
     constructor(pos: Vector3f, dir: Vector3f) :
             this(dir.x, dir.y, dir.z, -pos.dot(dir))
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = when (i) {
+        0 -> dirX
+        1 -> dirY
+        2 -> dirZ
+        else -> distance
+    }.toDouble()
+
+    override fun setComp(i: Int, v: Double) {
+        val vf = v.toFloat()
+        when (i) {
+            0 -> dirX = vf
+            1 -> dirY = vf
+            2 -> dirZ = vf
+            else -> distance = vf
+        }
+    }
 
     fun set(x: Float, y: Float, z: Float, w: Float): Planef {
         dirX = x

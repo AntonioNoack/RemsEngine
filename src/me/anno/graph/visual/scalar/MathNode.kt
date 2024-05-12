@@ -18,20 +18,25 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
     ComputeNode("", data.inputs, data.outputs), EnumNode, GLSLFuncNode {
 
     var enumType: V = data.defaultType
-        set(value) {
-            field = value
-            updateNameDesc()
-        }
+        private set
 
     init {
         // init name and description
-        updateNameDesc()
+        onTypeChange()
     }
 
-    fun updateNameDesc() {
+    fun onTypeChange() {
         val idx = data.typeToIndex[enumType]!!
         name = data.names[idx]
         description = data.getGLSL(data.enumValues[idx])
+        for (i in inputs.indices) {
+            inputs[i].name = data.inputs[i * 2 + 1]
+            inputs[i].type = data.inputs[i * 2]
+        }
+        for (i in outputs.indices) {
+            outputs[i].name = data.outputs[i * 2 + 1]
+            outputs[i].type = data.outputs[i * 2]
+        }
     }
 
     override fun getShaderFuncName(outputIndex: Int): String = "${data.outputs.first()}$enumType"
@@ -74,6 +79,7 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
             "type" -> {
                 if (value !is Int) return
                 enumType = data.byId[value] ?: enumType
+                onTypeChange()
             }
             else -> super.setProperty(name, value)
         }
@@ -85,11 +91,6 @@ abstract class MathNode<V : Enum<V>>(var data: MathNodeData<V>) :
         dst as MathNode<V>
         dst.data = data
         dst.enumType = enumType
-        for (i in dst.inputs.indices) {
-            dst.inputs[i].type = inputs[i].type
-        }
-        for (i in dst.outputs.indices) {
-            dst.outputs[i].type = outputs[i].type
-        }
+        dst.onTypeChange()
     }
 }

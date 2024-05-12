@@ -17,7 +17,7 @@ open class Vector4d(
     @JvmField var y: Double,
     @JvmField var z: Double,
     @JvmField var w: Double
-) {
+) : Vector() {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)
@@ -32,6 +32,12 @@ open class Vector4d(
     constructor(v: Vector2f, z: Double, w: Double) : this(v.x.toDouble(), v.y.toDouble(), z, w)
     constructor(xyzw: FloatArray) : this(xyzw[0].toDouble(), xyzw[1].toDouble(), xyzw[2].toDouble(), xyzw[3].toDouble())
     constructor(xyzw: DoubleArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = get(i)
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v)
+    }
 
     fun set(v: Vector4d): Vector4d {
         x = v.x
@@ -144,7 +150,7 @@ open class Vector4d(
         return this
     }
 
-    operator fun set(component: Int, value: Double) = setComponent(component, value)
+    operator fun set(component: Int, value: Double) = setComp(component, value)
     fun setComponent(component: Int, value: Double): Vector4d {
         when (component) {
             0 -> x = value

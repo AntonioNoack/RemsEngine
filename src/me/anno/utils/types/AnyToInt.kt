@@ -5,7 +5,7 @@ import me.anno.utils.types.AnyToLong.getLong
 object AnyToInt {
 
     @JvmStatic
-    fun getInt(value: Any?, defaultValue: Int): Int {
+    fun getInt(value: Any?, defaultValue: Int = 0): Int {
         return getInt(value, 0, defaultValue)
     }
 

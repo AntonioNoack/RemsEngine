@@ -5,12 +5,29 @@ open class Planed(
     @JvmField var dirY: Double,
     @JvmField var dirZ: Double,
     @JvmField var distance: Double
-) {
+) : Vector() {
 
     constructor() : this(0.0, 0.0, 0.0, 0.0)
 
     constructor(pos: Vector3d, dir: Vector3d) :
             this(dir.x, dir.y, dir.z, -pos.dot(dir))
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = when (i) {
+        0 -> dirX
+        1 -> dirY
+        2 -> dirZ
+        else -> distance
+    }
+
+    override fun setComp(i: Int, v: Double) {
+        when (i) {
+            0 -> dirX = v
+            1 -> dirY = v
+            2 -> dirZ = v
+            else -> distance = v
+        }
+    }
 
     fun set(x: Double, y: Double, z: Double, w: Double): Planed {
         dirX = x

@@ -8,13 +8,34 @@ import kotlin.math.sqrt
 class AABBd(
     var minX: Double, var minY: Double, var minZ: Double,
     var maxX: Double, var maxY: Double, var maxZ: Double
-) {
+): Vector() {
 
     constructor(base: AABBd) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
     constructor() : this(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
     constructor(base: AABBf) : this() {
         set(base)
+    }
+
+    override val numComponents: Int get() = 6
+    override fun getComp(i: Int): Double = when (i) {
+        0 -> minX
+        1 -> minY
+        2 -> minZ
+        3 -> maxX
+        4 -> maxY
+        else -> maxZ
+    }
+
+    override fun setComp(i: Int, v: Double) {
+        when (i) {
+            0 -> minX = v
+            1 -> minY = v
+            2 -> minZ = v
+            3 -> maxX = v
+            4 -> maxY = v
+            else -> maxZ = v
+        }
     }
 
     override fun toString(): String = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"

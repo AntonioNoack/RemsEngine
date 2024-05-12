@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package me.anno.graph.visual.scalar
 
 import me.anno.graph.visual.ComputeNode
@@ -14,25 +12,26 @@ class NotNode : ComputeNode("Binary Not", listOf("Boolean", "Value"), "Boolean")
 }
 
 private val dataB2 = MathNodeData(
-    BooleanMathsBinary.entries,
+    BooleanMathType.entries,
     listOf("Boolean", "Boolean"), "Boolean",
-    BooleanMathsBinary::id, BooleanMathsBinary::glsl
+    BooleanMathType::id, BooleanMathType::glsl2d
 )
 
-class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLFuncNode {
+class MathB2Node : MathNode<BooleanMathType>(dataB2), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, enumType.compute(getBoolInput(0), getBoolInput(1)))
+        setOutput(0, enumType.compute2d(getBoolInput(0), getBoolInput(1)))
     }
 }
 
 private val dataB3 = MathNodeData(
-    BooleanMathsTernary.entries,
+    BooleanMathType.entries,
     listOf("Boolean", "Boolean", "Boolean"), "Boolean",
-    BooleanMathsTernary::id, BooleanMathsTernary::glsl
+    BooleanMathType::id, BooleanMathType::glsl3d,
+    dataB2.names.map { "$it x3" }
 )
 
-class MathB3Node : MathNode<BooleanMathsTernary>(dataB3), EnumNode, GLSLFuncNode {
+class MathB3Node : MathNode<BooleanMathType>(dataB3), EnumNode, GLSLFuncNode {
     override fun compute() {
-        setOutput(0, enumType.compute(getBoolInput(0), getBoolInput(1), getBoolInput(2)))
+        setOutput(0, enumType.compute3d(getBoolInput(0), getBoolInput(1), getBoolInput(2)))
     }
 }

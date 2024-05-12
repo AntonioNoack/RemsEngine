@@ -100,6 +100,12 @@ abstract class Node() : PrefabSaveable() {
         return outputs[i].others.getOrNull(j)?.node
     }
 
+    fun invalidateState() {
+        for (ii in inputs.indices) {
+            inputs[ii].lastValidId = -1
+        }
+    }
+
     fun delete(graph: Graph?) {
         val inputs = inputs
         for (con in inputs) {

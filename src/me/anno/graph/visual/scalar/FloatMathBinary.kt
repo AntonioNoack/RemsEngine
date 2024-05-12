@@ -8,7 +8,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-enum class FloatMathsBinary(
+enum class FloatMathBinary(
     val id: Int,
     val glsl: String,
 ) {
@@ -41,7 +41,7 @@ enum class FloatMathsBinary(
             else -> true
         }
 
-    fun double(a: Double, b: Double): Double {
+    fun f64(a: Double, b: Double): Double {
         return when (this) {
             ADD -> a + b
             SUB -> a - b
@@ -62,7 +62,11 @@ enum class FloatMathsBinary(
         }
     }
 
-    fun float(a: Float, b: Float): Float {
-        return double(a.toDouble(), b.toDouble()).toFloat()
+    fun f32(a: Float, b: Float): Float {
+        return f64(a.toDouble(), b.toDouble()).toFloat()
+    }
+
+    fun i32(a: Int, b: Int): Int {
+        return f64(a.toDouble(), b.toDouble()).toInt()
     }
 }

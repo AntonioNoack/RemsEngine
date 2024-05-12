@@ -33,9 +33,7 @@ ColorChooser: me.anno.ui.editor.color.ColorChooser
 ColorInput: me.anno.ui.input.ColorInput
 ColorNode: me.anno.graph.visual.render.ColorNode
 CombineLightsNode: me.anno.graph.visual.render.scene.CombineLightsNode
-CombineVector2f: me.anno.graph.visual.vector.CombineVector2f
-CombineVector3f: me.anno.graph.visual.vector.CombineVector3f
-CombineVector4f: me.anno.graph.visual.vector.CombineVector4f
+CombineVectorNode: me.anno.graph.visual.vector.CombineVectorNode
 CompareNode: me.anno.graph.visual.scalar.CompareNode
 ConeCollider: me.anno.ecs.components.collider.ConeCollider
 ConeTwistConstraint: me.anno.bullet.constraints.ConeTwistConstraint
@@ -243,9 +241,7 @@ ScrollPanelX: me.anno.ui.base.scrolling.ScrollPanelX
 ScrollPanelXY: me.anno.ui.base.scrolling.ScrollPanelXY
 ScrollPanelY: me.anno.ui.base.scrolling.ScrollPanelY
 Scrollbar: me.anno.ui.base.scrolling.Scrollbar
-SeparateVector2f: me.anno.graph.visual.vector.SeparateVector2f
-SeparateVector3f: me.anno.graph.visual.vector.SeparateVector3f
-SeparateVector4f: me.anno.graph.visual.vector.SeparateVector4f
+SeparateVectorNode: me.anno.graph.visual.vector.SeparateVectorNode
 SetLocalVariableNode: me.anno.graph.visual.local.SetLocalVariableNode
 ShaderExprNode: me.anno.graph.visual.render.compiler.ShaderExprNode
 ShaderGraphNode: me.anno.graph.visual.render.compiler.ShaderGraphNode

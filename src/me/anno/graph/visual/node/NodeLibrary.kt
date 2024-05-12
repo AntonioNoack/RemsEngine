@@ -29,9 +29,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                 "MathF1XNode,MathF2XNode,MathF3XNode," +
                 "DotProductNode,CrossProductNode,NormalizeNode," +
                 "RotateF2Node,RotateF3XNode,RotateF3YNode,RotateF3ZNode," +
-                "FresnelNode3," +
-                "CompareNode,CombineVector2f,CombineVector3f,CombineVector4f," +
-                "SeparateVector2f,SeparateVector3f,SeparateVector4f,ColorNode,GameTime,RandomNode," +
+                "FresnelNode3,CompareNode,CombineVectorNode,SeparateVectorNode," +
+                "ColorNode,GameTime,RandomNode," +
                 "VectorLengthNode,VectorDistanceNode"
 
         private const val TYPE_NAMES = "?,String,Boolean,Float,Int,Vector2f,Vector3f,Vector4f"
@@ -50,7 +49,7 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                 } + typeNames.map { typeName ->
                     { InlineBranchNode(typeName) }
                 } + NODE_CLASS_NAMES.split(',').map { name ->
-                    { Saveable.create(name) as Node }
+                    { Saveable.create(name) as? Node ?: throw IllegalStateException("Missing $name") }
                 }
             )
         }

@@ -31,7 +31,7 @@ import kotlin.math.tan
 import kotlin.math.tanh
 import kotlin.math.truncate
 
-enum class FloatMathsUnary(
+enum class FloatMathUnary(
     val id: Int, val glsl: String
 ) {
 
@@ -121,6 +121,10 @@ enum class FloatMathsUnary(
 
     fun float(a: Float): Float {
         return double(a.toDouble()).toFloat()
+    }
+
+    fun int(a: Int): Int {
+        return double(a.toDouble()).toInt()
     }
 
     companion object {

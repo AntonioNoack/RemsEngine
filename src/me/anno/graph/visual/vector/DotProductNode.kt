@@ -30,7 +30,7 @@ class DotProductNode : TypedNode(data, vectorTypes) {
         private val data = LazyMap { type: String ->
             TypedNodeData(
                 "$type Dot", "dot" to null, listOf(type, "A", type, "B"),
-                if (type.last() == 'f') "Float" else "Double"
+                listOf(if (type.last() == 'f') "Float" else "Double", "Result")
             )
         }
     }

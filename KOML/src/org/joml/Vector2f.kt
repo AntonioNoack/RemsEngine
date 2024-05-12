@@ -8,7 +8,7 @@ import kotlin.math.sin
 open class Vector2f(
     @JvmField var x: Float,
     @JvmField var y: Float
-) {
+): Vector() {
 
     constructor() : this(0f, 0f)
     constructor(v: Float) : this(v, v)
@@ -16,6 +16,12 @@ open class Vector2f(
     constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
     constructor(xy: FloatArray) : this(xy[0], xy[1])
     constructor(v: Vector2d) : this(v.x.toFloat(), v.y.toFloat())
+
+    override val numComponents: Int get() = 2
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toFloat())
+    }
 
     @JvmOverloads
     fun set(x: Float, y: Float = x): Vector2f {

@@ -6,6 +6,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 
 // todo quat to vec?
+// todo fully support int vectors
 
 object MaterialGraph {
 
@@ -13,9 +14,12 @@ object MaterialGraph {
         return when (type) {
             "Int", "Long" -> "int"
             "Float", "Double" -> "float"
-            "Vector2f" -> "vec2"
-            "Vector3f" -> "vec3"
-            "Vector4f" -> "vec4"
+            "Vector2f", "Vector2d" -> "vec2"
+            "Vector3f", "Vector3d" -> "vec3"
+            "Vector4f", "Vector4d" -> "vec4"
+            "Vector2i" -> "ivec2"
+            "Vector3i" -> "ivec3"
+            "Vector4i" -> "ivec4"
             "Bool", "Boolean" -> "bool"
             else -> throw NotImplementedError(type)
         }
@@ -57,9 +61,9 @@ object MaterialGraph {
                         ""
                     }
                     "Int", "Long" -> "int("
-                    "Vector2f" -> "vec2("
-                    "Vector3f" -> "vec3("
-                    "Vector4f" -> {
+                    "Vector2f", "Vector2d" -> "vec2("
+                    "Vector3f", "Vector3d" -> "vec3("
+                    "Vector4f", "Vector4d" -> {
                         suffix = "),1.0)"
                         "vec4(vec3("
                     }
@@ -79,23 +83,26 @@ object MaterialGraph {
                         ""
                     }
                     "Float", "Double" -> "float("
-                    "Vector2f" -> "vec2("
-                    "Vector3f" -> "vec3("
-                    "Vector4f" -> "vec4("
+                    "Vector2f", "Vector2d" -> "vec2("
+                    "Vector3f", "Vector3d" -> "vec3("
+                    "Vector4f", "Vector4d" -> "vec4("
+                    "Vector2i" -> "ivec2("
+                    "Vector3i" -> "ivec3("
+                    "Vector4i" -> "ivec4("
                     else -> return null
                 }
                 exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector2f" -> {
+            "Vector2f", "Vector2d" -> {
                 var prefix = "("
                 val suffix = when (dstType) {
                     "Bool", "Boolean" -> ").x!=0.0"
                     "Float", "Double" -> ").x"
-                    "Vector3f" -> {
+                    "Vector3f", "Vector3d" -> {
                         prefix = "vec3("
                         ",0.0)"
                     }
-                    "Vector4f" -> {
+                    "Vector4f", "Vector4d" -> {
                         prefix = "vec4("
                         ",0.0,1.0)"
                     }
@@ -103,13 +110,13 @@ object MaterialGraph {
                 }
                 exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector3f" -> {
+            "Vector3f", "Vector3d" -> {
                 var prefix = "("
                 val suffix = when (dstType) {
                     "Bool", "Boolean" -> ").x!=0.0"
                     "Float", "Double" -> ").x"
-                    "Vector2f" -> ").xy"
-                    "Vector4f" -> {
+                    "Vector2f", "Vector2d" -> ").xy"
+                    "Vector4f", "Vector4d" -> {
                         prefix = "vec4("
                         ",1.0)"
                     }
@@ -117,12 +124,12 @@ object MaterialGraph {
                 }
                 exprAppend(builder, prefix, suffix, expr)
             }
-            "Vector4f" -> {
+            "Vector4f", "Vector4d" -> {
                 val suffix = when (dstType) {
                     "Bool", "Boolean" -> ".x!=0.0"
                     "Float", "Double" -> ".x"
-                    "Vector2f" -> ".xy"
-                    "Vector3f" -> ".xyz"
+                    "Vector2f", "Vector2d" -> ".xy"
+                    "Vector3f", "Vector3d" -> ".xyz"
                     "Texture" -> ""
                     else -> return null
                 }

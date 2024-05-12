@@ -1,4 +1,4 @@
-package me.anno.tests.shader
+package me.anno.tests.graph.visual
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions

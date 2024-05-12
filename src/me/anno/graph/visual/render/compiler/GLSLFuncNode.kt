@@ -14,7 +14,7 @@ interface GLSLFuncNode : GLSLExprNode {
         val name = getShaderFuncName(c)
         g.typeToFunc.getOrPut(name) {
             var shaderFunc = defineShaderFunc(c)
-            if (!shaderFunc.isNullOrEmpty() && shaderFunc[0] != '(') { // short form
+            if (!shaderFunc.isNullOrEmpty() && "return" !in shaderFunc) { // short form
                 shaderFunc = "(${shaderFuncPrefix(n)}){return $shaderFunc;}"
             }
             g.defineFunc(name, kotlinToGLSL(out.type), shaderFunc)
@@ -31,7 +31,7 @@ interface GLSLFuncNode : GLSLExprNode {
 
     companion object {
         fun shaderFuncPrefix(n: Node): String {
-            return (n.inputs.indices step 2).joinToString(",") { i ->
+            return n.inputs.indices.joinToString(",") { i ->
                 kotlinToGLSL(n.inputs[i].type) + " " + ('a' + i)
             }
         }

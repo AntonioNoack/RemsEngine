@@ -6,7 +6,7 @@ import me.anno.utils.types.Booleans.toLong
 import kotlin.math.abs
 import kotlin.math.max
 
-enum class IntMathsBinary(
+enum class IntMathBinary(
     val id: Int,
     val glsl: String
 ) {

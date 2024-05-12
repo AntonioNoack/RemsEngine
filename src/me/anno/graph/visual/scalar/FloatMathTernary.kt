@@ -6,7 +6,7 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.smoothStep
 import me.anno.maths.Maths.unmix
 
-enum class FloatMathsTernary(
+enum class FloatMathTernary(
     val id: Int,
     val glsl: String
 ) {
@@ -27,7 +27,7 @@ enum class FloatMathsTernary(
 
     ;
 
-    fun calculate(a: Double, b: Double, c: Double): Double {
+    fun f64(a: Double, b: Double, c: Double): Double {
         return when (this) {
             CLAMP -> clamp(a, b, c)
             MEDIAN -> median(a, b, c)
@@ -42,7 +42,11 @@ enum class FloatMathsTernary(
         }
     }
 
-    fun float(a: Float, b: Float, c: Float): Float {
-        return calculate(a.toDouble(), b.toDouble(), c.toDouble()).toFloat()
+    fun f32(a: Float, b: Float, c: Float): Float {
+        return f64(a.toDouble(), b.toDouble(), c.toDouble()).toFloat()
+    }
+
+    fun i32(a: Int, b: Int, c: Int): Int {
+        return f64(a.toDouble(), b.toDouble(), c.toDouble()).toInt()
     }
 }

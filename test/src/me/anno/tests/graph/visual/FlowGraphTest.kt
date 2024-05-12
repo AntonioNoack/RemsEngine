@@ -1,25 +1,25 @@
-package me.anno.tests.graph
+package me.anno.tests.graph.visual
 
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.control.ForNode
 import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
-import me.anno.graph.visual.scalar.FloatMathsBinary
-import me.anno.graph.visual.scalar.IntMathsBinary
+import me.anno.graph.visual.scalar.FloatMathBinary
+import me.anno.graph.visual.scalar.IntMathBinary
 import me.anno.graph.visual.scalar.MathF2Node
 import me.anno.graph.visual.scalar.MathI2Node
 import me.anno.utils.Color
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 object FlowGraphTest {
 
     @Test
     fun testSimpleCalculation() {
         val g = FlowGraph()
-        val n0 = MathF2Node().setDataType("Double").setEnumType(FloatMathsBinary.ADD)
-        val n1 = MathF2Node().setDataType("Double").setEnumType(FloatMathsBinary.DIV)
+        val n0 = MathF2Node().setDataType("Double").setEnumType(FloatMathBinary.ADD)
+        val n1 = MathF2Node().setDataType("Double").setEnumType(FloatMathBinary.DIV)
         n0.connectTo(n1, 0)
         n0.setInputs(listOf(1.0, 2.0))
         n1.setInput(1, 2.0)
@@ -59,21 +59,14 @@ object FlowGraphTest {
         val forNode = ForNode()
         forNode.setInputs(listOf(null, 1L, 5L, 1L))
         initNode.connectTo(forNode)
-        val mulNode = MathI2Node().setDataType("Long")
-        mulNode.enumType = IntMathsBinary.MUL
+        val mulNode = MathI2Node().setDataType("Long").setEnumType(IntMathBinary.MUL)
         val getNode = GetLocalVariableNode("var", "?")
         forNode.connectTo(1, mulNode, 0)
         getNode.connectTo(0, mulNode, 1)
         val setNode = SetLocalVariableNode("var", null)
         forNode.connectTo(setNode)
         mulNode.connectTo(0, setNode, 2)
-        g.addAll(
-            initNode,
-            forNode,
-            mulNode,
-            getNode,
-            setNode
-        )
+        g.addAll(initNode, forNode, mulNode, getNode, setNode)
         g.execute(initNode)
         g.requestId()
         assertEquals(24L, g.localVariables["var"])

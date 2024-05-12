@@ -8,16 +8,11 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.Color.black2
-import me.anno.utils.Color.black3
-import me.anno.utils.Color.black4
-import me.anno.utils.Color.white2
-import me.anno.utils.Color.white3
-import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.AnyToVector
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -38,46 +33,16 @@ class NodeInput : NodeConnector {
         }
 
         init {
-            registerType("Int") { AnyToInt.getInt(it, 0, 0) }
-            registerType("Long") { AnyToLong.getLong(it, 0, 0L) }
-            registerType("Float") { AnyToFloat.getFloat(it, 0, 0f) }
-            registerType("Double") { AnyToDouble.getDouble(it, 0, 0.0) }
-            registerType("Vector2f") { v ->
-                when (v) {
-                    true -> white2
-                    false -> black2
-                    is Int -> Vector2f(v.toFloat())
-                    is Float -> Vector2f(v)
-                    is Vector2f -> v
-                    is Vector3f -> Vector2f(v.x, v.y)
-                    is Vector4f -> Vector2f(v.x, v.y)
-                    else -> Vector2f(0f)
-                }
-            }
-            registerType("Vector3f") { v ->
-                when (v) {
-                    true -> white3
-                    false -> black3
-                    is Int -> Vector3f(v.toFloat())
-                    is Float -> Vector3f(v)
-                    is Vector2f -> Vector3f(v.x, v.y, 0f)
-                    is Vector3f -> v
-                    is Vector4f -> Vector3f(v.x, v.y, v.z)
-                    else -> Vector3f(0f)
-                }
-            }
-            registerType("Vector4f") { v ->
-                when (v) {
-                    true -> white4
-                    false -> black4
-                    is Int -> Vector4f(v.toFloat())
-                    is Float -> Vector4f(v)
-                    is Vector2f -> Vector4f(v.x, v.y, 0f, 0f)
-                    is Vector3f -> Vector4f(v.x, v.y, v.z, 0f)
-                    is Vector4f -> v
-                    else -> Vector4f(0f)
-                }
-            }
+            registerType("Int", AnyToInt::getInt)
+            registerType("Long", AnyToLong::getLong)
+            registerType("Float", AnyToFloat::getFloat)
+            registerType("Double", AnyToDouble::getDouble)
+            registerType("Vector2f", AnyToVector::getVector2f)
+            registerType("Vector3f", AnyToVector::getVector3f)
+            registerType("Vector4f", AnyToVector::getVector4f)
+            registerType("Vector2d", AnyToVector::getVector2d)
+            registerType("Vector3d", AnyToVector::getVector3d)
+            registerType("Vector4d", AnyToVector::getVector4d)
             registerType("Texture") { v ->
                 when (v) {
                     is Float -> Texture(Vector4f(v, v, v, 1f))

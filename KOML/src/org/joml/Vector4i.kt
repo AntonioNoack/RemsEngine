@@ -11,7 +11,7 @@ open class Vector4i(
     @JvmField var y: Int,
     @JvmField var z: Int,
     @JvmField var w: Int
-) {
+) : Vector() {
 
     constructor() : this(0, 0, 0, 1)
     constructor(v: Vector4i) : this(v.x, v.y, v.z, v.w)
@@ -19,6 +19,12 @@ open class Vector4i(
     constructor(v: Vector2i, z: Int, w: Int) : this(v.x, v.y, z, w)
     constructor(s: Int) : this(s, s, s, s)
     constructor(xyzw: IntArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toInt())
+    }
 
     fun set(v: Vector4i) = set(v.x, v.y, v.z, v.w)
     fun set(v: Vector4d) = set(v.x.toInt(), v.y.toInt(), v.z.toInt(), v.w.toInt())

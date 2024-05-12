@@ -24,14 +24,7 @@ open class FlowGraph : Graph() {
 
     fun invalidate() {
         for (ni in nodes.indices) {
-            invalidate(nodes[ni])
-        }
-    }
-
-    fun invalidate(node: Node) {
-        val inputs = node.inputs
-        for (ii in inputs.indices) {
-            inputs[ii].lastValidId = -1
+            nodes[ni].invalidateState()
         }
     }
 

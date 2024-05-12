@@ -14,7 +14,7 @@ open class Quaterniond(
     @JvmField var y: Double,
     @JvmField var z: Double,
     @JvmField var w: Double
-) {
+): Vector() {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
 
@@ -40,6 +40,23 @@ open class Quaterniond(
         y = axisAngle.y * s
         z = axisAngle.z * s
         w = cos(axisAngle.angle * 0.5)
+    }
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = when (i) {
+        0 -> x
+        1 -> y
+        2 -> z
+        else -> w
+    }
+
+    override fun setComp(i: Int, v: Double) {
+        when (i) {
+            0 -> x = v
+            1 -> y = v
+            2 -> z = v
+            else -> w = v
+        }
     }
 
     @JvmOverloads

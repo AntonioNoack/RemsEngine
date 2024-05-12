@@ -17,10 +17,11 @@ open class Vector4f(
     @JvmField var y: Float,
     @JvmField var z: Float,
     @JvmField var w: Float
-) {
+) : Vector() {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(v: Vector4f) : this(v.x, v.y, v.z, v.w)
+    constructor(v: Vector4d) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     constructor(v: Vector4i) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     constructor(v: Vector3f, w: Float) : this(v.x, v.y, v.z, w)
     constructor(v: Vector3i, w: Float) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), w)
@@ -28,6 +29,12 @@ open class Vector4f(
     constructor(v: Vector2i, z: Float, w: Float) : this(v.x.toFloat(), v.y.toFloat(), z, w)
     constructor(d: Float) : this(d, d, d, d)
     constructor(v: FloatArray, i: Int = 0) : this(v[i], v[i + 1], v[i + 2], v[i + 3])
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toFloat())
+    }
 
     fun set(v: Vector4f) = set(v.x, v.y, v.z, v.w)
     fun set(v: Vector4i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())

@@ -11,7 +11,6 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 
-@Suppress("unused")
 class NormalizeNode : TypedNode(data, vectorTypes) {
     init {
         setInput(1, 1.0)
@@ -37,7 +36,7 @@ class NormalizeNode : TypedNode(data, vectorTypes) {
                 "$type Normalize",
                 "norm$type" to "normalize(a)*b",
                 listOf(type, "Vector", if (type.last() == 'f') "Float" else "Double", "Length"),
-                type
+                listOf(type, "Result")
             )
         }
     }

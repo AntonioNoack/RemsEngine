@@ -5,7 +5,7 @@ import me.anno.utils.types.AnyToDouble.getDouble
 object AnyToFloat {
 
     @JvmStatic
-    fun getFloat(any: Any?, defaultValue: Float): Float {
+    fun getFloat(any: Any?, defaultValue: Float = 0f): Float {
         return getFloat(any, 0, defaultValue)
     }
 

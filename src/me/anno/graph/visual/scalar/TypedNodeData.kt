@@ -4,5 +4,5 @@ class TypedNodeData(
     val name: String,
     val glsl: Pair<String, String?>, // func name, define
     val inputs: List<String>,
-    val outputType: String
+    val outputs: List<String>
 )

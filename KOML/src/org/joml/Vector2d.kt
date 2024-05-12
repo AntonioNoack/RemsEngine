@@ -8,7 +8,7 @@ import kotlin.math.hypot
 open class Vector2d(
     @JvmField var x: Double,
     @JvmField var y: Double
-) {
+) : Vector() {
 
     constructor() : this(0.0, 0.0)
     constructor(v: Double) : this(v, v)
@@ -17,6 +17,12 @@ open class Vector2d(
     constructor(v: Vector2i) : this(v.x.toDouble(), v.y.toDouble())
     constructor(xy: DoubleArray) : this(xy[0], xy[1])
     constructor(xy: FloatArray) : this(xy[0].toDouble(), xy[1].toDouble())
+
+    override val numComponents: Int get() = 2
+    override fun getComp(i: Int): Double = get(i)
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v)
+    }
 
     fun set(x: Double, y: Double): Vector2d {
         this.x = x

@@ -65,6 +65,9 @@ class WindowsShortcut {
 
     fun read(data: ByteArray): Exception? {
         try {
+            if (data.size < 0x4c + 0x18) {
+                return IOException("Data too short")
+            }
             if (!isMagicPresent(data)) {
                 return IOException("Invalid shortcut; magic is missing")
             }
@@ -181,7 +184,7 @@ class WindowsShortcut {
 
         @JvmStatic
         private fun readUTF16LE(bytes: ByteArray, off: Int, byteLen: Int): String {
-            return CharArray(byteLen / 2) {
+            return CharArray(byteLen ushr 1) {
                 readLE16(bytes, off + it * 2).toChar()
             }.concatToString()
         }
@@ -190,11 +193,13 @@ class WindowsShortcut {
          * convert two bytes into a short note, this is little endian because it's for an Intel only OS.
          */
         @JvmStatic
-        private fun readLE16(bytes: ByteArray, off: Int) =
-            ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
+        private fun readLE16(bytes: ByteArray, off: Int): Int {
+            return if (bytes.size < off + 2) 0
+            else ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
+        }
 
         @JvmStatic
-        private fun readLE32(bytes: ByteArray, off: Int) =
+        private fun readLE32(bytes: ByteArray, off: Int): Int =
             readLE16(bytes, off + 2).shl(16) or readLE16(bytes, off)
     }
 }

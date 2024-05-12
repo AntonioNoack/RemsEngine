@@ -3,7 +3,7 @@ package me.anno.graph.visual.scalar
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-enum class IntMathsUnary(
+enum class IntMathUnary(
     val id: Int,
     val glsl: String
 ) {

@@ -14,7 +14,7 @@ open class Quaternionf(
     @JvmField var y: Float,
     @JvmField var z: Float,
     @JvmField var w: Float
-) {
+) : Vector() {
 
     constructor() : this(0f, 0f, 0f, 1f)
     constructor(x: Double, y: Double, z: Double, w: Double) : this(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
@@ -37,6 +37,24 @@ open class Quaternionf(
         y = (axisAngle.y * sin).toFloat()
         z = (axisAngle.z * sin).toFloat()
         w = cos.toFloat()
+    }
+
+    override val numComponents: Int get() = 4
+    override fun getComp(i: Int): Double = when (i) {
+        0 -> x
+        1 -> y
+        2 -> z
+        else -> w
+    }.toDouble()
+
+    override fun setComp(i: Int, v: Double) {
+        val vf = v.toFloat()
+        when (i) {
+            0 -> x = vf
+            1 -> y = vf
+            2 -> z = vf
+            else -> w = vf
+        }
     }
 
     @JvmOverloads

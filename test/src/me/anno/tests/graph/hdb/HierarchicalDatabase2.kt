@@ -1,4 +1,4 @@
-package me.anno.tests.graph
+package me.anno.tests.graph.hdb
 
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase

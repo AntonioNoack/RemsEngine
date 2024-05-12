@@ -8,13 +8,19 @@ open class Vector3i(
     @JvmField var x: Int,
     @JvmField var y: Int,
     @JvmField var z: Int
-) {
+): Vector() {
 
     constructor() : this(0, 0, 0)
     constructor(d: Int) : this(d, d, d)
     constructor(v: Vector3i) : this(v.x, v.y, v.z)
     constructor(v: Vector2i, z: Int) : this(v.x, v.y, z)
     constructor(xyz: IntArray) : this(xyz[0], xyz[1], xyz[2])
+
+    override val numComponents: Int get() = 3
+    override fun getComp(i: Int): Double = get(i).toDouble()
+    override fun setComp(i: Int, v: Double) {
+        setComponent(i, v.toInt())
+    }
 
     fun set(v: Vector3i): Vector3i {
         x = v.x

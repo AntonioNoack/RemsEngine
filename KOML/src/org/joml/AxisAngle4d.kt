@@ -7,14 +7,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class AxisAngle4d(
-    @JvmField
-    var angle: Double,
-    @JvmField
-    var x: Double,
-    @JvmField
-    var y: Double,
-    @JvmField
-    var z: Double
+    @JvmField var angle: Double,
+    @JvmField var x: Double,
+    @JvmField var y: Double,
+    @JvmField var z: Double
 ) {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
