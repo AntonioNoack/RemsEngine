@@ -17,6 +17,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
+import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
@@ -25,13 +26,17 @@ import kotlin.math.floor
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
 
-
 abstract class Image(
     open var width: Int,
     open var height: Int,
     var numChannels: Int,
-    var hasAlphaChannel: Boolean
+    var hasAlphaChannel: Boolean,
+    var offset: Int,
+    var stride: Int,
 ) : ICacheData {
+
+    constructor(width: Int, height: Int, numChannels: Int, hasAlphaChannel: Boolean) :
+            this(width, height, numChannels, hasAlphaChannel, 0, width)
 
     override fun toString(): String {
         return "${javaClass.name}@${hash32(this)}[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
@@ -40,7 +45,7 @@ abstract class Image(
     open fun getIndex(x: Int, y: Int): Int {
         val xi = clamp(x, 0, width - 1)
         val yi = clamp(y, 0, height - 1)
-        return xi + yi * width
+        return offset + xi + yi * stride
     }
 
     open fun createIntImage(): IntImage {
@@ -135,8 +140,8 @@ abstract class Image(
     }
 
     open fun createTexture(
-        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: Callback<ITexture2D>
+        texture: Texture2D, sync: Boolean,
+        checkRedundancy: Boolean, callback: Callback<ITexture2D>
     ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
     }
@@ -403,25 +408,16 @@ abstract class Image(
         return createArrayList(sx * sy) {
             val ix = it % sx
             val iy = it / sx
-            val x0 = ix * width / sx
-            val x1 = (ix + 1) * width / sx
-            val y0 = iy * height / sy
-            val y1 = (iy + 1) * height / sy
+            val x0 = WorkSplitter.partition(ix, width, sx)
+            val x1 = WorkSplitter.partition(ix + 1, width, sx)
+            val y0 = WorkSplitter.partition(iy, height, sy)
+            val y1 = WorkSplitter.partition(iy + 1, height, sy)
             cropped(x0, y0, x1 - x0, y1 - y0)
         }
     }
 
     open fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
-        if (x0 + w0 > width || y0 + h0 > height)
-            throw IllegalArgumentException("Cannot crop $x0+=$w0,$y0+=$h0 from ${width}x${height}")
-        val self = this
-        return object : Image(w0, h0, numChannels, hasAlphaChannel) {
-            override fun getRGB(index: Int): Int {
-                val x = index % w0
-                val y = index / w0
-                return self.getRGB(x0 + x, y0 + y)
-            }
-        }
+        return CroppedImage(this, x0, y0, w0, h0)
     }
 
     var ref: FileReference = InvalidRef

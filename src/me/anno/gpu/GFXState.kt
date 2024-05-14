@@ -169,11 +169,6 @@ object GFXState {
         }
     }
 
-    // the renderer is set per framebuffer; makes the most sense
-    // additionally, it would be possible to set the blend-mode and depth there in a game setting
-    // (not that practical in RemsStudio)
-    // val renderer = SecureStack(Renderer.colorRenderer)
-
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
     val depthMode = SecureStack(alwaysDepthMode)
     val depthMask = SecureStack(true)

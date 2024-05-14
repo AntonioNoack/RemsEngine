@@ -31,7 +31,7 @@ open class BaseShader(
     val varyings: List<Variable>,
     var fragmentVariables: List<Variable>,
     var fragmentShader: String
-) : ICacheData { // Saveable or PrefabSaveable?
+) : ICacheData {
 
     constructor(name: String, vertexSource: String, varyingSource: List<Variable>, fragmentSource: String) :
             this(name, emptyList(), vertexSource, varyingSource, emptyList(), fragmentSource)
@@ -97,9 +97,8 @@ open class BaseShader(
         builder.addFragment(fs)
         builder.addFragment(extraStage)
         builder.addFragment(pixelPostProcessing)
-        // builder.addFragment(ColorAlphaStage.createShaderStage())
 
-        val shader = builder.create("fwd$flags")
+        val shader = builder.create("fwd$flags-${key.renderer.name}")
         finish(shader, 330)
         return shader
     }

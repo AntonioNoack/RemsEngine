@@ -4,14 +4,13 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
@@ -27,6 +26,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.input.Key
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths.floorMod
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
@@ -107,25 +107,19 @@ fun main() {
 
     val material = defaultMaterial
 
-    class ChunkRenderer : UniqueMeshRenderer<Vector3i>(attributes, blockVertexData, material, DrawMode.TRIANGLES) {
+    class ChunkRenderer : UniqueMeshRenderer<Mesh, Vector3i>(attributes, blockVertexData, DrawMode.TRIANGLES) {
 
         override val hasVertexColors: Int get() = 1
+        override val materials: List<FileReference> = listOf(material.ref)
+        override val numMaterials: Int get() = 1
 
-        /**
-         * defines what the world looks like for Raycasting,
-         * and for AABBs
-         * */
-        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
-            var i = 0
-            for ((key, entry) in entryLookup) {
-                val transform = getTransform(i++)
-                transform.setLocalPosition(
-                    (key.x * csx).toDouble(),
-                    (key.y * csy).toDouble(),
-                    (key.z * csz).toDouble(),
-                )
-                run(entry.mesh!!, material, transform)
-            }
+        override fun forEachHelper(key: Vector3i, transform: Transform): Material {
+            transform.setLocalPosition(
+                (key.x * csx).toDouble(),
+                (key.y * csy).toDouble(),
+                (key.z * csz).toDouble(),
+            )
+            return material
         }
 
         override fun getData(key: Vector3i, mesh: Mesh): StaticBuffer? {

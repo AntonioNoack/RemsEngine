@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
-import me.anno.image.ImageReader
+import me.anno.image.ImageAsFolder
 import me.anno.image.ImageTransform
 import me.anno.image.raw.GPUImage
 import me.anno.io.MediaMetadata.Companion.getMeta
@@ -72,7 +72,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
     private fun loadTexture() {
         when (if (OS.isWeb) null else Signature.findNameSync(file)) {
             "dds", "media" -> tryUsingVideoCache(file)
-            else -> ImageReader.readImage(file, true).waitForGFX(::loadImage)
+            else -> ImageAsFolder.readImage(file, true).waitForGFX(::loadImage)
         }
     }
 

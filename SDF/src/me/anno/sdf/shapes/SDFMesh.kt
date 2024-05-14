@@ -33,23 +33,23 @@ import kotlin.math.sqrt
  * */
 open class SDFMesh : SDFSmoothShape() {
 
-    enum class SDFMeshTechnique {
+    enum class SDFMeshTechnique(val id: Int) {
         /**
          * Uses one texture slot for the BVH hierarchy, and one for all vertex positions.
          * */
-        TEXTURE,
+        TEXTURE(0),
 
         /**
          * Generates the AABBs and triangle data as hardcoded branches and instructions in code; this saves a texture slot,
          * but also needs much longer to compile, and it was 25% slower for Suzanne on my RTX 3070
          * */
-        IN_CODE,
+        IN_CODE(1),
 
         /**
          * Generates the AABBs and triangle data as a const array in code; this saves a texture slot, too, and the ideas was
          * that this potentially compiles faster... it is 5x slower than the other two methods on my RTX3070;
          * */
-        CONST_ARRAY
+        CONST_ARRAY(2)
     }
 
     var meshFile: FileReference = InvalidRef

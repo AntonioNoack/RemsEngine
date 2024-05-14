@@ -2,7 +2,7 @@ package me.anno.image.gimp
 
 import me.anno.utils.structures.Callback
 import me.anno.image.Image
-import me.anno.image.ImageReader
+import me.anno.image.ImageAsFolder
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
@@ -168,7 +168,7 @@ class GimpImage {
 
         fun readAsFolder(file: FileReference, input: ByteBuffer, callback: Callback<InnerFolder>) {
             val info = readImage(input)
-            ImageReader.readAsFolder(file) { folder, exc ->
+            ImageAsFolder.readAsFolder(file) { folder, exc ->
                 if (folder != null) {
                     val subFolder = folder.createChild("layers", "layers")
                     val layers = info.layers

@@ -112,7 +112,7 @@ class RenderSceneDeferredNode : RenderViewNode(
             settings = DeferredSettings(enabledLayers)
             this.settings = settings
             renderer = SimpleRenderer(
-                "tmp", settings,
+                "rsdn", settings,
                 listOf(
                     ShaderStage(
                         "linear2srgb", listOf(

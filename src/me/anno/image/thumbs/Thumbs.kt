@@ -19,7 +19,7 @@ import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.image.Image
 import me.anno.image.ImageReadable
-import me.anno.image.ImageReader
+import me.anno.image.ImageAsFolder
 import me.anno.image.ImageScale.scaleMax
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.config.ConfigBasics
@@ -263,7 +263,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
 
     private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {
         val file = InnerStreamFile("", "", InvalidRef, bytes::stream)
-        return ImageReader.readImage(file, true)
+        return ImageAsFolder.readImage(file, true)
     }
 
     private fun shallReturnIfExists(

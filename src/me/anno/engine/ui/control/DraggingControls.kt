@@ -382,7 +382,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
         if (Touch.touches.size > 1) return // handled separately
-        // super.onMouseMoved(x, y, dx, dy)
+
         val mode = mode
         when {
             isSelected && Input.isRightDown -> {

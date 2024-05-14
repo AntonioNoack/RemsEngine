@@ -77,7 +77,7 @@ class ImagePlugin : Plugin() {
         Thumbs.registerFileExtensions("tga", ::generateTGAFrame)
         Thumbs.registerFileExtensions("ico", ::generateICOFrame)
         Thumbs.registerFileExtensions("svg", ::generateSVGFrame)
-        ImageReader.readIcoLayers = ICOReader::readAllLayers
+        ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
 
         // rotating jpegs
         TextureReader.findExifRotation = ExifOrientation::findRotation

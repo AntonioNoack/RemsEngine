@@ -142,14 +142,6 @@ object SDFComposer {
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : SDFShader(tree) {
-            override fun createForwardShader(key: ShaderKey): Shader {
-                return super.createForwardShader(key).apply { printCode() }
-            }
-
-            override fun createDeferredShader(key: ShaderKey): Shader {
-                return super.createDeferredShader(key).apply { printCode() }
-            }
-
             override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
                 // instancing is not supported
                 val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
@@ -217,9 +209,13 @@ object SDFComposer {
                                             "   finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
                                             "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                                             discardByCullingPlane + // respect reflection plane
-                                            "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                            "   currPosition = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                            "#ifdef MOTION_VECTORS\n" + // todo why are motion vectors as-if the background just was rotating?
+                                            "   prevPosition = matMul(prevTransform, vec4(finalPosition, 1.0));\n" +
+                                            finalMotionCalculation +
+                                            "#endif\n" +
                                             "   #define CUSTOM_DEPTH\n" +
-                                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                                            "   gl_FragDepth = currPosition.z/currPosition.w;\n" +
                                             // step by step define all material properties
                                             "   finalUV = ray.zw;\n" +
                                             materialCode +
@@ -233,7 +229,7 @@ object SDFComposer {
                             // clearCoatCalculation +
                             reflectionCalculation.iff(key.flags.hasFlag(NEEDS_COLORS)) +
 
-                            partClickIds
+                            calculateFinalId
                 )
                 functions.add(sdBox)
                 functions.add(quatRot)
@@ -250,7 +246,7 @@ object SDFComposer {
         return uniforms to shader
     }
 
-    open class SDFShader(val tree: SDFComponent) : ECSMeshShader("raycasting-${tree.hashCode()}") {
+    open class SDFShader(val tree: SDFComponent) : ECSMeshShader("sdf-${tree.hashCode()}") {
 
         private val tmp3 = Vector3f()
         private val tmp2 = Vector2f()
@@ -272,9 +268,7 @@ object SDFComposer {
             shader.v3f("localMax", b.getMax(tmp3).mul(s))
 
             shader.v1b("perspectiveCamera", RenderState.isPerspective)
-            shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
-
-            shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
+            shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
 
             bindDepthUniforms(shader)
         }
@@ -283,7 +277,9 @@ object SDFComposer {
     fun ignoreCommonNames(shader: BaseShader) {
         shader.ignoreNameWarnings(
             "sheenNormalMap,occlusionMap,metallicMap,roughnessMap," +
-                    "emissiveMap,normalMap,diffuseMap,diffuseBase,emissiveBase,drawMode,applyToneMapping"
+                    "emissiveMap,normalMap,diffuseMap,diffuseBase,emissiveBase,drawMode,applyToneMapping," +
+                    "localMin,localMax,cameraPosition,cameraRotation,numberOfLights,normalStrength,roughnessMinMax," +
+                    "metallicMinMax,occlusionStrength,sheen,IOR,clearCoat,hasAnimation,worldScale"
         )
     }
 
@@ -370,11 +366,9 @@ object SDFComposer {
         return builder2.toString()
     }
 
-    val partClickIds = "" +
-            "if(renderIds){\n" +
-            "   int intId = int(ray.y);\n" +
-            "   finalId = vec4(vec3(float((intId>>0)&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
-            "} else finalId = vec4(1.0);\n"
+    val calculateFinalId = "" +
+            "int intId = int(ray.y);\n" +
+            "finalId = vec4(vec3(float((intId>>16)&255), float((intId>>8)&255), float((intId>>0)&255))/255.0, 1.0);\n"
 
     val showNumberOfSteps = "" +
             "if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
@@ -413,6 +407,7 @@ object SDFComposer {
 
     val fragmentVariables1 = listOf(
         Variable(GLSLType.M4x4, "transform"),
+        Variable(GLSLType.M4x4, "prevTransform"),
         Variable(GLSLType.M4x3, "localTransform"),
         Variable(GLSLType.M4x3, "invLocalTransform"),
         Variable(GLSLType.V3F, "localCamPos"),
@@ -442,6 +437,10 @@ object SDFComposer {
         Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
         Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
         Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
+        // outputs for motion vectors
+        Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
+        Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
+        Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
         // we could compute occlusion
         // disadvantage: we cannot prevent duplicate occlusion currently,
         // and it would be applied twice... (here + ssao)

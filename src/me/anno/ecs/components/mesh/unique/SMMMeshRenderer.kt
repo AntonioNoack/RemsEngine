@@ -2,12 +2,13 @@ package me.anno.ecs.components.mesh.unique
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.StaticMeshManager.Companion.attributes
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -18,9 +19,11 @@ import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 class SMMMeshRenderer(material: Material) :
-    UniqueMeshRenderer<SMMKey>(attributes, MeshVertexData.DEFAULT, material, DrawMode.TRIANGLES) {
+    UniqueMeshRenderer<Mesh, SMMKey>(attributes, MeshVertexData.DEFAULT, DrawMode.TRIANGLES) {
 
     override val hasVertexColors: Int get() = 1
+    override val materials: List<FileReference> = listOf(material.ref)
+    override val numMaterials: Int get() = 1
 
     fun getData0(key: SMMKey, mesh: Mesh): StaticBuffer? {
 
@@ -154,6 +157,12 @@ class SMMMeshRenderer(material: Material) :
                 else -> throw NotImplementedError()
             }
         } else return null
+    }
+
+    override fun forEachHelper(key: SMMKey, transform: Transform): Material? {
+        transform.setGlobal(key.comp.transform!!.globalTransform)
+        transform.teleportUpdate()
+        return null
     }
 
     override fun getData(key: SMMKey, mesh: Mesh): StaticBuffer? {

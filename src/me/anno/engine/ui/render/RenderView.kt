@@ -431,8 +431,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             pipeline.resetClickId()
             pipeline.fill(world)
 
-            val ws = windowStack
-            val buffer = FBStack["click", ws.width, ws.height, 4, true, 1, DepthBufferType.INTERNAL]
+            val buffer = FBStack["click", width, height, 4, true, 1, DepthBufferType.INTERNAL]
 
             val diameter = 5
 
@@ -442,7 +441,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
                     buffer.clearColor(0, true)
-                    drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false)
+                    drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false, sky = false)
                 }
             }
 
@@ -450,11 +449,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 ids[idx] = ids[idx] and 0xffffff
             }
 
-            // todo some clicks work on SDFSphere, others don't... why???
             val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
                 GFXState.ditherMode.use(DitherMode.DITHER2X2) {
-                    buffer.clearDepth()
-                    drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false)
+                    buffer.clearColor(0, true)
+                    drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false, sky = false)
                 }
             }
 
@@ -676,7 +674,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         renderer: Renderer,
         dst: IFramebuffer,
         changeSize: Boolean,
-        hdr: Boolean
+        hdr: Boolean,
+        sky: Boolean = true
     ) {
         GFX.check()
         pipeline.applyToneMapping = !hdr
@@ -695,7 +694,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
 
             GFX.check()
-            pipeline.singlePassWithSky(true)
+            pipeline.singlePassWithSky(sky)
             GFX.check()
 
         }

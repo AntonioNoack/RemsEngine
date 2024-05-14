@@ -13,24 +13,25 @@ import me.anno.image.raw.GPUImage
 import me.anno.image.raw.GrayscaleImage
 import me.anno.image.raw.IntImage
 import me.anno.image.raw.OpaqueImage
-import me.anno.io.MediaMetadata
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.SignatureFile
-import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 /**
- * an easy interface to read any image as rgba and individual channels
+ * Defines reading an image as a folder:
+ * different combinations of sub-images created from its color channels.
+ *
+ * ICO- and GIMP-files contain multiple layers, and they are exposed here, too.
  * */
-object ImageReader {
+object ImageAsFolder {
 
-    private val LOGGER = LogManager.getLogger(ImageReader::class)
+    private val LOGGER = LogManager.getLogger(ImageAsFolder::class)
     private val missingImage = IntImage(2, 2, missingColors, false)
 
     var tryFFMPEG: ((file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) -> Unit)? =
@@ -209,9 +210,5 @@ object ImageReader {
             if (reader != null) reader.read(file, data)
             else data.value = null
         }
-    }
-
-    fun frameIndex(meta: MediaMetadata): Int {
-        return Maths.min(20, (meta.videoFrameCount - 1) / 3)
     }
 }

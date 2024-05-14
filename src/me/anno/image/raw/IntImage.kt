@@ -1,6 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
@@ -13,20 +12,28 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.structures.Callback
 import kotlin.math.abs
 import kotlin.math.floor
 
 open class IntImage(
     width: Int, height: Int,
     val data: IntArray = IntArray(width * height),
-    hasAlphaChannel: Boolean
-) : Image(width, height, if (hasAlphaChannel) 4 else 3, hasAlphaChannel) {
+    hasAlphaChannel: Boolean, offset: Int, stride: Int
+) : Image(width, height, if (hasAlphaChannel) 4 else 3, hasAlphaChannel, offset, stride) {
+
+    constructor(width: Int, height: Int, data: IntArray, hasAlphaChannel: Boolean) :
+            this(width, height, data, hasAlphaChannel, 0, width)
 
     constructor(width: Int, height: Int, hasAlphaChannel: Boolean) :
             this(width, height, IntArray(width * height), hasAlphaChannel)
 
     fun setRGB(x: Int, y: Int, rgb: Int) {
-        data[x + y * width] = rgb
+        setRGB(getIndex(x, y), rgb)
+    }
+
+    fun setRGB(index: Int, rgb: Int) {
+        data[index] = rgb
     }
 
     fun flipY() {
@@ -126,15 +133,7 @@ open class IntImage(
     }
 
     override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
-        val result = IntImage(w0, h0, hasAlphaChannel)
-        val src = data
-        val dst = result.data
-        val width = width
-        for (y in 0 until h0) {
-            val srcIndex = x0 + (y0 + y) * width
-            src.copyInto(dst, y * w0, srcIndex, srcIndex + w0)
-        }
-        return result
+        return IntImage(w0, h0, data, hasAlphaChannel, getIndex(x0, y0), stride)
     }
 
     fun cloneData(): IntArray {

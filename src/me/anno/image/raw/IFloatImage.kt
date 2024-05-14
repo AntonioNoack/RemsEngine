@@ -2,7 +2,6 @@ package me.anno.image.raw
 
 import me.anno.image.Image
 import me.anno.image.colormap.ColorMap
-import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
@@ -11,8 +10,11 @@ import kotlin.math.floor
 
 abstract class IFloatImage(
     width: Int, height: Int, channels: Int,
-    val map: ColorMap = LinearColorMap.default
-) : Image(width, height, channels, channels > 3) {
+    val map: ColorMap, offset: Int, stride: Int
+) : Image(width, height, channels, channels > 3, offset, stride) {
+
+    constructor(width: Int, height: Int, channel: Int, map: ColorMap) :
+            this(width, height, channel, map, 0, width)
 
     private var hm1f = height - 1f
     private var wm1f = width - 1f
@@ -137,6 +139,10 @@ abstract class IFloatImage(
             }
             dstImage
         }
+    }
+
+    override fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): IFloatImage {
+        return CroppedFloatImage(this, x0, y0, w0, h0)
     }
 
     open fun normalize(): IFloatImage {

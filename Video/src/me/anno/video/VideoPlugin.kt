@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.audio.AudioCache
 import me.anno.extensions.plugins.Plugin
-import me.anno.image.ImageReader
+import me.anno.image.ImageAsFolder
 import me.anno.installer.Installer
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.WebRef
@@ -21,7 +21,7 @@ class VideoPlugin : Plugin() {
         VideoCache.getProxyFile = VideoProxyCreator::getProxyFile
         VideoCache.getProxyFileDontUpdate = VideoProxyCreator::getProxyFileDontUpdate
         VideoStream.runVideoStreamWorker = VideoStreamWorker::runVideoStreamWorker
-        ImageReader.tryFFMPEG = ImageReaderExt::tryFFMPEG
+        ImageAsFolder.tryFFMPEG = ImageReaderExt::tryFFMPEG
         AudioCache.getAudioSequence = { file, startTime, duration, sampleRate ->
             // why is it not possible to assign directly???
             FFMPEGStream.getAudioSequence(file, startTime, duration, sampleRate)
@@ -42,7 +42,7 @@ class VideoPlugin : Plugin() {
         VideoCache.generateVideoFrames = null
         VideoCache.getProxyFile = null
         VideoStream.runVideoStreamWorker = null
-        ImageReader.tryFFMPEG = null
+        ImageAsFolder.tryFFMPEG = null
         AudioCache.getAudioSequence = null
         MediaMetadata.unregister("video")
     }

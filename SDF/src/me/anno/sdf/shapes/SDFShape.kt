@@ -63,7 +63,8 @@ abstract class SDFShape : SDFComponent(), DCPaintable {
         }
         builder.append(",").appendUniform(uniforms, GLSLType.V1F) {
             val currentRenderer = currentRenderer
-            val id = if (currentRenderer == Renderer.idRenderer) clickId else materialId
+            val id = if (currentRenderer == Renderer.idRenderer ||
+                currentRenderer == Renderer.randomIdRenderer) clickId else materialId
             id.toFloat()
         }.append(",uv);\n")
     }

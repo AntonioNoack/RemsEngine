@@ -258,18 +258,8 @@ abstract class OpenGLBuffer(
         putByte(asInt.toByte())
     }
 
-    fun putUByte(b: Int) {
-        nioBuffer!!.put(b.toByte())
-        isUpToDate = false
-    }
-
     fun putShort(b: Short) {
         nioBuffer!!.putShort(b)
-        isUpToDate = false
-    }
-
-    fun putUShort(b: Int) {
-        nioBuffer!!.putShort(b.toShort())
         isUpToDate = false
     }
 

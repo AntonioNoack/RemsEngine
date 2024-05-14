@@ -32,12 +32,10 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import org.joml.Vector3f
 
-fun createShapesScene(limit: Int): Entity {
+fun createShapesScene(): Entity {
 
-    var ctr = 0
     val scene = Entity()
     fun place(shape: SDFComponent, pos: Vector3f) {
-        if (ctr++ >= limit) return
         shape.position.set(pos)
         scene.add(shape)
     }
@@ -120,11 +118,8 @@ fun createShapesScene(limit: Int): Entity {
 
 /**
  * Scene, which shows most SDF shapes
- *
- *     // todo bug: these elements cannot be properly clicked -> all have same clickId
- *     // todo bug: even when I select one, the gizmos isn't shown at the right place
  * */
 fun main() {
     OfficialExtensions.initForTests()
-    testSceneWithUI("SDF Shapes", createShapesScene(10))
+    testSceneWithUI("SDF Shapes", createShapesScene())
 }

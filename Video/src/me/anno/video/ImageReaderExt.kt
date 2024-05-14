@@ -1,18 +1,23 @@
 package me.anno.video
 
 import me.anno.image.Image
-import me.anno.image.ImageReader
 import me.anno.image.raw.GPUFrameImage
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths
 import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.io.IOException
 
 object ImageReaderExt {
+
+    private fun frameIndex(meta: MediaMetadata): Int {
+        return Maths.min(20, (meta.videoFrameCount - 1) / 3)
+    }
+
     fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: Callback<Image>) {
         if (file is FileFileRef) {
             val meta = MediaMetadata.getMeta(file, false)
@@ -21,7 +26,7 @@ object ImageReaderExt {
             } else if (forGPU) {
                 FFMPEGStream.getImageSequenceGPU(
                     file, signature, meta.videoWidth, meta.videoHeight,
-                    ImageReader.frameIndex(meta), 1, meta.videoFPS,
+                    frameIndex(meta), 1, meta.videoFPS,
                     meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
                         val frame = frames.firstOrNull()
                         if (frame != null) {
@@ -34,7 +39,7 @@ object ImageReaderExt {
             } else {
                 FFMPEGStream.getImageSequenceCPU(
                     file, signature, meta.videoWidth, meta.videoHeight,
-                    ImageReader.frameIndex(meta), 1, meta.videoFPS,
+                    frameIndex(meta), 1, meta.videoFPS,
                     meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
                         val frame = frames.firstOrNull()
                         if (frame != null) callback.call(frame, null)

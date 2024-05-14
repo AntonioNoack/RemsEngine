@@ -5,6 +5,11 @@ import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * When rendering images, the present aspect ratio is often different from the canvas.
+ * This class provides utility functions for scaling images such that their aspect ratio remains intact,
+ * and they either fit the canvas OR the overlap gets cut off and everything is filled.
+ * */
 object ImageScale {
 
     /**

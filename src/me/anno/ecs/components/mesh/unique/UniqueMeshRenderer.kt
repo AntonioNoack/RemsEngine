@@ -2,11 +2,11 @@ package me.anno.ecs.components.mesh.unique
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.buffer.Attribute
@@ -18,7 +18,6 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.graph.hdb.allocator.size
-import me.anno.io.files.FileReference
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager
@@ -32,21 +31,33 @@ import org.joml.Matrix4x3d
  * all instances must use the same material (for now),
  * but we do support fully custom MeshVertexData
  * */
-abstract class UniqueMeshRenderer<Key>(
+abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     val attributes: List<Attribute>,
     override val vertexData: MeshVertexData,
-    material: Material, val drawMode: DrawMode
-) : MeshSpawner(), IMesh, ICacheData, AllocationManager<MeshEntry, StaticBuffer> {
+    val drawMode: DrawMode
+) : MeshSpawner(), IMesh, ICacheData, AllocationManager<MeshEntry<Mesh>, StaticBuffer> {
 
     abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
 
-    override val materials: List<FileReference> = listOf(material.ref)
-    override val numMaterials: Int get() = 1
+    abstract fun forEachHelper(key: Key, transform: Transform): Material?
+
+    /**
+     * defines what the world looks like for Raycasting,
+     * and for AABBs
+     * */
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
+        var i = 0
+        for ((key, entry) in entryLookup) {
+            val transform = getTransform(i++)
+            val material = forEachHelper(key, transform)
+            run(entry.mesh!!, material, transform)
+        }
+    }
 
     val stride = attributes.sumOf { it.byteSize }
 
-    val entryLookup = HashMap<Key, MeshEntry>()
-    val entries = ArrayList<MeshEntry>()
+    val entryLookup = HashMap<Key, MeshEntry<Mesh>>()
+    val entries = ArrayList<MeshEntry<Mesh>>()
     val ranges = ArrayList<IntRange>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, BufferUsage.DYNAMIC)
@@ -84,13 +95,13 @@ abstract class UniqueMeshRenderer<Key>(
 
     val clock = Clock()
 
-    fun set(key: Key, entry: MeshEntry): Boolean {
+    fun set(key: Key, entry: MeshEntry<Mesh>): Boolean {
         val old = entryLookup[key]
         if (old != null) remove(key)
         return add(key, entry)
     }
 
-    fun add(key: Key, entry: MeshEntry): Boolean {
+    fun add(key: Key, entry: MeshEntry<Mesh>): Boolean {
         if (key in entryLookup) return false
         val b0 = buffer0
         val b1 = buffer1
@@ -127,6 +138,8 @@ abstract class UniqueMeshRenderer<Key>(
     }
 
     var isValid = true
+
+    var baseShape: Buffer? = null
 
     fun invalidate() {
         isValid = false
@@ -169,7 +182,7 @@ abstract class UniqueMeshRenderer<Key>(
         throw NotImplementedError("Drawing a bulk-mesh instanced doesn't make sense")
     }
 
-    override fun getRange(key: MeshEntry): IntRange {
+    override fun getRange(key: MeshEntry<Mesh>): IntRange {
         return key.range
     }
 
@@ -186,7 +199,7 @@ abstract class UniqueMeshRenderer<Key>(
         return requiredSize * 2
     }
 
-    override fun copy(key: MeshEntry, from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
+    override fun copy(key: MeshEntry<Mesh>, from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
         val fromData1 = key.buffer
         copy(0, fromData1, to, toData)
         key.range = to

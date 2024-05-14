@@ -3,10 +3,10 @@ package me.anno.ecs.components.mesh.unique
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -24,7 +24,7 @@ import me.anno.gpu.pipeline.Pipeline.Companion.getMaterial
 
 class StaticMeshManager : Component(), Renderable {
 
-    val managers = HashMap<Material, UniqueMeshRenderer<SMMKey>>()
+    val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
     val meshes = HashSet<MeshComponent>(1024)
 
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {

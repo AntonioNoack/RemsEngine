@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.CullMode
@@ -11,7 +12,7 @@ import org.joml.AABBf
 /**
  * renderable like a mesh
  * */
-interface IMesh: Renderable {
+interface IMesh : Renderable, ICacheData {
 
     val numMaterials: Int get() = 1
     val materials: List<FileReference> get() = emptyList()

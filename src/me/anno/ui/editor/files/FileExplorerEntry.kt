@@ -6,7 +6,6 @@ import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.gpu.shader.effects.FSR
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -28,6 +27,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -39,6 +39,7 @@ import me.anno.image.ImageReadable
 import me.anno.image.ImageScale
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.image.thumbs.AssetThumbnails
+import me.anno.image.thumbs.Thumbs
 import me.anno.input.Clipboard
 import me.anno.input.Key
 import me.anno.io.MediaMetadata
@@ -49,7 +50,6 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.getReferenceAsync
 import me.anno.io.files.Reference.getReferenceOrTimeout
 import me.anno.io.files.inner.InnerLinkFile
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
@@ -88,12 +88,12 @@ import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
-import me.anno.utils.types.Strings.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.setNumber
 import me.anno.video.VideoStream
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
@@ -383,9 +383,9 @@ open class FileExplorerEntry(
                 val aspect = w.toFloat() / h
                 if (samples > 1) {
                     val tmp =
-                        FBStack["tmp", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
+                        FBStack["fex", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
-                        val depthMode = if(GFX.supportsClipControl) DepthMode.CLOSE
+                        val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
                         else DepthMode.FORWARD_CLOSE
                         GFXState.depthMode.use(depthMode) {
                             tmp.clearColor(backgroundColor, true)
@@ -401,7 +401,7 @@ open class FileExplorerEntry(
                         Renderers.simpleNormalRenderer
                     ) {
                         // todo clip to correct area
-                        val depthMode = if(GFX.supportsClipControl) DepthMode.CLOSE
+                        val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE
                         else DepthMode.FORWARD_CLOSE
                         GFXState.depthMode.use(depthMode) {
                             GFXState.currentBuffer.clearDepth()
@@ -564,7 +564,6 @@ open class FileExplorerEntry(
         // if is entity, or mesh, get sample bounds
         if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
             when (val sample = prefab.getSampleInstance()) {
-                // todo format bounds nicely
                 is Entity -> ttt.append(AABBf(sample.getBounds())).append('\n')
                 is Mesh -> ttt.append(sample.getBounds()).append('\n')
             }
@@ -963,7 +962,6 @@ open class FileExplorerEntry(
         }
 
         fun rename(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {
-            // todo name multiple files???
             val file = files.firstOrNull() ?: return
             val title = NameDesc("Rename To...", "", "ui.file.rename2")
             askName(windowStack, title, file.name, NameDesc("Rename"), { newName ->
@@ -973,24 +971,32 @@ open class FileExplorerEntry(
                     else -> 0xffff77
                 }.withAlpha(255)
             }) { newName ->
-                renameTo(windowStack, explorer, file, newName)
+                renameTo(windowStack, explorer, file, newName) {
+                    if (files.size > 1) { // rename multiple files one after the other for now
+                        rename(windowStack, explorer, files.subList(1, files.size))
+                    }
+                }
             }
         }
 
-        fun renameTo(windowStack: WindowStack, explorer: FileExplorer?, file: FileReference, newName: String) {
+        fun renameTo(
+            windowStack: WindowStack, explorer: FileExplorer?, file: FileReference, newName: String,
+            callback: () -> Unit
+        ) {
             val allowed = newName.toAllowedFilename()
             if (allowed != null) {
                 val dst = file.getParent().getChild(allowed)
                 if (dst.exists && !allowed.equals(file.name, true)) {
-                    ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
+                    ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override"), {
                         file.renameTo(dst)
                         explorer?.invalidate()
-                    }
+                    }, callback)
                 } else {
                     file.renameTo(dst)
                     explorer?.invalidate()
+                    callback()
                 }
-            }
+            } else callback()
         }
 
         fun askToDeleteFiles(windowStack: WindowStack, explorer: FileExplorer?, files: List<FileReference>) {

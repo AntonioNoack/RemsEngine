@@ -3,16 +3,17 @@ package me.anno.maths.chunks.cartesian
 /**
  * a typical implementation for a chunk system would be an array backend
  * */
-abstract class IntArrayChunkSystem(
+open class IntArrayChunkSystem(
     bitsX: Int, bitsY: Int, bitsZ: Int,
     val defaultElement: Int
 ) : ChunkSystem<IntArray, Int>(bitsX, bitsY, bitsZ) {
 
-    abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: IntArray)
+    open fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: IntArray) {
+        if (defaultElement != 0) chunk.fill(defaultElement)
+    }
 
     override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): IntArray {
         val data = IntArray(size)
-        if (defaultElement != 0) data.fill(defaultElement)
         generateChunk(chunkX, chunkY, chunkZ, data)
         return data
     }
@@ -32,5 +33,4 @@ abstract class IntArrayChunkSystem(
         container[index] = element
         return true
     }
-
 }

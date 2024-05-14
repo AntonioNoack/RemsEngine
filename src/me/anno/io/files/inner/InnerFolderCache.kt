@@ -5,7 +5,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.extensions.FileRegistry
 import me.anno.extensions.IFileRegistry
-import me.anno.image.ImageReader
+import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
@@ -26,14 +26,14 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
     init {
         // meshes
         // to do all mesh extensions
-        registerSignatures("vox", VOXReader.Companion::readAsFolder)
+        registerSignatures("vox", VOXReader::readAsFolder)
 
         // cannot be read by assimp anyway
         // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
         // to do all image formats
-        registerSignatures(imageFormats, ImageReader::readAsFolder)
-        registerSignatures("media", ImageReader::readAsFolder) // correct for webp, not for videos
+        registerSignatures(imageFormats, ImageAsFolder::readAsFolder)
+        registerSignatures("media", ImageAsFolder::readAsFolder) // correct for webp, not for videos
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {

@@ -191,7 +191,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         return super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
-    private fun selectObjectAtCursor(x: Float, y: Float) {
+    fun selectObjectAtCursor(x: Float, y: Float) {
         // select the clicked thing in the scene
         val (e, c) = renderView.resolveClick(x, y)
         // show the entity in the property editor

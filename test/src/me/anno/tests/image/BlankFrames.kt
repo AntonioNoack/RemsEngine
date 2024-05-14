@@ -27,7 +27,7 @@ fun main() {
     val timeout = 1000L
     HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
     ShaderLib.init()
-    val fb = Framebuffer("tmp", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
+    val fb = Framebuffer("blank", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!

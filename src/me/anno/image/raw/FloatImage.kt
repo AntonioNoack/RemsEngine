@@ -131,11 +131,4 @@ class FloatImage(
         }
         return this
     }
-
-    fun abs(): IFloatImage {
-        for (i in data.indices) {
-            data[i] = kotlin.math.abs(data[i])
-        }
-        return this
-    }
 }
