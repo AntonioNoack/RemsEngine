@@ -2,7 +2,6 @@ package me.anno.tests.engine
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.engine.raycast.BlockTracing
 import me.anno.engine.raycast.RayQuery
 import me.anno.gpu.GFX
@@ -12,16 +11,17 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
-import me.anno.tests.rtrt.engine.DrawMode
 import me.anno.tests.rtrt.engine.createControls
-import me.anno.tests.rtrt.engine.drawMode
 import me.anno.tests.rtrt.engine.pipeline
+import me.anno.tests.rtrt.engine.sky0BGR
+import me.anno.tests.rtrt.engine.sky1BGR
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
@@ -45,7 +45,7 @@ fun main() {
     val cameraRotation = Quaternionf()
 
     val main = PanelListY(style)
-    val controls = createControls(
+    createControls(
         cameraPosition, cameraRotation, AABBf(
             -30f, -30f, -30f,
             30f, 30f, 30f
@@ -53,6 +53,10 @@ fun main() {
     )
 
     val world = TestWorld()
+    val bgrPalette = world.palette.copyOf()
+    for (i in bgrPalette.indices) {
+        bgrPalette[i] = convertABGR2ARGB(bgrPalette[i])
+    }
     val bounds = AABBi(0, 0, 0, 127, 31, 127)
 
     val queries = ThreadLocal2 { RayQuery(Vector3d(), Vector3d(), 1e3) }
@@ -60,11 +64,10 @@ fun main() {
         if (world.getElementAt(x, y, z).toInt() != 0) -0.5 else 0.5
     }
 
-    val skyColor = 0x84bee5 or black
     val sunDirInv = Vector3d(1.0, -0.9, 0.3).normalize()
     val ui = createCPUPanel(
         4, cameraPosition, cameraRotation, 1f,
-        controls, false
+        false
     ) { start, dir ->
         val query = queries.get()
         query.start.set(start)
@@ -77,10 +80,10 @@ fun main() {
             val y = floor(pos.y - nor.y * 0.5).toInt()
             val z = floor(pos.z - nor.z * 0.5).toInt()
             val block = world.getElementAt(x, y, z).toInt()
-            val color = world.palette[block]
+            val color = bgrPalette[block]
             // get block color, and tint by normal
             mixARGB(black, color, sunDirInv.dot(nor).toFloat() * 0.1f + 0.9f)
-        } else skyColor
+        } else mixARGB(sky0BGR, sky1BGR, dir.y * .5f + .5f)
     }.fill(1f)
     testUI3("BlockTracing", main.add(ui))
 }
@@ -90,7 +93,6 @@ fun createCPUPanel(
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
     fovZFactor: Float,
-    controls: OrbitControls,
     randomizePixels: Boolean,
     renderer: PixelRenderer
 ): Panel {
@@ -104,8 +106,6 @@ fun createCPUPanel(
     }
 
     val tileSize = 4
-    var frameIndex = 0
-    var lastDrawMode: DrawMode? = null
     val lastPos = Vector3f()
     val lastRot = Quaternionf()
     var lastW = 0
@@ -113,7 +113,6 @@ fun createCPUPanel(
     var isRendering = false
     var cpuBuffer: IntBuffer? = null
     var cpuBytes: ByteBuffer? = null
-    var dt = 0L
     return TestDrawPanel {
 
         it.clear()
@@ -129,27 +128,13 @@ fun createCPUPanel(
         val cy = (Maths.random().toFloat() - 0.5f) * rs + (parent.height * 0.5f) / scale
         val fovZ = -parent.height * fovZFactor / scale
 
-        // if camera was moved, set frameIndex back to zero
-        if (lastDrawMode != drawMode ||
-            lastPos.distance(cameraPosition) > controls.radius * 0.01f ||
-            lastRot.difference(cameraRotation, JomlPools.quat4f.borrow()).angle() > 1e-3f
-        ) {
-            lastPos.set(cameraPosition)
-            lastRot.set(cameraRotation)
-            lastDrawMode = drawMode
-            frameIndex = 0
-            dt = 0L
-        }
-
         if (lastW != w || lastH != h) {
             lastW = w
             lastH = h
-            frameIndex = 0
-            dt = 0L
         }
 
         fun nextFrame() {
-            if (isRendering || frameIndex >= 256) return
+            if (isRendering) return
             isRendering = true
             pipeline += {
 
@@ -160,6 +145,9 @@ fun createCPUPanel(
                     cpuBuffer = bytes.asIntBuffer()
                     bytes
                 } else cpuBytes!!
+
+                lastPos.set(cameraPosition)
+                lastRot.set(cameraRotation)
 
                 val ints = cpuBuffer!!
                 val t0 = Time.nanoTime
@@ -175,11 +163,9 @@ fun createCPUPanel(
                     }
                     JomlPools.vec3f.sub(1)
                 }
-                val t1 = Time.nanoTime
-                dt += t1 - t0
-                frameIndex++
-                cpuSpeed = dt / max(1L, w * h * frameIndex.toLong())
-                cpuFPS = SECONDS_TO_NANOS * frameIndex / max(1L, dt)
+                val dt = Time.nanoTime - t0
+                cpuSpeed = dt / max(1L, w * h.toLong())
+                cpuFPS = SECONDS_TO_NANOS / max(1L, dt)
                 GFX.addGPUTask("brt-cpu", 1) {
                     cpuTexture.width = w
                     cpuTexture.height = h
@@ -196,7 +182,7 @@ fun createCPUPanel(
             it.x + 4,
             it.y + it.height - 50,
             2,
-            "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
+            "$cpuSpeed ns/e, $cpuFPS fps"
         )
 
     }

@@ -58,6 +58,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Clock
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
@@ -80,8 +81,8 @@ var drawMode = DrawMode.NORMAL
 val localResult = ThreadLocal2 { RayHit() }
 const val sky0 = 0x2f5293
 const val sky1 = 0x5c729b
-const val sky0BGR = 0x93522f
-const val sky1BGR = 0x9b725c
+val sky0BGR = convertABGR2ARGB(sky0)
+val sky1BGR = convertABGR2ARGB(sky1)
 
 fun main() {
     OfficialExtensions.initForTests()
