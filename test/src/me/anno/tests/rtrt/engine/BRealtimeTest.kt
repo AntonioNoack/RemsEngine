@@ -67,6 +67,7 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.JomlMath.invsqrt
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -124,7 +125,7 @@ fun coloring1(t: Float): Int {
 fun createControls(
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
-    bvh: BVHNode,
+    bvhBounds: AABBf,
     main: PanelGroup
 ): OrbitControls {
 
@@ -139,8 +140,8 @@ fun createControls(
 
     controls.camera = camera
     controls.position.set(cameraPosition)
-    controls.radius = bvh.bounds.volume.pow(1f / 3f)
-    controls.movementSpeed = 0.20f * controls.radius
+    controls.radius = bvhBounds.volume.pow(1f / 3f)
+    controls.movementSpeed = 0.20f * controls.radius * 100
     controls.rotationSpeed = 0.15f
     controls.friction = 20f
 
@@ -249,8 +250,10 @@ fun createCPUPanel(
     var cpuSpeed = -1L
     var cpuFPS = 0L
 
-    val cpuTexture = Texture2D("cpu", 1, 1, 1)
-    cpuTexture.createRGBA()
+    val cpuTexture by lazy {
+        Texture2D("cpu", 1, 1, 1)
+            .apply { createRGBA() }
+    }
 
     val tileSize = 4
     val groups = ThreadLocal2 { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
@@ -350,7 +353,7 @@ fun createCPUPanel(
                 val t1 = Time.nanoTime
                 dt += t1 - t0
                 frameIndex++
-                cpuSpeed = dt / (w * h * frameIndex.toLong())
+                cpuSpeed = dt / max(1L, w * h * frameIndex.toLong())
                 cpuFPS = SECONDS_TO_NANOS * frameIndex / dt
                 GFX.addGPUTask("brt-cpu", 1) {
                     cpuTexture.width = w
@@ -604,7 +607,7 @@ fun main2(
     testUI3("BLAS - Realtime") {
 
         val main = PanelListY(style)
-        val controls = createControls(cameraPosition, cameraRotation, bvh, main)
+        val controls = createControls(cameraPosition, cameraRotation, bvh.bounds, main)
 
         val list = CustomList(false, style)
 

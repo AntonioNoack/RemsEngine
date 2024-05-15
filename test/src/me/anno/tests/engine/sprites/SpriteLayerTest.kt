@@ -26,10 +26,11 @@ fun buildSampleWorld(sprites: SpriteLayer) {
         DDDDDDDDDDDDDDDDDDDDDDDDD
     """.trimIndent()
     val lines = visualMap.lines()
-    for ((y, line) in lines.withIndex()) {
+    for ((li, line) in lines.withIndex()) {
+        val y = lines.lastIndex - li // text goes down with higher index, but our world grows upwards -> reverse y
         for ((x, char) in line.withIndex()) {
             val id = charToId[char] ?: continue
-            sprites.setSprite(x, lines.lastIndex - y, id)
+            sprites.setSprite(x, y, id)
         }
     }
 }
@@ -51,6 +52,8 @@ fun main() {
         }
     }
     val skyEntity = Entity("Sky", scene)
-    skyEntity.add(skyLayer).setPosition(0.0, 0.0, -1.0)
+    skyEntity.add(skyLayer)
+        .setPosition(0.0, 0.0, -8.0)
+        .setScale(8.0)
     testSceneWithUI("Sprites", scene)
 }

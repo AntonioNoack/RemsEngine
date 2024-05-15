@@ -90,6 +90,9 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
 
     // todo edit mode, where you can paint it
 
+    // todo two chunk systems; one all, one visible (?)
+    //  -> good for larger worlds when we have a good 2d-camera
+
     fun setSprite(x: Int, y: Int, spriteId: Int) {
         val value = spriteId + 1
         chunks.setElementAt(x, y, 0, value != 0, value)

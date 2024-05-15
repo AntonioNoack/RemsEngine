@@ -8,7 +8,6 @@ import me.anno.gpu.shader.builder.Variable
  * texture 3d - block traced shader
  * @see Texture3DBTMaterial
  * */
-@Suppress("unused")
 object Texture3DBTShader : BlockTracedShader("3dTex-rt") {
 
     override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {

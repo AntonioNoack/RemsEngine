@@ -187,6 +187,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         }
     }
 
+    private var printSize = true
     fun processBalanced2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         minTilesPerThread: Int,
@@ -197,7 +198,10 @@ abstract class WorkSplitter(val numThreads: Int) {
         val count = tilesX * tilesY
         val threadCount = Maths.clamp(count / max(1, minTilesPerThread), 1, numThreads)
         val (threadCountX, threadCountY) = splitWork(tilesX, tilesY, threadCount)
-        LOGGER.info("Using $threadCountX x $threadCountY threads")
+        if (printSize) {
+            LOGGER.info("Using $threadCountX x $threadCountY threads")
+            printSize = false
+        }
         val counter = AtomicInteger(threadCountX * threadCountY - 1)
         for (threadId in 1 until threadCountX * threadCountY) {
             plusAssign {

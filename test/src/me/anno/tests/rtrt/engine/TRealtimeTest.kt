@@ -117,7 +117,7 @@ fun run(
     testUI3("TLAS - Realtime") {
 
         val main = PanelListY(style)
-        val controls = createControls(pos, rot, bvh, main)
+        val controls = createControls(pos, rot, bvh.bounds, main)
 
         val list = CustomList(false, style)
 

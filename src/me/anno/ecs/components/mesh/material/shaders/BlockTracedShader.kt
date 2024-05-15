@@ -84,7 +84,6 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "float nextDist, dist = 0.0;\n" +
                         initProperties(flags.hasFlag(IS_INSTANCED)) +
                         "int lastNormal = dtf3.z == dtf1 ? 2 : dtf3.y == dtf1 ? 1 : 0, i;\n" +
-                        "bool done = false;\n" +
                         "for(i=0;i<maxSteps;i++){\n" +
                         "   nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
                         "   bool continueTracing = false;\n" +
