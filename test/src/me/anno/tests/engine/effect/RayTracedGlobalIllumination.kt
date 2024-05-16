@@ -11,6 +11,7 @@ import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.utils.OS.downloads
 
 // todo implement ray-traced global illumination
@@ -42,7 +43,7 @@ val RTGIRenderMode = RenderMode(
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())
-        .then(ScreenSpaceGlobalIlluminationNode())
+        .then(SSGINode())
         .then(SSRNode())
         .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
         .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))

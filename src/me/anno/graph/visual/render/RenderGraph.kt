@@ -33,6 +33,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
 import me.anno.image.ImageScale
 import me.anno.ui.Panel
+import me.anno.utils.Color.white4
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 
@@ -163,7 +164,7 @@ object RenderGraph {
         val x = dst.x + (dst.width - w).shr(1)
         val y = dst.y + (dst.height - h).shr(1)
         val applyToneMapping = endNode.getBoolInput(6)
-        drawTexture(x, y + h, w, -h, texture, true, tex.color, null, applyToneMapping)
+        drawTexture(x, y + h, w, -h, texture, true, white4, null, applyToneMapping)
     }
 
     // todo sample sky (tex) node
@@ -173,7 +174,6 @@ object RenderGraph {
     // todo when we have a Vulkan/DX11/DX12 backend, add DLSS nodes
     //  https://developer.nvidia.com/rtx/dlss/get-started#sdk-requirements
 
-    // todo vignette node
     // todo film grain node? film stripes node?
 
 }

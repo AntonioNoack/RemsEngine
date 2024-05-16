@@ -29,6 +29,7 @@ import me.anno.tests.LOGGER
 import me.anno.tests.engine.light.setTranslateScaleInverse
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.random.Random
@@ -179,12 +180,14 @@ fun main() {
 
         ECSRegistry.init()
 
+        val clock = Clock()
         val mesh: MeshComponentBase = if (rayTracing) {
             // slower, currently less color support, but avoids triangles ^^
             world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
         } else {
             world.createTriangleMesh(x0, y0, z0, sx, sy, sz)
         }
+        clock.stop("Creating World Mesh")
 
         val scene = Entity()
         scene.add(mesh)

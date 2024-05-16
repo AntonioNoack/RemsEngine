@@ -32,7 +32,6 @@ import me.anno.graph.visual.render.MovieNode
 import me.anno.graph.visual.render.Texture
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
-import me.anno.utils.Color.white4
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
@@ -99,8 +98,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
             val map = tex.mapping
             val enc = tex.encoding
             val dim = enc?.workDims ?: map.length
-            return if (dim == 0) {
-                if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
+            return if (dim == 0) { // ??
+                if (tex.tex == whiteTexture) "Float" else "Vector4f"
             } else floatVecTypes[dim - 1]
         } else return an.type
     }
@@ -126,7 +125,6 @@ abstract class GraphCompiler(val g: FlowGraph) {
         if (tex != null) {
             val map = tex.mapping
             val enc = tex.encoding
-            val tint = tex.color
             if (enc != null) {
                 builder.append('(').append(enc.dataToWork).append("(")
             }
@@ -147,11 +145,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 } else {
                     builder.append("texture(").append(texName.first).append(",uv)")
                 }
-                if (tint != white4) {
-                    builder.append('*')
-                    appendVector4f(tint)
-                }
-            } else appendVector4f(tint)
+            } else builder.append("vec4(1.0)")
             if (map.isNotEmpty()) {
                 builder.append('.').append(map)
             }

@@ -286,8 +286,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     }
 
     companion object {
+        val singleToVectorR = Vector4f(1f, 0f, 0f, 0f)
         val singleToVector = run {
-            val x = Vector4f(1f, 0f, 0f, 0f)
+            val x = singleToVectorR
             val y = Vector4f(0f, 1f, 0f, 0f)
             val z = Vector4f(0f, 0f, 1f, 0f)
             val w = Vector4f(0f, 0f, 0f, 1f)

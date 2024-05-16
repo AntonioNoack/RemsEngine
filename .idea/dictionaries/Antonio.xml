@@ -165,6 +165,7 @@
       <w>hypot</w>
       <w>icosphere</w>
       <w>idct</w>
+      <w>illum</w>
       <w>imag</w>
       <w>indianred</w>
       <w>infacing</w>
@@ -374,6 +375,7 @@
       <w>sponza</w>
       <w>springgreen</w>
       <w>srgb</w>
+      <w>ssgi</w>
       <w>starness</w>
       <w>steelblue</w>
       <w>stillimage</w>

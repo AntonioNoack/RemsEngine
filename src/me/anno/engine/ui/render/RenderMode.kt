@@ -42,6 +42,8 @@ import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
 import me.anno.graph.visual.render.scene.RenderSceneForwardNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.effects.SSGINode
+import me.anno.graph.visual.render.effects.VignetteNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
@@ -223,13 +225,38 @@ class RenderMode(
                 .finish()
         )
 
+        val SSGI = RenderMode(
+            "SSGI",
+            QuickPipeline()
+                .then1(
+                    RenderSceneDeferredNode(), mapOf(
+                        "Stage" to PipelineStage.OPAQUE,
+                        "Skybox Resolution" to 256,
+                        "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
+                    )
+                )
+                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSGINode())
+                .then(SSRNode())
+                .then1(RenderSceneForwardNode(),  mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then(GizmoNode())
+                .then(FXAANode())
+                .finish()
+        )
+
         val INVERSE_DEPTH = RenderMode("Inverse Depth", Renderers.pbrRenderer)
         val OVERDRAW = RenderMode("Overdraw", Renderers.overdrawRenderer)
 
         val WITH_DEPTH_PREPASS = RenderMode(
             "With Depth-Prepass",
             QuickPipeline()
-                // todo this no longer works...
+                // todo bug: this no longer works...
                 /**
                  * prepass for depth only: depth is the only value for RenderSceneNode,
                  * which is accepted as an input too, and such, it will render first only the depth
@@ -422,6 +449,7 @@ class RenderMode(
         val FOG_TEST = RenderMode("Fog Test", postProcessGraph(HeightExpFogNode()))
         val NIGHT_TEST = RenderMode("Night Test", postProcessGraph(NightNode()))
         val ANIME_OUTLINES = RenderMode("Anime Outlines", postProcessGraph(AnimeOutlineNode()))
+        val VIGNETTE = RenderMode("Vignette", postProcessGraph(VignetteNode()))
 
         val ALL_GLASS = RenderMode("All Glass", Material().apply {
             pipelineStage = PipelineStage.TRANSPARENT

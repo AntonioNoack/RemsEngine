@@ -39,6 +39,10 @@ fun interface PixelRenderer {
     fun render(pos: Vector3f, dir: Vector3f): Int
 }
 
+/**
+ * render what blocks are found when using BlockTracing:
+ * when the image looks nice, the result is correct
+ * */
 fun main() {
 
     val cameraPosition = Vector3f(64f, 16f, 64f)
@@ -166,7 +170,7 @@ fun createCPUPanel(
                 val dt = Time.nanoTime - t0
                 cpuSpeed = dt / max(1L, w * h.toLong())
                 cpuFPS = SECONDS_TO_NANOS / max(1L, dt)
-                GFX.addGPUTask("brt-cpu", 1) {
+                GFX.addGPUTask("btv-cpu", 1) {
                     cpuTexture.width = w
                     cpuTexture.height = h
                     cpuTexture.createRGBA(ints, false)

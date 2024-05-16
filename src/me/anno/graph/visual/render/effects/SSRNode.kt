@@ -2,6 +2,7 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.ScreenSpaceReflections
@@ -75,11 +76,11 @@ class SSRNode : ActionNode(
 
         val metallicT = metallic?.texOrNull ?: whiteTexture
         val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
-        else metallic?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: singleToVector["r"]!!
+        else singleToVectorR
 
         val roughnessT = roughness?.texOrNull ?: whiteTexture
         val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
-        else roughness?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: black4
+        else black4
 
         val result = ScreenSpaceReflections.compute(
             depthTT, depthT.mask!!,

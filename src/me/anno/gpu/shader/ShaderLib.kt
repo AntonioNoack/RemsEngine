@@ -270,7 +270,8 @@ object ShaderLib {
             "\n#ifndef PACKING_NORMALS\n" +
             "#define PACKING_NORMALS\n" +
             "vec2 PackNormal(vec3 n) {\n" +
-            "   n /= max(1e-7, abs(n.x)+abs(n.y)+abs(n.z));\n" +
+            "   n /= abs(n.x)+abs(n.y)+abs(n.z);\n" +
+            "   if(isnan(n.x)) return vec2(0.0);\n" +
             "   if(n.z < 0.0) n.xy = (1.0-abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);\n" +
             "   return n.xy * 0.5 + 0.5;\n" +
             "}\n" +

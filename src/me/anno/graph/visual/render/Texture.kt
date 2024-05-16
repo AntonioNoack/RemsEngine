@@ -8,47 +8,43 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.utils.Color.black4
-import me.anno.utils.Color.toHexColor
-import me.anno.utils.Color.white4
 import org.joml.Vector4f
 
 class Texture private constructor(
     val tex: ITexture2D,
-    val texMS: ITexture2D,
+    texMS: ITexture2D?,
     val mapping: String,
-    val encoding: DeferredLayerType?,
-    val color: Vector4f
+    val encoding: DeferredLayerType?
 ) {
 
-    constructor(v: ITexture2D) : this(v, v, "", null, white4)
-    constructor(v: Vector4f) : this(whiteTexture, whiteTexture, "", null, v)
-    constructor(tex: ITexture2D, texMS: ITexture2D?, mapping: String, encoding: DeferredLayerType?) :
-            this(tex, texMS ?: tex, mapping, encoding, white4)
+    constructor(v: ITexture2D) : this(v, v, "", null)
+    constructor(v: Vector4f) : this(IndestructibleTexture2D.getColorTexture(v))
 
+    val texMS = texMS ?: tex
     val isDestroyed get() = tex.isDestroyed
     val mask get() = singleToVector[mapping]
-    val texOrNull get() = if(tex.isCreated()) tex else null
-    val texMSOrNull get() = if(texMS.isCreated()) texMS else null
+    val texOrNull get() = if (tex.isCreated()) tex else null
+    val texMSOrNull get() = if (texMS.isCreated()) texMS else null
 
     override fun toString(): String {
-        return if (tex == whiteTexture) {
-            if (color == white4) "white" else color.toHexColor()
-        } else if (tex == blackTexture || color == black4) {
-            "black"
-        } else {
-            val base = if (tex is Texture2D) "${tex.width}x${tex.height}@${tex.pointer}"
-            else "${tex.width}x${tex.height}}"
-            val hasMap = mapping.isNotEmpty()
-            val hasEnc = encoding != null && encoding.dataToWork.isNotEmpty()
-            when {
-                hasMap && hasEnc -> "$base.$mapping/${encoding!!.name}"
-                hasMap -> "$base.$mapping"
-                hasEnc -> "$base/${encoding!!.name}"
-                else -> base
+        return when (tex) {
+            whiteTexture -> "white"
+            blackTexture -> "black"
+            else -> {
+                val base = if (tex is Texture2D) "${tex.width}x${tex.height}@${tex.pointer}"
+                else "${tex.width}x${tex.height}}"
+                val hasMap = mapping.isNotEmpty()
+                val hasEnc = encoding != null && encoding.dataToWork.isNotEmpty()
+                when {
+                    hasMap && hasEnc -> "$base.$mapping/${encoding!!.name}"
+                    hasMap -> "$base.$mapping"
+                    hasEnc -> "$base/${encoding!!.name}"
+                    else -> base
+                }
             }
         }
     }

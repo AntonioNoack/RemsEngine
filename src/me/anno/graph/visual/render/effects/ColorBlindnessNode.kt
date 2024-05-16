@@ -8,13 +8,13 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.actions.ActionNode
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) :
     ActionNode(
@@ -50,7 +50,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
         /**
          * from https://gist.github.com/jcdickinson/580b7fb5cc145cee8740, http://www.daltonize.org/search/label/Daltonize
          * */
-        val shader = Shader(
+        private val shader = Shader(
             "colorblindness", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1I, "mode"),

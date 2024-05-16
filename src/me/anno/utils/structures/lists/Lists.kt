@@ -446,7 +446,7 @@ object Lists {
 
     @JvmStatic
     fun <V> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V> =
-       toMutableList().sortByParent(getParent)
+        toMutableList().sortByParent(getParent)
 
     /**
      * returns an order such that elements without dependencies come first,
@@ -523,5 +523,10 @@ object Lists {
             result.addAll(this[i])
         }
         return result
+    }
+
+    @JvmStatic
+    fun <V> List<V>.iff(condition: Boolean): List<V> {
+        return if (condition) this else emptyList()
     }
 }
