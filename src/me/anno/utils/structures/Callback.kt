@@ -25,12 +25,16 @@ fun interface Callback<V> {
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<List<W>>
         ) {
-            indices
-                .associateWith { this[it] }
-                .mapCallback(process) { resultMap, err ->
-                    val resultList = if (resultMap != null) createArrayList(size) { resultMap[it]!! } else null
-                    callback.call(resultList, err)
-                }
+            if (isEmpty()) {
+                callback.ok(emptyList())
+            } else {
+                indices
+                    .associateWith { this[it] }
+                    .mapCallback(process) { resultMap, err ->
+                        val resultList = if (resultMap != null) createArrayList(size) { resultMap[it]!! } else null
+                        callback.call(resultList, err)
+                    }
+            }
         }
 
         /**
@@ -54,19 +58,23 @@ fun interface Callback<V> {
             process: (K, V, Callback<W>) -> Unit,
             callback: Callback<Map<K, W>>
         ) {
-            val outputs = HashMap<K, W>()
-            var hasError = false
-            for ((k, v) in this) {
-                process(k, v) { w, err ->
-                    synchronized(outputs) {
-                        if (!hasError && err != null) {
-                            hasError = true
-                            outputs.cleanup()
-                            callback.err(err)
-                        } else {
-                            outputs[k] = w!!
-                            if (outputs.size == size) {
-                                callback.ok(outputs)
+            if (isEmpty()) {
+                callback.ok(emptyMap())
+            } else {
+                val outputs = HashMap<K, W>()
+                var hasError = false
+                for ((k, v) in this) {
+                    process(k, v) { w, err ->
+                        synchronized(outputs) {
+                            if (!hasError && err != null) {
+                                hasError = true
+                                outputs.cleanup()
+                                callback.err(err)
+                            } else {
+                                outputs[k] = w!!
+                                if (outputs.size == size) {
+                                    callback.ok(outputs)
+                                }
                             }
                         }
                     }

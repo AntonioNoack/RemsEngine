@@ -10,7 +10,6 @@ import me.anno.engine.RemsEngine
 fun main() {
     // todo tabs need a save button
     // todo tabs need to show that their scenes were modified
-    // todo bug: default meshes are missing icon, and aren't rendering
     if (false) Build.isDebug = false
     RemsEngine().run()
 }

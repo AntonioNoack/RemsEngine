@@ -7,8 +7,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 fun main() {
     // make this work somehow, by properly shutting down everything, and then somehow cancelling it and restarting
     // todo test sound
-    // todo bug: secondary windows have black background, why ever!!!!
-    // todo we also get a weird message, because we have to recreate the OpenGL context...
+    // todo it currently crashes sometimes, and at the very end...
     for (name in listOf("First", "Second", "Third", "Fourth", "Fifth")) {
         testUI("$name Window", TextPanel("$name Panel", style))
     }
