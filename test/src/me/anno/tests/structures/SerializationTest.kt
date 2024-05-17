@@ -3,9 +3,11 @@ package me.anno.tests.structures
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.io.Saveable
+import me.anno.io.Saveable.Companion.registerCustomClass
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 
 class TestClass : Saveable() {
@@ -45,11 +47,15 @@ fun main() {
 
     val logger = LogManager.getLogger("SerializationTest")
 
+    registerCustomClass(TestClass())
     val instance = TestClass()
     val text = instance.toString()
     logger.info(text)
 
-    Saveable.registerCustomClass("Test", TestClass::class)
+    assertTrue("S:publicName" in text)
+    assertTrue("S:anotherName" in text)
+    assertTrue("S:withDifferentName" !in text)
+
     val copiedInstance = JsonStringReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
 }

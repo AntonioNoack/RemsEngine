@@ -3,12 +3,14 @@ package me.anno.tests.mesh.gltf
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 
 fun main() {
+    OfficialExtensions.initForTests()
     ECSRegistry.init()
     if (false) {
         val main = downloads.getChild("gradientdomain-scenes.zip/gradientdomain-scenes")

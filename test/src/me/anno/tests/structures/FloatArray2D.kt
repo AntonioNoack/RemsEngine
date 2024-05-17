@@ -1,42 +1,38 @@
 package me.anno.tests.structures
 
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
-import org.apache.logging.log4j.LogManager
+import org.junit.jupiter.api.Test
 
-fun main() {
+class FloatArray2D {
+    @Test
+    fun testFloatArray2D() {
+        val writer = JsonStringWriter(InvalidRef)
+        writer.writeFloatArray2D("x", createArrayList(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
+        assertEquals("\"f[][]:x\":[5,[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2],[5,0,1,2]]", writer.toString())
 
-    val logger = LogManager.getLogger("FloatArray2D")
-
-    val writer = JsonStringWriter(InvalidRef)
-    writer.writeFloatArray2D("x", createArrayList(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
-    logger.info(writer.toString())
-
-    val reader = JsonStringReader(writer.toString(), InvalidRef)
-    reader.readProperty(object : Saveable() {
-
-        override fun setProperty(name: String, value: Any?) {
-            val values = value as? List<*> ?: return
-            logger.info(
-                "$name: ${
+        val reader = JsonStringReader(writer.toString(), InvalidRef)
+        var wasCalled = false
+        reader.readProperty(object : Saveable() {
+            override fun setProperty(name: String, value: Any?) {
+                val values = value as List<*>
+                assertEquals("x", name)
+                assertEquals("[[0,1,2,0,0],[0,1,2,0,0],[0,1,2,0,0],[0,1,2,0,0],[0,1,2,0,0]]",
                     values.joinToString(",", "[", "]") { fa ->
                         fa as FloatArray
                         fa.joinToString(",", "[", "]") { it.toInt().toString() }
-                    }
-                }"
-            )
-        }
+                    })
+                wasCalled = true
+            }
 
-        override fun isDefaultValue(): Boolean = false
-        override val approxSize get() = -1
-    })
-
-    val mesh = Mesh()
-    mesh.positions = FloatArray(18) { it.toFloat() % 5f }
-    mesh.indices = IntArray(10) { it }
-    logger.info(JsonStringWriter.toText(mesh, InvalidRef))
+            override fun isDefaultValue(): Boolean = false
+            override val approxSize get() = -1
+        })
+        assertTrue(wasCalled)
+    }
 }

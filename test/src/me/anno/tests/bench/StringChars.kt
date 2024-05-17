@@ -1,4 +1,4 @@
-package me.anno.tests.structures
+package me.anno.tests.bench
 
 import me.anno.utils.Clock.Companion.measure
 import kotlin.random.Random

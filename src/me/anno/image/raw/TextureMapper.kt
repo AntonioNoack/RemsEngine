@@ -1,6 +1,5 @@
 package me.anno.image.raw
 
-import me.anno.utils.structures.Callback
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -15,6 +14,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
 
@@ -70,11 +71,15 @@ object TextureMapper {
                     }
                 }
                 callback.ok(dst)
+            } else if (!src.isDestroyed) {
+                Sleep.waitUntil(true, { src.isCreated() || src.isDestroyed }) {
+                    mapTexture(src, dst, mapping, type, callback)
+                }
             } else {
                 // todo this fails a few times for our Engine()-main-project until it succeeds...
                 //  - who is retrying???
                 //  - why is it failing in the first place?
-                callback.err(IllegalStateException("Mapping '$mapping' failed, because $src isn't created"))
+                callback.err(IllegalStateException("Mapping '$mapping' failed, because $src is destroyed"))
             }
         } else {
             GFX.addGPUTask(mapping, dst.width, dst.height) {
