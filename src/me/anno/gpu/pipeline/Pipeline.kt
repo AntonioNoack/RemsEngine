@@ -126,7 +126,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                         "decal", Sorting.NO_SORTING, 64,
                         null,
                         if (GFX.supportsClipControl) DepthMode.FARTHER
-                        else DepthMode.FORWARD_FARTHER, false, CullMode.FRONT,
+                        else DepthMode.FORWARD_FARTHER, false, CullMode.BACK,
                         pbrModelShader
                     )
                     else -> defaultStage.clone()

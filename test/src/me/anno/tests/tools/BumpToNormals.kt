@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.tools
 
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage

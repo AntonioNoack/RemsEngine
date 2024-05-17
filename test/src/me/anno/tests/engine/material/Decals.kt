@@ -1,35 +1,44 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.decal.DecalMaterial
 import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.decal.DecalMeshComponent
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.Reference.getReference
-import me.anno.sdf.shapes.SDFSphere
-import me.anno.utils.OS
+import me.anno.maths.Maths.TAU
+import me.anno.mesh.Shapes.smoothCube
+import me.anno.utils.OS.pictures
 import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 fun main() {
-    // todo decals are currently broken :/, looks like a race-condition
-    // only works with MSAA... -> blit missing???
-    val decal = Entity("Decal")
-    decal.setPosition(1.0, 0.0, 0.0)
-    decal.setRotation(0.0, PI / 2, 0.0)
-    decal.setScale(1.0, 1.0, 0.5)
-    val decal2 = DecalMeshComponent()
-    decal.add(decal2)
-    val mat = decal2.material
+    OfficialExtensions.initForTests()
+    // todo MSAA-deferred is broken for this... why???
+    val mat = DecalMaterial()
     mat.diffuseMap = getReference("res://icon.png")
-    mat.normalMap = OS.pictures.getChild("normal bricks.png")
+    mat.normalMap = pictures.getChild("Cracked Normals.jpg")
+    mat.normalStrength = 0.5f
+    mat.linearFiltering = false
     mat.writeColor = true
     mat.writeNormal = true
-    val scene = Entity("Object")
+    val scene = Entity("Scene")
+    val numDecals = 5
+    for(i in 0 until numDecals) {
+        val decal = Entity("Decal", scene)
+        val angle = i * TAU / numDecals
+        decal.setPosition(sin(angle), 0.0, cos(angle))
+        decal.setRotation(0.0, angle, 0.0)
+        decal.setScale(0.7, 0.7, 0.35)
+        decal.add(MeshComponent(smoothCube.front, mat))
+    }
     scene.setRotation(0.0, PI, 0.0)
-    scene.add(SDFSphere().apply {
-        sdfMaterials = listOf(Material().apply {
+    scene.add(MeshComponent(getReference("meshes/UVSphere.json")).apply {
+        materials = listOf(Material().apply {
             diffuseBase.set(1f, 0.7f, 0.3f, 1f)
         }.ref)
     })
-    scene.add(decal)
     testSceneWithUI("Decals", scene)
 }

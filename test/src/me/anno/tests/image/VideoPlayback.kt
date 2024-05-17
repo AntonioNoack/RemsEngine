@@ -7,6 +7,7 @@ import me.anno.utils.OS.videos
 
 fun main() {
     testUI3("Video Playback") {
+        // todo new bug: open video using image viewer -> random offset -> where coming from???, plus some flickering :/
         // done why is playback limited to ~30 fps?
         // to do why is playback limited in some sections to 50 fps?
         // texImage2D() seems to be the culprit...

@@ -55,7 +55,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         override fun destroy() {
             // LOGGER.info("Destroying ${hashCode()} $key")
             // printStackTrace()
-            GFX.checkIsGFXThread()
+            // GFX.checkIsGFXThread()
             // todo why is it being destroyed twice????
             /*if (isDestroyed > 0L){
                 Engine.shutdown()

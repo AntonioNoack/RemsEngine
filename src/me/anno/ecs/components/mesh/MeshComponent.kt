@@ -3,13 +3,18 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.io.files.FileReference
+import me.anno.mesh.Shapes.flatCube
 
 // todo light beams: when inside the cone, from that view, then add a little brightness
 
 open class MeshComponent() : MeshComponentBase() {
+
+    companion object {
+        // using the flat cube as a default mesh seems a good choice :)
+        private val defaultMeshRef = flatCube.front.ref
+    }
 
     constructor(mesh: FileReference) : this() {
         this.name = mesh.nameWithoutExtension
@@ -28,7 +33,7 @@ open class MeshComponent() : MeshComponentBase() {
 
     @SerializedProperty
     @Type("Mesh/Reference")
-    var meshFile: FileReference = InvalidRef
+    var meshFile: FileReference = defaultMeshRef
         set(value) {
             if (field != value) {
                 field = value

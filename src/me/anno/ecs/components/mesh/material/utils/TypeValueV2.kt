@@ -7,7 +7,7 @@ open class TypeValueV2(type: GLSLType, val getter: () -> Any) : TypeValue(type, 
     override var value: Any
         get() = getter()
         set(_) {
-            throw RuntimeException("Operation Not Supported")
+            // not supported
         }
 
 }

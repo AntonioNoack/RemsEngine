@@ -1,8 +1,8 @@
 package me.anno.engine
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -14,6 +14,7 @@ import me.anno.io.files.Reference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes.flatCube
+import me.anno.mesh.Shapes.smoothCube
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 
@@ -35,6 +36,7 @@ object DefaultAssets {
 
     private fun registerMeshes() {
         register("meshes/Cube.json", "Mesh", flatCube.front.ref)
+        register("meshes/SmoothCube.json", "Mesh", smoothCube.front.ref)
         val cylinderY11 = CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())
         register("meshes/CylinderY.json", "Mesh", cylinderY11.ref)
         val uvSphere = UVSphereModel.createUVSphere(40, 20)

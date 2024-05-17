@@ -33,8 +33,6 @@ fun main() {
         }
     }
 
-    val runs = 1000
-
     val w = 512
     val h = 512
 

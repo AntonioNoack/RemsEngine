@@ -10,7 +10,7 @@ open class TypeValueV3<V: Any>(type: GLSLType, val value0: V, val update: (V) ->
             return value0
         }
         set(_) {
-            throw RuntimeException("Operation Not Supported")
+            // not supported
         }
 
 }

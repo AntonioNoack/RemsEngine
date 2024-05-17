@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh.decal
 
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -23,7 +22,6 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
         val settings = key.renderer.deferredSettings
         val availableSemantic = settings?.semanticLayers?.toHashSet() ?: emptySet()
         val availableStorage = settings?.storageLayers?.toHashSet() ?: emptySet()
-        GFXState.currentRenderer
         val availableLayerTypes = availableSemantic.map { it.type }.toHashSet()
         val variables = ArrayList(depthVars)
         variables.addAll(
@@ -39,7 +37,8 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                 Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
                 Variable(GLSLType.V1F, "alphaMultiplier", VariableMode.OUT),
                 Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
-                Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
+                Variable(GLSLType.V4F, "tangent", VariableMode.INOUT),
+                Variable(GLSLType.V4F, "finalId", VariableMode.OUT)
             )
         )
         for (layer in availableStorage) {
@@ -54,7 +53,6 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
             // inputs
             ShaderStage(
                 "inputs", variables, "" +
-                        // todo why is the shape changing when moving the camera???
                         "ivec2 uvz = ivec2(gl_FragCoord.xy);\n" +
                         // load all textures
                         availableStorage.joinToString("") {
@@ -80,7 +78,6 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                         // automatic blending on edges? alpha should be zero there anyway
                         "vec3 alphaMultiplier3d = clamp(decalSharpness.xyz * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
                         "alphaMultiplier = alphaMultiplier3d.x * alphaMultiplier3d.y * alphaMultiplier3d.z;\n" +
-                        "alphaMultiplier *= clamp(-decalSharpness.w * dot(normal, finalNormal_in2), 0.0, 1.0);\n" +
                         "if(alphaMultiplier < 0.5/255.0) discard;\n" +
                         "uv = localPosition.xy * vec2(0.5,-0.5) + 0.5;\n" +
                         // prepare pseudo-vertex outputs for original stage
@@ -89,7 +86,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                         // is this correct? looks like it is, based on rotating an example a bit
                         "vec3 tan3 = dFdx(uv.x) * dFdx(finalPosition) + dFdx(uv.y) * dFdy(finalPosition);\n" +
                         "tan3 -= dot(tan3, normal) * normal;\n" +
-                        "tangent = vec4(normalize(tan3), 1.0);\n" +
+                        "tangent = vec4(-normalize(tan3), 1.0);\n" +
                         // fix for sometimes tangent being NaN on the edge
                         "if(any(isnan(tangent.xyz))) tangent = vec4(0,1,0,0);\n"
             ).add(quatRot).add(rawToDepth).add(depthToPosition).add(ShaderLib.octNormalPacking),
@@ -100,8 +97,9 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                     Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT)
                 ), "" +
                         "finalAlpha *= alphaMultiplier;\n" +
-                        "if(finalAlpha < 0.5/255.0) discard;\n" +
-                        colorToLinear +
+                        "if(finalAlpha < 0.002) discard;\n" +
+                        "finalAlpha = 1.0-exp(-5.0*finalAlpha*finalAlpha);\n" + // make transition look smoother
+                        colorToLinear + // for mixing
                         // blend all values with the loaded properties
                         modifiedLayers.filter { it in availableLayerTypes }.joinToString("") {
                             // gamma correction for color
