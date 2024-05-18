@@ -241,6 +241,32 @@ abstract class KdTree<Point, Data>(
         return false
     }
 
+    fun update(d: Data, oldMin: Point, oldMax: Point): Boolean {
+        val left = left
+        if (left != null) {
+            val right = right!!
+            if (left.overlaps(left.min, left.max, oldMin, oldMax)) {
+                if (left.update(d, oldMin, oldMax)) {
+                    recalculateBounds()
+                    return true
+                }
+            }
+            if (right.overlaps(right.min, right.max, oldMin, oldMax)) {
+                if (right.update(d,oldMin,oldMax)) {
+                    recalculateBounds()
+                    return true
+                }
+            }
+        } else {
+            val children = children
+            if (children != null && d in children) {
+                recalculateBounds()
+                return false
+            }
+        }
+        return false
+    }
+
     private fun recalculateBounds() {
         val children = children ?: return
         val d0 = children.firstOrNull() ?: return

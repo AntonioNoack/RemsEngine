@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.FloatArrayList
 import org.joml.AABBf
+import org.joml.Matrix2d
 import org.joml.Matrix3f
 import org.joml.Vector3f
 import kotlin.math.max
@@ -97,11 +98,14 @@ class TriTerrain : Component(), CustomEditMode {
             return
         }*/
 
+        val editorMatrixInv = editorMatrix.invert(Matrix3f())
         val point = Vector3f()
         for (index in indices) {
             val i3 = index * 3
             point.set(pos[i3], pos[i3 + 1], pos[i3 + 2])
-            brush.apply(editorPosition, editorMatrix, radius, strength, point)
+            editorMatrixInv.transform(point)
+            brush.apply(point)
+            editorMatrix.transform(point)
             pos[i3] = point.x
             pos[i3 + 1] = point.y
             pos[i3 + 2] = point.z

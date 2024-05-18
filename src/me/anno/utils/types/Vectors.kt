@@ -123,12 +123,12 @@ object Vectors {
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
     @JvmStatic
-    fun Vector3f.normalToQuaternionY(dst: Quaternionf): Quaternionf {
+    fun Vector3f.normalToQuaternionY(dst: Quaternionf = Quaternionf()): Quaternionf {
         return normalToQuaternionY(x, y, z, dst)
     }
 
     @JvmStatic
-    fun normalToQuaternionY(x: Float, y: Float, z: Float, dst: Quaternionf): Quaternionf {
+    fun normalToQuaternionY(x: Float, y: Float, z: Float, dst: Quaternionf = Quaternionf()): Quaternionf {
         // todo this works perfectly, but the y-angle shouldn't change :/
         // uses ~ 28 ns/e on R5 2600
         if (x * x + z * z > 0.001f) {

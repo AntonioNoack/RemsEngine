@@ -50,7 +50,7 @@ CrossProductNode: me.anno.graph.visual.vector.CrossProductNode
 CubemapSkybox: me.anno.ecs.components.light.sky.CubemapSkybox
 CylinderCollider: me.anno.ecs.components.collider.CylinderCollider
 DataFlowGraph: me.anno.graph.visual.DataFlowGraph
-DecalMaterial: me.anno.ecs.components.mesh.decal.DecalMaterial
+DecalMaterial: me.anno.ecs.components.mesh.material.DecalMaterial
 DecalMeshComponent: me.anno.ecs.components.mesh.decal.DecalMeshComponent
 DepthOfFieldNode: me.anno.graph.visual.render.effects.DepthOfFieldNode
 DepthTestNode: me.anno.graph.visual.render.effects.DepthTestNode

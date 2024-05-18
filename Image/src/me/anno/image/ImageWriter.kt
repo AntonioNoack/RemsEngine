@@ -230,7 +230,7 @@ object ImageWriter {
                     val k = i * samples
                     for (j in 0 until samples) {
                         val j2 = j shl 1
-                        values[k + j] = getValue.run(
+                        values[k + j] = getValue.calculate(
                             xf + MSAAx8[j2],
                             yf + MSAAx8[j2 + 1]
                         )

@@ -2,7 +2,7 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.decal.DecalMaterial
+import me.anno.ecs.components.mesh.material.DecalMaterial
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI

@@ -303,6 +303,25 @@ object Renderers {
     }
 
     @JvmField
+    val diffFromNormalRenderer = object : Renderer("diffFromNormal") {
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "curvature", listOf(
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V3F, "finalNormal"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            "vec3 theoNormal = normalize(cross(dFdx(finalPosition),dFdy(finalPosition)));\n" +
+                            "float f = abs(dot(theoNormal,finalNormal));\n" +
+                            "f = 1.0-pow(f,4.0);\n" + // transform to see stuff easier
+                            "finalResult = vec4(f,f,f,1.0);\n"
+                )
+            )
+        }
+    }
+
+    @JvmField
     val boneIndicesRenderer = object : Renderer("bone-indices") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(

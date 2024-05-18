@@ -48,7 +48,7 @@ fun createTestTerrain(): MeshComponent {
     val ts = 16
     generateRegularQuadHeightMesh(
         ts, ts, false,
-        20f, terrainMesh
+        20f, terrainMesh, true
     )
     return MeshComponent(terrainMesh.ref)
 }

@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
+import me.anno.engine.ui.render.Renderers.diffFromNormalRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
@@ -486,5 +487,7 @@ class RenderMode(
 
         val BONE_INDICES = RenderMode("Bone Indices", boneIndicesRenderer)
         val BONE_WEIGHTS = RenderMode("Bone Weights", boneWeightsRenderer)
+
+        val DIFF_FROM_NORMAL = RenderMode("Diff From Normal", diffFromNormalRenderer)
     }
 }

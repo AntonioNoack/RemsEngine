@@ -137,7 +137,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
                 val entry = MeshEntry(mesh, bounds, buffer)
                 set(key, entry)
             } else {
-                remove(key)
+                remove(key, true)
             }
         }
         invalidChunks.clear()

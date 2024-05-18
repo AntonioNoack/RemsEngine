@@ -28,7 +28,8 @@ fun main() {
 
 fun topOfSphere(size: Float, steps: Int, radius: Float): Mesh {
     val mesh = TerrainUtils.generateRegularQuadHeightMesh(
-        steps, steps, false, size / steps, Mesh()
+        steps, steps, false, size / steps, Mesh(),
+        true
     )
     val positions = mesh.positions!!
     val normals = mesh.normals!!

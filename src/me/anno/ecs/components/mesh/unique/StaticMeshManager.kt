@@ -108,7 +108,7 @@ class StaticMeshManager : Component(), Renderable {
             if (mesh is Mesh) {
                 for (i in 0 until mesh.numMaterials) {
                     val material = getMaterial(comp.materials, mesh.materials, i)
-                    managers[material]?.remove(SMMKey(comp, mesh, i))
+                    managers[material]?.remove(SMMKey(comp, mesh, i), true)
                 }
             }
         }

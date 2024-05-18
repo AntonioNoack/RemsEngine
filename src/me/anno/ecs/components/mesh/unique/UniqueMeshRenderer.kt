@@ -97,7 +97,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
 
     fun set(key: Key, entry: MeshEntry<Mesh>): Boolean {
         val old = entryLookup[key]
-        if (old != null) remove(key)
+        if (old != null) remove(key, entry.mesh != old.mesh)
         return add(key, entry)
     }
 
@@ -121,7 +121,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         return true
     }
 
-    fun remove(key: Key): Boolean {
+    fun remove(key: Key, deleteMesh: Boolean): Boolean {
         val entry = entryLookup.remove(key) ?: return false
         if (true) {
             // todo entries are sorted, so use binary search to remove it
@@ -131,7 +131,9 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
             ranges.addAll(compact(entries))
         }
         numPrimitives -= entry.buffer.vertexCount
-        entry.mesh?.destroy()
+        if (deleteMesh) {
+            entry.mesh?.destroy()
+        }
         entry.buffer.destroy()
         invalidate()
         return true

@@ -30,7 +30,7 @@ object TerrainUtils {
         colorMap: ColorMap? = null
     ): Mesh {
 
-        generateRegularQuadHeightMesh(width, height, flipY, cellSizeMeters, mesh)
+        generateRegularQuadHeightMesh(width, height, flipY, cellSizeMeters, mesh, true)
         generateQuadIndices(width, height, flipY, mesh)
 
         val vertexCount = width * height
@@ -42,7 +42,6 @@ object TerrainUtils {
         mesh.positions = positions
         mesh.normals = normals
         mesh.color0 = colors
-
 
         // define mesh normals and heights
         var j = 0
@@ -167,15 +166,15 @@ object TerrainUtils {
         numPointsZ: Int,
         flipY: Boolean,
         cellSizeMeters: Float,
-        mesh: Mesh,
+        mesh: Mesh, center: Boolean
     ): Mesh {
         generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
-        generateQuadVertices(numPointsX, numPointsZ, cellSizeMeters, mesh)
+        generateQuadVertices(numPointsX, numPointsZ, cellSizeMeters, mesh, center)
         mesh.invalidateGeometry()
         return mesh
     }
 
-    fun generateQuadVertices(numPointsX: Int, numPointsZ: Int, cellSizeMeters: Float, mesh: Mesh) {
+    fun generateQuadVertices(numPointsX: Int, numPointsZ: Int, cellSizeMeters: Float, mesh: Mesh, center: Boolean) {
         val vertexCount = numPointsX * numPointsZ
         val numCoords = vertexCount * 3
         val positions = mesh.positions.resize(numCoords)
@@ -187,8 +186,8 @@ object TerrainUtils {
         normals.fill(0f)
 
         // center mesh
-        val centerX = numPointsX * 0.5f
-        val centerY = numPointsZ * 0.5f
+        val centerX = if (center) (numPointsX - 1) * 0.5f else 0f
+        val centerY = if (center) (numPointsZ - 1) * 0.5f else 0f
         var j = 0
 
         // define mesh positions

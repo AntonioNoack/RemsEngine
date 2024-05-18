@@ -193,79 +193,75 @@ abstract class OpenGLBuffer(
         if (!isUpToDate) upload(false)
     }
 
-    fun put(v: Vector2f) {
-        put(v.x, v.y)
+    fun put(v: Vector2f): OpenGLBuffer {
+        return put(v.x, v.y)
     }
 
-    fun put(v: FloatArray) {
+    fun put(v: FloatArray): OpenGLBuffer {
         for (vi in v) {
             put(vi)
         }
+        return this
     }
 
-    fun put(v: FloatArray, index: Int, length: Int) {
+    fun put(v: FloatArray, index: Int, length: Int): OpenGLBuffer {
         for (i in index until index + length) {
             put(v[i])
         }
+        return this
     }
 
-    fun put(v: Vector3f) {
-        put(v.x, v.y, v.z)
+    fun put(v: Vector3f): OpenGLBuffer {
+        return put(v.x, v.y, v.z)
     }
 
-    fun put(v: Vector4f) {
-        put(v.x, v.y, v.z, v.w)
+    fun put(v: Vector4f): OpenGLBuffer {
+        return put(v.x, v.y, v.z, v.w)
     }
 
-    fun put(x: Float, y: Float, z: Float, w: Float, a: Float) {
-        put(x)
-        put(y)
-        put(z)
-        put(w)
-        put(a)
+    fun put(x: Float, y: Float, z: Float, w: Float, a: Float): OpenGLBuffer {
+        return put(x).put(y).put(z).put(w).put(a)
     }
 
-    fun put(x: Float, y: Float, z: Float, w: Float) {
-        put(x)
-        put(y)
-        put(z)
-        put(w)
+    fun put(x: Float, y: Float, z: Float, w: Float): OpenGLBuffer {
+        return put(x).put(y).put(z).put(w)
     }
 
-    fun put(x: Float, y: Float, z: Float) {
-        put(x)
-        put(y)
-        put(z)
+    fun put(x: Float, y: Float, z: Float): OpenGLBuffer {
+        return put(x).put(y).put(z)
     }
 
-    fun put(x: Float, y: Float) {
-        put(x)
-        put(y)
+    fun put(x: Float, y: Float): OpenGLBuffer {
+        return put(x).put(y)
     }
 
-    fun put(f: Float) {
+    fun put(f: Float): OpenGLBuffer {
         nioBuffer!!.putFloat(f)
         isUpToDate = false
+        return this
     }
 
-    fun putByte(b: Byte) {
+    fun putByte(b: Byte): OpenGLBuffer {
         nioBuffer!!.put(b)
         isUpToDate = false
+        return this
     }
 
-    fun putByte(f: Float) {
+    fun putByte(f: Float): OpenGLBuffer {
         val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToInt()
-        putByte(asInt.toByte())
+        return putByte(asInt.toByte())
     }
 
-    fun putShort(b: Short) {
+    fun putShort(b: Short): OpenGLBuffer {
         nioBuffer!!.putShort(b)
         isUpToDate = false
+        return this
     }
 
-    fun putInt(b: Int) {
+    fun putInt(b: Int): OpenGLBuffer {
         nioBuffer!!.putInt(b)
         isUpToDate = false
+        return this
     }
 
     override fun destroy() {

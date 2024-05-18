@@ -23,7 +23,7 @@ object RegionFormatReader {
         val properties by lazy {
             if (compression != 2) throw NotImplementedError("Unknown compression")
             // ZLib... what is that???
-            val nbtRaw = InflaterInputStream(BufferInputStream(bytes, offset + 5, exactLength - 1))
+            val nbtRaw = InflaterInputStream(BufferInputStream(bytes, offset + 5, exactLength - 1)).buffered()
             val map0 = NBTReader.read(DataInputStream(nbtRaw), 10) as Map<String, Any>
             if (map0.size != 1) throw IllegalStateException("Expected one element")
             map0[""] as Map<String, Any>

@@ -50,10 +50,10 @@ object Reduction {
             kotlinImpl: F2F
         ) : this(name, Vector4f(startValue), function, normalize, { a, b ->
             a.set(
-                kotlinImpl.run(a.x, b.x),
-                kotlinImpl.run(a.y, b.y),
-                kotlinImpl.run(a.z, b.z),
-                kotlinImpl.run(a.w, b.w)
+                kotlinImpl.calculate(a.x, b.x),
+                kotlinImpl.calculate(a.y, b.y),
+                kotlinImpl.calculate(a.z, b.z),
+                kotlinImpl.calculate(a.w, b.w)
             )
         })
 
@@ -62,10 +62,10 @@ object Reduction {
             kotlinImpl: F2F
         ) : this(name, Vector4f(startValue), function, false, { a, b ->
             a.set(
-                kotlinImpl.run(a.x, b.x),
-                kotlinImpl.run(a.y, b.y),
-                kotlinImpl.run(a.z, b.z),
-                kotlinImpl.run(a.w, b.w)
+                kotlinImpl.calculate(a.x, b.x),
+                kotlinImpl.calculate(a.y, b.y),
+                kotlinImpl.calculate(a.z, b.z),
+                kotlinImpl.calculate(a.w, b.w)
             )
         })
     }

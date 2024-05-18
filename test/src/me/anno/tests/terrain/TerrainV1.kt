@@ -40,10 +40,10 @@ import kotlin.math.sin
 // todo lod system
 // todo gpu accelerated?
 
-val wBits = 5
-val hBits = 5
-val w = 1 shl wBits
-val h = 1 shl hBits
+const val wBits = 5
+const val hBits = 5
+const val w = 1 shl wBits
+const val h = 1 shl hBits
 
 class TerrainChunk(
     val xi: Int, val zi: Int

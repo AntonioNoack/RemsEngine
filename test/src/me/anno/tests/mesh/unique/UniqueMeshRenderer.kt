@@ -203,7 +203,7 @@ fun main() {
             for (idx in unloadingPattern) {
                 val vec = Vector3i(idx).add(center)
                 if (loadedChunks.remove(vec)) {
-                    chunkRenderer.remove(vec)
+                    chunkRenderer.remove(vec, true)
                 }
             }
         }

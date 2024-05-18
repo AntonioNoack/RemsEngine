@@ -53,7 +53,7 @@ class HexMCWorldSave {
             if (it.readBE32() != version)
                 throw IOException("Incompatible version")
             sy = it.readBE32()
-            val it2 = InflaterInputStream(it)
+            val it2 = InflaterInputStream(it).buffered()
             for (tri in triangles) {
                 read(it2, tri)
             }
