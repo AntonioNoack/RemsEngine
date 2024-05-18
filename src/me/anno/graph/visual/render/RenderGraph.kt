@@ -23,7 +23,7 @@ import me.anno.graph.visual.render.effects.ShapedBlurNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.scene.BakeSkyboxNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
+import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
@@ -67,7 +67,7 @@ object RenderGraph {
 
     val library = NodeLibrary(
         listOf(
-            { RenderSceneDeferredNode() },
+            { RenderDeferredNode() },
             { ExprReturnNode() },
             { ShaderExprNode() },
             { ShaderGraphNode() },

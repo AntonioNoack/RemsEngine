@@ -9,7 +9,7 @@ import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
+import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.utils.OS.downloads
@@ -39,7 +39,7 @@ class RayTracedGlobalIlluminationNode : ActionNode(
 val RTGIRenderMode = RenderMode(
     "RTGI",
     QuickPipeline()
-        .then(RenderSceneDeferredNode())
+        .then(RenderDeferredNode())
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())

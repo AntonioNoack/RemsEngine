@@ -40,6 +40,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
@@ -983,7 +984,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         if (length == 1) return
         if (drawMode != DrawMode.TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
-        val helperMeshes = createArrayList<HelperMesh?>(length, null)
+        val helperMeshes = arrayListOfNulls<HelperMesh?>(length)
         val indices = indices
         for (materialId in 0 until length) {
             val numTriangles = materialIds.count { it == materialId }

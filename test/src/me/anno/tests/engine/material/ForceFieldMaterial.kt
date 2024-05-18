@@ -34,7 +34,6 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL46C
 import kotlin.math.sin
 
 object ForceFieldShader : ECSMeshShader("ForceField") {
@@ -55,7 +54,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
         if (depth == null) println("no depth was found!")
         if (Input.isShiftDown && depth is Framebuffer) { // todo we probably need to do this in some environments, don't we?
             val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, DepthBufferType.TEXTURE]
-            depth.copyTo(tmp, GL46C.GL_DEPTH_BUFFER_BIT)
+            depth.copyTo(tmp)
             depth = tmp
         }
         (depth?.depthTexture ?: depthTexture).bindTrulyNearest(shader, "depthTex")

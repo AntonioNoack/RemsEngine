@@ -34,6 +34,9 @@ object FlatShaders {
                 "}"
     ).apply { ignoreNameWarnings("posSize") }
 
+    /**
+     * blit-like shader without any stupid OpenGL constraints like size or format
+     * */
     val copyShaderAnyToAny = Array(4) {
         val colorMS = it.hasFlag(2)
         val depthMS = it.hasFlag(1)

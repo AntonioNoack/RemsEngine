@@ -10,6 +10,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
@@ -49,7 +50,7 @@ class FramebufferArray(
         depthBufferType: DepthBufferType
     ) : this(
         name, width, height, layers, samples,
-        createArrayList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
+        createList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
         depthBufferType
     )
 

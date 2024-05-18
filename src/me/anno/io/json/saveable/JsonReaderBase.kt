@@ -74,6 +74,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         val nc0 = skipSpace()
         val obj = getNewClassInstance(clazz)
         allInstances.add(obj)
+        obj.onReadingStarted()
         if (nc0 == ',') {
             assertEquals(skipSpace(), '"')
             val secondProperty = readString()
@@ -90,6 +91,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             assertEquals(nc0, '}')
             register(obj)
         }
+        obj.onReadingEnded()
         return obj
     }
 
@@ -782,13 +784,8 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         }
     }
 
-    private fun readFloat() = readNumber().run {
-        toFloat()// ?: error("Invalid float", this)
-    }
-
-    private fun readDouble() = readNumber().run {
-        toDouble()// ?: error("Invalid double", this)
-    }
+    private fun readFloat() = readNumber().toFloatOrNull() ?: 0f
+    private fun readDouble() = readNumber().toDoubleOrNull() ?: 0.0
 
     private fun readBoolArray() = readArray("boolean",
         { BooleanArray(it) }, { array, index -> array[index] = readBool() })
@@ -816,18 +813,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         { DoubleArray(it) }, { array, index -> array[index] = readDouble() }
     )
 
-    private fun readProperty(obj: Saveable, typeName: String): Saveable {
-        if (typeName == "class") {
-            assertEquals(skipSpace(), '"')
-            val clazz = readString()
-            // could be different in lists
-            return if (clazz == obj.className) obj
-            else {
-                val obj2 = getNewClassInstance(clazz)
-                allInstances.add(obj2)
-                obj2
-            }
-        }
+    private fun readProperty(obj: Saveable, typeName: String) {
         var (type, name) = splitTypeName(typeName)
         when (type) {
             "*[]", "[]" -> {// array of mixed types
@@ -883,7 +869,6 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 }
             }
         }
-        return obj
     }
 
     private fun readPtr(next: Char): Saveable? {

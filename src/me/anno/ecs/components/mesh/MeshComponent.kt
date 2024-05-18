@@ -42,7 +42,7 @@ open class MeshComponent() : MeshComponentBase() {
         }
 
     // todo why is getMeshOrNull with async not working to load prefabs properly???
-    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, false]
+    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, true]
     override fun getMesh(): Mesh? = MeshCache[meshFile, false]
 
     // far into the future:

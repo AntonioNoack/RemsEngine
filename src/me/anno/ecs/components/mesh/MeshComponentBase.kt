@@ -16,7 +16,6 @@ import me.anno.engine.raycast.RaycastMesh
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
-import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -24,7 +23,6 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.ui.base.menu.Menu
-import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -144,7 +142,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        val mesh = getMeshOrNull()
+        val mesh = getMesh()
         if (mesh != null) {
             val aabb2 = mesh.getBounds()
             localAABB.set(aabb2)

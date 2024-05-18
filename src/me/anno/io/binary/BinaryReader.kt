@@ -139,33 +139,39 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     fun readObject(clazz: String): Saveable {
         val obj = getNewClassInstance(clazz)
         allInstances.add(obj)
+        obj.onReadingStarted()
         usingType(clazz) {
-            val ptr = input.readInt()
-            // real all properties
-            while (true) {
-                val typeId = input.readInt()
-                if (typeId < -1) break
-                val typeName = readTypeName(typeId)
-                val name = typeName.name
-                val reader = readers.getOrNull(typeName.type)
-                if (reader != null) {
-                    obj.setProperty(name, reader.invoke(this))
-                } else when (typeName.type) {
-                    OBJECT_PTR -> {
-                        val ptr2 = input.readInt()
-                        val child = getByPointer(ptr2, false)
-                        if (child == null) {
-                            addMissingReference(obj, name, ptr2)
-                        } else {
-                            obj.setProperty(name, child)
-                        }
-                    }
-                    else -> throw IOException("Unknown type ${typeName.type}")
-                }
-            }
-            register(obj, ptr)
+            readObjectProperties(obj)
         }
+        obj.onReadingEnded()
         return obj
+    }
+
+    private fun readObjectProperties(obj: Saveable) {
+        val ptr = input.readInt()
+        // read all properties
+        while (true) {
+            val typeId = input.readInt()
+            if (typeId < -1) break
+            val typeName = readTypeName(typeId)
+            val name = typeName.name
+            val reader = readers.getOrNull(typeName.type)
+            if (reader != null) {
+                obj.setProperty(name, reader.invoke(this))
+            } else when (typeName.type) {
+                OBJECT_PTR -> {
+                    val ptr2 = input.readInt()
+                    val child = getByPointer(ptr2, false)
+                    if (child == null) {
+                        addMissingReference(obj, name, ptr2)
+                    } else {
+                        obj.setProperty(name, child)
+                    }
+                }
+                else -> throw IOException("Unknown type ${typeName.type}")
+            }
+        }
+        register(obj, ptr)
     }
 
     private fun <V> readList(get: () -> V): ArrayList<V> = createArrayList(input.readInt()) { get() }

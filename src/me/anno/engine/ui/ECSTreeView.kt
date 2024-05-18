@@ -274,14 +274,14 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     private fun getWarning(element: PrefabSaveable): String? {
         for (warn in element.getReflections().debugWarnings) {
-            val value = warn.getter.call(element)
+            val value = warn.getter(element)
             if (value != null) return formatWarning(warn.name, value)
         }
         if (element.isCollapsed) {// could become expensive... so only go to a certain depth
             for (childType in element.listChildTypes()) {
                 for (child in element.getChildListByType(childType)) {
                     for (warn in child.getReflections().debugWarnings) {
-                        val value = warn.getter.call(child)
+                        val value = warn.getter(child)
                         if (value != null) return formatWarning(warn.name, value)
                     }
                 }
@@ -292,14 +292,14 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     private fun hasWarning(element: PrefabSaveable): Boolean {
         for (warn in element.getReflections().debugWarnings) {
-            val value = warn.getter.call(element)
+            val value = warn.getter(element)
             if (value != null) return true
         }
         if (element.isCollapsed) {// could become expensive... so only go to a certain depth
             for (childType in element.listChildTypes()) {
                 for (child in element.getChildListByType(childType)) {
                     for (warn in child.getReflections().debugWarnings) {
-                        val value = warn.getter.call(child)
+                        val value = warn.getter(child)
                         if (value != null) return true
                     }
                 }

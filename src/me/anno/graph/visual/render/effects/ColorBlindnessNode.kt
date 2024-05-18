@@ -14,7 +14,7 @@ import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
+import me.anno.graph.visual.render.scene.RenderDeferredNode
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) :
     ActionNode(
@@ -94,7 +94,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
 
         fun createRenderGraph(mode: ColorBlindnessMode): FlowGraph {
             return QuickPipeline()
-                .then(RenderSceneDeferredNode())
+                .then(RenderDeferredNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())

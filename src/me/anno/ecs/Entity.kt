@@ -361,10 +361,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             return aabb
         }
         hasValidAABB = true
-        val children = children
-        for (i in children.indices) {
-            children[i].getBounds()
-        }
         aabb.clear()
         if (hasSpaceFillingComponents) {
             val globalTransform = transform.globalTransform
@@ -377,12 +373,11 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             }
         }
         for (i in children.indices) {
-            aabb.union(children[i].aabb)
+            aabb.union(children[i].getBounds())
         }
         return aabb
     }
 
-    @SerializedProperty
     override var isEnabled: Boolean
         get() = super.isEnabled
         set(value) {
@@ -768,6 +763,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             "rotation" -> transform.localRotation = value as? Quaterniond ?: return
             "children" -> addMembers(value, internalChildren) { if (it is Entity) addChild(it) }
             "components" -> addMembers(value, internalComponents) { if (it is Component) addComponent(it) }
+            "isCollapsed" -> isCollapsed = value == true
             else -> super.setProperty(name, value)
         }
     }

@@ -5,32 +5,29 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
-import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
-import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT24
-import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
-import org.lwjgl.opengl.GL46C.GL_NEAREST
 import org.lwjgl.opengl.GL46C.GL_NONE
-import org.lwjgl.opengl.GL46C.GL_READ_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
 import org.lwjgl.opengl.GL46C.GL_RGBA8
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL46C.glBindFramebuffer
 import org.lwjgl.opengl.GL46C.glBindRenderbuffer
-import org.lwjgl.opengl.GL46C.glBlitFramebuffer
 import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
 import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
 import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
@@ -57,9 +54,9 @@ class Framebuffer(
         targetCount: Int, fpTargets: Boolean,
         depthBufferType: DepthBufferType
     ) : this(
-        name, w, h, samples, if (fpTargets)
-            createArrayList(targetCount, TargetType.Float32x4) else
-            createArrayList(targetCount, TargetType.UInt8x4), depthBufferType
+        name, w, h, samples,
+        createList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
+        depthBufferType
     )
 
     constructor(
@@ -371,7 +368,10 @@ class Framebuffer(
 
         // ensure that it exists
         // + bind it, it seems important
-        if (dst is Framebuffer) dst.ensureSize(w, h)
+        if (dst is Framebuffer) {
+            dst.ensureSize(w, h)
+        }
+
         dst.ensure()
 
         GFX.check()
@@ -379,80 +379,28 @@ class Framebuffer(
         if (pointer == 0 || (dst.pointer == 0 && dst != NullFramebuffer))
             throw RuntimeException("Something went wrong $this -> $dst")
 
-        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
-        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-
-        GFX.check()
-
-        var bits = 0
-        if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
-        if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
-
-        if (targets.size > 1) {
-
-            for (i in targets.indices) {
-
-                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
-                glReadBuffer(GL_COLOR_ATTACHMENT0 + i)
-
-                glBlitFramebuffer(
-                    0, 0, w, h,
-                    0, 0, w, h,
-                    // we may want to add GL_STENCIL_BUFFER_BIT, if present
-                    if (i == 0) bits else GL_COLOR_BUFFER_BIT, // correct???
-                    GL_NEAREST
-                )
-            }
-
-            // reset state, just in case
-            glDrawBuffers(GL_COLOR_ATTACHMENT0)
-            glReadBuffer(GL_COLOR_ATTACHMENT0)
-        } else {
-
-            glBlitFramebuffer(
-                0, 0, w, h,
-                0, 0, w, h,
-                // we may want to add GL_STENCIL_BUFFER_BIT, if present
-                bits, GL_NEAREST
-            )
-
-            GFX.check()
-        }
-
-        GFX.check()
-
-        // restore the old binding
-        Frame.invalidate()
-        Frame.bind()
+        copyTo(dst)
     }
 
-    fun copyTo(dst: IFramebuffer, mask: Int) {
-
-        GFX.check()
-
-        ensure()
-        dst.ensure()
-
-        GFX.check()
-
-        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
-        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-
-        GFX.check()
-
-        glBlitFramebuffer(
-            0, 0, width, height,
-            0, 0, dst.width, dst.height,
-            mask, GL_NEAREST
-        )
-
-        GFX.check()
-
-        // restore the old binding
-        Frame.invalidate()
-        Frame.bind()
-
-        GFX.check()
+    fun copyTo(dst: IFramebuffer) {
+        useFrame(dst, Renderer.copyRenderer) {
+            for (i in targets.indices) {
+                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                glReadBuffer(GL_COLOR_ATTACHMENT0 + i)
+                if (i == 0) {
+                    val depth = depthTexture ?: TextureLib.depthTexture
+                    GFX.copyColorAndDepth(textures!![i], depth)
+                } else {
+                    GFX.copy(textures!![i])
+                }
+            }
+            val depth = depthTexture
+            if (targets.isEmpty() && depth != null) {
+                GFX.copyColorAndDepth(TextureLib.whiteTexture, depth)
+            }
+            // reset state, just in case
+            drawBuffersN(textures!!.size)
+        }
     }
 
     fun checkIsComplete() {

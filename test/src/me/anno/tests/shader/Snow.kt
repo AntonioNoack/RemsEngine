@@ -37,7 +37,7 @@ import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
+import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.io.Saveable.Companion.registerCustomClass
@@ -257,7 +257,7 @@ fun main() {
 
 fun createSnowGraph(snowNode: SnowNode): FlowGraph {
     return QuickPipeline()
-        .then(RenderSceneDeferredNode())
+        .then(RenderDeferredNode())
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())

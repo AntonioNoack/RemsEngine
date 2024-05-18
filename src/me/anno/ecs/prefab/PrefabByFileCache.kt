@@ -46,7 +46,7 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
         ensureClasses()
         val instance = getPrefabInstance(ref, maxPrefabDepth, async)
         val value = castInstance(instance, ref)
-        lru[ref] = value
+        if (value != null || !async) lru[ref] = value
         return value
     }
 

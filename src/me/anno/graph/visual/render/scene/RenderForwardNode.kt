@@ -14,7 +14,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths.clamp
 
-class RenderSceneForwardNode : RenderViewNode(
+class RenderForwardNode : RenderViewNode(
     "RenderSceneForward",
     listOf(
         "Int", "Width",

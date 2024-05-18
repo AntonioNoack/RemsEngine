@@ -87,13 +87,13 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        if (key.isClickKey(true)) isPressed = true
-        else super.onKeyDown(x, y, key)
+        super.onKeyDown(x, y, key)
+        isPressed = key.isClickKey(true)
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {
-        if (key.isClickKey(true)) isPressed = false
-        else super.onKeyUp(x, y, key)
+        super.onKeyUp(x, y, key)
+        isPressed = false
     }
 
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int, isHovered: Boolean, mouseDown: Boolean) {

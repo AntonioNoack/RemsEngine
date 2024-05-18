@@ -28,15 +28,15 @@ import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.Lists.any2
 
-class RenderSceneDeferredNode : RenderViewNode(
-    "RenderSceneDeferred",
+open class RenderDeferredNode : RenderViewNode(
+    "RenderDeferred",
     listOf(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
-        "Int", "Camera Index",
+        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting", // ignored for now
+        "Int", "Camera Index", // ignored for now
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky"
@@ -122,9 +122,13 @@ class RenderSceneDeferredNode : RenderViewNode(
                     )
                 )
             )
-            framebuffer?.destroy()
-            framebuffer = settings.createBaseBuffer(name, samples)
+            createNewFramebuffer(settings, samples)
         }
+    }
+
+    open fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
+        framebuffer?.destroy()
+        framebuffer = settings.createBaseBuffer(name, samples)
     }
 
     override fun executeAction() {
@@ -133,46 +137,57 @@ class RenderSceneDeferredNode : RenderViewNode(
         val height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val stage = getInput(4) as PipelineStage
-        // val sorting = getInput(5) as Int
-        // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getBoolInput(7)
-
         defineFramebuffer()
 
+        bakeSkybox()
+
         val framebuffer = framebuffer!!
-
-        GFX.check()
-
-        // if skybox is not used, bake it anyway?
-        // -> yes, the pipeline architect (^^) has to be careful
-        val skyboxResolution = getIntInput(8)
-        pipeline.bakeSkybox(skyboxResolution)
-
-        val drawSky = getInput(9) as DrawSkyMode
-
-        pipeline.applyToneMapping = applyToneMapping
-        val depthMode = pipeline.defaultStage.depthMode
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            defineInputs(framebuffer)
-            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
-                pipeline.drawSky()
-            }
-            pipeline.stages.getOrNull(stage.id)?.bindDraw(pipeline)
-            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
-                pipeline.drawSky()
-            }
-            pipeline.defaultStage.depthMode = depthMode
-            GFX.check()
+        bind(framebuffer) {
+            copyInputsOrClear(framebuffer)
+            render()
         }
 
+        setOutputs(framebuffer)
+    }
+
+    fun bind(framebuffer: IFramebuffer, run: () -> Unit) {
+        val width = getIntInput(1)
+        val height = getIntInput(2)
+        GFXState.useFrame(width, height, true, framebuffer, renderer, run)
+    }
+
+    fun bakeSkybox() {
+        pipeline.bakeSkybox(getIntInput(8))
+    }
+
+    fun needsRendering(): Boolean {
+        val stage = getInput(4) as PipelineStage
+        val stage1 = pipeline.stages.getOrNull(stage.id) ?: return false
+        return !stage1.isEmpty()
+    }
+
+    fun render() {
+        val stage = getInput(4) as PipelineStage
+        val drawSky = getInput(9) as DrawSkyMode
+        if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
+            pipeline.drawSky()
+        }
+        pipeline.applyToneMapping = getBoolInput(7)
+        if (needsRendering()) {
+            pipeline.stages.getOrNull(stage.id)?.bindDraw(pipeline)
+        }
+        if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
+            pipeline.drawSky()
+        }
+    }
+
+    fun setOutputs(framebuffer: IFramebuffer) {
         val layers = settings!!.semanticLayers
         for (j in layers.indices) {
             val layer = layers[j]
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
             setOutput(i, Texture.texture(framebuffer, layer.texIndex, layer.mapping, layer.type))
         }
-
         // get depth texture, and use it
         if (GFX.supportsDepthTextures) {
             val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
@@ -284,7 +299,7 @@ class RenderSceneDeferredNode : RenderViewNode(
         return false
     }
 
-    fun defineInputs(framebuffer: IFramebuffer) {
+    open fun copyInputsOrClear(framebuffer: IFramebuffer) {
         val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
         val prepassDepth = (getInput(inputIndex) as? Texture)?.texOrNull
         if (prepassDepth != null) {

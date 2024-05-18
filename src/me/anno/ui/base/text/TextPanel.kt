@@ -320,16 +320,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         else -> true
     }
 
-    override fun onKeyDown(x: Float, y: Float, key: Key) {
-        if (key.isClickKey(false)) {
-            for (listener in onClickListeners) {
-                if (listener(this, x, y, Key.BUTTON_LEFT, false)) {
-                    return
-                }
-            }
-        }
-    }
-
     fun disableFocusColors(): TextPanel {
         enableFocusColor = false
         return this

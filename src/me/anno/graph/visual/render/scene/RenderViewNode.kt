@@ -33,7 +33,7 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
             return output.others.any2 { otherCon ->
                 // is used?
                 when (val intoNode = otherCon.node) {
-                    is RenderSceneDeferredNode -> {
+                    is RenderDeferredNode -> {
                         val di = intoNode.firstOutputIndex - intoNode.firstInputIndex
                         val oi = intoNode.inputs.indexOf(otherCon) + di
                         if (oi > 0 && maxDepth > 0) {

@@ -162,6 +162,19 @@ object Lists {
         this[j] = t
     }
 
+    /**
+     * splits the list such that the elements fulfilling the condition come first, and the rest second;
+     * returns the index of the first element failing the condition; or length if none
+     * */
+    @JvmStatic
+    fun <V> MutableList<V>.partition1(condition: (V) -> Boolean): Int {
+        return partition1(0, size, condition)
+    }
+
+    /**
+     * splits the list such that the elements fulfilling the condition come first, and the rest second;
+     * returns the index of the first element failing the condition; or length if none
+     * */
     @JvmStatic
     fun <V> MutableList<V>.partition1(start: Int, end: Int, condition: (V) -> Boolean): Int {
 
@@ -180,11 +193,19 @@ object Lists {
         }
     }
 
+    /**
+     * searches for an element using a comparing function;
+     * list must be sorted; return -1-insertIndex, if no element is found with compare(it) = 0
+     * */
     @JvmStatic
     fun <V> List<V>.binarySearch(compare: (V) -> Int): Int {
         return binarySearch(0, size, compare)
     }
 
+    /**
+     * searches for an element using a comparing function;
+     * list must be sorted; return -1-insertIndex, if no element is found with compare(it) = 0
+     * */
     @JvmStatic
     fun <V> List<V>.binarySearch(fromIndex: Int = 0, toIndex: Int = size, compare: (V) -> Int): Int {
 
@@ -216,28 +237,19 @@ object Lists {
     }
 
     @JvmStatic
-    fun <V> List<List<V>>.join(): ArrayList<V> {
-        val result = ArrayList<V>(sumOf { it.size })
-        for (entries in this) result += entries
-        return result
-    }
-
-    @JvmStatic
     fun <V> List<List<V>?>.flatten(): ArrayList<V> {
         val list = ArrayList<V>(sumOf { it?.size ?: 0 })
-        for (partialList in this) {
-            if (partialList != null) {
-                list.addAll(partialList)
-            }
+        for (i in indices) {
+            val child = this[i] ?: continue
+            list.addAll(child)
         }
         return list
     }
 
     @JvmStatic
     fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
-        return if (size <= k) {
-            this
-        } else {
+        return if (size <= k) this
+        else {
             val comp2 = { a: X, b: X -> getValue(a).compareTo(getValue(b)) }
             this.smallestKElements(k, comp2)
         }
@@ -355,19 +367,36 @@ object Lists {
         return topK
     }
 
+    /**
+     * creates an ArrayList with size elements generated from a generator function
+     * */
     @JvmStatic
     fun <V> createArrayList(size: Int, createElement: (index: Int) -> V): ArrayList<V> {
         val result = ArrayList<V>(size)
-        for (i in 0 until size) result.add(createElement(i))
+        for (i in 0 until size) {
+            result.add(createElement(i))
+        }
         return result
     }
 
-    // todo this could be replaced with a pseudo-list
+    /**
+     * creates an ArrayList with size elements all repeated
+     * */
     @JvmStatic
     fun <V> createArrayList(size: Int, element: V): ArrayList<V> {
         val result = ArrayList<V>(size)
-        for (i in 0 until size) result.add(element)
+        for (i in 0 until size) {
+            result.add(element)
+        }
         return result
+    }
+
+    /**
+     * creates an immutable List with size elements all repeated
+     * */
+    @JvmStatic
+    fun <V> createList(size: Int, element: V): List<V> {
+        return RepeatingList(size, element)
     }
 
     @JvmStatic

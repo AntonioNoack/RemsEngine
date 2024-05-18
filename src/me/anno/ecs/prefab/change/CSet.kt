@@ -54,7 +54,7 @@ class CSet() : Change() {
     }
 
     override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
-        applyChange(instance, path, name, value)
+        applyChange(instance, name, value)
         path = instance.prefabPath
     }
 
@@ -83,10 +83,10 @@ class CSet() : Change() {
 
         fun apply(instance0: PrefabSaveable, path: Path, name: String, value: Any?) {
             val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
-            applyChange(instance, path, name, value)
+            applyChange(instance, name, value)
         }
 
-        fun applyChange(instance: PrefabSaveable, path: Path, name: String, value0: Any?) {
+        private fun applyChange(instance: PrefabSaveable, name: String, value0: Any?) {
             var value = value0
             if (value is Path) {
                 // it's a prefab saveable; yes, saving paths therefore is no longer supported
@@ -94,9 +94,7 @@ class CSet() : Change() {
                 value = Hierarchy.getInstanceAt(instance.root, value)
                 LOGGER.debug("Changed path {} to instance {}", value0, value)
             }
-            if (!instance.set(name, value)) {
-                LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
-            }
+            instance.setProperty(name, value)
         }
     }
 }

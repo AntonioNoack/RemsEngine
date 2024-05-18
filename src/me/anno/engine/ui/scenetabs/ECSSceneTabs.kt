@@ -173,8 +173,9 @@ object ECSSceneTabs : ScrollPanelX(style) {
             }
         } else sceneTab.removeFromParent()
         val project = project
-        if (project != null) {
-            project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
+        if (project != null && setNextActive) {
+            val failed = project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
+            if (failed) LOGGER.warn("Failed to close ${sceneTab.file}!!")
             project.saveMaybe()
         }
     }

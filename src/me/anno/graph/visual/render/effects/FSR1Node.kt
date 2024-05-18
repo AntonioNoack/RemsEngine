@@ -12,8 +12,8 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderSceneDeferredNode
-import me.anno.graph.visual.render.scene.RenderSceneForwardNode
+import me.anno.graph.visual.render.scene.RenderDeferredNode
+import me.anno.graph.visual.render.scene.RenderForwardNode
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 
@@ -81,19 +81,19 @@ class FSR1Node : ActionNode(
             return QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
                 .then1(
-                    RenderSceneDeferredNode(),
+                    RenderDeferredNode(),
                     mapOf(
                         "Stage" to PipelineStage.OPAQUE,
                         "Skybox Resolution" to 256,
                         "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
                     )
                 )
-                .then1(RenderSceneDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then1(RenderDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderSceneForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 // todo scale depth if needed in gizmo node?
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it

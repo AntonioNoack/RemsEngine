@@ -64,6 +64,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): Saveable? {
         val pair = getPrefabPair(resource, depth, prefabTimeout, async) ?: return null
+        if (!async) pair.waitFor()
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
         } catch (e: Exception) {
@@ -248,8 +249,9 @@ object PrefabCache : CacheSection("Prefab") {
                 getPrefabPair(resource.link, depth, timeout, async)
             }
             resource is PrefabReadable -> {
-                val prefab = resource.readPrefab()
-                FileReadPrefabData(resource).apply { value = prefab }
+                val result = FileReadPrefabData(resource)
+                result.value = resource.readPrefab()
+                result
             }
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, timeout, async, ::loadPrefabPair)

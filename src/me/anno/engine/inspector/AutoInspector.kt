@@ -5,6 +5,7 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.Saveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
@@ -26,11 +27,12 @@ object AutoInspector {
         for (warn in reflections.debugWarnings) {
             val title = warn.name.camelCaseToTitle()
             list.add(UpdatingTextPanel(500L, style) {
-                PrefabInspector.formatWarning(title, instances.firstNotNullOfOrNull { warn.getter.call(it) })
+                PrefabInspector.formatWarning(title, instances.firstNotNullOfOrNull { warn.getter(it) })
             }.apply { textColor = Color.black or 0xffff33 })
         }
 
         // debug actions: buttons for them
+        val debugActionWrapper = PanelListY(style)
         for (action in reflections.debugActions) {
             // todo if there are extra arguments, we would need to create a list inputs for them
             /* for (param in action.parameters) {
@@ -48,8 +50,10 @@ object AutoInspector {
                     }
                     PropertyInspector.invalidateUI(true) // typically sth would have changed -> show that automatically
                 }
-            list.add(button)
+            debugActionWrapper.add(button)
         }
+        debugActionWrapper.alignmentX = AxisAlignment.MIN
+        list.add(debugActionWrapper)
 
         // debug properties: text showing the value, constantly updating
         for (property in reflections.debugProperties) {
@@ -59,10 +63,9 @@ object AutoInspector {
             list1.add(UpdatingTextPanel(100L, style) {
                 // todo call on all, where class matches
                 val relevantInstances = instances.filter { it.javaClass == instances.first().javaClass }
-                relevantInstances.joinToString { property.getter.call(it).toString() }
+                relevantInstances.joinToString { property.getter(it).toString() }
                     .shorten2Way(200)
             })
-            // todo when clicked, a tracking graph/plot is displayed (real time)
             /*list1.addLeftClickListener {
 
             }*/

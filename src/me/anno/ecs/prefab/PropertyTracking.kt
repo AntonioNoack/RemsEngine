@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.engine.inspector.CachedProperty
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors.axisWColor
@@ -30,46 +31,46 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
-import kotlin.reflect.KProperty
 
 object PropertyTracking {
     private val LOGGER = LogManager.getLogger(PropertyTracking::class)
-    private fun <V> createGetter(index: Int, getter: KProperty.Getter<V>): (Any?) -> Double {
-        return { it: Any? -> getDouble(getter.call(it), index, 0.0) }
+    private fun createGetter(index: Int, getter: (Any) -> Any?): (Any?) -> Double {
+        return { it: Any? -> if (it == null) 0.0 else getDouble(getter(it), index, 0.0) }
     }
 
     fun createTrackingButton(
         list: PanelList,
         insertAfter: PanelListX,
-        relevantInstances: List<Any?>,
-        property: KProperty<*>,
+        instances: List<Any>,
+        property: CachedProperty,
         style: Style
     ) {
         val getter = property.getter
+        val sample = getter(instances.first())
         // when clicked, a tracking graph/plot is displayed (real time)
-        val channels: List<Pair<(Any?) -> Double, Int>> = when (property.returnType.classifier) {
-            Boolean::class,
-            UByte::class, Byte::class, UShort::class, Short::class, UInt::class, Int::class,
-            ULong::class, Long::class, Float::class, Double::class -> listOf(
+        val channels: List<Pair<(Any?) -> Double, Int>> = when (sample) {
+            is Boolean,
+            is UByte, is Byte, is UShort, is Short, is UInt, is Int,
+            is ULong, is Long, is Float, is Double -> listOf(
                 createGetter(0, getter) to Color.white
             )
-            Vector2f::class, Vector2d::class, Vector2i::class -> listOf(
+            Vector2f, is Vector2d, is Vector2i -> listOf(
                 createGetter(0, getter) to axisXColor,
                 createGetter(1, getter) to axisYColor,
             )
-            Vector3f::class, Vector3d::class, Vector3i::class -> listOf(
+            Vector3f, is Vector3d, is Vector3i -> listOf(
                 createGetter(0, getter) to axisXColor,
                 createGetter(1, getter) to axisYColor,
                 createGetter(2, getter) to axisZColor,
             )
             // todo AxisAngle?
-            Vector4f::class, Vector4d::class, Vector4i::class, Quaternionf::class, Quaterniond::class -> listOf(
+            is Vector4f, is Vector4d, is Vector4i, is Quaternionf, is Quaterniond -> listOf(
                 createGetter(0, getter) to axisXColor,
                 createGetter(1, getter) to axisYColor,
                 createGetter(2, getter) to axisZColor,
                 createGetter(3, getter) to axisWColor,
             )
-            AABBf::class, AABBd::class -> listOf(
+            is AABBf, is AABBd -> listOf(
                 createGetter(0, getter) to axisXColor,
                 createGetter(1, getter) to axisYColor,
                 createGetter(2, getter) to axisZColor,
@@ -78,12 +79,13 @@ object PropertyTracking {
                 createGetter(5, getter) to axisZColor,
             )
             // do we need other types?
+            null -> return
             else -> {
-                LOGGER.warn("Type ${property.returnType} isn't handled")
+                LOGGER.warn("Type ${sample::class} isn't handled")
                 return
             }
         }
-        val samples = relevantInstances.cross(channels, ArrayList(relevantInstances.size * channels.size))
+        val samples = instances.cross(channels, ArrayList(instances.size * channels.size))
         var dynPanel: Panel? = null
         val button = TextButton("\uD83D\uDC41\uFE0F", true, style)
         button.setTooltip("Start Tracking")

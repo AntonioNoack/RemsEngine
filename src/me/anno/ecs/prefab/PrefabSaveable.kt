@@ -1,12 +1,16 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.ICacheData
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
@@ -32,7 +36,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @SerializedProperty
     var flags = 0 // default shall always be zero
 
-    @DebugProperty
+    @EditorField
     @NotSerializedProperty
     override var isEnabled: Boolean
         get() = !flags.hasFlag(DISABLE_FLAG)
@@ -40,7 +44,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             flags = flags.withFlag(DISABLE_FLAG, !value)
         }
 
-    @DebugProperty
+    @EditorField
     @NotSerializedProperty
     override var isCollapsed: Boolean
         get() = !flags.hasFlag(NOT_COLLAPSED_FLAG)
@@ -324,6 +328,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     fun throwWarning() {
         val lw = lastWarning
         if (lw != null) throw RuntimeException(lw)
+    }
+
+    @DebugAction
+    fun selectParent() {
+        val parent = parent as? Inspectable ?: return
+        ECSSceneTabs.refocus()
+        EditorState.select(parent)
     }
 
     companion object {

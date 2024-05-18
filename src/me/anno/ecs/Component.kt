@@ -9,7 +9,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.io.base.BaseWriter
-import me.anno.utils.types.Booleans.hasFlag
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
@@ -148,7 +147,8 @@ abstract class Component : PrefabSaveable() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (!readSerializableProperty(name, value)) {
+        if (name == "isCollapsed") isCollapsed = value == true
+        else if (!readSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
     }

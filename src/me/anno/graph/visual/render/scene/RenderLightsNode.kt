@@ -31,7 +31,6 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.toInt
-import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 
 /**
  * collects the lights within a scene
@@ -184,7 +183,7 @@ class RenderLightsNode : RenderViewNode(
             } else {
                 // copy depth to framebuffer for early discard
                 framebuffer.clearColor(0)
-                depthT.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
+                depthT.copyTo(framebuffer)
             }
             stage.bind {
                 stage.draw(

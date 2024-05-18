@@ -1,4 +1,4 @@
-package me.anno.tests.engine
+package me.anno.tests.bugs.done
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
