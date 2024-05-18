@@ -29,7 +29,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                 Variable(GLSLType.S2D, "depth_in0"),
                 Variable(GLSLType.M4x3, "invLocalTransform"),
                 Variable(GLSLType.V2F, "windowSize"),
-                Variable(GLSLType.V4F, "decalSharpness"),
+                Variable(GLSLType.V3F, "decalSharpness"),
                 Variable(GLSLType.V2F, "uv", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
                 Variable(GLSLType.V3F, "finalTangent", VariableMode.INOUT),
@@ -76,7 +76,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                                 "vec3 finalNormal_in2 = normalize(cross(posU-pos0, posV-pos0));\n" else "") +
                         "localPosition = matMul(invLocalTransform, vec4(finalPosition, 1.0));\n" +
                         // automatic blending on edges? alpha should be zero there anyway
-                        "vec3 alphaMultiplier3d = clamp(decalSharpness.xyz * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
+                        "vec3 alphaMultiplier3d = clamp(decalSharpness * (1.0-abs(localPosition)), vec3(0.0), vec3(1.0));\n" +
                         "alphaMultiplier = alphaMultiplier3d.x * alphaMultiplier3d.y * alphaMultiplier3d.z;\n" +
                         "if(alphaMultiplier < 0.5/255.0) discard;\n" +
                         "uv = localPosition.xy * vec2(0.5,-0.5) + 0.5;\n" +

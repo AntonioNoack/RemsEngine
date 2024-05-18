@@ -263,8 +263,7 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     fun compileBindTextureNames() {
         if (textureNames.isNotEmpty()) {
-            lastProgram = program
-            glUseProgram(program)
+            use()
             setTextureIndicesIfExisting()
             GFX.check()
         }

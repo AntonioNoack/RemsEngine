@@ -2,9 +2,8 @@ package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.components.mesh.material.shaders.DecalShader
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.framebuffer
-import me.anno.gpu.GFXState.renderers
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
@@ -13,8 +12,7 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Vector4f
-import java.lang.IllegalStateException
+import org.joml.Vector3f
 
 // decal pass:
 //  Input: pos, normal (we could pass in color theoretically, but idk)
@@ -64,9 +62,9 @@ class DecalMaterial : Material() {
         }
 
     /**
-     * fading sharpness of decal on edges, by local xyz, and normal
+     * fading sharpness of decal on edges, by local xyz
      * */
-    var decalSharpness = Vector4f(5f)
+    var decalSharpness = Vector3f(5f)
         set(value) {
             field.set(value)
         }
@@ -85,7 +83,7 @@ class DecalMaterial : Material() {
         for (index in 0 until min(layers.size, buffer.numTextures)) {
             buffer.getTextureI(index).bindTrulyNearest(shader, layers[index].nameIn0)
         }
-        shader.v4f("decalSharpness", decalSharpness)
+        shader.v3f("decalSharpness", decalSharpness)
         shader.v2f("windowSize", buffer.width.toFloat(), buffer.height.toFloat())
         buffer.depthTexture!!.bindTrulyNearest(shader, "depth_in0")
     }

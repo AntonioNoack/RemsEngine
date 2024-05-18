@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.scene
 
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -16,7 +17,7 @@ class RenderDecalsNode : RenderDeferredNode() {
 
     override fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
         super.createNewFramebuffer(settings, samples)
-        srcBufferI = settings.createBaseBuffer("srcBuffer", samples)
+        srcBufferI = settings.createBaseBuffer("srcBuffer", 1)
     }
 
     private var srcBufferI: IFramebuffer? = null
@@ -24,7 +25,10 @@ class RenderDecalsNode : RenderDeferredNode() {
         super.copyInputsOrClear(framebuffer)
         val srcBufferI = srcBufferI!!
         if (framebuffer is Framebuffer) {
-            framebuffer.copyTo(srcBufferI)
+            // ensure size; binding isn't really necessary
+            useFrame(getIntInput(1), getIntInput(2), true, srcBufferI) {
+                framebuffer.copyTo(srcBufferI)
+            }
         } else {
             bind(srcBufferI) {
                 super.copyInputsOrClear(srcBufferI)

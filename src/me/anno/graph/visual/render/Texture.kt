@@ -79,8 +79,6 @@ class Texture private constructor(
             if (!GFX.supportsDepthTextures) return texture(f, f.numTextures - 1, mapping, type) // via FBStack
             if (f.samples <= 1) return Texture(f.depthTexture!!, null, mapping, type)
 
-            println("executing logic for depth msaa")
-
             val buf0 = (f as? Framebuffer)?.ssBuffer
             val buf1 = (f as? MultiFramebuffer)?.targetsI?.first()?.ssBuffer
             val tex = (buf0 ?: buf1 ?: f).depthTexture!!

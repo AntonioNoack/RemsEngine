@@ -106,7 +106,8 @@ object FBStack : CacheSection("FBStack") {
     private class FBStackData1(val key: FBKey1) :
         FBStackData(
             key.width, key.height, key.samples,
-           listOf(getTargetType(key.channels, key.quality)),
+            if (key.channels < 1) emptyList()
+            else listOf(getTargetType(key.channels, key.quality)),
             key.depthBufferType
         ) {
         override fun printDestroyed(size: Int) {

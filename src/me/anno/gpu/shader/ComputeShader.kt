@@ -157,10 +157,7 @@ class ComputeShader(
     }
 
     fun runByGroups(widthGroups: Int, heightGroups: Int = 1, depthGroups: Int = 1) {
-        if (lastProgram != program) {
-            GL46C.glUseProgram(program)
-            lastProgram = program
-        }
+        use()
         val maxGroupSize = stats
         if (widthGroups > maxGroupSize[0] || heightGroups > maxGroupSize[1] || depthGroups > maxGroupSize[2]) {
             throw IllegalArgumentException(

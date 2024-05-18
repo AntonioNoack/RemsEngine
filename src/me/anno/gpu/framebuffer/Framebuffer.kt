@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -41,6 +42,7 @@ import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glReadBuffer
 import org.lwjgl.opengl.GL46C.glRenderbufferStorage
 import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
+import org.lwjgl.opengl.GL46C.glUseProgram
 
 class Framebuffer(
     override var name: String,
@@ -383,15 +385,21 @@ class Framebuffer(
     }
 
     fun copyTo(dst: IFramebuffer) {
+        // save previous shader
+        val prevShader = GPUShader.lastProgram
         useFrame(dst, Renderer.copyRenderer) {
+            GFX.check()
             for (i in targets.indices) {
                 glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
-                glReadBuffer(GL_COLOR_ATTACHMENT0 + i)
                 if (i == 0) {
                     val depth = depthTexture ?: TextureLib.depthTexture
                     GFX.copyColorAndDepth(textures!![i], depth)
+                    GFX.check()
                 } else {
-                    GFX.copy(textures!![i])
+                    GFXState.depthMask.use(false) { // don't copy depth
+                        GFX.copy(textures!![i])
+                    }
+                    GFX.check()
                 }
             }
             val depth = depthTexture
@@ -400,7 +408,10 @@ class Framebuffer(
             }
             // reset state, just in case
             drawBuffersN(textures!!.size)
+            GFX.check()
         }
+        GPUShader.lastProgram = prevShader
+        glUseProgram(prevShader)
     }
 
     fun checkIsComplete() {

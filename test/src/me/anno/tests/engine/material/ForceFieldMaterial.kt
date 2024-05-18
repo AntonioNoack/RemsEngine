@@ -53,7 +53,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
         var depth = findDepthTexture(GFXState.framebuffer.currentValue)
         if (depth == null) println("no depth was found!")
         if (Input.isShiftDown && depth is Framebuffer) { // todo we probably need to do this in some environments, don't we?
-            val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, DepthBufferType.TEXTURE]
+            val tmp = FBStack["depth", depth.width, depth.height, 0, true, 1, DepthBufferType.TEXTURE]
             depth.copyTo(tmp)
             depth = tmp
         }
