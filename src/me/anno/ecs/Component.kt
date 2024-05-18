@@ -148,7 +148,7 @@ abstract class Component : PrefabSaveable() {
 
     override fun setProperty(name: String, value: Any?) {
         if (name == "isCollapsed") isCollapsed = value == true
-        else if (!readSerializableProperty(name, value)) {
+        else if (!setSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
     }

@@ -16,7 +16,6 @@ import kotlin.math.sin
 
 fun main() {
     OfficialExtensions.initForTests()
-    // todo MSAA-deferred is broken for this... why???
     val mat = DecalMaterial()
     mat.diffuseMap = getReference("res://icon.png")
     mat.normalMap = pictures.getChild("Cracked Normals.jpg")

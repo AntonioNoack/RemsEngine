@@ -1,7 +1,8 @@
 package me.anno.sdf.modifiers
 
-import me.anno.sdf.SDFComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.base.BaseWriter
+import me.anno.sdf.SDFComponent
 import org.joml.AABBf
 
 /**
@@ -28,4 +29,14 @@ abstract class SDFMapper : PrefabSaveable() {
 
     open fun applyTransform(bounds: AABBf) {}
 
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        saveSerializableProperties(writer)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        if (!setSerializableProperty(name, value)) {
+            super.setProperty(name, value)
+        }
+    }
 }

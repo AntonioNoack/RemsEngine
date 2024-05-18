@@ -39,7 +39,6 @@ import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.glGenRenderbuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
-import org.lwjgl.opengl.GL46C.glReadBuffer
 import org.lwjgl.opengl.GL46C.glRenderbufferStorage
 import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 import org.lwjgl.opengl.GL46C.glUseProgram
@@ -381,30 +380,33 @@ class Framebuffer(
         if (pointer == 0 || (dst.pointer == 0 && dst != NullFramebuffer))
             throw RuntimeException("Something went wrong $this -> $dst")
 
-        copyTo(dst)
+        copyTo(dst, true, true)
     }
 
-    fun copyTo(dst: IFramebuffer) {
+    fun copyTo(dst: IFramebuffer, copyColor: Boolean, copyDepth: Boolean) {
         // save previous shader
         val prevShader = GPUShader.lastProgram
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            for (i in targets.indices) {
-                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
-                if (i == 0) {
-                    val depth = depthTexture ?: TextureLib.depthTexture
-                    GFX.copyColorAndDepth(textures!![i], depth)
-                    GFX.check()
-                } else {
-                    GFXState.depthMask.use(false) { // don't copy depth
-                        GFX.copy(textures!![i])
+            if (copyColor) {
+                for (i in targets.indices) {
+                    glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                    if (i == 0) {
+                        val depth = depthTexture ?: TextureLib.depthTexture
+                        GFX.copyColorAndDepth(textures!![i], depth)
+                        GFX.check()
+                    } else {
+                        GFXState.depthMask.use(false) { // don't copy depth
+                            GFX.copy(textures!![i])
+                        }
+                        GFX.check()
                     }
-                    GFX.check()
                 }
             }
             val depth = depthTexture
-            if (targets.isEmpty() && depth != null) {
-                GFX.copyColorAndDepth(TextureLib.whiteTexture, depth)
+            if ((targets.isEmpty() || copyDepth) && depth != null) {
+                drawBuffersN(0)
+                GFX.copyColorAndDepth(TextureLib.blackTexture, depth)
             }
             // reset state, just in case
             drawBuffersN(textures!!.size)
@@ -540,7 +542,7 @@ class Framebuffer(
 
         private val LOGGER = LogManager.getLogger(Framebuffer::class)
 
-        // more than 16 attachments would be pretty insane, and probably not supported
+        // more than 16 attachments are probably not supported
         private val attachments = Array(14) { size ->
             IntArray(size + 2) { GL_COLOR_ATTACHMENT0 + it }
         }

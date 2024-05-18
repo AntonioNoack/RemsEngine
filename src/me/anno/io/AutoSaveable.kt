@@ -8,6 +8,6 @@ abstract class AutoSaveable : Saveable() {
         saveSerializableProperties(writer)
     }
     override fun setProperty(name: String, value: Any?) {
-        readSerializableProperty(name, value)
+        setSerializableProperty(name, value)
     }
 }

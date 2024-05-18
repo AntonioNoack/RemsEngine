@@ -62,7 +62,7 @@ open class Saveable {
      * tries to insert value into all properties with matching name
      * returns true on success
      * */
-    fun readSerializableProperty(name: String, value: Any?): Boolean {
+    fun setSerializableProperty(name: String, value: Any?): Boolean {
         val reflections = getReflections()
         return reflections.set(this, name, value)
     }

@@ -26,7 +26,7 @@ class EditMapUI : Saveable(), Inspectable {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if (!readSerializableProperty(name, value)) {
+        if (!setSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
     }

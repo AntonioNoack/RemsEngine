@@ -27,7 +27,7 @@ class RenderDecalsNode : RenderDeferredNode() {
         if (framebuffer is Framebuffer) {
             // ensure size; binding isn't really necessary
             useFrame(getIntInput(1), getIntInput(2), true, srcBufferI) {
-                framebuffer.copyTo(srcBufferI)
+                framebuffer.copyTo(srcBufferI, true, true)
             }
         } else {
             bind(srcBufferI) {

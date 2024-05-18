@@ -46,9 +46,9 @@ class BlockTracingTest {
                     query, 10,
                     AABBi(0, 0, 0, size, size, size)
                 ) { xi, yi, zi ->
-                    assertTrue(xi in 0 until size)
-                    assertTrue(yi in 0 until size)
-                    assertTrue(zi in 0 until size)
+                    assertTrue(xi in 0 .. size)
+                    assertTrue(yi in 0 .. size)
+                    assertTrue(zi in 0 .. size)
                     Math.random()
                 }
                 assertFalse(hit)
@@ -69,7 +69,7 @@ class BlockTracingTest {
                 val hits = x in 0.0..1.0 && y in 0.0..1.0
                 val hit = BlockTracing.blockTrace(
                     query, 10,
-                    AABBi(0, 0, 0, 1, 1, 1)
+                    AABBi(0, 0, 0, 0, 0, 0)
                 ) { xi, yi, zi ->
                     assertEquals(0, xi)
                     assertEquals(0, yi)

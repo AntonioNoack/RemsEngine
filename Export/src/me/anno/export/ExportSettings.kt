@@ -77,7 +77,7 @@ class ExportSettings : NamedSaveable() {
             "excludedClasses" -> loadStringArray(excludedClasses, value)
             "projectRoots" -> loadFileArray(projectRoots, value)
             "includedAssets" -> loadFileArray(includedAssets, value)
-            else -> if (!readSerializableProperty(name, value)) {
+            else -> if (!setSerializableProperty(name, value)) {
                 super.setProperty(name, value)
             }
         }

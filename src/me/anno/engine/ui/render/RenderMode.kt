@@ -173,6 +173,7 @@ class RenderMode(
 
         // todo implement dust-light-spilling for impressive fog
 
+        // todo bug: light-sum shows normals underneath, why ever
         val LIGHT_SUM = RenderMode(
             "Light Sum",
             QuickPipeline()

@@ -13,17 +13,9 @@ import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.SDFMirror.Companion.normalize3
 import org.joml.AABBf
 import org.joml.Planef
-import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SDFHalfSpace() : DistanceMapper() {
-
-    constructor(position: Vector3f) : this(position, position)
-
-    constructor(position: Vector3f, normal: Vector3f) : this() {
-        plane.set(normal.x, normal.y, normal.z, -normal.dot(position))
-        plane.normalize3()
-    }
+class SDFHalfSpace : DistanceMapper() {
 
     @Range(0.0, 1e38)
     var smoothness = 0.1f
@@ -43,13 +35,11 @@ class SDFHalfSpace() : DistanceMapper() {
             }
         }
 
-    @Suppress("SetterBackingFieldAssignment")
     var plane = Planef(0f, 1f, 0f, 0f)
         set(value) {
             if (dynamicPlane || globalDynamic) invalidateBounds()
             else invalidateShader()
-            field.set(value)
-            field.normalize3()
+            field.set(value).normalize3()
         }
 
     var dynamicPlane = false
@@ -125,6 +115,9 @@ class SDFHalfSpace() : DistanceMapper() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFHalfSpace
+        dst.smoothness = smoothness
+        dst.dynamicSmoothness = dynamicSmoothness
         dst.plane = plane
+        dst.dynamicPlane = dynamicPlane
     }
 }

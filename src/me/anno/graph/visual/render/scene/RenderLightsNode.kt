@@ -4,7 +4,7 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -25,10 +25,11 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
-import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.compiler.GraphCompiler
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
+import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.toInt
 
@@ -165,10 +166,9 @@ class RenderLightsNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         val depthTexture0 = getInput(depthIndex) as? Texture
-        val depthTexture = depthTexture0?.texOrNull as? Texture2D ?: return // if no depth is given, we can return 0
-        val depthT = depthTexture.owner
+        val depthTexture = depthTexture0?.texOrNull as? Texture2D ?: return
 
-        val useDepth = depthT != null
+        val useDepth = true
         val framebuffer = FBStack[
             name, width, height, TargetType.Float16x3, samples,
             if (useDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
@@ -176,15 +176,9 @@ class RenderLightsNode : RenderViewNode(
 
         GFX.check()
 
-        GFXState.useFrame(width, height, true, framebuffer, copyRenderer) {
+        useFrame(width, height, true, framebuffer, copyRenderer) {
             val stage = pipeline.lightStage
-            if (depthT == null) {
-                framebuffer.clearColor(0, true)
-            } else {
-                // copy depth to framebuffer for early discard
-                framebuffer.clearColor(0)
-                depthT.copyTo(framebuffer)
-            }
+            GFX.copyColorAndDepth(blackTexture, depthTexture)
             stage.bind {
                 stage.draw(
                     RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,

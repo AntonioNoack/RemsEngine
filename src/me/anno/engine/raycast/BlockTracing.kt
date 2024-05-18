@@ -32,7 +32,7 @@ object BlockTracing {
         hitBlock: BlockChecker,
     ): Boolean {
 
-        if (bounds.maxX <= bounds.minX || bounds.maxY <= bounds.minY || bounds.maxZ <= bounds.minZ) {
+        if (bounds.maxX < bounds.minX || bounds.maxY < bounds.minY || bounds.maxZ < bounds.minZ) {
             return false
         }
 

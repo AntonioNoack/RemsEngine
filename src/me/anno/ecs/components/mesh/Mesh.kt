@@ -41,7 +41,6 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.hasFlag
@@ -312,7 +311,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     override fun setProperty(name: String, value: Any?) {
         if(name == "boneIndices" && value is IntArray ){
             boneIndices = ByteArray(value.size){ value[it].toByte()}
-        } else if (!readSerializableProperty(name, value)) {
+        } else if (!setSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
     }
