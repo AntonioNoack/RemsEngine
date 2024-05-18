@@ -260,8 +260,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun findBuffer(renderer: Renderer): IFramebuffer {
         // multi-sampled buffer
         return when {
-            // msaa, single target
-            renderMode == RenderMode.MSAA_FORWARD -> buffers.base8Buffer
             // aliased, multi-target
             renderer == DeferredRenderer -> buffers.baseNBuffer1
             else -> buffers.base1Buffer

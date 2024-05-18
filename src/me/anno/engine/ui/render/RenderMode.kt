@@ -15,6 +15,8 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.uvRenderer
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.effects.AnimeOutlineNode
 import me.anno.graph.visual.render.effects.BloomNode
@@ -33,19 +35,17 @@ import me.anno.graph.visual.render.effects.NightNode
 import me.anno.graph.visual.render.effects.OutlineEffectNode
 import me.anno.graph.visual.render.effects.OutlineEffectSelectNode
 import me.anno.graph.visual.render.effects.SSAONode
+import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.SmoothNormalsNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
+import me.anno.graph.visual.render.effects.VignetteNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
-import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.render.effects.SSGINode
-import me.anno.graph.visual.render.effects.VignetteNode
-import me.anno.graph.visual.render.scene.RenderDecalsNode
+import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
@@ -76,7 +76,7 @@ class RenderMode(
 
     companion object {
 
-        private val deferredNodeSettings = mapOf(
+        private val opaqueNodeSettings = mapOf(
             "Stage" to PipelineStage.OPAQUE,
             "Skybox Resolution" to 256,
             "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
@@ -90,7 +90,7 @@ class RenderMode(
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -108,7 +108,7 @@ class RenderMode(
         val WITHOUT_POST_PROCESSING = RenderMode(
             "Without Post-Processing",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then1(RenderForwardNode(), transparentNodeSettings)
@@ -120,7 +120,7 @@ class RenderMode(
             "MSAA Deferred",
             QuickPipeline()
                 .then(MSAAHelperNode())
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -136,15 +136,23 @@ class RenderMode(
 
         val CLICK_IDS = RenderMode("ClickIds (Random)", randomIdRenderer)
 
-        // todo this mode is broken, no longer showing log2-pattern
         val DEPTH = RenderMode("Depth", attributeRenderers[DeferredLayerType.DEPTH])
 
         val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
-        // todo forward deserves bloom
+        private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
+            return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
+                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode())
+        }
+
         // todo helmet has much too faint smudges in forward rendering -> why?
-        val FORWARD = RenderMode("Forward", Renderers.pbrRenderer)
-        val MSAA_FORWARD = RenderMode("MSAA Forward", Renderers.pbrRenderer)
+        val FORWARD = RenderMode("Forward", defineForwardPipeline(QuickPipeline()).finish())
+        val MSAA_FORWARD = RenderMode(
+            "MSAA Forward",
+            defineForwardPipeline(QuickPipeline().then(MSAAHelperNode())).finish()
+        )
 
         val ALL_DEFERRED_LAYERS = RenderMode("All Deferred Layers")
         val ALL_DEFERRED_BUFFERS = RenderMode("All Deferred Buffers")
@@ -173,7 +181,6 @@ class RenderMode(
 
         // todo implement dust-light-spilling for impressive fog
 
-        // todo bug: light-sum shows normals underneath, why ever
         val LIGHT_SUM = RenderMode(
             "Light Sum",
             QuickPipeline()
@@ -244,7 +251,7 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSGINode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(),  mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -291,7 +298,7 @@ class RenderMode(
             "FSR+MSAAx4", QuickPipeline()
                 .then(MSAAHelperNode())
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -312,7 +319,7 @@ class RenderMode(
             "Nearest 4x",
             QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -334,7 +341,7 @@ class RenderMode(
         val SHOW_AABB = RenderMode(
             "Show AABBs",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -353,7 +360,7 @@ class RenderMode(
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -379,7 +386,7 @@ class RenderMode(
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -395,7 +402,7 @@ class RenderMode(
         val MOTION_BLUR = RenderMode(
             "Motion Blur",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -411,7 +418,7 @@ class RenderMode(
         val SMOOTH_NORMALS = RenderMode(
             "Smooth Normals",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
@@ -427,7 +434,7 @@ class RenderMode(
         val DEPTH_TEST = RenderMode(
             "Depth Test",
             QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(DepthTestNode())
                 .then(GizmoNode())
@@ -436,7 +443,7 @@ class RenderMode(
 
         fun postProcessGraph(node: ActionNode): FlowGraph {
             return QuickPipeline()
-                .then1(RenderDeferredNode(), deferredNodeSettings)
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
                 .then(SSAONode())
