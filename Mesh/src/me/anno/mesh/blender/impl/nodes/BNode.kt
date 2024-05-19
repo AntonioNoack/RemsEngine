@@ -1,17 +1,14 @@
 package me.anno.mesh.blender.impl.nodes
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.impl.BLink
 import me.anno.mesh.blender.impl.BListBase
-import java.nio.ByteBuffer
 
 /**
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_node_types.h
  * */
 @Suppress("unused", "SpellCheckingInspection", "UNCHECKED_CAST")
-class BNode(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BNode>(file, type, buffer, position) {
+class BNode(ptr: ConstructorData) : BLink<BNode>(ptr) {
 
     val name = string("name[64]", 64)
     val type = string("idname[64]", 64)

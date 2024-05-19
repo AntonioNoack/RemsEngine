@@ -1,11 +1,9 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.mesh
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.BlendData
 
-class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, dnaStruct, buffer, position) {
+class MVert(ptr: ConstructorData) : BlendData(ptr) {
 
     // they stay the same inside a file
     private val coOffset = getOffset("co[3]")

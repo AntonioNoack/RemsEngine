@@ -6,9 +6,7 @@ package me.anno.mesh.blender.impl
  *
  * called "InstantList", because its elements only contain valid data for the instant
  * */
-class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V> {
-
-    val indices = 0 until size
+class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : List<V> {
 
     private val position0: Int
     private val typeSize: Int
@@ -29,7 +27,7 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V>
      *
      * Accordingly, this method is not thread-safe.
      * */
-    operator fun get(index: Int): V {
+    override operator fun get(index: Int): V {
         if (index !in 0 until size)
             throw IndexOutOfBoundsException("$index !in 0 until $size")
         val instance = instance!!
@@ -53,12 +51,37 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V>
         return (0 until size).map { get(it).toString() }.toString()
     }
 
-    override fun iterator(): Iterator<V> {
-        return object : Iterator<V> {
-            private var index = 0
-            override fun hasNext(): Boolean = index < size
-            override fun next(): V = get(index++)
+    override fun iterator(): Iterator<V> = listIterator()
+    override fun listIterator(): ListIterator<V> = listIterator(0)
+    override fun listIterator(index: Int): ListIterator<V> {
+        return object : ListIterator<V> {
+            private var i = index
+            override fun hasNext(): Boolean = i < size
+            override fun next(): V = get(i++)
+            override fun hasPrevious(): Boolean = i > 0
+            override fun nextIndex(): Int = i
+            override fun previousIndex(): Int = i - 1
+            override fun previous(): V = get(--i)
         }
+    }
+
+    override fun isEmpty(): Boolean = size <= 0
+
+    override fun indexOf(element: V): Int {
+        throw NotImplementedError()
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): List<V> {
+        throw NotImplementedError()
+    }
+
+    override fun lastIndexOf(element: V): Int {
+        throw NotImplementedError()
+    }
+
+    override fun contains(element: V): Boolean = indexOf(element) >= 0
+    override fun containsAll(elements: Collection<V>): Boolean {
+        return elements.all { contains(it) }
     }
 
     companion object {

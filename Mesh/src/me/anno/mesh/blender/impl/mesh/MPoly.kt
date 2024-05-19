@@ -1,12 +1,10 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.mesh
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.BlendData
 
 @Suppress("SpellCheckingInspection", "unused")
-class MPoly(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class MPoly(ptr: ConstructorData) : BlendData(ptr) {
 
     private val startOffset = getOffset("loopstart")
     private val sizeOffset = getOffset("totloop")

@@ -5,6 +5,7 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
@@ -15,6 +16,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.sq
+import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.BAction
 import me.anno.mesh.blender.impl.BArmature
@@ -110,16 +112,24 @@ object BlenderReader {
         clock.stop("read ${file.instances["Material"]?.size} materials")
     }
 
-    private fun readMeshes(file: BlenderFile, folder: InnerFolder, clock: Clock) {
-        val instances = file.instances["Mesh"] ?: return
+    private val missingMeshPrefab: Mesh
+        get() {
+            val mesh = flatCube.front
+            mesh.ref // ensure prefab
+            return mesh
+        }
+
+    private fun readMeshes(file: BlenderFile, folder: InnerFolder, clock: Clock): InnerFolder {
         val meshFolder = folder.createChild("meshes", null) as InnerFolder
+        val instances = file.instances["Mesh"] ?: emptyList()
         for (i in instances.indices) {
             val mesh = instances[i] as BMesh
             val name = mesh.id.realName
-            val prefab = convertBMesh(mesh) ?: continue
+            val prefab = convertBMesh(mesh) ?: missingMeshPrefab.prefab!!
             mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
         }
-        clock.stop("read meshes")
+        clock.stop("read ${instances.size} meshes")
+        return meshFolder
     }
 
     private fun readAnimation(
@@ -197,7 +207,7 @@ object BlenderReader {
         // LOGGER.debug("Action[{}]: {}", i, action)
     }
 
-    private fun extractHierarchy(file: BlenderFile, fps: Float): Prefab {
+    private fun extractHierarchy(file: BlenderFile, fps: Float, meshes: InnerFolder): Prefab {
         val prefab = Prefab("Entity")
         if ("Object" in file.instances) {
 
@@ -218,7 +228,7 @@ object BlenderReader {
                     val name = bObject.id.realName
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
-                    createObject(prefab, bObject, path, false, fps)
+                    createObject(prefab, bObject, path, false, fps, meshes)
                 }
                 if (postTransform) {
                     prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
@@ -226,12 +236,12 @@ object BlenderReader {
             } else {
                 // there must be a root
                 paths[roots.first()] = Path.ROOT_PATH
-                createObject(prefab, roots.first(), Path.ROOT_PATH, true, fps)
+                createObject(prefab, roots.first(), Path.ROOT_PATH, true, fps, meshes)
             }
 
             for (obj in objects) {
                 obj as BObject
-                makeObject(prefab, obj, paths, fps)
+                makeObject(prefab, obj, paths, fps, meshes)
             }
         }
         return prefab
@@ -253,7 +263,7 @@ object BlenderReader {
         val folder = InnerFolder(ref)
         val file = BlenderFile(binaryFile, ref.getParent())
         clock.stop("read blender file")
-        // data.printTypes()
+        file.printStructs()
 
         var fps = 30f
         for (scene in file.instances["Scene"] ?: emptyList()) {
@@ -265,23 +275,26 @@ object BlenderReader {
 
         val imageMap = readImages(file, folder, clock)
         readMaterials(file, folder, clock, imageMap)
-        readMeshes(file, folder, clock)
+        val meshes = readMeshes(file, folder, clock)
         // readAnimations(file, folder, clock)
 
-        val prefab = extractHierarchy(file, fps)
+        val prefab = extractHierarchy(file, fps, meshes)
         prefab.sealFromModifications()
         folder.createPrefabChild("Scene.json", prefab)
         clock.stop("read hierarchy")
         return folder
     }
 
-    private fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>, fps: Float): Path {
+    private fun makeObject(
+        prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>, fps: Float,
+        meshes: InnerFolder
+    ): Path {
         return paths.getOrPut(obj) {
             val name = obj.id.realName
-            val parent = makeObject(prefab, obj.parent!!, paths, fps)
+            val parent = makeObject(prefab, obj.parent!!, paths, fps, meshes)
             val childIndex = prefab.adds[parent]?.count { it.type == 'e' } ?: 0
             val path = Path(parent, name, childIndex, 'e')
-            createObject(prefab, obj, path, false, fps)
+            createObject(prefab, obj, path, false, fps, meshes)
             path
         }
     }
@@ -348,7 +361,10 @@ object BlenderReader {
         return dstBoneIndices
     }
 
-    fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float) {
+    fun createObject(
+        prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float,
+        meshes: InnerFolder
+    ) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
                 path.parent ?: Path.ROOT_PATH,
@@ -391,7 +407,7 @@ object BlenderReader {
                     LOGGER.warn("${path.nameId} wasn't found")
                     return
                 }
-                val meshPrefab = (meshFile).readPrefab()
+                val meshPrefab = meshFile.readPrefab()
                 val boneIndices = meshPrefab["rawBoneIndices"] as? IntArray
                 if (armatureModifier != null && boneIndices != null) {
 

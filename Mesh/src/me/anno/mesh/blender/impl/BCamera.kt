@@ -1,12 +1,9 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 @Suppress("SpellCheckingInspection", "unused")
-class BCamera(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BCamera(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as? BID
 

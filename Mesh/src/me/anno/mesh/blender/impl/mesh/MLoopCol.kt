@@ -1,11 +1,9 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.mesh
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.BlendData
 
-class MLoopCol(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class MLoopCol(ptr: ConstructorData) : BlendData(ptr) {
 
     private val rOffset = getOffset("r")
     private val gOffset = getOffset("g")

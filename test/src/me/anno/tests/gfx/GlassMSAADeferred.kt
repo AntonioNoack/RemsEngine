@@ -11,6 +11,11 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere
 
 fun main() {
+    // todo fix aliased edge by bright material
+    //  reason for it happening:
+    //    blitting, then tone mapping -> bad
+    //    tone mapping, then blitting -> good
+    // this happens e.g., for SSR (single-sample only) -> forward rendering
     testComplex()
 }
 

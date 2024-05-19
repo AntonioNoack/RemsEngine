@@ -1,16 +1,13 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import org.joml.Vector3f
-import java.nio.ByteBuffer
 
 /**
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_armature_types.h
  * */
 @Suppress("SpellCheckingInspection", "UNCHECKED_CAST")
-class BBone(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BBone>(file, type, buffer, position) {
+class BBone(ptr: ConstructorData) : BLink<BBone>(ptr) {
 
     val name = string("name[64]", 64)
     val parent = getPointer("*parent") as? BBone

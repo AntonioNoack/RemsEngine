@@ -40,7 +40,9 @@ object BlenderMaterialConverter {
         }
     }
 
-    // todo read textures for roughness, metallic, emissive, and such
+    /**
+     * read textures for roughness, metallic, emissive, and such
+     * */
     fun defineDefaultMaterial(prefab: Prefab, nodeTree: BNodeTree, imageMap: Map<String, FileReference>) {
         LOGGER.debug(nodeTree)
         val nodes = nodeTree.nodes.toList()
@@ -49,9 +51,9 @@ object BlenderMaterialConverter {
             it.type == "ShaderNodeOutputMaterial"
         }
         if (outputNode != null) {
-            // todo find color / texture input into this node
-            // todo alternatively, we could build a shader here using our own shader graph... (meh xD)
-            // (cool, but not well scalable)
+            // find color / texture input into this node
+            //     alternatively, we could build a shader here using our own shader graph... (meh xD)
+            //     (cool, but not well scalable)
             val inputs = HashMap<Pair<BNode, BNodeSocket>, Pair<BNode?, BNodeSocket>>()
             for (link in links) {
                 inputs[Pair(link.toNode, link.toSocket)] = Pair(link.fromNode, link.fromSocket)
@@ -124,6 +126,11 @@ object BlenderMaterialConverter {
                         // return first value as a guess
                         return findTintedMap(lookup(node, "Color1")) ?: findTintedMap(lookup(node, "Color2"))
                     }
+                    "ShaderNodeMix" -> {
+                        // todo this node is actually a multiply-node,
+                        //  and it has tons of inputs of the same name :(
+                        return getDefault(socket.defaultValue)
+                    }
                     null -> return getDefault(socket.defaultValue)
                     else -> LOGGER.warn("Unknown node type ${node.type}, ${node.inputs.map { "${it.type} ${it.name}" }}")
                 }
@@ -151,7 +158,7 @@ object BlenderMaterialConverter {
                     when (shaderNode.type) {
                         // types: https://docs.blender.org/api/current/bpy.types.html
                         "ShaderNodeBsdfPrincipled" -> {
-                            // todo extract all properties as far as possible
+                            // extract all properties as far as possible
                             val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
                             LOGGER.info("ShaderNodeBsdfPrincipled.diffuse: $diffuse")
                             if (diffuse != null) {
@@ -164,7 +171,7 @@ object BlenderMaterialConverter {
                                 )
                                 prefab["diffuseMap"] = diffuse.second
                             }
-                            // todo can we find out mappings? are they used at all?
+                            // can we find out mappings? are they used at all?
                             val metallic = findTintedMap(lookup(shaderNode, "Metallic"))
                             if (metallic != null) {
                                 prefab["metallicMap"] = metallic.second

@@ -16,9 +16,8 @@ class DNAStruct(val index: Int, val type: DNAType, val fields: List<DNAField>, p
             field.arraySizeOr1 = arraySizeOr1
 
             pointer += size
-
         }
-        if(pointer > type.size) throw RuntimeException("Size calculation must be wrong! $pointer > ${type.size}")
+        if (pointer > type.size) throw RuntimeException("Size calculation must be wrong! $pointer > ${type.size}")
     }
 
     private fun parseArraySize(str: String): Int {
@@ -36,10 +35,18 @@ class DNAStruct(val index: Int, val type: DNAType, val fields: List<DNAField>, p
         return size * sum
     }
 
-    val byName = fields.associateBy { it.decoratedName }
+    val byName = HashMap<String, DNAField>()
+
+    init {
+        for (fi in fields) {
+            val name = fi.decoratedName
+            byName[name] = fi
+            val idx = name.indexOf('[')
+            if (idx > 0) byName[name.substring(0, idx)] = fi
+        }
+    }
 
     override fun toString(): String {
         return "$type:${fields.joinToString()}"
     }
-
 }

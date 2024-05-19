@@ -9,12 +9,16 @@ import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BlendData
-import me.anno.mesh.blender.impl.MDeformVert
-import me.anno.mesh.blender.impl.MLoop
-import me.anno.mesh.blender.impl.MLoopUV
-import me.anno.mesh.blender.impl.MPoly
+import me.anno.mesh.blender.impl.interfaces.UVLike
+import me.anno.mesh.blender.impl.mesh.MDeformVert
+import me.anno.mesh.blender.impl.mesh.MLoop
+import me.anno.mesh.blender.impl.mesh.MLoopUV
+import me.anno.mesh.blender.impl.mesh.MPoly
+import me.anno.mesh.blender.impl.primitives.BVector2f
+import me.anno.mesh.blender.impl.primitives.BVector3f
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -22,11 +26,45 @@ import org.joml.Vector3f
 object BlenderMeshConverter {
 
     private val LOGGER = LogManager.getLogger(BlenderMeshConverter::class)
+    var maxNumTriangles = 100_000_000
+
+    private fun flipVertices(positions: FloatArray) {
+        for (i in 0 until positions.size / 3) {
+            val i3 = i * 3
+            val tmp = positions[i3 + 1]
+            positions[i3 + 1] = positions[i3 + 2]
+            positions[i3 + 2] = -tmp
+        }
+    }
 
     fun convertBMesh(src: BMesh): Prefab? {
 
-        val vertices = src.vertices ?: return null // how can there be meshes without vertices?
-        val positions = FloatArray(vertices.size * 3)
+        // todo make modern Blender 4.1 meshes work
+        //  it says 12 vertices, but only 8 are valid for a cube...,
+        //  and where are our indices???
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("fdata: {}", src.fData)
+            LOGGER.debug("edata: {}", src.eData)
+            LOGGER.debug("vdata: {}", src.vData)
+            LOGGER.debug("pdata: {}", src.pData)
+            LOGGER.debug("ldata: {}", src.lData)
+        }
+
+        val vertices = src.vertices
+
+        @Suppress("UNCHECKED_CAST")
+        val newVertices = src.vData.layers
+            .firstOrNull { it.name == "position" }
+            ?.data as? BInstantList<BVector3f>
+        if (vertices == null && newVertices == null) {
+            LOGGER.warn("${src.id.realName} has no vertices")
+            // how can there be meshes without vertices?
+            // because newer versions save the data in different places
+            return null
+        }
+
+        val numVertices = vertices?.size ?: newVertices!!.size
+        val positions = FloatArray(numVertices * 3)
         val materials: List<BlendData?> = src.materials ?: emptyList()
         val polygons = src.polygons ?: BInstantList.emptyList()
         val loopData = src.loops ?: BInstantList.emptyList()
@@ -35,78 +73,63 @@ object BlenderMeshConverter {
         prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
         prefab["cullMode"] = CullMode.BOTH
 
-        val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
-        val normals: FloatArray? = if (BlenderReader.postTransform) {
-            if (hasNormals) {
-                val normals = FloatArray(vertices.size * 3)
-                for (i in 0 until vertices.size) {
-                    val v = vertices[i]
-                    val i3 = i * 3
-                    positions[i3] = v.x
-                    positions[i3 + 1] = v.y
-                    positions[i3 + 2] = v.z
-                    normals[i3] = v.nx
-                    normals[i3 + 1] = v.ny
-                    normals[i3 + 2] = v.nz
-                }
-                normals
-            } else {
-                for (i in 0 until vertices.size) {
-                    val v = vertices[i]
-                    val i3 = i * 3
-                    positions[i3] = v.x
-                    positions[i3 + 1] = v.y
-                    positions[i3 + 2] = v.z
-                }
-                null
+        val hasNormals = vertices != null && vertices.size > 0 && vertices[0].noOffset >= 0
+
+        var normals: FloatArray? = null
+        if (hasNormals) {
+            normals = FloatArray(numVertices * 3)
+            for (i in 0 until numVertices) {
+                val v = vertices!![i]
+                val i3 = i * 3
+                positions[i3] = v.x
+                positions[i3 + 1] = v.y
+                positions[i3 + 2] = v.z
+                normals[i3] = v.nx
+                normals[i3 + 1] = v.ny
+                normals[i3 + 2] = v.nz
+            }
+        } else if (vertices != null) {
+            for (i in 0 until numVertices) {
+                val v = vertices[i]
+                val i3 = i * 3
+                positions[i3] = v.x
+                positions[i3 + 1] = v.y
+                positions[i3 + 2] = v.z
             }
         } else {
-            if (hasNormals) {
-                val normals = FloatArray(vertices.size * 3)
-                for (i in 0 until vertices.size) {
-                    val v = vertices[i]
-                    val i3 = i * 3
-                    positions[i3] = v.x
-                    positions[i3 + 1] = +v.z
-                    positions[i3 + 2] = -v.y
-                    normals[i3] = v.nx
-                    normals[i3 + 1] = +v.nz
-                    normals[i3 + 2] = -v.ny
-                }
-                normals
-            } else {
-                for (i in 0 until vertices.size) {
-                    val v = vertices[i]
-                    val i3 = i * 3
-                    positions[i3] = v.x
-                    positions[i3 + 1] = +v.z
-                    positions[i3 + 2] = -v.y
-                }
-                null
+            newVertices!! // memcpy would work here, too
+            for (i in 0 until numVertices) {
+                val v = newVertices[i]
+                val i3 = i * 3
+                positions[i3] = v.x
+                positions[i3 + 1] = v.y
+                positions[i3 + 2] = v.z
             }
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(src.fData.layers)
-            LOGGER.debug(src.eData.layers)
-            LOGGER.debug(src.vData.layers)
-            LOGGER.debug(src.pData.layers)
-            LOGGER.debug(src.lData.layers)
+        if (!BlenderReader.postTransform) {
+            flipVertices(positions)
+            if (normals != null) {
+                flipVertices(normals)
+            }
         }
 
+        @Suppress("UNCHECKED_CAST")
         val newUVs0 = src.lData.layers
             .firstOrNull { it.data.firstOrNull() is MLoopUV }
+            ?.data as? BInstantList<MLoopUV>
+
+        @Suppress("UNCHECKED_CAST")
+        val newUVs1 = src.lData.layers
+            .firstOrNull { it.name == "UVMap" && it.data.firstOrNull() is BVector2f }
+            ?.data as? BInstantList<BVector2f>
 
         // todo find normals for newer files; no[3] is extinct
 
-        @Suppress("UNCHECKED_CAST")
-        val newUVs = newUVs0?.data as? BInstantList<MLoopUV>
-
-        val uvs = src.loopUVs ?: newUVs ?: BInstantList.emptyList()
-        // LOGGER.info("UVs: ${src.loopUVs} ?: ${src.lData.layers.map { it.name }} ?: empty")
+        val uvs = src.loopUVs ?: newUVs0 ?: newUVs1 ?: emptyList()
 
         // todo vertex colors
-        val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
+        val hasUVs = uvs.any2 { it.u != 0f || it.v != 0f }
         val triCount0 = polygons.sumOf {
             when (val size = it.loopSize) {
                 0 -> 0
@@ -115,8 +138,10 @@ object BlenderMeshConverter {
             }.toLong()
         }
 
-        if (triCount0 < 0 || triCount0 > 100_000_000) {
-            LOGGER.warn("Invalid number of triangles: $triCount0")
+        println("triCount: $triCount0")
+
+        if (triCount0 < 0 || triCount0 > maxNumTriangles) {
+            LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
             return null
         }
 
@@ -141,7 +166,7 @@ object BlenderMeshConverter {
                 materialIndices, prefab
             )
         }
-        if (materialIndices != null) prefab["materialIds"] = materialIndices
+        prefab["materialIds"] = materialIndices
         prefab.sealFromModifications()
         return prefab
     }
@@ -201,7 +226,7 @@ object BlenderMeshConverter {
         normals: FloatArray?,
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
-        uvs: BInstantList<MLoopUV>,
+        uvs: List<UVLike>,
         boneWeights: BInstantList<MDeformVert>?,
         numVertexGroups: Int,
         materialIndices: IntArray?,

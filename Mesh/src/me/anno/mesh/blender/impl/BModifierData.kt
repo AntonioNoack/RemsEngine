@@ -1,11 +1,9 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
-open class BModifierData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BModifierData>(file, type, buffer, position) {
+open class BModifierData(ptr: ConstructorData) :
+    BLink<BModifierData>(ptr) {
 
     // val name = string("name[64]", 64)
 

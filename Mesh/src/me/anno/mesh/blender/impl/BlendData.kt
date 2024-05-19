@@ -1,6 +1,7 @@
 package me.anno.mesh.blender.impl
 
 import me.anno.mesh.blender.BlenderFile
+import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -10,12 +11,12 @@ import java.nio.ByteBuffer
 import kotlin.math.min
 
 @Suppress("unused")
-open class BlendData(
-    val file: BlenderFile,
-    val dnaStruct: DNAStruct,
-    val buffer: ByteBuffer,
-    var position: Int
-) {
+open class BlendData(ptr: ConstructorData) {
+
+    val file: BlenderFile = ptr.file
+    val dnaStruct: DNAStruct = ptr.type
+    val buffer: ByteBuffer = ptr.buffer
+    var position: Int = ptr.position
 
     val address get() = file.blockTable.getAddressAt(position)
 
@@ -69,15 +70,20 @@ open class BlendData(
 
     fun mat4x4(name: String): Matrix4f = mat4x4(getOffset(name))
 
-    fun getField(name: String) = dnaStruct.byName[name]
+    fun getField(name: String): DNAField? {
+        var byName = dnaStruct.byName[name]
+        if (byName != null) return byName
+        val bracketIndex = name.indexOf('[')
+        if (bracketIndex >= 0) {
+            byName = dnaStruct.byName[name.substring(0, bracketIndex)]
+            if (byName != null) return byName
+        }
+        return null
+    }
+
     fun getOffset(name: String): Int {
         val byName = getField(name)
         if (byName != null) return byName.offset
-        val bracketIndex = name.indexOf('[')
-        if (bracketIndex >= 0) {
-            val byName1 = dnaStruct.byName[name.substring(0, bracketIndex)]
-            if (byName1 != null) return byName1.offset
-        }
         if (name != "no[3]") {
             LOGGER.warn("field $name is unknown, available: ${dnaStruct.byName}")
         }// else no[3] is expected to be missing from newer Blender files
@@ -195,7 +201,8 @@ open class BlendData(
             val remainingSize = block.size - addressInBlock
             val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
-            file.getOrCreate(struct, className, block, address) ?: return null // if no instance can be created, just return null
+            file.getOrCreate(struct, className, block, address)
+                ?: return null // if no instance can be created, just return null
             createArrayList(length.toInt()) {
                 val addressI = address + it * typeSize
                 file.getOrCreate(struct, className, block, addressI)

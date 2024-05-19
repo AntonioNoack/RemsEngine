@@ -1,15 +1,12 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 /**
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_armature_types.h
  * */
 @Suppress("SpellCheckingInspection", "UNCHECKED_CAST")
-class BArmature(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BArmature(ptr: ConstructorData) : BlendData(ptr) {
 
     // id: ID, *adt: AnimData, bonebase: ListBase,
     // *bonehash: GHash, // look up bones by name

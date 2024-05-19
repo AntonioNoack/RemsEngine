@@ -1,12 +1,9 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 @Suppress("SpellCheckingInspection")
-class BImagePackedFile(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BImagePackedFile>(file, type, buffer, position) {
+class BImagePackedFile(ptr: ConstructorData) : BLink<BImagePackedFile>(ptr) {
 
     val filepath = string("filepath[1024]", 1024)
     val packedFile = getPointer("*packedfile") as? BPackedFile

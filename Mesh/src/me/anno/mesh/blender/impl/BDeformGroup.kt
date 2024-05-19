@@ -1,11 +1,8 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
-class BDeformGroup(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BDeformGroup>(file, type, buffer, position) {
+class BDeformGroup(ptr: ConstructorData) : BLink<BDeformGroup>(ptr) {
 
     // { *next: bDeformGroup, *prev: bDeformGroup, name[64]: char, flag: char, _pad0[7]: char }
 

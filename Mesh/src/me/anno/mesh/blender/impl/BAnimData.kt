@@ -1,11 +1,8 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
-class BAnimData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BAnimData(ptr: ConstructorData) : BlendData(ptr) {
 
     /*
     * *action: bAction, *tmpact: bAction, nla_tracks: ListBase, *act_track: NlaTrack, *actstrip: NlaStrip,

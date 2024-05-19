@@ -2,16 +2,20 @@ package me.anno.mesh.blender.impl
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.mesh.MDeformVert
+import me.anno.mesh.blender.impl.mesh.MEdge
+import me.anno.mesh.blender.impl.mesh.MLoop
+import me.anno.mesh.blender.impl.mesh.MLoopCol
+import me.anno.mesh.blender.impl.mesh.MLoopUV
+import me.anno.mesh.blender.impl.mesh.MPoly
+import me.anno.mesh.blender.impl.mesh.MVert
 
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_mesh_types.h#L52
  * */
 @Suppress("SpellCheckingInspection", "unused", "UNCHECKED_CAST")
-class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BMesh(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
 
@@ -58,5 +62,7 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     // in old files in MDeformVert
     val vertexGroupNames = inside("vertex_group_names") as? BListBase<BDeformGroup>
     val vertexGroups = getInstantList<MDeformVert>("*dvert")
+
+    val editMesh get() = getPointer("*edit_mesh")
 
 }

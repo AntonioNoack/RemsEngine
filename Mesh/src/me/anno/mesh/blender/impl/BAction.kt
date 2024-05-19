@@ -1,15 +1,12 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 /**
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_action_types.h#L236
  * */
 @Suppress("SpellCheckingInspection", "UNCHECKED_CAST")
-class BAction(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BAction(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
 

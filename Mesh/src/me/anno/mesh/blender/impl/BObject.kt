@@ -1,12 +1,10 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 @Suppress("SpellCheckingInspection", "unused")
-class BObject(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BObject(ptr: ConstructorData) : BlendData(ptr) {
+
     /*
     * id: ID, *adt: AnimData, drawdata: DrawDataList, *sculpt: SculptSession, type: short,
     * partype: short, par1: int, par2: int, par3: int, parsubstr[64]: char, *parent: Object, *track: Object,

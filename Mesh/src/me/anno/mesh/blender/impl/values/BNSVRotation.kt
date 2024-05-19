@@ -1,16 +1,13 @@
 package me.anno.mesh.blender.impl.values
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import org.joml.Vector3f
-import java.nio.ByteBuffer
 
 /**
  * bNodeSocketValueRotation
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_node_types.h
  * */
-class BNSVRotation(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BNSValue(file, type, buffer, position) {
+class BNSVRotation(ptr: ConstructorData) : BNSValue(ptr) {
 
     val value = run {
         val valueOffset = getOffset("value_euler[3]") // order???
@@ -20,5 +17,4 @@ class BNSVRotation(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, posit
     override fun toString(): String {
         return "Rotation { $value }"
     }
-
 }

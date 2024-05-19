@@ -2,17 +2,14 @@ package me.anno.mesh.blender.impl
 
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.map
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import me.anno.utils.search.BinarySearch
-import java.nio.ByteBuffer
 
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_anim_types.h#L580
  * */
 @Suppress("SpellCheckingInspection")
-class FCurve(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<FCurve>(file, type, buffer, position) {
+class FCurve(ptr: ConstructorData) : BLink<FCurve>(ptr) {
 
     // *next: FCurve, *prev: FCurve, *grp: bActionGroup, *driver: ChannelDriver, modifiers: ListBase,
     // *bezt: BezTriple, // user editable data

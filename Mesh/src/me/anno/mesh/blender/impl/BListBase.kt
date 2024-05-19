@@ -1,16 +1,13 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 /**
  * doubly linked list
  * https://github.com/Blender/blender/blob/main/source/blender/makesdna/DNA_listBase.h
  * */
 @Suppress("UNCHECKED_CAST")
-class BListBase<Type>(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position), Iterable<Type> {
+open class BListBase<Type>(ptr: ConstructorData) : BlendData(ptr), Iterable<Type> {
 
     val first get() = getPointer("*first") as? Type
     val last get() = getPointer("*last") as? Type

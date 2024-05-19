@@ -1,12 +1,9 @@
 package me.anno.mesh.blender.impl.nodes
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.impl.BlendData
-import java.nio.ByteBuffer
 
-open class BTexMapping(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+open class BTexMapping(ptr: ConstructorData) : BlendData(ptr) {
 
     val obj = getPointer("*ob")
 

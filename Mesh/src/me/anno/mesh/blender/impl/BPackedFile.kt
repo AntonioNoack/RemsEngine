@@ -1,12 +1,9 @@
 package me.anno.mesh.blender.impl
 
 import me.anno.io.files.Signature
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
-class BPackedFile(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BPackedFile>(file, type, buffer, position) {
+class BPackedFile(ptr: ConstructorData) : BLink<BPackedFile>(ptr) {
 
     val size = int("size")
     val seek = int("seek") // offset??

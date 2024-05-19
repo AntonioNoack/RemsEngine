@@ -2,14 +2,11 @@ package me.anno.mesh.blender.impl
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.impl.nodes.BNodeTree
-import java.nio.ByteBuffer
 
 @Suppress("unused")
-class BMaterial(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BMaterial(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
 

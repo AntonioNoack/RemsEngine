@@ -439,6 +439,7 @@ class PipelineStageImpl(
                                             val slot = cubicIndex0 + cubicSlot
                                             if (slot > maxTextureIndex) continue
                                             val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                            if (!texture.isCreated()) continue // meh...
                                             // bind the texture, and don't you dare to use mipmapping ^^
                                             // (at least without variance shadow maps)
                                             texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
@@ -452,6 +453,7 @@ class PipelineStageImpl(
                                             val slot = planarIndex0 + planarSlot
                                             if (slot > maxTextureIndex) break
                                             val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                            if (!texture.isCreated()) continue // meh...
                                             // bind the texture, and don't you dare to use mipmapping ^^
                                             // (at least without variance shadow maps)
                                             texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)

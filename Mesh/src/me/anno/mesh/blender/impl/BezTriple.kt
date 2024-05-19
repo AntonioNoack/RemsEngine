@@ -1,15 +1,12 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import org.joml.Vector3f
-import java.nio.ByteBuffer
 
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_curve_types.h#L105
  * */
-class BezTriple(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BezTriple(ptr: ConstructorData) : BlendData(ptr) {
 
     val offset = getOffset("vec[3][3]")
 

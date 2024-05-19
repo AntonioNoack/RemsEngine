@@ -30,19 +30,20 @@ import me.anno.mesh.blender.impl.BPose
 import me.anno.mesh.blender.impl.BPoseChannel
 import me.anno.mesh.blender.impl.BRenderData
 import me.anno.mesh.blender.impl.BScene
-import me.anno.mesh.blender.impl.BVector2f
+import me.anno.mesh.blender.impl.primitives.BVector2s
 import me.anno.mesh.blender.impl.BezTriple
 import me.anno.mesh.blender.impl.BlendData
+import me.anno.mesh.blender.impl.DrawDataList
 import me.anno.mesh.blender.impl.FCurve
-import me.anno.mesh.blender.impl.FPoint
-import me.anno.mesh.blender.impl.MDeformVert
-import me.anno.mesh.blender.impl.MDeformWeight
-import me.anno.mesh.blender.impl.MEdge
-import me.anno.mesh.blender.impl.MLoop
-import me.anno.mesh.blender.impl.MLoopCol
-import me.anno.mesh.blender.impl.MLoopUV
-import me.anno.mesh.blender.impl.MPoly
-import me.anno.mesh.blender.impl.MVert
+import me.anno.mesh.blender.impl.mesh.FPoint
+import me.anno.mesh.blender.impl.mesh.MDeformVert
+import me.anno.mesh.blender.impl.mesh.MDeformWeight
+import me.anno.mesh.blender.impl.mesh.MEdge
+import me.anno.mesh.blender.impl.mesh.MLoop
+import me.anno.mesh.blender.impl.mesh.MLoopCol
+import me.anno.mesh.blender.impl.mesh.MLoopUV
+import me.anno.mesh.blender.impl.mesh.MPoly
+import me.anno.mesh.blender.impl.mesh.MVert
 import me.anno.mesh.blender.impl.nodes.BNode
 import me.anno.mesh.blender.impl.nodes.BNodeLink
 import me.anno.mesh.blender.impl.nodes.BNodeSocket
@@ -50,6 +51,10 @@ import me.anno.mesh.blender.impl.nodes.BNodeTexBase
 import me.anno.mesh.blender.impl.nodes.BNodeTexImage
 import me.anno.mesh.blender.impl.nodes.BNodeTree
 import me.anno.mesh.blender.impl.nodes.BTexMapping
+import me.anno.mesh.blender.impl.primitives.BVector2f
+import me.anno.mesh.blender.impl.primitives.BVector2i
+import me.anno.mesh.blender.impl.primitives.BVector3f
+import me.anno.mesh.blender.impl.primitives.MIntProperty
 import me.anno.mesh.blender.impl.values.BNSVBoolean
 import me.anno.mesh.blender.impl.values.BNSVFloat
 import me.anno.mesh.blender.impl.values.BNSVInt
@@ -243,10 +248,12 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         }
     }
 
-    private fun printStruct(struct: DNAStruct){
+    private fun printStruct(struct: DNAStruct) {
         LOGGER.info(
             "class ${struct.type.name}:\n${
-                struct.byName.entries.filter { !it.key.startsWith("_pad") }
+                struct.byName.entries
+                    .filter { !it.key.startsWith("_pad") }
+                    .sortedBy { it.key }
                     .joinToString("\n") { "\t${it.key}: ${it.value}" }
             }"
         )
@@ -262,62 +269,68 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         if (address == 0L) return null
         val position = (address + block.dataOffset).toInt()
         val data = file.data
+        val ptr = ConstructorData(this, struct, data, position)
         return when (clazz) {
             // unused classes have been commented out
-            "Mesh" -> BMesh(this, struct, data, position)
-            "Material" -> BMaterial(this, struct, data, position)
-            "MVert" -> MVert(this, struct, data, position)
-            "MPoly" -> MPoly(this, struct, data, position)
-            "MLoop" -> MLoop(this, struct, data, position)
-            "MLoopUV" -> MLoopUV(this, struct, data, position)
-            "MLoopCol" -> MLoopCol(this, struct, data, position)
-            "MEdge" -> MEdge(this, struct, data, position)
-            "MDeformVert" -> MDeformVert(this, struct, data, position)
-            "MDeformWeight" -> MDeformWeight(this, struct, data, position)
-            "ID" -> BID(this, struct, data, position)
-            "Image" -> BImage(this, struct, data, position)
-            "ImageView" -> BImageView(this, struct, data, position)
-            "ImagePackedFile" -> BImagePackedFile(this, struct, data, position)
-            "PackedFile" -> BPackedFile(this, struct, data, position)
-            "Object" -> BObject(this, struct, data, position)
-            "Lamp" -> BLamp(this, struct, data, position)
-            "bNode" -> BNode(this, struct, data, position)
-            "bNodeLink" -> BNodeLink(this, struct, data, position)
-            "bNodeTree" -> BNodeTree(this, struct, data, position)
-            "bNodeSocket" -> BNodeSocket(this, struct, data, position)
-            "Link" -> BLink<Any>(this, struct, data, position)
-            "LinkData" -> BLinkData(this, struct, data, position)
-            "ListBase" -> BListBase<Any>(this, struct, data, position)
-            "Scene" -> BScene(this, struct, data, position)
-            "RenderData" -> BRenderData(this, struct, data, position)
+            "Mesh" -> BMesh(ptr)
+            "Material" -> BMaterial(ptr)
+            "MVert" -> MVert(ptr)
+            "MPoly" -> MPoly(ptr)
+            "MLoop" -> MLoop(ptr)
+            "MLoopUV" -> MLoopUV(ptr)
+            "MLoopCol" -> MLoopCol(ptr)
+            "MEdge" -> MEdge(ptr)
+            "MDeformVert" -> MDeformVert(ptr)
+            "MDeformWeight" -> MDeformWeight(ptr)
+            "ID" -> BID(ptr)
+            "Image" -> BImage(ptr)
+            "ImageView" -> BImageView(ptr)
+            "ImagePackedFile" -> BImagePackedFile(ptr)
+            "PackedFile" -> BPackedFile(ptr)
+            "Object" -> BObject(ptr)
+            "Lamp" -> BLamp(ptr)
+            "bNode" -> BNode(ptr)
+            "bNodeLink" -> BNodeLink(ptr)
+            "bNodeTree" -> BNodeTree(ptr)
+            "bNodeSocket" -> BNodeSocket(ptr)
+            "Link" -> BLink<Any>(ptr)
+            "LinkData" -> BLinkData(ptr)
+            "ListBase" -> BListBase<Any>(ptr)
+            "Scene" -> BScene(ptr)
+            "RenderData" -> BRenderData(ptr)
             // collections and such may be interesting
-            "CustomData" -> BCustomData(this, struct, data, position)
-            "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
-            "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
+            "CustomData" -> BCustomData(ptr)
+            "CustomDataExternal" -> BCustomDataExternal(ptr)
+            "CustomDataLayer" -> BCustomDataLayer(ptr)
             // "Brush", "bScreen", "wmWindowManager" -> null // idc
-            "bNodeSocketValueVector" -> BNSVVector(this, struct, data, position)
-            "bNodeSocketValueBoolean" -> BNSVBoolean(this, struct, data, position)
-            "bNodeSocketValueFloat" -> BNSVFloat(this, struct, data, position)
-            "bNodeSocketValueInt" -> BNSVInt(this, struct, data, position)
-            "bNodeSocketValueRGBA" -> BNSVRGBA(this, struct, data, position)
-            "bNodeSocketValueRotation" -> BNSVRotation(this, struct, data, position)
-            "bArmature" -> BArmature(this, struct, data, position)
-            "bDeformGroup" -> BDeformGroup(this, struct, data, position)
-            "ArmatureModifierData" -> BArmatureModifierData(this, struct, data, position)
-            "Bone" -> BBone(this, struct, data, position)
-            "bPose" -> BPose(this, struct, data, position)
-            "bPoseChannel" -> BPoseChannel(this, struct, data, position)
-            "bAction" -> BAction(this, struct, data, position)
-            "bActionChannel" -> BActionChannel(this, struct, data, position)
-            "bActionGroup" -> BActionGroup(this, struct, data, position)
-            "AnimData" -> BAnimData(this, struct, data, position)
-            "FCurve" -> FCurve(this, struct, data, position)
-            "FPoint" -> FPoint(this, struct, data, position)
-            "BezTriple" -> BezTriple(this, struct, data, position)
-            "TexMapping" -> BTexMapping(this, struct, data, position)
-            "NodeTexBase" -> BNodeTexBase(this, struct, data, position)
-            "NodeTexImage" -> BNodeTexImage(this, struct, data, position)
-            "vec2s" -> BVector2f(this, struct, data, position)
+            "bNodeSocketValueVector" -> BNSVVector(ptr)
+            "bNodeSocketValueBoolean" -> BNSVBoolean(ptr)
+            "bNodeSocketValueFloat" -> BNSVFloat(ptr)
+            "bNodeSocketValueInt" -> BNSVInt(ptr)
+            "bNodeSocketValueRGBA" -> BNSVRGBA(ptr)
+            "bNodeSocketValueRotation" -> BNSVRotation(ptr)
+            "bArmature" -> BArmature(ptr)
+            "bDeformGroup" -> BDeformGroup(ptr)
+            "ArmatureModifierData" -> BArmatureModifierData(ptr)
+            "Bone" -> BBone(ptr)
+            "bPose" -> BPose(ptr)
+            "bPoseChannel" -> BPoseChannel(ptr)
+            "bAction" -> BAction(ptr)
+            "bActionChannel" -> BActionChannel(ptr)
+            "bActionGroup" -> BActionGroup(ptr)
+            "AnimData" -> BAnimData(ptr)
+            "FCurve" -> FCurve(ptr)
+            "FPoint" -> FPoint(ptr)
+            "BezTriple" -> BezTriple(ptr)
+            "TexMapping" -> BTexMapping(ptr)
+            "NodeTexBase" -> BNodeTexBase(ptr)
+            "NodeTexImage" -> BNodeTexImage(ptr)
+            "vec2s" -> BVector2s(ptr)
+            "vec2f" -> BVector2f(ptr)
+            "vec3f" -> BVector3f(ptr)
+            "vec2i" -> BVector2i(ptr)
+            "MIntProperty" -> MIntProperty(ptr)
+            "DrawDataList" -> DrawDataList(ptr)
             else -> {
                 LOGGER.warn("Skipping instance of class $clazz")
                 null

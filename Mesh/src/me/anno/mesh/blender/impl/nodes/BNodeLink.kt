@@ -1,13 +1,10 @@
 package me.anno.mesh.blender.impl.nodes
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.ConstructorData
 import me.anno.mesh.blender.impl.BLink
-import java.nio.ByteBuffer
 
 @Suppress("unused", "SpellCheckingInspection")
-class BNodeLink(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BLink<BNodeLink>(file, type, buffer, position) {
+class BNodeLink(ptr: ConstructorData) : BLink<BNodeLink>(ptr) {
 
     val fromNode = getPointer("*fromnode") as BNode
     val fromSocket = getPointer("*fromsock") as BNodeSocket
@@ -21,5 +18,4 @@ class BNodeLink(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position
                 "from: ${fromNode.type}@${fromNode.position.toString(16)}/'${fromSocket.name}', " +
                 "to: ${toNode.type}@${fromNode.position.toString(16)}/'${toSocket.name}' }"
     }
-
 }

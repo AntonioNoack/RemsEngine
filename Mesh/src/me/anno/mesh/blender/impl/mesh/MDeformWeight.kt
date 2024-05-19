@@ -1,14 +1,12 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.mesh
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
+import me.anno.mesh.blender.impl.BlendData
 
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_meshdata_types.h#L172
  * */
-class MDeformWeight(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class MDeformWeight(ptr: ConstructorData) : BlendData(ptr) {
 
     val defNrOffset = getOffset("def_nr")
     val weightOffset = getOffset("weight")

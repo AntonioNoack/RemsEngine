@@ -1,15 +1,12 @@
 package me.anno.mesh.blender.impl
 
-import me.anno.mesh.blender.BlenderFile
-import me.anno.mesh.blender.DNAStruct
-import java.nio.ByteBuffer
+import me.anno.mesh.blender.ConstructorData
 
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_image_types.h
  * */
 @Suppress("UNCHECKED_CAST", "SpellCheckingInspection")
-class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+class BImage(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
     val name = string("name[1024]", 1024)?.replace('\\', '/') ?: ""
