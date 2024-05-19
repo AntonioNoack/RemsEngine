@@ -41,6 +41,7 @@ interface IFramebuffer {
     val numTextures: Int
 
     fun ensure()
+    fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int)
 
     fun bindDirectly()
 
@@ -88,6 +89,7 @@ interface IFramebuffer {
     }
 
     fun getTextureI(index: Int): ITexture2D
+    fun getTextureILazy(index: Int): ITexture2D = getTextureI(index)
     fun getTextureIMS(index: Int): ITexture2D = getTextureI(index)
 
     val depthTexture: ITexture2D?

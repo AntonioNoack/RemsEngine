@@ -23,7 +23,7 @@ import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.StaticMeshesLoader.buildScene
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
-import me.anno.mesh.assimp.StaticMeshesLoader.defaultFlags
+import me.anno.mesh.assimp.StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS
 import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
 import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
 import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
@@ -96,13 +96,13 @@ object AnimatedMeshesLoader {
 
     fun readAsFolder(
         file: FileReference,
-        resources: FileReference = file.getParent(), flags: Int = defaultFlags
+        resources: FileReference = file.getParent(), flags: Int = DEFAULT_ASSIMP_FLAGS
     ): InnerFolder = readAsFolder2(file, resources, flags).first
 
     fun readAsFolder2(
         file: FileReference,
         resources: FileReference = file.getParent(),
-        flags: Int = defaultFlags
+        flags: Int = DEFAULT_ASSIMP_FLAGS
     ): Pair<InnerFolder, Prefab> {
 
         var name = file.nameWithoutExtension
@@ -129,7 +129,6 @@ object AnimatedMeshesLoader {
                     throw e
                 }
             } else {
-                // todo dae/collada: fix incorrect index count from extra spaces before data if present
                 LOGGER.warn("$e from $file")
             }
             throw e

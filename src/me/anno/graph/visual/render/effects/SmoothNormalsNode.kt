@@ -2,6 +2,8 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -15,8 +17,8 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.Texture
 
 class SmoothNormalsNode : ActionNode(
     "Smooth Normals",
@@ -36,13 +38,14 @@ class SmoothNormalsNode : ActionNode(
         val normalTex = getInput(2) as? Texture ?: return
         val normal = normalTex.texOrNull ?: return
         val depth = (getInput(3) as? Texture)?.texOrNull ?: return
+        pushDrawCallName(name)
         val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
         val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
-        if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
-            setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
-        } else {
-            setOutput(2, normalTex)
-        }
+        val value = if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
+            Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL)
+        } else normalTex
+        setOutput(1, value)
+        popDrawCallName()
     }
 
     companion object {

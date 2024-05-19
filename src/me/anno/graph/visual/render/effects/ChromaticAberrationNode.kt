@@ -1,5 +1,7 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -39,6 +41,7 @@ class ChromaticAberrationNode : ActionNode(
         if (color == null) {
             setOutput(1, Texture(missingTexture))
         } else {
+            pushDrawCallName(name)
             val power = getFloatInput(2)
             val rOffset = getInput(3) as Vector2f
             val bOffset = getInput(4) as Vector2f
@@ -54,6 +57,7 @@ class ChromaticAberrationNode : ActionNode(
                 flat01.draw(shader)
             }
             setOutput(1, Texture(result.getTexture0()))
+            popDrawCallName()
         }
     }
 

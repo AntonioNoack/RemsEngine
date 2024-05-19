@@ -94,7 +94,7 @@ object BufferCompute {
                                 "void set$name$name1(uint index, $type value){\n" +
                                         "   uint idx = index*${stride4}+$offset4;\n" +
                                         (0 until attr.components).joinToString("") {
-                                            "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]})\n"
+                                            "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]});\n"
                                         } +
                                         "}\n"
                             )

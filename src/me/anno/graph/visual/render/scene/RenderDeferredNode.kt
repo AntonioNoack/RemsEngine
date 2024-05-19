@@ -5,6 +5,8 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
@@ -62,6 +64,9 @@ open class RenderDeferredNode : RenderViewNode(
 
         val inList = listLayers(null)
         val outList = listLayers("Texture")
+
+        val firstInputIndex = 10
+        val firstOutputIndex = 1
     }
 
     val enabledLayers = ArrayList<DeferredLayerType>()
@@ -77,6 +82,13 @@ open class RenderDeferredNode : RenderViewNode(
         setInput(8, 0)
         setInput(9, DrawSkyMode.DONT_DRAW_SKY)
     }
+
+    val width get() = getIntInput(1)
+    val height get() = getIntInput(2)
+    val skyResolution get() = getIntInput(8)
+
+    val stage get() = getInput(4) as PipelineStage
+    val drawSky get() = getInput(9) as DrawSkyMode
 
     override fun invalidate() {
         settings = null
@@ -133,10 +145,17 @@ open class RenderDeferredNode : RenderViewNode(
 
     override fun executeAction() {
 
-        val width = getIntInput(1)
-        val height = getIntInput(2)
         if (width < 1 || height < 1) return
 
+        if (!needsRendering() && skyResolution <= 0 && drawSky == DrawSkyMode.DONT_DRAW_SKY) {
+            // just copy inputs to outputs
+            for (i in 0 until outList.size.shr(1)) {
+                setOutput(firstOutputIndex + i, getInput(firstInputIndex + i))
+            }
+            return
+        }
+
+        pushDrawCallName(name)
         defineFramebuffer()
 
         bakeSkybox()
@@ -148,16 +167,15 @@ open class RenderDeferredNode : RenderViewNode(
         }
 
         setOutputs(framebuffer)
+        popDrawCallName()
     }
 
     fun bind(framebuffer: IFramebuffer, run: () -> Unit) {
-        val width = getIntInput(1)
-        val height = getIntInput(2)
         GFXState.useFrame(width, height, true, framebuffer, renderer, run)
     }
 
     fun bakeSkybox() {
-        pipeline.bakeSkybox(getIntInput(8))
+        pipeline.bakeSkybox(skyResolution)
     }
 
     fun needsRendering(): Boolean {
@@ -167,8 +185,7 @@ open class RenderDeferredNode : RenderViewNode(
     }
 
     fun render() {
-        val stage = getInput(4) as PipelineStage
-        val drawSky = getInput(9) as DrawSkyMode
+        val drawSky = drawSky
         if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
             pipeline.drawSky()
         }
@@ -196,9 +213,6 @@ open class RenderDeferredNode : RenderViewNode(
     }
 
     private val shaders = HashMap<Renderer, Pair<Shader, Map<String, TypeValue>>>()
-
-    val firstInputIndex = 10
-    val firstOutputIndex = 1
 
     fun getOutputs(): List<IndexedValue<DeferredLayerType>> {
         return DeferredLayerType.values.withIndex()

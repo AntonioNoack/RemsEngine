@@ -1,6 +1,8 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
@@ -42,13 +44,14 @@ class SSAONode : ActionNode(
         val depthT = (getInput(6) as? Texture) ?: return fail()
         val depthTT = depthT.texOrNull ?: return fail()
 
+        pushDrawCallName(name)
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion.compute(
             null, depthTT, depthT.mapping, normalT, normalZW,
             transform, strength, radiusScale, ssaoSamples, blur
         )
-
         setOutput(1, Texture.texture(result, 0, "r", null))
+        popDrawCallName()
     }
 
     companion object {

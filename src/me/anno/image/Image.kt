@@ -5,6 +5,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.bmp.BMPWriter
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -13,6 +14,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.roundDiv
+import me.anno.utils.Color.argb
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.InternalAPI
@@ -20,7 +22,6 @@ import me.anno.utils.Logging.hash32
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
-import org.apache.logging.log4j.LogManager
 import java.io.OutputStream
 import kotlin.math.floor
 import kotlin.math.nextDown
@@ -383,10 +384,7 @@ abstract class Image(
     }
 
     fun write(dst: OutputStream, format: String, quality: Float = 0.9f) {
-        val wim = writeImageImpl
-        if (wim != null) {
-            wim(this, dst, format, quality)
-        } else LOGGER.warn("Missing Image Writer")
+        writeImageImpl(this, dst, format, quality)
     }
 
     override fun destroy() {}
@@ -429,23 +427,9 @@ abstract class Image(
         }
 
     companion object {
-
-        private val LOGGER = LogManager.getLogger(Image::class)
-
         @InternalAPI
-        var writeImageImpl: ((Image, OutputStream, format: String, quality: Float) -> Unit)? = null
-
-        @JvmStatic
-        fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {
-            return argb(
-                a.toUInt().toInt(), r.toUInt().toInt(),
-                g.toUInt().toInt(), b.toUInt().toInt()
-            )
-        }
-
-        @JvmStatic
-        fun argb(a: Int, r: Int, g: Int, b: Int): Int {
-            return (a shl 24) + (r shl 16) + (g shl 8) + b
+        var writeImageImpl: (Image, OutputStream, format: String, quality: Float) -> Unit = { img, out, _, _ ->
+            out.write(BMPWriter.createBMP(img))
         }
     }
 }

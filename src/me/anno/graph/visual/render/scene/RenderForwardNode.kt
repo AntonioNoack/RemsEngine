@@ -3,6 +3,8 @@ package me.anno.graph.visual.render.scene
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -62,6 +64,7 @@ class RenderForwardNode : RenderViewNode(
         val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
         if (width < 1 || height < 1) return
 
+        pushDrawCallName(name)
         val stage = getInput(4) as PipelineStage
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
@@ -70,8 +73,6 @@ class RenderForwardNode : RenderViewNode(
         val framebuffer = FBStack["scene-forward",
             width, height, TargetType.Float16x4,
             samples, DepthBufferType.TEXTURE]
-
-        GFX.check()
 
         // if skybox is not used, bake it anyway?
         // -> yes, the pipeline architect (^^) has to be careful
@@ -108,18 +109,17 @@ class RenderForwardNode : RenderViewNode(
 
         setOutput(1, Texture.texture(framebuffer, 0))
         setOutput(2, Texture.depth(framebuffer))
+        popDrawCallName()
     }
 
     fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
             GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth)
+        } else if (prepassColor != null && prepassColor != blackTexture) {
+            framebuffer.clearDepth()
+            GFX.copy(prepassColor)
         } else {
-            if (prepassColor != null && prepassColor != blackTexture) {
-                framebuffer.clearDepth()
-                GFX.copy(prepassColor)
-            } else {
-                framebuffer.clearColor(0, depth = true)
-            }
+            framebuffer.clearColor(0, depth = true)
         }
     }
 }

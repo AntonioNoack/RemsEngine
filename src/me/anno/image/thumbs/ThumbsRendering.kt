@@ -95,7 +95,7 @@ object ThumbsRendering {
                     srcFile.name, w, h, 1,
                     listOf(TargetType.UInt8x4), DepthBufferType.NONE
                 )
-                renderTarget.needsBlit = true // needed?
+                renderTarget.needsBlit = -1 // todo is this needed?
                 GFXState.useFrame(newBuffer) {
                     GFX.copy(renderTarget)
                 }

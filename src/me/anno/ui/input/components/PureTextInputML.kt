@@ -30,11 +30,9 @@ import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
 
-// todo hovering over spell correction can reset the cursor (WTF), fix that
 open class PureTextInputML(style: Style) :
     ScrollPanelXY(Padding(0), style),
-    InputPanel<String>,
-    TextStyleable {
+    InputPanel<String>, TextStyleable {
 
     companion object {
 

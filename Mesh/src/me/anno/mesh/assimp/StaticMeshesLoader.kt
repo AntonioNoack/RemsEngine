@@ -18,7 +18,6 @@ import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
-import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.distance
@@ -87,12 +86,11 @@ object StaticMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
-    const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
+    const val DEFAULT_ASSIMP_FLAGS = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
             aiProcess_Triangulate or // we don't want to triangulate ourselves
             aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
             // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
             aiProcess_GlobalScale
-    // or aiProcess_PreTransformVertices // <- disables animations
 
     @JvmStatic
     fun shininessToRoughness(shininessExponent: Float): Float {

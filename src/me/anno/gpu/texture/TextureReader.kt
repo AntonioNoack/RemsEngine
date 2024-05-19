@@ -89,7 +89,7 @@ class TextureReader(val file: FileReference) : AsyncCacheData<ITexture2D>() {
             }
             else -> {
                 getRotation(file) { rot, _ ->
-                    val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
+                    val texture = Texture2D("i2t/?/$file", image.width, image.height, 1)
                     texture.rotation = rot
                     texture.create(image, true, ::callback)
                 }

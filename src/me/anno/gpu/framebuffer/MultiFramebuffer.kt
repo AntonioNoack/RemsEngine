@@ -80,6 +80,10 @@ class MultiFramebuffer(
         return targetsI[index / div].getTextureI(index % div)
     }
 
+    override fun getTextureILazy(index: Int): ITexture2D {
+        return targetsI[index / div].getTextureILazy(index % div)
+    }
+
     override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         getTextureI(index).bind(offset, nearest, clamping)
     }
@@ -152,6 +156,14 @@ class MultiFramebuffer(
                 target.depthTexture = value
             }
         }
+
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
+        if (newWidth != width || newHeight != height) {
+            for (i in targetsI.indices) {
+                targetsI[i].ensureSize(newWidth, newHeight, newDepth)
+            }
+        } else ensure()
+    }
 
     override fun toString(): String {
         return "Multi(\"$name\", $width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType)"

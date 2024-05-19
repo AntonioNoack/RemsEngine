@@ -70,6 +70,10 @@ import org.lwjgl.opengl.GL46C.glTexParameteriv
 
 object TextureHelper {
 
+    private val tmp4i = IntArray(4)
+
+    private val tmp4f = FloatArray(4)
+
     private val LOGGER = LogManager.getLogger(TextureHelper::class)
 
     fun clamping(target: Int, value0: Int, borderColor: Int) {
@@ -83,7 +87,7 @@ object TextureHelper {
         if (target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY)
             glTexParameteri(target, GL_TEXTURE_WRAP_R, value)
         if (value == GL_CLAMP_TO_BORDER) {
-            val tmp = Texture2D.tmp4f
+            val tmp = tmp4f
             tmp[0] = borderColor.r01()
             tmp[1] = borderColor.g01()
             tmp[2] = borderColor.b01()
@@ -98,7 +102,7 @@ object TextureHelper {
      * Probably Vulkan either, but idk.
      * */
     fun swizzle(target: Int, r: Int, g: Int, b: Int, a: Int) {
-        val tmp = Texture2D.tmp4i
+        val tmp = tmp4i
         tmp[0] = r
         tmp[1] = g
         tmp[2] = b

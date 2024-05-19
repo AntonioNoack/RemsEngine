@@ -8,8 +8,14 @@ import me.anno.gpu.framebuffer.IFramebuffer
 /**
  * Copies the input data into a temporary buffer, so we read from different buffers to where we write to;
  * This is required for WebGL, might improve performance, and might improve race-conditions.
+ *
+ * todo when a decal overrides all attributes, we can even apply it to forward-rendering :3
  * */
 class RenderDecalsNode : RenderDeferredNode() {
+
+    init {
+        name = "RenderDecals"
+    }
 
     companion object {
         var srcBuffer: IFramebuffer? = null
@@ -23,11 +29,12 @@ class RenderDecalsNode : RenderDeferredNode() {
     private var srcBufferI: IFramebuffer? = null
     override fun copyInputsOrClear(framebuffer: IFramebuffer) {
         super.copyInputsOrClear(framebuffer)
+        if (!needsRendering()) return // small optimization, we should do better though...
         val srcBufferI = srcBufferI!!
         if (framebuffer is Framebuffer) {
             // ensure size; binding isn't really necessary
             useFrame(getIntInput(1), getIntInput(2), true, srcBufferI) {
-                framebuffer.copyTo(srcBufferI, true, true)
+                framebuffer.copyTo(srcBufferI, copyColor = true, copyDepth = true)
             }
         } else {
             bind(srcBufferI) {

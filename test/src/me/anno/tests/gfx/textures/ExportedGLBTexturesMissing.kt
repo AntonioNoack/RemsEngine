@@ -5,12 +5,8 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.downloads
 
 fun main() {
-    // todo scene loading is too slow
-    // todo performance is bad, then textures are loading
-    //  > image creation is taking lots of time; probably mipmap generation
+    // todo investigate: there's tons of messages like
+    //  Mapping 'ggg1' failed, because Texture2D("i2t/?/71.png"@0, 2048 x 2048 x 1, RGBA8) is destroyed
     Build.isDebug = false // disable glGetError()
     testSceneWithUI("GLB missing textures", downloads.getChild("The Junk Shop.glb"))
 }
-
-// todo Rem's Studio is using bad (non-fx) file chooser... fix that
-// todo FileExplorer MUST NOT lag

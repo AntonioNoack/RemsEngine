@@ -2,6 +2,8 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -27,6 +29,7 @@ class ToneMappingNode : ActionNode(
     override fun executeAction() {
         val color = getInput(1) as? Texture
         val result = if (getBoolInput(3)) {
+            pushDrawCallName(name)
             val exposure = getFloatInput(2)
             val source = color?.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, false, 1, DepthBufferType.NONE]
@@ -37,6 +40,7 @@ class ToneMappingNode : ActionNode(
                 source.bindTrulyNearest(0)
                 SimpleBuffer.flat01.draw(shader)
             }
+            popDrawCallName()
             Texture(result.getTexture0())
         } else color
         setOutput(1, result)

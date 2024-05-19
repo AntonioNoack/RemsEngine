@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.newSession
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
@@ -75,6 +76,16 @@ class FramebufferArray(
 
     override fun ensure() {
         if (pointer == 0) create()
+    }
+
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
+        if (width != newWidth || height != newHeight || layers != newDepth) {
+            destroy()
+            width = newWidth
+            height = newHeight
+            layers = newDepth
+            create()
+        } else ensure()
     }
 
     override fun checkSession() {

@@ -1,6 +1,8 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -54,6 +56,7 @@ class GodRaysNode : ActionNode(
         val color = (getInput(5) as? Texture)?.texOrNull ?: return
         val depth = (getInput(6) as? Texture)?.texOrNull ?: return
 
+        pushDrawCallName(name)
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             val shader = shader
             shader.use()
@@ -73,6 +76,7 @@ class GodRaysNode : ActionNode(
 
         val result = framebuffer.getTexture0()
         setOutput(1, Texture(result))
+        popDrawCallName()
     }
 
     companion object {

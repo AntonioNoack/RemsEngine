@@ -207,10 +207,6 @@ open class CubemapTexture(
         return bind(index, filtering)
     }
 
-    override fun wrapAsFramebuffer(): IFramebuffer {
-        throw NotImplementedError()
-    }
-
     private fun clamping() {
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
         // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)

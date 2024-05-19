@@ -1,5 +1,7 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -67,6 +69,7 @@ class OutlineNode : ActionNode(
             return
         }
 
+        pushDrawCallName(name)
         val w = max(max(illuminated.width, color.width), max(normal.width, depth.width))
         val h = max(max(illuminated.height, color.height), max(normal.height, depth.height))
         useFrame(w, h, true, framebuffer, copyRenderer) {
@@ -90,6 +93,7 @@ class OutlineNode : ActionNode(
             SimpleBuffer.flat01.draw(shader)
         }
         setOutput(1, Texture(framebuffer.getTexture0()))
+        popDrawCallName()
     }
 
     companion object {

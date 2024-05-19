@@ -193,7 +193,7 @@ object ShaderLib {
             "   J = transpose(J)*J;\n" + // quadratic form
             "   vec2 R = textureSize(T,0);\n" +
             "   float d = determinant(J), t = J[0][0]+J[1][1],\n" + // find ellipse: eigenvalues, max eigenvector
-            "         D = sqrt(abs(t*t-4.*d)),\n" + // abs() fix a bug: in weird view angles 0 can be slightly negative
+            "         D = sqrt(abs(t*t-4.*d)),\n" + // abs() fixes a bug: in weird view angles 0 can be slightly negative
             "         V = (t-D)/2., v = (t+D)/2.,\n" + // eigenvalues
             "         M = inversesqrt(V), m = inversesqrt(v), l = log2(m*R.y);\n" + // = 1./radii^2
             "  // if (M/m>16.) l = log2(M/16.*R.y);\n" + // optional

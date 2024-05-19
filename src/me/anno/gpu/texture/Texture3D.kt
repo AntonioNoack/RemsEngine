@@ -329,10 +329,6 @@ open class Texture3D(
         return true
     }
 
-    override fun wrapAsFramebuffer(): IFramebuffer {
-        throw NotImplementedError()
-    }
-
     override fun destroy() {
         val pointer = pointer
         if (pointer != 0) destroy(pointer)

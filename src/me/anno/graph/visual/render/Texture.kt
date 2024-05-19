@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.IndestructibleTexture2D
+import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -57,7 +58,7 @@ class Texture private constructor(
 
         fun texture(f: IFramebuffer, i: Int, mapping: String, type: DeferredLayerType?): Texture {
             return if (f.samples <= 1) Texture(f.getTextureI(i), null, mapping, type)
-            else Texture(f.getTextureI(i), f.getTextureIMS(i), mapping, type)
+            else Texture(f.getTextureILazy(i), f.getTextureIMS(i), mapping, type)
         }
 
         fun texture(f: IFramebuffer, settings: DeferredSettings, type: DeferredLayerType): Texture {
@@ -84,10 +85,11 @@ class Texture private constructor(
             val tex = (buf0 ?: buf1 ?: f).depthTexture!!
             val texMS = f.depthTexture!!
 
-            val f1st = (f as? Framebuffer) ?: (f as? MultiFramebuffer)?.targetsI?.first()!!
-            f1st.copyIfNeeded(f1st.ssBuffer!!)
-
-            return Texture(tex, texMS, mapping, type)
+            val texLazy = LazyTexture(tex, texMS, lazy {
+                val f1st = (f as? Framebuffer) ?: (f as? MultiFramebuffer)?.targetsI?.first()!!
+                f1st.copyIfNeeded(f1st.ssBuffer!!, 1 shl f1st.targets.size)
+            })
+            return Texture(texLazy, texMS, mapping, type)
         }
     }
 }

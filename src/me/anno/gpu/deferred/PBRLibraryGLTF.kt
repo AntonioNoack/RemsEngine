@@ -8,8 +8,6 @@ import kotlin.math.PI
  * */
 object PBRLibraryGLTF {
 
-    // todo regular plastic has specular as well... why not in this model?
-
     // we probably have specular dots on thin lines, because we don't handle it -> fix it with some magic-maths integration
     // (strong curvature on metal against the sun will show this problem)
     // to do: good idea, but unfortunately in forward mode, finalNormal won't wary as much on 1px thin lines, because it may consist of many triangles -> true delta unknown to the shader

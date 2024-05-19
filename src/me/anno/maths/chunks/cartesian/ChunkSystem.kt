@@ -173,8 +173,6 @@ abstract class ChunkSystem<Chunk, Element>(
         return dst
     }
 
-    // todo we might want a function, where we process neighbors as well, e.g. 3x3x3 or 5x5x5, or 1x3x1 or sth like that
-
     fun process(
         min: Vector3i,
         max: Vector3i,

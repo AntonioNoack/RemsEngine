@@ -125,6 +125,15 @@ class Framebuffer3D(
         if (pointer == 0) create()
     }
 
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
+        if (width != newWidth || height != newHeight) {
+            destroy()
+            width = newWidth
+            height = newHeight
+            create()
+        } else ensure()
+    }
+
     override fun checkSession() {
         if (pointer != 0 && session != GFXState.session) {
             GFX.check()

@@ -90,7 +90,7 @@ object LightShaders {
         shader.use()
         scene.bindTrulyNearestMS(shader.getTextureIndex("defLayer0"))
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
-        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(3)
+        (deferred.findTextureMS(scene, metallic) ?: TextureLib.blackTexture).bindTrulyNearest(3)
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
         skybox.bind(shader, "reflectionMap", Filtering.LINEAR, skybox.clamping)
         ssao.bindTrulyNearest(shader, "occlusionTex")

@@ -118,12 +118,11 @@ object DrawTextures {
         shader.use()
         posSize(shader, x, y + h - 1, w, -h)
         GFXx2D.noTiling(shader)
-        val tex = texture as? Texture2D
         texture.bind(0)
-        val depthFunc = tex?.depthFunc
-        tex?.depthFunc = null
+        val depthFunc = texture.depthFunc
+        texture.depthFunc = null
         flat01.draw(shader)
-        tex?.depthFunc = depthFunc
+        texture.depthFunc = depthFunc
         GFX.check()
     }
 

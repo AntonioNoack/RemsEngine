@@ -8,7 +8,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS
 
 /**
- * test if forward rendering is using the sky inside its light calculation
+ * test if forward rendering is using the sky inside its light calculation -> yes, it is
  * */
 fun main() {
     OfficialExtensions.initForTests()

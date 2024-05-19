@@ -15,6 +15,8 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
@@ -25,7 +27,7 @@ import org.joml.Vector4f
 object ScreenSpaceReflections {
 
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
-    fun createShader(): Shader {
+    fun createShader(inPlace: Boolean): Shader {
         val variables = arrayListOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.M4x4, "transform"),
@@ -44,7 +46,6 @@ object ScreenSpaceReflections {
             Variable(GLSLType.V1F, "thickness"),
             Variable(GLSLType.V1F, "maskSharpness"),
             Variable(GLSLType.V1F, "strength"),
-            Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V1B, "normalZW"),
         )
 
@@ -57,9 +58,9 @@ object ScreenSpaceReflections {
         functions.add(ShaderLib.octNormalPacking)
         variables.addAll(DepthTransforms.depthVars)
 
-        val returnColor0 = "" +
-                "result = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                "return;\n"
+        val returnColor0 =
+            if (inPlace) "result = vec4(color0, 1.0);\nreturn;\n"
+            else "result = vec4(0.0);\nreturn;\n"
 
         return Shader(
             "ss-reflections", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, variables, "" +
@@ -68,7 +69,7 @@ object ScreenSpaceReflections {
 
                     "void main() {\n" +
 
-                    "   vec3 color0 = texture(finalIlluminated, uv).rgb;\n" +
+                    "   vec3 color0 = texture(finalIlluminated, uv).rgb;\n".iff(inPlace) +
 
                     "   float metallic = dot(texture(finalMetallic, uv), metallicMask);\n" +
                     "   float roughness = dot(texture(finalRoughness, uv), roughnessMask);\n" +
@@ -194,13 +195,14 @@ object ScreenSpaceReflections {
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 diffuseColor = texture(finalColor, uv).rgb;\n" +
                     "   vec3 color1 = diffuseColor * texelFetch(finalIlluminated,ivec2(bestUV*texSize),0).rgb;\n" +
-                    "   color0 = mix(color0, color1, min(visibility * reflectivity * strength, 1.0));\n" +
-                    returnColor0 +
+                    "   float mixFactor = min(visibility * reflectivity * strength, 1.0);\n" +
+                    (if (inPlace) "result = vec4(mix(color0, color1, mixFactor), 1.0);\n"
+                    else "result = vec4(color1, mixFactor);\n") +
                     "}\n"
         )
     }
 
-    val shader = createShader()
+    val shader = Array(2) { createShader(it > 0) }
 
     /**
      * computes screen space reflections from metallic, roughness, normal, position and color buffers
@@ -221,14 +223,13 @@ object ScreenSpaceReflections {
         maskSharpness: Float, // 1f
         wallThickness: Float, // 0.2f
         fineSteps: Int, // 10 are enough, if there are only rough surfaces
-        applyToneMapping: Boolean,
+        inPlace: Boolean,
         dst: IFramebuffer
-    ): IFramebuffer {
+    ) {
         // metallic may be on r, g, b, or a
         GFXState.useFrame(dst, Renderer.copyRenderer) {
-            val shader = shader
+            val shader = shader[inPlace.toInt()]
             shader.use()
-            shader.v1b("applyToneMapping", applyToneMapping)
             shader.v1f("resolution", 1f / fineSteps)
             shader.v1i("steps", fineSteps)
             shader.v1f("maskSharpness", maskSharpness)
@@ -250,6 +251,5 @@ object ScreenSpaceReflections {
             color.bind(shader, "finalColor", n, c)
             SimpleBuffer.flat01.draw(shader)
         }
-        return dst
     }
 }

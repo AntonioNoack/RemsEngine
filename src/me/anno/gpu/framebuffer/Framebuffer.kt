@@ -12,10 +12,14 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
 import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Booleans.withoutFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -113,7 +117,7 @@ class Framebuffer(
     // multiple targets, layout=x require shader version 330+
     // use bindFragDataLocation instead
 
-    var needsBlit = true
+    var needsBlit = -1
 
     val withMultisampling get() = samples > 1
 
@@ -139,7 +143,7 @@ class Framebuffer(
             GFX.check()
             session = GFXState.session
             pointer = 0
-            needsBlit = true
+            needsBlit = -1
             ssBuffer?.checkSession()
             depthTexture?.checkSession()
             depthAttachment?.checkSession()
@@ -165,13 +169,13 @@ class Framebuffer(
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {
-        ensureSize(w, h)
+        ensureSize(w, h, 0)
         bind()
     }
 
     fun bind() {
 
-        needsBlit = true
+        needsBlit = -1
 
         // if the depth-attachment base changed, we need to recreate this texture
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
@@ -217,16 +221,13 @@ class Framebuffer(
         texture.filtering = Filtering.TRULY_NEAREST
     }
 
-    private fun ensureSize(newWidth: Int, newHeight: Int) {
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
         if (newWidth != width || newHeight != height) {
+            destroy()
             width = newWidth
             height = newHeight
-            GFX.check()
-            destroy()
-            GFX.check()
             create()
-            GFX.check()
-        }
+        } else ensure()
     }
 
     private fun checkDepthTextureSupport() {
@@ -354,57 +355,54 @@ class Framebuffer(
         return renderBuffer
     }
 
-    fun copyIfNeeded(dst: IFramebuffer) {
-
-        if (!needsBlit) return
-        needsBlit = false
-
-        val w = width
-        val h = height
-
-        GFX.check()
-
-        // ensure that we exist
-        ensure()
-
-        // ensure that it exists
-        // + bind it, it seems important
-        if (dst is Framebuffer) {
-            dst.ensureSize(w, h)
+    fun copyIfNeeded(dst: IFramebuffer, layerMask: Int) {
+        if (needsBlit.hasFlag(layerMask)) {
+            needsBlit = needsBlit.withoutFlag(layerMask)
+            val w = width
+            val h = height
+            ensure()
+            dst.ensureSize(w, h, 0)
+            copyTo(dst, layerMask)
         }
-
-        dst.ensure()
-
-        GFX.check()
-
-        if (pointer == 0 || (dst.pointer == 0 && dst != NullFramebuffer))
-            throw RuntimeException("Something went wrong $this -> $dst")
-
-        copyTo(dst, true, true)
     }
 
     fun copyTo(dst: IFramebuffer, copyColor: Boolean, copyDepth: Boolean) {
+        val texturesSize = targets.size
+        val mask = copyColor.toInt((1 shl texturesSize) - 1) or copyDepth.toInt(1 shl texturesSize)
+        copyTo(dst, mask)
+    }
+
+    fun copyTo(dst: IFramebuffer, layerMask: Int) {
         // save previous shader
         val prevShader = GPUShader.lastProgram
+        val depthMask = 1 shl targets.size
+        val depth = depthTexture
+        var needsToCopyDepth = layerMask.hasFlag(depthMask)
+        val tex0 = Texture2D.getBindState(0)
+        val tex1 = Texture2D.getBindState(1)
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
-            if (copyColor) {
-                for (i in targets.indices) {
-                    glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
-                    if (i == 0) {
-                        val depth = depthTexture ?: TextureLib.depthTexture
-                        GFX.copyColorAndDepth(textures!![i], depth)
-                        GFX.check()
-                    } else {
-                        GFXState.depthMask.use(false) { // don't copy depth
-                            GFX.copy(textures!![i])
-                        }
-                        GFX.check()
+            var remainingMask = layerMask and (depthMask - 1)
+            while (remainingMask != 0) {
+                // find next to-process index
+                val i = remainingMask.countTrailingZeroBits()
+                remainingMask = remainingMask.withoutFlag(1 shl i)
+
+                // execute blit
+                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                if (needsToCopyDepth && depth != null) {
+                    needsToCopyDepth = false
+                    GFX.copyColorAndDepth(textures!![i], depth)
+                    GFX.check()
+                } else {
+                    GFXState.depthMask.use(false) { // don't copy depth
+                        GFX.copy(textures!![i])
                     }
+                    GFX.check()
                 }
             }
-            val depth = depthTexture
-            if ((targets.isEmpty() || copyDepth) && depth != null) {
+            // execute depth blit
+            if (needsToCopyDepth && depth != null) {
                 drawBuffersN(0)
                 GFX.copyColorAndDepth(TextureLib.blackTexture, depth)
             }
@@ -412,6 +410,8 @@ class Framebuffer(
             drawBuffersN(textures!!.size)
             GFX.check()
         }
+        Texture2D.restoreBindState(1, tex1)
+        Texture2D.restoreBindState(0, tex0)
         GPUShader.lastProgram = prevShader
         glUseProgram(prevShader)
     }
@@ -430,7 +430,7 @@ class Framebuffer(
         checkSession()
         val ssBuffer = ssBuffer
         if (ssBuffer != null) {
-            copyIfNeeded(ssBuffer)
+            copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             textures!![index].bind(offset, nearest, clamping)
@@ -441,7 +441,7 @@ class Framebuffer(
         GFX.check()
         val ssBuffer = ssBuffer
         if (ssBuffer != null) {
-            copyIfNeeded(ssBuffer)
+            copyIfNeeded(ssBuffer, (1 shl targets.size) - 1)
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
             val textures = textures!!
@@ -526,11 +526,24 @@ class Framebuffer(
         }
     }
 
+    override fun getTextureILazy(index: Int): ITexture2D {
+        checkSession()
+        return if (withMultisampling) {
+            val ssBuffer = ssBuffer!!
+            ssBuffer.ensureSize(width, height, 0)
+            return LazyTexture(
+                ssBuffer.textures!![index],
+                textures!![index], lazy {
+                    copyIfNeeded(ssBuffer, 1 shl index)
+                })
+        } else getTextureI(index)
+    }
+
     override fun getTextureI(index: Int): ITexture2D {
         checkSession()
         return if (withMultisampling) {
             val ssBuffer = ssBuffer!!
-            copyIfNeeded(ssBuffer)
+            copyIfNeeded(ssBuffer, 1 shl index)
             ssBuffer.getTextureI(index)
         } else {
             val textures = textures ?: throw IllegalStateException("Framebuffer hasn't been initialized")

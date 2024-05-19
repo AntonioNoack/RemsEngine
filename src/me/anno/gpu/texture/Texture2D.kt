@@ -16,7 +16,6 @@ import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
@@ -39,13 +38,11 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL46C.GL_BGR
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_BYTE
 import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
 import org.lwjgl.opengl.GL46C.GL_DOUBLE
-import org.lwjgl.opengl.GL46C.GL_FALSE
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_INT
@@ -76,7 +73,6 @@ import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_MODE
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_LOD_BIAS
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_MAG_FILTER
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_MIN_FILTER
-import org.lwjgl.opengl.GL46C.GL_TRUE
 import org.lwjgl.opengl.GL46C.GL_UNPACK_ALIGNMENT
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
@@ -1141,43 +1137,6 @@ open class Texture2D(
         return slot in boundTextures.indices && boundTextures[slot] == pointer
     }
 
-    override fun wrapAsFramebuffer(): IFramebuffer {
-        return object : IFramebuffer {
-            override val name: String get() = this@Texture2D.name
-            override val pointer: Int get() = -1
-            override val width: Int get() = this@Texture2D.width
-            override val height: Int get() = this@Texture2D.height
-            override val samples: Int get() = this@Texture2D.samples
-            override val numTextures: Int get() = 1
-            override fun ensure() {}
-            override fun checkSession() = this@Texture2D.checkSession()
-            override fun getTargetType(slot: Int) = throw NotImplementedError()
-            override fun bindDirectly() = throw NotImplementedError()
-            override fun bindDirectly(w: Int, h: Int) = throw NotImplementedError()
-            override fun destroy() = this@Texture2D.destroy()
-
-            override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean) =
-                throw NotImplementedError()
-
-            override fun attachFramebufferToDepth(name: String, targets: List<TargetType>) =
-                throw NotImplementedError()
-
-            override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
-                if (offset == 0) this@Texture2D.bind(index, nearest, clamping)
-                else throw IndexOutOfBoundsException()
-            }
-
-            override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
-                this@Texture2D.bind(0, nearest, clamping)
-            }
-
-            override fun getTextureI(index: Int) =
-                if (index == 0) this@Texture2D else throw IndexOutOfBoundsException()
-
-            override val depthTexture = null
-        }
-    }
-
     override fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
         val buffer = IntArray(width * height)
         useFrame(this, 0) {
@@ -1251,15 +1210,22 @@ open class Texture2D(
         @JvmField
         val boundTextures = IntArray(64)
 
+        @JvmField
+        val boundTargets = IntArray(64)
+
         init {
             boundTextures.fill(-1)
         }
 
-        @JvmField
-        val tmp4i = IntArray(4)
+        fun getBindState(slot: Int): Long {
+            return boundTargets[slot] + boundTextures[slot].toLong().shl(16)
+        }
 
-        @JvmField
-        val tmp4f = FloatArray(4)
+        fun restoreBindState(slot: Int, state: Long) {
+            activeSlot(slot)
+            val pointer = state.shr(16).toInt()
+            if (pointer >= 0) bindTexture(state.toInt().and(0xffff), pointer)
+        }
 
         @JvmStatic
         fun invalidateBinding() {
@@ -1283,14 +1249,15 @@ open class Texture2D(
          * @return whether the texture was actively bound
          * */
         @JvmStatic
-        fun bindTexture(mode: Int, pointer: Int): Boolean {
+        fun bindTexture(target: Int, pointer: Int): Boolean {
             if (wasModifiedInComputePipeline) {
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 wasModifiedInComputePipeline = false
             }
             return if (alwaysBindTexture || boundTextures[boundTextureSlot] != pointer) {
                 boundTextures[boundTextureSlot] = pointer
-                glBindTexture(mode, pointer)
+                boundTargets[boundTextureSlot] = target
+                glBindTexture(target, pointer)
                 true
             } else false
         }

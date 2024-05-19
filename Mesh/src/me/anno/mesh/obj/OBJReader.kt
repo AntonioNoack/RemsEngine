@@ -330,15 +330,15 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         findPoints@ while (true) {
             skipSpaces()
             val next = next()
-            if (next in 48..58 || next == minus) {
+            if (next in 48..58 || next == MINUS) {
                 putBack(next)
                 val vertexIndex = readIndex(numPositions)
                 var uvIndex = -1
                 var normalIndex = -1
-                if (putBack == slash) {
+                if (putBack == SLASH) {
                     putBack = -1
                     uvIndex = readIndex(numUVs)
-                    if (putBack == slash) {
+                    if (putBack == SLASH) {
                         putBack = -1
                         normalIndex = readIndex(numNormals)
                     }

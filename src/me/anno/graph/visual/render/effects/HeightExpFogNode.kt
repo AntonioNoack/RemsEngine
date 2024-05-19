@@ -1,6 +1,8 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -60,6 +62,7 @@ class HeightExpFogNode : RenderViewNode(
         if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
+            pushDrawCallName(name)
             val fogSharpness = max(getFloatInput(3), 0f)
             val fogOffset = getFloatInput(4)
             val fogColor = getInput(5) as Vector3f
@@ -92,6 +95,7 @@ class HeightExpFogNode : RenderViewNode(
                 flat01.draw(shader)
             }
             setOutput(1, Texture(result.getTexture0()))
+            popDrawCallName()
         }
     }
 

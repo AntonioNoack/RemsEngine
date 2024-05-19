@@ -7,27 +7,23 @@ import kotlin.math.pow
 open class TextFileReader(val reader: InputStream) {
 
     companion object {
-        const val minus = '-'.code
-        private const val zero = '0'.code
-        private const val nine = '9'.code
-        private const val dot = '.'.code
-        private const val smallE = 'e'.code
-        private const val largeE = 'E'.code
-        private const val space = ' '.code
-        private const val tab = '\t'.code
-        private const val newLine = '\n'.code
-        private const val newLine2 = '\r'.code
-        const val slash = '/'.code
+        const val MINUS = '-'.code
+        private const val ZERO = '0'.code
+        private const val NINE = '9'.code
+        private const val DOT = '.'.code
+        private const val LOWER_E = 'e'.code
+        private const val UPPER_E = 'E'.code
+        private const val SPACE = ' '.code
+        private const val TAB = '\t'.code
+        private const val NEW_LINE = '\n'.code
+        private const val NEW_LINE2 = '\r'.code
+        const val SLASH = '/'.code
     }
 
     fun skipSpaces() {
         while (true) {
             when (val next = next()) {
-                space, tab, newLine2 -> {
-                }
-                newLine -> {
-                    putBack(next)
-                    return
+                SPACE, TAB, NEW_LINE2 -> {
                 }
                 else -> {
                     putBack(next)
@@ -38,14 +34,14 @@ open class TextFileReader(val reader: InputStream) {
     }
 
     fun skipLine() {
-        if (next() == newLine) {
+        if (next() == NEW_LINE) {
             // done :)
             return
         }
         val reader = reader
         while (true) {
             val code = reader.read()
-            if (code == newLine || code == -1) {
+            if (code == NEW_LINE || code == -1) {
                 return
             }
         }
@@ -84,7 +80,7 @@ open class TextFileReader(val reader: InputStream) {
 
     fun readInt(): Int {
         var char = next()
-        if (char == minus) return -readInt()
+        if (char == MINUS) return -readInt()
         var code = (char - 48) and 255
         if (code > 9) {
             putBack = char
@@ -107,8 +103,8 @@ open class TextFileReader(val reader: InputStream) {
         val builder = StringBuilder()
         while (true) {
             when (val char = next()) {
-                newLine2 -> {}
-                space, tab, newLine -> {
+                NEW_LINE2 -> {}
+                SPACE, TAB, NEW_LINE -> {
                     putBack(char)
                     return builder.toString()
                 }
@@ -121,8 +117,8 @@ open class TextFileReader(val reader: InputStream) {
         val builder = StringBuilder()
         while (true) {
             when (val char = next()) {
-                newLine2 -> {}
-                newLine -> {
+                NEW_LINE2 -> {}
+                NEW_LINE -> {
                     putBack(char)
                     return builder.toString()
                 }
@@ -138,11 +134,11 @@ open class TextFileReader(val reader: InputStream) {
         var fraction = 0f
         while (true) {
             when (val char2 = reader.read()) {
-                in zero..nine -> {
+                in ZERO..NINE -> {
                     fraction += exponent * (char2 - 48)
                     exponent *= 0.1f
                 }
-                smallE, largeE -> {
+                LOWER_E, UPPER_E -> {
                     val power = readInt()
                     return sign * (number + fraction) * 10f.pow(power)
                 }
@@ -161,18 +157,18 @@ open class TextFileReader(val reader: InputStream) {
         var number = 0L
         val reader = reader
         when (val char = next()) {
-            minus -> sign = -sign
-            in zero..nine -> number = (char - 48).toLong()
-            dot -> return readFloatExp(sign, 0f)
+            MINUS -> sign = -sign
+            in ZERO..NINE -> number = (char - 48).toLong()
+            DOT -> return readFloatExp(sign, 0f)
             // else should not happen
         }
         while (true) {
             when (val char = reader.read()) {
-                in zero..nine -> {
+                in ZERO..NINE -> {
                     number = number * 10 + char - 48
                 }
-                dot -> return readFloatExp(sign, number.toFloat())
-                smallE, largeE -> {
+                DOT -> return readFloatExp(sign, number.toFloat())
+                LOWER_E, UPPER_E -> {
                     val power = readInt()
                     return sign * number * 10f.pow(power)
                 }

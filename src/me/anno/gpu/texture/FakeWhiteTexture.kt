@@ -27,7 +27,6 @@ class FakeWhiteTexture(override var width: Int, override var height: Int, overri
 
     override fun checkSession() = whiteTexture.checkSession()
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping) = bindWhite(index)
-    override fun wrapAsFramebuffer() = whiteTexture.wrapAsFramebuffer()
     override fun destroy() { /* ignore, we don't own GFX.whiteTexture */
     }
 }

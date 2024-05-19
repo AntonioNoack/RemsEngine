@@ -63,11 +63,8 @@ open class GrayscaleImage(val src: Image) :
                     }
                 }
             }
-            is GPUImage -> {
-                TextureMapper.mapTexture(src.texture, texture, "lll1", TargetType.UInt8x1, callback)
-            }
+            is GPUImage -> TextureMapper.mapTexture(src.texture, texture, "lll1", TargetType.UInt8x1, callback)
             is ComponentImage -> src.createTexture(texture, sync, checkRedundancy, callback)
-            is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!, callback)
             is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src, callback)
             else -> super.createTexture(texture, sync, checkRedundancy, callback)
         }

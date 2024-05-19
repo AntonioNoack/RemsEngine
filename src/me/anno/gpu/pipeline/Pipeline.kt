@@ -5,7 +5,6 @@ import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.sky.Skybox
@@ -19,7 +18,6 @@ import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderMode
@@ -30,6 +28,8 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredLayerType
@@ -49,7 +49,6 @@ import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
@@ -68,13 +67,6 @@ import kotlin.math.max
  * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
  * */
 class Pipeline(deferred: DeferredSettings?) : ICacheData {
-
-    // pipelines, that we need:
-    //  - 3d world,
-    //  - transparency
-    //  - 2d ui,
-    //  - ...
-    // to do we can sort by material and shaders; or by distance
 
     var ignoredEntity: Entity? = null // e.g. for environment maps
     var ignoredComponent: Component? = null
@@ -190,6 +182,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             return
         }
 
+        pushDrawCallName("BakeSkybox")
         val self = RenderView.currentInstance
         val renderMode = self?.renderMode
         if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
@@ -239,6 +232,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         if (renderMode != null) {
             self.renderMode = renderMode
         }
+        popDrawCallName()
     }
 
     fun destroyBakedSkybox() {
@@ -296,6 +290,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun drawSky0() {
+        pushDrawCallName("DrawSky")
         val sky = skybox
         val mesh = sky.getMesh()
         val allAABB = JomlPools.aabbd.create()
@@ -320,6 +315,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             mesh.draw(shader, i)
         }
         JomlPools.aabbd.sub(1)
+        popDrawCallName()
     }
 
     fun clear() {
@@ -337,10 +333,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun fill(rootElement: Entity): Int {
-        // more complex traversal:
-        // done exclude static entities by their AABB
-        // done exclude entities, if they contain no meshes
-        // done exclude entities, if they are off-screen
         // todo reuse the pipeline state for multiple frames
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
@@ -361,8 +353,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             )
         }
     }
-
-    // todo fix deferred rendering for scenes with many lights
 
     val lights = ArrayList<LightRequest?>(RenderView.MAX_FORWARD_LIGHTS)
 

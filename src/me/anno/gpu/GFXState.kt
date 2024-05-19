@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.Build
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
@@ -22,6 +23,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
@@ -362,6 +364,18 @@ object GFXState {
             Framebuffer.drawBuffers1(0)
             tmp.checkIsComplete()
             render(tmp)
+        }
+    }
+
+    fun pushDrawCallName(name: String) {
+        if (Build.isDebug) {
+            GL46C.glPushDebugGroup(GL46C.GL_DEBUG_SOURCE_APPLICATION, 0, name)
+        }
+    }
+
+    fun popDrawCallName() {
+        if (Build.isDebug) {
+            GL46C.glPopDebugGroup()
         }
     }
 }

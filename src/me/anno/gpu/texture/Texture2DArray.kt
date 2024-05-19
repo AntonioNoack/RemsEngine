@@ -389,10 +389,6 @@ open class Texture2DArray(
         return true
     }
 
-    override fun wrapAsFramebuffer(): IFramebuffer {
-        throw NotImplementedError()
-    }
-
     override fun destroy() {
         val pointer = pointer
         if (pointer != 0) {

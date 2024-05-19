@@ -28,8 +28,10 @@ import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Matrix4f
@@ -87,7 +89,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
     private fun initShader(
         shader: Shader, cameraMatrix: Matrix4f,
-        type: LightType, depthTexture: Texture2D
+        type: LightType, depthTexture: ITexture2D
     ) {
         shader.use()
         // information for the shader, which is material agnostic
@@ -124,7 +126,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         cameraPosition: Vector3d,
         worldScale: Double,
         getShader: (LightType, Boolean) -> Shader,
-        depthTexture: Texture2D,
+        depthTexture: ITexture2D,
         depthMask: Vector4f,
     ) {
 
@@ -182,7 +184,10 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 var i1 = 0f
                 val textures = light.shadowTextures
                 if (textures != null) {
-                    val texture = textures.depthTexture ?: textures.getTexture0()
+                    var texture = textures.depthTexture ?: textures.getTexture0()
+                    if (!texture.isCreated()) {
+                        texture = TextureLib.depthTexture
+                    }
                     if (light is PointLight) {
                         if (supportsCubicShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
@@ -237,7 +242,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     private var worldScale: Double = 1.0
 
     fun drawBatches(
-        depthTexture: Texture2D,
+        depthTexture: ITexture2D,
         lights: List<LightRequest>, size: Int,
         type: LightType, shader: Shader,
     ) {

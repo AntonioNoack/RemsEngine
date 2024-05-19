@@ -1,6 +1,8 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -42,8 +44,8 @@ class VignetteNode : ActionNode(
         val strength = getFloatInput(4)
         val result = if (strength > 0f) {
             val colorT = color?.texOrNull ?: return
-            val result = FBStack[name, colorT.width, colorT.height, 4,
-                colorT.isHDR, 1, DepthBufferType.NONE]
+            pushDrawCallName(name)
+            val result = FBStack[name, colorT.width, colorT.height, 4, colorT.isHDR, 1, DepthBufferType.NONE]
             GFXState.useFrame(result) {
                 val shader = shader
                 shader.use()
@@ -60,6 +62,7 @@ class VignetteNode : ActionNode(
                 colorT.bindTrulyNearest(0)
                 SimpleBuffer.flat01.draw(shader)
             }
+            popDrawCallName()
             Texture(result.getTexture0())
         } else color
         setOutput(1, result)

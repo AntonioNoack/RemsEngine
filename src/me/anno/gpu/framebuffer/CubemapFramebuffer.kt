@@ -9,7 +9,6 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -70,6 +69,14 @@ class CubemapFramebuffer(
 
     override fun ensure() {
         if (pointer == 0) create()
+    }
+
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
+        if (newWidth != size) {
+            destroy()
+            size = newWidth
+            create()
+        } else ensure()
     }
 
     override fun checkSession() {

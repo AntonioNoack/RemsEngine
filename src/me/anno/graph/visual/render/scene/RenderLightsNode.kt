@@ -4,6 +4,8 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -24,6 +26,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
@@ -166,7 +169,7 @@ class RenderLightsNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         val depthTexture0 = getInput(depthIndex) as? Texture
-        val depthTexture = depthTexture0?.texOrNull as? Texture2D ?: return
+        val depthTexture = depthTexture0?.texOrNull ?: return
 
         val useDepth = true
         val framebuffer = FBStack[
@@ -174,8 +177,7 @@ class RenderLightsNode : RenderViewNode(
             if (useDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
         ]
 
-        GFX.check()
-
+        pushDrawCallName(name)
         useFrame(width, height, true, framebuffer, copyRenderer) {
             val stage = pipeline.lightStage
             GFX.copyColorAndDepth(blackTexture, depthTexture)
@@ -186,7 +188,7 @@ class RenderLightsNode : RenderViewNode(
                 )
             }
         }
-
         setOutput(1, Texture.texture(framebuffer, 0, "rgb", DeferredLayerType.LIGHT_SUM))
+        popDrawCallName()
     }
 }

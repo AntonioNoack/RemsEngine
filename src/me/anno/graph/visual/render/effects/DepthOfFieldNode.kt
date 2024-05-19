@@ -3,6 +3,8 @@ package me.anno.graph.visual.render.effects
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -61,12 +63,14 @@ class DepthOfFieldNode : ActionNode(
         val color = (getInput(7) as? Texture)?.texOrNull ?: return // this is incorrect for tinted color!
         val depth = (getInput(8) as? Texture)?.texOrNull ?: return
 
+        pushDrawCallName(name)
         val result = render(
             color, depth, spherical, focusPoint, focusScale,
             clamp(maxBlurSize, 1f, 20f),
             clamp(radScale, 0.25f, 2f), applyToneMapping
         ).getTexture0()
         setOutput(1, Texture(result))
+        popDrawCallName()
     }
 
     companion object {

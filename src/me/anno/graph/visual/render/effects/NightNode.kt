@@ -1,5 +1,7 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -16,8 +18,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
@@ -52,6 +52,7 @@ class NightNode : RenderViewNode(
         if (color == null || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
+            pushDrawCallName(name)
             val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
             useFrame(result, copyRenderer) {
                 val shader = shader
@@ -66,6 +67,7 @@ class NightNode : RenderViewNode(
                 flat01.draw(shader)
             }
             setOutput(1, Texture(result.getTexture0()))
+            popDrawCallName()
         }
     }
 

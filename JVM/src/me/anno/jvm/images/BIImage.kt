@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
-import me.anno.image.raw.CachedImage
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -32,7 +31,6 @@ object BIImage {
             is GPUImage -> texture
                 .createImage(false, hasAlphaChannel)
                 .createBufferedImage()
-            is CachedImage -> base!!.createBufferedImage()
             else -> {
                 val width = width
                 val height = height

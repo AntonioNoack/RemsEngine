@@ -2,6 +2,8 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -70,9 +72,7 @@ class GizmoNode : RenderViewNode(
             if (readsDepth) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
         ] as Framebuffer
 
-        GFX.check()
-
-        framebuffer.ensure()
+        pushDrawCallName(name)
         useFrame(width, height, true, framebuffer, copyRenderer) {
             copyColorAndDepth(colorT, depthT, framebuffer)
             GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
@@ -81,9 +81,9 @@ class GizmoNode : RenderViewNode(
                 }
             }
         }
-
         setOutput(1, Texture.texture(framebuffer, 0))
         setOutput(2, if (readsDepth) Texture.depth(framebuffer) else null)
+        popDrawCallName()
     }
 
     companion object {

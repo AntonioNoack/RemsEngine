@@ -56,7 +56,7 @@ fun main() {
     // done test animation / skeleton
     @Suppress("SpellCheckingInspection")
     val file = downloads.getChild("3d/taryk/scene.gltf")
-    val aiScene = StaticMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags).first
+    val aiScene = StaticMeshesLoader.loadFile(file, StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS).first
     val rootNode = aiScene.mRootNode()!!
 
     val boneList = ArrayList<Bone>()

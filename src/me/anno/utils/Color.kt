@@ -133,6 +133,10 @@ object Color {
     fun argb(a: Int, r: Int, g: Int, b: Int) = rgba(r, g, b, a)
 
     @JvmStatic
+    @Docs("Creates an ARGB color from a,r,g,b bytes; clamps values")
+    fun argb(a: Byte, r: Byte, g: Byte, b: Byte) = rgba(r, g, b, a)
+
+    @JvmStatic
     fun Int.hasAlpha() = this.ushr(24) != 255
 
     @JvmStatic

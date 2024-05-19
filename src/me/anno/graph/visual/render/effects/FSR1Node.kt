@@ -1,5 +1,7 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.gpu.GFXState.popDrawCallName
+import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -59,6 +61,7 @@ class FSR1Node : ActionNode(
         val sharpness = getFloatInput(3)
         val color = (getInput(4) as? Texture)?.texOrNull ?: whiteTexture
 
+        pushDrawCallName(name)
         useFrame(width, height, true, f0, copyRenderer) {
             FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)
         }
@@ -74,6 +77,7 @@ class FSR1Node : ActionNode(
 
         setOutput(2, width)
         setOutput(3, height)
+        popDrawCallName()
     }
 
     companion object {

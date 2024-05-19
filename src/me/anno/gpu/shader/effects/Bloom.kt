@@ -1,7 +1,6 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -21,6 +20,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
+import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.iff
 import kotlin.math.exp
 
 object Bloom {
@@ -162,9 +163,11 @@ object Bloom {
     }
 
     private fun addBloom(source: ITexture2D, bloom: ITexture2D, applyToneMapping: Boolean) {
-        val shader = compositionShader.value
+        val shader = compositionShader[(source.samples > 1).toInt()]
         shader.use()
         shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1i("numSamples", source.samples)
+        shader.v1f("invNumSamples", 1f / source.samples)
         source.bindTrulyNearest(0)
         bloom.bind(1, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         flat01.draw(shader)
@@ -174,34 +177,45 @@ object Bloom {
     private val forwardShaderY = createForwardShader(0, 1, false)
     private val forwardShader0 = createForwardShader(1, 0, true)
 
-    private val compositionShader = lazy {
+    private val compositionShader = Array(2) {
+        val msIn = it > 0
         Shader(
-            "bloom", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "composeBloom", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 Variable(GLSLType.V1B, "applyToneMapping"),
-                Variable(GLSLType.S2D, "base"),
-                Variable(GLSLType.S2D, "bloom")
+                Variable(if (msIn) GLSLType.S2DMS else GLSLType.S2D, "base"),
+                Variable(GLSLType.S2D, "bloom"),
+                Variable(GLSLType.V1I, "numSamples"),
+                Variable(GLSLType.V1F, "invNumSamples")
             ), "" +
                     ShaderFuncLib.randomGLSL +
                     Renderers.tonemapGLSL +
                     "void main(){\n" +
-                    "   vec3 color0 = pow(texture(base,uv).rgb,vec3(2.2));\n" +
-                    "   vec3 color1 = color0 + texture(bloom, uv).rgb;\n" +
-                    // todo noise should depend on used destination
-                    // - random(uv) * ${1.0 / 255.0}
-                    "   if(applyToneMapping) color1 = tonemapLinear(color1);\n" +
-                    "   color1 = pow(color1,vec3(1.0/2.2));\n" +
-                    "   result = vec4(color1.rgb, 1.0);\n" +
+                    "   vec3 sum = vec3(0.0), bloom = texture(bloom, uv).rgb;\n" +
+                    "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n".iff(msIn) +
+                    "   for(int i=0;i<numSamples;i++){\n".iff(msIn) +
+                    "       vec3 color = texture(base,uv).rgb;\n".iff(!msIn) +
+                    "       vec3 color = texelFetch(base,uvi,i).rgb;\n".iff(msIn) +
+                    "       color = pow(color,vec3(2.2));\n" + // srgb -> linear
+                    "       color += bloom;\n" +
+                    "       if(applyToneMapping) {\n" +
+                    "           color = tonemapLinear(color);\n" +
+                    "       }\n" +
+                    "       sum += color;\n" +
+                    "   }\n".iff(msIn) +
+                    "   sum = sum * invNumSamples;\n" +
+                    "   sum = pow(sum,vec3(1.0/2.2));\n" + // linear -> srgb
+                    "   result = vec4(sum, 1.0);\n" +
                     "}\n"
         ).apply { setTextureIndices("base", "bloom") }
     }
 
-    fun bloom(source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {
+    fun bloom(source: ITexture2D, sourceMS: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {
         GFXState.renderPurely {
             val steps = forwardPass(source, strength, offset)
             val bloom = backwardPass(steps)
-            addBloom(source, bloom, applyToneMapping)
+            addBloom(sourceMS, bloom, applyToneMapping)
         }
     }
 }

@@ -63,8 +63,6 @@ interface ITexture2D : ICacheData {
         createImage(flipY, withAlpha).write(dst)
     }
 
-    fun wrapAsFramebuffer(): IFramebuffer
-
     fun createdOrNull(): ITexture2D? {
         return if (isCreated()) this else null
     }

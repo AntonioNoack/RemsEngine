@@ -21,6 +21,10 @@ object NullFramebuffer : IFramebuffer {
 
     override fun ensure() {}
 
+    override fun ensureSize(newWidth: Int, newHeight: Int, newDepth: Int) {
+        // more isn't supported
+    }
+
     override fun bindDirectly() {
         Framebuffer.bindFramebuffer(GL46C.GL_FRAMEBUFFER, 0)
         Frame.lastPtr = 0

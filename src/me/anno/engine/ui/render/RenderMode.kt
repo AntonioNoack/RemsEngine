@@ -131,6 +131,7 @@ class RenderMode(
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())
+                .then(FXAANode())
                 .finish()
         )
 
@@ -162,7 +163,6 @@ class RenderMode(
         val ALPHA = RenderMode("Opacity (Alpha)", DeferredLayerType.ALPHA)
 
         val UV = RenderMode("UVs", uvRenderer)
-        // mode to show bone weights? ask for it, if you're interested :)
 
         val TANGENT = RenderMode("Tangent", DeferredLayerType.TANGENT)
         val BITANGENT = RenderMode("Bitangent", DeferredLayerType.BITANGENT)

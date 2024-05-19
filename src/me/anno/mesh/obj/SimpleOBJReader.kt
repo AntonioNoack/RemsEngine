@@ -29,13 +29,15 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
         facePositions.addAll(positions, index * 3, 3)
     }
 
+    private fun readCoordinate() {
+        skipSpaces()
+        positions += readFloat()
+    }
+
     private fun readPosition() {
-        skipSpaces()
-        positions += readFloat()
-        skipSpaces()
-        positions += readFloat()
-        skipSpaces()
-        positions += readFloat()
+        readCoordinate()
+        readCoordinate()
+        readCoordinate()
         skipLine()
         numPositions++
     }
@@ -87,13 +89,13 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
         findPoints@ while (true) {
             skipSpaces()
             val next = next()
-            if (next in 48..58 || next == minus) {
+            if (next in 48..58 || next == MINUS) {
                 putBack(next)
                 val vertexIndex = readIndex(numPositions)
-                if (putBack == slash) {
+                if (putBack == SLASH) {
                     putBack = -1
                     readInt()
-                    if (putBack == slash) {
+                    if (putBack == SLASH) {
                         putBack = -1
                         readInt()
                     }
@@ -105,52 +107,27 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
             } else break@findPoints
         }
 
-        when (pointCount) {
-            0 -> {
-            } // nothing...
-            1 -> {
-                // a single, floating point
-                putPoint(0)
-                putPoint(0)
-                putPoint(0)
+        val pattern = patterns.getOrNull(pointCount - 1)
+        if (pattern != null) {
+            for (i in pattern) {
+                putPoint(i)
             }
-            2 -> {
-                // a line...
-                putPoint(0)
-                putPoint(1)
-                putPoint(1)
+        } else if (pointCount > 0) {
+            // triangulate the points correctly
+            // currently is the most expensive step, because of so many allocations:
+            // points, the array, the return list, ...
+            val points2 = (0 until points.size).map {
+                Vector3d(positions.values, points[it])
             }
-            3 -> {
-                putPoint(0)
-                putPoint(1)
-                putPoint(2)
-            }
-            4 -> {
-                putPoint(0)
-                putPoint(1)
-                putPoint(2)
-                putPoint(2)
-                putPoint(3)
-                putPoint(0)
-            }
-            else -> {
-                // triangulate the points correctly
-                // currently is the most expensive step, because of so many allocations:
-                // points, the array, the return list, ...
-                val points2 = (0 until points.size).map {
-                    Vector3d(positions.values, points[it])
-                }
-                val triangles = Triangulation.ringToTrianglesVec3d(points2)
-                facePositions.ensureExtra(triangles.size * 3)
-                for (i in triangles.indices) {
-                    facePositions.add(triangles[i])
-                }
+            val triangles = Triangulation.ringToTrianglesVec3d(points2)
+            facePositions.ensureExtra(triangles.size * 3)
+            for (i in triangles.indices) {
+                facePositions.add(triangles[i])
             }
         }
     }
 
     init {
-
         try {
             while (true) {
                 // read the line
@@ -169,12 +146,18 @@ class SimpleOBJReader(input: InputStream, val file: FileReference) : TextFileRea
             }
         } catch (_: EOFException) {
         }
-
         mesh.positions = facePositions.toFloatArray()
         reader.close()
     }
 
     companion object {
+        private val patterns = arrayOf(
+            intArrayOf(0, 0, 0),
+            intArrayOf(0, 1, 1),
+            intArrayOf(0, 1, 2),
+            intArrayOf(0, 1, 2, 2, 3, 0)
+        )
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(SimpleOBJReader::class)
     }

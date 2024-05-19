@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
+import me.anno.utils.Color.argb
 import me.anno.utils.Color.rgb
 import me.anno.utils.Color.rgba
 
