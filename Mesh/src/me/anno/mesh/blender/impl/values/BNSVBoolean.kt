@@ -7,7 +7,7 @@ import me.anno.mesh.blender.ConstructorData
  * https://github.com/blender/blender/blob/main/source/blender/makesdna/DNA_node_types.h
  * */
 class BNSVBoolean(ptr: ConstructorData) : BNSValue(ptr) {
-    val value = byte("value") != 0.toByte()
+    val value = i8("value") != 0.toByte()
 
     override fun toString(): String {
         return value.toString()

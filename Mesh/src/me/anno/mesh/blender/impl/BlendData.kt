@@ -20,17 +20,17 @@ open class BlendData(ptr: ConstructorData) {
 
     val address get() = file.blockTable.getAddressAt(position)
 
-    fun byte(offset: Int) = buffer.get(position + offset)
-    fun short(offset: Int) = buffer.getShort(position + offset)
-    fun int(offset: Int) = buffer.getInt(position + offset)
-    fun long(offset: Int) = buffer.getLong(position + offset)
+    fun i8(offset: Int) = buffer.get(position + offset)
+    fun i16(offset: Int) = buffer.getShort(position + offset)
+    fun u16(offset: Int) = buffer.getShort(position + offset).toInt().and(0xffff)
+    fun i32(offset: Int) = buffer.getInt(position + offset)
+    fun i64(offset: Int) = buffer.getLong(position + offset)
+    fun f32(offset: Int) = buffer.getFloat(position + offset)
 
-    fun float(offset: Int) = buffer.getFloat(position + offset)
-    fun double(offset: Int) = buffer.getDouble(position + offset)
-
-    fun floats(offset: Int, size: Int): FloatArray {
+    fun f32s(name: String, size: Int): FloatArray = f32s(getOffset(name), size)
+    fun f32s(offset: Int, size: Int): FloatArray {
         return FloatArray(size) { index ->
-            float(offset + index.shl(2))
+            f32(offset + index.shl(2))
         }
     }
 
@@ -55,16 +55,13 @@ open class BlendData(ptr: ConstructorData) {
         }
     }
 
-    fun floats(name: String, size: Int): FloatArray =
-        floats(getOffset(name), size)
-
     fun mat4x4(offset: Int): Matrix4f {
         // +x, +z, -y
         return Matrix4f(
-            float(offset + 0), float(offset + 4), float(offset + 8), float(offset + 12),
-            float(offset + 16), float(offset + 20), float(offset + 24), float(offset + 28),
-            float(offset + 32), float(offset + 36), float(offset + 40), float(offset + 44),
-            float(offset + 48), float(offset + 52), float(offset + 56), float(offset + 60)
+            f32(offset + 0), f32(offset + 4), f32(offset + 8), f32(offset + 12),
+            f32(offset + 16), f32(offset + 20), f32(offset + 24), f32(offset + 28),
+            f32(offset + 32), f32(offset + 36), f32(offset + 40), f32(offset + 44),
+            f32(offset + 48), f32(offset + 52), f32(offset + 56), f32(offset + 60)
         )
     }
 
@@ -92,21 +89,21 @@ open class BlendData(ptr: ConstructorData) {
 
     fun getOffsetOrNull(name: String) = dnaStruct.byName[name]?.offset
 
-    fun byte(name: String): Byte = byte(getOffset(name))
-    fun short(name: String): Short = short(getOffset(name))
-    fun int(name: String): Int = int(getOffset(name))
-    fun float(name: String): Float = float(getOffset(name))
-    fun float(name: String, defaultValue: Float): Float {
+    fun i8(name: String): Byte = i8(getOffset(name))
+    fun i16(name: String): Short = i16(getOffset(name))
+    fun i32(name: String): Int = i32(getOffset(name))
+    fun f32(name: String): Float = f32(getOffset(name))
+    fun f32(name: String, defaultValue: Float): Float {
         val field = getField(name)
         return if (field != null) {
-            float(field.offset)
+            f32(field.offset)
         } else defaultValue
     }
 
-    fun int(name: String, defaultValue: Int): Int {
+    fun i32(name: String, defaultValue: Int): Int {
         val field = getField(name)
         return if (field != null) {
-            int(field.offset)
+            i32(field.offset)
         } else defaultValue
     }
 
@@ -124,7 +121,7 @@ open class BlendData(ptr: ConstructorData) {
     }
 
     private fun getRawString(position: Int, length: Int): String {
-        return raw(position, length).decodeToString()
+        return getRawI8s(position, length).decodeToString()
     }
 
     fun charPointer(name: String): String? = charPointer(getOffset(name))
@@ -145,7 +142,7 @@ open class BlendData(ptr: ConstructorData) {
         return getRawString(position, remainingSize)
     }
 
-    fun raw(position: Int, length: Int): ByteArray {
+    fun getRawI8s(position: Int, length: Int): ByteArray {
         val bytes = ByteArray(length)
         val pos = buffer.position()
         // read bytes
@@ -156,7 +153,11 @@ open class BlendData(ptr: ConstructorData) {
         return bytes
     }
 
-    fun pointer(offset: Int) = if (file.pointerSize == 4) int(offset).toLong() else long(offset)
+    fun getRawI32s(position: Int, length: Int): IntArray {
+        return IntArray(length) { buffer.getInt(position + it * 4) }
+    }
+
+    fun pointer(offset: Int) = if (file.pointerSize == 4) i32(offset).toLong() else i64(offset)
 
     fun inside(name: String) = inside(dnaStruct.byName[name])
     fun inside(field: DNAField?): BlendData? {
@@ -210,13 +211,15 @@ open class BlendData(ptr: ConstructorData) {
         } else listOf(inside(field))
     }
 
-
-    fun <V : BlendData> getInstantList(name: String, maxSize: Int = Int.MAX_VALUE): BInstantList<V>? =
-        getInstantList(dnaStruct.byName[name], maxSize)
+    fun <V : BlendData> getInstantList(name: String, maxSize: Int = Int.MAX_VALUE): BInstantList<V>? {
+        // println("reading instance list for $name")
+        return getInstantList(dnaStruct.byName[name], maxSize)
+    }
 
     fun <V : BlendData> getInstantList(field: DNAField?, maxSize: Int): BInstantList<V>? {
         field ?: return null
         if (field.decoratedName.startsWith("*")) {
+            // println("reading instance list for $field")
             val address = pointer(field.offset)
             if (address == 0L) return null
             val block = file.blockTable.findBlock(file, address) ?: return null
@@ -224,15 +227,18 @@ open class BlendData(ptr: ConstructorData) {
             val type = file.dnaTypeByName[className]!!
             var typeSize = type.size
             val struct: DNAStruct
-            if (type.size == 0 || type.name == "void") {
+            if (typeSize == 0 || type.name == "void") {
                 struct = file.structs[block.sdnaIndex]
                 className = struct.type.name
-                typeSize = file.pointerSize
+                typeSize = struct.type.size
+                // println("typeSize by pointer, ${type.size}/${type.name} | $struct")
             } else {
                 struct = file.structByName[className]!!
+                // println("typeSize by $type")
             }
             val addressInBlock = address - block.address
             val remainingSize = block.size - addressInBlock
+            // println("Length: min($remainingSize/$typeSize, $maxSize)")
             val length = min((remainingSize / typeSize).toInt(), maxSize)
 
             // todo getOrCreate() isn't working... why?

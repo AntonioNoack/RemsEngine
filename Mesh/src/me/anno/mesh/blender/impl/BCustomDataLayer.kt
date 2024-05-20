@@ -6,7 +6,7 @@ import me.anno.mesh.blender.impl.BCustomLayerType.Companion.idToValue
 @Suppress("unused")
 class BCustomDataLayer(ptr: ConstructorData) : BlendData(ptr) {
 
-    val type = int("type")
+    val type = i32("type")
 
     // val offset = int("offset")
     // val active = int("active")

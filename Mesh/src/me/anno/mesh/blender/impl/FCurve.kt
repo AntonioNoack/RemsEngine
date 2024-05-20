@@ -18,17 +18,17 @@ class FCurve(ptr: ConstructorData) : BLink<FCurve>(ptr) {
     // auto_smoothing: char, array_index: int, *rna_path: char, color_mode: int,
     // color[3]: float, prev_norm_factor: float, prev_offset: float
 
-    val userKeyframes = getInstantList<BezTriple>("*bezt") ?: BInstantList.emptyList()
+    val userKeyframes = getInstantList<BezTriple>("*bezt") ?: emptyList()
     val group get() = getPointer("*grp") as? BActionGroup
     val path = charPointer("*rna_path") ?: ""
-    val arrayIndex = int("array_index")
+    val arrayIndex = i32("array_index")
     // val keyFrames = getStructArray("*fpt")
 
     val lastKeyframeIndex get() = userKeyframes.last().controlKfIndex
 
     fun getValueAt(time: Float): Float {
         val kf = userKeyframes
-        if (kf.size == 0) return 0f
+        if (kf.isEmpty()) return 0f
         if (kf.size == 1) return kf.first().controlKfValue
         // find correct index for interpolation
         var idx = BinarySearch.binarySearch(kf.size) {

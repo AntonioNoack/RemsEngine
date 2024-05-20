@@ -5,15 +5,19 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
 import me.anno.mesh.Triangulation
+import me.anno.mesh.blender.impl.BCustomLayerType
 import me.anno.mesh.blender.impl.BInstantList
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BlendData
+import me.anno.mesh.blender.impl.helper.IAPolyList
+import me.anno.mesh.blender.impl.helper.VEJoinList
+import me.anno.mesh.blender.impl.interfaces.LoopLike
+import me.anno.mesh.blender.impl.interfaces.PolyLike
 import me.anno.mesh.blender.impl.interfaces.UVLike
 import me.anno.mesh.blender.impl.mesh.MDeformVert
-import me.anno.mesh.blender.impl.mesh.MLoop
 import me.anno.mesh.blender.impl.mesh.MLoopUV
-import me.anno.mesh.blender.impl.mesh.MPoly
+import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector3f
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -39,9 +43,6 @@ object BlenderMeshConverter {
 
     fun convertBMesh(src: BMesh): Prefab? {
 
-        // todo make modern Blender 4.1 meshes work
-        //  it says 12 vertices, but only 8 are valid for a cube...,
-        //  and where are our indices???
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("fdata: {}", src.fData)
             LOGGER.debug("edata: {}", src.eData)
@@ -66,8 +67,31 @@ object BlenderMeshConverter {
         val numVertices = vertices?.size ?: newVertices!!.size
         val positions = FloatArray(numVertices * 3)
         val materials: List<BlendData?> = src.materials ?: emptyList()
-        val polygons = src.polygons ?: BInstantList.emptyList()
-        val loopData = src.loops ?: BInstantList.emptyList()
+        val polygons0 = src.polyOffsetIndices
+
+        @Suppress("UNCHECKED_CAST")
+        val materialIndices0 = src.pData.layers
+            .firstOrNull { it.name == "material_index" && it.type == BCustomLayerType.PROP_INT.id }
+            ?.data as? List<BVector1i> ?: emptyList()
+
+        val polygons1 = if (polygons0 != null) IAPolyList(polygons0, materialIndices0) else emptyList()
+        val polygons: List<PolyLike> = src.polygons ?: polygons1
+
+        var loopData: List<LoopLike>? = src.loops
+        if (loopData == null) {
+            val lData = src.lData
+
+            @Suppress("UNCHECKED_CAST")
+            val vs = lData.layers.firstOrNull { it.name == ".corner_vert" && it.type == BCustomLayerType.PROP_INT.id }
+                ?.data as? BInstantList<BVector1i>
+
+            @Suppress("UNCHECKED_CAST")
+            val es = lData.layers.firstOrNull { it.name == ".corner_edge" && it.type == BCustomLayerType.PROP_INT.id }
+                ?.data as? BInstantList<BVector1i>
+            loopData = if (vs != null && es != null) {
+                VEJoinList(vs, es)
+            } else emptyList()
+        }
 
         val prefab = Prefab("Mesh")
         prefab["materials"] = materials.map { (it as? BMaterial)?.fileRef ?: InvalidRef }
@@ -137,8 +161,6 @@ object BlenderMeshConverter {
                 else -> size - 2
             }.toLong()
         }
-
-        println("triCount: $triCount0")
 
         if (triCount0 < 0 || triCount0 > maxNumTriangles) {
             LOGGER.warn("Invalid number of triangles in ${src.id.realName}: $triCount0")
@@ -224,8 +246,8 @@ object BlenderMeshConverter {
         vertexCount: Int,
         positions: FloatArray,
         normals: FloatArray?,
-        polygons: BInstantList<MPoly>,
-        loopData: BInstantList<MLoop>,
+        polygons: List<PolyLike>,
+        loopData: List<LoopLike>,
         uvs: List<UVLike>,
         boneWeights: BInstantList<MDeformVert>?,
         numVertexGroups: Int,
@@ -297,7 +319,7 @@ object BlenderMeshConverter {
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart
-            val materialIndex = polygon.materialIndex.toUShort().toInt()
+            val materialIndex = polygon.materialIndex
             when (val loopSize = polygon.loopSize) {
                 0 -> {
                 }
@@ -394,8 +416,8 @@ object BlenderMeshConverter {
     fun collectIndices(
         positions: FloatArray,
         normals: FloatArray?,
-        polygons: BInstantList<MPoly>,
-        loopData: BInstantList<MLoop>,
+        polygons: List<PolyLike>,
+        loopData: List<LoopLike>,
         boneWeights: BInstantList<MDeformVert>?,
         numVertexGroups: Int,
         materialIndices: IntArray?,
@@ -407,7 +429,7 @@ object BlenderMeshConverter {
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart
-            val materialIndex = polygon.materialIndex.toUShort().toInt()
+            val materialIndex = polygon.materialIndex
             when (val loopSize = polygon.loopSize) {
                 0 -> {
                 }

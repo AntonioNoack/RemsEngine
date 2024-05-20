@@ -10,15 +10,15 @@ class BMaterial(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
 
-    val r = float("r", 1f)
-    val g = float("g", 1f)
-    val b = float("b", 1f)
-    val a = float("a", 1f) // or alpha?
+    val r = f32("r", 1f)
+    val g = f32("g", 1f)
+    val b = f32("b", 1f)
+    val a = f32("a", 1f) // or alpha?
 
-    val roughness = float("roughness", 1f)
-    val metallic = float("metallic", 0f)
+    val roughness = f32("roughness", 1f)
+    val metallic = f32("metallic", 0f)
 
-    val useNodes = byte("use_nodes") != 0.toByte()
+    val useNodes = i8("use_nodes") != 0.toByte()
     val nodeTree = if (useNodes) getPointer("*nodetree") as? BNodeTree else null
 
     var fileRef: FileReference = InvalidRef

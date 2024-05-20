@@ -9,11 +9,11 @@ import org.joml.Vector3f
  * */
 class BNSVVector(ptr: ConstructorData) : BNSValue(ptr) {
 
-    val min = float("min")
-    val max = float("max")
+    val min = f32("min")
+    val max = f32("max")
     val value = run {
         val valueOffset = getOffset("value[3]")
-        Vector3f(float(valueOffset), float(valueOffset + 4), float(valueOffset + 8))
+        Vector3f(f32(valueOffset), f32(valueOffset + 4), f32(valueOffset + 8))
     }
 
     override fun toString(): String {

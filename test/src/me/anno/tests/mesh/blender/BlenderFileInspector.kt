@@ -1,10 +1,15 @@
 package me.anno.tests.mesh.blender
 
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.mesh.blender.BinaryFile
 import me.anno.mesh.blender.BlenderFile
+import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.blender.impl.BMesh
 import me.anno.mesh.blender.impl.BlendData
+import me.anno.mesh.gltf.GLTFWriter
 import me.anno.tests.LOGGER
+import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Strings.spaces
 
@@ -12,6 +17,12 @@ fun main() {
     // inspect all properties
     val folder = documents.getChild("Blender")
     val src = folder.getChild("GlassMaterialTest.blend")
+    InnerFolderCache.registerSignatures("blend", BlenderReader::readAsFolder)
+    val sample = MeshCache[src, false]
+    println(sample)
+    if (sample != null) {
+        GLTFWriter().write(sample, desktop.getChild(src.nameWithoutExtension + ".glb"))
+    }
     val file = BlenderFile(BinaryFile(src.readByteBufferSync(false)), folder)
     println("Version ${file.version}")
     val mesh = file.instances["Mesh"]!!.first() as BMesh
@@ -19,8 +30,10 @@ fun main() {
 }
 
 fun inspect(structure: BlendData, indent: Int, depth: Int) {
-    // todo I can't find the mesh indices :(, and 12 vertices is too little for a cube without them
-    println("${spaces(2 * indent)}${structure.javaClass.simpleName}:")
+    println("${spaces(2 * indent)}${structure.javaClass.simpleName}[${structure.dnaStruct.type.size}]:")
+    if (structure is BMesh) {
+        println("  *polyOffsetIndices: ${structure.polyOffsetIndices?.toList()}")
+    }
     val pre = spaces(2 * (indent + 1))
     for (field in structure.dnaStruct.fields
         .filter { !it.decoratedName.startsWith("_pad") }
@@ -29,14 +42,14 @@ fun inspect(structure: BlendData, indent: Int, depth: Int) {
         val size = field.arraySizeOr1
         val idx = (0 until size)
         when (field.type.name) {
-            "int" -> println("$pre$name: [i32] ${idx.map { structure.int(field.offset + 4 * it) }}")
-            "float" -> println("$pre$name: [f32] ${idx.map { structure.float(field.offset + 4 * it) }}")
+            "int" -> println("$pre$name: [i32] ${idx.map { structure.i32(field.offset + 4 * it) }}")
+            "float" -> println("$pre$name: [f32] ${idx.map { structure.f32(field.offset + 4 * it) }}")
             "char" -> {
                 if (name.endsWith(']')) println("$pre$name: '${structure.string(field.offset, 256)}'")
-                else println("$pre$name: [i8] ${structure.byte(field.offset)}")
+                else println("$pre$name: [i8] ${structure.i8(field.offset)}")
             }
-            "short" -> println("$pre$name: [i16] ${idx.map { structure.short(field.offset + it * 2) }}")
-            "ushort" -> println("$pre$name: [u16] ${idx.map { structure.short(field.offset + it * 2) }}")
+            "short" -> println("$pre$name: [i16] ${idx.map { structure.i16(field.offset + it * 2) }}")
+            "ushort" -> println("$pre$name: [u16] ${idx.map { structure.i16(field.offset + it * 2) }}")
             else -> {
                 if (depth > 0) {
                     if (name.startsWith("*")) {

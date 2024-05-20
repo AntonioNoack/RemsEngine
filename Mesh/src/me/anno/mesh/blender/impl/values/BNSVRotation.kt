@@ -11,7 +11,7 @@ class BNSVRotation(ptr: ConstructorData) : BNSValue(ptr) {
 
     val value = run {
         val valueOffset = getOffset("value_euler[3]") // order???
-        Vector3f(float(valueOffset), float(valueOffset + 4), float(valueOffset + 8))
+        Vector3f(f32(valueOffset), f32(valueOffset + 4), f32(valueOffset + 8))
     }
 
     override fun toString(): String {

@@ -119,9 +119,9 @@ open class JsonWriter(val output: OutputStream) {
     }
 
     inline fun writeObject(writeAttributes: () -> Unit) {
-        beginArray()
+        beginObject()
         writeAttributes()
-        endArray()
+        endObject()
     }
 
     fun finish() {

@@ -14,8 +14,8 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
     //val views = inside("views") as BListBase<BImageView>
 
     // old stuff
-    val genX = int("gen_x")
-    val genY = int("gen_y")
+    val genX = i32("gen_x")
+    val genY = i32("gen_y")
     //val genZ = short("gen_depth")
     //val genType = byte("gen_type")
     //val genColor = floats("gen_color[4]", 4)
@@ -28,7 +28,7 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
      * IMA_SRC_VIEWER = 5, // used for 'Render Result'
      * IMA_SRC_TILED = 6,
      * */
-    val source = short("source")
+    val source = i16("source")
 
     /**
      * IMA_TYPE_IMAGE = 0,
@@ -39,7 +39,7 @@ class BImage(ptr: ConstructorData) : BlendData(ptr) {
      * IMA_TYPE_R_RESULT = 4,
      * IMA_TYPE_COMPOSITE = 5,
      * */
-    val type = short("type")
+    val type = i16("type")
 
     val packedFiles = inside("packedfiles") as? BListBase<BImagePackedFile>
 

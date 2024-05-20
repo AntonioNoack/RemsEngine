@@ -54,7 +54,7 @@ import me.anno.mesh.blender.impl.nodes.BTexMapping
 import me.anno.mesh.blender.impl.primitives.BVector2f
 import me.anno.mesh.blender.impl.primitives.BVector2i
 import me.anno.mesh.blender.impl.primitives.BVector3f
-import me.anno.mesh.blender.impl.primitives.MIntProperty
+import me.anno.mesh.blender.impl.primitives.BVector1i
 import me.anno.mesh.blender.impl.values.BNSVBoolean
 import me.anno.mesh.blender.impl.values.BNSVFloat
 import me.anno.mesh.blender.impl.values.BNSVInt
@@ -329,7 +329,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "vec2f" -> BVector2f(ptr)
             "vec3f" -> BVector3f(ptr)
             "vec2i" -> BVector2i(ptr)
-            "MIntProperty" -> MIntProperty(ptr)
+            "MIntProperty" -> BVector1i(ptr)
             "DrawDataList" -> DrawDataList(ptr)
             else -> {
                 LOGGER.warn("Skipping instance of class $clazz")

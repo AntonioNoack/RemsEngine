@@ -10,9 +10,9 @@ class BVector3f(ptr: ConstructorData) : BlendData(ptr) {
     private val yOffset = getOffset("y")
     private val zOffset = getOffset("z")
 
-    val x get() = float(xOffset)
-    val y get() = float(yOffset)
-    val z get() = float(zOffset)
+    val x get() = f32(xOffset)
+    val y get() = f32(yOffset)
+    val z get() = f32(zOffset)
 
     override fun toString(): String {
         return "($x, $y, $z)"

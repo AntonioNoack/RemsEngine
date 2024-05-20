@@ -7,8 +7,8 @@ class BCamera(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as? BID
 
-    val near = float("clipsta")
-    val far = float("clipend")
-    val orthoScale = float("ortho_scale")
+    val near = f32("clipsta")
+    val far = f32("clipend")
+    val orthoScale = f32("ortho_scale")
 
 }

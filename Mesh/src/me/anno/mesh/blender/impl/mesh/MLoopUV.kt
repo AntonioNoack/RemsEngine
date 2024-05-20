@@ -10,8 +10,8 @@ class MLoopUV(ptr: ConstructorData) : BlendData(ptr), UVLike {
     // save the lookup
     private val uvOffset = getOffset("uv[2]")
 
-    override val u get() = float(uvOffset)
-    override val v get() = float(uvOffset + 4)
+    override val u get() = f32(uvOffset)
+    override val v get() = f32(uvOffset + 4)
 
     override fun toString(): String = "($u $v)"
 

@@ -10,9 +10,9 @@ class MLoopCol(ptr: ConstructorData) : BlendData(ptr) {
     private val bOffset = getOffset("b")
     private val aOffset = getOffset("a")
 
-    val r get() = byte(rOffset)
-    val g get() = byte(gOffset)
-    val b get() = byte(bOffset)
-    val a get() = byte(aOffset)
+    val r get() = i8(rOffset)
+    val g get() = i8(gOffset)
+    val b get() = i8(bOffset)
+    val a get() = i8(aOffset)
 
 }

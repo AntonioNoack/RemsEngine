@@ -8,8 +8,8 @@ import me.anno.mesh.blender.ConstructorData
  * */
 class BNSVInt(ptr: ConstructorData) : BNSValue(ptr) {
 
-    val min = int("min")
-    val max = int("max")
+    val min = i32("min")
+    val max = i32("max")
     val value = getOffset("value")
 
     override fun toString(): String {

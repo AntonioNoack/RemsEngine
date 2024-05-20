@@ -10,7 +10,7 @@ import org.joml.Vector4f
 class BNSVRGBA(ptr: ConstructorData) : BNSValue(ptr) {
     val value = run {
         val valueOffset = getOffset("value[4]")
-        Vector4f(float(valueOffset), float(valueOffset + 4), float(valueOffset + 8), float(valueOffset + 12))
+        Vector4f(f32(valueOffset), f32(valueOffset + 4), f32(valueOffset + 8), f32(valueOffset + 12))
     }
 
     override fun toString(): String {

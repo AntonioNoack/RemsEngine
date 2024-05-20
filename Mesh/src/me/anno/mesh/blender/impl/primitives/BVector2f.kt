@@ -10,8 +10,8 @@ class BVector2f(ptr: ConstructorData) : BlendData(ptr), UVLike {
     private val xOffset = getOffset("x")
     private val yOffset = getOffset("y")
 
-    val x get() = float(xOffset)
-    val y get() = float(yOffset)
+    val x get() = f32(xOffset)
+    val y get() = f32(yOffset)
 
     override val u: Float get() = x
     override val v: Float get() = y

@@ -21,30 +21,31 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
 
     val materials get() = getPointerArray("**mat")
 
-    val numFaces = int("totface")
-    val numVertices = int("totvert")
-    val numEdges = int("totedge")
-    val numPolygons = int("totpoly")
-    val numLoops = int("totloop")
-    val numColors = int("totcol")
+    val numFacesOld = i32("totface")
+    val numVertices = i32("totvert")
+    val numEdges = i32("totedge")
+    val numPolygons = i32("totpoly") // = num_faces
+    val numLoops = i32("totloop")
+    val numColors = i32("totcol")
 
     // dvert = deform group vertices
 
-    val vertices = getInstantList<MVert>("*mvert")
-    val polygons = getInstantList<MPoly>("*mpoly")
-    val loops = getInstantList<MLoop>("*mloop")
+    val vertices = getInstantList<MVert>("*mvert", numVertices)
+    val polygons = getInstantList<MPoly>("*mpoly", numPolygons)
+    val loops = getInstantList<MLoop>("*mloop", numLoops)
 
     // in newer Blender versions, this apparently has become a custom data layer,
     //  however we find those; src: https://projects.blender.org/blender/blender/commit/6c774feba2c9a1eb5834646f597a0f2c63177914
     // -> in my sample mesh, I found it in lData with name 'UVMap' as MLoopUV, too :)
     val loopUVs = getInstantList<MLoopUV>("*mloopuv")
-    val loopColor = getInstantList<MLoopCol>("*mloopcol")
+    val loopColor get() = getInstantList<MLoopCol>("*mloopcol")
+
     // old
     // val mFaces = ptr("*mface")
     // val mtFaces = ptr("*mtface")
     // val tFaces = ptr("*tface")
-    val edges = getInstantList<MEdge>("*medge")
-    val colors = getInstantList<MLoopCol>("*mcol")
+    val edges get() = getInstantList<MEdge>("*medge")
+    val colors get() = getInstantList<MLoopCol>("*mcol")
 
     // texture space (?)
     // val location get() = vec3f("loc[3]")
@@ -65,4 +66,14 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
 
     val editMesh get() = getPointer("*edit_mesh")
 
+    val polyOffsetIndices by lazy {
+        // data could become complicated, if it was split into multiple blocks
+        val offset = getOffset("*poly_offset_indices")
+        if (offset >= 0) {
+            val pointer = pointer(offset)
+            val block = file.blockTable.findBlock(file, pointer)!!
+            val dataPosition = pointer + block.dataOffset
+            getRawI32s(dataPosition.toInt(), numPolygons + 1)
+        } else null
+    }
 }

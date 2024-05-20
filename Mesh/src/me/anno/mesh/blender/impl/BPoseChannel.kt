@@ -27,8 +27,8 @@ class BPoseChannel(ptr: ConstructorData) : BLink<BPoseChannel>(ptr) {
     val bone =
         getPointer("*bone") as? BBone // seems to be set, but I think there isn't really a gurantee, and boneName is safer
 
-    val mat0 = floats("chan_mat[4][4]", 16) // I think this one is the one we need
-    val mat1 = floats("pose_mat[4][4]", 16)
+    val mat0 = f32s("chan_mat[4][4]", 16) // I think this one is the one we need
+    val mat1 = f32s("pose_mat[4][4]", 16)
 
     override fun toString(): String {
         return "bPoseChannel { '$boneName', [${mat0.joinToString()}], [${mat1.joinToString()}] }"

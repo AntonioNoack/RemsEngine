@@ -28,8 +28,9 @@ class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : Li
      * Accordingly, this method is not thread-safe.
      * */
     override operator fun get(index: Int): V {
-        if (index !in 0 until size)
+        if (index !in 0 until size) {
             throw IndexOutOfBoundsException("$index !in 0 until $size")
+        }
         val instance = instance!!
         instance.position = position0 + typeSize * index
         return instance

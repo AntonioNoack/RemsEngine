@@ -8,20 +8,20 @@ import me.anno.mesh.blender.ConstructorData
 @Suppress("SpellCheckingInspection")
 class BLamp(ptr: ConstructorData) : BlendData(ptr) {
 
-    val r = float("r")
-    val g = float("g")
-    val b = float("b")
+    val r = f32("r")
+    val g = f32("g")
+    val b = f32("b")
 
-    val type = int("type")
+    val type = i32("type")
 
-    val energy = float("energy")
+    val energy = f32("energy")
 
-    val cascadeExponent = float("cascade_exponent", 4f)
-    val cascadeCount = int("cascade_count", 0)
+    val cascadeExponent = f32("cascade_exponent", 4f)
+    val cascadeCount = i32("cascade_count", 0)
 
-    val pointRadius = float("radius")
+    val pointRadius = f32("radius")
 
-    val spotRadius = float("spotsize")
+    val spotRadius = f32("spotsize")
 
     /**
      *   LA_AREA_SQUARE = 0,
@@ -29,9 +29,9 @@ class BLamp(ptr: ConstructorData) : BlendData(ptr) {
      *   LA_AREA_DISK = 4,
      *   LA_AREA_ELLIPSE = 5,
      * */
-    val areaShape = short("area_shape")
-    val areaSizeX = float("area_size")
-    val areaSizeY = float("area_sizey")
+    val areaShape = i16("area_shape")
+    val areaSizeX = f32("area_size")
+    val areaSizeY = f32("area_sizey")
     // val areaSizeZ = float("area_sizez") // unused??
 
     // {id=ID(152)@0, *adt=AnimData(104)@152, type=short(2)@160, flag=short(2)@162, mode=int(4)@164,

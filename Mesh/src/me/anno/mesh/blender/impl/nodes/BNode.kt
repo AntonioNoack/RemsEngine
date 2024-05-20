@@ -15,10 +15,10 @@ class BNode(ptr: ConstructorData) : BLink<BNode>(ptr) {
 
     val id = getPointer("*id")
 
-    val editorX = float("locx")
-    val editorY = float("locy")
-    val editorWidth = float("width")
-    val editorHeigth = float("height")
+    val editorX = f32("locx")
+    val editorY = f32("locy")
+    val editorWidth = f32("width")
+    val editorHeigth = f32("height")
 
     val inputs = (inside("inputs") as BListBase<BNodeSocket>).toList()
     val outputs = (inside("outputs") as BListBase<BNodeSocket>).toList()

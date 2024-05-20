@@ -13,7 +13,7 @@ class BPose(ptr: ConstructorData) : BlendData(ptr) {
     // stride_offset[3]: float, cyclic_offset[3]: float, agroups: ListBase, active_group: int, iksolver: int,
     // *ikdata: void, *ikparam: void, avs: bAnimVizSettings
 
-    val time = float("ctime")
+    val time = f32("ctime")
     val channels = inside("chanbase") as BListBase<BPoseChannel>
 
     override fun toString(): String {

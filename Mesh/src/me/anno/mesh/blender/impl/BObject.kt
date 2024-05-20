@@ -30,8 +30,8 @@ class BObject(ptr: ConstructorData) : BlendData(ptr) {
 
     val id = inside("id") as BID
     val materials get() = getStructArray("**mat")
-    val type = short("type")
-    val parType = short("partype")
+    val type = i16("type")
+    val parType = i16("partype")
     val parent get() = getPointer("*parent") as? BObject
 
     // Final worldspace matrix with constraints & animsys applied.

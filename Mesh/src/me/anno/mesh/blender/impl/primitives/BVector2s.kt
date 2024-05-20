@@ -15,8 +15,8 @@ class BVector2s(ptr: ConstructorData) : BlendData(ptr) {
     private val xOffset = getOffset("x")
     private val yOffset = getOffset("y")
 
-    val x get() = short(xOffset)
-    val y get() = short(yOffset)
+    val x get() = i16(xOffset)
+    val y get() = i16(yOffset)
 
     override fun toString(): String {
         return "($x, $y)"

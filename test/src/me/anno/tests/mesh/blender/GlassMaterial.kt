@@ -9,12 +9,12 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 
 fun main() {
-    // todo check whether glass bdrf node is working
-    // todo check that IOR is assigned
+    // check whether glass bdrf node is working -> yes
+    // check that IOR is assigned -> yes
+    // check that material IDs are working -> yes :D
     OfficialExtensions.initForTests()
     LogManager.define("BlenderMeshConverter", Level.DEBUG)
     val mesh = MeshCache[documents.getChild("Blender/GlassMaterialTest.blend"), false]!!
-    println(mesh)
-    if (false) testSceneWithUI("Blender Glass", mesh)
+    testSceneWithUI("Blender Glass", mesh)
     Engine.requestShutdown()
 }

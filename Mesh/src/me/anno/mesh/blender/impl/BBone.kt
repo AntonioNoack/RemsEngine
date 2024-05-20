@@ -14,12 +14,12 @@ class BBone(ptr: ConstructorData) : BLink<BBone>(ptr) {
 
     val children = inside("childbase") as BListBase<BBone>
 
-    val roll = float("roll")
-    val head = floats("head[3]", 3)
-    val tail = floats("tail[3]", 3)
-    val boneMat = floats("bone_mat[3][3]", 9)
+    val roll = f32("roll")
+    val head = f32s("head[3]", 3)
+    val tail = f32s("tail[3]", 3)
+    val boneMat = f32s("bone_mat[3][3]", 9)
 
-    val restPose = floats("arm_mat[4][4]", 16)
+    val restPose = f32s("arm_mat[4][4]", 16)
 
     /*
     *  *next: Bone, *prev: Bone, *prop: IDProperty, *parent: Bone, childbase: ListBase,

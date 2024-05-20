@@ -263,7 +263,7 @@ object BlenderReader {
         val folder = InnerFolder(ref)
         val file = BlenderFile(binaryFile, ref.getParent())
         clock.stop("read blender file")
-        file.printStructs()
+        // file.printStructs()
 
         var fps = 30f
         for (scene in file.instances["Scene"] ?: emptyList()) {
