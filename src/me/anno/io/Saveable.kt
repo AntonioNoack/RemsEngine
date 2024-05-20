@@ -214,10 +214,7 @@ open class Saveable {
             val clazz = entry.classPath
             val oldInstance = objectTypeRegistry[className]?.classPath
             if (oldInstance != null && oldInstance != clazz) {
-                LOGGER.warn(
-                    "Overriding registered class {} from type {} with {}",
-                    className, oldInstance::class, clazz
-                )
+                LOGGER.warn("Overriding registered class {} from type {} with {}", className, oldInstance, clazz)
             }
             if (print) {
                 LOGGER.info("Registering {}", className)

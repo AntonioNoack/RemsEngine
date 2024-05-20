@@ -31,8 +31,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         this.duration = duration
     }
 
-    final override var name: String = ""
-
     @SerializedProperty
     var duration = 1f
 

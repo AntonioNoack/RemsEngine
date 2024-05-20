@@ -47,11 +47,11 @@ class ImportedAnimation : Animation() {
     }
 
     override fun getMatrices(frameIndex: Int, dst: List<Matrix4x3f>): List<Matrix4x3f> {
-        return frames[frameIndex]
+        return frames.getOrNull(frameIndex) ?: emptyList()
     }
 
     override fun getMatrix(frameIndex: Int, boneId: Int, dst: List<Matrix4x3f>): Matrix4x3f? {
-        return frames[frameIndex].getOrNull(boneId)
+        return frames.getOrNull(frameIndex)?.getOrNull(boneId)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -62,14 +62,19 @@ class ImportedAnimation : Animation() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFloatArray2D("frames", frames.map { joinValues(it) })
+        writer.writeMatrix4x3fList2D("frames", frames)
     }
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "frames" -> frames = (value as? List<*>)
-                ?.filterIsInstance<FloatArray>()
-                ?.map { splitValues(it) } ?: return
+            "frames" -> frames = (value as? List<*> ?: emptyList<Any?>())
+                .mapNotNull { list ->
+                    when (list) {
+                        is List<*> -> list.filterIsInstance<Matrix4x3f>()
+                        is FloatArray -> splitValues(list)
+                        else -> null
+                    }
+                }
             else -> super.setProperty(name, value)
         }
     }

@@ -590,6 +590,7 @@ object AnimatedMeshesLoader {
         prefab["boneCount"] = numBones
         prefab["translations"] = instance.translations
         prefab["rotations"] = instance.rotations
+        prefab["scales"] = instance.scales
         if (globalTransform != null) prefab["globalTransform"] = globalTransform
         if (globalInverseTransform != null) prefab["globalInvTransform"] = globalInverseTransform
         return prefab

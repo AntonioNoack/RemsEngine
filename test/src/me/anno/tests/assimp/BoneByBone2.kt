@@ -50,7 +50,7 @@ fun main() {
     scene.add(mesh)
 
     for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
-        LOGGER.debug(
+        LOGGER.info(
             "Bone ${bone.id}: ${bone.name}${" ".repeat(Maths.max(0, 80 - bone.name.length))}" +
                     "f0: ${animation.getTranslation(0, bone.id, Vector3f())}, " +
                     "${animation.getRotation(0, bone.id, Quaternionf())}"
