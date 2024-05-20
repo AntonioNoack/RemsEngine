@@ -37,6 +37,7 @@ object PrefabCache : CacheSection("Prefab") {
     var prefabTimeout = 60_000L
 
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
+    val debugLoading get() = LOGGER.isDebugEnabled()
 
     operator fun get(resource: FileReference?, async: Boolean): Prefab? =
         pairToPrefab(getPrefabPair(resource, maxPrefabDepth, prefabTimeout, async), async)
@@ -235,7 +236,6 @@ object PrefabCache : CacheSection("Prefab") {
         } else callback(null, null)
     }
 
-    var debugLoading = true
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
@@ -308,13 +308,13 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     private fun loadPrefabPair(file: FileReference, lastModified: Long): FileReadPrefabData {
-        if (debugLoading) LOGGER.info("Loading $file@$lastModified")
+        if (debugLoading) LOGGER.debug("Loading {}@{}", file, lastModified)
         ensureClasses()
         val data = FileReadPrefabData(file)
         loadPrefab4(file) { loaded, e ->
             data.value = loaded
             if (loaded != null) FileWatch.addWatchDog(file)
-            if (debugLoading) LOGGER.info(
+            if (debugLoading) LOGGER.debug(
                 "Loaded ${file.absolutePath.shorten(200)}, " +
                         "got ${loaded?.className}@${hash32(loaded)}"
             )

@@ -68,10 +68,11 @@ object RaycastMesh {
                 //  so only build it if truly necessary
                 //  - async builder?
                 //  - build only if demand is high?
-                val blas = mesh.raycaster ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
+                val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
                 val t1 = System.nanoTime()
                 if (t1 - t0 > MILLIS_TO_NANOS) {
-                    LOGGER.warn("Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}")
+                    LOGGER.warn("Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
+                            "${mesh.numPrimitives} primitives")
                 }
                 if (blas != null) {
                     mesh.raycaster = blas

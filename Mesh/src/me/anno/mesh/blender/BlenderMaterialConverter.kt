@@ -160,7 +160,7 @@ object BlenderMaterialConverter {
                         "ShaderNodeBsdfPrincipled" -> {
                             // extract all properties as far as possible
                             val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
-                            LOGGER.info("ShaderNodeBsdfPrincipled.diffuse: $diffuse")
+                            LOGGER.debug("ShaderNodeBsdfPrincipled.diffuse: {}", diffuse)
                             if (diffuse != null) {
                                 val base = diffuse.first
                                 val gamma = 1f / 2.2f

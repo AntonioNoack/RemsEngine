@@ -53,7 +53,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         val index = msg.indexOf("{}")
         return if (index >= 0) {
             val arg = arg0.toString()
-            val builder = StringBuilder(msg.length + arg.length)
+            val builder = StringBuilder(msg.length + arg.length - 2)
             builder.append(msg, 0, index)
             builder.append(arg)
             builder.append(msg, index + 2, msg.length)

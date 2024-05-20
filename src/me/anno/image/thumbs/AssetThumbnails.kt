@@ -467,18 +467,18 @@ object AssetThumbnails {
 
     @JvmStatic
     fun generateAssetFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
-    ) = generateAssetFrame(
-        PrefabCache.getPrefabInstance(srcFile),
-        srcFile, dstFile, size, callback
-    )
+    ) {
+        PrefabCache.getPrefabInstanceAsync(srcFile) { prefab, err ->
+            if (prefab != null) generateAssetFrame(prefab, srcFile, dstFile, size, callback)
+            else callback.err(err)
+        }
+    }
 
     @JvmStatic
     fun generateAssetFrame(
-        asset: Saveable?,
+        asset: Saveable,
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
