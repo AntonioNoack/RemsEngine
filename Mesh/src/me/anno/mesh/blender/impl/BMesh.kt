@@ -71,9 +71,11 @@ class BMesh(ptr: ConstructorData) : BlendData(ptr) {
         val offset = getOffset("*poly_offset_indices")
         if (offset >= 0) {
             val pointer = pointer(offset)
-            val block = file.blockTable.findBlock(file, pointer)!!
-            val dataPosition = pointer + block.dataOffset
-            getRawI32s(dataPosition.toInt(), numPolygons + 1)
+            val block = file.blockTable.findBlock(file, pointer)
+            if (block != null) {
+                val dataPosition = pointer + block.dataOffset
+                getRawI32s(dataPosition.toInt(), numPolygons + 1)
+            } else null
         } else null
     }
 }

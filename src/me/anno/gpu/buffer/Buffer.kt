@@ -110,7 +110,9 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     override fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, drawMode: DrawMode) {
+        GFX.check()
         bind(shader) // defines drawLength
+        GFX.check()
         if (drawLength > 0) {
             draw(drawMode, 0, drawLength)
             unbind(shader)

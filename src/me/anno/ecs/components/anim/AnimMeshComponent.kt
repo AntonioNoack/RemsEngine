@@ -8,8 +8,8 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
@@ -26,7 +26,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.image.thumbs.Thumbs
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -157,7 +156,7 @@ open class AnimMeshComponent : MeshComponent() {
             return false
         }
 
-        if (useAnimTextures) {
+        if (useAnimTextures && skeleton.bones.isNotEmpty()) {
 
             updateAnimState()
 
@@ -255,6 +254,7 @@ open class AnimMeshComponent : MeshComponent() {
 
     open fun getAnimTexture(): Texture2D? {
         val skeleton = SkeletonCache[skeleton] ?: return null
+        if (skeleton.bones.isEmpty()) return null
         return AnimationCache[skeleton].texture
     }
 
@@ -266,6 +266,9 @@ open class AnimMeshComponent : MeshComponent() {
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {
             lastWarning = "Skeleton missing"
+            return false
+        } else if (skeleton.bones.isEmpty()) {
+            lastWarning = "Skeleton bones missing"
             return false
         }
 

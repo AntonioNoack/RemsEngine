@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
+import kotlin.math.max
 import kotlin.math.min
 
 // done for low end gpus
@@ -39,7 +40,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private val animationMap = HashMap<Animation, AnimTexIndex>()
     private val animationList = ArrayList<AnimTexIndex>()
     private var nextStart = 0
-    private val textureWidth = skeleton.bones.size * 3
+    private val textureWidth = max(skeleton.bones.size * 3, 1)
     private var internalTexture = Texture2D("anim", textureWidth, 64, 1)
 
     val texture: Texture2D?
@@ -165,8 +166,9 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
                 internalTexture.height *= 2
             }
             for (data in animationList) {
-                if (data.start < oldSize)
+                if (data.start < oldSize) {
                     updateAnimation(data.anim, data.start)
+                }
             }
         }
     }
@@ -184,5 +186,4 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         @JvmField
         var useAnimTextures = true
     }
-
 }

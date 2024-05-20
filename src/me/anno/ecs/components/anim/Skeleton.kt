@@ -2,18 +2,19 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
+import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
@@ -125,6 +126,17 @@ class Skeleton : PrefabSaveable(), Renderable {
         dst as Skeleton
         dst.animations = HashMap(animations)
         dst.bones = ArrayList(bones)
+    }
+
+    override fun setProperty(name: String, value: Any?) {
+        if (!setSerializableProperty(name, value)) {
+            super.setProperty(name, value)
+        }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        saveSerializableProperties(writer)
     }
 
     companion object {

@@ -179,7 +179,7 @@ object Bloom {
 
     private val compositionShader = Array(2) {
         val msIn = it > 0
-        Shader(
+        val shader = Shader(
             "composeBloom", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
@@ -204,11 +204,14 @@ object Bloom {
                     "       }\n" +
                     "       sum += color;\n" +
                     "   }\n".iff(msIn) +
-                    "   sum = sum * invNumSamples;\n" +
+                    "   sum *= invNumSamples;\n".iff(msIn) +
                     "   sum = pow(sum,vec3(1.0/2.2));\n" + // linear -> srgb
                     "   result = vec4(sum, 1.0);\n" +
                     "}\n"
-        ).apply { setTextureIndices("base", "bloom") }
+        )
+        shader.setTextureIndices("base", "bloom")
+        shader.ignoreNameWarnings("numSamples,invNumSamples")
+        shader
     }
 
     fun bloom(source: ITexture2D, sourceMS: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {

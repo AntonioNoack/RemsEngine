@@ -262,7 +262,9 @@ open class Texture2D(
         val w = width
         val h = height
         val target = target
-        if (w * h <= 0) throw IllegalArgumentException("Cannot create empty texture")
+        if (w * h <= 0) {
+            throw IllegalArgumentException("Cannot create empty texture, $w x $h")
+        }
         check()
         if (createdW == w && createdH == h && data != null && !withMultisampling) {
             uploadPartial(target, w, h, dataFormat, dataType, unbind, data)

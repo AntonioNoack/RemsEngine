@@ -82,7 +82,7 @@ open class BlendData(ptr: ConstructorData) {
         val byName = getField(name)
         if (byName != null) return byName.offset
         if (name != "no[3]") {
-            LOGGER.warn("field $name is unknown, available: ${dnaStruct.byName}")
+            LOGGER.warn("field $name is unknown")
         }// else no[3] is expected to be missing from newer Blender files
         return -1
     }

@@ -41,6 +41,17 @@ object BlenderMeshConverter {
         }
     }
 
+    private fun getNewPolygons(src: BMesh): List<PolyLike> {
+        val polygons0 = src.polyOffsetIndices
+
+        @Suppress("UNCHECKED_CAST")
+        val materialIndices0 = src.pData.layers
+            .firstOrNull { it.name == "material_index" && it.type == BCustomLayerType.PROP_INT.id }
+            ?.data as? List<BVector1i> ?: emptyList()
+
+        return if (polygons0 != null) IAPolyList(polygons0, materialIndices0) else emptyList()
+    }
+
     fun convertBMesh(src: BMesh): Prefab? {
 
         if (LOGGER.isDebugEnabled()) {
@@ -53,10 +64,12 @@ object BlenderMeshConverter {
 
         val vertices = src.vertices
 
-        @Suppress("UNCHECKED_CAST")
-        val newVertices = src.vData.layers
-            .firstOrNull { it.name == "position" }
-            ?.data as? BInstantList<BVector3f>
+        val newVertices = if (vertices == null) {
+            @Suppress("UNCHECKED_CAST")
+            src.vData.layers
+                .firstOrNull { it.name == "position" }
+                ?.data as? BInstantList<BVector3f>
+        } else null
         if (vertices == null && newVertices == null) {
             LOGGER.warn("${src.id.realName} has no vertices")
             // how can there be meshes without vertices?
@@ -67,15 +80,7 @@ object BlenderMeshConverter {
         val numVertices = vertices?.size ?: newVertices!!.size
         val positions = FloatArray(numVertices * 3)
         val materials: List<BlendData?> = src.materials ?: emptyList()
-        val polygons0 = src.polyOffsetIndices
-
-        @Suppress("UNCHECKED_CAST")
-        val materialIndices0 = src.pData.layers
-            .firstOrNull { it.name == "material_index" && it.type == BCustomLayerType.PROP_INT.id }
-            ?.data as? List<BVector1i> ?: emptyList()
-
-        val polygons1 = if (polygons0 != null) IAPolyList(polygons0, materialIndices0) else emptyList()
-        val polygons: List<PolyLike> = src.polygons ?: polygons1
+        val polygons: List<PolyLike> = src.polygons ?: getNewPolygons(src)
 
         var loopData: List<LoopLike>? = src.loops
         if (loopData == null) {

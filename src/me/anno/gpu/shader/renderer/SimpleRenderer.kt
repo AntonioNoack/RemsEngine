@@ -7,14 +7,9 @@ open class SimpleRenderer(
     name: String,
     // null, if not deferred
     deferredSettings: DeferredSettings?,
-    private val postProcessingImpl: List<ShaderStage>
+    private val postProcessing: List<ShaderStage>
 ) : Renderer(name, deferredSettings) {
+    constructor(name: String, postProcessing: ShaderStage) : this(name, null, listOf(postProcessing))
 
-    constructor(name: String, postProcessingImpl: ShaderStage) :
-            this(name, null, listOf(postProcessingImpl))
-
-    constructor(name: String, postProcessingImpl: List<ShaderStage>) :
-            this(name, null, postProcessingImpl)
-
-    override fun getPixelPostProcessing(flags: Int): List<ShaderStage> = postProcessingImpl
+    override fun getPixelPostProcessing(flags: Int): List<ShaderStage> = postProcessing
 }
