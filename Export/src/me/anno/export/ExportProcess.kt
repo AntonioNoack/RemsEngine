@@ -38,11 +38,11 @@ object ExportProcess {
             replaceReflections(sources)
         }
 
-        // todo build .jar file from export settings and current project
-        //  - collect all required files
+        // build .jar file from export settings and current project
+        //  todo - collect all required files
         //  - exclude those that were explicitly excluded
         //  - respect platform (Linux/Windows/MacOS) settings in config file
-        //  - option for Android build
+        //  todo - option for Android build
 
         // override icon if needed
         if (settings.iconOverride.exists) {

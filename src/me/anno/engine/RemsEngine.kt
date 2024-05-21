@@ -70,11 +70,6 @@ import org.joml.Matrix4f
 
 // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
-// todo spellchecking could then become a mod :)
-//  - UI could become one, too,
-//  - and ECS, but I'm not sure where to place their intersections
-//  -> this is a build-stage optimization, so we could just annotate classes to be removed :)
-
 // games, which we want to develop:
 //  - city builder
 //          on a globe would be cool
@@ -211,9 +206,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
             openStylingWindow(windowStack)
         }
 
-        // todo bug: why is options invisible???
         list.add(options)
-
         list.add(ECSSceneTabs)
 
         val project = currentProject!!

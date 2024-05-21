@@ -162,6 +162,8 @@ object GFXState {
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
         invalidateState()
+        val vao = GL46C.glCreateVertexArrays()
+        GL46C.glBindVertexArray(vao)
         if (session != 1) {
             // clear all caches, which contain gpu data
             FBStack.clear()

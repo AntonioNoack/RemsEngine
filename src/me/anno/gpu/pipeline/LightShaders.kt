@@ -348,7 +348,6 @@ object LightShaders {
                     "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
                     "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                     // ~65k is the limit, after that only Infinity
-                    // todo car sample's light on windows looks clamped... who is clamping it?
                     "vec3 color = mix(diffuseLight, specularLight, reflectivity);\n" +
                     // "light = vec4(fract(-0.01 + finalPosition/worldScale + cameraPosition), 1.0);\n"
                     "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"

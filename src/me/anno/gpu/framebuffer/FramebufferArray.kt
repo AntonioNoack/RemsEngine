@@ -2,7 +2,6 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.newSession
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
@@ -10,7 +9,6 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -284,14 +282,19 @@ class FramebufferArray(
 
     override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {
         return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = FramebufferArray(name, width, height, layers, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = FramebufferArray(
+                name, width, height, layers,
+                samples, targets, DepthBufferType.ATTACHMENT
+            )
             buffer.depthAttachment = this
             buffer
         } else {
-            TODO("Framebuffer arrays with attachment depth not yet implemented for ${targets.size} > ${GFX.maxColorAttachments}")
-            /*val buffer = MultiFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            val buffer = MultiFramebufferArray(
+                name, width, height, layers,
+                samples, targets, DepthBufferType.ATTACHMENT
+            )
             for (it in buffer.targetsI) it.depthAttachment = this
-            buffer*/
+            buffer
         }
     }
 

@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-// todo (how) can we call them from Lua?
+// (how) can we call them from Lua? -> the Java way, because Lua is using Java reflection iirc
 object EntityStats {
 
     val Entity.sizeOfHierarchy

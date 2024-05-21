@@ -16,29 +16,14 @@ import org.lwjgl.opengl.GL46C.glGenBuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.system.MemoryUtil
 
-class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
+class IndexBuffer(name: String, val base: Buffer, var indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
     OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
-
-    var indices: IntArray = indices
-        set(value) {
-            if (field !== value) {
-                field = value
-                invalidate()
-            }
-        }
 
     var elementsType = AttributeType.UINT32
     var drawMode: DrawMode? = null
 
-    private var vao = -1
-
     override fun createNioBuffer() {
         throw NotImplementedError("You are using this class wrong")
-    }
-
-    override fun onSessionChange() {
-        super.onSessionChange()
-        vao = -1
     }
 
     fun createVAO(shader: Shader, instanceData: Buffer? = null) {
@@ -125,47 +110,16 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         }
     }
 
-    private fun invalidate() {
-        lastShader = null
-    }
-
-    private var lastShader: Shader? = null
     private fun bindBufferAttributes(shader: Shader) {
-        GFX.check()
         shader.potentiallyUse()
         checkSession()
-        // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
-        // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader || !useVAOs) {
-            createVAO(shader)
-        } else bindVAO(vao)
-        lastShader = shader
-        GFX.check()
+        createVAO(shader)
     }
 
-    private var baseAttributes: List<Attribute>? = null
-    private var instanceAttributes: List<Attribute>? = null
-    private var lastInstanceBuffer: Buffer? = null
     private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer?) {
-        GFX.check()
         shader.potentiallyUse()
         checkSession()
-        if (vao <= 0 ||
-            lastInstanceBuffer !== instanceData ||
-            shader !== lastShader ||
-            base.attributes != baseAttributes ||
-            instanceAttributes != instanceData?.attributes ||
-            !useVAOs || renewVAOs
-        ) {
-            lastShader = shader
-            baseAttributes = base.attributes
-            instanceAttributes = instanceData?.attributes
-            lastInstanceBuffer = instanceData
-            createVAO(shader, instanceData)
-        } else {
-            bindVAO(vao)
-        }
-        GFX.check()
+        createVAO(shader, instanceData)
     }
 
     fun bind(shader: Shader) {

@@ -6,9 +6,11 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withoutFlag
 import org.lwjgl.opengl.GL46C
 
 abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUsage) :
@@ -23,26 +25,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             elementCount = value
         }
 
-    var vao = -1
-
-    private fun ensureVAO() {
-        if (useVAOs) {
-            if (vao <= 0) vao = GL46C.glGenVertexArrays()
-        }
-    }
-
-    override fun onSessionChange() {
-        super.onSessionChange()
-        vao = -1
-    }
-
     private var hasWarned = false
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
 
-        ensureVAO()
         ensureBuffer()
-
-        bindVAO(vao)
         bindBuffer(type, pointer)
 
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
@@ -72,40 +58,14 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         }
     }
 
-    private var lastShader: Shader? = null
     private fun bindBufferAttributes(shader: Shader) {
-        GFX.check()
         shader.potentiallyUse()
-        GFX.check()
-        // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
-        //  alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader || !useVAOs) {
-            createVAO(shader)
-        } else {
-            bindVAO(vao)
-        }
-        lastShader = shader
-        GFX.check()
+        createVAO(shader)
     }
 
-    private var baseAttributes: List<Attribute>? = null
-    private var instanceAttributes: List<Attribute>? = null
     private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer?) {
-        GFX.check()
         shader.potentiallyUse()
-        if (vao <= 0 ||
-            attributes != baseAttributes ||
-            instanceAttributes != instanceData?.attributes ||
-            shader !== lastShader || !useVAOs || renewVAOs
-        ) {
-            lastShader = shader
-            baseAttributes = attributes
-            instanceAttributes = instanceData?.attributes
-            createVAO(shader, instanceData)
-        } else {
-            bindVAO(vao)
-        }
-        GFX.check()
+        createVAO(shader, instanceData)
     }
 
     override fun draw(shader: Shader) = draw(shader, drawMode)
@@ -122,13 +82,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     open fun unbind(shader: Shader) {
         bindBuffer(GL46C.GL_ARRAY_BUFFER, 0)
-        if (!useVAOs) {
-            for (index in attributes.indices) {
-                val attr = attributes[index]
-                unbindAttribute(shader, attr.name)
-            }
+        for (index in attributes.indices) {
+            val attr = attributes[index]
+            unbindAttribute(shader, attr.name)
         }
-        bindVAO(0)
     }
 
     override fun drawInstanced(shader: Shader, instanceData: Buffer) {
@@ -182,20 +139,14 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     override fun destroy() {
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
-        val vao = vao
         if (buffer > -1) {
             GFX.addGPUTask("Buffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL46C.glDeleteBuffers(buffer)
-                if (vao >= 0) {
-                    bindVAO(0)
-                    GL46C.glDeleteVertexArrays(vao)
-                }
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
         this.pointer = 0
-        this.vao = -1
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
         }
@@ -230,16 +181,18 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         }
 
         private fun enable(index: Int) {
-            if (useVAOs || !enabledAttributes.hasFlag(1 shl index)) {
+            val flag = 1 shl index
+            if (!enabledAttributes.hasFlag(flag)) {
                 GL46C.glEnableVertexAttribArray(index)
-                enabledAttributes = enabledAttributes or (1 shl index)
+                enabledAttributes = enabledAttributes.withAlpha(flag)
             }
         }
 
         private fun disable(index: Int) {
-            if (useVAOs || enabledAttributes.hasFlag(1 shl index)) {
+            val flag = 1 shl index
+            if (enabledAttributes.hasFlag(flag)) {
                 GL46C.glDisableVertexAttribArray(index)
-                enabledAttributes = enabledAttributes and (1 shl index).inv()
+                enabledAttributes = enabledAttributes.withoutFlag(flag)
             }
         }
 

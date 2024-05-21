@@ -267,20 +267,14 @@ abstract class OpenGLBuffer(
     override fun destroy() {
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
-        val vao = if (this is Buffer) vao else -1
         if (buffer > -1) {
             GFX.addGPUTask("OpenGLBuffer.destroy()", 1) {
                 onDestroyBuffer(buffer)
                 GL46C.glDeleteBuffers(buffer)
-                if (vao >= 0) {
-                    bindVAO(0)
-                    GL46C.glDeleteVertexArrays(vao)
-                }
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
         this.pointer = 0
-        if (this is Buffer) this.vao = -1
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
             nioBuffer = null
@@ -290,22 +284,6 @@ abstract class OpenGLBuffer(
     companion object {
 
         private val LOGGER = LogManager.getLogger(OpenGLBuffer::class)
-
-        // monkey & stuff is invisible with vaos
-        // because VAOs need default values (probably)
-
-        // todo working? looks like it
-        val useVAOs = false
-        val renewVAOs = false
-
-        private var boundVAO = -1
-        fun bindVAO(vao: Int) {
-            val vao2 = if (useVAOs) vao else 0
-            if (vao2 >= 0 && boundVAO != vao2) {
-                boundVAO = vao2
-                GL46C.glBindVertexArray(vao2)
-            }
-        }
 
         // element buffer is stored in VAO -> cannot cache it here
         // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
@@ -325,7 +303,6 @@ abstract class OpenGLBuffer(
 
         fun invalidateBinding() {
             boundBuffers.fill(0)
-            boundVAO = -1
         }
 
         fun onDestroyBuffer(buffer: Int) {

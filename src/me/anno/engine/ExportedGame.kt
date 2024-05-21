@@ -17,7 +17,6 @@ import me.anno.io.utils.StringMap
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelStack
 
-// todo register all classes that we need (not excluded ones)
 class ExportedGame(val config: StringMap) : EngineBase(
     config["gameTitle", "Rem's Engine"],
     config["configName", "config"],

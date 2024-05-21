@@ -25,7 +25,9 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
 
         private const val NODE_CLASS_NAMES = "" +
                 "ConfigGetBoolNode,ConfigGetIntNode,ConfigGetFloatNode,ForNode,IfElseNode,WhileNode,DoWhileNode,PrintNode," +
-                "NotNode,MathB2Node,MathB3Node,MathI1Node,MathI2Node,MathI3Node,MathF1Node,MathF2Node,MathF3Node," +
+                "NotNode,MathB2Node,MathB3Node," +
+                "MathI1Node,MathI2Node,MathI3Node," +
+                "MathF1Node,MathF2Node,MathF3Node," +
                 "MathF1XNode,MathF2XNode,MathF3XNode," +
                 "DotProductNode,CrossProductNode,NormalizeNode," +
                 "RotateF2Node,RotateF3XNode,RotateF3YNode,RotateF3ZNode," +
@@ -48,9 +50,9 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                     { ValueNode(typeName) }
                 } + typeNames.map { typeName ->
                     { InlineBranchNode(typeName) }
-                } + NODE_CLASS_NAMES.split(',').map { name ->
-                    { Saveable.create(name) as? Node ?: throw IllegalStateException("Missing $name") }
-                }
+                } + NODE_CLASS_NAMES.split(',')
+                    .filter { name -> Saveable.create(name) is Node }
+                    .map { name -> { Saveable.create(name) as Node } }
             )
         }
     }

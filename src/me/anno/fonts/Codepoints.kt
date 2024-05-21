@@ -6,7 +6,7 @@ package me.anno.fonts
  * */
 object Codepoints {
 
-    // todo join multi-char emojis, too?
+    // join multi-char emojis, too? -> that seems very complicated
     @JvmStatic
     private fun isHighSurrogate(high: Char): Boolean {
         return high.code in 0xd800..0xdbff

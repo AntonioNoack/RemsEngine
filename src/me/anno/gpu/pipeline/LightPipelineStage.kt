@@ -40,11 +40,6 @@ import org.joml.Vector4f
 
 class LightPipelineStage(var deferred: DeferredSettings?) {
 
-    // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
-    // https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html
-    // source code it at the top of the page
-    // todo or even better, make this rendering part here modular, so you can use any parameters and materials, you want
-
     var visualizeLightCount = false
 
     var depthMode = alwaysDepthMode
@@ -129,15 +124,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
         depthTexture: ITexture2D,
         depthMask: Vector4f,
     ) {
-
-        // todo detect, where MSAA is applicable
-        // todo and then only do computations with MSAA on those pixels
-        //  - render the remaining pixels on a new FB without MSAA
-        // todo we can also separate the case of 2 different fragments, just with some ratio (4x less compute/light lookups)
-        // (twice as many draw calls, but hopefully less work altogether)
-
-        // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
-
         var drawnPrimitives = 0L
         var drawnInstances = 0L
         var drawCalls = 0L

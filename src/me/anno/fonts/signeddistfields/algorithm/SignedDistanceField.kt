@@ -15,8 +15,6 @@ import java.nio.FloatBuffer
 
 object SignedDistanceField {
 
-    // todo char spacing for joint strips
-
     val padding by ConfigRef("rendering.signedDistanceFields.padding", 10f)
     val sdfResolution by ConfigRef("rendering.signedDistanceFields.resolution", 1f)
 

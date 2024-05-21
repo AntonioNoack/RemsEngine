@@ -462,6 +462,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V4F, "clearCoat"),
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
             Variable(GLSLType.V2F, "renderSize"),
+            Variable(GLSLType.V4F, "cameraRotation")
         )
         if (flags.hasFlag(IS_DEFERRED)) {
             list += Variable(GLSLType.SCube, "reflectionMap")
@@ -493,8 +494,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return key.vertexData.onFragmentShader + listOf(
             ShaderStage(
-                "material",
-                createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "cameraRotation")),
+                "material", createFragmentVariables(key),
                 concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties

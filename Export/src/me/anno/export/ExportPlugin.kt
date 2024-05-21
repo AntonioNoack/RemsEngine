@@ -228,7 +228,6 @@ class ExportPlugin : Plugin() {
                 Padding(4), style
             )
         )
-        // todo open quick export: most recent 3 export settings
         val ws = GFX.someWindow.windowStack
         ws.add(Window(ScrollPanelY(ui, style), false, ws))
     }

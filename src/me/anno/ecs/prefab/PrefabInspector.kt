@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
@@ -49,7 +50,7 @@ import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
-import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.javaMethod
 
 /**
  * creates UI to inspect and edit PrefabSaveables
@@ -319,10 +320,6 @@ class PrefabInspector(var reference: FileReference) {
                     val className = clazz.simpleName
                     list.add(applyGroupStyle(TextPanel(className ?: "Anonymous", style)))
                 }
-
-                // todo mesh selection, skeleton selection, animation selection, ...
-                // to do more indentation?
-
                 showProperty(list, reflections, name, property, relevantInstances, style, isWritable)
             }
         }
@@ -479,6 +476,7 @@ class PrefabInspector(var reference: FileReference) {
     ) {
         val debugActionWrapper = PanelListY(style)
         for (action in reflections.debugActions) {
+            val clazz = action.javaMethod?.declaringClass ?: continue
             // todo if there are extra arguments, we would need to create a list inputs for them
             /* for (param in action.parameters) {
                      param.kind
@@ -488,8 +486,7 @@ class PrefabInspector(var reference: FileReference) {
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {
-                        // todo check class using inheritance / whether it exists...
-                        if (instance::class == instances.first()::class) {
+                        if (clazz.isInstance(instance)) {
                             action.call(instance)
                         }
                     }
@@ -508,8 +505,13 @@ class PrefabInspector(var reference: FileReference) {
         list: PanelList, reflections: CachedReflections,
         instances: List<PrefabSaveable>, style: Style
     ) {
-        for (property in reflections.debugProperties) {
-            showDebugProperty(list, property, style, instances)
+        // group them by their @Group-value
+        for ((_, properties) in reflections.debugProperties
+            .groupBy { it.annotations.firstInstanceOrNull<Group>()?.name }) {
+            // todo show title for group
+            for (property in properties) {
+                showDebugProperty(list, property, style, instances)
+            }
         }
     }
 
@@ -517,7 +519,6 @@ class PrefabInspector(var reference: FileReference) {
         list: PanelList, property: CachedProperty, style: Style,
         instances: List<PrefabSaveable>
     ) {
-        // todo group them by their @Group-value
         val title = property.name.camelCaseToTitle()
         val getter = property.getter
         val list1 = PanelListX(style)

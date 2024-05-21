@@ -36,14 +36,7 @@ import me.anno.utils.structures.maps.LazyMap
  * issue: glass panes are not tinted by panes before them
  * */
 class GlassPass : TransparentPass() {
-
-    // todo refractions (of non-transparent objects) :3
-    // this would need a copy of the two buffers we write to
-    // theoretically needs a search, again...
-    // depends on normal
-
     companion object {
-
         val GlassRenderer = object : Renderer(
             "glass", DeferredSettings(
                 listOf(

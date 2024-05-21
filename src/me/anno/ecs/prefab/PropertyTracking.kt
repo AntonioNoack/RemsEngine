@@ -16,12 +16,14 @@ import me.anno.ui.debug.TrackingPanel
 import me.anno.utils.Color
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.Collections.cross
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Quaterniond
 import org.joml.Quaternionf
+import org.joml.Vector
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector2i
@@ -38,6 +40,8 @@ object PropertyTracking {
         return { it: Any? -> if (it == null) 0.0 else getDouble(getter(it), index, 0.0) }
     }
 
+    private val colors = intArrayOf(axisXColor, axisYColor, axisZColor, axisWColor)
+
     fun createTrackingButton(
         list: PanelList,
         insertAfter: PanelListX,
@@ -50,34 +54,12 @@ object PropertyTracking {
         // when clicked, a tracking graph/plot is displayed (real time)
         val channels: List<Pair<(Any?) -> Double, Int>> = when (sample) {
             is Boolean,
-            is UByte, is Byte, is UShort, is Short, is UInt, is Int,
-            is ULong, is Long, is Float, is Double -> listOf(
-                createGetter(0, getter) to Color.white
-            )
-            Vector2f, is Vector2d, is Vector2i -> listOf(
-                createGetter(0, getter) to axisXColor,
-                createGetter(1, getter) to axisYColor,
-            )
-            Vector3f, is Vector3d, is Vector3i -> listOf(
-                createGetter(0, getter) to axisXColor,
-                createGetter(1, getter) to axisYColor,
-                createGetter(2, getter) to axisZColor,
-            )
-            // todo AxisAngle?
-            is Vector4f, is Vector4d, is Vector4i, is Quaternionf, is Quaterniond -> listOf(
-                createGetter(0, getter) to axisXColor,
-                createGetter(1, getter) to axisYColor,
-                createGetter(2, getter) to axisZColor,
-                createGetter(3, getter) to axisWColor,
-            )
-            is AABBf, is AABBd -> listOf(
-                createGetter(0, getter) to axisXColor,
-                createGetter(1, getter) to axisYColor,
-                createGetter(2, getter) to axisZColor,
-                createGetter(3, getter) to axisXColor,
-                createGetter(4, getter) to axisYColor,
-                createGetter(5, getter) to axisZColor,
-            )
+            is Number -> listOf(createGetter(0, getter) to Color.white)
+            is Vector -> {
+                val num = sample.numComponents
+                val limit = if (num == 6) 3 else 4
+                createArrayList(num) { createGetter(it, getter) to colors[it % limit] }
+            }
             // do we need other types?
             null -> return
             else -> {
