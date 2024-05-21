@@ -100,6 +100,6 @@ fun main() {
         flat01.draw(shader)
     }
     target.createImage(flipY = false, withAlpha = true)
-        .write(desktop.getChild("brdf.png"))
+        ?.write(desktop.getChild("brdf.png"))
     println(Reduction.reduce(target.getTexture0(), Reduction.AVG))
 }

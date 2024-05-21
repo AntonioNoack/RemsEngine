@@ -12,34 +12,26 @@ import me.anno.io.Streams.readLE64
 import me.anno.io.Streams.readLE64F
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.FileReference
+import me.anno.utils.structures.Callback
+import me.anno.utils.structures.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
-import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteOrder
 import kotlin.math.min
 
 object NumPyReader {
 
-    fun readNPZ(file: FileReference): Map<String, NumPyData?> {
-        return file.listChildren().associate { readNPYOrNull(it) }
-    }
-
-    fun readNPYOrNull(file: FileReference): Pair<String, NumPyData?> {
-        val name = file.nameWithoutExtension
-        return name to try {
-            readNPY(file)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    fun readNPY(file: FileReference): NumPyData {
-        return readNPY(file.inputStreamSync())
+    fun readNPZ(folder: FileReference, callback: Callback<Map<String, NumPyData?>>) {
+        folder.listChildren().mapCallback<FileReference, Pair<String, NumPyData?>>({ _, file, cb1 ->
+            file.inputStream { stream, err ->
+                err?.printStackTrace()
+                val data = if (stream != null) readNPY(stream) else null
+                cb1.ok(file.nameWithoutExtension to data)
+            }
+        }, { list, err ->
+            callback.call(list?.toMap(), err)
+        })
     }
 
     fun readNPY(input: InputStream): NumPyData {

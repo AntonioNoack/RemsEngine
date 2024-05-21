@@ -18,16 +18,15 @@ object HeavyIterator {
     ) {
         if (source.length() < 1e5) {
             // simple processing for small files
-            val stream = iterable.openStream(source)
-            iterable.onOpen(stream)
-            while (stream.hasNext()) {
-                val next = stream.next()
-                if (iterable.hasInterest(stream, next)) {
-                    iterable.process(stream, next, null, 0, 1)
+            iterable.openStream(source) { stream, err ->
+                if (stream != null) while (stream.hasNext()) {
+                    val next = stream.next()
+                    if (iterable.hasInterest(stream, next)) {
+                        iterable.process(stream, next, null, 0, 1)
+                    }
                 }
+                else err?.printStackTrace()
             }
-            iterable.closeStream(source, stream)
-            iterable.onClose(stream)
         } else {
             var waiting: List<IHeavyIterable<Item, Stream, Processable>>? = null
             val process = synchronized(this) {
@@ -57,30 +56,27 @@ object HeavyIterator {
 
         val first = listOfAll.first()
 
-        val stream = first.openStream(source)
-        for (entry in listOfAll) entry.onOpen(stream)
-
-        while (stream.hasNext()) {
-            val item = stream.next()
-            var interested = 0
-            for (iterable in listOfAll) {
-                if (iterable.hasInterest(stream, item)) {
-                    interested++
-                }
-            }
-            if (interested > 0) {
-                var previous: Processable? = null
-                var i = 0
+        first.openStream(source) { stream, err ->
+            if (stream != null) while (stream.hasNext()) {
+                val item = stream.next()
+                var interested = 0
                 for (iterable in listOfAll) {
                     if (iterable.hasInterest(stream, item)) {
-                        previous = iterable.process(stream, item, previous, i++, interested)
+                        interested++
+                    }
+                }
+                if (interested > 0) {
+                    var previous: Processable? = null
+                    var i = 0
+                    for (iterable in listOfAll) {
+                        if (iterable.hasInterest(stream, item)) {
+                            previous = iterable.process(stream, item, previous, i++, interested)
+                        }
                     }
                 }
             }
+            err?.printStackTrace()
         }
-
-        for (entry in listOfAll) entry.onClose(stream)
-        first.closeStream(source, stream)
 
         // process all instances, which were waiting because of us
         val waiting = synchronized(this) {

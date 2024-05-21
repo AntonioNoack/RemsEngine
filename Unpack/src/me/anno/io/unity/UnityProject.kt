@@ -113,7 +113,8 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     }
 
     fun getMeta(metaFile: FileReference): YAMLNode {
-        return if (metaFile.extension == "meta") {
+        return if (metaFile.lcExtension == "meta") {
+            metaFile.hide()
             getYAML(metaFile)
         } else {
             getMeta(metaFile.getSibling(metaFile.name + ".meta"))

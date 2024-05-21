@@ -5,6 +5,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GPUShader
@@ -381,34 +382,36 @@ class Framebuffer(
         val tex0 = Texture2D.getBindState(0)
         val tex1 = Texture2D.getBindState(1)
         useFrame(dst, Renderer.copyRenderer) {
-            GFX.check()
-            var remainingMask = layerMask and (depthMask - 1)
-            while (remainingMask != 0) {
-                // find next to-process index
-                val i = remainingMask.countTrailingZeroBits()
-                remainingMask = remainingMask.withoutFlag(1 shl i)
+            renderPurely {
+                GFX.check()
+                var remainingMask = layerMask and (depthMask - 1)
+                while (remainingMask != 0) {
+                    // find next to-process index
+                    val i = remainingMask.countTrailingZeroBits()
+                    remainingMask = remainingMask.withoutFlag(1 shl i)
 
-                // execute blit
-                glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
-                if (needsToCopyDepth && depth != null) {
-                    needsToCopyDepth = false
-                    GFX.copyColorAndDepth(textures!![i], depth)
-                    GFX.check()
-                } else {
-                    GFXState.depthMask.use(false) { // don't copy depth
-                        GFX.copy(textures!![i])
+                    // execute blit
+                    glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                    if (needsToCopyDepth && depth != null) {
+                        needsToCopyDepth = false
+                        GFX.copyColorAndDepth(textures!![i], depth)
+                        GFX.check()
+                    } else {
+                        GFXState.depthMask.use(false) { // don't copy depth
+                            GFX.copy(textures!![i])
+                        }
+                        GFX.check()
                     }
-                    GFX.check()
                 }
+                // execute depth blit
+                if (needsToCopyDepth && depth != null) {
+                    drawBuffersN(0)
+                    GFX.copyColorAndDepth(TextureLib.blackTexture, depth)
+                }
+                // reset state, just in case
+                drawBuffersN(textures!!.size)
+                GFX.check()
             }
-            // execute depth blit
-            if (needsToCopyDepth && depth != null) {
-                drawBuffersN(0)
-                GFX.copyColorAndDepth(TextureLib.blackTexture, depth)
-            }
-            // reset state, just in case
-            drawBuffersN(textures!!.size)
-            GFX.check()
         }
         Texture2D.restoreBindState(1, tex1)
         Texture2D.restoreBindState(0, tex0)

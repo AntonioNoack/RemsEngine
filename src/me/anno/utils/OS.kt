@@ -9,19 +9,19 @@ import me.anno.io.files.Reference.getReference
 @Suppress("unused")
 object OS {
 
-    private val osName: String? = System.getProperty("os.name")
+    private val osName: String = System.getProperty("os.name") ?: ""
 
     @JvmField
-    var isWindows = osName != null && osName.contains("windows", true)
+    var isWindows = osName.contains("windows", true)
 
     @JvmField
     var isWeb = osName == "Linux Web"
 
     @JvmField
-    var isLinux = !isWindows && !isWeb // ^^
+    var isMacOS = osName.startsWith("Mac OS") // ^^
 
     @JvmField
-    var isMacOS = false // ^^
+    var isLinux = !isWindows && !isWeb && !isMacOS // ^^
 
     @JvmField
     var isIPhoneOS = false // ^^
@@ -30,7 +30,7 @@ object OS {
     var isIPadOS = false // ^^
 
     @JvmField
-    var isAndroid = false
+    var isAndroid = false // set to true by my Android porting runtime
 
     @JvmStatic
     val supportsNetworkUDP get() = !isWeb

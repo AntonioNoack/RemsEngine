@@ -15,16 +15,13 @@ import me.anno.utils.structures.Callback
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 import java.util.zip.GZIPInputStream
-import java.util.zip.ZipException
 
 class InnerTarFile(
     absolutePath: String,
     val zipFile: FileReference,
-    val getZipStream: () -> ArchiveInputStream,
+    val getZipStream: (callback: Callback<ArchiveInputStream>) -> Unit,
     relativePath: String,
     parent: FileReference,
     val readingPath: String = relativePath
@@ -33,7 +30,6 @@ class InnerTarFile(
     override var signature: Signature? = null
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        val data = data
         if (data != null) super.inputStream(lengthLimit, closeStream, callback)
         else HeavyIterator.iterate(zipFile, TarHeavyIterator(this, callback))
     }
@@ -48,42 +44,36 @@ class InnerTarFile(
                 // only check if valid, later decode it, when required? may be expensive...
                 parent.inputStream { it, exc ->
                     if (it != null) {
-                        callback.ok(createZipRegistryArchive(parent) {
-                            TarArchiveInputStream(GZIPInputStream(it))
-                        })
+                        createTarRegistryArchive(parent, callback) { callback ->
+                            callback.ok(TarArchiveInputStream(GZIPInputStream(it)))
+                        }
                     } else callback.err(exc)
                 }
             }
         }
 
-        fun createZipRegistryArchive(
+        fun createTarRegistryArchive(
             zipFileLocation: FileReference,
-            getStream: () -> ArchiveInputStream
-        ): InnerFolder {
-            val (file, registry) = createMainFolder(zipFileLocation)
-            var hasReadEntry = false
-            var e: Exception? = null
-            try {
-                val zis = getStream()
-                while (true) {
-                    val entry = zis.nextEntry ?: break
-                    hasReadEntry = true
-                    createEntryArchive(zipFileLocation, entry, zis, getStream, registry)
-                }
-                zis.close()
-            } catch (e2: IOException) {
-                e = e2
-            } catch (e2: ZipException) {
-                e = e2
+            callback: Callback<InnerFolder>,
+            getStream: (Callback<ArchiveInputStream>) -> Unit,
+        ) {
+            getStream { zis, err ->
+                if (zis != null) {
+                    val (file, registry) = createMainFolder(zipFileLocation)
+                    while (true) {
+                        val entry = zis.nextEntry ?: break
+                        createEntryArchive(zipFileLocation, entry, zis, getStream, registry)
+                    }
+                    callback.ok(file)
+                } else callback.err(err)
             }
-            return if (hasReadEntry) file else throw e ?: IOException("Zip $zipFileLocation was empty")
         }
 
         fun createEntryArchive(
             zipFile: FileReference,
             entry: ArchiveEntry,
             zis: ArchiveInputStream,
-            getStream: () -> ArchiveInputStream,
+            getStream: (Callback<ArchiveInputStream>) -> Unit,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
             val (parent, path) = InnerFolderCache.splitParent(entry.name)

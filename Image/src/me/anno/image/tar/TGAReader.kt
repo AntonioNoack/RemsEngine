@@ -52,7 +52,7 @@ object TGAReader {
      * @throws IOException if an I/O error occurs
      */
     @JvmStatic
-    fun read(input: InputStream, flip: Boolean): ByteImage {
+    fun read(input: InputStream, flip: Boolean = false): ByteImage {
 
         var flipY = flip
         var flipX = false

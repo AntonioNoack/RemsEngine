@@ -2,10 +2,6 @@ package me.anno.image
 
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.texture.TextureReader
-import me.anno.image.ImageThumbnails.generateICOFrame
-import me.anno.image.ImageThumbnails.generateJPGFrame
-import me.anno.image.ImageThumbnails.generateSVGFrame
-import me.anno.image.ImageThumbnails.generateTGAFrame
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.jpg.ExifOrientation
@@ -21,20 +17,29 @@ import net.sf.image4j.codec.ico.ICOReader
 class ImagePlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
+        registerImageLoading()
+        registerInnerFolder()
+        registerMediaMetadata()
+        registerThumbnails()
+        registerRotatingJpegs()
+    }
 
-        // image loading
-        ImageCache.registerDirectStreamReader("tga") { TGAReader.read(it, false) }
+    private fun registerImageLoading() {
+        ImageCache.registerDirectStreamReader("tga", TGAReader::read)
         ImageCache.registerDirectStreamReader("gimp", GimpImage::read)
         ImageCache.registerDirectStreamReader("exr", EXRReader::read)
         ImageCache.registerDirectStreamReader("qoi", QOIReader::read)
         ImageCache.registerDirectStreamReader("ico", ICOReader::read)
         ImageImpl.register()
+    }
 
+    private fun registerInnerFolder() {
         // image loading with extra details
         InnerFolderCache.registerSignatures("gimp", GimpImage.Companion::readAsFolder)
         InnerFolderCache.registerSignatures("svg", SVGMesh.Companion::readAsFolder)
+    }
 
-        // extracting size information quickly
+    private fun registerMediaMetadata() {
         MediaMetadata.registerSignatureHandler(100, "gimp") { file, signature, dst ->
             if (signature == "gimp") {
                 // Gimp files are a special case, which is not covered by FFMPEG
@@ -68,17 +73,20 @@ class ImagePlugin : Plugin() {
                 }
             } else false
         }
+    }
 
-        // thumbnails
+    private fun registerThumbnails() {
         Thumbs.registerSignatures("qoi", ImageThumbnails::generateImage)
-        Thumbs.registerSignatures("jpg", ::generateJPGFrame)
-        Thumbs.registerSignatures("ico", ::generateICOFrame)
-        Thumbs.registerSignatures("xml", ::generateSVGFrame)
-        Thumbs.registerFileExtensions("tga", ::generateTGAFrame)
-        Thumbs.registerFileExtensions("ico", ::generateICOFrame)
-        Thumbs.registerFileExtensions("svg", ::generateSVGFrame)
+        Thumbs.registerSignatures("jpg", ImageThumbnailsImpl::generateJPGFrame)
+        Thumbs.registerSignatures("ico", ImageThumbnailsImpl::generateICOFrame)
+        Thumbs.registerSignatures("xml", ImageThumbnailsImpl::generateSVGFrame)
+        Thumbs.registerFileExtensions("tga", ImageThumbnailsImpl::generateTGAFrame)
+        Thumbs.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
+        Thumbs.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
         ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
+    }
 
+    private fun registerRotatingJpegs() {
         // rotating jpegs
         TextureReader.findExifRotation = ExifOrientation::findRotation
     }

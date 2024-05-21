@@ -3,18 +3,35 @@ package me.anno.io.unity
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFile.Companion.createRegistry
+import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.io.zip.InnerTarFile
+import me.anno.utils.types.Strings.indexOf2
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.util.zip.GZIPInputStream
+import kotlin.math.min
 
 object UnityPackage {
 
     fun unpack(parent: FileReference, callback: InnerFolderCallback) {
+        InnerTarFile.createTarRegistryArchive(parent, { rawArchive, err ->
+            if (rawArchive != null) unpack(parent, callback, rawArchive)
+            else callback.err(err)
+        }) { cb1 ->
+            parent.inputStream { stream, err ->
+                if (stream != null) cb1.ok(TarArchiveInputStream(GZIPInputStream(stream)))
+                else err?.printStackTrace()
+            }
+        }
+    }
 
-        val getStream = { TarArchiveInputStream(GZIPInputStream(parent.inputStreamSync())) }
-        val rawArchive = InnerTarFile.createZipRegistryArchive(parent, getStream)
+    private fun firstLine(text: String): String {
+        val i0 = min(text.indexOf2('\r'), text.indexOf2('\n'))
+        return text.substring(0, i0)
+    }
+
+    private fun unpack(parent: FileReference, callback: InnerFolderCallback, rawArchive: InnerFolder) {
         try {
             val unityArchive = UnityPackageFolder(parent)
             val registry = createRegistry(unityArchive)
@@ -23,7 +40,7 @@ object UnityPackage {
                 val pathname0 = value.getChild("pathname")
                 if (pathname0.exists && pathname0.length() in 1 until 1024) {
                     val guid = value.name
-                    val name = pathname0.readTextSync()
+                    val name = firstLine(pathname0.readTextSync())
                     val meta = value.getChild("asset.meta")
                     val metaFile = if (meta is InnerTarFile) {
                         createArchiveEntry(parent, "$name.meta", meta, registry)
@@ -32,6 +49,7 @@ object UnityPackage {
                     val assetFile = if (asset is InnerTarFile) {
                         createArchiveEntry(parent, name, asset, registry)
                     } else null
+                    metaFile?.hide()
                     if (metaFile != null && assetFile != null) {
                         unityArchive.project.register(guid, assetFile)
                     }

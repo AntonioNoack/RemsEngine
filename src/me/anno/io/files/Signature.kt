@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.io.InputStream
@@ -142,25 +143,23 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             signatures.remove(signature)
         }
 
-        fun findName(file: FileReference, callback: (String?) -> Unit) {
-            find(file) { callback(it?.name) }
+        fun findName(file: FileReference, callback: Callback<String?>) {
+            find(file) { sig, err -> callback.call(sig?.name, err) }
         }
 
-        fun find(file: FileReference, callback: (Signature?) -> Unit) {
-            if (file is SignatureFile) return callback(file.signature)
-            if (!file.exists) return callback(null)
+        fun find(file: FileReference, callback: Callback<Signature?>) {
+            if (file is SignatureFile) return callback.ok(file.signature)
+            if (!file.exists) return callback.ok(null)
             return when (file) {
-                is PrefabReadable -> callback(signatures.firstOrNull2 { it.name == "json" })
+                is PrefabReadable -> callback.ok(signatures.firstOrNull2 { it.name == "json" })
                 else -> {
                     // reads the bytes, or 255 if at end of file
                     // how much do we read? 🤔
                     // some formats are easy, others require more effort
                     // maybe we could read them piece by piece...
-                    file.inputStream(sampleSize.toLong()) { it, _ ->
-                        if (it != null) {
-                            val bytes = it.readNBytes2(sampleSize, false)
-                            callback(find(bytes))
-                        } else callback(null)
+                    file.inputStream(sampleSize.toLong()) { input, err ->
+                        if (input != null) callback.ok(find(input.readNBytes2(sampleSize, false)))
+                        else callback.err(null)
                     }
                 }
             }
@@ -178,7 +177,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
                     // some formats are easy, others require more effort
                     // maybe we could read them piece by piece...
                     file.inputStreamSync().use { input: InputStream ->
-                        find(ByteArray(sampleSize) { input.read().toByte() })
+                        find(input.readNBytes2(sampleSize, false))
                     }
                 }
             }

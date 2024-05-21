@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.utils.structures.Callback
 
 interface TextGenerator {
     fun calculateSize(text: CharSequence, widthLimit: Int, heightLimit: Int): Int
@@ -10,14 +11,17 @@ interface TextGenerator {
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,
+        callback: Callback<ITexture2D>,
         textColor: Int = -1,
         backgroundColor: Int = 255 shl 24,
         extraPadding: Int = 0
-    ): ITexture2D?
+    )
+
     fun generateASCIITexture(
         portableImages: Boolean,
+        callback: Callback<Texture2DArray>,
         textColor: Int = -1,
         backgroundColor: Int = 255 shl 24,
         extraPadding: Int = 0
-    ): Texture2DArray
+    )
 }

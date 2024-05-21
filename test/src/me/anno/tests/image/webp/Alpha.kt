@@ -12,6 +12,6 @@ fun main() {
     val image = ImageCache[src, false]!!.createIntImage()
     println("alpha-pixels: ${image.data.count { it.a() < 255 }}/${image.data.size}")
     for (file in pictures.getChild("Anime").listChildren()) {
-        Signature.findName(file) { println(it) }
+        Signature.findName(file) { it, _ -> println(it) }
     }
 }

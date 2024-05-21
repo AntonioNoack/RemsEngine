@@ -2,6 +2,7 @@ package me.anno.jvm.fonts
 
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
+import me.anno.fonts.FontManager.getFontSizeIndex
 import me.anno.fonts.FontStats
 import me.anno.fonts.TextGenerator
 import me.anno.fonts.keys.FontKey
@@ -36,13 +37,21 @@ object FontManagerImpl {
 
     private fun getTextGenerator(key: FontKey): TextGenerator {
         val name = key.name
+        val size = getAvgFontSize(key.sizeIndex)
+        return AWTFont(me.anno.fonts.Font(name, size, key.bold, key.italic), getAWTFont(key))
+    }
+
+    fun getAWTFont(key: FontKey): Font {
+        val name = key.name
         val boldItalicStyle = key.italic.toInt(Font.ITALIC) or key.bold.toInt(Font.BOLD)
         val size = getAvgFontSize(key.sizeIndex)
-        return AWTFont(
-            me.anno.fonts.Font(name, size, key.bold, key.italic),
-            awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, size)
-            ?: throw RuntimeException("Font $name was not found")
-        )
+        return awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, size)
+        ?: throw RuntimeException("Font $name was not found")
+    }
+
+    fun getAWTFont(font: me.anno.fonts.Font): Font {
+        val key = FontKey(font.name, getFontSizeIndex(font.size),font.isBold,font.isItalic)
+        return getAWTFont(key)
     }
 
     private fun getInstalledFonts(): List<String> {

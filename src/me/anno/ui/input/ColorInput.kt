@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.EngineBase.Companion.shiftSlowdown
+import me.anno.image.raw.IntImage
 import me.anno.input.Clipboard
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -145,7 +146,11 @@ open class ColorInput(
                 val window = GFX.activeWindow!!
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
-                    MenuOption(NameDesc("Copy #rrggbb")) { Clipboard.setClipboardContent(value.toARGB().toHexColor()) },
+                    MenuOption(NameDesc("Copy #rrggbb")) {
+                        Clipboard.setClipboardContent(
+                            value.toARGB().toHexColor()
+                        )
+                    },
                     MenuOption(NameDesc("Copy Vector")) { Clipboard.setClipboardContent(value.toString()) },
                     MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
                     MenuOption(NameDesc("Pick Color")) {
@@ -257,7 +262,7 @@ open class ColorInput(
                     useFrame(fb) {
                         windowStack.draw(0, 0, fb.width, fb.height, didSomething0 = true, forceRedraw = true)
                     }
-                    val imageData = fb.createImage(flipY = true, withAlpha = false)
+                    val imageData = fb.createImage(flipY = true, withAlpha = false) ?: IntImage(1, 1, false)
                     ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, flipTexture = false, style)
                 } else {
                     val texture = Texture2D("screenshot", screenshot, false)

@@ -43,8 +43,8 @@ object HeavyAccess {
         source: FileReference, task: HeavyTask<Stream>,
         onError: (Exception) -> Unit
     ) {
-        val first = task.requests.first()
-        first.openStream(source) { stream, e ->
+        val first = task.requests.firstOrNull()
+        first?.openStream(source) { stream, e ->
             if (stream != null) {
                 while (true) {
                     val taskI = synchronized(task) {

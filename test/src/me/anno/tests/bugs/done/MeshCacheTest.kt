@@ -9,10 +9,12 @@ import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS.documents
 
+/**
+ * normals look broken, maybe scaled incorrectly???
+ * transforms were broken -> is now fixed :)
+ * */
 fun main() {
     OfficialExtensions.initForTests()
-    // normals look broken, maybe scaled incorrectly???
-    // transforms were broken -> is now fixed :)
     workspace = documents.getChild("RemsEngine/YandereSim")
     val meshFile = workspace.getChild("Walls/Office/meshes/SM_Bld_Floor_Grass_01.json")
     val meshEntity = Entity(MeshComponent(meshFile)).setScale(6.5)

@@ -19,7 +19,8 @@ object ContourImpl {
     private val LOGGER = LogManager.getLogger(ContourImpl::class)
 
     fun calculateContours(font: me.anno.fonts.Font, text: CharSequence): List<Contour> {
-        return calculateContours((FontManager.getFont(font) as AWTFont).awtFont, text)
+        val awtFont = (FontManager.getFont(font) as? AWTFont)?.awtFont ?: FontManagerImpl.getAWTFont(font)
+        return calculateContours(awtFont, text)
     }
 
     private fun calculateContours(font: Font, text: CharSequence): List<Contour> {

@@ -7,7 +7,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.FlatShaders
@@ -22,12 +21,11 @@ import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
-import org.lwjgl.opengl.GL46C.GL_FALSE
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_NONE
 import org.lwjgl.opengl.GL46C.GL_ONE
@@ -47,7 +45,6 @@ import org.lwjgl.opengl.GL46C.GL_TEXTURE_COMPARE_MODE
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_LOD_BIAS
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_MAG_FILTER
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_MIN_FILTER
-import org.lwjgl.opengl.GL46C.GL_TRUE
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.glGenerateMipmap
 import org.lwjgl.opengl.GL46C.glObjectLabel
@@ -168,7 +165,7 @@ open class Texture2DArray(
         }
     }
 
-    fun create(images: List<Image>, sync: Boolean) {
+    fun create(images: List<Image>, sync: Boolean, callback: Callback<Texture2DArray>? = null) {
         // todo we could detect monochrome and such :)
         val intData = IntArray(width * height * layers)
         var i0 = 0
@@ -185,9 +182,12 @@ open class Texture2DArray(
                 intData[i] = convertARGB2RGBA(intData[i])
             }
         }
-        if (sync) createRGBA8(intData)
-        else GFX.addGPUTask("Texture3D.create()", width, height * layers) {
+        if (sync && GFX.isGFXThread()) {
             createRGBA8(intData)
+            callback?.ok(this)
+        } else GFX.addGPUTask("Texture3D.create()", width, height * layers) {
+            createRGBA8(intData)
+            callback?.ok(this)
         }
     }
 

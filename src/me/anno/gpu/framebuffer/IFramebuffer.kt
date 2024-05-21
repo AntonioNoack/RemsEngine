@@ -95,7 +95,7 @@ interface IFramebuffer {
     val depthTexture: ITexture2D?
 
     fun createImage(flipY: Boolean, withAlpha: Boolean) =
-        getTexture0().createImage(flipY, withAlpha)
+        getTexture0().createdOrNull()?.createImage(flipY, withAlpha)
 
     fun clearColor(color: Int, depth: Boolean = false) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), depth)

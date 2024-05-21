@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.LRUCache
@@ -160,9 +161,13 @@ object FontManager {
         if (prev is Texture2DArray && prev.isCreated()) {
             return prev
         }
-        val curr = TextCache.getEntry(font, textureTimeout, false) { key ->
-            getFont(key).generateASCIITexture(false)
-        } as Texture2DArray
+        val entry = TextCache.getEntry(font, textureTimeout, false) { key ->
+            val entry = AsyncCacheData<Texture2DArray>()
+            getFont(key).generateASCIITexture(false, entry)
+            entry
+        } as AsyncCacheData<*>
+        entry.waitForGFX()
+        val curr = entry.value as Texture2DArray
         asciiTexLRU[font] = curr
         return curr
     }
@@ -176,14 +181,16 @@ object FontManager {
         // - textures need to be available
         // - Java/Windows is not thread-safe
         if (cacheKey.text.isBlank2()) return null
-        return TextCache.getEntry(cacheKey, timeoutMillis, async) { key ->
+        val entry = TextCache.getEntry(cacheKey, timeoutMillis, async) { key ->
             val font2 = getFont(key)
             val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
             val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
-            val texture = font2.generateTexture(key.text, wl, hl, key.isGrayscale())
-            if (texture == null) LOGGER.warn("Texture for '$key' was null")
-            texture
-        } as? ITexture2D
+            val entry = AsyncCacheData<ITexture2D>()
+            font2.generateTexture(key.text, wl, hl, key.isGrayscale(), entry)
+            entry
+        } as? AsyncCacheData<*>
+        if (!async) entry?.waitForGFX()
+        return entry?.value as? ITexture2D
     }
 
     fun getFont(key: TextCacheKey): TextGenerator =

@@ -469,7 +469,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
             }
             is PrefabReadable -> AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
-            else -> Signature.findName(srcFile) { signature ->
+            else -> Signature.findName(srcFile) { signature, _ ->
                 generate(srcFile, dstFile, size, signature, callback)
             }
         }
@@ -488,7 +488,6 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
             if (byExtGen != null) {
                 byExtGen.generate(srcFile, dstFile, size, callback)
             } else {
-                // todo thumbnails for Rem's Studio transforms
                 // png, jpg, jpeg, ico, webp, mp4, ...
                 ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
             }

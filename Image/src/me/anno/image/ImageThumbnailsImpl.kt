@@ -24,7 +24,7 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-object ImageThumbnails {
+object ImageThumbnailsImpl {
 
     fun generateJPGFrame(
         srcFile: FileReference, dstFile: HDBKey, size: Int,

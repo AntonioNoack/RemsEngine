@@ -1,5 +1,6 @@
 package me.anno.jvm
 
+import me.anno.gpu.framebuffer.Screenshots
 import me.anno.image.Image
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.input.Output
@@ -22,6 +23,7 @@ object AWTRobot {
     private val LOGGER = LogManager.getLogger(AWTRobot::class)
 
     fun register() {
+        Screenshots.takeSystemScreenshotImpl = ::takeScreenshot
         Output.systemMousePressImpl = { key ->
             robot?.mousePress(Output.keyToRobot(key))
         }

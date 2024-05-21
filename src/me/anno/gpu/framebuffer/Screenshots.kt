@@ -166,7 +166,7 @@ object Screenshots {
 
             GFX.check()
 
-            fun getPixels(renderer: Renderer): IntImage {
+            fun getPixels(renderer: Renderer): IntImage? {
                 // draw only the clicked area?
                 GFXState.useFrame(fb, renderer) {
                     GFX.check()
@@ -180,7 +180,7 @@ object Screenshots {
             GFX.check()
 
             val image = getPixels(renderer)
-            thread(name = "Save Screenshot") {
+            if (image != null) thread(name = "Save Screenshot") {
                 val file = folder.getChild(name)
                 image.write(file)
                 LOGGER.info(

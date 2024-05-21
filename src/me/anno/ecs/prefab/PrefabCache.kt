@@ -173,7 +173,7 @@ object PrefabCache : CacheSection("Prefab") {
             return
         }
         ECSRegistry.init()
-        Signature.findName(file) { signature ->
+        Signature.findName(file) { signature, _ ->
             when (signature) {
                 "json" -> {
                     if (file.lcExtension == "gltf") {

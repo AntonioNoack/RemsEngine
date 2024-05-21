@@ -12,6 +12,6 @@ class ZipHeavyAccess(val self: InnerZipFile, val callback: Callback<InputStream>
     override fun closeStream(source: FileReference, stream: ZipFile) = stream.close()
     override fun process(stream: ZipFile) {
         val entry = stream.getEntry(self.relativePath)
-        stream.getInputStream(entry).use(callback::ok)
+        callback.ok(stream.getInputStream(entry))
     }
 }

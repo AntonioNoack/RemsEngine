@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.Engine
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.AssetThumbHelper
@@ -19,8 +20,8 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
-import java.io.OutputStreamWriter
 import java.nio.ByteBuffer
+import kotlin.math.abs
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -36,6 +37,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(FileReference::class)
+    }
+
+    init {
+        if ('\r' in absolutePath || '\n' in absolutePath) {
+            Engine.requestShutdown()
+            throw IllegalArgumentException(absolutePath)
+        }
     }
 
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;

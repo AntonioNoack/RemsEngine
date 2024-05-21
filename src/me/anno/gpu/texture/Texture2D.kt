@@ -1141,11 +1141,16 @@ open class Texture2D(
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
         val buffer = IntArray(width * height)
+        check()
         useFrame(this, 0) {
+            check()
             glFlush()
             glFinish()
+            check()
             glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            check()
         }
+        check()
         switchRGB2BGR(buffer)
         val image = IntImage(width, height, buffer, channels > 3)
         if (flipY) image.flipY()

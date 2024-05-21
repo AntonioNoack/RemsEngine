@@ -28,7 +28,7 @@ class GameEngineProject() : NamedSaveable() {
     /**
      * is called when a project has been loaded
      * */
-    class ProjectLoadedEvent(val project: GameEngineProject): Event()
+    class ProjectLoadedEvent(val project: GameEngineProject) : Event()
 
     companion object {
 
@@ -105,7 +105,7 @@ class GameEngineProject() : NamedSaveable() {
         }
 
         val lastSceneRef = lastScene.toGlobalFile(location)
-        if (!lastSceneRef.exists) {
+        if (!lastSceneRef.exists && lastSceneRef != InvalidRef) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent().tryMkdirs()
             lastSceneRef.writeText(JsonStringWriter.toText(prefab, InvalidRef))
@@ -176,7 +176,7 @@ class GameEngineProject() : NamedSaveable() {
 
     fun indexResource(file: FileReference) {
         if (file.isDirectory) return
-        Signature.findName(file) { sign ->
+        Signature.findName(file) { sign, _ ->
             when (sign) {
                 "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> {
                     addToIndex(file, "Image") // cpu-side name
@@ -206,7 +206,7 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        when(name){
+        when (name) {
             "lastScene" -> lastScene = value as? String ?: (value as? FileReference)?.absolutePath ?: return
             "maxIndexDepth" -> maxIndexDepth = value as? Int ?: return
             "openTabs" -> {
@@ -215,7 +215,7 @@ class GameEngineProject() : NamedSaveable() {
                 openTabs.addAll(values.filterIsInstance<String>())
                 openTabs.addAll(values.filterIsInstance<FileReference>().map { it.toLocalPath(location) })
             }
-            else-> super.setProperty(name, value)
+            else -> super.setProperty(name, value)
         }
     }
 

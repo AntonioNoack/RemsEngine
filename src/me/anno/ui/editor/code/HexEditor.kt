@@ -1,6 +1,6 @@
 package me.anno.ui.editor.code
 
-import me.anno.cache.CacheData
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheSection
 import me.anno.fonts.Font
 import me.anno.gpu.drawing.DrawRectangles
@@ -437,13 +437,15 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         fun get(file: FileReference, index: Long, async: Boolean): ByteArray? {
             val data = cache.getEntry(Triple(file, file.lastModified, index), timeout, async) { (file1, _, index1) ->
-                val bytes = file1.inputStreamSync()
-                    .use {
-                        it.skipN(index1 * sectionSize)
-                            .readNBytes2(sectionSize, ByteArray(sectionSize), false)
-                    }
-                CacheData(bytes)
-            } as? CacheData<*>
+                val data = AsyncCacheData<ByteArray>()
+                file1.inputStream { it, err ->
+                    data.value = it?.skipN(index1 * sectionSize)
+                        ?.readNBytes2(sectionSize, ByteArray(sectionSize), false)
+                    err?.printStackTrace()
+                }
+                data
+            } as? AsyncCacheData<*>
+            if (!async) data?.waitFor()
             return data?.value as? ByteArray
         }
     }

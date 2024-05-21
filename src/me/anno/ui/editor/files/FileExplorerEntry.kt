@@ -246,9 +246,7 @@ open class FileExplorerEntry(
         }*/
 
         // needs to be disabled in the future, I think
-        if (ref1?.isHidden == true) {
-            isVisible = false
-        }
+        isVisible = ref1?.isHidden != true
 
         backgroundColor = when {
             isInFocus || ref1 in rightClickedFiles -> darkerBackgroundColor

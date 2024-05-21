@@ -30,7 +30,8 @@ class InnerZipFile(
     override var signature: Signature? = null
 
     override fun inputStream(lengthLimit: Long, closeStream: Boolean, callback: Callback<InputStream>) {
-        HeavyAccess.access(zipSource, ZipHeavyAccess(this, callback)) { callback.err(it) }
+        if (data != null) super.inputStream(lengthLimit, closeStream, callback)
+        else HeavyAccess.access(zipSource, ZipHeavyAccess(this, callback)) { callback.err(it) }
     }
 
     companion object {

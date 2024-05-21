@@ -136,6 +136,17 @@ open class IntImage(
         return IntImage(w0, h0, data, hasAlphaChannel, getIndex(x0, y0), stride)
     }
 
+    fun copyInto(other: IntImage, x0: Int, y0: Int) {
+        // todo make this safe
+        val selfData = data
+        val otherData = other.data
+        for (y in 0 until height) {
+            val srcI0 = getIndex(0, y)
+            val dstI0 = other.getIndex(x0, y0 + y)
+            selfData.copyInto(otherData, dstI0, srcI0, srcI0 + width)
+        }
+    }
+
     fun cloneData(): IntArray {
         val clone = Texture2D.intArrayPool[data.size, false, true]
         data.copyInto(clone)

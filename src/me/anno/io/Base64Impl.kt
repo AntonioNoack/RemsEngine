@@ -42,9 +42,16 @@ open class Base64Impl(char62: Char, char63: Char) {
     }
 
     fun encodeBase64(bytes: ByteArray, writePadding: Boolean = false): String {
-        val output = ByteArrayOutputStream((bytes.size * 4 + 2) / 3)
+        val output = ByteArrayOutputStream(ceilDiv(bytes.size * 4, 3))
         encodeBase64(ByteArrayInputStream(bytes), output, writePadding)
         return output.toString()
+    }
+
+    fun decodeBase64(bytes: String): ByteArray {
+        val input = bytes.byteInputStream()
+        val output = ByteArrayOutputStream(ceilDiv(bytes.length * 3, 4))
+        decodeBase64(input, output, false, null)
+        return output.toByteArray()
     }
 
     fun encodeBase64(input: InputStream, output: OutputStream, writePadding: Boolean) {
@@ -80,14 +87,15 @@ open class Base64Impl(char62: Char, char63: Char) {
         input: InputStream,
         output: ByteArrayOutputStream,
         throwIfUnknown: Boolean,
-        callback: Callback<ByteArray>
+        callback: Callback<ByteArray>?
     ) {
         // result is shorter than the input
         val padding = '='.code
         while (true) {
             val ai = input.read()
             if (ai < 0 || ai == padding) {
-                return callback.ok(output.toByteArray())
+                callback?.ok(output.toByteArray())
+                return
             }
             val bi = input.read()
             val ci = input.read()
@@ -105,7 +113,8 @@ open class Base64Impl(char62: Char, char63: Char) {
                     else -> 0
                 }
                 if (code != 0) {
-                    return callback.err(IOException(getInvalidCharMessage(code)))
+                    callback?.err(IOException(getInvalidCharMessage(code)))
+                    return
                 }
             }
             val code = ac.toInt().shl(18) + bc.toInt().shl(12) + cc.toInt().shl(6) + dc

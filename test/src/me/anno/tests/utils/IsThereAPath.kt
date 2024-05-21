@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.maths.Maths.ceilDiv
+import me.anno.utils.Done
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import kotlin.random.Random
@@ -107,8 +108,6 @@ fun isConnectedCustomStack(field: BooleanArray, sx: Int, sy: Int, stack: IntArra
     }
     return isFinished
 }
-
-object Done : Throwable()
 
 fun isConnectedRecursive(field: BooleanArray, sx: Int, sy: Int): Boolean {
     val goal = sx * (sy - 1)

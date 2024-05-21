@@ -12,6 +12,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.utils.hpc.HeavyProcessing.processStage
+import me.anno.utils.structures.Callback
 import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -87,11 +88,13 @@ object ExtensionLoader {
                     val name = it.name
                     if (!name.startsWith(".") && it.lcExtension == "jar") {
                         threads += thread(name = "ExtensionLoader::getInfos($it)") {
-                            val info = loadInfoFromZip(it)
-                            // (check if compatible???)
-                            if (info != null && checkExtensionRequirements(info)) {
-                                synchronized(extInfos0) {
-                                    extInfos0 += info
+                            loadInfoFromZip(it) { info, err ->
+                                err?.printStackTrace()
+                                // (check if compatible???)
+                                if (info != null && checkExtensionRequirements(info)) {
+                                    synchronized(extInfos0) {
+                                        extInfos0 += info
+                                    }
                                 }
                             }
                         }
@@ -245,18 +248,28 @@ object ExtensionLoader {
     }
 
     @JvmStatic
-    fun loadInfoFromZip(file: FileReference): ExtensionInfo? {
+    fun loadInfoFromZip(file: FileReference, callback: Callback<ExtensionInfo?>) {
         LOGGER.info("Loading info about $file")
-        ZipInputStream(file.inputStreamSync()).use { zis: ZipInputStream ->
-            while (true) {
-                val entry = zis.nextEntry ?: break
-                val name = entry.name
-                if (name.endsWith("extension.info") || name.endsWith("ext.info")) {
-                    return loadInfoFromTxt(file)
+        file.inputStream { input, err ->
+            if (input != null) {
+                ZipInputStream(input).use { zis ->
+                    loadInfoFromZip(zis, file, callback)
                 }
+            } else callback.err(err)
+        }
+    }
+
+    @JvmStatic
+    private fun loadInfoFromZip(zis: ZipInputStream, file: FileReference, callback: Callback<ExtensionInfo?>) {
+        while (true) {
+            val entry = zis.nextEntry ?: break
+            val name = entry.name
+            if (name.endsWith("extension.info") || name.endsWith("ext.info")) {
+                callback.ok(loadInfoFromTxt(file))
+               return
             }
         }
-        return null
+        callback.ok(null)
     }
 
     /**

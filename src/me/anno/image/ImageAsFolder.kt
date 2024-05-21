@@ -80,7 +80,7 @@ object ImageAsFolder {
 
         val ric = readIcoLayers
         if (file.lcExtension == "ico" && ric != null) {
-            Signature.findName(file) { sign ->
+            Signature.findName(file) { sign, _ ->
                 if (sign == null || sign == "ico") {
                     file.inputStream { it, exc ->
                         if (it != null) {
@@ -179,7 +179,7 @@ object ImageAsFolder {
                     data.hasValue = true
                 }
             }
-        } else Signature.findName(file) { signature ->
+        } else Signature.findName(file) { signature, _ ->
             readImage(file, data, signature, forGPU)
         }
         return data

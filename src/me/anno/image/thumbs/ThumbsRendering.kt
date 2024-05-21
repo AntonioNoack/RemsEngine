@@ -11,6 +11,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
@@ -62,7 +63,7 @@ object ThumbsRendering {
         GFX.check()
 
         val depthType = if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
-        val renderTarget = if (GFX.maxSamples > 1 || Thumbs.useCacheFolder) {
+        val renderTarget = if (GFX.maxSamples > 1 && Thumbs.useCacheFolder) {
             FBStack[srcFile.name, w, h, 4, false, 4, depthType] as Framebuffer
         } else {
             Framebuffer(srcFile.name, w, h, 1, 1, false, depthType)
@@ -88,26 +89,23 @@ object ThumbsRendering {
 
         if (Thumbs.useCacheFolder) {
             val dst = renderTarget.createImage(flipY, true)
-            Thumbs.saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
+            if (dst != null) Thumbs.saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
+            else callback.err(IllegalStateException("renderTarget.createImage failed"))
         } else {// more efficient path, without useless GPU->CPU->GPU data transfer
-            if (GFX.maxSamples > 1) {
+            val newBuffer = if (renderTarget.samples > 1) {
                 val newBuffer = Framebuffer(
                     srcFile.name, w, h, 1,
                     listOf(TargetType.UInt8x4), DepthBufferType.NONE
                 )
-                renderTarget.needsBlit = -1 // todo is this needed?
                 GFXState.useFrame(newBuffer) {
                     GFX.copy(renderTarget)
                 }
-                val texture = newBuffer.textures!![0]
-                newBuffer.destroyExceptTextures(false)
-                texture.rotation = if (flipY) flipYRot else null
-                callback.ok(texture)
-            } else {
-                val texture = renderTarget.textures!![0]
-                renderTarget.destroyExceptTextures(true)
-                callback.ok(texture)
-            }
+                newBuffer
+            } else renderTarget
+            val texture = newBuffer.getTexture0() as Texture2D
+            newBuffer.destroyExceptTextures(true)
+            texture.rotation = if (flipY) flipYRot else null
+            callback.ok(texture)
         }
     }
 
@@ -169,5 +167,4 @@ object ThumbsRendering {
             }
         }
     }
-
 }

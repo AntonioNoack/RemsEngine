@@ -641,6 +641,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
     }
 
     private fun switchTo1(folder: FileReference) {
+        if (folder == InvalidRef) return
         if (!canSensiblyEnter(folder)) {
             switchTo(folder.getParent())
         } else {

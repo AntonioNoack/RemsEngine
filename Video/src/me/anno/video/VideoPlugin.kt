@@ -4,6 +4,7 @@ import me.anno.audio.AudioCache
 import me.anno.extensions.plugins.Plugin
 import me.anno.image.ImageAsFolder
 import me.anno.installer.Installer
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.WebRef
 import me.anno.utils.OS
@@ -12,20 +13,39 @@ import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEG.ffmpegPath
 import me.anno.video.ffmpeg.FFMPEG.ffprobePath
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.io.MediaMetadata
 
 class VideoPlugin : Plugin() {
     override fun onEnable() {
         super.onEnable()
+        registerProxyGen()
+        registerVideoStream()
+        registerImageReader()
+        registerAudioStream()
+        registerMediaMetadata()
+    }
+
+    private fun registerProxyGen() {
         VideoCache.generateVideoFrames = VideoCacheImpl::generateVideoFrames
         VideoCache.getProxyFile = VideoProxyCreator::getProxyFile
         VideoCache.getProxyFileDontUpdate = VideoProxyCreator::getProxyFileDontUpdate
+    }
+
+    private fun registerVideoStream() {
         VideoStream.runVideoStreamWorker = VideoStreamWorker::runVideoStreamWorker
-        ImageAsFolder.tryFFMPEG = ImageReaderExt::tryFFMPEG
+    }
+
+    private fun registerAudioStream() {
         AudioCache.getAudioSequence = { file, startTime, duration, sampleRate ->
             // why is it not possible to assign directly???
             FFMPEGStream.getAudioSequence(file, startTime, duration, sampleRate)
         }
+    }
+
+    private fun registerImageReader() {
+        ImageAsFolder.tryFFMPEG = ImageReaderExt::tryFFMPEG
+    }
+
+    private fun registerMediaMetadata() {
         MediaMetadata.registerSignatureHandler(100, "video") { file, signature, dst ->
             // only load ffmpeg for ffmpeg files
             if (signature == "gif" || signature == "media" || signature == "dds") {

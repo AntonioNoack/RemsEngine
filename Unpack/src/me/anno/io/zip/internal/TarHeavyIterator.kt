@@ -10,8 +10,13 @@ import java.io.InputStream
 
 class TarHeavyIterator(val self: InnerTarFile, val callback: Callback<InputStream>) :
     IHeavyIterable<ArchiveEntry, TarArchiveIterator, ByteArray> {
-    override fun openStream(source: FileReference) = TarArchiveIterator(self.getZipStream())
-    override fun closeStream(source: FileReference, stream: TarArchiveIterator) = stream.file.close()
+    override fun openStream(source: FileReference, callback: Callback<TarArchiveIterator>) {
+        self.getZipStream { stream, err ->
+            if (stream != null) callback.ok(TarArchiveIterator(stream))
+            else err?.printStackTrace()
+        }
+    }
+
     override fun hasInterest(stream: TarArchiveIterator, item: ArchiveEntry) = item.name == self.readingPath
     override fun process(
         stream: TarArchiveIterator,

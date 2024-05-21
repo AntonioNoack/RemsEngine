@@ -21,6 +21,6 @@ fun main() {
             0, 0, s, s, color or black, black
         )
     }
-    val image = fb.createImage(false, withAlpha = false)
-    image.write(OS.desktop.getChild("odd.png"))
+    fb.createImage(false, withAlpha = false)
+        ?.write(OS.desktop.getChild("odd.png"))
 }

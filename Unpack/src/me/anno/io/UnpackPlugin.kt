@@ -3,12 +3,12 @@ package me.anno.io
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.extensions.plugins.Plugin
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.AssetThumbnails
+import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
-import me.anno.image.thumbs.Thumbs
-import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.io.links.LNKReader
 import me.anno.io.links.URLReader
 import me.anno.io.links.WindowsShortcut
@@ -31,14 +31,18 @@ class UnpackPlugin : Plugin() {
         DefaultConfig.addImportMappings("Asset", AssetThumbHelper.unityExtensions)
         PrefabCache.unityReader = UnityReader::loadUnityFile
 
+        registerFolderReaders()
+        registerThumbnails()
+    }
+
+    private fun registerFolderReaders() {
         // compressed folders
         InnerFolderCache.registerSignatures("zip,bz2,lz4,xar,oar", InnerZipFile.Companion::createZipRegistryV2)
         InnerFolderCache.registerSignatures("exe", ExeSkipper::readAsFolder)
         InnerFolderCache.registerSignatures("7z") { src, callback ->
-            val file = Inner7zFile.createZipRegistry7z(src) {
+            Inner7zFile.createZipRegistry7z(src, callback) {
                 Inner7zFile.fileFromStream7z(src)
             }
-            callback.ok(file)
         }
         InnerFolderCache.registerSignatures("rar") { src, callback ->
             val file = InnerRarFile.createZipRegistryRar(src) {
@@ -53,6 +57,14 @@ class UnpackPlugin : Plugin() {
         InnerFolderCache.registerSignatures("lnk", LNKReader::readLNKAsFolder)
         InnerFolderCache.registerSignatures("url", URLReader::readURLAsFolder)
 
+        // register yaml generally for unity files?
+        InnerFolderCache.registerFileExtensions(AssetThumbHelper.unityExtensions) { it, c ->
+            val f = UnityReader.readAsFolder(it) as? InnerFolder
+            c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
+        }
+    }
+
+    private fun registerThumbnails() {
         Thumbs.registerFileExtensions("lnk") { srcFile, dstFile, size, callback ->
             WindowsShortcut.get(srcFile) { link, exc ->
                 if (link != null) {
@@ -61,15 +73,8 @@ class UnpackPlugin : Plugin() {
                 } else callback.err(exc)
             }
         }
-
         // try as an asset
         Thumbs.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
-
-        // register yaml generally for unity files?
-        InnerFolderCache.registerFileExtensions(AssetThumbHelper.unityExtensions) { it, c ->
-            val f = UnityReader.readAsFolder(it) as? InnerFolder
-            c.call(f, if (f == null) IOException("$it cannot be read as Unity project") else null)
-        }
     }
 
     override fun onDisable() {

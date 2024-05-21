@@ -3,7 +3,6 @@ package me.anno.jvm.fonts
 import me.anno.config.DefaultConfig
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.fonts.FontManager
-import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.fonts.FontManager.spaceBetweenLines
 import me.anno.fonts.PartResult
 import me.anno.fonts.StringPart
@@ -17,9 +16,12 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureLib
+import me.anno.jvm.fonts.DefaultRenderingHints.prepareGraphics
 import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
@@ -37,7 +39,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 class AWTFont(
-    val font: me.anno.fonts.Font, // used in Rem's Studio
+    val font: me.anno.fonts.Font, // used in Rem's Studio -> don't make it private
     val awtFont: Font
 ) : TextGenerator {
 
@@ -113,16 +115,20 @@ class AWTFont(
         widthLimit: Int,
         heightLimit: Int,
         portableImages: Boolean,
+        callback: Callback<ITexture2D>,
         textColor: Int,
         backgroundColor: Int,
         extraPadding: Int
-    ): ITexture2D? {
+    ) {
 
-        if (text.isEmpty()) return null
+        if (text.isEmpty()) {
+            return callback.ok(TextureLib.blackTexture)
+        }
+
         if (text.containsSpecialChar() || widthLimit < text.length * font.size * 2f) {
             return generateTextureV3(
                 text, font.size, widthLimit, heightLimit, portableImages,
-                textColor, backgroundColor, extraPadding
+                textColor, backgroundColor, extraPadding, callback
             )
         }
 
@@ -133,15 +139,18 @@ class AWTFont(
         val fontHeight = fontMetrics.height
         val height = min(heightLimit, fontHeight * lineCount + 2 * extraPadding)
 
-        if (width < 1 || height < 1) return null
+        if (width < 1 || height < 1) {
+            return callback.ok(TextureLib.blackTexture)
+        }
         if (max(width, height) > GFX.maxTextureSize) {
-            IllegalArgumentException(
-                "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
-                        "${text.length} chars, $lineCount lines, ${awtFont.name} ${font.size} px, ${
-                            text.toString().shorten(200)
-                        }"
-            ).printStackTrace()
-            return null
+            return callback.err(
+                IllegalArgumentException(
+                    "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
+                            "${text.length} chars, $lineCount lines, ${awtFont.name} ${font.size} px, ${
+                                text.toString().shorten(200)
+                            }"
+                )
+            )
         }
 
         if (text.isBlank2()) {
@@ -149,7 +158,7 @@ class AWTFont(
             // and return an empty/blank texture
             // that the correct size is returned is required by text input fields
             // (with whitespace at the start or end)
-            return FakeWhiteTexture(width, height, 1)
+            return callback.ok(FakeWhiteTexture(width, height, 1))
         }
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
@@ -161,21 +170,22 @@ class AWTFont(
         )
         if (hasPriority) {
             texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
+            callback.ok(texture)
         } else {
             GFX.addGPUTask("awt-font-v5", width, height) {
                 texture.createFromBufferedImage(image, sync = true, checkRedundancy = false)?.invoke()
+                callback.ok(texture)
             }
         }
-
-        return texture
     }
 
     override fun generateASCIITexture(
         portableImages: Boolean,
+        callback: Callback<Texture2DArray>,
         textColor: Int,
         backgroundColor: Int,
         extraPadding: Int
-    ): Texture2DArray {
+    ) {
 
         val widthLimit = GFX.maxTextureSize
         val heightLimit = GFX.maxTextureSize
@@ -188,13 +198,13 @@ class AWTFont(
         val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
         if (GFX.isGFXThread()) {
             createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
+            callback.ok(texture)
         } else {
             GFX.addGPUTask("awtAtlas", width, height) {
                 createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
+                callback.ok(texture)
             }
         }
-
-        return texture
     }
 
     private fun createImage(
@@ -446,8 +456,9 @@ class AWTFont(
         portableImages: Boolean,
         textColor: Int,
         backgroundColor: Int,
-        extraPadding: Int
-    ): ITexture2D {
+        extraPadding: Int,
+        callback: Callback<ITexture2D>
+    ) {
 
         val parts = splitParts(text, fontSize, 4f, 0f, widthLimit.toFloat(), heightLimit.toFloat())
         val result = parts.parts
@@ -455,20 +466,21 @@ class AWTFont(
         val width = min(ceil(parts.width).toInt() + 2 + 2 * extraPadding, widthLimit)
         val height = min(ceil(parts.height).toInt() + 1 + 2 * extraPadding, heightLimit)
 
-        if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height, 1)
+        if (result.isEmpty() || width < 1 || height < 1) {
+            return callback.ok(FakeWhiteTexture(width, height, 1))
+        }
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val hasPriority = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)
         if (hasPriority) {
             createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+            callback.ok(texture)
         } else {
             GFX.addGPUTask("awt-font-v6", width, height) {
-                if (!texture.isDestroyed) {
-                    createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
-                }
+                createImage(texture, portableImages, textColor, backgroundColor, extraPadding, result)
+                callback.ok(texture)
             }
         }
-        return texture
     }
 
     private fun createImage(

@@ -45,7 +45,7 @@ fun interface Callback<V> {
             process: (Int, V, Callback<W>) -> Unit,
             callback: Callback<Set<W>>
         ) {
-            toList().mapCallback(process) { res, err ->
+            toList().mapCallback<V, W>(process) { res, err ->
                 callback.call(res?.toSet(), err)
             }
         }

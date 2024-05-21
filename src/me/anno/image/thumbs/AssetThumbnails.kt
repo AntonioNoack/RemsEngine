@@ -89,10 +89,7 @@ object AssetThumbnails {
             srcFile, false,
             dstFile, true,
             Renderers.previewRenderer,
-            true,
-            callback,
-            size,
-            size
+            true, callback, size, size
         ) {
             GFX.checkIsGFXThread()
             val rv = rv
