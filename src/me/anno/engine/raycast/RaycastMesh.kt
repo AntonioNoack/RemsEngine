@@ -7,6 +7,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
+import me.anno.utils.Done
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
 import org.apache.logging.log4j.LogManager
@@ -315,10 +316,10 @@ object RaycastMesh {
                         localHit.set(localHitTmp)
                         localNormal.set(localNormalTmp)
                         query.result.setFromLocal(globalTransform, localHit, localNormal, query)
-                        throw StopIteration
+                        throw Done
                     }
                 }
-            } catch (ignored: StopIteration) {
+            } catch (ignored: Done) {
                 return true
             }
         }
@@ -362,10 +363,10 @@ object RaycastMesh {
                     result.positionWS.set(tmpPos)
                     result.geometryNormalWS.set(tmpNor)
                     result.shadingNormalWS.set(tmpNor)
-                    throw StopIteration
+                    throw Done
                 }
             }
-        } catch (ignored: StopIteration) {
+        } catch (ignored: Done) {
             return
         }
     }
@@ -404,11 +405,11 @@ object RaycastMesh {
                         maxDistance, localHitTmp, localNormalTmp
                     )
                     if (localDistance < maxDistance && if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack) {
-                        throw StopIteration
+                        throw Done
                     }
                 }
             } catch (e: Throwable) {
-                if (e !== StopIteration) throw e
+                if (e !== Done) throw e
                 return true
             } finally {
                 JomlPools.vec3f.sub(5)

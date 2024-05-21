@@ -8,6 +8,7 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
@@ -72,8 +73,8 @@ class NodeInput : NodeConnector {
             registerType("Texture3D") { it as? Texture3D }
             registerType("File", Companion::anyToFile)
             registerType("FileReference", Companion::anyToFile)
-            registerType("Bool", Companion::anyToBool)
-            registerType("Boolean", Companion::anyToBool)
+            registerType("Bool", AnyToBool::anyToBool)
+            registerType("Boolean", AnyToBool::anyToBool)
             registerType("IntArray") { it as? IntArray }
             registerType("LongArray") { it as? LongArray }
             registerType("FloatArray") { it as? FloatArray }
@@ -87,18 +88,6 @@ class NodeInput : NodeConnector {
 
         private fun anyToFile(v: Any?): FileReference {
             return v as? FileReference ?: InvalidRef
-        }
-
-        private fun anyToBool(v: Any?): Boolean {
-            return when (v) {
-                is Int -> v != 0
-                is Long -> v != 0L
-                is Float -> v.isFinite() && v != 0f
-                is Double -> v.isFinite() && v != 0.0
-                is String -> v.isNotEmpty()
-                is Boolean -> v
-                else -> v != null
-            }
         }
     }
 

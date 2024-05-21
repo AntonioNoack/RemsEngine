@@ -2,11 +2,11 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.engine.EngineBase
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -208,11 +208,14 @@ object Hierarchy {
         insertIndex: Int = -1
     ): Path? {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
-        LOGGER.debug(
-            "Trying to add " +
-                    "'${srcPrefab.source}'/'$srcPath'@${hash32(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
-                    "'${dstPrefab.source}'/'$dstParentPath'@${hash32(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
-        )
+        if (LOGGER.isDebugEnabled()) {
+            @Suppress("LoggingStringTemplateAsArgument")
+            LOGGER.debug(
+                "Trying to add " +
+                        "'${srcPrefab.source}'/'$srcPath'@${hash32(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
+                        "'${dstPrefab.source}'/'$dstParentPath'@${hash32(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
+            )
+        }
         if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
             LOGGER.debug("src == dst, so trying extraction")
             return add(

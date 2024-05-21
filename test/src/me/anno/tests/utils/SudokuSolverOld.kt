@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.Time
+import me.anno.utils.Done
 import org.junit.jupiter.api.Assertions.assertEquals
 
 // this is 2s faster (15%), just by removing the surrounding class :/
@@ -64,7 +65,7 @@ fun main() {
     }
 
     fun solve(i: Int, emptyCells: List<Cell>) {
-        if (i >= emptyCells.size) throw done
+        if (i >= emptyCells.size) throw Done
         val cell = emptyCells[i]
         // check all possible values
         for (j in 1..n) {
@@ -99,7 +100,7 @@ fun main() {
             solve(0, emptyCells)
             println("Unsolvable :(")
         } catch (e: Throwable) {
-            if (e == done) {
+            if (e == Done) {
                 // check solution against ground-truth
                 // only use when not benchmarking ^^
                 if (false) {

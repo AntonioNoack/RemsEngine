@@ -15,6 +15,8 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.utils.types.AnyToFloat
+import me.anno.utils.types.AnyToInt
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix3f
@@ -56,26 +58,20 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 is Float -> shader.v1b(location, value.isFinite() && value != 0f)
                 is Double -> shader.v1b(location, value.isFinite() && value != 0.0)
                 is () -> Any? -> shader.v1b(location, value.invoke() as Boolean)
-                else -> LOGGER.warn("Unknown type for V1B, ${value::class.simpleName}")
+                else -> warnUnknownType("V1B", value)
             }
             GLSLType.V1I -> when (value) {
-                is Int -> shader.v1i(location, value)
-                is Long -> shader.v1i(location, value.toInt())
-                is Float -> shader.v1i(location, value.toInt())
-                is Double -> shader.v1i(location, value.toInt())
+                is Number -> shader.v1i(location, AnyToInt.getInt(value))
                 is () -> Any? -> shader.v1i(location, value.invoke() as Int)
-                else -> LOGGER.warn("Unknown type for V1I, ${value::class.simpleName}")
+                else -> warnUnknownType("V1I", value)
             }
             GLSLType.V2I -> shader.v2i(location, value as Vector2i)
             GLSLType.V3I -> shader.v3i(location, value as Vector3i)
             GLSLType.V4I -> shader.v4i(location, value as Vector4i)
             GLSLType.V1F -> when (value) {
-                is Int -> shader.v1f(location, value.toFloat())
-                is Long -> shader.v1f(location, value.toFloat())
-                is Float -> shader.v1f(location, value)
-                is Double -> shader.v1f(location, value.toFloat())
+                is Number -> shader.v1f(location, AnyToFloat.getFloat(value))
                 is () -> Any? -> shader.v1f(location, value.invoke() as Float)
-                else -> LOGGER.warn("Unknown type for V1F, ${value::class.simpleName}")
+                else -> warnUnknownType("V1F", value)
             }
             GLSLType.V2F -> shader.v2f(location, value as Vector2f)
             GLSLType.V3F -> shader.v3f(location, value as Vector3f)
@@ -83,7 +79,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                 is Quaternionf -> shader.v4f(location, value)
                 is Vector4f -> shader.v4f(location, value)
                 is Planef -> shader.v4f(location, value.dirX, value.dirY, value.dirZ, value.distance)
-                else -> LOGGER.warn("Unknown type for V4F, ${value::class.simpleName}")
+                else -> warnUnknownType("V4F", value)
             }
             GLSLType.M2x2 -> shader.m2x2(location, value as Matrix2f)
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3f)
@@ -96,7 +92,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             value.bind(location)
                         } else {
                             TextureLib.whiteTexture.bind(location)
-                            LOGGER.warn("Texture ${value.name} has not been created")
+                            warnNotCreated("Texture", value)
                         }
                     }
                     is Framebuffer -> value.bindTexture0(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
@@ -107,7 +103,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             value1.bind(location)
                         } else {
                             TextureLib.whiteTexture.bind(location)
-                            if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
+                            if (value1 != null) warnNotCreated("Texture", value.absolutePath)
                         }
                     }
                     else -> LOGGER.warn("Unsupported type for S2D: ${value::class}")
@@ -120,7 +116,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             value.bind(location)
                         } else {
                             TextureLib.whiteTexture.bind(location)
-                            LOGGER.warn("Texture ${value.name} has not been created")
+                            warnNotCreated("Texture", value)
                         }
                     }
                     is Framebuffer -> value.getTextureIMS(0).bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
@@ -131,7 +127,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             value1.bind(location)
                         } else {
                             TextureLib.whiteTexture.bind(location)
-                            if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
+                            if (value1 != null) warnNotCreated("Texture", value.absolutePath)
                         }
                     }
                     else -> LOGGER.warn("Unsupported type for S2D: ${value::class}")
@@ -143,7 +139,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
                     TextureLib.whiteTex2da.bind(location)
-                    LOGGER.warn("Texture ${value.name} has not been created")
+                    warnNotCreated("Texture2DArray", value)
                 }
             }
             GLSLType.S3D -> {
@@ -152,7 +148,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
                     TextureLib.whiteTex3d.bind(location)
-                    LOGGER.warn("Texture ${value.name} has not been created")
+                    warnNotCreated("Texture3D", value)
                 }
             }
             GLSLType.SCube -> {
@@ -161,11 +157,23 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     value.bind(location, value.filtering)
                 } else {
                     TextureLib.whiteTex3d.bind(location)
-                    LOGGER.warn("Texture ${value.name} has not been created")
+                    warnNotCreated("CubemapTexture", value)
                 }
             }
             else -> LOGGER.warn("Type $type is not yet supported")
         }
+    }
+
+    private fun warnUnknownType(type: String, value: Any) {
+        LOGGER.warn("Unknown type for $type, ${value::class.simpleName}")
+    }
+
+    private fun warnNotCreated(type: String, texture: ITexture2D) {
+        warnNotCreated(type, texture.name)
+    }
+
+    private fun warnNotCreated(type: String, name: String) {
+        LOGGER.warn("$type $name has not been created")
     }
 
     override fun save(writer: BaseWriter) {

@@ -5,6 +5,7 @@ import me.anno.gpu.texture.TextureReader
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.jpg.ExifOrientation
+import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.qoi.QOIReader
 import me.anno.image.svg.SVGMesh
 import me.anno.image.tar.TGAReader
@@ -84,6 +85,7 @@ class ImagePlugin : Plugin() {
         Thumbs.registerFileExtensions("ico", ImageThumbnailsImpl::generateICOFrame)
         Thumbs.registerFileExtensions("svg", ImageThumbnailsImpl::generateSVGFrame)
         ImageAsFolder.readIcoLayers = ICOReader::readAllLayers
+        ImageAsFolder.readJPGThumbnail = JPGThumbnails::readThumbnail
     }
 
     private fun registerRotatingJpegs() {

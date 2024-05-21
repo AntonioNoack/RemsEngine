@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.Time
+import me.anno.utils.Done
 import me.anno.utils.OS.downloads
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -79,7 +80,7 @@ class SudokuSolver {
     }
 
     fun solve(i: Int, emptyCells: List<Cell>) {
-        if (i >= emptyCells.size) throw done
+        if (i >= emptyCells.size) throw Done
         val cell = emptyCells[i]
         // check all possible values
         for (j in 1..n) {
@@ -110,7 +111,7 @@ class SudokuSolver {
             solve(0, emptyCells)
             println("Unsolvable :(")
         } catch (e: Throwable) {
-            if (e == done) {
+            if (e == Done) {
                 // check solution against ground-truth
                 // only use when not benchmarking ^^
                 if (false) {
@@ -121,8 +122,6 @@ class SudokuSolver {
         }
     }
 }
-
-val done = Throwable()
 
 fun getSamples(): List<String> {
     return downloads.getChild("sudoku.zip/sudoku.csv")

@@ -2,9 +2,9 @@ package me.anno.video.ffmpeg
 
 import me.anno.Time
 import me.anno.io.utils.StringMap
-import me.anno.utils.types.Strings.shorten
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 
 class FFMPEGMetaParser : StringMap() {
@@ -96,7 +96,7 @@ class FFMPEGMetaParser : StringMap() {
         // if(debug) LOGGER.debug(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit(list)
-        if (debug) LOGGER.debug("$depth $data")
+        if (debug) LOGGER.debug("{} {}", depth, data)
 
         fun parseSize() {
             for (i in data.indices) {
@@ -109,7 +109,9 @@ class FFMPEGMetaParser : StringMap() {
                         // we got our info <3
                         stream.width = width
                         stream.height = height
-                        if (debug) LOGGER.debug("Found size $width x $height")
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Found size $width x $height")
+                        }
                         return
                     }
                 }
@@ -118,7 +120,9 @@ class FFMPEGMetaParser : StringMap() {
 
         fun parseOutput() {
             val videoTypeIndex = data.indexOf("rawvideo")
-            if (debug) LOGGER.debug("Parsing output: ${data.joinToString { it.shorten(200) }}")
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Parsing output: ${data.joinToString { it.shorten(200) }}")
+            }
             if (videoTypeIndex > -1 && videoTypeIndex + 2 < data.size && data[videoTypeIndex + 1] == "(") {
                 var codec = data[videoTypeIndex + 2]
                 if (data[videoTypeIndex + 3] == "[") {
@@ -127,7 +131,7 @@ class FFMPEGMetaParser : StringMap() {
                         codec += data.subList(videoTypeIndex + 3, eidx + 1).joinToString("")
                     }
                 }
-                if (debug) LOGGER.debug("Found codec $codec")
+                LOGGER.debug("Found codec {}", codec)
                 stream.codec = codec
             }
             parseSize()
@@ -187,5 +191,4 @@ class FFMPEGMetaParser : StringMap() {
             else -> analyzeIO()
         }
     }
-
 }

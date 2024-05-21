@@ -120,7 +120,7 @@ fun printReferenceSpaces(instance: XrInstance, session: XrSession) {
     }
 }
 
-val countBuffer = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer()
+val countBuffer: IntBuffer = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer()
 fun initOpenXR() {
     xrResult(null, xrEnumerateInstanceExtensionProperties(null as ByteBuffer?, countBuffer, null))
     val extCount = countBuffer[0]
@@ -250,7 +250,7 @@ fun getInstanceProperties(instance: XrInstance): XrInstanceProperties {
     return ip
 }
 
-val xrResultBuffer = ByteBuffer.allocateDirect(256)
+val xrResultBuffer: ByteBuffer = ByteBuffer.allocateDirect(256)
 fun xrResult(instance: XrInstance?, result: Int) {
     if (result == XR_SUCCESS) return
     if (instance == null) {

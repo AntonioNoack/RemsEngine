@@ -69,9 +69,7 @@ abstract class StackPanel(
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when {
-            button == Key.BUTTON_RIGHT || long || content.isEmpty() -> {
-                showMenu()
-            }
+            button == Key.BUTTON_RIGHT || long || content.isEmpty() -> showMenu()
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

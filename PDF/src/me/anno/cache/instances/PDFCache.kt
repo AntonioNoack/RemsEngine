@@ -99,8 +99,8 @@ object PDFCache : CacheSection("PDFCache") {
                         }
                     } else {
                         // todo create pngs/jpegs of different resolution?
-                        // todo create image type from it :)
-                        // todo add attribute, that marks it as infinite resolution
+                        //  create image type from it :)
+                        //  add attribute, that marks it as infinite resolution?
                     }
                 }
                 ref.returnInstance()

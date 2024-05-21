@@ -67,7 +67,7 @@ class BlenderControlsAddon {
                     }
                     mode = newMode
                 }
-                LOGGER.debug("Changed Mode to: $mode/$local")
+                LOGGER.debug("Changed Mode to: {}/{}", mode, local)
             }
             'x' -> axisMask = if (isShiftDown) 6 else 1
             'y' -> axisMask = if (isShiftDown) 5 else 2
@@ -186,7 +186,7 @@ class BlenderControlsAddon {
             val vec = JomlPools.vec3d.create()
             preTransform(value, x, y, vec)
             if (transform != null) transform(transform, vec)
-            LOGGER.debug("todo: apply transform $mode x $vec")
+            LOGGER.info("todo: apply transform $mode x $vec")
             JomlPools.vec3d.sub(1)
             if (reset) resetBlenderInput()
         }

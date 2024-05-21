@@ -504,7 +504,6 @@ object AssetThumbnails {
             }
             // todo thumbnails for graphs
             is GameEngineProject -> {}
-            null -> {}
             else -> {
                 // todo can we create a json preview or sth like that?
                 LOGGER.warn("Unknown item from prefab: ${asset.className}")

@@ -1,7 +1,11 @@
 package me.anno.image.jpg
 
-import me.anno.io.files.FileReference
+import me.anno.image.Image
 import me.anno.io.Streams.readNBytes2
+import me.anno.io.files.FileReference
+import me.anno.jvm.images.BIImage.toImage
+import me.anno.utils.structures.Callback
+import javax.imageio.ImageIO
 
 /**
  * Extracts embedded thumbnails in JPEGs
@@ -14,15 +18,21 @@ import me.anno.io.Streams.readNBytes2
  * */
 object JPGThumbnails {
 
+    fun readThumbnail(file: FileReference, callback: Callback<Image?>) {
+        extractThumbnail(file) { bytes ->
+            if (bytes != null) {
+                callback.ok(ImageIO.read(bytes.inputStream()).toImage())
+            } else callback.ok(null)
+        }
+    }
+
     fun extractThumbnail(file: FileReference, callback: (ByteArray?) -> Unit) {
         // 65k is the max size for an exif section; plus 4k, where we hopefully find the marker
         val maxSize = 65536 + 4096
         file.inputStream(maxSize.toLong()) { it, _ ->
             if (it != null) {
-                it.use {
-                    val data = it.readNBytes2(maxSize, false)
-                    callback(findData(data))
-                }
+                val data = it.readNBytes2(maxSize, false)
+                callback(findData(data))
             } else callback(null)
         }
     }

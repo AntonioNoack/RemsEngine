@@ -1,5 +1,6 @@
 package me.anno.maths.paths
 
+import me.anno.utils.Done
 import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -10,8 +11,6 @@ import kotlin.math.max
 object PathFinding {
 
     private val LOGGER = LogManager.getLogger(PathFinding::class)
-
-    private object FoundEndException : RuntimeException()
 
     class DataNode(var distance: Double, var score: Double, var previous: Any?) {
         constructor() : this(0.0, 0.0, null)
@@ -179,7 +178,7 @@ object PathFinding {
                 if (!earlyExit && isEnd(from)) {
                     // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
                     end = from
-                    throw FoundEndException
+                    throw Done
                 }
                 val currentData = cache[from]!!
                 val currentDistance = currentData.distance
@@ -194,7 +193,7 @@ object PathFinding {
                             // LOGGER.debug("Found $to at ($newDistance,$newScore)")
                             end = to
                             previousFromEnd = from
-                            throw FoundEndException
+                            throw Done
                         }
                         val oldScore = cache[to]
                         if (oldScore == null) {
@@ -215,7 +214,7 @@ object PathFinding {
                 }
             }
             null
-        } catch (e: FoundEndException) {
+        } catch (e: Done) {
             // backward tracking
             val path = ArrayList<Node>()
             if (includeEnd) path.add(end!!)

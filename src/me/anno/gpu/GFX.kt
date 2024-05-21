@@ -437,6 +437,8 @@ object GFX {
     @JvmStatic
     fun workGPUTasks(all: Boolean) {
         val t0 = Time.nanoTime
+        // todo just in case, clear gfx state here:
+        //  we might be waiting on the gfx thread, and if so, state would be different than usual
         synchronized(nextGPUTasks) {
             gpuTasks.addAll(nextGPUTasks)
             nextGPUTasks.clear()

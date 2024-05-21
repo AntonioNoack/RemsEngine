@@ -13,7 +13,7 @@ fun main() {
         if (file.lcExtension != "jpg") continue
         extractThumbnail(file) { data ->
             if (data != null) desktop.getChild("jpg/" + file.name).writeBytes(data)
-            else LOGGER.debug("didn't find thumbs in $file")
+            else LOGGER.info("didn't find thumbs in $file")
         }
     }
 }

@@ -147,7 +147,6 @@ class MainStage {
             code.append(name)
             // todo base bias on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
             if (isCubemap) {
-                if (isArray) throw NotImplementedError()
                 code.append("(int index, vec3 uv, float depth){\n")
                 code.append("float bias = 0.05 * depth;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")

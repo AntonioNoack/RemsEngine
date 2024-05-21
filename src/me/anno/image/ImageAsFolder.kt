@@ -38,6 +38,7 @@ object ImageAsFolder {
         null
 
     var readIcoLayers: ((InputStream) -> List<Image>)? = null
+    var readJPGThumbnail: ((FileReference, Callback<Image?>) -> Unit)? = null
 
     @JvmStatic
     fun readAsFolder(file: FileReference, callback: Callback<InnerFolder>) {
@@ -80,8 +81,8 @@ object ImageAsFolder {
 
         val ric = readIcoLayers
         if (file.lcExtension == "ico" && ric != null) {
-            Signature.findName(file) { sign, _ ->
-                if (sign == null || sign == "ico") {
+            Signature.findName(file) { sig, _ ->
+                if (sig == null || sig == "ico") {
                     file.inputStream { it, exc ->
                         if (it != null) {
                             val layers = ric(it)
@@ -99,6 +100,15 @@ object ImageAsFolder {
                 } else callback.ok(folder)
             }
             return // we're done, don't call callback twice
+        }
+
+        val rjt = readJPGThumbnail
+        if ((file.lcExtension == "jpg" || file.lcExtension == "jpeg") && rjt != null) {
+            rjt.invoke(file) { thumb, _ ->
+                if (thumb != null) folder.createImageChild("thumbnail.jpg", thumb)
+                callback.ok(folder)
+            }
+            return
         }
 
         callback.ok(folder)
