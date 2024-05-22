@@ -17,7 +17,7 @@ abstract class HexDecTree<Data>(maxNumChildren: Int) :
         val dx = max.x - min.x
         val dy = max.y - min.y
         val dz = max.z - min.z
-        val dw = (max.w - min.w) // todo handle size like a factor (conditionally) (?)
+        val dw = (max.w - min.w) // to do handle size like a factor (conditionally) (?)
         return getMaxComponent(dx, dy, dz, dw)
     }
 }

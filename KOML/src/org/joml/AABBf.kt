@@ -542,13 +542,12 @@ class AABBf(
         val dz = end.z - start.z
 
         val tanAngleSqPlusOne = radiusPerUnit * radiusPerUnit + 1f
-        // return pointCone(Vector3f(centerX, centerY, centerZ), Vector3f(dx, dy, dz).normalize(), tanAngleSqPlusOne)
 
         // from https://github.com/mosra/magnum/blob/master/src/Magnum/Math/Intersection.h#L570-L610
         val offset = radiusAtOrigin / radiusPerUnit
         val maxDistSq = start.distanceSquared(end)
         if (offset * offset < maxDistSq) {
-            // todo remove dynamic allocations (replace with stack)
+            // to do remove dynamic allocations (replace with stack)
 
             // move the cone forward/back
             // to do minimum distance is needed for this offset

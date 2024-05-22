@@ -22,8 +22,6 @@ import kotlin.math.max
 
 data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
-    // todo shader to blit depth with different resolutions/formats
-
     data class SemanticLayer(val type: DeferredLayerType, val textureName: String, val texIndex: Int, val mapping: String) {
 
         fun appendMapping(

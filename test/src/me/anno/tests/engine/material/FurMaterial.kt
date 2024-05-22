@@ -19,5 +19,3 @@ fun main() {
     scene.add(FurMeshComponent(mesh))
     testSceneWithUI("Shell Textures", scene)
 }
-
-// todo implement screen-space global illumination like Blender Eevee Next
