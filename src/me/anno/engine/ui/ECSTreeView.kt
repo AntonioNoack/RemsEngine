@@ -22,8 +22,8 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.NamedSaveable
-import me.anno.io.Saveable
+import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc

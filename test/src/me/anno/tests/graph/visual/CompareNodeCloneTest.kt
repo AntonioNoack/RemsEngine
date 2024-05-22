@@ -2,7 +2,7 @@ package me.anno.tests.graph.visual
 
 import me.anno.graph.visual.scalar.CompareMode
 import me.anno.graph.visual.scalar.CompareNode
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -30,7 +30,8 @@ class CompareNodeCloneTest {
         registerCustomClass(CompareNode())
         val node = CompareNode("Type")
         node.setEnumType(CompareMode.LESS_OR_EQUALS)
-        val clone = JsonStringReader.readFirst<CompareNode>(JsonStringWriter.toText(node, InvalidRef), InvalidRef)
+        val clone =
+            JsonStringReader.readFirst(JsonStringWriter.toText(node, InvalidRef), InvalidRef, CompareNode::class)
         assertEquals(node.toString(), clone.toString())
         assertEquals(node.name, clone.name)
         assertEquals(node.description, clone.description)

@@ -4,7 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.FileCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.io.Base64
+import me.anno.io.base64.Base64
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference

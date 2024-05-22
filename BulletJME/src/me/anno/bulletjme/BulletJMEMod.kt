@@ -2,7 +2,7 @@ package me.anno.bulletjme
 
 import com.jme3.system.NativeLibraryLoader.loadLibbulletjme
 import me.anno.extensions.mods.Mod
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.utils.OS.downloads
 import java.io.File
 

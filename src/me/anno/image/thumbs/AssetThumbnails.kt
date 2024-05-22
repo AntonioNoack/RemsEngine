@@ -35,7 +35,7 @@ import me.anno.image.thumbs.AssetThumbHelper.findModelMatrix
 import me.anno.image.thumbs.AssetThumbHelper.listTextures
 import me.anno.image.thumbs.AssetThumbHelper.removeTextures
 import me.anno.image.thumbs.AssetThumbHelper.waitForTextures
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Warning

@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ECSRegistry
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import org.junit.jupiter.api.Test
 import kotlin.test.assertIs
 

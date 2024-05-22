@@ -4,7 +4,7 @@ import me.anno.engine.inspector.CachedProperty
 import me.anno.engine.inspector.CachedReflections
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.input.ComponentUI
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style

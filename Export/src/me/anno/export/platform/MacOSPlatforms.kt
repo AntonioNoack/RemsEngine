@@ -1,6 +1,6 @@
 package me.anno.export.platform
 
-import me.anno.io.AutoSaveable
+import me.anno.io.saveable.AutoSaveable
 
 class MacOSPlatforms : AutoSaveable() {
     var x64 = true

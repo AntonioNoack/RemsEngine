@@ -10,7 +10,7 @@ import me.anno.export.platform.WindowsPlatforms
 import me.anno.extensions.events.EventHandler
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter

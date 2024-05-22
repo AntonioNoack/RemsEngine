@@ -8,7 +8,7 @@ import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2

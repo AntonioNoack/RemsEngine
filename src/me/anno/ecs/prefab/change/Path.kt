@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Booleans.toInt
 import java.text.ParseException

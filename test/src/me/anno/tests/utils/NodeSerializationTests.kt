@@ -1,11 +1,11 @@
 package me.anno.tests.utils
 
-import me.anno.graph.visual.node.NodeInput
-import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
-import me.anno.io.Saveable.Companion.registerCustomClass
-import me.anno.io.SaveableArray
+import me.anno.graph.visual.node.NodeInput
+import me.anno.graph.visual.node.NodeOutput
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.SaveableArray
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -25,7 +25,7 @@ class NodeSerializationTests {
                 "\"S:value\":\"var\"},{\"i:*ptr\":5,\"NodeOutput[]:others\":[1,{\"i:*ptr\":6," +
                 "\"NodeInput[]:others\":[1,5],\"l:value\":24}],\"l:value\":24}],\"NodeOutput[]:outputs\":" +
                 "[2,{\"i:*ptr\":7},{\"i:*ptr\":8,\"l:value\":6}],\"v3d:position\":[1,2,3]}]"
-        val node = JsonStringReader.readFirst<SetLocalVariableNode>(source, InvalidRef, false)
+        val node = JsonStringReader.readFirst(source, InvalidRef, SetLocalVariableNode::class, false)
         if (node.key != "var") throw IllegalStateException()
         if (node.value != 24L) throw IllegalStateException("Value is ${node.value}")
         if ((node.clone() as SetLocalVariableNode).key != "var") throw IllegalStateException()
@@ -40,7 +40,7 @@ class NodeSerializationTests {
         val evilHelper = SetLocalVariableNode("b", "bar")
         a.connectTo(evilHelper)
         val listStr = a.toString()
-        val clone = JsonStringReader.readFirst<SetLocalVariableNode>(listStr, InvalidRef, false)
+        val clone = JsonStringReader.readFirst(listStr, InvalidRef, SetLocalVariableNode::class, false)
         val cloneStr = clone.toString()
         assertEquals(listStr, cloneStr)
         assertEquals("a", clone.key)
@@ -58,7 +58,7 @@ class NodeSerializationTests {
         a.connectTo(b)
         val list = SaveableArray(listOf(a, b))
         val listStr = list.toString()
-        val clone = JsonStringReader.readFirst<SaveableArray>(listStr, InvalidRef, false)
+        val clone = JsonStringReader.readFirst(listStr, InvalidRef, SaveableArray::class, false)
         val cloneStr = clone.toString()
         assertEquals(listStr, cloneStr)
     }
@@ -69,7 +69,7 @@ class NodeSerializationTests {
         val style1 = LanguageStyle()
         style1.color = 0x775533
         val text = JsonStringWriter.toText(style1, InvalidRef)
-        val style2 = JsonStringReader.readFirst<LanguageStyle>(text, InvalidRef)
+        val style2 = JsonStringReader.readFirst(text, InvalidRef, LanguageStyle::class)
         assertEquals(style1.color, style2.color)
     }
 }

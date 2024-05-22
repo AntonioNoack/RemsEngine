@@ -10,7 +10,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.io.Base64
+import me.anno.io.base64.Base64
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.types.Booleans.hasFlag

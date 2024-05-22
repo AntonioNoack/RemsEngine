@@ -2,7 +2,7 @@ package me.anno.fonts
 
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import kotlin.math.roundToInt

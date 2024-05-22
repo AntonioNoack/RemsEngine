@@ -1,51 +1,49 @@
 package me.anno.io.xml.generic
 
-import me.anno.utils.types.Strings
-
 object XMLWriter {
-
-    // todo step-by-step XML writer like for JSON
 
     fun write(xml: XMLNode, indentation: String? = " ", closeEmptyTypes: Boolean = false): String {
         val builder = StringBuilder(64)
-        builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+        builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
         write(xml, builder, 0, indentation, closeEmptyTypes)
         return builder.toString()
     }
 
-    fun write(
-        xml: XMLNode,
-        builder: StringBuilder,
-        depth: Int,
-        indentation: String? = " ",
-        closeEmptyTypes: Boolean = false
-    ) {
-        if (indentation != null) newLine(builder, depth, indentation)
-        builder.append("<").append(xml.type)
-        for ((k, v) in xml.attributes) {
-            builder.append(' ').append(k).append("=\"")
-            Strings.writeEscaped(v, builder)
-            builder.append("\"")
-        }
-        if (xml.children.isEmpty() && closeEmptyTypes) {
-            builder.append("/>")
-        } else {
-            builder.append(">")
-            if (indentation != null && !(xml.children.size <= 1 && xml.children.all { it is String })) {
-                newLine(builder, depth, indentation)
-            }
-            for (child in xml.children) {
-                if (child is XMLNode)
-                    write(child, builder, depth + 1, indentation, closeEmptyTypes)
-                else builder.append(child.toString())
-            }
-            builder.append("</").append(xml.type).append(">")
-        }
-    }
-
-    fun newLine(builder: StringBuilder, depth: Int, indentation: String?) {
-        builder.append('\n')
+    fun tabs(builder: StringBuilder, depth: Int, indentation: String?) {
+        indentation ?: return
         for (i in 0 until depth) builder.append(indentation)
     }
 
+    fun write(
+        node: XMLNode,
+        builder: StringBuilder,
+        depth: Int,
+        indentation: String?,
+        closeEmptyTypes: Boolean
+    ) {
+        tabs(builder, depth, indentation)
+        builder.append('<').append(node.type)
+        for ((k, v) in node.attributes) {
+            // todo escape string value
+            builder.append(' ').append(k).append("=\"")
+                .append(v).append('"')
+        }
+        if (closeEmptyTypes && node.children.isEmpty()) {
+            builder.append("/>")
+        } else {
+            builder.append(">\n")
+            for (child in node.children) {
+                if (child is XMLNode) {
+                    write(child, builder, depth + 1, indentation, closeEmptyTypes)
+                } else {
+                    // todo escape this
+                    tabs(builder, depth + 1, indentation)
+                    builder.append(child.toString()).append('\n')
+                }
+            }
+            tabs(builder, depth, indentation)
+            builder.append("</").append(node.type).append('>')
+        }
+        if (depth > 0) builder.append('\n')
+    }
 }

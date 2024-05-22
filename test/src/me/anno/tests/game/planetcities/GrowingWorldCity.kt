@@ -20,7 +20,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.Input
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract

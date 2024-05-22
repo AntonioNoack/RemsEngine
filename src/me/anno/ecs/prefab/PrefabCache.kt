@@ -8,7 +8,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ScenePrefab
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference

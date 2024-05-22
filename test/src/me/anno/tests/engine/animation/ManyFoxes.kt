@@ -12,7 +12,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.min
 import me.anno.utils.OS.downloads

@@ -1,7 +1,7 @@
 package me.anno.tests.io
 
 import me.anno.engine.history.StringHistory
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
@@ -26,7 +26,7 @@ class StringHistoryTest {
         }
         assertEquals(sequence, sample.states)
         val asText = JsonStringWriter.toText(sample, InvalidRef)
-        val clone = JsonStringReader.readFirst<History>(asText, InvalidRef)
+        val clone = JsonStringReader.readFirst(asText, InvalidRef, History::class)
         assertEquals(sequence, clone.states)
         val asText2 = JsonStringWriter.toText(clone, InvalidRef)
         assertEquals(asText, asText2)

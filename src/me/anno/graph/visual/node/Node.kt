@@ -4,9 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.Graph
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.maths.Maths.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
@@ -216,7 +214,7 @@ abstract class Node() : PrefabSaveable() {
     override fun clone(): Node {
         return if (isConnected()) {
             // not ideal, but probably good enough for now and manual graph creation
-            JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
+            JsonStringReader.clone(this)
         } else super.clone() as Node
     }
 

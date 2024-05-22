@@ -1,7 +1,7 @@
 package me.anno.ecs.components.camera
 
 import me.anno.Time
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
 
 class CameraState : Saveable() {

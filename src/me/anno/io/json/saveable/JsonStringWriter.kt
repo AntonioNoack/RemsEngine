@@ -1,6 +1,6 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 
 class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWriterBase(workspace) {

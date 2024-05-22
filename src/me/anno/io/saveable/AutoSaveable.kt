@@ -1,4 +1,4 @@
-package me.anno.io
+package me.anno.io.saveable
 
 import me.anno.io.base.BaseWriter
 

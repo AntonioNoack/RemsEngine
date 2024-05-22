@@ -11,8 +11,8 @@ import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.render.NodeGroup
 import me.anno.input.Key
-import me.anno.io.Saveable
-import me.anno.io.SaveableArray
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc

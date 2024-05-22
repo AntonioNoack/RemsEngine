@@ -1,19 +1,21 @@
 package me.anno.io.base
 
 import me.anno.Build
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.ReaderImpl
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
-abstract class BaseReader {
+abstract class BaseReader : ReaderImpl {
 
     private val withPtr = ArrayList<Saveable>()
     private val withoutPtr = ArrayList<Saveable>()
 
     val allInstances = ArrayList<Saveable>()
 
-    val sortedContent: List<Saveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
+    override val sortedContent: List<Saveable>
+        get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
     // for debugging
     var sourceName = ""
@@ -73,8 +75,11 @@ abstract class BaseReader {
         }
     }
 
+    override fun finish() {
+        finish(0)
+    }
+
     abstract fun readObject(): Saveable
-    abstract fun readAllInList()
 
     companion object {
 

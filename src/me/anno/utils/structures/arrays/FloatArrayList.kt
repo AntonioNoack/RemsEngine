@@ -1,7 +1,7 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.cache.ICacheData
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.pooling.FloatArrayPool
 import org.apache.logging.log4j.LogManager

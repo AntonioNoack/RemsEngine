@@ -129,7 +129,6 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             // alternatively could find the correct insert index
             // still would be O(n)
             var index = signatures.binarySearch {
-                // todo is this the correct way?
                 signature.order.compareTo(it.order)
             }
             if (index < 0) index = -1 - index

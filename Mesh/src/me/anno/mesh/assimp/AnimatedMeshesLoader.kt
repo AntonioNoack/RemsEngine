@@ -11,8 +11,8 @@ import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.io.NamedSaveable
-import me.anno.io.Saveable
+import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder

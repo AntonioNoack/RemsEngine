@@ -6,7 +6,7 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstanceAsync
 import me.anno.engine.ECSRegistry
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.Callback

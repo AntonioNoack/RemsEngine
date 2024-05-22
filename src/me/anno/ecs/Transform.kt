@@ -1,7 +1,7 @@
 package me.anno.ecs
 
 import me.anno.Time
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager

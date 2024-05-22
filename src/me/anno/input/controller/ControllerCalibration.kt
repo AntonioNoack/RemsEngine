@@ -1,7 +1,7 @@
 package me.anno.input.controller
 
 import me.anno.input.Controller.Companion.MAX_NUM_AXES
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import kotlin.math.abs
 import kotlin.math.max

@@ -3,7 +3,7 @@ package me.anno.io.utils
 import me.anno.Engine
 import me.anno.Time.nanoTime
 import me.anno.engine.Events.addEvent
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference

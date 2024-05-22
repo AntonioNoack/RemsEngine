@@ -2,7 +2,7 @@ package me.anno.engine.inspector
 
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.input.ComponentUI
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment

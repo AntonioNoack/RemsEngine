@@ -3,7 +3,6 @@ package me.anno.ecs.components.player
 import me.anno.ecs.Component
 import me.anno.ecs.components.camera.CameraState
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.utils.StringMap
 

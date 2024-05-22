@@ -1,6 +1,6 @@
 package me.anno.ui.editor.code.codemirror
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.editor.code.tokenizer.TokenType
 import me.anno.utils.structures.lists.Lists.createArrayList

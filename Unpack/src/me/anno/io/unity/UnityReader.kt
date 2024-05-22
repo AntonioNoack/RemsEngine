@@ -235,7 +235,7 @@ object UnityReader {
                 val emissive = colors.getColorAsVector3f("EmissionColor")
                 if (emissive != null) prefab["emissiveBase"] = emissive
             } else LOGGER.warn("Missing colors")
-            val textures = propertyMap["TexEnvs"]?.packListEntries()
+            val textures = propertyMap["TexEnvs"]?.packListEntries()?.associate { it.key to it }
             if (textures != null) {
                 val diffuse = decodePath(guid, textures["MainTex"]?.get("Texture"), project)
                 if (diffuse != InvalidRef) prefab["diffuseMap"] = diffuse
@@ -646,7 +646,7 @@ object UnityReader {
                     val materials = node["Materials"]
                     val meshes = meshesByGameObject[gameObjectKey]
                     if (!meshes.isNullOrEmpty()) {
-                        val materialList = materials?.packListEntries()?.children
+                        val materialList = materials?.packListEntries()
                             ?.map { decodePath(guid, it, project) }
                         for (mesh in meshes) {
                             if (!isEnabled) mesh["isEnabled"] = false
@@ -668,14 +668,11 @@ object UnityReader {
                     file.hide() // not visible
                     val children = node["Children"]
                     if (children != null) {
-                        val children2 = children.packListEntries().children
-                        if (children2 != null) {
-                            // LOGGER.info("processing ${children2.size} children from prefab")
-                            for (childNode in children2) {
-                                val childPath = decodePath(guid, childNode, project)
-                                addPrefabChild(prefab, childPath)
-                                knownChildren.add(childPath)
-                            }
+                        val children2 = children.packListEntries()
+                        for (childNode in children2) {
+                            val childPath = decodePath(guid, childNode, project)
+                            addPrefabChild(prefab, childPath)
+                            knownChildren.add(childPath)
                         }
                     }
                     val base = node["PrefabParent"]
@@ -694,9 +691,9 @@ object UnityReader {
                     }
                     val children = node["Children"]
                     if (children != null) {
-                        val children2 = children.packListEntries().children
-                        LOGGER.info("processing ${children2?.size} children from transform, adding to $file")
-                        for (childNode in children2 ?: emptyList()) {
+                        val children2 = children.packListEntries()
+                        LOGGER.info("processing ${children2.size} children from transform, adding to $file")
+                        for (childNode in children2) {
                             val path0 = decodePath(guid, childNode, project)
                             val path1 = transformToGameObject.reverse[path0] ?: path0
                             addPrefabChild(prefab, path1)

@@ -2,7 +2,6 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.annotations.DebugAction
-import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -11,7 +10,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference

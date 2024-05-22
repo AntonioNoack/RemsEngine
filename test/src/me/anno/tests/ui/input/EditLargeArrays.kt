@@ -5,7 +5,7 @@ import me.anno.engine.inspector.Inspectable
 import me.anno.engine.ui.input.AnyArrayPanel2
 import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.input.ComponentUI.writeTo
-import me.anno.io.Saveable.Companion.getReflections
+import me.anno.io.saveable.Saveable.Companion.getReflections
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 // some content seems to be missing / invisible: with base >= 15

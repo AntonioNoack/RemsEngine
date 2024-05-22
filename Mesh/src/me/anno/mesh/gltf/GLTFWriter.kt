@@ -9,7 +9,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature

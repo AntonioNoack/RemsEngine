@@ -1,7 +1,7 @@
 package me.anno.engine.history
 
 import me.anno.gpu.GFX
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc

@@ -3,7 +3,7 @@ package me.anno.engine.projects
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -37,8 +37,9 @@ object Projects {
                             if (configFile.exists) {
                                 try {
                                     LOGGER.debug("Reading {}", configFile)
-                                    val config =
-                                        JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
+                                    val config = JsonStringReader.readFirstOrNull(
+                                        configFile, folder, GameEngineProject::class, true
+                                    )
                                     if (config != null) {
                                         projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
                                         usedFiles += folder

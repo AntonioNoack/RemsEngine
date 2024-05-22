@@ -1,9 +1,9 @@
-package me.anno.io
+package me.anno.io.saveable
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.Graph
-import me.anno.io.Saveable.Companion.IRegistryEntry
+import me.anno.io.saveable.Saveable.Companion.IRegistryEntry
 import me.anno.io.files.ReadLineIterator
 import me.anno.io.files.Reference.getReference
 import me.anno.io.yaml.generic.SimpleYAMLReader

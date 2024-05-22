@@ -1,7 +1,7 @@
 package me.anno.graph.visual.node
 
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager

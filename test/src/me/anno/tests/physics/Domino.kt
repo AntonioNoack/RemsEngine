@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.engine.OfficialExtensions

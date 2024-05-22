@@ -1,7 +1,7 @@
 package me.anno.tests.tools
 
 import me.anno.config.DefaultConfig.style
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.ui.Style
 import me.anno.utils.OS.documents

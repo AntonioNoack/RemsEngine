@@ -6,7 +6,17 @@ import java.io.IOException
 
 object YAMLReader {
 
-    const val listKey = ""
+    const val LIST_KEY = ""
+
+    fun findColon(str: String): Int {
+        var i = 0
+        while (true) {
+            val col = str.indexOf(':', i)
+            if (col + 1 < str.length && str[col + 1] != ' ') {
+                i = col + 1
+            } else return col
+        }
+    }
 
     /**
      * reads the yaml file
@@ -56,7 +66,7 @@ object YAMLReader {
         }
 
         // parse yaml
-        while (true){
+        while (true) {
             val line = reader.readLine() ?: break
             var trimmed = line.trim()
             if (trimmed.isNotEmpty()) {
@@ -70,13 +80,13 @@ object YAMLReader {
                     //   desc: leDesc
                     // - name: leName2
                     //   age: 21
-                    add(depth + 1, listKey, null)
+                    add(depth + 1, LIST_KEY, null)
                     depth += 2
                     startIndex += 2
                     trimmed = trimmed.substring(2)
                 }
                 // process the line
-                val colonIndex = if (trimmed.startsWith("{")) -1 else trimmed.indexOf(':')
+                val colonIndex = if (trimmed.startsWith("{")) -1 else findColon(trimmed)
                 var key: String = trimmed
                 var value: String? = null
                 if (colonIndex > 0) {

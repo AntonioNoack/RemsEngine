@@ -1,11 +1,9 @@
 package me.anno.ui.anim
 
 import me.anno.animation.Interpolation
-import me.anno.engine.EngineBase
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.Panel
 
 // todo (interactable) springs as well :) -> make the UI joyful
@@ -44,7 +42,5 @@ abstract class UIAnimation(
         }
     }
 
-    fun clone() = JsonStringReader.readFirst<UIAnimation>(
-        JsonStringWriter.toText(this, EngineBase.workspace), EngineBase.workspace
-    )
+    fun clone(): UIAnimation = JsonStringReader.clone(this)
 }

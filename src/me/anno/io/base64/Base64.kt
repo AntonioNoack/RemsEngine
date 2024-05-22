@@ -1,4 +1,4 @@
-package me.anno.io
+package me.anno.io.base64
 
 /**
  * Base64 encoder/decoder,

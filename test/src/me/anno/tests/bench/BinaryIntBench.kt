@@ -1,7 +1,7 @@
 package me.anno.tests.bench
 
-import me.anno.io.Saveable.Companion.registerCustomClass
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter

@@ -178,7 +178,7 @@ open class JsonReader(val data: InputStream) {
     fun readObject(readOpeningBracket: Boolean = true, filter: ((String) -> Boolean)? = null): HashMap<String, Any?> {
         if (readOpeningBracket) assertEquals(skipSpace(), '{')
         var next = skipSpace()
-        val obj = HashMap<String, Any?>()
+        val obj = LinkedHashMap<String, Any?>()
         while (true) {
             when (next) {
                 '}' -> return obj

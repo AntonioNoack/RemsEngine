@@ -21,7 +21,7 @@ fun main() {
     text.name = smiley
     val asString = JsonStringWriter.toText(text, InvalidRef)
     println(asString)
-    val asText = JsonStringReader.readFirst(asString, InvalidRef, false) as CSet
+    val asText = JsonStringReader.readFirst(asString, InvalidRef, CSet::class, false)
     println("Decoded text: ${asText.name}, ${asText.name.length}")
     // this works so far...
     val tmp = FileFileRef.createTempFile("smiley", ".tmp")

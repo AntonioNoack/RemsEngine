@@ -3,7 +3,7 @@ package me.anno.tests.ui.input
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.annotations.Type
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.engine.inspector.Inspectable
 import me.anno.ui.debug.TestEngine.Companion.testUI

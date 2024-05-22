@@ -1,6 +1,6 @@
 package me.anno.tests.structures
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter

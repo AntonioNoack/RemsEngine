@@ -8,8 +8,8 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.Saveable
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileContentImporter
 import org.apache.logging.log4j.LogManager

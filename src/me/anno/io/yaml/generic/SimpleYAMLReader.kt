@@ -1,5 +1,7 @@
 package me.anno.io.yaml.generic
 
+import me.anno.io.yaml.generic.YAMLReader.findColon
+
 object SimpleYAMLReader {
     @JvmStatic
     fun read(lines: Iterator<String>): Map<String, String> {
@@ -11,7 +13,7 @@ object SimpleYAMLReader {
         while (lines.hasNext()) {
             val line = lines.next()
             if (line.startsWith('#')) continue
-            var i0 = line.indexOf(':') + 1
+            var i0 = findColon(line) + 1
             var i1 = line.lastIndex
             if (i0 > 0) {
                 val key = line.substring(0, i0 - 1)

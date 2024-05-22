@@ -1,9 +1,7 @@
-package me.anno.io
+package me.anno.io.saveable
 
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 
 class SaveableArray() : Saveable(), MutableList<Saveable> {
 
@@ -62,6 +60,6 @@ class SaveableArray() : Saveable(), MutableList<Saveable> {
     override fun subList(fromIndex: Int, toIndex: Int) = values.subList(fromIndex, toIndex)
 
     fun clone(): SaveableArray {
-        return JsonStringReader.readFirst(JsonStringWriter.toText(this as Saveable, InvalidRef), InvalidRef, false)
+        return JsonStringReader.clone(this)
     }
 }

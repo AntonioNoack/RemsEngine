@@ -3,6 +3,7 @@ package me.anno.utils.structures.lists
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.KClass
 
 @Suppress("unused")
 object Lists {
@@ -70,6 +71,21 @@ object Lists {
     @JvmStatic
     inline fun <V : Any> List<V>.first2(test: (V) -> Boolean): V {
         return firstOrNull2(test) ?: throw NoSuchElementException()
+    }
+
+    /**
+     * non-inline firstInstanceOrNull()
+     * */
+    @JvmStatic
+    fun <V : Any> List<*>.firstInstanceOrNull2(clazz: KClass<V>): V? {
+        for (i in indices) {
+            val v = get(i)
+            if (clazz.isInstance(v)) {
+                @Suppress("UNCHECKED_CAST")
+                return v as V
+            }
+        }
+        return null
     }
 
     /**

@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.AsyncCacheData
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 

@@ -5,11 +5,11 @@ import me.anno.cache.CacheSection
 import me.anno.fonts.Codepoints.codepoints
 import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
-import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
+import me.anno.utils.types.Strings.indexOf2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -18,8 +18,12 @@ import java.io.UnsupportedEncodingException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLConnection
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import kotlin.concurrent.thread
 import kotlin.math.min
+
 
 /**
  * http/https resource
@@ -54,10 +58,8 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     override val exists: Boolean
         get() = headers != null
 
-    // todo parse date
     override val lastModified: Long
-        get() = headers?.get("Last-Modified")
-            ?.first().toLongOrDefault(0L)
+        get() = headers?.get("Last-Modified").toString().parseLastModified()
 
     val responseCode: Int // HTTP/1.1 200 OK
         get() = headers?.get(null)?.first().run {
@@ -144,6 +146,17 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
         private val LOGGER = LogManager.getLogger(WebRef::class)
         val webCache = CacheSection("Web")
+
+        private fun String.parseLastModified(): Long {
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+            // <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
+            try {
+                val zonedDateTime = ZonedDateTime.parse(this, DateTimeFormatter.RFC_1123_DATE_TIME)
+                return zonedDateTime.toInstant().toEpochMilli()
+            } catch (e: DateTimeParseException) {
+                return 0
+            }
+        }
 
         private fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
             val data = webCache.getEntry(url, timeout, async) {

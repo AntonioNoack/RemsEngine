@@ -14,7 +14,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.mesh.Shapes
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel

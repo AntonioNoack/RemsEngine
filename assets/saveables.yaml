@@ -127,7 +127,7 @@ MorphTarget: me.anno.ecs.components.mesh.utils.MorphTarget
 MotionBlurNode: me.anno.graph.visual.render.effects.MotionBlurNode
 MoveAnimation: me.anno.ui.anim.MoveAnimation
 MovieNode: me.anno.graph.visual.render.MovieNode
-NamedSaveable: me.anno.io.NamedSaveable
+NamedSaveable: me.anno.io.saveable.NamedSaveable
 NightNode: me.anno.graph.visual.render.effects.NightNode
 NineTilePanel: me.anno.ui.base.groups.NineTilePanel
 NodeGroup: me.anno.graph.visual.render.NodeGroup
@@ -231,8 +231,8 @@ SDFVoronoiArray: me.anno.sdf.arrays.SDFVoronoiArray
 SMap: me.anno.io.utils.StringMap
 SSAONode: me.anno.graph.visual.render.effects.SSAONode
 SSRNode: me.anno.graph.visual.render.effects.SSRNode
-Saveable: me.anno.io.Saveable
-SaveableArray: me.anno.io.SaveableArray
+Saveable: me.anno.io.saveable.Saveable
+SaveableArray: me.anno.io.saveable.SaveableArray
 ScaleAnimation: me.anno.ui.anim.ScaleAnimation
 ScriptComponent: me.anno.lua.ScriptComponent
 ScriptedAI: me.anno.lua.coroutinestuff.ScriptedAI

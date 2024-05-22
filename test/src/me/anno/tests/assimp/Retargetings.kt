@@ -11,11 +11,12 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS
 
 fun main() {
     // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
-    ECSRegistry.init()
+    OfficialExtensions.initForTests()
     EngineBase.workspace = OS.documents.getChild("RemsEngine\\YandereSim")
     // find two human meshes with different skeletons
     val meshFile = EngineBase.workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")

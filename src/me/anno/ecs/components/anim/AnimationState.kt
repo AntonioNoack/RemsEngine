@@ -5,7 +5,7 @@ import me.anno.animation.LoopingState
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.engine.inspector.Inspectable
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

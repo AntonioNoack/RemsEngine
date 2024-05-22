@@ -1,4 +1,4 @@
-package me.anno.io
+package me.anno.io.base64
 
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max

@@ -1,6 +1,6 @@
 package me.anno.ui.base.components
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 
 open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : Saveable() {

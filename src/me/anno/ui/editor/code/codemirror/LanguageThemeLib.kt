@@ -1,6 +1,6 @@
 package me.anno.ui.editor.code.codemirror
 
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 
@@ -13,7 +13,8 @@ object LanguageThemeLib {
         registerCustomClass(LanguageTheme())
     }
 
-    fun read(str: String) = JsonStringReader.readFirst<LanguageTheme>((base + str).replace('\'','"'), InvalidRef)
+    fun read(str: String): LanguageTheme =
+        JsonStringReader.readFirst((base + str).replace('\'','"'), InvalidRef, LanguageTheme::class)
 
     // todo abbott & Dracula & Juejin have invisible selected line... correct??
     //  Icecoder is likely wrong: no way selected line is black

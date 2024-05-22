@@ -15,7 +15,6 @@ import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp

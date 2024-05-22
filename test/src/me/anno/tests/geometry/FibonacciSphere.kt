@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.maths.geometry.FibonacciSphere
 import me.anno.mesh.Shapes.smoothCube
 import kotlin.math.sqrt

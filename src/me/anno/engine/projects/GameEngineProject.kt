@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.Event
 import me.anno.gpu.GFX
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -42,7 +42,7 @@ class GameEngineProject() : NamedSaveable() {
                 if (location.isDirectory) {
                     val configFile = location.getChild("Project.json")
                     if (configFile.exists) {
-                        val instance = JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, location)
+                        val instance = JsonStringReader.readFirstOrNull(configFile, location, GameEngineProject::class)
                         instance?.location = location
                         instance
                     } else {

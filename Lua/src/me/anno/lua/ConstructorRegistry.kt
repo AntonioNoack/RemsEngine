@@ -1,6 +1,6 @@
 package me.anno.lua
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.lua.ScriptComponent.Companion.toLua
 import org.joml.AABBd
 import org.joml.AABBf

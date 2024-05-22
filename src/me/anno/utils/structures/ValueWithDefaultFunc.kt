@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 
 /**

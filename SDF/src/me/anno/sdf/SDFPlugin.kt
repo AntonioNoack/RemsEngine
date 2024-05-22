@@ -4,7 +4,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.Renderers
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.shader.renderer.InheritedRenderer
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.sdf.arrays.SDFArray2
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid

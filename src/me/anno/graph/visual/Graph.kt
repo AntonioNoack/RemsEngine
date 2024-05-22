@@ -6,9 +6,7 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.node.NodeInput
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 
 // for editing just copy them;
 // for the final shader graph, maybe just use versions, e.g. v01, v02, and the user can select the base for their graph
@@ -134,7 +132,7 @@ open class Graph : PrefabSaveable() {
     }
 
     override fun clone(): PrefabSaveable {
-        val clone = JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef, false) as Graph
+        val clone = JsonStringReader.clone(this)
         for (node in clone.nodes) node.graph = clone
         return clone
     }

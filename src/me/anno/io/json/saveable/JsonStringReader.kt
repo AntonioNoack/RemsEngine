@@ -1,10 +1,10 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
-import org.apache.logging.log4j.LogManager
+import me.anno.io.saveable.ReaderImpl
+import me.anno.io.saveable.StreamReader
+import me.anno.io.saveable.StringReader
 import java.io.EOFException
 import java.io.InputStream
 
@@ -56,90 +56,22 @@ class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonR
         throw EOFException()
     }
 
-    companion object {
+    companion object : StringReader, StreamReader {
 
-        private val LOGGER = LogManager.getLogger(JsonStringReader::class)
-
-        /**
-         * parses a Json* formatted string
-         * @param safely return current results on failure, else throws Exception
-         * */
-        fun read(data: CharSequence, workspace: FileReference, safely: Boolean): List<Saveable> {
-            return read(data, workspace, "", safely)
+        override fun createReader(data: CharSequence, workspace: FileReference, sourceName: String): ReaderImpl {
+            val impl = JsonStringReader(data, workspace)
+            impl.sourceName = sourceName
+            return impl
         }
 
-        /**
-         * parses a Json* formatted string
-         * @param safely return current results on failure, else throws Exception
-         * */
-        fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
-            val reader = JsonStringReader(data, workspace)
-            reader.sourceName = sourceName
-            if (safely) {
-                try {
-                    reader.readAllInList()
-                } catch (e: Exception) {
-                    LOGGER.warn("Error in $sourceName", e)
-                }
-            } else {
-                reader.readAllInList()
-            }
-            reader.finish()
-            // sorting is very important
-            return reader.sortedContent
+        override fun createReader(data: InputStream, workspace: FileReference, sourceName: String): ReaderImpl {
+            val impl = JsonStreamReader(data, workspace)
+            impl.sourceName = sourceName
+            return impl
         }
 
-        fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<Saveable> {
-            // buffered is very important and delivers an improvement of 5x
-            return file.inputStreamSync().use { input: InputStream ->
-                read(input, workspace, file.absolutePath, safely)
-            }
+        override fun toText(element: Saveable, workspace: FileReference): String {
+            return JsonStringWriter.toText(element, workspace)
         }
-
-        fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<Saveable> {
-            return read(data, workspace, "", safely)
-        }
-
-        fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<Saveable> {
-            val reader = JsonStreamReader(data, workspace)
-            reader.sourceName = sourceName
-            if (safely) {
-                try {
-                    reader.readAllInList()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            } else reader.readAllInList()
-            reader.finish()
-            // sorting is very important
-            return reader.sortedContent
-        }
-
-        inline fun <reified Type> readFirstOrNull(
-            data: FileReference,
-            workspace: FileReference,
-            safely: Boolean = true
-        ): Type? {
-            return read(data, workspace, safely).firstInstanceOrNull<Type>()
-        }
-
-        inline fun <reified Type> readFirstOrNull(
-            data: String,
-            workspace: FileReference,
-            safely: Boolean = true
-        ): Type? {
-            return read(data, workspace, safely).firstInstanceOrNull<Type>()
-        }
-
-        inline fun <reified Type> readFirst(data: String, workspace: FileReference, safely: Boolean = true): Type {
-            return read(data, workspace, safely).firstInstanceOrNull<Type>()!!
-        }
-
-        fun <V : Saveable> clone(element: V): V? {
-            val clone = read(JsonStringWriter.toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
-            @Suppress("unchecked_cast")
-            return clone as? V
-        }
-
     }
 }

@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap

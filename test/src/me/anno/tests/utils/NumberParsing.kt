@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.utils.StringMap
@@ -24,7 +24,7 @@ class NumberParsing {
             "#abcd" to 0xaabbccdd.toInt(),
             "0110" to "110".toInt(8)
         )) {
-            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"i:value\": $str}]", InvalidRef)
+            val actual = JsonStringReader.readFirst("[{\"class\":\"SMap\",\"i:value\": $str}]", InvalidRef, StringMap::class)
             assertEquals(expected, actual["value"])
         }
     }
@@ -44,7 +44,7 @@ class NumberParsing {
             "#abcd" to 0xaabbccdd.toInt().toLong(),
             "0110" to "110".toInt(8).toLong()
         )) {
-            val actual = JsonStringReader.readFirst<StringMap>("[{\"class\":\"SMap\",\"l:value\": $str}]", InvalidRef)
+            val actual = JsonStringReader.readFirst("[{\"class\":\"SMap\",\"l:value\": $str}]", InvalidRef, StringMap::class)
             assertEquals(expected, actual["value"])
         }
     }

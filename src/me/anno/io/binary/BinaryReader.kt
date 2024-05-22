@@ -1,6 +1,6 @@
 package me.anno.io.binary
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY

@@ -9,7 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference
 import me.anno.io.json.saveable.JsonStringReader
@@ -47,7 +47,7 @@ class ExportedGame(val config: StringMap) : EngineBase(
         fun main(args: Array<String>) {
             Saveable.registerCustomClass(StringMap())
             val configText = Reference.getReference("res://export.json").readTextSync()
-            val config = JsonStringReader.readFirst<StringMap>(configText, InvalidRef)
+            val config = JsonStringReader.readFirst(configText, InvalidRef, StringMap::class)
             ExportedGame(config).run()
         }
     }

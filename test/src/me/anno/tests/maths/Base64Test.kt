@@ -1,7 +1,7 @@
 package me.anno.tests.maths
 
-import me.anno.io.Base64
-import me.anno.io.Base64Impl
+import me.anno.io.base64.Base64
+import me.anno.io.base64.Base64Impl
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

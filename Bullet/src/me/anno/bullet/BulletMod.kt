@@ -6,7 +6,7 @@ import me.anno.bullet.constraints.HingeConstraint
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.bullet.constraints.SliderConstraint
 import me.anno.extensions.mods.Mod
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 
 @Suppress("unused")
 class BulletMod : Mod() {

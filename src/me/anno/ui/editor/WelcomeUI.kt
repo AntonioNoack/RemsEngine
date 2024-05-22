@@ -10,7 +10,7 @@ import me.anno.engine.projects.ProjectHeader
 import me.anno.engine.projects.Projects
 import me.anno.gpu.GFX
 import me.anno.input.Key
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef

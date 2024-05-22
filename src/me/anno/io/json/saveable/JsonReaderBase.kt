@@ -1,6 +1,6 @@
 package me.anno.io.json.saveable
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseReader
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
@@ -79,7 +79,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             assertEquals(skipSpace(), '"')
             val secondProperty = readString()
             assertEquals(skipSpace(), ':')
-            if (secondProperty == "i:*ptr") {
+            if (isPtrProperty(secondProperty)) {
                 val ptr = readInt()
                 register(obj, ptr)
             } else {
@@ -234,7 +234,13 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         createArray: (arraySize: Int) -> ArrayType,
         putValue: (array: ArrayType, index: Int) -> Unit
     ): ArrayType {
-        assertEquals(skipSpace(), '[')
+        val c0 = skipSpace()
+        if (c0 == '"') {
+            val array = readArray(typeName, createArray, putValue)
+            assertEquals(skipSpace(), '"', "end-of-str[]")
+            return array
+        }
+        assertEquals(c0, '[')
         val rawLength = readLong()
         if (rawLength > Int.MAX_VALUE || rawLength < 0) error("Invalid $typeName[] length '$rawLength'")
         val length = rawLength.toInt()
@@ -305,6 +311,11 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 assertEquals(next(), 's', "boolean:false")
                 assertEquals(next(), 'e', "boolean:false")
                 false
+            }
+            '"' -> {
+                val value = readBool()
+                assertEquals(next(), '"', "boolean:quotes")
+                value
             }
             else -> throw InvalidFormatException("Unknown boolean value starting with $firstChar")
         }
@@ -908,7 +919,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
                 register(instance)
             } else {
                 assertEquals(nextChar, ':')
-                if (property0 == "*ptr" || property0 == "i:*ptr") {
+                if (isPtrProperty(property0)) {
                     val ptr = readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
                     register(instance, ptr)
                 } else {
@@ -948,6 +959,10 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     companion object {
 
         private val readers = HashMap<String, JsonReaderBase.(obj: Saveable, name: String) -> Unit>(64)
+
+        fun isPtrProperty(name: String): Boolean {
+            return name == "i:*ptr" || name == "*ptr" || name == "ptr"
+        }
 
         private fun <V> register1(
             type: SimpleType, v0: V,

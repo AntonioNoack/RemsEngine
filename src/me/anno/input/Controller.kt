@@ -435,7 +435,7 @@ class Controller(val id: Int) {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getCaliFile(guid)
             if (!file.exists || file.isDirectory) return null
-            return JsonStringReader.readFirstOrNull<ControllerCalibration>(file, EngineBase.workspace)
+            return JsonStringReader.readFirstOrNull(file, EngineBase.workspace, ControllerCalibration::class)
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {

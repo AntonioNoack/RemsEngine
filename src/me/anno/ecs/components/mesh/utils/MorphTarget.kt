@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.utils
 
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 
 /**

@@ -1,6 +1,6 @@
 package me.anno.io.config
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter

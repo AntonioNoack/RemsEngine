@@ -1,6 +1,6 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Booleans.withFlag
 import kotlin.math.min

@@ -2,7 +2,7 @@ package me.anno.tests.files
 
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
@@ -31,7 +31,7 @@ class EnumSerializationTest : Saveable() {
         instance.stage = PipelineStage.TRANSPARENT
         val asText = instance.toString()
         assertEquals("[{\"class\":\"EnumSerializationTest\",\"i:*ptr\":1,\"i:stage\":1}]", asText)
-        val clone = JsonStringReader.readFirst<EnumSerializationTest>(asText, InvalidRef)
+        val clone = JsonStringReader.readFirst(asText, InvalidRef, EnumSerializationTest::class)
         assertEquals(instance.stage, clone.stage)
     }
 }

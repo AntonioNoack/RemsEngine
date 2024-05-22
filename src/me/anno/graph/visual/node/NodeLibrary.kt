@@ -6,7 +6,7 @@ import me.anno.graph.visual.control.InlineBranchNode
 import me.anno.graph.visual.local.GetLocalVariableNode
 import me.anno.graph.visual.local.SetLocalVariableNode
 import me.anno.graph.visual.scalar.ValueNode
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
 

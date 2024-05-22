@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.Triangulation

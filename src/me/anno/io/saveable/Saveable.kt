@@ -1,4 +1,4 @@
-package me.anno.io
+package me.anno.io.saveable
 
 import me.anno.Build
 import me.anno.ecs.annotations.Type

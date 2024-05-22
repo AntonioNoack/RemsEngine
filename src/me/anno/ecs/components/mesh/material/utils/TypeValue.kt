@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.utils.types.AnyToFloat

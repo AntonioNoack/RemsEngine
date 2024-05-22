@@ -164,7 +164,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return if (!exists || isDirectory) {
             if ('/' in name || '\\' in name) getReference(appendPath(absolutePath, name))
             else register(FileFileRef(File(file, name)))
-        } else zipFileForDirectory?.getChild(name) ?: InvalidRef // todo
+        } else zipFileForDirectory?.getChild(name) ?: InvalidRef
     }
 
     override val exists: Boolean

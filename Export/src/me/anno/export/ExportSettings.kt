@@ -7,12 +7,11 @@ import me.anno.export.idea.IdeaProject.Companion.kotlinc
 import me.anno.export.platform.LinuxPlatforms
 import me.anno.export.platform.MacOSPlatforms
 import me.anno.export.platform.WindowsPlatforms
-import me.anno.io.NamedSaveable
+import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -98,7 +97,7 @@ class ExportSettings : NamedSaveable() {
     }
 
     fun clone(): ExportSettings {
-        return JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
+        return JsonStringReader.clone(this)
     }
 
     fun createInspector(

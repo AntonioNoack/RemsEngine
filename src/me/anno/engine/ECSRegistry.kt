@@ -1,6 +1,6 @@
 package me.anno.engine
 
-import me.anno.io.SaveableRegistry
+import me.anno.io.saveable.SaveableRegistry
 import me.anno.io.files.Reference
 
 object ECSRegistry {

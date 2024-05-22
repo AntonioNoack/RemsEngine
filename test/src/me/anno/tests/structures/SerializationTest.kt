@@ -2,8 +2,8 @@ package me.anno.tests.structures
 
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
-import me.anno.io.Saveable
-import me.anno.io.Saveable.Companion.registerCustomClass
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader

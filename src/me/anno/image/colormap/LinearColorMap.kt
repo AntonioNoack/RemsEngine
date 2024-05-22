@@ -1,6 +1,6 @@
 package me.anno.image.colormap
 
-import me.anno.io.Saveable
+import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hasAlpha

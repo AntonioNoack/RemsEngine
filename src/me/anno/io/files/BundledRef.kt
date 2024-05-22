@@ -5,7 +5,6 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Reference.appendPath
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
-import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -45,29 +44,14 @@ class BundledRef(
         var length = 0L
         try {
             inputStreamSync().use {
-                when (it) {
-                    is ByteArrayInputStream ->
-                        length = it.available().toLong()
-
-                    is BufferedInputStream -> {
-                        val buffer = ByteArray(2048)
-                        while (true) {
-                            val len = it.read(buffer)
-                            if (len < 0) break
-                            length += len
-                        }
-                    }
-
-                    else -> {
-                        // todo this doesn't work :/
-                        // https://stackoverflow.com/questions/34360826/get-the-size-of-a-resource might work, when we find the correct jar
-                        var test = 1L shl 16 // 65k .. as large as needed
-                        while (test > 0L) {
-                            val skipped = it.skip(test)
-                            if (skipped <= 0) break
-                            length += skipped
-                            test = test shl 1
-                        }
+                if (it is ByteArrayInputStream) {
+                    length = it.available().toLong()
+                } else {
+                    val buffer = ByteArray(2048)
+                    while (true) {
+                        val len = it.read(buffer)
+                        if (len < 0) break
+                        length += len
                     }
                 }
             }
