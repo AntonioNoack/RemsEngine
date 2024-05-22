@@ -30,7 +30,6 @@ object Bloom {
     //  - https://www.youtube.com/watch?v=tI70-HIc5ro&ab_channel=TheCherno
     //  - https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Bloom.shader
     //  - http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-    // todo use better hdr format to save on bandwidth
 
     // how many iterations are executed at maximum
     private const val maxSteps = 16 // equal to (65k)² pixels

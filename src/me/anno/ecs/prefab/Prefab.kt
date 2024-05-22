@@ -65,12 +65,8 @@ class Prefab : Saveable {
     var history: ChangeHistory? = null
 
     @NotSerializedProperty
-    var isValid: Boolean
+    val isValid: Boolean
         get() = _sampleInstance != null
-        set(value) {
-            if (value) throw IllegalArgumentException("Cannot just set this to be valid")
-            invalidateInstance()
-        }
 
     fun find(path: Path): CAdd? {
         return adds[path.parent]?.firstOrNull {

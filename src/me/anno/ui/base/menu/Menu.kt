@@ -8,7 +8,6 @@ import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
@@ -24,6 +23,7 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.levenshtein
 import kotlin.math.max
 import kotlin.math.min
@@ -43,10 +43,14 @@ object Menu {
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
     fun msg(windowStack: WindowStack, title: NameDesc) {
-        // todo this should be at the bottom center like an Android toast
         val panel = TextPanel(title.name, style).setTooltip(title.desc)
         val window = openMenuByPanels(windowStack, NameDesc(), listOf(panel))
-        window?.drawDirectly = true
+        if (window != null) {
+            // window should be at the bottom center like an Android toast
+            window.x = (windowStack.width - window.panel.width).shr(1)
+            window.y = windowStack.height - window.panel.height - 10
+            window.drawDirectly = true
+        }
     }
 
     fun msg(title: NameDesc) {

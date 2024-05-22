@@ -73,7 +73,7 @@ class SDFRotSym : PositionMapper() {
         if (slices < 1e9) {
             angle = round(angle * invSlice) / invSlice
         }
-        // todo correct direction?
+        // todo is this the correct direction?
         pos.rotateY(-angle)
         rotation.transformInverse(pos)
         pos.add(offset.x, offset.y, offset.z, 0f)

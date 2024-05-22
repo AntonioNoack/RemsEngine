@@ -12,10 +12,6 @@ import org.joml.Vector4f
  * */
 open class SDFPlane : SDFShape() {
 
-    enum class Axis(val id: Int) {
-        X(0), Y(1), Z(2)
-    }
-
     var axis = Axis.Y
         set(value) {
             if (field != value) {

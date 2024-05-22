@@ -5,8 +5,8 @@ import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.render.Texture
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
@@ -665,7 +665,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             // other
             is String -> writeStringList2D(name, cast(value), forceSaving)
             is FileReference -> writeFileList2D(name, cast(value), forceSaving)
-            else -> throw NotImplementedError("Writing 2d array of type ${if (sample1 != null) sample1::class else null}, '$name'")
+            else -> LOGGER.warn("Writing 2d array '$name' of type ${if (sample1 != null) sample1::class else null} hasn't been implemented")
         }
     }
 
@@ -766,13 +766,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 writeByteArray(name, bytes0.toByteArray())*/
             }
             is Texture, is ITexture2D -> {}
-            else -> {
-                val msg =
-                    "saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?"
-                if (value !is Function<*>)
-                    throw RuntimeException("Todo implement $msg") // functions cannot easily be serialized
-                else LOGGER.warn("Ignored $msg")
-            }
+            else -> LOGGER.warn("Ignored saving $name: $value of class ${value.javaClass}")
         }
     }
 

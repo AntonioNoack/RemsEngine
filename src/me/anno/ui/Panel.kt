@@ -206,8 +206,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     @NotSerializedProperty
     var oldStateInt = 0
 
-    // todo mesh or image backgrounds for panels
-    // todo if we do it that complicated, maybe create a class for the background?...
+    // old task: mesh or image backgrounds for panels
+    //  -> use a PanelStack, and an ImagePanel below your main panel
 
     var backgroundOutlineColor = 0
     var backgroundOutlineThickness = 0f

@@ -3,6 +3,7 @@ package me.anno.sdf.random
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.mix
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
@@ -65,7 +66,13 @@ class SDFRandomScale : SDFRandom() {
     }
 
     override fun calcTransform(pos: Vector4f, seed: Int) {
-        // todo apply transform here (?)
+        val s1 = nextRandI(seed)
+        val s2 = nextRandI(s1)
+        pos.mul(
+            mix(minScale.x, maxScale.x, nextRandF(seed)),
+            mix(minScale.y, maxScale.y, nextRandF(s1)),
+            mix(minScale.z, maxScale.z, nextRandF(s2)), 1f
+        )
     }
 
     override fun applyTransform(bounds: AABBf) {

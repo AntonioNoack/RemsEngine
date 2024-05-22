@@ -145,8 +145,7 @@ fun CapsuleCollider.createBulletShape(scale: Vector3d): CollisionShape {
     return when (axis) {
         0 -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
         1 -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
-        2 -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
-        else -> throw RuntimeException()
+        else -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
     }
 }
 
@@ -162,8 +161,7 @@ fun CylinderCollider.createBulletShape(scale: Vector3d): CollisionShape {
     return when (axis) {
         0 -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
         1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
-        2 -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
-        else -> throw RuntimeException()
+        else -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
     }
 }
 

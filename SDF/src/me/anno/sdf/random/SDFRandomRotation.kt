@@ -2,6 +2,7 @@ package me.anno.sdf.random
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.mix
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
@@ -49,14 +50,19 @@ class SDFRandomRotation : SDFRandom() {
                 .appendVec(maxAngleDegrees)
         }
         builder.append(",nextRandF3(").append(seed).append("));\n")
+        // are the signs correct???
         builder.append("pos").append(posIndex).append(".xz*=rot(tmp").append(tmp).append(".y);\n")
-        builder.append("pos").append(posIndex).append(".yz*=rot(tmp").append(tmp).append(".x);\n")
-        builder.append("pos").append(posIndex).append(".xy*=rot(tmp").append(tmp).append(".z);\n")
+        builder.append("pos").append(posIndex).append(".zy*=rot(tmp").append(tmp).append(".x);\n")
+        builder.append("pos").append(posIndex).append(".yx*=rot(tmp").append(tmp).append(".z);\n")
         return null
     }
 
     override fun calcTransform(pos: Vector4f, seed: Int) {
-        // todo apply transform here (?)
+        val s1 = nextRandI(seed)
+        val s2 = nextRandI(s1)
+        pos.rotateY(mix(minAngleDegrees.y, maxAngleDegrees.y, nextRandF(s1)))
+        pos.rotateX(mix(minAngleDegrees.x, maxAngleDegrees.x, nextRandF(seed)))
+        pos.rotateZ(mix(minAngleDegrees.z, maxAngleDegrees.z, nextRandF(s2)))
     }
 
     override fun applyTransform(bounds: AABBf) {
@@ -92,7 +98,6 @@ class SDFRandomRotation : SDFRandom() {
             m.identity().rotateZ(dz)
             bounds.transformUnion(m, bounds)
         }
-
     }
 
     override fun copyInto(dst: PrefabSaveable) {

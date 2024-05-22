@@ -52,10 +52,9 @@ private fun testShader() {
         }
         val result = FBStack["result", w, h, 4, false, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {
-            val shader = FXAA.shader.value
+            val shader = FXAA.shader
             shader.use()
             shader.v1b("showEdges", Input.isShiftDown)
-            shader.v1b("disableEffect", Input.isControlDown)
             shader.v1f("threshold", 1e-5f)
             shader.v2f("rbOffset", 0f, 0f) // red-blue-offset; disabled for testing
             depth.bindTexture0(0, Filtering.NEAREST, Clamping.CLAMP)

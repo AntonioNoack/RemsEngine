@@ -272,5 +272,4 @@ object RayTracing {
             "   }\n" + // end of tlas
             "   tlasCtr += k;\n" +
             "}\n"
-
 }

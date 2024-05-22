@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
+import me.anno.utils.assertions.assertTrue
 
 fun main() {
 
@@ -30,7 +31,7 @@ fun main() {
     }
 
     val charWidth = DrawTexts.monospaceFont.sampleWidth
-    if (charWidth <= 0) throw IllegalStateException()
+    assertTrue(charWidth > 0)
 
     val image = Framebuffer("mono",
         (charWidth + padding) * lines.maxOf { it.length } + padding, lines.size * lineHeight + padding,

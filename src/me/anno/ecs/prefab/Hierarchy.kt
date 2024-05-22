@@ -66,7 +66,7 @@ object Hierarchy {
         }
 
         val dstPrefab = Prefab(className)
-        dstPrefab.isValid = false
+        dstPrefab.invalidateInstance()
 
         val isRoot = srcPath == Path.ROOT_PATH
         if (isRoot) {
@@ -329,7 +329,7 @@ object Hierarchy {
                 "all start with $path"
         )
         sets.removeMajorIf { it.startsWith(path) }
-        prefab.isValid = false
+        prefab.invalidateInstance()
 
         val parentPath = path.parent
         val adds = prefab.adds

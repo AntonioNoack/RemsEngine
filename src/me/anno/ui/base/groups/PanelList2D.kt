@@ -2,6 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
@@ -110,16 +111,15 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
     }
 
     fun getItemIndexAt(cx: Int, cy: Int): Int {
-        // todo only works if isY
         val lw = (calcChildWidth + spacing)
         val lh = (calcChildHeight + spacing)
         // todo skip invisible children less costly
         val children = children.filter { it.isVisible }
         if (lw < 1 || lh < 1 || children.size < 2) return children.lastIndex
-        // cx = x + ix * (calcChildWidth + spacing) + spacing
         val itemX = (cx - x - spacing) / lw
         val itemY = (cy - y - spacing) / lh
-        val ci = min(max(itemX + itemY * columns, 0), children.lastIndex)
+        val index = if (isY) itemX + itemY * columns else itemX * rows + itemY
+        val ci = clamp(index, 0, children.lastIndex)
         return if (ci > 0 && itemX > 0) {
             val p0 = children[ci]
             val p1 = children[ci - 1]
@@ -130,10 +130,15 @@ open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Styl
     }
 
     fun getItemFractionY(y: Float): Float {
-        // todo only works if isY
-        val ly = y - this.y - spacing
-        val itemY = ly * rows / height
-        return fract(itemY)
+        if (isY) {
+            val ly = y - this.y - spacing
+            val itemY = ly * rows / height
+            return fract(itemY)
+        } else {
+            val lx = y - this.x - spacing
+            val itemX = lx * columns / width
+            return fract(itemX)
+        }
     }
 
     override fun setPosition(x: Int, y: Int) {

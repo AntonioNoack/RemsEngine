@@ -1,5 +1,7 @@
 package me.anno.utils.structures
 
+import me.anno.utils.assertions.assertTrue
+
 object Iterators {
 
     inline fun <V> Iterator<V>.firstOrNull(test: (V) -> Boolean): V? {
@@ -46,7 +48,7 @@ object Iterators {
             }
 
             override fun next(): V {
-                if (!hasNext()) throw NoSuchElementException()
+                assertTrue(hasNext())
                 hasFoundNext = false
                 @Suppress("UNCHECKED_CAST")
                 return foundNext as V

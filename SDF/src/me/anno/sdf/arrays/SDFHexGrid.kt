@@ -1,20 +1,19 @@
 package me.anno.sdf.arrays
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.GLSLType
+import me.anno.sdf.shapes.Axis
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.floor
 
 class SDFHexGrid : PositionMapper() {
-
-    // todo allow any axis pair to be chosen
 
     var dynamicSize = false
         set(value) {
@@ -27,9 +26,25 @@ class SDFHexGrid : PositionMapper() {
     var cellSize = 1f
         set(value) {
             if (field != value) {
+                field = value
                 if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
+            }
+        }
+
+    var firstAxis = Axis.X
+        set(value) {
+            if (field != value) {
                 field = value
+                invalidateShader()
+            }
+        }
+
+    var secondAxis = Axis.Z
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateShader()
             }
         }
 
@@ -44,8 +59,8 @@ class SDFHexGrid : PositionMapper() {
         functions.add(hexFunc)
         val rnd = nextVariableId.next()
         builder.append("ivec2 tmp").append(rnd).append("=ivec2(0);\n")
-        builder.append("pos").append(posIndex).append(".xz")
-        builder.append("=hexGrid(pos").append(posIndex).append(".xz")
+        builder.append("pos").append(posIndex).append('.').append(firstAxis.char).append(secondAxis.char)
+        builder.append("=hexGrid(pos").append(posIndex).append('.').append(firstAxis.char).append(secondAxis.char)
         val dynamicSize = dynamicSize || globalDynamic
         if (cellSize != 1f || dynamicSize) {
             if (dynamicSize) {
@@ -74,8 +89,8 @@ class SDFHexGrid : PositionMapper() {
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val scale = cellSize
-        val px = pos.x / scale
-        val py = pos.z / scale
+        val px = pos[firstAxis.id] / scale
+        val py = pos[secondAxis.id] / scale
         // cell dimensions
         val s = hexScaleX
         // hexagon centers
@@ -90,21 +105,25 @@ class SDFHexGrid : PositionMapper() {
         val h3 = py - (hc3 + 0.5f)
         // local coordinates
         // todo calculate seed for random
-        if (h0 * h0 + h1 * h1 < h2 * h2 + h3 * h3) {
-            pos.x = h0 * scale
-            pos.z = h1 * scale
-        } else {
-            pos.x = h2 * scale
-            pos.z = h3 * scale
-        }
+        val first = h0 * h0 + h1 * h1 < h2 * h2 + h3 * h3
+        pos[firstAxis.id] = (if (first) h0 else h2) * scale
+        pos[secondAxis.id] = (if (first) h1 else h3) * scale
     }
 
     override fun applyTransform(bounds: AABBf) {
         // todo better solution, which respects limits
-        bounds.minX = Float.NEGATIVE_INFINITY
-        bounds.maxX = Float.POSITIVE_INFINITY
-        bounds.minZ = Float.NEGATIVE_INFINITY
-        bounds.maxZ = Float.POSITIVE_INFINITY
+        if (firstAxis == Axis.X || secondAxis == Axis.X) {
+            bounds.minX = Float.NEGATIVE_INFINITY
+            bounds.maxX = Float.POSITIVE_INFINITY
+        }
+        if (firstAxis == Axis.Y || secondAxis == Axis.Y) {
+            bounds.minY = Float.NEGATIVE_INFINITY
+            bounds.maxY = Float.POSITIVE_INFINITY
+        }
+        if (firstAxis == Axis.Z || secondAxis == Axis.Z) {
+            bounds.minZ = Float.NEGATIVE_INFINITY
+            bounds.maxZ = Float.POSITIVE_INFINITY
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {

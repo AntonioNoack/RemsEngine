@@ -39,13 +39,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         private val LOGGER = LogManager.getLogger(FileReference::class)
     }
 
-    init {
-        if ('\r' in absolutePath || '\n' in absolutePath) {
-            Engine.requestShutdown()
-            throw IllegalArgumentException(absolutePath)
-        }
-    }
-
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;
     // all zip files should be detected automatically
     // done if res:// at the start, then it's a local resource

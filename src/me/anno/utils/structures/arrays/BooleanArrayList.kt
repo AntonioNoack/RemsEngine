@@ -1,7 +1,7 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 import me.anno.utils.types.Booleans.withFlag
 import kotlin.math.min
 
@@ -69,23 +69,39 @@ class BooleanArrayList(var size: Int) : Saveable() {
             return values.all { it == 0L }
         }
 
-    fun nextSetBit(index: Int): Int {
-        // todo optimize this
-        for (i in index until size) {
-            if (this[i]) {
-                return i
-            }
-        }
-        return -1
+    fun nextSetBit(fromIndex: Int): Int {
+        return findNextSetBit(fromIndex, 0)
     }
 
-    fun nextClearBit(index: Int): Int {
-        // todo optimize this
-        for (i in index until size) {
-            if (!this[i]) {
-                return i
+    fun nextClearBit(fromIndex: Int): Int {
+        return findNextSetBit(fromIndex, -1)
+    }
+
+    private fun findNextSetBit(fromIndex: Int, readMask: Long): Int {
+        val arrayLength = values.size
+        val bitIndex = fromIndex and 63
+        var wordIndex = fromIndex ushr 6
+
+        // Check in the current word
+        if (wordIndex < arrayLength) {
+            // Zero out all bits before 'bitIndex'
+            val word = (values[wordIndex] xor readMask) ushr bitIndex
+            if (word != 0L) {
+                return fromIndex + word.countTrailingZeroBits()
             }
+            wordIndex++
         }
+
+        // Check subsequent words
+        while (wordIndex < arrayLength) {
+            val word = values[wordIndex] xor readMask
+            if (word != 0L) {
+                return wordIndex * 64 + word.countTrailingZeroBits()
+            }
+            wordIndex++
+        }
+
+        // If no set bit is found
         return -1
     }
 

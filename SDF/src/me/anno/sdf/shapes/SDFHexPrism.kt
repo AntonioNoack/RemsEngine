@@ -79,7 +79,7 @@ open class SDFHexPrism : SDFSmoothShape() {
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         // todo looks slightly off
         val h = params
-        val magic = SDFHexPrism.Companion.magic
+        val magic = SDFHexPrism.magic
         val k0 = smoothness * min(h.x, h.y)
         val hx = h.x - k0
         val hy = h.y - k0

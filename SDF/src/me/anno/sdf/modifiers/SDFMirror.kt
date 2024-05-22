@@ -19,8 +19,6 @@ class SDFMirror() : PositionMapper() {
     // todo edit planes using gizmos
     // todo also mark vectors as potential positions
 
-    constructor(position: Vector3f) : this(position, position)
-
     constructor(position: Vector3f, normal: Vector3f) : this() {
         plane.set(normal.x, normal.y, normal.z, -normal.dot(position))
         plane.normalize3()

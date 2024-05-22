@@ -2,6 +2,7 @@ package me.anno.sdf.random
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.mix
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
@@ -48,7 +49,13 @@ class SDFRandomTranslation : SDFRandom() {
     }
 
     override fun calcTransform(pos: Vector4f, seed: Int) {
-        // todo apply transform here (?)
+        val s1 = nextRandI(seed)
+        val s2 = nextRandI(s1)
+        pos.sub(
+            mix(minTranslation.x, maxTranslation.x, nextRandF(seed)),
+            mix(minTranslation.y, maxTranslation.y, nextRandF(s1)),
+            mix(minTranslation.z, maxTranslation.z, nextRandF(s2)), 0f
+        )
     }
 
     override fun applyTransform(bounds: AABBf) {

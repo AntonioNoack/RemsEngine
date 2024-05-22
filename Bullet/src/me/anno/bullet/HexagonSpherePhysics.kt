@@ -192,7 +192,7 @@ class HexagonSpherePhysics(
     }
 
     fun accelerate(dx: Float, dy: Float, dz: Float, dt: Float) {
-        if (!dt.isFinite()) throw IllegalArgumentException("Acceleration must be finite")
+        if (!dt.isFinite()) return
         velocity.add(dt * dx, dt * dy, dt * dz)
     }
 
