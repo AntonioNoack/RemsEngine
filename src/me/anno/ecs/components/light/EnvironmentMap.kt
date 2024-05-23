@@ -121,6 +121,7 @@ class EnvironmentMap : LightComponentBase() {
         val root = entity.getRoot(Entity::class)
         root.validateTransform()
         root.getBounds()
+        GFXState.pushDrawCallName(className)
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             texture.draw(resolution, pbrRenderer) { side ->
 
@@ -156,6 +157,7 @@ class EnvironmentMap : LightComponentBase() {
                 pipeline.singlePassWithSky(false)
             }
         }
+        GFXState.popDrawCallName()
         JomlPools.mat4f.sub(1)
 
         // todo create irradiance mipmaps: blur & size down, just like bloom

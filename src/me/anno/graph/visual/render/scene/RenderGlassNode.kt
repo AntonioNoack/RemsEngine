@@ -1,6 +1,6 @@
 package me.anno.graph.visual.render.scene
 
-import me.anno.engine.ui.render.Renderers.pbrRenderer
+import me.anno.engine.ui.render.Renderers.pbrRendererNoDepth
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.popDrawCallName
@@ -13,11 +13,12 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths.clamp
 
-class RenderForwardNode : RenderViewNode(
-    "RenderSceneForward",
+class RenderGlassNode : RenderViewNode(
+    "RenderSceneGlass",
     listOf(
         "Int", "Width",
         "Int", "Height",
@@ -28,25 +29,17 @@ class RenderForwardNode : RenderViewNode(
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
-    ) + listLayers(),
-    // list all available deferred layers
-    listLayers()
+        "Texture", "Illuminated",
+        "Texture", "Depth"
+    ),
+    listOf("Texture", "Illuminated")
 ) {
-
-    companion object {
-        fun listLayers(): List<String> {
-            return listOf(
-                "Texture", "Illuminated",
-                "Texture", "Depth"
-            )
-        }
-    }
 
     init {
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, PipelineStage.OPAQUE) // stage
+        setInput(4, PipelineStage.TRANSPARENT) // stage
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
@@ -54,8 +47,7 @@ class RenderForwardNode : RenderViewNode(
         setInput(9, DrawSkyMode.DONT_DRAW_SKY)
     }
 
-    // todo can we serialize a renderer somehow? make an enum from it???
-    var renderer = pbrRenderer
+    var renderer = pbrRendererNoDepth
 
     override fun executeAction() {
 
@@ -72,37 +64,22 @@ class RenderForwardNode : RenderViewNode(
 
         val framebuffer = FBStack["scene-forward",
             width, height, TargetType.Float16x4,
-            samples, DepthBufferType.TEXTURE]
+            samples, DepthBufferType.INTERNAL]
 
-        // if skybox is not used, bake it anyway?
-        // -> yes, the pipeline architect (^^) has to be careful
-        val skyboxResolution = getIntInput(8)
-        pipeline.bakeSkybox(skyboxResolution)
-
-        val drawSky = getInput(9) as DrawSkyMode
-        val prepassColor = (getInput(10) as? Texture)?.texOrNull
+        val prepassColor = (getInput(10) as? Texture)?.texOrNull ?: whiteTexture
         val prepassDepth = (getInput(11) as? Texture)?.texOrNull
 
         pipeline.applyToneMapping = applyToneMapping
-        val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
             defineInputs(framebuffer, prepassColor, prepassDepth)
-            if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
-                pipeline.drawSky()
-            }
             val stageImpl = pipeline.stages.getOrNull(stage.id)
             if (stageImpl != null && !stageImpl.isEmpty()) {
-                stageImpl.bindDraw(pipeline)
+                pipeline.transparentPass.blendTransparentStage(pipeline, stageImpl, prepassColor)
             }
-            if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
-                pipeline.drawSky()
-            }
-            pipeline.defaultStage.depthMode = depthMode
             GFX.check()
         }
 
         setOutput(1, Texture.texture(framebuffer, 0))
-        setOutput(2, Texture.depth(framebuffer))
         popDrawCallName()
     }
 

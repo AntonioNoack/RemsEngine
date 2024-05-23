@@ -207,6 +207,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val tmpPos = JomlPools.vec3d.create().set(position)
+        GFXState.pushDrawCallName(className)
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
                 result.draw(renderer) { i ->
@@ -229,6 +230,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 }
             }
         }
+        GFXState.popDrawCallName()
         JomlPools.vec3d.sub(1)
     }
 

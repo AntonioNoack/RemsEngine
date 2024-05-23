@@ -347,7 +347,7 @@ object GFX {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
-        // todo when we set that, depth regarding glass pass is copied from baked-ambient-occlusion, which is weird...
+        // todo when setting this, decals are broken
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...

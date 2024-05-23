@@ -139,8 +139,10 @@ class MultiFramebuffer(
         for (targetIndex in targets.indices) {
             val target = targets[targetIndex]
             // split renderer by targets
+            GFXState.pushDrawCallName(target.name)
             GFXState.renderers[index] = renderer.split(targetIndex, div)
             GFXState.framebuffer.use(target, render)
+            GFXState.popDrawCallName()
         }
     }
 

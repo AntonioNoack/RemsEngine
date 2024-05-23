@@ -175,6 +175,7 @@ class PlanarReflection : LightComponentBase() {
             val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
 
             if (x1 > x0 && y1 > y0) {
+                GFXState.pushDrawCallName(className)
                 useFrame(w, h, true, buffer, pbrRenderer) {
                     GFXState.ditherMode.use(ditherMode) {
                         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
@@ -187,6 +188,7 @@ class PlanarReflection : LightComponentBase() {
                         }
                     }
                 }
+                GFXState.popDrawCallName()
             }
         }
     }

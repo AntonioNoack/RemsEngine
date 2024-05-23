@@ -285,8 +285,13 @@ class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileE
             folderOptions.add(openAsScene)
             // todo create shader (MaterialGraph), post-processing (ShaderGraph), render mode (RenderGraph),
             //  mesh(?), visual script, Kotlin-script??, etc
+            // todo add same options as when right-clicking on tree-view
+            // todo create folders for these, because there's too many
             addOptionToCreateComponent("Entity")
             addOptionToCreateComponent("Material")
+            addOptionToCreateComponent("DecalMaterial")
+            addOptionToCreateComponent("TriplanarMaterial")
+            addOptionToCreateComponent("FurMaterial")
         }
     }
 }

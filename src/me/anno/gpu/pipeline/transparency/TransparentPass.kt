@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
+import me.anno.gpu.texture.ITexture2D
 
 abstract class TransparentPass : ICacheData {
 
@@ -29,5 +30,5 @@ abstract class TransparentPass : ICacheData {
         return result
     }
 
-    abstract fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl)
+    abstract fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl, colorInput: ITexture2D)
 }

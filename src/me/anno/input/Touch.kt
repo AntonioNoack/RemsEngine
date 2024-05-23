@@ -1,10 +1,11 @@
 package me.anno.input
 
 import me.anno.Time
-import me.anno.maths.Maths.length
+import me.anno.maths.Maths.sq
 import me.anno.ui.WindowStack
 import org.joml.Vector3f
 import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * Stores the current state of which touches are present, where, and for how long;
@@ -15,6 +16,7 @@ class Touch(var x: Float, var y: Float) {
     val t0 = Time.nanoTime
     val x0 = x
     val y0 = y
+
     var dx = 0f
     var dy = 0f
     var lastX = x
@@ -23,6 +25,8 @@ class Touch(var x: Float, var y: Float) {
     var lastY2 = y
 
     fun update() {
+        dx = x - lastX
+        dy = y - lastY
         lastX2 = lastX
         lastY2 = lastY
         lastX = x
@@ -30,8 +34,6 @@ class Touch(var x: Float, var y: Float) {
     }
 
     fun update(x: Float, y: Float) {
-        dx = x - this.x
-        dy = y - this.y
         this.x = x
         this.y = y
     }
@@ -56,25 +58,22 @@ class Touch(var x: Float, var y: Float) {
 
         @JvmStatic
         fun getZoomFactor(): Float {
-            return when (val size = touches.size) {
-                0, 1 -> 1f
-                else -> {
-                    val cx = touches.values.sumOf { it.x.toDouble() } / size
-                    val cy = touches.values.sumOf { it.y.toDouble() } / size
-                    val clx = touches.values.sumOf { it.lastX.toDouble() } / size
-                    val cly = touches.values.sumOf { it.lastY.toDouble() } / size
-                    val d0 = touches.values.sumOf { length(it.x - cx, it.y - cy) } / size
-                    val d1 = touches.values.sumOf { length(it.lastX - clx, it.lastY - cly) } / size
-                    if (d0 > 0f && d1 > 0f) (d0 / d1).toFloat() else 1f
-                }
-            }
+            val touches = touches.values.toList()
+            return if (touches.size == 2) {
+                val t0 = touches[0]
+                val t1 = touches[1]
+                val dist0 = sq(t0.x - t1.x, t0.y - t1.y)
+                val dist1 = sq(t0.lastX - t1.lastX, t0.lastY - t1.lastY)
+                if (dist0 < 1f || dist1 < 1f) return 1f
+                return sqrt(dist0 / dist1)
+            } else 1f
         }
 
         @JvmStatic
-        fun sumDeltaX(): Float = touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat()
+        fun sumDeltaX(): Float = touches.values.sumOf { it.dx.toDouble() }.toFloat()
 
         @JvmStatic
-        fun sumDeltaY(): Float = touches.values.sumOf { (it.y - it.lastY).toDouble() }.toFloat()
+        fun sumDeltaY(): Float = touches.values.sumOf { it.dy.toDouble() }.toFloat()
 
         @JvmStatic
         fun avgDeltaX(): Float = sumDeltaX() / max(1, touches.size)

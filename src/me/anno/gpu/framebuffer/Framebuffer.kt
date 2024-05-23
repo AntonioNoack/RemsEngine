@@ -482,6 +482,7 @@ class Framebuffer(
 
     fun destroyFramebuffer() {
         if (pointer != 0) {
+            bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
             if (Build.isDebug) DebugGPUStorage.fbs.remove(this)

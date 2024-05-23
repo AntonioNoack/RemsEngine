@@ -12,8 +12,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.Reference.getReference
 
 /**
@@ -22,13 +22,13 @@ import me.anno.io.files.Reference.getReference
  * */
 open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
 
-    class SplitRenderer(name: String, settings: DeferredSettings,val base: Renderer) : Renderer(name, settings) {
+    class SplitRenderer(name: String, settings: DeferredSettings, val base: Renderer) : Renderer(name, settings) {
         override fun getVertexPostProcessing(flags: Int) = base.getVertexPostProcessing(flags)
         override fun getPixelPostProcessing(flags: Int) = base.getPixelPostProcessing(flags)
         override fun bind(shader: Shader) = base.bind(shader)
     }
 
-    constructor(name: String): this(name, null)
+    constructor(name: String) : this(name, null)
 
     open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
     open fun getPixelPostProcessing(flags: Int): List<ShaderStage> = emptyList()
@@ -36,7 +36,10 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
     open fun bind(shader: Shader) {}
 
     fun split(index: Int, spliceSize: Int): Renderer {
-        if (deferredSettings == null) return this
+        if (deferredSettings == null) {
+            IllegalStateException("Splitting non-deferred renderer???").printStackTrace()
+            return this
+        }
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
             SplitRenderer("$name/$index/$spliceSize", settings, this)

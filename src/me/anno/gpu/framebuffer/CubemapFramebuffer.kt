@@ -212,6 +212,7 @@ class CubemapFramebuffer(
 
     override fun destroy() {
         if (pointer != 0) {
+            bindFramebuffer(GL_FRAMEBUFFER, 0)
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
             pointer = 0

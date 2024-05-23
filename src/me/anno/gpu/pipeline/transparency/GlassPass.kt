@@ -29,6 +29,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.maps.LazyMap
 
 /**
@@ -137,7 +138,7 @@ class GlassPass : TransparentPass() {
         }
     }
 
-    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl) {
+    override fun blendTransparentStage(pipeline: Pipeline, stage: PipelineStageImpl, colorInput: ITexture2D) {
 
         // todo baked ambient occlusion is somehow put into depth buffer, when we split FBs
 

@@ -5,18 +5,16 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.engine.serialization.SerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
@@ -89,6 +87,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
+        GFXState.pushDrawCallName(className)
         GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
             GFXState.ditherMode.use(ditherMode) {
                 result.draw(resolution, renderer) { side ->
@@ -112,7 +111,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 }
             }
         }
-
+        GFXState.popDrawCallName()
         JomlPools.quat4d.sub(2)
     }
 

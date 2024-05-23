@@ -77,7 +77,7 @@ class TargetType(
         val Float32x4 = if (!supportsF32Targets) UInt8x4
         else TargetType("f4", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4 * 4, 4, true)
         val Float32x3 = if (!supportsF32Targets) UInt8x3
-        else if (OS.isWeb) Float32x4 // f32x3 isn't color-renderable on Web
+        else if (OS.isWeb || OS.isAndroid) Float32x4 // f32x3 isn't color-renderable on Web, and Android threw an error, too
         else TargetType("f3", GL_RGB32F, GL_RGB, GL_FLOAT, 3 * 4, 3, true)
         val Float32xI = listOf(Float32x1, Float32x2, Float32x3, Float32x4)
 

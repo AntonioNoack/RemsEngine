@@ -28,9 +28,9 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.iff
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -103,7 +103,12 @@ object Renderers {
     )
 
     @JvmField
-    val pbrRenderer = object : Renderer("pbr") {
+    val pbrRenderer = object : Renderer(
+        "pbr", DeferredSettings(
+            listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA) +
+                    (if (GFX.supportsDepthTextures) emptyList() else listOf(DeferredLayerType.DEPTH))
+        )
+    ) {
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(
@@ -169,6 +174,12 @@ object Renderers {
             )
         }
     }
+
+    @JvmField
+    val pbrRendererNoDepth = Renderer.SplitRenderer(
+        "pbr-nd", DeferredSettings(listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA)),
+        pbrRenderer
+    )
 
     @JvmField
     val frontBackRenderer = SimpleRenderer(

@@ -45,6 +45,7 @@ import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
+import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
@@ -83,7 +84,6 @@ class RenderMode(
         )
 
         private val decalNodeSettings = mapOf("Stage" to PipelineStage.DECAL)
-        private val transparentNodeSettings = mapOf("Stage" to PipelineStage.TRANSPARENT)
 
         val values = ArrayList<RenderMode>()
 
@@ -96,7 +96,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -111,7 +111,7 @@ class RenderMode(
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
                 .then1(RenderDecalsNode(), decalNodeSettings)
                 .then(RenderLightsNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
                 .finish()
         )
@@ -126,7 +126,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -143,7 +143,7 @@ class RenderMode(
 
         private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
             return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
         }
@@ -251,7 +251,7 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSGINode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -304,7 +304,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
                 .then(FSR1Node())
@@ -325,7 +325,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then1(GizmoNode(), mapOf("Samples" to 8))
                 .finish()
@@ -347,7 +347,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
@@ -366,7 +366,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(OutlineEffectSelectNode())
                 .then(OutlineEffectNode())
@@ -392,7 +392,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then(DepthOfFieldNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
@@ -408,7 +408,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
@@ -425,7 +425,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
                 .finish()
@@ -449,7 +449,7 @@ class RenderMode(
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), transparentNodeSettings)
+                .then(RenderGlassNode())
                 .then(node)
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())

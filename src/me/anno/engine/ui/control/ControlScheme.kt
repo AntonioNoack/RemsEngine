@@ -42,7 +42,6 @@ import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.atan
 import kotlin.math.cos
-import kotlin.math.sign
 import kotlin.math.sin
 
 // todo touch controls
@@ -332,18 +331,14 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
                     rotateCamera(dy, dx, 0f)
 
                     // zoom in/out
-                    val zoomFactor = Touch.getZoomFactor()
-                    zoom(zoomFactor)// power 1 is too slow
-
-                    println("Zooming by $zoomFactor, rotating $dx,$dy")
-
-                    Touch.updateAll()
+                    val r = Touch.getZoomFactor()
+                    if (r in 0.7f..1.4f) {
+                        zoom(r)
+                    }
                 }
                 else -> {
-
                     // move the camera around
                     val speed = -3f * renderView.radius / windowStack.height
-
                     val dx = Touch.avgDeltaX() * speed
                     val dy = Touch.avgDeltaY() * speed
                     if (Input.isShiftDown) {
@@ -351,12 +346,6 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
                     } else {
                         moveCamera(dx, 0.0, dy)
                     }
-
-                    // zoom in/out
-                    val r = Touch.getZoomFactor()
-                    zoom(r * r * sign(r))// power 1 is too slow
-
-                    Touch.updateAll()
                 }
             }
         }

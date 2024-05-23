@@ -196,7 +196,7 @@ object Bloom {
                     "   for(int i=0;i<numSamples;i++){\n".iff(msIn) +
                     "       vec3 color = texture(base,uv).rgb;\n".iff(!msIn) +
                     "       vec3 color = texelFetch(base,uvi,i).rgb;\n".iff(msIn) +
-                    "       color = pow(color,vec3(2.2));\n" + // srgb -> linear
+                    "       color = pow(max(color,vec3(0.0)),vec3(2));\n" + // srgb -> linear
                     "       color += bloom;\n" +
                     "       if(applyToneMapping) {\n" +
                     "           color = tonemapLinear(color);\n" +
@@ -204,7 +204,7 @@ object Bloom {
                     "       sum += color;\n" +
                     "   }\n".iff(msIn) +
                     "   sum *= invNumSamples;\n".iff(msIn) +
-                    "   sum = pow(sum,vec3(1.0/2.2));\n" + // linear -> srgb
+                    "   sum = sqrt(sum);\n" + // linear -> srgb
                     "   result = vec4(sum, 1.0);\n" +
                     "}\n"
         )

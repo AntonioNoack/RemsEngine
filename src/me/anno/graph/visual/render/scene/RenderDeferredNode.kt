@@ -75,7 +75,7 @@ open class RenderDeferredNode : RenderViewNode(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, PipelineStage.OPAQUE) // stage mask
+        setInput(4, PipelineStage.OPAQUE) // stage
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
@@ -155,7 +155,7 @@ open class RenderDeferredNode : RenderViewNode(
             return
         }
 
-        pushDrawCallName(name)
+        pushDrawCallName("$name-$stage")
         defineFramebuffer()
 
         bakeSkybox()

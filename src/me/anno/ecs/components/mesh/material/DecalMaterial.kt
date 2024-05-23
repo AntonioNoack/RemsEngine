@@ -2,7 +2,6 @@ package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.components.mesh.material.shaders.DecalShader
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
@@ -20,6 +19,7 @@ import org.joml.Vector3f
 // these attributes are mixed in deferred layers, so we probably need to do it in the shader... could be expensive,
 // because we need a copy on some platforms to operate on
 // todo different blend modes: additive, subtractive, default, ...
+// todo make this work for (limited) forward rendering: all properties get replaced
 class DecalMaterial : Material() {
 
     companion object {
@@ -85,7 +85,8 @@ class DecalMaterial : Material() {
         }
         shader.v3f("decalSharpness", decalSharpness)
         shader.v2f("windowSize", buffer.width.toFloat(), buffer.height.toFloat())
-        buffer.depthTexture!!.bindTrulyNearest(shader, "depth_in0")
+        (buffer.depthTexture ?: buffer.getTextureIMS(buffer.numTextures - 1)) // ok so?
+            .bindTrulyNearest(shader, "depth_in0")
     }
 
     fun getShader(): ECSMeshShader {

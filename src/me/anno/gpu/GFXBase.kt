@@ -20,7 +20,7 @@ import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
-import me.anno.io.files.BundledRef
+import me.anno.input.Touch
 import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -376,6 +376,7 @@ object GFXBase {
         var workedTasks = false
         val firstWindow = windows.firstOrNull()
         if (firstWindow != null) Input.pollControllers(firstWindow)
+        Touch.updateAll()
 
         for (index in 0 until windows.size) {
             val window = windows.getOrNull(index) ?: break
