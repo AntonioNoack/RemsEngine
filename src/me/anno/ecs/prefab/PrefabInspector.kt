@@ -71,12 +71,7 @@ class PrefabInspector(var reference: FileReference) {
 
     val history get() = prefab.history!!
 
-    fun serialize(prefab: Prefab) =
-        JsonStringWriter.toText(
-            prefab.adds.values.flatten() +
-                    prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) },
-            workspace
-        )
+    fun serialize(prefab: Prefab): String = JsonStringWriter.toText(prefab, workspace)
 
     fun update() {
         reference = reference.validate()

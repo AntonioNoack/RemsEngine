@@ -29,33 +29,21 @@ class ChangeHistory : StringHistory() {
         }
 
         val workspace = EngineBase.workspace
-        val changes = JsonStringReader.read(curr, workspace, true).filterIsInstance<Change>()
+        val changes = JsonStringReader.readFirstOrNull(curr, workspace, Prefab::class) ?: Prefab()
         val prefab = prefab!!
         val prevAdds = prefab.adds
-        val currAdds = changes.filterIsInstance<CAdd>()
+        val currAdds = changes.adds
 
         val prevSets = prefab.sets
-        val currSetsSize = changes.count2 { it is CSet }
+        val currSets = changes.sets
         val major = prevAdds != currAdds || // warning: we should sort them
-                prevSets.size != currSetsSize // warning: one could have been added and one removed
+                prevSets.size != currSets.size // warning: one could have been added and one removed
         if (major) prefab.invalidateInstance()
 
         if (!major && prefab._sampleInstance != null) {
             // if instance exists, and no major changes, we only need to apply what really has changed
-            val prevValues = HashMap<Pair<Path, String>, Any?>(currSetsSize)
-            val nothing = Any()
-            prevSets.forEach { k1, k2, v ->
-                prevValues[Pair(k1, k2)] = v ?: nothing
-            }
-            for (change in changes) {
-                if (change is CSet) {
-                    val prevValue = prevValues[Pair(change.path, change.name)]
-                    val currValue = change.value ?: nothing
-                    if (prevValue != currValue) {
-                        prefab[change.path, change.name] = change.value
-                        // LOGGER.debug("Changed ${change.path} from $prevValue to $currValue")
-                    }
-                }
+            currSets.forEach { path, name, currValue ->
+                prefab[path, name] = currValue
             }
             // update transforms
             val si = prefab._sampleInstance
@@ -66,18 +54,15 @@ class ChangeHistory : StringHistory() {
                     }
                 }
             }
-        } else {
-            prevSets.clear()
-            for (change in changes) {
-                if (change is CSet) {
-                    prevSets[change.path, change.name] = change.value
-                }
-            }
+        }
+        prevSets.clear()
+        currSets.forEach { path, name, currValue ->
+            prevSets[path, name] = currValue
         }
         if (major) {
             LOGGER.info("Hierarchy changed")
             prefab.adds.clear()
-            prefab.readAdds(currAdds)
+            prefab.adds.putAll(currAdds)
         }
         PropertyInspector.invalidateUI(major)
     }

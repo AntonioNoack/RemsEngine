@@ -11,12 +11,15 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min
+
+// todo this node's input is incorrect, using color instead of ID :(
 
 // todo with Deferred MSAA, some stage before us removes multisampling; keep it, so we can make this effect look better
 // todo test MSAA (is untested -> might contain mistakes)
@@ -119,15 +122,14 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v1i("numGroups", numGroupsI)
                 shader.v1i("samples", samples)
                 shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
-                bind(color, 0, useMS)
-                bind(ids, 1, useMS)
+                getTex(color, useMS).bindTrulyNearest(shader, "colorTex")
+                getTex(ids, useMS).bindTrulyNearest(shader, "idsTex")
                 SimpleBuffer.flat01.draw(shader)
             }
         }
 
-        private fun bind(texture: Texture, index: Int, useMS: Boolean) {
-            val tex = (if (useMS) texture.texMSOrNull else texture.texOrNull) ?: blackTexture
-            tex.bindTrulyNearest(index)
+        private fun getTex(texture: Texture, useMS: Boolean): ITexture2D {
+            return (if (useMS) texture.texMSOrNull else texture.texOrNull) ?: blackTexture
         }
 
         val shader = Array(2) {
@@ -191,7 +193,6 @@ class OutlineEffectNode : RenderViewNode(
                         "   result = vec4(color, 1.0);\n" +
                         "}\n"
             )
-            shader.setTextureIndices("colorTex", "idTex")
             shader.ignoreNameWarnings("samples")
             shader
         }

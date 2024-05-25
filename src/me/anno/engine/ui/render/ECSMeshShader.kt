@@ -53,15 +53,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val colorToSRGB = "" +
                 "#ifdef IS_LINEAR\n" +
-                "   finalColor = pow(finalColor,vec3(1.0/2.2));\n" +
-                "   finalEmissive = pow(finalEmissive,vec3(1.0/2.2));\n" +
+                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3(1.0/2.2));\n" +
+                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3(1.0/2.2));\n" +
                 "   #undef IS_LINEAR\n" +
                 "#endif\n"
 
         val colorToLinear = "" +
                 "#ifndef IS_LINEAR\n" +
-                "   finalColor = pow(finalColor,vec3(2.2));\n" +
-                "   finalEmissive = pow(finalEmissive,vec3(2.2));\n" +
+                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3(2.2));\n" +
+                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3(2.2));\n" +
                 "   #define IS_LINEAR\n" +
                 "#endif\n"
 

@@ -62,7 +62,7 @@ class RenderGlassNode : RenderViewNode(
         // val cameraIndex = getInput(6) as Int
         val applyToneMapping = getBoolInput(7)
 
-        val framebuffer = FBStack["scene-forward",
+        val framebuffer = FBStack["scene-glass",
             width, height, TargetType.Float16x4,
             samples, DepthBufferType.INTERNAL]
 
