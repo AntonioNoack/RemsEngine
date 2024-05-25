@@ -4,8 +4,8 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.PrefabChanges
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
@@ -18,12 +18,12 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -71,7 +71,9 @@ class PrefabInspector(var reference: FileReference) {
 
     val history get() = prefab.history!!
 
-    fun serialize(prefab: Prefab): String = JsonStringWriter.toText(prefab, workspace)
+    fun serialize(prefab: Prefab): String {
+        return JsonStringWriter.toText(PrefabChanges(prefab), workspace)
+    }
 
     fun update() {
         reference = reference.validate()

@@ -253,9 +253,7 @@ class TreeViewEntryPanel<V : Any>(
                     NameDesc("Name"),
                     treeView.getName(e),
                     getColor = { -1 },
-                    callback = { newName ->
-                        treeView.setName(e, newName)
-                    },
+                    callback = { newName -> treeView.setName(e, newName) },
                     actionName = NameDesc("Change Name")
                 )
             }

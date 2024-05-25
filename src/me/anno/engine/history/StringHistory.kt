@@ -21,8 +21,8 @@ abstract class StringHistory : History<String>() {
                 val delta = indices[i * 2 + 1]
                 val added = values[i + 1]
                 val prev = states.last
-                val lastLength = prev.length + delta - (i0 + added.length)
-                states.add(prev.substring(0, i0) + added + prev.substring(prev.length - lastLength))
+                val endI = i0 + added.length - delta
+                states.add(prev.substring(0, i0) + added + prev.substring(endI))
             }
         } else super.setProperty(name, value)
     }

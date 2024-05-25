@@ -1,16 +1,17 @@
 package me.anno.ecs.prefab
 
 import me.anno.Build
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -346,6 +347,7 @@ class Prefab : Saveable {
         // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
         // Thread.sleep(10)
         val instance = PrefabCache.createSuperInstance(superPrefab, depth, clazzName)
+            ?: return Entity() // meh, but better than throwing
         instance.setPath(this, ROOT_PATH)
         for ((_, addsI) in adds.entries.sortedBy { it.key.depth }) {
             for (index in addsI.indices) {
@@ -369,6 +371,14 @@ class Prefab : Saveable {
             }
         }
         // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
+        if (instance is Entity) {
+            instance.forAll { e ->
+                if (e is Entity) {
+                    e.transform.teleportUpdate()
+                    e.invalidateAABBsCompletely()
+                }
+            }
+        }
         return instance
     }
 

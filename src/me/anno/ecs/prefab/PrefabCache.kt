@@ -8,7 +8,6 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ScenePrefab
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
@@ -20,6 +19,7 @@ import me.anno.io.files.inner.InnerFolderCache.imageFormats1
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -127,13 +127,16 @@ object PrefabCache : CacheSection("Prefab") {
         }, ${nameList.map { "${get(it.key)?.get(Path.ROOT_PATH, "name")}" }}, $nameMap"
     }
 
-    fun createSuperInstance(prefab: FileReference, depth: Int, clazz: String): PrefabSaveable {
+    fun createSuperInstance(prefab: FileReference, depth: Int, clazz: String): PrefabSaveable? {
         if (depth < 0) {
-            LOGGER.warn("Dependency Graph: ${printDependencyGraph(prefab)}")
-            throw StackOverflowError("Circular dependency in $prefab")
+            LOGGER.warn("Circular dependency in $prefab, ${printDependencyGraph(prefab)}")
+            return null
         }
         val depth1 = depth - 1
-        val instance = PrefabCache[prefab, depth1]?.createInstance(depth1) ?: Saveable.create(clazz) as PrefabSaveable
+        val instance =
+            PrefabCache[prefab, depth1]?.createInstance(depth1)
+                ?: Saveable.createOrNull(clazz) as? PrefabSaveable
+                ?: return null
         instance.prefabPath = Path.ROOT_PATH
         return instance
     }

@@ -11,6 +11,8 @@ class JsonStringWriter(initialCapacity: Int, workspace: FileReference) : JsonWri
 
     /** you should not use this function
      * if you use it, your file no longer will be readable (probably)
+     *
+     * Used in Rem's Studio to generate a hash for particle systems.
      * */
     @Suppress("unused")
     fun getFoolishWriteAccess() = data

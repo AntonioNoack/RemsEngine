@@ -1,17 +1,13 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
-import me.anno.ecs.prefab.change.Change
-import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.PrefabChanges
 import me.anno.engine.ECSRegistry
-import me.anno.io.json.saveable.JsonStringReader
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.EngineBase
 import me.anno.engine.history.StringHistory
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.ui.editor.PropertyInspector
-import me.anno.utils.structures.lists.Lists.count2
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -29,7 +25,7 @@ class ChangeHistory : StringHistory() {
         }
 
         val workspace = EngineBase.workspace
-        val changes = JsonStringReader.readFirstOrNull(curr, workspace, Prefab::class) ?: Prefab()
+        val changes = JsonStringReader.readFirstOrNull(curr, workspace, PrefabChanges::class) ?: PrefabChanges()
         val prefab = prefab!!
         val prevAdds = prefab.adds
         val currAdds = changes.adds

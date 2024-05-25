@@ -47,7 +47,7 @@ abstract class TreeView<V : Any>(
 
     val elementByIndex = ArrayList<V>()
 
-    var inset = style.getSize("fontSize", 12) / 3
+    var inset = style.getSize("fontSize", 12)
     var collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
     var needsTreeUpdate = true
@@ -388,8 +388,6 @@ abstract class TreeView<V : Any>(
         }
     }
 
-    // done display, where we'd move it
-    // done between vs at the end vs at the start
     // todo we'd need a selection mode with the arrow keys, too...
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {

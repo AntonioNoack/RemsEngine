@@ -125,8 +125,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
         if (tex != null) {
             val map = tex.mapping
             val enc = tex.encoding
-            if (enc != null) {
-                builder.append('(').append(enc.dataToWork).append("(")
+            val needsDataToWork = enc != null && !enc.dataToWork.endsWith('=')
+            if (needsDataToWork) {
+                builder.append('(').append(enc?.dataToWork).append("(")
             }
             if (tex.tex != whiteTexture) {
                 val currValue = input.currValue as? Texture
@@ -149,7 +150,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             if (map.isNotEmpty()) {
                 builder.append('.').append(map)
             }
-            if (enc != null) {
+            if (needsDataToWork) {
                 builder.append("))")
             }
         } else {

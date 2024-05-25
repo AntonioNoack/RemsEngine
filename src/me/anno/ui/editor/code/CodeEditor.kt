@@ -285,7 +285,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val drawnYi = 0
 
         // draw line numbers
-        val firstLineNumber = if (firstLineZero) 0 else 1
+        val firstLineNumber = (!firstLineZero).toInt()
 
         x += cn * charWidth
 
@@ -333,7 +333,6 @@ open class CodeEditor(style: Style) : Panel(style) {
             val xi = x + indexInLine * charWidth
             val yi = y + lineIndex * lineHeight
             if (style.squiggles) {
-                // todo get text baseline for alignment...
                 drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, squigglesHeight, textColor)
             }
             if (isIncorrectlySpelled) {

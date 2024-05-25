@@ -39,28 +39,24 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
         loadTexturesSync.pop()
     }
 
+    var suggestionSquiggleColor = 0xffff00 or black
     fun drawSuggestionLines(x0: Int, x1: Int) {
         val suggestions = suggestions
         if (!suggestions.isNullOrEmpty()) {
             // display all suggestions
+            val offset = x + padding.left + drawingOffset
+            val lineY = y + height - padding.bottom - 1
+            val color = suggestionSquiggleColor
             for (si in suggestions.indices) {
-                val offset = x + padding.left + drawingOffset
                 val s = suggestions[si]
                 val startX = max(x0, offset + getXOffset(s.start))
                 val endX = min(x1, offset + getXOffset(s.end))
-                val theY = this.y + this.height - padding.bottom - 1
-                // wavy line
-                val color = 0xffff00 or black
-                drawSquiggles1(startX, endX, theY, 3, color)
-                // DrawRectangles.drawRect(startX, theY, endX - startX, 1, color)
+                drawSquiggles1(startX, endX, lineY, 3, color)
             }
             val window = window
             if (isHovered && !isInFocus &&
                 window == window?.windowStack?.peek()
-            ) {
-                requestFocus()
-                // setCursor(text.length)
-            }
+            ) requestFocus()
         }
         if (!isHovered) lastSuggestion = null
     }
@@ -121,8 +117,7 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
         }
     }
 
-    // todo find synonyms by clicking on stuff, I think this library can do that
-    // todo automatically show hints, when the user is typing
+    // todo find synonyms by clicking on stuff, I think LanguageTool can do that
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
         val text = text
         val chars = text.codepoints().asList()

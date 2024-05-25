@@ -40,7 +40,6 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpFile
@@ -48,9 +47,9 @@ import me.anno.io.find.DetectiveWriter
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -85,6 +84,7 @@ import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
@@ -976,12 +976,11 @@ object ComponentUI {
                 if (type.endsWith("/FileReference") || type.endsWith("/Reference")) {
                     return InvalidRef
                 }
-                try {// just try it, maybe it works :)
-                    Saveable.create(type)
-                } catch (e: Exception) {
+                val newInstance = Saveable.createOrNull(type)
+                if (newInstance == null) {
                     LOGGER.warn("Unknown type $type for getDefault()")
-                    null
                 }
+                newInstance
             }
         }
     }

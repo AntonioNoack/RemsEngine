@@ -530,4 +530,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         finish(shader)
         return shader
     }
+
+    override fun finish(shader: Shader, minVersion: Int) {
+        super.finish(shader, minVersion)
+        shader.printCode()
+    }
 }
