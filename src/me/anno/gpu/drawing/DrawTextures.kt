@@ -18,6 +18,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureHelper.getNumChannels
 import me.anno.gpu.texture.TextureLib
 import me.anno.utils.Color.white4
 import me.anno.utils.pooling.JomlPools
@@ -56,10 +57,11 @@ object DrawTextures {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderTexture.value
+        val mono = getNumChannels(texture.internalFormat) == 1
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
-        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1i("alphaMode", if (mono) 3 else ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
@@ -97,10 +99,11 @@ object DrawTextures {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = flatShaderTexture.value
+        val mono = getNumChannels(texture.internalFormat) == 1
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
-        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1i("alphaMode", if (mono) 3 else ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)
@@ -157,7 +160,7 @@ object DrawTextures {
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
-        shader.v1i("alphaMode", 2)
+        shader.v1i("alphaMode", 3)
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         texture.bind(0)

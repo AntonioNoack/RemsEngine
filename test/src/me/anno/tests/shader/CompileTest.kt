@@ -31,6 +31,7 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
@@ -140,7 +141,7 @@ class CompileTest {
         }
         ui.prepareUI(rv)
         rv.setPosSize(0, 0, ui.osWindow.width, ui.osWindow.height)
-        val tmp = Framebuffer("tmp", rv.width, rv.height, 1, 1, false, DepthBufferType.NONE)
+        val tmp = Framebuffer("tmp", rv.width, rv.height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
         for (mode in RenderMode.values) {
             try {
                 rv.renderMode = mode

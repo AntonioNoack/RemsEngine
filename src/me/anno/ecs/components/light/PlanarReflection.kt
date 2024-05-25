@@ -15,6 +15,7 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.maths.Maths.max
@@ -156,7 +157,11 @@ class PlanarReflection : LightComponentBase() {
         // is that worth it?
         // todo cut frustum into local area by bounding box
 
-        val buffer = lastBuffer ?: Framebuffer("planarReflection", w, h, samples, 1, usesFP, DepthBufferType.INTERNAL)
+        val buffer = lastBuffer ?: Framebuffer(
+            "planarReflection", w, h, samples,
+            if (usesFP) TargetType.Float32x3
+            else TargetType.UInt8x3, DepthBufferType.INTERNAL
+        )
         lastBuffer = buffer
 
         // find the correct sub-frame of work: we don't need to draw everything

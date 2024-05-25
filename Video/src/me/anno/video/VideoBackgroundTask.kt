@@ -9,6 +9,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicInteger
@@ -26,13 +27,13 @@ abstract class VideoBackgroundTask(
     abstract fun getShutterPercentage(time: Double): Float
 
     private val partialFrame = Framebuffer(
-        "VideoBackgroundTask-partial", creator.width, creator.height, samples, 1,
-        false, DepthBufferType.TEXTURE
+        "VideoBackgroundTask-partial", creator.width, creator.height, samples,
+        TargetType.UInt8x4, DepthBufferType.TEXTURE
     )
 
     private val averageFrame = Framebuffer(
-        "VideoBackgroundTask-sum", creator.width, creator.height, 1, 1,
-        true, DepthBufferType.TEXTURE
+        "VideoBackgroundTask-sum", creator.width, creator.height, 1,
+        TargetType.UInt8x4, DepthBufferType.TEXTURE
     )
 
     private val renderingIndex = AtomicInteger(0)

@@ -1,9 +1,10 @@
 package me.anno.graph.visual.render.scene
 
-import me.anno.gpu.GFXState.useFrame
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.srcBuffer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.pipeline.PipelineStage
 
 /**
  * Copies the input data into a temporary buffer, so we read from different buffers to where we write to;
@@ -15,10 +16,7 @@ class RenderDecalsNode : RenderDeferredNode() {
 
     init {
         name = "RenderDecals"
-    }
-
-    companion object {
-        var srcBuffer: IFramebuffer? = null
+        setInput(4, PipelineStage.DECAL) // stage
     }
 
     override fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
@@ -31,17 +29,12 @@ class RenderDecalsNode : RenderDeferredNode() {
         super.copyInputsOrClear(framebuffer)
         if (!needsRendering()) return // small optimization, we should do better though...
         val srcBufferI = srcBufferI!!
+        srcBuffer = srcBufferI
         if (framebuffer is Framebuffer) {
             // ensure size; binding isn't really necessary
-            useFrame(getIntInput(1), getIntInput(2), true, srcBufferI) {
-                framebuffer.copyTo(srcBufferI, copyColor = true, copyDepth = true)
-            }
-        } else {
-            bind(srcBufferI) {
-                super.copyInputsOrClear(srcBufferI)
-            }
-        }
-        srcBuffer = srcBufferI
+            srcBufferI.ensureSize(getIntInput(1), getIntInput(2), 0)
+            framebuffer.copyTo(srcBufferI, copyColor = true, copyDepth = true)
+        } else super.copyInputsOrClear(srcBufferI)
     }
 
     override fun executeAction() {

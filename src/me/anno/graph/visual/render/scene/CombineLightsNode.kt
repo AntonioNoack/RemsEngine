@@ -133,7 +133,7 @@ class CombineLightsNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         pushDrawCallName(name)
-        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, DepthBufferType.NONE]
+        val framebuffer = FBStack[name, width, height, 3, BufferQuality.FP_16, samples, DepthBufferType.NONE]
         useFrame(width, height, false, framebuffer, Renderer.copyRenderer) {
             renderPurely2 {
                 val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)

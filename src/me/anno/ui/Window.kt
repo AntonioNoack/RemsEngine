@@ -16,6 +16,7 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.uiVertexShader
@@ -104,8 +105,8 @@ open class Window(
     // to do use buffer without depth, if no component uses it
     val buffer = Framebuffer(
         "window-${panel.className}",
-        1, 1, 1, 1,
-        false, DepthBufferType.INTERNAL
+        1, 1, 1, TargetType.UInt8x4,
+        DepthBufferType.INTERNAL
     )
 
     /**

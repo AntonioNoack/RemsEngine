@@ -192,16 +192,6 @@ open class Texture2D(
         this.height = height
     }
 
-    @Deprecated("This feature is problematic, because it doesn't exist on mobile. Use /grayscale.png in your file path instead.")
-    fun swizzleMonochrome() {
-        swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
-    }
-
-    // could and should be used for roughness/metallic like textures in the future
-    fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        TextureHelper.swizzle(target, r, g, b, a)
-    }
-
     fun ensurePointer() {
         checkSession()
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
@@ -286,10 +276,6 @@ open class Texture2D(
                 check()
             }
             this.internalFormat = internalFormat
-            // todo do we keep this, or do we strive for consistency?
-            if (TextureHelper.getNumChannels(internalFormat) == 1) {
-                swizzleMonochrome()
-            }
             createdW = w
             createdH = h
         }
@@ -1018,10 +1004,6 @@ open class Texture2D(
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
-    }
-
-    fun createDepth(lowQuality: Boolean = false) {
-        create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
     /**

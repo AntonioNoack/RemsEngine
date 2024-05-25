@@ -17,7 +17,8 @@ import kotlin.math.sin
 fun main() {
     OfficialExtensions.initForTests()
     val mat = DecalMaterial()
-    mat.diffuseMap = getReference("res://icon.png")
+    // mat.diffuseMap = getReference("res://icon.png")
+    mat.diffuseMap = getReference("res://textures/UVChecker.png")
     mat.normalMap = pictures.getChild("Cracked Normals.jpg")
     mat.normalStrength = 0.5f
     mat.linearFiltering = false

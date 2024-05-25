@@ -83,15 +83,13 @@ class RenderMode(
             "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
         )
 
-        private val decalNodeSettings = mapOf("Stage" to PipelineStage.DECAL)
-
         val values = ArrayList<RenderMode>()
 
         val DEFAULT = RenderMode(
             "Default",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -109,7 +107,7 @@ class RenderMode(
             "Without Post-Processing",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(RenderGlassNode())
                 .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
@@ -121,7 +119,7 @@ class RenderMode(
             QuickPipeline()
                 .then(MSAAHelperNode())
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -143,6 +141,7 @@ class RenderMode(
 
         private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
             return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
+                .then1(RenderForwardNode(), mapOf( "Stage" to PipelineStage.DECAL))
                 .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
@@ -299,7 +298,7 @@ class RenderMode(
                 .then(MSAAHelperNode())
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -320,7 +319,7 @@ class RenderMode(
             QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -342,7 +341,7 @@ class RenderMode(
             "Show AABBs",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -361,7 +360,7 @@ class RenderMode(
             "Post-Outline",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -387,7 +386,7 @@ class RenderMode(
             "Depth Of Field",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -403,7 +402,7 @@ class RenderMode(
             "Motion Blur",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -419,7 +418,7 @@ class RenderMode(
             "Smooth Normals",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(SmoothNormalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -435,7 +434,7 @@ class RenderMode(
             "Depth Test",
             QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(DepthTestNode())
                 .then(GizmoNode())
                 .finish()
@@ -444,7 +443,7 @@ class RenderMode(
         fun postProcessGraph(node: ActionNode): FlowGraph {
             return QuickPipeline()
                 .then1(RenderDeferredNode(), opaqueNodeSettings)
-                .then1(RenderDecalsNode(), decalNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())

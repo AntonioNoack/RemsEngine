@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.Reference.getReference
+import org.apache.logging.log4j.LogManager
 
 /**
  * defines render targets combined with post-processing
@@ -37,7 +38,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
 
     fun split(index: Int, spliceSize: Int): Renderer {
         if (deferredSettings == null) {
-            IllegalStateException("Splitting non-deferred renderer???").printStackTrace()
+            LOGGER.warn("Splitting non-deferred renderer??? $name")
             return this
         }
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
@@ -51,6 +52,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
     override fun toString(): String = name
 
     companion object {
+        private val LOGGER = LogManager.getLogger(Renderer::class)
 
         val colorRenderer = SimpleRenderer(
             "color", ShaderStage(

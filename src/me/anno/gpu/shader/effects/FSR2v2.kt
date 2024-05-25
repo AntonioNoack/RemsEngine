@@ -37,8 +37,8 @@ import kotlin.math.ceil
 class FSR2v2 : ICacheData {
 
     val dataTargetTypes = listOf(TargetType.Float16x4, TargetType.Float32x4)
-    var data0 = Framebuffer("data", 1, 1, dataTargetTypes)
-    var data1 = Framebuffer("data", 1, 1, dataTargetTypes)
+    var data0 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+    var data1 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
 
     var previousDepth = Framebuffer("depth", 1, 1, TargetType.Float32x1)
 
@@ -198,7 +198,7 @@ class FSR2v2 : ICacheData {
     }
 
     fun halton1(index: Int, base: Int): Float {
-        return (halton(index,base) - 0.5f) * randomness
+        return (halton(index, base) - 0.5f) * randomness
     }
 
     // todo unjitter gizmos
@@ -285,7 +285,7 @@ class FSR2v2 : ICacheData {
         baseSameDepth1: IFramebuffer
     ) {
 
-        val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, DepthBufferType.INTERNAL]
+        val motion = FBStack["motion", w, h, 4, BufferQuality.FP_16, 1, DepthBufferType.INTERNAL]
         val motionRenderer = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
         view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true)
 

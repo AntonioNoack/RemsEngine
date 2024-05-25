@@ -162,7 +162,7 @@ class CubemapFramebuffer(
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val texture = CubemapTexture("$name-depth", size, samples)
                 texture.autoUpdateMipmaps = autoUpdateMipmaps
-                texture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                texture.create(depthBufferType.chooseDepthFormat())
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture.pointer, 0

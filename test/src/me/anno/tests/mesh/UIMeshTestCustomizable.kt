@@ -78,7 +78,7 @@ class SimpleMeshTest(
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples
         val buffer =
-            if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, DepthBufferType.NONE]
+            if (msaa) FBStack["msaa", width, height, 4, BufferQuality.UINT_8, samples, DepthBufferType.NONE]
             else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)

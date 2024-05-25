@@ -29,6 +29,7 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.Lists.any2
+import org.apache.logging.log4j.LogManager
 
 open class RenderDeferredNode : RenderViewNode(
     "RenderDeferred",
@@ -48,6 +49,7 @@ open class RenderDeferredNode : RenderViewNode(
 ) {
 
     companion object {
+        private val LOGGER = LogManager.getLogger(RenderDecalsNode::class)
         fun listLayers(type: String?): List<String> {
             return DeferredLayerType.values.flatMap {
                 listOf(
@@ -114,7 +116,10 @@ open class RenderDeferredNode : RenderViewNode(
             }
 
             // this node does nothing -> just return
-            if (enabledLayers.isEmpty()) return
+            if (enabledLayers.isEmpty()) {
+                LOGGER.warn("$name does nothing")
+                return
+            }
 
             if (GFX.supportsDepthTextures) {
                 enabledLayers.remove(DeferredLayerType.DEPTH)
@@ -155,18 +160,19 @@ open class RenderDeferredNode : RenderViewNode(
             return
         }
 
-        pushDrawCallName("$name-$stage")
         defineFramebuffer()
+        val framebuffer = framebuffer ?: return // can be null, when there aren't any outputs
 
+        pushDrawCallName("$name-$stage")
         bakeSkybox()
 
-        val framebuffer = framebuffer!!
+        copyInputsOrClear(framebuffer)
         bind(framebuffer) {
-            copyInputsOrClear(framebuffer)
             render()
         }
 
         setOutputs(framebuffer)
+
         popDrawCallName()
     }
 
@@ -317,7 +323,9 @@ open class RenderDeferredNode : RenderViewNode(
         val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
         val prepassDepth = (getInput(inputIndex) as? Texture)?.texOrNull
         if (prepassDepth != null) {
-            GFX.copyColorAndDepth(blackTexture, prepassDepth)
+            GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
+                GFX.copyColorAndDepth(blackTexture, prepassDepth)
+            }
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {

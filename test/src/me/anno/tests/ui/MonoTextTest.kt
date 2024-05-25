@@ -6,6 +6,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.utils.Color.black
 import me.anno.utils.OS.desktop
@@ -35,7 +36,7 @@ fun main() {
 
     val image = Framebuffer("mono",
         (charWidth + padding) * lines.maxOf { it.length } + padding, lines.size * lineHeight + padding,
-        1, 1, false,
+        1, TargetType.UInt8x4,
         DepthBufferType.NONE)
 
     // write all letters as mono

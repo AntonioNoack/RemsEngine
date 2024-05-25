@@ -124,10 +124,6 @@ open class Texture2DArray(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        when (internalFormat) {
-            GL_R8, GL_R16, GL_R16F,
-            GL_R32F -> swizzleMonochrome()
-        }
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
     }
 
@@ -440,14 +436,6 @@ open class Texture2DArray(
         bind(0, filtering, Clamping.CLAMP)
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
-    }
-
-    fun swizzleMonochrome() {
-        swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
-    }
-
-    fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        TextureHelper.swizzle(target, r, g, b, a)
     }
 
     companion object {

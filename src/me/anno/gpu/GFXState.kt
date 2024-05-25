@@ -326,7 +326,7 @@ object GFXState {
         renderer: Renderer, render: () -> Unit
     ) = useFrame(x, y, w, h, currentBuffer, renderer, render)
 
-    private val tmp = Framebuffer("tmp", 1, 1, 1, 0, false, DepthBufferType.NONE)
+    private val tmp = Framebuffer("tmp", 1, 1, 1, emptyList(), DepthBufferType.NONE)
 
     /**
      * render onto that texture

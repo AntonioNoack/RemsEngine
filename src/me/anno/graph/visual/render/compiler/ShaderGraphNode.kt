@@ -190,10 +190,7 @@ class ShaderGraphNode : ActionNode(
         if (buffer == null || buffer.width != w || buffer.height != h) {
             buffer?.destroy()
             val target = UInt8xI[channels - 1]
-            buffer = Framebuffer(
-                name, w, h, samples,
-                listOf(target), DepthBufferType.NONE
-            )
+            buffer = Framebuffer(name, w, h, samples, target, DepthBufferType.NONE)
         }
         useFrame(buffer) {
             renderPurely {

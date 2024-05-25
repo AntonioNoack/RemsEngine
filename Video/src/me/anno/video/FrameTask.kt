@@ -10,6 +10,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
@@ -38,13 +39,11 @@ abstract class FrameTask(
     )
 
     private val partialFrame = Framebuffer(
-        "VideoBackgroundTask-partial", width, height, 1, 1,
-        false, DepthBufferType.TEXTURE
+        "VideoBackgroundTask-partial", width, height, 1, TargetType.Float32x4, DepthBufferType.TEXTURE
     )
 
     private val averageFrame = Framebuffer(
-        "VideoBackgroundTask-sum", width, height, 1, 1,
-        true, DepthBufferType.TEXTURE
+        "VideoBackgroundTask-sum", width, height, 1, TargetType.Float32x4, DepthBufferType.TEXTURE
     )
 
     fun start(callback: () -> Unit) {

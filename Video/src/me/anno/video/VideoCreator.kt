@@ -7,6 +7,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -325,7 +326,7 @@ open class VideoCreator(
             )
             creator.init()
             var frameCount = 0
-            val fb = Framebuffer("frame", w, h, 1, 1, false, DepthBufferType.NONE)
+            val fb = Framebuffer("frame", w, h, 1, TargetType.UInt8x4, DepthBufferType.NONE)
             fun writeFrame() {
                 getNextFrame { texture0, _ ->
                     val texture = texture0 ?: blackTexture

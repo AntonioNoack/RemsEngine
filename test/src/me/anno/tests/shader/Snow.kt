@@ -176,7 +176,7 @@ class SnowNode : ActionNode(
     override fun executeAction() {
         val colorTex = (getInput(1) as Texture).tex
         val depthTex = (getInput(2) as Texture).tex
-        val result = FBStack["snow", colorTex.width, colorTex.height, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
+        val result = FBStack["snow", colorTex.width, colorTex.height, 4, BufferQuality.FP_16, 1, DepthBufferType.NONE]
         useFrame(result, Renderer.copyRenderer) {
             val shader = snowShader
             shader.use()

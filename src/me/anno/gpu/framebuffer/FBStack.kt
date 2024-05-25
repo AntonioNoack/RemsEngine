@@ -5,16 +5,13 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.BufferQuality
-import me.anno.gpu.framebuffer.TargetType.Companion.Float16xI
-import me.anno.gpu.framebuffer.TargetType.Companion.Float32xI
-import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
 object FBStack : CacheSection("FBStack") {
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
-    private const val timeout = 2100L
+    private const val TIMEOUT = 2100L
 
     private abstract class FBStackData(
         val width: Int,
@@ -46,41 +43,26 @@ object FBStack : CacheSection("FBStack") {
 
         fun getFrame(name: String): IFramebuffer {
             return if (nextIndex >= data.size) {
-                if (targetTypes.size > GFX.maxSamples) {
-                    val framebuffer = MultiFramebuffer(
-                        name, width, height,
-                        samples, targetTypes,
-                        if (writeDepth) {
-                            if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
-                            else DepthBufferType.INTERNAL
-                        } else DepthBufferType.NONE
-                    )
-                    data.add(framebuffer)
-                    if (readDepth && !GFX.supportsDepthTextures) {
-                        framebuffer.ensure() // ensure textures
-                        // link depth texture to make things easier
-                        framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
+                val depthBufferType = if (writeDepth) {
+                    if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
+                    else DepthBufferType.INTERNAL
+                } else DepthBufferType.NONE
+                val framebuffer = IFramebuffer.createFramebuffer(
+                    name, width, height,
+                    samples, targetTypes,
+                    depthBufferType
+                )
+                data.add(framebuffer)
+                if (readDepth && !GFX.supportsDepthTextures) {
+                    framebuffer.ensure() // ensure textures
+                    // link depth texture to make things easier
+                    when (framebuffer) {
+                        is MultiFramebuffer -> framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
+                        is Framebuffer -> framebuffer.depthTexture = framebuffer.textures!!.last()
                     }
-                    nextIndex = data.size
-                    data.last()
-                } else {
-                    val framebuffer = Framebuffer(
-                        name, width, height,
-                        samples, targetTypes,
-                        if (writeDepth) {
-                            if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
-                            else DepthBufferType.INTERNAL
-                        } else DepthBufferType.NONE
-                    )
-                    data.add(framebuffer)
-                    if (readDepth && !GFX.supportsDepthTextures) {
-                        framebuffer.ensure() // ensure textures
-                        // link depth texture to make things easier
-                        framebuffer.depthTexture = framebuffer.textures!!.last()
-                    }
-                    nextIndex = data.size
-                    data.last()
                 }
+                nextIndex = data.size
+                data.last()
             } else {
                 val framebuffer = data[nextIndex++]
                 if (Build.isDebug) when (framebuffer) {
@@ -148,7 +130,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey1(width, height, channels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, timeout, false) {
+        return getEntry(key, TIMEOUT, false) {
             FBStackData1(it)
         } as FBStackData
     }
@@ -158,7 +140,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey2(width, height, targetType, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, timeout, false) {
+        return getEntry(key, TIMEOUT, false) {
             FBStackData2(it)
         } as FBStackData
     }
@@ -168,7 +150,7 @@ object FBStack : CacheSection("FBStack") {
         depthBufferType: DepthBufferType
     ): FBStackData {
         val key = FBKey3(w, h, targetTypes, clamp(samples, 1, GFX.maxSamples), depthBufferType)
-        return getEntry(key, timeout, false) {
+        return getEntry(key, TIMEOUT, false) {
             FBStackData3(it)
         } as FBStackData
     }
@@ -188,7 +170,7 @@ object FBStack : CacheSection("FBStack") {
         name: String, w: Int, h: Int, channels: Int,
         fp: Boolean, samples: Int, depthBufferType: DepthBufferType
     ): IFramebuffer {
-        val quality = if (fp) BufferQuality.HIGH_32 else BufferQuality.LOW_8
+        val quality = if (fp) BufferQuality.FP_32 else BufferQuality.UINT_8
         return get(name, w, h, channels, quality, samples, depthBufferType)
     }
 
@@ -216,9 +198,11 @@ object FBStack : CacheSection("FBStack") {
 
     fun getTargetType(channels: Int, quality: BufferQuality): TargetType {
         return when (quality) {
-            BufferQuality.LOW_8 -> UInt8xI
-            BufferQuality.MEDIUM_12, BufferQuality.HIGH_16 -> Float16xI
-            BufferQuality.HIGH_32 -> Float32xI
+            BufferQuality.UINT_8 -> TargetType.UInt8xI
+            BufferQuality.UINT_16 -> TargetType.UInt16xI
+            BufferQuality.UINT_32 -> TargetType.UInt32xI
+            BufferQuality.FP_16 -> TargetType.Float16xI
+            BufferQuality.FP_32 -> TargetType.Float32xI
         }[channels - 1]
     }
 

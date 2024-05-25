@@ -24,6 +24,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
@@ -188,7 +189,7 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         val height = height
         if (width < 1 || height < 1) return
         if (fb == null || fb.pointer != lastPointer) {
-            fb = Framebuffer("canvas", width, height, 1, 1, false, DepthBufferType.NONE)
+            fb = Framebuffer("canvas", width, height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
             useFrame(fb) {} // create textures
             (fb.getTexture0() as Texture2D).clamping = Clamping.CLAMP
             lastPointer = fb.pointer

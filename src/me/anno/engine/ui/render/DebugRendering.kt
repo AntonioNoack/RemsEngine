@@ -268,6 +268,7 @@ object DebugRendering {
         view: RenderView, x: Int, y: Int, w: Int, h: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
+        GFXState.pushDrawCallName("LightCount")
         // draw scene for depth
         view.drawScene(
             w, h,
@@ -289,25 +290,34 @@ object DebugRendering {
             -1, null, true // lights are bright -> dim them down
         )
         view.pipeline.lightStage.visualizeLightCount = false
+        GFXState.popDrawCallName()
     }
 
     fun drawAllBuffers(
         view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
-
+        GFXState.pushDrawCallName("AllBuffers")
         val layers = deferred.storageLayers
         val size = layers.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
         val (rows, cols) = view.findRowsCols(size)
 
+        GFXState.pushDrawCallName("Scene")
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
-        view.drawGizmos(buffer, true)
+        GFXState.popDrawCallName()
 
+        GFXState.pushDrawCallName("Gizmos")
+        view.drawGizmos(buffer, true)
+        GFXState.popDrawCallName()
+
+        GFXState.pushDrawCallName("Light")
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
         view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
+        GFXState.popDrawCallName()
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
+            GFXState.pushDrawCallName("Buffer[$index]")
 
             // rows x N field
             val col = index % cols
@@ -349,23 +359,32 @@ object DebugRendering {
             ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
             // draw title
             DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
+            GFXState.popDrawCallName()
         }
         DrawTexts.popBetterBlending(pbb)
+        GFXState.popDrawCallName()
     }
 
     fun drawAllLayers(
         view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer, light: IFramebuffer, deferred: DeferredSettings
     ) {
-
+        GFXState.pushDrawCallName("AllLayers")
         val size = deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
         val (rows, cols) = view.findRowsCols(size)
 
+        GFXState.pushDrawCallName("Scene")
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
-        view.drawGizmos(buffer, true)
+        GFXState.popDrawCallName()
 
+        GFXState.pushDrawCallName("Gizmos")
+        view.drawGizmos(buffer, true)
+        GFXState.popDrawCallName()
+
+        GFXState.pushDrawCallName("Lights")
         val depthTex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
         view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask!!, light)
+        GFXState.popDrawCallName()
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
@@ -376,6 +395,7 @@ object DebugRendering {
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
+            GFXState.pushDrawCallName("Layers[$index]")
 
             // rows x N field
             val col = index % cols
@@ -429,7 +449,9 @@ object DebugRendering {
                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                 name, AxisAlignment.CENTER, AxisAlignment.CENTER
             )
+            GFXState.popDrawCallName()
         }
         DrawTexts.popBetterBlending(pbb)
+        GFXState.popDrawCallName()
     }
 }

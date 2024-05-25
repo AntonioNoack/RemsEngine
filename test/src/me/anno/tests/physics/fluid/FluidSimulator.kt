@@ -3,6 +3,7 @@ package me.anno.tests.physics.fluid
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -184,7 +185,7 @@ object FluidSimulator {
                 "}"
     )
 
-    fun bindRenderAndSwap(program: Shader, state: RWState<Framebuffer>, bind: Shader.(Framebuffer) -> Unit) {
+    fun bindRenderAndSwap(program: Shader, state: RWState<IFramebuffer>, bind: Shader.(IFramebuffer) -> Unit) {
         if (state.write.width > 0 && state.write.height > 0) {
             GFXState.useFrame(state.write) {
                 program.use()

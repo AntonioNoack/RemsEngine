@@ -62,7 +62,7 @@ object Bloom {
             // x blur pass
             wi = Maths.max((wi + 1) shr 1, 1)
             shaderX.use()
-            val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
+            val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.FP_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderX)
@@ -72,7 +72,7 @@ object Bloom {
             // y blur pass
             hi = Maths.max((hi + 1) shr 1, 1)
             shaderY.use()
-            val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
+            val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.FP_16, 1, DepthBufferType.NONE]
             GFXState.useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderY)

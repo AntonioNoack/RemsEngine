@@ -2,9 +2,9 @@ package me.anno.ecs.components.physics
 
 import me.anno.Time
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.ECSMeshShader
@@ -14,12 +14,12 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
@@ -50,8 +50,8 @@ class FlagMesh : MeshComponent() {
             field = max(2, value)
         }
 
-    private var tex0 = Framebuffer("cloth", 1, 1, targets)
-    private var tex1 = tex0.clone()
+    private var tex0 = Framebuffer("cloth-0", 1, 1, TargetType.Float32x3)
+    private var tex1 = Framebuffer("cloth-1", 1, 1, TargetType.Float32x3)
 
     val material = Material()
 
@@ -194,8 +194,6 @@ class FlagMesh : MeshComponent() {
             mesh
 
         }
-
-        val targets = listOf(TargetType.Float32x3)
 
         val updateShader = Shader(
             "clothSim", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(

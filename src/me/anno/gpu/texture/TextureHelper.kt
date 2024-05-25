@@ -1,6 +1,5 @@
 package me.anno.gpu.texture
 
-import me.anno.gpu.GFX
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
@@ -57,7 +56,6 @@ import org.lwjgl.opengl.GL46C.GL_SHORT
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_ARRAY
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_3D
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_BORDER_COLOR
-import org.lwjgl.opengl.GL46C.GL_TEXTURE_SWIZZLE_RGBA
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_R
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_S
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_WRAP_T
@@ -66,11 +64,8 @@ import org.lwjgl.opengl.GL46C.GL_UNSIGNED_INT
 import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 import org.lwjgl.opengl.GL46C.glTexParameterfv
 import org.lwjgl.opengl.GL46C.glTexParameteri
-import org.lwjgl.opengl.GL46C.glTexParameteriv
 
 object TextureHelper {
-
-    private val tmp4i = IntArray(4)
 
     private val tmp4f = FloatArray(4)
 
@@ -94,22 +89,6 @@ object TextureHelper {
             tmp[3] = borderColor.a01()
             glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, tmp)
         }
-    }
-
-    /**
-     * This is a helper to define swizzling on a texture.
-     * Don't use this if possible, because it's not supported on Android, WebGL, nor DirectX.
-     * Probably Vulkan either, but idk.
-     * */
-    fun swizzle(target: Int, r: Int, g: Int, b: Int, a: Int) {
-        val tmp = tmp4i
-        tmp[0] = r
-        tmp[1] = g
-        tmp[2] = b
-        tmp[3] = a
-        GFX.check()
-        glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp)
-        GFX.check()
     }
 
     fun getNumChannels(format: Int): Int {

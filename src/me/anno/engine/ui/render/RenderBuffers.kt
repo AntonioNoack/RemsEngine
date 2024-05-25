@@ -24,7 +24,7 @@ class RenderBuffers : ICacheData {
     val baseNBuffer1 = deferred.createBaseBuffer("DeferredBuffers-main", 1)
     val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
     val depthType get() = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-    val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, depthType)
+    val base1Buffer = Framebuffer("base1", 1, 1, 1, TargetType.UInt8x4, depthType)
 
     val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", listOf(TargetType.Float16x4))
     val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", listOf(TargetType.Float16x4))

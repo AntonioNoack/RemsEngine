@@ -17,7 +17,6 @@ import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
-import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Booleans.withoutFlag
@@ -56,29 +55,17 @@ class Framebuffer(
 ) : IFramebuffer, ICacheData {
 
     constructor(
-        name: String, w: Int, h: Int, samples: Int,
-        targetCount: Int, fpTargets: Boolean,
+        name: String, w: Int, h: Int, samples: Int, targetType: TargetType,
         depthBufferType: DepthBufferType
-    ) : this(
-        name, w, h, samples,
-        createList(targetCount, if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4),
-        depthBufferType
-    )
+    ) : this(name, w, h, samples, listOf(targetType), depthBufferType)
 
     constructor(
-        name: String, w: Int, h: Int, targets: List<TargetType>,
+        name: String, w: Int, h: Int, targetType: TargetType,
         depthBufferType: DepthBufferType = DepthBufferType.NONE
-    ) : this(name, w, h, 1, targets, depthBufferType)
-
-    constructor(
-        name: String, w: Int, h: Int, target: TargetType,
-        depthBufferType: DepthBufferType = DepthBufferType.NONE
-    ) : this(name, w, h, 1, listOf(target), depthBufferType)
-
-    fun clone() = Framebuffer(name, width, height, samples, targets, depthBufferType)
+    ) : this(name, w, h, 1, listOf(targetType), depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
-    override val numTextures: Int = targets.size
+    override val numTextures: Int get() = targets.size
 
     override fun getTargetType(slot: Int) = targets[slot]
 
@@ -309,7 +296,7 @@ class Framebuffer(
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 if (GFX.supportsDepthTextures) {
                     val depthTexture = this.depthTexture ?: Texture2D("$name-depth", w, h, samples).apply {
-                        createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                        create(depthBufferType.chooseDepthFormat())
                         owner = this@Framebuffer
                     }
                     glFramebufferTexture2D(

@@ -26,6 +26,7 @@ import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureHelper.getNumChannels
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.utils.Clock
@@ -287,15 +288,19 @@ object GFX {
         Frame.bind()
         color.bindTrulyNearest(0)
         depth.bindTrulyNearest(1)
-        copyColorAndDepth(color.samples, depth.samples)
+        copyColorAndDepth(
+            color.samples, depth.samples,
+            getNumChannels(color.internalFormat) == 1
+        )
     }
 
     @JvmStatic
-    fun copyColorAndDepth(colorSamples: Int, depthSamples: Int) {
+    fun copyColorAndDepth(colorSamples: Int, depthSamples: Int, monochrome: Boolean) {
         check()
         val idx = (colorSamples > 1).toInt(2) or (depthSamples > 1).toInt(1)
         val shader = copyShaderAnyToAny[idx]
         shader.use()
+        shader.v1b("monochrome", monochrome)
         shader.v1i("colorSamples", colorSamples)
         shader.v1i("depthSamples", depthSamples)
         shader.v1i("targetSamples", GFXState.currentBuffer.samples)

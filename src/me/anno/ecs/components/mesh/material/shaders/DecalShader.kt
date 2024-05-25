@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.material.shaders
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -16,8 +17,39 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.maps.LazyMap
+import me.anno.utils.types.Booleans.hasFlag
 
-class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
+class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECSMeshShader("decal-$flags") {
+    companion object {
+
+        var srcBuffer: IFramebuffer? = null
+
+        const val FLAG_COLOR = 1
+        const val FLAG_NORMAL = 2
+        const val FLAG_EMISSIVE = 4
+        const val FLAG_ROUGHNESS = 8
+        const val FLAG_METALLIC = 16
+
+        private val layers = listOf(
+            DeferredLayerType.COLOR,
+            DeferredLayerType.NORMAL,
+            DeferredLayerType.EMISSIVE,
+            DeferredLayerType.ROUGHNESS,
+            DeferredLayerType.METALLIC
+        )
+
+        private val layerLib = LazyMap { flags: Int ->
+            layers.filterIndexed { index, _ ->
+                flags.hasFlag(1 shl index)
+            }
+        }
+
+        val shaderLib = LazyMap { flags: Int ->
+            DecalShader(layerLib[flags], flags)
+        }
+    }
+
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val settings = key.renderer.deferredSettings
         val availableSemantic = settings?.semanticLayers?.toHashSet() ?: emptySet()

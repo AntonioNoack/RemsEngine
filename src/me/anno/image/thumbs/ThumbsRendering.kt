@@ -66,7 +66,7 @@ object ThumbsRendering {
         val renderTarget = if (GFX.maxSamples > 1 && Thumbs.useCacheFolder) {
             FBStack[srcFile.name, w, h, 4, false, 4, depthType] as Framebuffer
         } else {
-            Framebuffer(srcFile.name, w, h, 1, 1, false, depthType)
+            Framebuffer(srcFile.name, w, h, 1, TargetType.UInt8x4, depthType)
         }
 
         GFXState.renderPurely {
@@ -95,7 +95,7 @@ object ThumbsRendering {
             val newBuffer = if (renderTarget.samples > 1) {
                 val newBuffer = Framebuffer(
                     srcFile.name, w, h, 1,
-                    listOf(TargetType.UInt8x4), DepthBufferType.NONE
+                    TargetType.UInt8x4, DepthBufferType.NONE
                 )
                 GFXState.useFrame(newBuffer) {
                     GFX.copy(renderTarget)

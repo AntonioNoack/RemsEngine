@@ -64,9 +64,9 @@ class TargetType(
 
         // luminance counts as a compressed format, so it can't be used
         // luminance_alpha neither
-        val UInt8x1 = TargetType("u1", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, false)
-        val UInt8x2 = TargetType("u2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
-        val UInt8x4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
+        val UInt8x1 = TargetType("u8x1", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, false)
+        val UInt8x2 = TargetType("u8x2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
+        val UInt8x4 = TargetType("u8x4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
         val UInt8x3 = UInt8x4 // 3 isn't supported well
         val UInt8xI = listOf(UInt8x1, UInt8x2, UInt8x3, UInt8x4)
 
@@ -99,13 +99,14 @@ class TargetType(
         val DEPTH32 = TargetType("depth32", GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 4, 1, false)
         val DEPTH32F = TargetType("depth32f", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 4, 1, false)
 
-        val UInt32Nx1 = TargetType("u32norm1", GL_R32UI, GL_RED_INTEGER, GL_INT, 4, 1, false)
-        val UInt16Nx1 = TargetType("u16norm1", GL_R16UI, GL_RED_INTEGER, GL_INT, 2, 1, false)
-        val UInt16Nx2 = TargetType("u16norm2", GL_RG16UI, GL_RG_INTEGER, GL_INT, 4, 2, false)
+        val UInt16x1 = TargetType("u16x1", GL_R8, GL_RED, GL_UNSIGNED_SHORT, 2, 1, false)
+        val UInt16x2 = TargetType("u16x2", GL_RG8, GL_RG, GL_UNSIGNED_SHORT, 4, 2, false)
+        val UInt16x4 = TargetType("u16x4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_SHORT, 8, 4, false)
+        val UInt16xI = listOf(UInt16x1, UInt16x2, UInt16x4, UInt16x4)
 
-        val UInt32x1 = TargetType("u32x1", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, 1, false)
-        val UInt32x2 = TargetType("u32x2", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 8, 2, false)
-        val UInt32x3 = TargetType("u32x3", GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT, 12, 3, false)
-        val UInt32x4 = TargetType("u32x4", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, 4, false)
+        val UInt32x1 = TargetType("u32x1", GL_RED, GL_RED, GL_UNSIGNED_INT, 4, 1, false)
+        val UInt32x2 = TargetType("u32x2", GL_RG, GL_RG, GL_UNSIGNED_INT, 8, 2, false)
+        val UInt32x4 = TargetType("u32x4", GL_RGBA, GL_RGBA, GL_UNSIGNED_INT, 16, 4, false)
+        val UInt32xI = listOf(UInt32x1, UInt32x2, UInt32x4, UInt32x4)
     }
 }

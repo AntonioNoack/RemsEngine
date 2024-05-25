@@ -6,6 +6,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.NullFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
@@ -46,7 +47,7 @@ object Logo {
     val frame by lazy { // lazy, so we can get GFX.maxSamples
         Framebuffer(
             "logo", 1, 1, min(8, GFX.maxSamples),
-            1, false, DepthBufferType.NONE
+            TargetType.UInt8x4, DepthBufferType.NONE
         )
     }
 

@@ -111,9 +111,6 @@ open class Texture3D(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        if (TextureHelper.getNumChannels(internalFormat) == 1) {
-            swizzleMonochrome()
-        }
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
     }
 
@@ -379,18 +376,6 @@ open class Texture3D(
         bind(0, filtering, Clamping.CLAMP)
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
-    }
-
-    fun swizzleMonochrome() {
-        swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
-    }
-
-    fun swizzleAlpha() {
-        swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED)
-    }
-
-    fun swizzle(r: Int, g: Int, b: Int, a: Int) {
-        TextureHelper.swizzle(target, r, g, b, a)
     }
 
     companion object {

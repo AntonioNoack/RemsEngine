@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.engine.EngineBase.Companion.dragged
 import me.anno.engine.EngineBase.Companion.shiftSlowdown
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.raw.IntImage
 import me.anno.input.Clipboard
 import me.anno.ui.Panel
@@ -256,7 +257,7 @@ open class ColorInput(
                     // correct way up
                     val fb = Framebuffer(
                         "colorPicker", windowStack.width, windowStack.height,
-                        1, 1, false, DepthBufferType.INTERNAL
+                        1, TargetType.UInt8x4, DepthBufferType.INTERNAL
                     )
                     fb.ensure()
                     useFrame(fb) {

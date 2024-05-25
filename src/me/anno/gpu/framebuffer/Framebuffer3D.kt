@@ -98,7 +98,7 @@ class Framebuffer3D(
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val depthTexture = Texture3D("$name-depth", w, h, d)
                 // depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
-                depthTexture.create(if (depthBufferType == DepthBufferType.TEXTURE_16) TargetType.DEPTH16 else TargetType.DEPTH32F)
+                depthTexture.create(depthBufferType.chooseDepthFormat())
                 glFramebufferTexture3D(
                     GL_FRAMEBUFFER,
                     GL_DEPTH_ATTACHMENT,

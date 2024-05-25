@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
@@ -225,6 +226,23 @@ interface IFramebuffer {
         fun createTargets(targetCount: Int, fpTargets: Boolean): List<TargetType> {
             val target = if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4
             return createList(targetCount, target)
+        }
+
+        fun createFramebuffer(
+            name: String, width: Int, height: Int, samples: Int,
+            targetTypes: List<TargetType>, depthBufferType: DepthBufferType
+        ): IFramebuffer {
+            return if (targetTypes.size <= GFX.maxColorAttachments) {
+                Framebuffer(
+                    name, width, height, samples,
+                    targetTypes, depthBufferType
+                )
+            } else {
+                MultiFramebuffer(
+                    name, width, height, samples,
+                    targetTypes, depthBufferType
+                )
+            }
         }
     }
 }

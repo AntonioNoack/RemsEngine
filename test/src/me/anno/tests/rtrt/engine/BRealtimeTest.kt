@@ -403,7 +403,7 @@ fun createGPUPanel(
     useComputeBuffer: Boolean
 ): Panel {
 
-    val avgBuffer = Framebuffer("avg", 1, 1, 1, listOf(TargetType.Float32x4), DepthBufferType.NONE)
+    val avgBuffer = Framebuffer("avg", 1, 1, 1, TargetType.Float32x4, DepthBufferType.NONE)
 
     val lastPos = Vector3f()
     val lastRot = Quaternionf()

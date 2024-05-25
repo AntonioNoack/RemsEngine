@@ -44,6 +44,7 @@ object FlatShaders {
             "copyMSAnyToAny/${it.toString(2)}", coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
                 Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
+                Variable(GLSLType.V1B, "monochrome"),
                 Variable(GLSLType.V1I, "colorSamples"),
                 Variable(GLSLType.V1I, "depthSamples"),
                 Variable(GLSLType.V1I, "targetSamples"),
@@ -72,6 +73,7 @@ object FlatShaders {
                             "}\n" else "") +
                     "void main() {\n" +
                     "   result = getColor${it shr 1}(colorTex, colorSamples);\n" +
+                    "   if(monochrome) result.rgb = result.rrr;\n" +
                     "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples).x;\n" + // is this [-1,1] or [0,1]? -> looks like it works just fine for now
                     "}"
         ).apply {
@@ -107,7 +109,7 @@ object FlatShaders {
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, uvList,
         listOf(
-            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
+            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = rrr, 3 = a
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.S2D, "tex"),
@@ -118,6 +120,7 @@ object FlatShaders {
                 "   vec4 data = texture(tex, uv);\n" +
                 "   if(alphaMode == 0) { col *= data; }\n" +
                 "   else if(alphaMode == 1) { col.rgb *= data.rgb; }\n" +
+                "   else if(alphaMode == 2) { col.rgb *= data.x; }\n" +
                 "   else { col.rgb *= data.a; }\n" +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
                 "   else if(applyToneMapping) { col = tonemap(col); }\n" +

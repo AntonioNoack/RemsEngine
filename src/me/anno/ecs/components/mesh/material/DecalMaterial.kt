@@ -1,63 +1,79 @@
 package me.anno.ecs.components.mesh.material
 
+import me.anno.ecs.annotations.EditorField
 import me.anno.ecs.components.mesh.material.shaders.DecalShader
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_COLOR
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_EMISSIVE
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_METALLIC
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_NORMAL
+import me.anno.ecs.components.mesh.material.shaders.DecalShader.Companion.FLAG_ROUGHNESS
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GPUShader
-import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Booleans.withFlag
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
-// decal pass:
-//  Input: pos, normal (we could pass in color theoretically, but idk)
-//  Output: new color, new normal, new emissive
-// these attributes are mixed in deferred layers, so we probably need to do it in the shader... could be expensive,
-// because we need a copy on some platforms to operate on
 // todo different blend modes: additive, subtractive, default, ...
 // todo make this work for (limited) forward rendering: all properties get replaced
 class DecalMaterial : Material() {
 
     companion object {
-        private val shaderLib = HashMap<Int, ECSMeshShader>()
+        private val LOGGER = LogManager.getLogger(DecalMaterial::class)
     }
 
-    // can we support this in forward rendering?
-    // yes, but it will be a bit more expensive
-    // a) list of all decals for all pixels -> bad
-    // b) render normal extra; and apply lighting twice
+    @SerializedProperty
+    private var writeFlags = FLAG_COLOR
 
-    var writeColor = false
+    @EditorField
+    @NotSerializedProperty
+    var writeColor: Boolean
+        get() = writeFlags.hasFlag(FLAG_COLOR)
         set(value) {
-            field = value
+            writeFlags = writeFlags.withFlag(FLAG_COLOR, value)
             shader = getShader()
         }
 
-    var writeNormal = false
+    @EditorField
+    @NotSerializedProperty
+    var writeNormal: Boolean
+        get() = writeFlags.hasFlag(FLAG_NORMAL)
         set(value) {
-            field = value
+            writeFlags = writeFlags.withFlag(FLAG_NORMAL, value)
             shader = getShader()
         }
 
-    var writeEmissive = false
+    @EditorField
+    @NotSerializedProperty
+    var writeEmissive: Boolean
+        get() = writeFlags.hasFlag(FLAG_EMISSIVE)
         set(value) {
-            field = value
+            writeFlags = writeFlags.withFlag(FLAG_EMISSIVE, value)
             shader = getShader()
         }
 
-    var writeRoughness = false
+    @EditorField
+    @NotSerializedProperty
+    var writeRoughness: Boolean
+        get() = writeFlags.hasFlag(FLAG_ROUGHNESS)
         set(value) {
-            field = value
+            writeFlags = writeFlags.withFlag(FLAG_ROUGHNESS, value)
             shader = getShader()
         }
 
-    var writeMetallic = false
+    @EditorField
+    @NotSerializedProperty
+    var writeMetallic: Boolean
+        get() = writeFlags.hasFlag(FLAG_METALLIC)
         set(value) {
-            field = value
+            writeFlags = writeFlags.withFlag(FLAG_METALLIC, value)
             shader = getShader()
         }
 
@@ -77,29 +93,24 @@ class DecalMaterial : Material() {
     override fun bind(shader: GPUShader) {
         super.bind(shader)
         bindDepthUniforms(shader)
-        // bind textures from the layer below us
-        val buffer = RenderDecalsNode.srcBuffer ?: return // invalid anyway :/
-        val layers = GFXState.currentRenderer.deferredSettings?.storageLayers ?: return
-        for (index in 0 until min(layers.size, buffer.numTextures)) {
-            buffer.getTextureI(index).bindTrulyNearest(shader, layers[index].nameIn0)
-        }
         shader.v3f("decalSharpness", decalSharpness)
+        // bind textures from the layer below us
+        var buffer = DecalShader.srcBuffer
+        val layers = GFXState.currentRenderer.deferredSettings?.storageLayers
+        if (buffer != null && layers != null) {
+            for (index in 0 until min(layers.size, buffer.numTextures)) {
+                buffer.getTextureI(index).bindTrulyNearest(shader, layers[index].nameIn0)
+            }
+        }
+        buffer = buffer ?: GFXState.currentBuffer
         shader.v2f("windowSize", buffer.width.toFloat(), buffer.height.toFloat())
         (buffer.depthTexture ?: buffer.getTextureIMS(buffer.numTextures - 1)) // ok so?
             .bindTrulyNearest(shader, "depth_in0")
     }
 
-    fun getShader(): ECSMeshShader {
+    private fun getShader(): ECSMeshShader {
         val flags = writeColor.toInt() + writeNormal.toInt(2) +
                 writeEmissive.toInt(4) + writeRoughness.toInt(8) + writeMetallic.toInt(16)
-        return shaderLib.getOrPut(flags) {
-            val layers = ArrayList<DeferredLayerType>(5)
-            if (flags.hasFlag(1)) layers.add(DeferredLayerType.COLOR)
-            if (flags.hasFlag(2)) layers.add(DeferredLayerType.NORMAL)
-            if (flags.hasFlag(4)) layers.add(DeferredLayerType.EMISSIVE)
-            if (flags.hasFlag(8)) layers.add(DeferredLayerType.ROUGHNESS)
-            if (flags.hasFlag(16)) layers.add(DeferredLayerType.METALLIC)
-            DecalShader(layers)
-        }
+        return DecalShader.shaderLib[flags]
     }
 }

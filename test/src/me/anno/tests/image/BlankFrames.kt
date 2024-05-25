@@ -5,6 +5,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.OS
@@ -27,7 +28,7 @@ fun main() {
     val timeout = 1000L
     HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
     ShaderLib.init()
-    val fb = Framebuffer("blank", meta.videoWidth, meta.videoHeight, 1, 1, false, DepthBufferType.NONE)
+    val fb = Framebuffer("blank", meta.videoWidth, meta.videoHeight, 1, TargetType.UInt8x4, DepthBufferType.NONE)
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!

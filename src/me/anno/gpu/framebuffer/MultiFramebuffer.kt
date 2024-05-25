@@ -134,15 +134,28 @@ class MultiFramebuffer(
         }
     }
 
-    override fun use(index: Int, renderer: Renderer, render: () -> Unit) {
+    private fun isBeingUsedAlready(index: Int): Boolean {
         val targets = targetsI
-        for (targetIndex in targets.indices) {
-            val target = targets[targetIndex]
-            // split renderer by targets
-            GFXState.pushDrawCallName(target.name)
-            GFXState.renderers[index] = renderer.split(targetIndex, div)
-            GFXState.framebuffer.use(target, render)
-            GFXState.popDrawCallName()
+        for (i in 0 until index) {
+            val buffer = GFXState.framebuffer[i]
+            if (targets.contains(buffer)) return true
+        }
+        return false
+    }
+
+    override fun use(index: Int, renderer: Renderer, render: () -> Unit) {
+        if (isBeingUsedAlready(index)) {
+            render()
+        } else {
+            val targets = targetsI
+            for (targetIndex in targets.indices) {
+                val target = targets[targetIndex]
+                // split renderer by targets
+                GFXState.pushDrawCallName(target.name)
+                GFXState.renderers[index] = renderer.split(targetIndex, div)
+                GFXState.framebuffer.use(target, render)
+                GFXState.popDrawCallName()
+            }
         }
     }
 

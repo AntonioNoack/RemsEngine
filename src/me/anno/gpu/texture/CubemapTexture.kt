@@ -169,10 +169,6 @@ open class CubemapTexture(
 
     private fun getTarget(side: Int) = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
 
-    fun createDepth(lowQuality: Boolean = false) {
-        create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
-    }
-
     private fun afterUpload(internalFormat: Int, bytesPerPixel: Int) {
         GFX.check()
         this.internalFormat = internalFormat

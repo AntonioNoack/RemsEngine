@@ -28,6 +28,7 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader
@@ -144,6 +145,8 @@ class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
  * done: add small bodies like boats/ducks/... on the surface
  * */
 fun main() {
+
+    OfficialExtensions.initForTests()
 
     val w = 1024
     val h = 1024
