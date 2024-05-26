@@ -141,7 +141,7 @@ class RenderMode(
 
         private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
             return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
-                .then1(RenderForwardNode(), mapOf( "Stage" to PipelineStage.DECAL))
+                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
                 .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())

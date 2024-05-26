@@ -36,8 +36,8 @@ class Texture private constructor(
             whiteTexture -> "white"
             blackTexture -> "black"
             else -> {
-                val base = if (tex is Texture2D) "${tex.width}x${tex.height}@${tex.pointer}"
-                else "${tex.width}x${tex.height}"
+                val base = if (tex is Texture2D) "'${tex.name}', ${tex.width}x${tex.height}@${tex.pointer}"
+                else "'${tex.name}', ${tex.width}x${tex.height}"
                 val hasMap = mapping.isNotEmpty()
                 val hasEnc = encoding != null && encoding.dataToWork.isNotEmpty()
                 when {

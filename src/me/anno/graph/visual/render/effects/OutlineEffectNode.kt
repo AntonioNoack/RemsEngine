@@ -123,7 +123,7 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v1i("samples", samples)
                 shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
                 getTex(color, useMS).bindTrulyNearest(shader, "colorTex")
-                getTex(ids, useMS).bindTrulyNearest(shader, "idsTex")
+                getTex(ids, useMS).bindTrulyNearest(shader, "idTex")
                 SimpleBuffer.flat01.draw(shader)
             }
         }

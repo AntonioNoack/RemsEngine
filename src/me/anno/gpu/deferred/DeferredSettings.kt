@@ -152,16 +152,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 layer.appendLayer(output, defRR, useRandomness)
             }
         }
-        val hasAlpha = Variable(GLSLType.V1F, "finalAlpha") in defined
         for (slot in emptySlots) {
             if (disabledLayers == null || !disabledLayers[slot.index]) {
-                val value = if (hasAlpha) {
-                    when (slot.mask.length) {
-                        1 -> " = finalAlpha;\n"
-                        2 -> " = vec2(0.0,finalAlpha);\n"
-                        else -> " = vec3(0.0,0.0,finalAlpha);\n"
-                    }
-                } else when (slot.mask.length) {
+                val value = when (slot.mask.length) {
                     1 -> " = 1.0;\n"
                     2 -> " = vec2(0.0,1.0);\n"
                     else -> " = vec3(0.0,0.0,1.0);\n"
