@@ -512,77 +512,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     private fun write1DList(self: Saveable?, name: String, value: List<*>, sample: Any?, forceSaving: Boolean) {
         when (sample) {
 
-            is Boolean -> writeBooleanArray(
-                name,
-                BooleanArray(value.size) { value[it] as Boolean },
-                forceSaving
-            )
-            is Char -> writeCharArray(name, CharArray(value.size) { value[it] as Char }, forceSaving)
-            is Byte -> writeByteArray(name, ByteArray(value.size) { value[it] as Byte }, forceSaving)
-            is Short -> writeShortArray(name, ShortArray(value.size) { value[it] as Short }, forceSaving)
-            is Int -> writeIntArray(name, IntArray(value.size) { value[it] as Int }, forceSaving)
-            is Long -> writeLongArray(name, LongArray(value.size) { value[it] as Long }, forceSaving)
-            is Float -> writeFloatArray(name, FloatArray(value.size) { value[it] as Float }, forceSaving)
-            is Double -> writeDoubleArray(
-                name,
-                DoubleArray(value.size) { value[it] as Double },
-                forceSaving
-            )
-
-            is BooleanArray -> writeBooleanArray2D(name, filterII(value), forceSaving)
-            is CharArray -> writeCharArray2D(name, filterII(value), forceSaving)
-            is ByteArray -> writeByteArray2D(name, filterII(value), forceSaving)
-            is ShortArray -> writeShortArray2D(name, filterII(value), forceSaving)
-            is IntArray -> writeIntArray2D(name, filterII(value), forceSaving)
-            is LongArray -> writeLongArray2D(name, filterII(value), forceSaving)
-            is FloatArray -> writeFloatArray2D(name, filterII(value), forceSaving)
-            is DoubleArray -> writeDoubleArray2D(name, filterII(value), forceSaving)
-
-            is String -> writeStringList(name, filterII(value), forceSaving)
-
-            is Vector2f -> writeVector2fList(name, filterII(value), forceSaving)
-            is Vector3f -> writeVector3fList(name, filterII(value), forceSaving)
-            is Vector4f -> writeVector4fList(name, filterII(value), forceSaving)
-            is Vector2d -> writeVector2dList(name, filterII(value), forceSaving)
-            is Vector3d -> writeVector3dList(name, filterII(value), forceSaving)
-            is Vector4d -> writeVector4dList(name, filterII(value), forceSaving)
-            is Vector2i -> writeVector2iList(name, filterII(value), forceSaving)
-            is Vector3i -> writeVector3iList(name, filterII(value), forceSaving)
-            is Vector4i -> writeVector4iList(name, filterII(value), forceSaving)
-
-            is Matrix2f -> writeMatrix2x2fList(name, filterII(value), forceSaving)
-            is Matrix3x2f -> writeMatrix3x2fList(name, filterII(value), forceSaving)
-            is Matrix3f -> writeMatrix3x3fList(name, filterII(value), forceSaving)
-            is Matrix4x3f -> writeMatrix4x3fList(name, filterII(value), forceSaving)
-            is Matrix4f -> writeMatrix4x4fList(name, filterII(value), forceSaving)
-
-            is Matrix2d -> writeMatrix2x2dList(name, filterII(value), forceSaving)
-            is Matrix3x2d -> writeMatrix3x2dList(name, filterII(value), forceSaving)
-            is Matrix3d -> writeMatrix3x3dList(name, filterII(value), forceSaving)
-            is Matrix4x3d -> writeMatrix4x3dList(name, filterII(value), forceSaving)
-            is Matrix4d -> writeMatrix4x4dList(name, filterII(value), forceSaving)
-
-            is Quaternionf -> writeQuaternionfList(name, filterII(value), forceSaving)
-            is Quaterniond -> writeQuaterniondList(name, filterII(value), forceSaving)
-
-            is Planef -> writePlanefList(name, filterII(value), forceSaving)
-            is Planed -> writePlanedList(name, filterII(value), forceSaving)
-
-            is AABBf -> writeAABBfList(name, filterII(value), forceSaving)
-            is AABBd -> writeAABBdList(name, filterII(value), forceSaving)
-
-            // is PrefabSaveable -> writeObjectList(self, name, toList(value), forceSaving)
-            is Saveable -> writeObjectList(self, name, filterII(value), forceSaving)
-            is FileReference -> writeFileList(name, filterII(value), forceSaving)
-
-            // todo 2d stuff...
-            else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${if (sample != null) sample::class else null}")
-        }
-    }
-
-    private fun write1DList(self: Saveable?, name: String, value: Any, sample: Any?, forceSaving: Boolean) {
-        when (sample) {
-
             is String -> writeStringList(name, cast(value), forceSaving)
 
             is Vector2f -> writeVector2fList(name, cast(value), forceSaving)
@@ -623,14 +552,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is FileReference -> writeFileList(name, cast(value), forceSaving)
             is List<*> -> {
                 if (sample.isNotEmpty()) {
-                    write2DList(name, value, sample[0], forceSaving)
+                    write2DList(name, cast(value), sample[0], forceSaving)
                 } // else ...
             }
             else -> throw RuntimeException("Not yet implemented: saving a list of $sample")
         }
     }
 
-    private fun write2DList(name: String, value: Any, sample1: Any?, forceSaving: Boolean) {
+    private fun write2DList(name: String, value: List<List<*>>, sample1: Any?, forceSaving: Boolean) {
         when (sample1) {
             // vectors
             is Vector2f -> writeVector2fList2D(name, cast(value), forceSaving)

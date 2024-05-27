@@ -49,7 +49,7 @@ object PDFCache : CacheSection("PDFCache") {
         borrow: Boolean,
         async: Boolean
     ): AtomicCountedDocument? {
-        val data = getEntry(src, timeout, async) {
+        val data = getEntry(src, TIMEOUT, async) {
             val doc = AtomicCountedDocument(
                 try {
                     PDDocument.load(input)
@@ -201,6 +201,6 @@ object PDFCache : CacheSection("PDFCache") {
         lm.disableLogger("Type4ShadingContext")
     }
 
-    private const val timeout = 20_000L
+    private const val TIMEOUT = 20_000L
     private val LOGGER = LogManager.getLogger(PDFCache::class)
 }

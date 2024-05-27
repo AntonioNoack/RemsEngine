@@ -15,7 +15,7 @@ import me.anno.io.files.InvalidRef
  * this will be used in Lists, so you can smoothly lerp animations
  * */
 class AnimationState(
-    @Type("Animation/Reference") // todo this isn't properly displayed yet... why?? -> because Saveable, not PrefabSaveable
+    @Type("Animation/Reference")
     var source: FileReference,
     @Range(0.0, 1.0)
     var weight: Float,

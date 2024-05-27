@@ -1,5 +1,6 @@
 package me.anno.engine.ui.input
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Range.Companion.maxLong
 import me.anno.ecs.annotations.Range.Companion.maxULong
@@ -82,6 +83,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToLong
 import me.anno.utils.types.Booleans.hasFlag
@@ -346,6 +348,13 @@ object ComponentUI {
     }
 
     fun createISaveableInput(title: String, saveable: Saveable, style: Style, property: IProperty<Any?>): Panel {
+
+        if (saveable is Inspectable) {
+            val panel = PanelListY(style.getChild("deep"))
+            saveable.createInspector(panel, style)
+            return panel
+        }
+
         // if saveable is Inspectable, we could use the inspector as well :)
         // runtime: O(n²) where n is number of properties of that class
         // could be improved, but shouldn't matter
@@ -375,13 +384,12 @@ object ComponentUI {
                     disableFocusColors()
                 })
                 for ((name, typeValue) in typeMap) {
-                    val type = typeValue.first
-                    val startValue = typeValue.second
+                    val (type, startValue) = typeValue
                     panel2.add(
                         createUIByTypeName(
                             name, "${saveable.className}/$name",
                             SIProperty(name, type, saveable, startValue, property, detective),
-                            typeValue.first, null, style
+                            type, null, style
                         )
                     )
                 }
@@ -439,15 +447,15 @@ object ComponentUI {
         }
 
         val title = name?.camelCaseToTitle() ?: ""
-        // todo use @Docs() for ttt
-        val ttt = ""
+        val ttt = property.annotations
+            .firstInstanceOrNull2(Docs::class)
+            ?.description ?: ""
         val value = property.get()
         val default = property.getDefault()
 
         when (type0) {
             // native types
             "Bool", "Boolean" -> return createBooleanInput(title, ttt, value, default, property, style)
-            // todo char
             "Byte" -> return createByteInput(title, visibilityKey, value, default, property, range, style)
             "UByte" -> return createUByteInput(title, visibilityKey, value, default, property, range, style)
             "Short" -> return createShortInput(title, visibilityKey, value, default, property, range, style)
@@ -500,7 +508,7 @@ object ComponentUI {
             "Char" -> {
                 return TitledListY(title, visibilityKey, style).add(
                     TextInput(title, visibilityKey, value.toString(), style.getChild("deep")).apply {
-                        // todo limit length to 1
+                        base.lengthLimit = 1
                         property.init(this)
                         setResetListener { property.reset(this).toString() }
                         askForReset(property) { setValue(it.toString(), false) }
@@ -741,12 +749,7 @@ object ComponentUI {
             "Inspectable" -> {
                 value as Inspectable
                 val list = PanelListY(style)
-                val groups = HashMap<String, SettingCategory>()
-                value.createInspector(list, style) {
-                    groups.getOrPut(it.key) {
-                        SettingCategory(it, style)
-                    }
-                }
+                value.createInspector(list, style)
                 return list
             }
 

@@ -4,10 +4,7 @@ package me.anno.language.translation
  * translatable name and description in one,
  * because most times they go together
  * */
-class NameDesc(
-    name: String, description: String,
-    private val dictPath: String
-) {
+class NameDesc(name: String, description: String, private val dictPath: String) {
 
     constructor(name: String) : this(name, "", "")
     constructor() : this("", "", "")
@@ -41,6 +38,14 @@ class NameDesc(
             value = value.replace(src, dst)
         }
         return value
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is NameDesc && other.key == key
+    }
+
+    override fun hashCode(): Int {
+        return key.hashCode()
     }
 
     companion object {

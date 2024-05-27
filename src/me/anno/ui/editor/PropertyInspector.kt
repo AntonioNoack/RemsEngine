@@ -183,10 +183,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         }
 
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
-            val groups = HashMap<String, SettingCategory>()
-            ins.createInspector(list, style) {
-                createGroup(it, list, groups, style)
-            }
+            ins.createInspector(list, style)
             addSpacingForFrameTimings(list)
         }
 

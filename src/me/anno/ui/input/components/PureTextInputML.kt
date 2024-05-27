@@ -62,6 +62,7 @@ open class PureTextInputML(style: Style) :
         }
 
     var lineLimit = Int.MAX_VALUE
+    var lengthLimit = Int.MAX_VALUE // todo respect this property
 
     // todo update all children, when this is overridden
     var focusTextColor = style.getColor("textColorFocused", -1)
@@ -428,7 +429,8 @@ open class PureTextInputML(style: Style) :
         if (insertion.isNotEmpty()) {
             notifyCursorTyped()
             for (cp in insertion.codepoints()) {
-                insert(cp, false)
+                // break if length limit reached
+                if (insert(cp, false)) break
             }
             update(true)
         }
@@ -455,9 +457,16 @@ open class PureTextInputML(style: Style) :
         return line.subList(0, i)
     }
 
-    fun insert(insertion: Int, notify: Boolean) {
+    /**
+     * returns if the length limit was reached
+     * */
+    fun insert(insertion: Int, notify: Boolean): Boolean {
         notifyCursorTyped()
         deleteSelection()
+        // cancel, if length limit reached
+        if (lines.sumOf { it.size } >= lengthLimit) {
+            return true
+        }
         when (insertion) {
             '\n'.code -> {
                 // split the line here
@@ -472,7 +481,7 @@ open class PureTextInputML(style: Style) :
                     )
                     cursor1.set(0, cursor1.y + 1)
                     cursor2.set(cursor1)
-                } else {// ^^
+                } else {// ^^ -> meh for char-input...
                     insert('\\'.code, notify)
                     insert('n'.code, notify)
                 }
@@ -491,6 +500,7 @@ open class PureTextInputML(style: Style) :
         if (notify) {
             update(true)
         }
+        return false
     }
 
     fun deleteBefore(force: Boolean) {

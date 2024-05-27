@@ -173,6 +173,7 @@ class ExportSettings : NamedSaveable() {
             .sortedBy { it.name }
         for (file in moduleList) {
             val name = file.nameWithoutExtension
+            // todo set ttt based on module's xyz-ext.info-file
             modules.add(
                 BooleanInput(name, name !in excludedModules, false, style)
                     .setChangeListener { included ->

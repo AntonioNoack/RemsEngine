@@ -125,7 +125,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     }
 
     class PreviewData(skeleton: Skeleton, animation: Animation) {
-        // todo why is there no animation playing?
 
         val bones = skeleton.bones
         val mesh = Mesh()
@@ -179,8 +178,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
             renderer.fill(pipeline, entity, clickId)
         }
     }
-
-    // todo add all debug information to UI
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
