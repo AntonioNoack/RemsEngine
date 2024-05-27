@@ -2,22 +2,21 @@ package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
 import me.anno.config.ConfigRef
+import me.anno.engine.EngineBase
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.utils.Color.mulAlpha
-import me.anno.utils.types.Booleans.toInt
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.round
@@ -141,11 +140,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return hasScrollbarY && drawsOverY(this.lx0, this.ly0, this.lx1, this.ly1, sbWidth, lx0, ly0, lx1, ly1)
     }
 
-    var maxSize = 100 // good size?
     override fun calculateSize(w: Int, h: Int) {
-        child.calculateSize(maxLength - padding.width, maxLength - padding.height)
-        minW = min(maxSize, child.minW) + padding.width + hasScrollbarY.toInt(scrollbarWidth)
-        minH = min(maxSize, child.minH) + padding.height + hasScrollbarX.toInt(scrollbarHeight)
+        // calculation must not depend on hasScrollbar, or we get flickering
+        val paddingX = padding.width + scrollbarWidth
+        val paddingY = padding.height + scrollbarHeight
+        child.calculateSize(maxLength - paddingX, maxLength - paddingY)
+        minW = min(w, child.minW + paddingX)
+        minH = min(h, child.minH + paddingY)
     }
 
     override fun setSize(w: Int, h: Int) {

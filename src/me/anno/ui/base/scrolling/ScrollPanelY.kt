@@ -116,9 +116,10 @@ open class ScrollPanelY(
     override fun calculateSize(w: Int, h: Int) {
         val child = child
         val padding = padding
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
+        // calculation must not depend on hasScrollbar, or we get flickering
+        val paddingX = padding.width + scrollbarWidth
         child.calculateSize(w - paddingX, maxLength - padding.height)
-        minW = child.minW + paddingX
+        minW = min(child.minW + paddingX, w)
         minH = min(child.minH + padding.height, h)
     }
 
