@@ -1,16 +1,16 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
-import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes.drawBox
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.sign
 
 class BoxCollider : Collider() {
 
@@ -46,7 +46,6 @@ class BoxCollider : Collider() {
 
         val start = query.start
         val direction = query.direction
-        // todo set surfaceNormal...
 
         // https://jcgt.org/published/0007/03/04/paper-lowres.pdf
         // "A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering"
@@ -68,11 +67,25 @@ class BoxCollider : Collider() {
         val dz = (hz * sgnZ - start.z) / direction.z
 
         return when {
-            dx >= 0f && (abs(start.y + direction.y * dx) < hy && abs(start.z + direction.z * dx) < hz) -> dx
-            dy >= 0f && (abs(start.z + direction.z * dy) < hz && abs(start.x + direction.x * dy) < hx) -> dy
-            dz >= 0f && (abs(start.x + direction.x * dz) < hx && abs(start.y + direction.y * dz) < hy) -> dz
+            dx >= 0f && (abs(start.y + direction.y * dx) < hy && abs(start.z + direction.z * dx) < hz) -> {
+                setSurfaceNormal(surfaceNormal, direction, 0)
+                dx
+            }
+            dy >= 0f && (abs(start.z + direction.z * dy) < hz && abs(start.x + direction.x * dy) < hx) -> {
+                setSurfaceNormal(surfaceNormal, direction, 1)
+                dy
+            }
+            dz >= 0f && (abs(start.x + direction.x * dz) < hx && abs(start.y + direction.y * dz) < hy) -> {
+                setSurfaceNormal(surfaceNormal, direction, 2)
+                dz
+            }
             else -> Float.POSITIVE_INFINITY
         } * winding
+    }
 
+    private fun setSurfaceNormal(surfaceNormal: Vector3f?, direction: Vector3f, i: Int) {
+        surfaceNormal ?: return
+        surfaceNormal.set(0f)
+        surfaceNormal[i] = sign(direction[i])
     }
 }

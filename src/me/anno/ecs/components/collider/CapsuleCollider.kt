@@ -2,12 +2,14 @@ package me.anno.ecs.components.collider
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes
+import me.anno.maths.Maths.TAU
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.PI
 import kotlin.math.max
 
 class CapsuleCollider : Collider() {
@@ -43,38 +45,34 @@ class CapsuleCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo test this (behaviour == visuals?)
-        // todo only draw if selected or collider debug mode
-        // todo color based on physics / trigger (?)
         val h = halfHeight
         val r = radius
+        val xi = PI / 2
+        val zi = xi * 3
         when (axis) {
             0 -> {
-                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -h, -r, 0.0, +h, -r, 0.0)
                 LineShapes.drawLine(entity, -h, +r, 0.0, +h, +r, 0.0)
                 LineShapes.drawLine(entity, -h, 0.0, -r, +h, 0.0, -r)
                 LineShapes.drawLine(entity, -h, 0.0, +r, +h, 0.0, +r)
-                LineShapes.drawSphere(entity, r, Vector3d(-h, 0.0, 0.0))
-                LineShapes.drawSphere(entity, r, Vector3d(+h, 0.0, 0.0))
+                LineShapes.drawPartialSphere(entity, r, Vector3d(-h, 0.0, 0.0), 0.0, TAU, PI, PI, xi, PI)
+                LineShapes.drawPartialSphere(entity, r, Vector3d(+h, 0.0, 0.0), 0.0, TAU, 0.0, PI, zi, PI)
             }
             1 -> {
-                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -r, -h, 0.0, -r, +h, 0.0)
                 LineShapes.drawLine(entity, +r, -h, 0.0, +r, +h, 0.0)
                 LineShapes.drawLine(entity, 0.0, -h, -r, 0.0, +h, -r)
                 LineShapes.drawLine(entity, 0.0, -h, +r, 0.0, +h, +r)
-                LineShapes.drawSphere(entity, r, Vector3d(0.0, -h, 0.0))
-                LineShapes.drawSphere(entity, r, Vector3d(0.0, +h, 0.0))
+                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, -h, 0.0), xi, PI, 0.0, TAU, PI, PI)
+                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, +h, 0.0), zi, PI, 0.0, TAU, 0.0, PI)
             }
             2 -> {
-                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -r, 0.0, -h, -r, 0.0, +h)
                 LineShapes.drawLine(entity, +r, 0.0, -h, +r, 0.0, +h)
                 LineShapes.drawLine(entity, 0.0, -r, -h, 0.0, -r, +h)
                 LineShapes.drawLine(entity, 0.0, +r, -h, 0.0, +r, +h)
-                LineShapes.drawSphere(entity, r, Vector3d(0.0, 0.0, -h))
-                LineShapes.drawSphere(entity, r, Vector3d(0.0, 0.0, +h))
+                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, 0.0, -h), PI, PI, xi, PI, 0.0, TAU)
+                LineShapes.drawPartialSphere(entity, r, Vector3d(0.0, 0.0, +h), 0.0, PI, zi, PI, 0.0, TAU)
             }
         }
     }

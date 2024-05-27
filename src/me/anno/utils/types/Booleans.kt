@@ -8,6 +8,9 @@ object Booleans {
     fun Boolean.toInt(n: Int): Int = if (this) n else 0
 
     @JvmStatic
+    fun Boolean.toInt(ifTrue: Int, ifFalse: Int): Int = if (this) ifTrue else ifFalse
+
+    @JvmStatic
     fun Boolean.toLong(): Long = if (this) 1 else 0
 
     @JvmStatic

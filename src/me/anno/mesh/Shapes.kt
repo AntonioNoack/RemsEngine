@@ -64,13 +64,11 @@ object Shapes {
         val normals: FloatArray? = null
     ) {
 
-        constructor(base: FBBMesh, scale: Float) : this(base.front.name, base, scale)
-        constructor(name: String, base: FBBMesh, scale: Float) : this(
-            name,
-            scale(base.positions, abs(scale)),
-            base.indices,
-            base.normals
-        ) {
+        constructor(base: FBBMesh, scale: Float) :
+                this(base.front.name, base, scale)
+
+        constructor(name: String, base: FBBMesh, scale: Float) :
+                this(name, scale(base.positions, abs(scale)), base.indices, base.normals) {
             front.uvs = base.front.uvs
             back.uvs = base.back.uvs
             both.uvs = base.both.uvs

@@ -301,6 +301,7 @@ abstract class Collider : CollidingComponent() {
             // entity?.physics?.showDebug == true ||
             RenderView.currentInstance?.renderMode == RenderMode.PHYSICS
         ) drawShape()
+        // todo color based on physics / trigger (?)
         // todo draw transformation gizmos for easy collider manipulation
     }
 

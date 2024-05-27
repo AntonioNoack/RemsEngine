@@ -8,6 +8,7 @@ import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -373,9 +374,23 @@ object LineShapes {
         offset: Vector3d? = null,
         color: Int = Collider.guiLineColor
     ) {
-        drawCircle(entity, radius, 0, 1, 0.0, offset, color)
         drawCircle(entity, radius, 1, 2, 0.0, offset, color)
         drawCircle(entity, radius, 2, 0, 0.0, offset, color)
+        drawCircle(entity, radius, 0, 1, 0.0, offset, color)
+    }
+
+    fun drawPartialSphere(
+        entity: Entity?,
+        radius: Double,
+        offset: Vector3d?,
+        ax: Double, dax: Double,
+        ay: Double, day: Double,
+        az: Double, daz: Double,
+        color: Int = Collider.guiLineColor
+    ) {
+        drawCircle(entity, radius, 1, 2, 0.0, offset, color, ax, dax)
+        drawCircle(entity, radius, 2, 0, 0.0, offset, color, ay, day)
+        drawCircle(entity, radius, 0, 1, 0.0, offset, color, az, daz)
     }
 
     fun drawCircle(
@@ -385,13 +400,19 @@ object LineShapes {
         sinAxis: Int,
         otherAxis: Double,
         offset: Vector3d? = null,
-        color: Int = Collider.guiLineColor
+        color: Int = Collider.guiLineColor,
+        angle0: Double = 0.0,
+        deltaAngle: Double = TAU,
     ) {
-        val segments = 11
+        val segments = 16
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
+        val fullCircle = deltaAngle >= TAU
+        var segments1 = segments
+        if (!fullCircle) segments1--
+        val angleMultiplier = deltaAngle / segments1
         for (i in 0 until segments) {
-            val angle = i * PI * 2.0 / segments
+            val angle = angle0 + i * angleMultiplier
             val position = positions[i]
             position.set(otherAxis)
             position[cosAxis] = cos(angle) * radius
@@ -399,35 +420,14 @@ object LineShapes {
             if (offset != null) position.add(offset)
             transform?.transformPosition(position)
         }
-        for (i in 0 until segments) {
-            putRelativeLine(positions[i], positions[(i + 1) % segments], color)
-        }
-    }
-
-    fun drawHalfCircle(
-        entity: Entity?,
-        startAngle: Double,
-        radius: Double,
-        cosAxis: Int,
-        sinAxis: Int,
-        otherAxis: Double,
-        offset: Vector3d? = null,
-        color: Int = Collider.guiLineColor
-    ) {
-        val segments = 6
-        val transform = getDrawMatrix(entity)
-        val positions = tmpVec3d
-        for (i in 0..segments) {
-            val angle = startAngle + i * PI / segments
-            val position = positions[i]
-            position.set(otherAxis)
-            position[cosAxis] = cos(angle) * radius
-            position[sinAxis] = sin(angle) * radius
-            if (offset != null) position.add(offset)
-            transform?.transformPosition(position)
-        }
-        for (i in 0 until segments) {
-            putRelativeLine(positions[i], positions[i + 1], color)
+        var lastPosI = 0
+        if (fullCircle) lastPosI = segments - 1
+        var lastPos = positions[lastPosI]
+        val i0 = fullCircle.toInt(0, 1)
+        for (i in i0 until segments) {
+            val pos = positions[i]
+            putRelativeLine(lastPos, pos, color)
+            lastPos = pos
         }
     }
 

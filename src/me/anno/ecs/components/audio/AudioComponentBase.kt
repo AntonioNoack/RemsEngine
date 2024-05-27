@@ -14,10 +14,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
 import org.joml.Vector3f
-import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
-import org.lwjgl.openal.AL11.alDistanceModel
 import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
+import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL11.AL_LINEAR_DISTANCE_CLAMPED
+import org.lwjgl.openal.AL11.alDistanceModel
 import kotlin.math.max
 
 // todo some kind of event system for when music changed
@@ -150,14 +150,16 @@ abstract class AudioComponentBase : Component() {
                     this.stream1 = stream1
                     updateDistanceModel()
                     updatePosition()
-                    stream0.alSource.setGain(volume)
-                    stream0.alSource.setSpeed(speed)
-                    stream0.alSource.setPosition(lastPosition0)
-                    stream0.alSource.setVelocity(lastVelocity0)
-                    stream1.alSource.setGain(volume)
-                    stream1.alSource.setSpeed(speed)
-                    stream1.alSource.setPosition(lastPosition1)
-                    stream1.alSource.setVelocity(lastVelocity1)
+                    val src0 = stream0.alSource
+                    val src1 = stream1.alSource
+                    src0.setGain(volume)
+                    src0.setSpeed(speed)
+                    src0.setPosition(lastPosition0)
+                    src0.setVelocity(lastVelocity0)
+                    src1.setGain(volume)
+                    src1.setSpeed(speed)
+                    src1.setPosition(lastPosition1)
+                    src1.setVelocity(lastVelocity1)
                     stream0.start()
                     stream1.start()
                 } else {

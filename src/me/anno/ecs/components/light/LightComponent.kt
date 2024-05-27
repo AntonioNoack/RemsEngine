@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -25,8 +26,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
+import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
@@ -41,10 +44,6 @@ import kotlin.math.pow
 abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     // todo AES lights, and their textures?
-
-    // todo plane of light: how? https://eheitzresearch.wordpress.com/415-2/ maybe :)
-    // todo lines of light: how?
-    // todo circle/sphere of light: how?
 
     // black lamp light?
     @Type("Color3HDR")
@@ -90,7 +89,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
-        // todo if(entity == pipeline.sampleEntity) add floor/setup, so we can see the light
+        // add shape for testing, so the light is visible
+        if (entity == Pipeline.sampleEntity) {
+            pipeline.addMesh(shapeForTesting, this, entity)
+        }
         pipeline.addLight(this, entity)
         return super.fill(pipeline, entity, clickId)
     }
@@ -265,6 +267,18 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     companion object {
 
         val renderer = rawAttributeRenderers[DeferredLayerType.DEPTH]
+
+        private val shapeForTesting by lazy {
+            val mesh = Shapes.flatCube.linear(Vector3f(0f, 0f, 0.4f), Vector3f(0.5f)).back
+            // make one side metallic for testing
+            mesh.materialIds = IntArray(mesh.positions!!.size / 9) { it.and(1) }
+            mesh.numMaterials = 2
+            val metallic = Material()
+            metallic.metallicMinMax.set(1f)
+            metallic.roughnessMinMax.set(0.01f)
+            mesh.materials = listOf(InvalidRef, metallic.ref)
+            mesh
+        }
 
         @JvmStatic
         val pipeline by lazy {
