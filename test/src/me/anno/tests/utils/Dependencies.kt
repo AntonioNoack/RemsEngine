@@ -302,7 +302,7 @@ fun main() {
                     var dep: Package? = dep0
                     while (dep != null && dep != pck && dep.parent?.isCollapsed == true) dep = dep.parent
                     if (dep != null && dep != pck)
-                        pck.dependencies2.getOrPut(dep) { HashSet() }.add(dep0)
+                        pck.dependencies2.getOrPut(dep, ::HashSet).add(dep0)
                 }
             }
 

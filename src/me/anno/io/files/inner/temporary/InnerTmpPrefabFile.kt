@@ -20,7 +20,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
         prefab.source = this
         synchronized(prefabFiles) {
             prefabFiles
-                .getOrPut(prefab.clazzName) { ArrayList() }
+                .getOrPut(prefab.clazzName, ::ArrayList)
                 .add(WeakReference(this))
         }
     }

@@ -2,7 +2,12 @@ package org.joml
 
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 
 @Suppress("unused")
 open class Vector2d(
@@ -232,48 +237,44 @@ open class Vector2d(
 
     @JvmOverloads
     fun min(v: Vector2d, dst: Vector2d = this): Vector2d {
-        dst.x = kotlin.math.min(x, v.x)
-        dst.y = kotlin.math.min(y, v.y)
+        dst.x = min(x, v.x)
+        dst.y = min(y, v.y)
         return dst
     }
 
     @JvmOverloads
     fun max(v: Vector2d, dst: Vector2d = this): Vector2d {
-        dst.x = kotlin.math.max(x, v.x)
-        dst.y = kotlin.math.max(y, v.y)
+        dst.x = max(x, v.x)
+        dst.y = max(y, v.y)
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        return if (absX >= absY) 0 else 1
+    fun max(): Double {
+        return max(x, y)
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        return if (absX < absY) 0 else 1
+    fun min(): Double {
+        return min(x, y)
     }
 
     @JvmOverloads
     fun floor(dst: Vector2d = this): Vector2d {
-        dst.x = kotlin.math.floor(x)
-        dst.y = kotlin.math.floor(y)
+        dst.x = floor(x)
+        dst.y = floor(y)
         return dst
     }
 
     @JvmOverloads
     fun ceil(dst: Vector2d = this): Vector2d {
-        dst.x = kotlin.math.ceil(x)
-        dst.y = kotlin.math.ceil(y)
+        dst.x = ceil(x)
+        dst.y = ceil(y)
         return dst
     }
 
     @JvmOverloads
     fun round(dst: Vector2d = this): Vector2d {
-        dst.x = kotlin.math.round(x)
-        dst.y = kotlin.math.round(y)
+        dst.x = round(x)
+        dst.y = round(y)
         return dst
     }
 

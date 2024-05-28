@@ -50,34 +50,12 @@ open class Vector4i(
         }
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        val absW = abs(w)
-        return if (absX >= absY && absX >= absZ && absX >= absW) {
-            0
-        } else if (absY >= absZ && absY >= absW) {
-            1
-        } else {
-            if (absZ >= absW) 2 else 3
-        }
+    fun max(): Int {
+        return max(max(x, y), max(z, w))
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        val absW = abs(w)
-        return if (absX < absY && absX < absZ && absX < absW) {
-            0
-        } else if (absY < absZ && absY < absW) {
-            1
-        } else if (absZ < absW) {
-            2
-        } else {
-            3
-        }
+    fun min(): Int {
+        return min(min(x, y), min(z, w))
     }
 
     fun setComponent(component: Int, value: Int): Vector4i {

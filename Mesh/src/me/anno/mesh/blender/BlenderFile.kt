@@ -222,8 +222,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                         val address = block.address + struct.type.size * i
                         val instance = getOrCreate(struct, struct.type.name, block, address)
                         if (instance != null) {
-                            instances.getOrPut(name) { ArrayList() }
-                                .add(instance)
+                            instances.getOrPut(name, ::ArrayList).add(instance)
                         }
                     }
                 }
@@ -260,7 +259,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
-        return objectCache.getOrPut(clazz) { HashMap() }.getOrPut(address) {
+        return objectCache.getOrPut(clazz, ::HashMap).getOrPut(address) {
             create(struct, clazz, block, address)
         }
     }

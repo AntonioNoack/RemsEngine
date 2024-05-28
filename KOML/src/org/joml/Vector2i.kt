@@ -1,13 +1,15 @@
 package org.joml
 
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("unused")
 open class Vector2i(
     @JvmField var x: Int,
     @JvmField var y: Int
-): Vector() {
+) : Vector() {
 
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)
@@ -144,28 +146,24 @@ open class Vector2i(
 
     @JvmOverloads
     fun min(v: Vector2i, dst: Vector2i = this): Vector2i {
-        dst.x = kotlin.math.min(x, v.x)
-        dst.y = kotlin.math.min(y, v.y)
+        dst.x = min(x, v.x)
+        dst.y = min(y, v.y)
         return dst
     }
 
     @JvmOverloads
     fun max(v: Vector2i, dst: Vector2i = this): Vector2i {
-        dst.x = kotlin.math.max(x, v.x)
-        dst.y = kotlin.math.max(y, v.y)
+        dst.x = max(x, v.x)
+        dst.y = max(y, v.y)
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        return if (absX >= absY) 0 else 1
+    fun max(): Int {
+        return max(x, y)
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        return if (absX < absY) 0 else 1
+    fun min(): Int {
+        return min(x, y)
     }
 
     @JvmOverloads

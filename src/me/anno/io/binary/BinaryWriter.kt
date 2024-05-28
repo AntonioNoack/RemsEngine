@@ -51,7 +51,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     private val knownNameTypes = HashMap<String, HashMap<NameType, Int>>()
 
     private var currentClass = ""
-    private var currentNameTypes = knownNameTypes.getOrPut(currentClass) { HashMap() }
+    private var currentNameTypes = knownNameTypes.getOrPut(currentClass, ::HashMap)
 
     private fun usingType(type: String, run: () -> Unit) {
         val old1 = currentClass

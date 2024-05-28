@@ -26,4 +26,9 @@ object Maps {
         }
         return array
     }
+
+    @JvmStatic
+    fun <V> MutableMap<V, Int>.nextId(key: V): Int {
+        return getOrPut(key) { size }
+    }
 }

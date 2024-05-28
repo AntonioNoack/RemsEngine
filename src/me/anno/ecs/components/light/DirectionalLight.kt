@@ -24,6 +24,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     @Range(-1.0, 1.0)
     var cutoff = 0f
 
+    val hasCutoff: Boolean get() = cutoff != 0f
+
     // todo button to auto-position around scene
     //  (translation, scale)
 

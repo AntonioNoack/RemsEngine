@@ -66,23 +66,21 @@ class Frustum {
         cameraRotation: Quaterniond
     ) {
 
-        val ws = RenderState.worldScale
-        val sy = sizeY / ws
-        val sx = sy * aspectRatio
+        val sizeX = sizeY * aspectRatio
 
-        val objectSizeThreshold = minObjectSizePixels * sx / resolution
+        val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
         val positions = positions
         val normals = normals
-        positions[0].set(+sx, 0.0, 0.0)
+        positions[0].set(+sizeX, 0.0, 0.0)
         normals[0].set(+1.0, 0.0, 0.0)
-        positions[1].set(-sx, 0.0, 0.0)
+        positions[1].set(-sizeX, 0.0, 0.0)
         normals[1].set(-1.0, 0.0, 0.0)
 
-        positions[2].set(0.0, +sy, 0.0)
+        positions[2].set(0.0, +sizeY, 0.0)
         normals[2].set(0.0, +1.0, 0.0)
-        positions[3].set(0.0, -sy, 0.0)
+        positions[3].set(0.0, -sizeY, 0.0)
         normals[3].set(0.0, -1.0, 0.0)
 
         positions[4].set(0.0, 0.0, -near)

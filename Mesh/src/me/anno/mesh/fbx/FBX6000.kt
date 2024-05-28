@@ -83,7 +83,7 @@ object FBX6000 {
                         if (dataLength != 0) throw IllegalArgumentException()
                         val index = stack.size
                         val map = HashMap<String, ArrayList<Any>>()
-                        val list = stack.last().getOrPut(key) { ArrayList() }
+                        val list = stack.last().getOrPut(key, ::ArrayList)
                         list.add(map)
                         stack.add(map)
                         var needsNewObject = false
@@ -101,15 +101,15 @@ object FBX6000 {
                 1 -> {
                     if (dataLength < 1) throw IllegalStateException()
                     val value = readValue()
-                    stack.last().getOrPut(key) { ArrayList() }.add(value)
+                    stack.last().getOrPut(key, ::ArrayList).add(value)
                 }
                 else -> {
                     if (key == "Property") {
                         val value = ArrayList<Any>(type)
                         for (i in 0 until type) value.add(readValue())
-                        stack.last().getOrPut(key) { ArrayList() }.add(value)
+                        stack.last().getOrPut(key, ::ArrayList).add(value)
                     } else {
-                        val value = stack.last().getOrPut(key) { ArrayList() }
+                        val value = stack.last().getOrPut(key, ::ArrayList)
                         value.ensureCapacity(value.size + type)
                         for (i in 0 until type) value.add(readValue())
                     }

@@ -1,20 +1,28 @@
 package me.anno.mesh.gltf
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.Prefab
+import me.anno.gpu.CullMode
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.saveable.Saveable
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.generic.JsonWriter
+import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black3
@@ -22,7 +30,12 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.arrays.IntArrayList.Companion.emptyIntList
+import me.anno.utils.structures.maps.Maps.nextId
 import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Vectors.toLinear
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Quaterniond
@@ -31,14 +44,14 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+import kotlin.math.atan
+import kotlin.math.max
 
 /**
  * writes a GLTF file from an Entity or Mesh,
  * writes materials and textures, too
  *
- * todo support skeletons and animations
- * todo support cameras
- * todo support lights
+ * todo support skeletons and animation
  * */
 class GLTFWriter(
     val allDepsToFolder: Boolean = false,
@@ -81,8 +94,10 @@ class GLTFWriter(
     private val textures = HashMap<IntPair, Int>() // source, sampler
     private val images = HashMap<FileReference, Int>() // uris
     private val samplers = HashMap<Pair<Filtering, Clamping>, Int>()
-    private val materials = HashMap<Material, Int>()
-    private val meshes = HashMap<Pair<Mesh, List<FileReference>>, Int>()
+    private val materials = HashMap<Pair<Material, Boolean>, Int>() // material, isDoubleSided
+    private val meshes = HashMap<Pair<Mesh, List<FileReference>>, Int>() // mesh, materials[]
+    private val cameras = HashMap<Camera, Int>()
+    private val lights = HashMap<LightComponent, Int>()
 
     private val binary = ByteArrayOutputStream(4096)
 
@@ -92,27 +107,51 @@ class GLTFWriter(
         }
     }
 
+    private fun supportsLight(light: LightComponent): Boolean {
+        return when (light) {
+            is DirectionalLight, is SpotLight, is PointLight -> true
+            else -> false
+        }
+    }
+
     private val nodes = ArrayList<Saveable>()
-    private val children = ArrayList<List<Int>>()
+    private val children = ArrayList<IntArrayList>()
 
     private fun add(entity: Entity): Int {
         val idx = nodes.size
         nodes.add(entity)
         val cm = countMeshes(entity)
-        if (entity.children.isNotEmpty() || cm > 1) {
-            val children2 = ArrayList<Int>(entity.children.size + cm)
-            children.add(children2)
+        if (entity.children.isNotEmpty() ||
+            entity.components.any { it is LightComponent || it is Camera } ||
+            cm > 1
+        ) {
+            val childIndices = IntArrayList(entity.children.size + cm)
+            children.add(childIndices)
             for (child in entity.children) {
-                children2.add(add(child))
+                childIndices.add(add(child))
             }
-            entity.components.filterIsInstance<MeshComponentBase>()
-                .filter { it.getMesh() != null }
-                .forEach {
-                    val idx2 = nodes.size
-                    nodes.add(it)
-                    children2.add(idx2)
+            fun addChild(comp: Component) {
+                val idx2 = nodes.size
+                nodes.add(comp)
+                childIndices.add(idx2)
+            }
+            for (comp in entity.components) {
+                when (comp) {
+                    is MeshComponentBase -> {
+                        val mesh = comp.getMesh()
+                        if (mesh != null) {
+                            addChild(comp)
+                        }
+                    }
+                    is Camera -> addChild(comp)
+                    is LightComponent -> {
+                        if (supportsLight(comp)) {
+                            addChild(comp)
+                        }
+                    }
                 }
-        } else children.add(emptyList())
+            }
+        } else children.add(emptyIntList)
         return idx
     }
 
@@ -136,7 +175,7 @@ class GLTFWriter(
             // NaN is not supported
             binary.writeLE32(if (v.isNaN()) 0 else v.toRawBits())
         }
-        accessors.add(Accessor("VEC3", GL_FLOAT, positions.size / 3, false, min(bounds), max(bounds)))
+        accessors.add(Accessor("VEC3", GL_FLOAT, positions.size / 3, false, minAABB(bounds), maxAABB(bounds)))
         views.add(BufferView(start, positions.size * 4, 34962, 0))
         return accessors.size - 1
     }
@@ -154,10 +193,21 @@ class GLTFWriter(
         return accessors.size - 1
     }
 
-    private fun createIndicesView(data: IntArray): Int {
+    private fun createIndicesView(data: IntArray, mode: DrawMode, cullMode: CullMode): Int {
         val pos = binary.size()
-        for (i in data.indices) {
-            binary.writeLE32(data[i])
+        val reverseIndices = cullMode == CullMode.BACK
+        if (reverseIndices && mode == DrawMode.TRIANGLE_STRIP) {
+            // todo implement reversal for triangle-strip?
+            LOGGER.warn("Reversed triangle-strip not yet implemented")
+        }
+        if (reverseIndices && mode == DrawMode.TRIANGLES) {
+            for (i in data.lastIndex downTo 0) {
+                binary.writeLE32(data[i])
+            }
+        } else {
+            for (i in data.indices) {
+                binary.writeLE32(data[i])
+            }
         }
         accessors.add(Accessor("SCALAR", GL_UNSIGNED_INT, data.size, false))
         views.add(BufferView(pos, data.size * 4, 34963, 0))
@@ -185,13 +235,13 @@ class GLTFWriter(
             }
         }
         val length = data.size * 4
-        accessors.add(Accessor("VEC3", GL_FLOAT, data.size / 3, false, min(bounds), max(bounds)))
+        accessors.add(Accessor("VEC3", GL_FLOAT, data.size / 3, false, minAABB(bounds), maxAABB(bounds)))
         views.add(BufferView(pos, length, 34962, 0))
         return accessors.size - 1
     }
 
-    private fun min(bounds: AABBf) = "[${bounds.minX},${bounds.minY},${bounds.minZ}]"
-    private fun max(bounds: AABBf) = "[${bounds.maxX},${bounds.maxY},${bounds.maxZ}]"
+    private fun minAABB(bounds: AABBf) = "[${bounds.minX},${bounds.minY},${bounds.minZ}]"
+    private fun maxAABB(bounds: AABBf) = "[${bounds.maxX},${bounds.maxY},${bounds.maxZ}]"
 
     private fun createUVView(data: FloatArray): Int {
         val pos = binary.size()
@@ -273,8 +323,17 @@ class GLTFWriter(
                 }
             if (mesh != null) {
                 attr("mesh")
-                write(meshes.getOrPut(mesh) { meshes.size })
+                write(meshes.nextId(mesh))
             }
+        }
+
+        val camera = node.components
+            .filterIsInstance<Camera>()
+            .firstNotNullOfOrNull { cameras[it] }
+
+        if (camera != null) {
+            attr("camera")
+            write(camera)
         }
 
         val name = node.name
@@ -303,8 +362,8 @@ class GLTFWriter(
     }
 
     private fun writeMaterials() {
-        writeArray("materials", materials) { material ->
-            writeMaterial(material)
+        writeArray("materials", materials) { (material, isDoubleSided) ->
+            writeMaterial(material, isDoubleSided)
         }
     }
 
@@ -351,13 +410,13 @@ class GLTFWriter(
         } else -1
     }
 
-    private fun writeMaterial(material: Material) {
+    private fun writeMaterial(material: Material, isDoubleSided: Boolean) {
         // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
         writeObject {
             val sampler = findSampler(material)
             attr("pbrMetallicRoughness")
             writePbrMetallicRoughness(material, sampler)
-            if (material.isDoubleSided) {
+            if (isDoubleSided) {
                 attr("doubleSided")
                 write(true)
             }
@@ -384,6 +443,43 @@ class GLTFWriter(
     private fun writeMeshes() {
         writeArray("meshes", meshes) { (mesh, materialOverrides) ->
             writeMesh(mesh, materialOverrides)
+        }
+    }
+
+    private fun writeCameras() {
+        writeArray("cameras", cameras) { camera ->
+            writeCamera(camera)
+        }
+    }
+
+    @Suppress("SpellCheckingInspection")
+    private fun writeCamera(camera: Camera) {
+        writeObject {
+            attr("type")
+            val type = if (camera.isPerspective) "perspective" else "orthographic"
+            write(type)
+            attr(type)
+            writeObject {
+                if (camera.isPerspective) {
+                    attr("aspectRatio")
+                    write(1f) // mmmh...
+                    attr("yfov")
+                    write(camera.fovY.toRadians())
+                    attr("zfar")
+                    write(camera.far)
+                    attr("znear")
+                    write(camera.near)
+                } else {
+                    attr("xmag")
+                    write(camera.fovOrthographic)
+                    attr("ymag")
+                    write(camera.fovOrthographic)
+                    attr("zfar")
+                    write(camera.far)
+                    attr("znear")
+                    write(camera.near)
+                }
+            }
         }
     }
 
@@ -444,35 +540,43 @@ class GLTFWriter(
                 fun getMaterial(i: Int): Material {
                     return Pipeline.getMaterial(materialOverrides, mesh.materials, i)
                 }
-
                 if (helpers != null) {
                     for ((i, helper) in helpers.withIndex()) {
                         helper ?: continue
                         val material = getMaterial(i)
-                        writeMeshHelper(helper, material, ::writeMeshAttributes)
+                        val cullMode = mesh.cullMode * material.cullMode
+                        writeMeshHelper(mesh.drawMode, helper, material, cullMode, ::writeMeshAttributes)
                     }
                     if (ownHelpers) {
                         // because they have no buffers
                         mesh.helperMeshes = null
                     }
                 } else {
-                    writeMesh1(mesh.indices, getMaterial(0), ::writeMeshAttributes)
+                    val material = getMaterial(0)
+                    val cullMode = material.cullMode * material.cullMode
+                    writeMesh1(mesh.drawMode, mesh.indices, material, cullMode, ::writeMeshAttributes)
                 }
             }
         }
     }
 
-    private fun writeMesh1(indices: IntArray?, material: Material, writeMeshAttributes: () -> Unit) {
+    private fun writeMesh1(
+        mode: DrawMode,
+        indices: IntArray?,
+        material: Material,
+        cullMode: CullMode,
+        writeMeshAttributes: () -> Unit
+    ) {
         writeObject {
             attr("mode")
-            write(4) // triangles
+            write(mode.id) // triangles / triangle-strip, ...
 
             attr("material")
-            write(materials.getOrPut(material) { materials.size })
+            write(materials.nextId(material to (cullMode == CullMode.BOTH)))
 
             if (indices != null) {
                 attr("indices")
-                write(createIndicesView(indices))
+                write(createIndicesView(indices, mode, cullMode))
             }
 
             writeMeshAttributes()
@@ -480,22 +584,24 @@ class GLTFWriter(
     }
 
     private fun writeMeshHelper(
+        mode: DrawMode,
         helper: Mesh.HelperMesh,
         material: Material?,
+        cullMode: CullMode,
         writeMeshAttributes: () -> Unit
     ) {
         writeObject {
             attr("mode")
-            write(4) // triangles
+            write(mode.id) // triangles, triangle-strip, ...
 
             if (material != null) {
                 attr("material")
-                write(materials.getOrPut(material) { materials.size })
+                write(materials.nextId(material to (cullMode == CullMode.BOTH)))
             }
 
             val indices = helper.indices
             attr("indices")
-            write(createIndicesView(indices))
+            write(createIndicesView(indices, mode, cullMode))
 
             writeMeshAttributes()
         }
@@ -606,7 +712,34 @@ class GLTFWriter(
         val mesh = node.getMesh()
         if (mesh != null) {
             attr("mesh")
-            write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })
+            write(meshes.nextId(Pair(mesh, node.materials)))
+        }
+    }
+
+    private fun writeCameraAttributes(node: Camera) {
+        val name = node.name
+        if (name.isNotEmpty()) {
+            attr("name")
+            write(name)
+        }
+        attr("camera")
+        write(cameras.nextId(node))
+    }
+
+    private fun writeLightAttributes(node: LightComponent) {
+        val name = node.name
+        if (name.isNotEmpty()) {
+            attr("name")
+            write(name)
+        }
+        val id = lights.nextId(node)
+        attr("extensions")
+        writeObject {
+            attr("KHR_lights_punctual")
+            writeObject {
+                attr("light")
+                write(id)
+            }
         }
     }
 
@@ -620,13 +753,19 @@ class GLTFWriter(
             when (node) {
                 is Entity -> writeEntityAttributes(node)
                 is MeshComponent -> writeMeshCompAttributes(node)
+                is Camera -> writeCameraAttributes(node)
+                is LightComponent -> writeLightAttributes(node)
                 else -> LOGGER.warn("Unknown node type $node")
             }
 
             val childrenI = children.getOrNull(i)
-            if (!childrenI.isNullOrEmpty()) {
+            if (childrenI != null && !childrenI.isEmpty()) {
                 attr("children")
-                writeArray(childrenI, ::write)
+                writeArray {
+                    for (j in childrenI.indices) {
+                        write(childrenI[j])
+                    }
+                }
             }
         }
     }
@@ -668,30 +807,62 @@ class GLTFWriter(
         write(0)
     }
 
-    private fun collectNodes(scene: Saveable) {
+    private fun collectNodes(scene: Saveable, callback: (Exception?) -> Unit) {
         when (scene) {
-            is Prefab -> {
-                collectNodes(scene.getSampleInstance())
-            }
+            is Prefab -> collectNodes(scene.getSampleInstance(), callback)
             is Entity -> {
                 scene.validateTransform()
                 add(scene)
+                callback(null)
             }
             is Mesh -> {
                 nodes.add(MeshComponent(scene))
                 meshes[Pair(scene, emptyList())] = 0
+                callback(null)
             }
-            else -> throw IllegalArgumentException("Cannot write ${scene.className}")
+            is MeshComponentBase -> {
+                val mesh = scene.getMesh()
+                if (mesh is Mesh) {
+                    nodes.add(scene)
+                    meshes[Pair(mesh, scene.materials)] = 0
+                    callback(null)
+                } else callback(IllegalArgumentException("Missing mesh"))
+            }
+            is Camera -> {
+                nodes.add(scene)
+                cameras[scene] = 0
+                callback(null)
+            }
+            is LightComponent -> {
+                if (supportsLight(scene)) {
+                    nodes.add(scene)
+                    lights[scene] = 0
+                    callback(null)
+                } else callback(warnUnsupportedType(scene))
+            }
+            else -> callback(warnUnsupportedType(scene))
         }
     }
 
+    private fun warnUnsupportedType(scene: Saveable): Exception {
+        return IllegalArgumentException("Unsupported type ${scene.className}")
+    }
+
     fun write(scene: Saveable, dst: FileReference) {
-        collectNodes(scene)
+        collectNodes(scene) { err ->
+            if (err == null) {
+                writeAll(dst)
+            } else err.printStackTrace()
+        }
+    }
+
+    private fun writeAll(dst: FileReference) {
         writeObject {
             writeHeader()
             writeSceneIndex()
             writeScenes()
             writeNodes()
+            writeCameras()
             writeMeshes()
             writeMaterials()
             writeTextures()
@@ -700,9 +871,68 @@ class GLTFWriter(
             writeBufferViews()
             writeAccessors()
             writeBuffers()
+            writeExtensions()
         }
         finish()
         writeChunks(dst)
+    }
+
+    private fun writeExtensions() {
+        attr("extensions")
+        writeObject {
+            if (lights.isNotEmpty()) {
+                attr("KHR_lights_punctual")
+                writeLights()
+            }
+        }
+    }
+
+    /**
+     * docs: https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md
+     * */
+    private fun writeLights() {
+        writeObject {
+            writeArray("lights", lights, ::writeLight)
+        }
+    }
+
+    private fun writeLight(light: LightComponent) {
+        writeObject {
+            val color = light.color.toLinear(Vector3f())
+            val intensity = max(1e-38f, color.max())
+            attr("color")
+            writeArray {
+                write(color.x / intensity)
+                write(color.y / intensity)
+                write(color.z / intensity)
+            }
+            attr("intensity")
+            write(intensity)
+            val type = when (light) {
+                is DirectionalLight -> "directional"
+                is PointLight -> "point"
+                is SpotLight -> "spot"
+                else -> "?"
+            }
+            attr("type")
+            write(type)
+            when (light) {
+                is SpotLight -> {
+                    attr("outerConeAngle")
+                    write(atan(light.coneAngle))
+                    writeLightRange()
+                }
+                is PointLight -> {
+                    writeLightRange()
+                }
+                // directional light doesn't support cutoff in GLTF
+            }
+        }
+    }
+
+    private fun writeLightRange() {
+        attr("range")
+        write(1f)
     }
 
     private fun ensureAlignment(bos: ByteArrayOutputStream, paddingByte: Int) {

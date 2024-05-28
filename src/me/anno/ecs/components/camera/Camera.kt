@@ -3,6 +3,7 @@ package me.anno.ecs.components.camera
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
@@ -12,9 +13,13 @@ import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector2f
+import org.joml.Vector3d
 import kotlin.math.tan
 
 // like the studio camera,
@@ -27,9 +32,11 @@ class Camera : Component() {
 
     var far = 5000.0
 
+    @Range(0.0, 180.0)
     @Docs("the fov when perspective, in degrees")
     var fovY = 90f
 
+    @Range(0.0, 1e308)
     @Docs("the fov when orthographic, in base units")
     var fovOrthographic = 5f
 
@@ -61,10 +68,15 @@ class Camera : Component() {
         }
     }
 
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        aabb.union(globalTransform.getTranslation(Vector3d()))
+        return true
+    }
+
     override fun onDrawGUI(all: Boolean) {
         val entity = entity
-        val aspect = 16f / 9f
-        LineShapes.drawArrowZ(entity, 0.0, 1.0) // not showing up?
+        val aspect = RenderView.currentInstance?.run { width.toFloat() / height } ?: 1f
+        LineShapes.drawArrowZ(entity, 0.0, -1.0)
         if (isPerspective) {
             // draw camera symbol with all the properties
             val dy = tan(fovY.toRadians() * 0.5f)
@@ -77,14 +89,14 @@ class Camera : Component() {
             val f01 = JomlPools.vec3f.create()
             val f10 = JomlPools.vec3f.create()
             val f11 = JomlPools.vec3f.create()
-            n00.set(+dx * near, +dy * near, near)
-            n01.set(+dx * near, -dy * near, near)
-            n10.set(-dx * near, +dy * near, near)
-            n11.set(-dx * near, -dy * near, near)
-            f00.set(+dx * far, +dy * far, far)
-            f01.set(+dx * far, -dy * far, far)
-            f10.set(-dx * far, +dy * far, far)
-            f11.set(-dx * far, -dy * far, far)
+            n00.set(+dx * near, +dy * near, -near)
+            n01.set(+dx * near, -dy * near, -near)
+            n10.set(-dx * near, +dy * near, -near)
+            n11.set(-dx * near, -dy * near, -near)
+            f00.set(+dx * far, +dy * far, -far)
+            f01.set(+dx * far, -dy * far, -far)
+            f10.set(-dx * far, +dy * far, -far)
+            f11.set(-dx * far, -dy * far, -far)
             drawRect(entity, n00, n01, n11, n10, guiLineColor)
             drawRect(entity, f00, f01, f11, f10, guiLineColor)
             n00.set(0f) // start lines from camera itself
@@ -94,17 +106,16 @@ class Camera : Component() {
             drawLine(entity, n00, f11, guiLineColor)
             JomlPools.vec3f.sub(8)
         } else {
-            val sy = fovOrthographic / 2.0
+            val sy = fovOrthographic * 0.5
             val sx = sy * aspect
             DrawAABB.drawAABB(
                 transform?.getDrawMatrix(),
-                JomlPools.aabbd.create()
+                JomlPools.aabbd.borrow()
                     .setMin(-sx, -sy, -far)
                     .setMax(+sx, +sy, -near),
                 RenderState.worldScale,
                 guiLineColor
             )
-            JomlPools.aabbd.sub(1)
         }
     }
 

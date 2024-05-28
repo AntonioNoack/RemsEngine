@@ -1,5 +1,6 @@
 package me.anno.ecs.components.light
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
 import me.anno.ecs.components.light.PointLight.Companion.falloff
@@ -18,8 +19,28 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import kotlin.math.atan
 
+// todo can/do-we-want-to support inner cone angle?
+//  - a section, in which the brightness is constant
+/*
+* https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md#inner-and-outer-cone-angles:
+Inner and Outer Cone Angles
+There should be a smooth attenuation of brightness between the innerConeAngle and outerConeAngle angles. In reality, this "angular" attenuation is very complex as it depends on the physical size of the spotlight and the shape of the sheath around the bulb.
+Conforming implementations will model this angular attenuation with a curve that follows a steeper decline in brightness before leveling off when moving from the inner to the outer angle.
+It is common to model this falloff by interpolating between the cosine of each angle. This is an efficient approximation that provides decent results.
+
+Reference code:
+// These two values can be calculated on the CPU and passed into the shader
+float lightAngleScale = 1.0f / max(0.001f, cos(innerConeAngle) - cos(outerConeAngle));
+float lightAngleOffset = -cos(outerConeAngle) * lightAngleScale;
+
+// Then, in the shader:
+float cd = dot(spotlightDir, normalizedLightVector);
+float angularAttenuation = saturate(cd * lightAngleScale + lightAngleOffset);
+angularAttenuation *= angularAttenuation;
+* */
 class SpotLight : LightComponent(LightType.SPOT) {
 
+    @Docs("Actually atan(angle), so coneAngle=1.0 means a 90° opening")
     @Range(0.0, 100.0)
     var coneAngle = 1f
 

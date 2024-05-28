@@ -55,13 +55,13 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private val knownNameTypes = HashMap<String, ArrayList<NameType>>()
 
     private var currentClass = ""
-    private var currentNameTypes = knownNameTypes.getOrPut(currentClass) { ArrayList() }
+    private var currentNameTypes = knownNameTypes.getOrPut(currentClass, ::ArrayList)
 
     private fun usingType(type: String, run: () -> Unit) {
         val old1 = currentClass
         val old2 = currentNameTypes
         currentClass = type
-        currentNameTypes = knownNameTypes.getOrPut(type) { ArrayList() }
+        currentNameTypes = knownNameTypes.getOrPut(type, ::ArrayList)
         run()
         currentClass = old1
         currentNameTypes = old2

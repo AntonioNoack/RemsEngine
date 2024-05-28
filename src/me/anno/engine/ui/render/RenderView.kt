@@ -501,7 +501,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val fov = if (isPerspective) {
             mix(prevCam.fovY, currCam.fovY, blending)
         } else {
-            mix(prevCam.fovOrthographic, currCam.fovOrthographic, blending)
+            mix(prevCam.fovOrthographic, currCam.fovOrthographic, blending) * 0.5f
         }
 
         bloomStrength = mix(prevCam.bloomStrength, currCam.bloomStrength, blendF)
@@ -584,29 +584,27 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val scaledFar = min(scaledFar, worldScale * 1000.0)
         fovXRadians = fov * aspectRatio
         fovYRadians = fov // not really defined
-        val sceneScaleXY = 1f / fov
+        val sceneScaleXY = 1f / (worldScale * fov).toFloat()
         val n: Float
         val f: Float
-        // todo some devices may not support 01-range, so make this optional
-        val range01 = inverseDepth
+        val range01 = depthMode.reversedDepth
         if (range01) {
-            // range is 0 .. 1
+            // range is [0, 1]
             n = scaledNear.toFloat()
             f = scaledFar.toFloat()
         } else {
-            // range is -1 .. 1 instead of 0 .. 1
+            // range is [-1, 1] instead of [0, 1]
             n = scaledFar.toFloat()
             f = scaledNear.toFloat()
         }
         val sceneScaleZ = 1f / (f - n)
-        val reverseDepth = GFXState.depthMode.currentValue.reversedDepth
-        var m22 = if (reverseDepth) +sceneScaleZ else -sceneScaleZ
-        var z0 = 1f - n * sceneScaleZ
-        if (!range01) {
+        val inverseDepth = inverseDepth
+        var m22 = if (inverseDepth) +sceneScaleZ else -sceneScaleZ
+        var z0 = if (inverseDepth) -f * sceneScaleZ else -n * sceneScaleZ
+        if (!range01) { // todo test this
             m22 *= 2f
             z0 = z0 * 2f - 1f
         }
-        // todo respect near
         cameraMatrix.set(
             height * sceneScaleXY / width, 0f, 0f, 0f,
             0f, sceneScaleXY, 0f, 0f,
@@ -780,12 +778,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         // traverse over visible & selected
-        // c in EditorState.selection ||
-        //                entity?.anyInHierarchy { it == EditorState.lastSelection } == true
         for (component in EditorState.selection) {
             if (component is Component && component.isEnabled) {
                 val entity = component.entity
-                if (entity == null || pipeline.frustum.isVisible(entity.aabb)) {
+                if (entity == null || pipeline.frustum.contains(entity.aabb)) {
 
                     val stack = stack
                     if (entity != null) {

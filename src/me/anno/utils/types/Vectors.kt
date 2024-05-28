@@ -222,11 +222,11 @@ object Vectors {
      * transforms color from linear space (light calculations) to sRGB (standard)
      * */
     @JvmStatic
-    fun Vector3f.fromLinear(dst: Vector3f = this): Vector3f {
+    fun Vector3f.toSRGB(dst: Vector3f = this): Vector3f {
         return dst.set(
-            HSLuvColorSpace.fromLinear(x),
-            HSLuvColorSpace.fromLinear(y),
-            HSLuvColorSpace.fromLinear(z)
+            HSLuvColorSpace.toSRGB(x),
+            HSLuvColorSpace.toSRGB(y),
+            HSLuvColorSpace.toSRGB(z)
         )
     }
 }

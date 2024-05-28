@@ -1,12 +1,16 @@
 package me.anno.io.json.generic
 
 import me.anno.io.Streams.writeString
+import me.anno.utils.assertions.assertFalse
+import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Strings
 import org.joml.Quaterniond
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.io.IOException
 import java.io.OutputStream
 
 /**
@@ -16,7 +20,8 @@ import java.io.OutputStream
 open class JsonWriter(val output: OutputStream) {
 
     private var first = true
-    private var isKeyValue = false
+    private var hasAttr = false
+    private val isObjectStack = BooleanArrayList(0)
 
     private fun writeEscapedString(value: String) {
         output.write('"'.code)
@@ -27,16 +32,25 @@ open class JsonWriter(val output: OutputStream) {
     }
 
     fun attr(key: String) {
-        next()
+        assertTrue(isObjectStack.peek())
+        if (!first) output.write(','.code)
         writeEscapedString(key)
-        isKeyValue = true
+        output.write(':'.code)
+        hasAttr = true
+        first = false
     }
 
     fun next() {
-        if (!first) {
-            output.write(if (isKeyValue) ':'.code else ','.code)
+        if (isObjectStack.size > 0 && hasAttr != isObjectStack.peek()) {
+            throw IOException(
+                if (hasAttr) "attr cannot be used in array"
+                else "property needs attr in object"
+            )
         }
-        isKeyValue = false
+        if (!first && !hasAttr) {
+            output.write(','.code)
+        }
+        hasAttr = false
         first = false
     }
 
@@ -77,22 +91,26 @@ open class JsonWriter(val output: OutputStream) {
     fun beginArray() {
         next()
         output.write('['.code)
+        isObjectStack.push(false)
         first = true
     }
 
     fun beginObject() {
         next()
         output.write('{'.code)
+        isObjectStack.push(true)
         first = true
     }
 
     fun endArray() {
         output.write(']'.code)
+        assertFalse(isObjectStack.pop())
         first = false
     }
 
     fun endObject() {
         output.write('}'.code)
+        assertTrue(isObjectStack.pop())
         first = false
     }
 
@@ -103,11 +121,11 @@ open class JsonWriter(val output: OutputStream) {
     }
 
     fun <V> writeArray(elements: List<V>, writeElement: (V) -> Unit) {
-       writeArray {
-           for (i in elements.indices) {
-               writeElement(elements[i])
-           }
-       }
+        writeArray {
+            for (i in elements.indices) {
+                writeElement(elements[i])
+            }
+        }
     }
 
     fun <V> writeArrayIndexed(elements: List<V>, writeElement: (Int, V) -> Unit) {
@@ -126,6 +144,12 @@ open class JsonWriter(val output: OutputStream) {
 
     fun finish() {
         output.close()
+        if (isObjectStack.size != 0) {
+            throw IOException(
+                "beginX() doesn't match endX() everywhere, or finishing inside object/array, " +
+                        "${isObjectStack.size}"
+            )
+        }
     }
 
     fun write(v: Vector2f) {

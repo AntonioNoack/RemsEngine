@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.types.Vectors.fromLinear
+import me.anno.utils.types.Vectors.toSRGB
 import me.anno.utils.types.Vectors.toLinear
 import org.joml.Vector3f
 import kotlin.math.cbrt
@@ -61,6 +61,6 @@ object Oklab : ColorSpace(
             -1.2684380000f * l3 + 2.6097574f * m3 - 0.34131938f * s3,
             -0.0041960864f * l3 - 0.7034186f * m3 + 1.70761470f * s3
         )
-        return dst.fromLinear(dst)
+        return dst.toSRGB(dst)
     }
 }

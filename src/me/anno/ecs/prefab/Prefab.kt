@@ -256,13 +256,13 @@ class Prefab : Saveable {
         }
         val adds = adds
         if (insertIndex == -1) {
-            adds.getOrPut(change.path) { ArrayList() }
+            adds.getOrPut(change.path, ::ArrayList)
                 .add(change)
         } else {
             // find the correct insert index
             // relative to all other local adds
             var globalInsertIndex = 0
-            val addsI = adds.getOrPut(change.path) { ArrayList() }
+            val addsI = adds.getOrPut(change.path, ::ArrayList)
             for (index in addsI.indices) {
                 if (addsI[index].path == change.path) {
                     if (globalInsertIndex == insertIndex) {
@@ -317,7 +317,7 @@ class Prefab : Saveable {
 
     fun readAdds(values: List<CAdd>) {
         for (v in values) {
-            adds.getOrPut(v.path) { ArrayList() }.add(v)
+            adds.getOrPut(v.path, ::ArrayList).add(v)
         }
     }
 

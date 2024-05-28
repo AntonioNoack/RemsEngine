@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
@@ -30,6 +31,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
+import me.anno.utils.InternalAPI
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4f
@@ -46,6 +48,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     // todo AES lights, and their textures?
 
     // black lamp light?
+    @Docs("sRGB Color")
     @Type("Color3HDR")
     @SerializedProperty
     var color = Vector3f(1f)
@@ -266,9 +269,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     companion object {
 
+        @JvmStatic
+        @InternalAPI
         val renderer = rawAttributeRenderers[DeferredLayerType.DEPTH]
 
-        private val shapeForTesting by lazy {
+        @JvmStatic
+        @InternalAPI
+        val shapeForTesting by lazy {
             val mesh = Shapes.flatCube.linear(Vector3f(0f, 0f, 0.4f), Vector3f(0.5f)).back
             // make one side metallic for testing
             mesh.materialIds = IntArray(mesh.positions!!.size / 9) { it.and(1) }
@@ -281,6 +288,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         }
 
         @JvmStatic
+        @InternalAPI
         val pipeline by lazy {
             Pipeline(DeferredSettings(listOf())).apply {
                 defaultStage.maxNumberOfLights = 0

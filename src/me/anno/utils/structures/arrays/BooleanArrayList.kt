@@ -119,6 +119,18 @@ class BooleanArrayList(var size: Int) : Saveable() {
         }
     }
 
+    fun last() = get(size - 1)
+    fun peek() = last()
+
+    fun push(v: Boolean) {
+        ensureRawCapacity((size + 64) ushr 6)
+        set(size++, v)
+    }
+
+    fun pop(): Boolean {
+        return get(--size)
+    }
+
     override val className: String get() = "BoolArray"
     override val approxSize get() = 1
 

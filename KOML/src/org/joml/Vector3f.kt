@@ -590,26 +590,12 @@ open class Vector3f(
         dst[i + 2] = z
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        return if (absX >= absY && absX >= absZ) {
-            0
-        } else {
-            if (absY >= absZ) 1 else 2
-        }
+    fun max(): Float {
+        return max(max(x, y), z)
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        return if (absX < absY && absX < absZ) {
-            0
-        } else {
-            if (absY < absZ) 1 else 2
-        }
+    fun min(): Float {
+        return min(min(x, y), z)
     }
 
     @JvmOverloads

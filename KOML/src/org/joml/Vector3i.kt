@@ -1,6 +1,8 @@
 package org.joml
 
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("unused")
@@ -8,7 +10,7 @@ open class Vector3i(
     @JvmField var x: Int,
     @JvmField var y: Int,
     @JvmField var z: Int
-): Vector() {
+) : Vector() {
 
     constructor() : this(0, 0, 0)
     constructor(d: Int) : this(d, d, d)
@@ -208,45 +210,39 @@ open class Vector3i(
     }
 
     fun min(v: Vector3i): Vector3i {
-        x = kotlin.math.min(x, v.x)
-        y = kotlin.math.min(y, v.y)
-        z = kotlin.math.min(z, v.z)
+        x = min(x, v.x)
+        y = min(y, v.y)
+        z = min(z, v.z)
         return this
     }
 
     fun min(v: Vector3i, dst: Vector3i = this): Vector3i {
-        dst.x = kotlin.math.min(x, v.x)
-        dst.y = kotlin.math.min(y, v.y)
-        dst.z = kotlin.math.min(z, v.z)
+        dst.x = min(x, v.x)
+        dst.y = min(y, v.y)
+        dst.z = min(z, v.z)
         return dst
     }
 
     fun max(v: Vector3i): Vector3i {
-        x = kotlin.math.max(x, v.x)
-        y = kotlin.math.max(y, v.y)
-        z = kotlin.math.max(z, v.z)
+        x = max(x, v.x)
+        y = max(y, v.y)
+        z = max(z, v.z)
         return this
     }
 
     fun max(v: Vector3i, dst: Vector3i = this): Vector3i {
-        dst.x = kotlin.math.max(x, v.x)
-        dst.y = kotlin.math.max(y, v.y)
-        dst.z = kotlin.math.max(z, v.z)
+        dst.x = max(x, v.x)
+        dst.y = max(y, v.y)
+        dst.z = max(z, v.z)
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x).toFloat()
-        val absY = abs(y).toFloat()
-        val absZ = abs(z).toFloat()
-        return if (absX >= absY && absX >= absZ) 0 else if (absY >= absZ) 1 else 2
+    fun max(): Int {
+        return max(max(x, y), z)
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x).toFloat()
-        val absY = abs(y).toFloat()
-        val absZ = abs(z).toFloat()
-        return if (absX < absY && absX < absZ) 0 else if (absY < absZ) 1 else 2
+    fun min(): Int {
+        return min(min(x, y), z)
     }
 
     fun absolute(dst: Vector3i = this): Vector3i {

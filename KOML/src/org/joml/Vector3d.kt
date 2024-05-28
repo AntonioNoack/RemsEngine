@@ -762,18 +762,12 @@ open class Vector3d(
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        return if (absX >= absY && absX >= absZ) 0 else if (absY >= absZ) 1 else 2
+    fun max(): Double {
+        return max(max(x, y), z)
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        return if (absX < absY && absX < absZ) 0 else if (absY < absZ) 1 else 2
+    fun min(): Double {
+        return min(min(x, y), z)
     }
 
     @JvmOverloads

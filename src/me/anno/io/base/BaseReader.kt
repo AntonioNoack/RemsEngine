@@ -64,7 +64,7 @@ abstract class BaseReader : ReaderImpl {
 
     fun addMissingReference(owner: Saveable, name: String, childPtr: Int) {
         missingReferences
-            .getOrPut(childPtr) { ArrayList() }
+            .getOrPut(childPtr, ::ArrayList)
             .add(owner to name)
     }
 

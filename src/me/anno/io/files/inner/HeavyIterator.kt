@@ -32,7 +32,7 @@ object HeavyIterator {
             val process = synchronized(this) {
                 if (source in lockedFiles) {
                     // register as waiting
-                    waitingRequests.getOrPut(source) { ArrayList() }
+                    waitingRequests.getOrPut(source, ::ArrayList)
                         .add(iterable)
                     false
                 } else {

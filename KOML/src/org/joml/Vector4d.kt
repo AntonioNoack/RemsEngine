@@ -792,32 +792,12 @@ open class Vector4d(
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        val absW = abs(w)
-        return if (absX >= absY && absX >= absZ && absX >= absW) {
-            0
-        } else if (absY >= absZ && absY >= absW) {
-            1
-        } else {
-            if (absZ >= absW) 2 else 3
-        }
+    fun max(): Double {
+        return max(max(x, y), max(z, w))
     }
 
-    fun minComponent(): Int {
-        val absX = abs(x)
-        val absY = abs(y)
-        val absZ = abs(z)
-        val absW = abs(w)
-        return if (absX < absY && absX < absZ && absX < absW) {
-            0
-        } else if (absY < absZ && absY < absW) {
-            1
-        } else {
-            if (absZ < absW) 2 else 3
-        }
+    fun min(): Double {
+        return min(min(x, y), min(z, w))
     }
 
     fun floor(dst: Vector4d = this): Vector4d {

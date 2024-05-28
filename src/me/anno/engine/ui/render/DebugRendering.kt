@@ -115,27 +115,25 @@ object DebugRendering {
             .firstOrNull { it is Camera } ?: EditorState.selection
             .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponent(Camera::class) else null }
         if (camera is Camera) {
-            // todo this is incorrect for orthographic cameras, I think
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3
             val h = (y1 - y0 + 1) / 3
             val buffer = view.buffers.base1Buffer
             val renderer = Renderers.pbrRenderer
-            // todo is tone mapping used? adjust parameter for drawScene
+            GFXState.pushDrawCallName("DebugCamera")
+            GFXState.pushDrawCallName("DrawScene")
             view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
-            view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
+            view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
+            GFXState.popDrawCallName()
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterward, because we seem to have a kind-of-bug somewhere
             val camera2 = view.editorCamera
             view.prepareDrawScene(
-                view.width,
-                view.height,
+                view.width, view.height,
                 view.width.toFloat() / view.height,
-                camera2,
-                camera2,
-                0f,
-                false
+                camera2, camera2, 0f, false
             )
+            GFXState.popDrawCallName()
         }
     }
 

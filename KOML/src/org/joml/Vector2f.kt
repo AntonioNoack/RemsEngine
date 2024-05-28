@@ -1,14 +1,21 @@
 package org.joml
 
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.ceil
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 import kotlin.math.sin
 
 @Suppress("unused")
 open class Vector2f(
     @JvmField var x: Float,
     @JvmField var y: Float
-): Vector() {
+) : Vector() {
 
     constructor() : this(0f, 0f)
     constructor(v: Float) : this(v, v)
@@ -84,7 +91,7 @@ open class Vector2f(
     fun angle(v: Vector2f): Float {
         val dot = x * v.x + y * v.y
         val det = x * v.y - y * v.x
-        return kotlin.math.atan2(det, dot)
+        return atan2(det, dot)
     }
 
     fun rotate(radians: Float, dst: Vector2f = this): Vector2f {
@@ -199,48 +206,44 @@ open class Vector2f(
 
     @JvmOverloads
     fun min(v: Vector2f, dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.min(x, v.x)
-        dst.y = kotlin.math.min(y, v.y)
+        dst.x = min(x, v.x)
+        dst.y = min(y, v.y)
         return dst
     }
 
     @JvmOverloads
     fun max(v: Vector2f, dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.max(x, v.x)
-        dst.y = kotlin.math.max(y, v.y)
+        dst.x = max(x, v.x)
+        dst.y = max(y, v.y)
         return dst
     }
 
-    fun maxComponent(): Int {
-        val absX = kotlin.math.abs(x)
-        val absY = kotlin.math.abs(y)
-        return if (absX >= absY) 0 else 1
+    fun max(): Float {
+        return max(x, y)
     }
 
-    fun minComponent(): Int {
-        val absX = kotlin.math.abs(x)
-        val absY = kotlin.math.abs(y)
-        return if (absX < absY) 0 else 1
+    fun min(): Float {
+        return min(x, y)
     }
 
     @JvmOverloads
     fun floor(dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.floor(x)
-        dst.y = kotlin.math.floor(y)
+        dst.x = floor(x)
+        dst.y = floor(y)
         return dst
     }
 
     @JvmOverloads
     fun ceil(dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.ceil(x)
-        dst.y = kotlin.math.ceil(y)
+        dst.x = ceil(x)
+        dst.y = ceil(y)
         return dst
     }
 
     @JvmOverloads
     fun round(dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.round(x)
-        dst.y = kotlin.math.round(y)
+        dst.x = round(x)
+        dst.y = round(y)
         return dst
     }
 
@@ -249,8 +252,8 @@ open class Vector2f(
 
     @JvmOverloads
     fun absolute(dst: Vector2f = this): Vector2f {
-        dst.x = kotlin.math.abs(x)
-        dst.y = kotlin.math.abs(y)
+        dst.x = abs(x)
+        dst.y = abs(y)
         return dst
     }
 

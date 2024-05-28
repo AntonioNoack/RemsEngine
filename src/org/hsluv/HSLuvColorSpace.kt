@@ -131,7 +131,10 @@ object HSLuvColorSpace {
         return b.dot(xyz2rgb2[aOffset], xyz2rgb2[aOffset + 1], xyz2rgb2[aOffset + 2])
     }
 
-    fun fromLinear(c: Double): Double {
+    /**
+     * converts a value from linear to sRGB
+     * */
+    fun toSRGB(c: Double): Double {
         return if (c <= 0.0031308) {
             12.92 * c
         } else {
@@ -139,14 +142,16 @@ object HSLuvColorSpace {
         }
     }
 
-    fun fromLinear(c: Float): Float {
-        return if (c <= 0.0031308f) {
-            12.92f * c
-        } else {
-            1.055f * c.pow(1f / 2.4f) - 0.055f
-        }
+    /**
+     * converts a value from linear to sRGB
+     * */
+    fun toSRGB(c: Float): Float {
+        return toSRGB(c.toDouble()).toFloat()
     }
 
+    /**
+     * converts a value from sRGB to linear
+     * */
     fun toLinear(c: Double): Double {
         return if (c > 0.04045) {
             ((c + 0.055) / (1.055)).pow(2.4)
@@ -155,27 +160,26 @@ object HSLuvColorSpace {
         }
     }
 
+    /**
+     * converts a value from sRGB to linear
+     * */
     fun toLinear(c: Float): Float {
-        return if (c > 0.04045f) {
-            ((c + 0.055f) / (1.055f)).pow(2.4f)
-        } else {
-            c / 12.92f
-        }
+        return toLinear(c.toDouble()).toFloat()
     }
 
     fun xyzToRgb(src: Vector3d, dst: Vector3d = src): Vector3d {
         return dst.set(
-            fromLinear(dotProduct(xyz2rgb, 0, src)),
-            fromLinear(dotProduct(xyz2rgb, 3, src)),
-            fromLinear(dotProduct(xyz2rgb, 6, src)),
+            toSRGB(dotProduct(xyz2rgb, 0, src)),
+            toSRGB(dotProduct(xyz2rgb, 3, src)),
+            toSRGB(dotProduct(xyz2rgb, 6, src)),
         )
     }
 
     fun xyzToRgb(src: Vector3f, dst: Vector3f = src): Vector3f {
         return dst.set(
-            fromLinear(xyzToRGB(0, src)),
-            fromLinear(xyzToRGB(3, src)),
-            fromLinear(xyzToRGB(6, src)),
+            toSRGB(xyzToRGB(0, src)),
+            toSRGB(xyzToRGB(3, src)),
+            toSRGB(xyzToRGB(6, src)),
         )
     }
 

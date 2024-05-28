@@ -24,7 +24,7 @@ import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
-import org.hsluv.HSLuvColorSpace.fromLinear
+import org.hsluv.HSLuvColorSpace.toSRGB
 import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -617,7 +617,7 @@ object StaticMeshesLoader {
         val result = aiGetMaterialColor(aiMaterial, flag, aiTextureType_NONE, 0, color)
         return if (result == 0) {
             // colors are linear in Assimp, sRGB in Rem's Engine
-            Vector4f(fromLinear(color.r()), fromLinear(color.g()), fromLinear(color.b()), color.a())
+            Vector4f(toSRGB(color.r()), toSRGB(color.g()), toSRGB(color.b()), color.a())
         } else null
     }
 

@@ -82,7 +82,7 @@ fun main() {
             for (di in 0 until 4) {
                 val key = Vector3f()
                 key.set(positions, indices[i + di] * 3)
-                normals.getOrPut(key) { Vector3f() }.add(n)
+                normals.getOrPut(key, ::Vector3f).add(n)
             }
         }
 
