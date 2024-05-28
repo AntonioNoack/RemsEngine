@@ -58,6 +58,24 @@ open class Vector4i(
         return min(min(x, y), min(z, w))
     }
 
+    fun minComponent(): Int {
+        return when (min()) {
+            x -> 0
+            y -> 1
+            z -> 2
+            else -> 3
+        }
+    }
+
+    fun maxComponent(): Int {
+        return when (max()) {
+            x -> 0
+            y -> 1
+            z -> 2
+            else -> 3
+        }
+    }
+
     fun setComponent(component: Int, value: Int): Vector4i {
         when (component) {
             0 -> x = value

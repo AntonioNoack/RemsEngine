@@ -257,6 +257,14 @@ open class Vector2d(
         return min(x, y)
     }
 
+    fun minComponent(): Int {
+        return if (x < y) 0 else 1
+    }
+
+    fun maxComponent(): Int {
+        return if (x > y) 0 else 1
+    }
+
     @JvmOverloads
     fun floor(dst: Vector2d = this): Vector2d {
         dst.x = floor(x)

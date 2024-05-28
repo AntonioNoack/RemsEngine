@@ -527,6 +527,24 @@ open class Vector4f(
         return min(min(x, y), min(z, w))
     }
 
+    fun minComponent(): Int {
+        return when (min()) {
+            x -> 0
+            y -> 1
+            z -> 2
+            else -> 3
+        }
+    }
+
+    fun maxComponent(): Int {
+        return when (max()) {
+            x -> 0
+            y -> 1
+            z -> 2
+            else -> 3
+        }
+    }
+
     fun floor(dst: Vector4f = this): Vector4f {
         dst.x = floor(x)
         dst.y = floor(y)

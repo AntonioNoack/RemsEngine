@@ -299,7 +299,7 @@ open class AnimMeshComponent : MeshComponent() {
         for (index in animations.indices) {
             val animState = animations[index]
             val weight = animState.weight
-            if (abs(weight) > abs(dstWeights[dstWeights.minComponent()])) {
+            if (abs(weight) > abs(dstWeights.min())) {
                 val animation = AnimationCache[animState.source] ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
                 val internalIndex = animTexture.getIndex(animation, frameIndex)

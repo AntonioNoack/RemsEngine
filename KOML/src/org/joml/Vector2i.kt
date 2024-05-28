@@ -166,6 +166,14 @@ open class Vector2i(
         return min(x, y)
     }
 
+    fun minComponent(): Int {
+        return if (x < y) 0 else 1
+    }
+
+    fun maxComponent(): Int {
+        return if (x > y) 0 else 1
+    }
+
     @JvmOverloads
     fun absolute(dst: Vector2i = this) = dst.set(abs(x), abs(y))
 

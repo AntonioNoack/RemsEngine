@@ -770,6 +770,22 @@ open class Vector3d(
         return min(min(x, y), z)
     }
 
+    fun minComponent(): Int {
+        return when (min()) {
+            x -> 0
+            y -> 1
+            else -> 2
+        }
+    }
+
+    fun maxComponent(): Int {
+        return when (max()) {
+            x -> 0
+            y -> 1
+            else -> 2
+        }
+    }
+
     @JvmOverloads
     fun orthogonalize(v: Vector3d, dst: Vector3d = this): Vector3d {
         val rx: Double

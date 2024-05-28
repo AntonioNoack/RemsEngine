@@ -1,11 +1,11 @@
 package me.anno.mesh.obj
 
 import me.anno.ecs.prefab.Prefab
-import me.anno.utils.structures.Callback
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.obj.OBJReader.Companion.readPath
+import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -62,11 +62,18 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                             color.w = readScalar()
                             hadOpacity = true
                         }
-                        /*"map_Ka" -> // ???
-                            material!!.setProperty("diffuseMap", readFile(file))
-                            material.ambientTexture = readFile(file)*/
-                        "map_Kd" -> material!!["diffuseMap"] = readPath(file)
-                        "map_Ke" -> material!!["emissiveMap"] = readPath(file)
+                        "map_Ka" -> {
+                            if (material == null) skipLine()
+                            else material["occlusionMap"] = readPath(file)
+                        }
+                        "map_Kd" -> {
+                            if (material == null) skipLine()
+                            else material["diffuseMap"] = readPath(file)
+                        }
+                        "map_Ke" -> {
+                            if (material == null) skipLine()
+                            else material["emissiveMap"] = readPath(file)
+                        }
                         "map_Ks" -> {
                             // to do roughness or metallic?
                             // not used by Blender in my small experiment
@@ -84,7 +91,6 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                                 color.w = if (v == 1f) 1f else 1f - v
                             } else skipLine()
                         }
-                        @Suppress("SpellCheckingInspection")
                         "illum" -> {
                             val v = readScalar().toInt()
                             if (v == 3) {
@@ -113,7 +119,27 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                         }
                         // ignored for now:
                         // if you need any of these properties, just write me (Antonio)
-                        "map_Ns", "map_d", "map_Ka", "Ks", "Ka", "map_Bump", "map_bump", "Tf", "Ni", "bump" -> skipLine()
+                        "map_Bump", "map_bump", "bump" -> {
+                            if (material != null) {
+                                // bump -bm 1.0 normal_map.png
+                                // bump normal_map.png
+                                skipSpaces()
+                                var strength = 1f
+                                val peek = nextChar()
+                                if (peek == '-') {
+                                    if (nextChar() == 'b' && nextChar() == 'm') {
+                                        skipSpaces()
+                                        strength = readScalar()
+                                    }
+                                } else putBack(peek)
+                                skipSpaces()
+                                val path = readPath(file)
+                                material["normalStrength"] = strength
+                                material["normalMap"] = path
+                                skipLine()
+                            } else skipLine()
+                        }
+                        "map_Ns", "map_d", "Ks", "Ka", "Tf", "Ni" -> skipLine()
                         // bump maps, displacement maps, decal maps exists;
                         // also there is additional parameters for texture blending, scale,
                         // offset, clamped textures, bump multiplier, channel selection for textures, ...
@@ -148,7 +174,6 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
         return Vector3f(x, y, z)
     }
 
-    // todo normal map, occlusion
     // todo extra opacity texture? how could we integrate that?
 
     companion object {

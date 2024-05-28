@@ -196,11 +196,7 @@ class GLTFWriter(
     private fun createIndicesView(data: IntArray, mode: DrawMode, cullMode: CullMode): Int {
         val pos = binary.size()
         val reverseIndices = cullMode == CullMode.BACK
-        if (reverseIndices && mode == DrawMode.TRIANGLE_STRIP) {
-            // todo implement reversal for triangle-strip?
-            LOGGER.warn("Reversed triangle-strip not yet implemented")
-        }
-        if (reverseIndices && mode == DrawMode.TRIANGLES) {
+        if (reverseIndices && (mode == DrawMode.TRIANGLES || mode == DrawMode.TRIANGLE_STRIP)) {
             for (i in data.lastIndex downTo 0) {
                 binary.writeLE32(data[i])
             }

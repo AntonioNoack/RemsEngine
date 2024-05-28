@@ -245,6 +245,22 @@ open class Vector3i(
         return min(min(x, y), z)
     }
 
+    fun minComponent(): Int {
+        return when (min()) {
+            x -> 0
+            y -> 1
+            else -> 2
+        }
+    }
+
+    fun maxComponent(): Int {
+        return when (max()) {
+            x -> 0
+            y -> 1
+            else -> 2
+        }
+    }
+
     fun absolute(dst: Vector3i = this): Vector3i {
         dst.x = abs(x)
         dst.y = abs(y)
