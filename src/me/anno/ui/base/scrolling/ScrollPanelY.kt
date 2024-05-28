@@ -53,7 +53,8 @@ open class ScrollPanelY(
 
     val interactionWidth = scrollbarWidth + 2 * interactionPadding
 
-    val hasScrollbar get() = maxScrollPositionY > 0
+    val hasScrollbar: Boolean get() = maxScrollPositionY > 0
+    val hasScrollbarF: Float get() = clamp(maxScrollPositionYRaw / (3f * scrollbarWidth) + 1f)
 
     override val childSizeY: Long
         get() {
@@ -62,10 +63,13 @@ open class ScrollPanelY(
         }
 
     override val maxScrollPositionY: Long
+        get() = max(0, maxScrollPositionYRaw)
+
+    val maxScrollPositionYRaw: Long
         get() {
             val child = child
             val childH = if (child is LongScrollable) child.sizeY else child.minH.toLong()
-            return max(0, childH + padding.height - height)
+            return childH + padding.height - height
         }
 
     override fun scrollY(delta: Double): Double {
@@ -117,7 +121,7 @@ open class ScrollPanelY(
         val child = child
         val padding = padding
         // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingX = padding.width + scrollbarWidth
+        val paddingX = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
         child.calculateSize(w - paddingX, maxLength - padding.height)
         minW = min(child.minW + paddingX, w)
         minH = min(child.minH + padding.height, h)
@@ -131,7 +135,7 @@ open class ScrollPanelY(
 
     override fun setSize(w: Int, h: Int) {
         super.setSize(w, h)
-        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
+        val paddingX = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
         child.setSize(w - paddingX, max(child.minH, h - padding.height))
     }
 

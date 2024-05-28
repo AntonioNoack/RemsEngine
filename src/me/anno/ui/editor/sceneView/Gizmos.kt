@@ -27,8 +27,6 @@ import kotlin.math.PI
 
 object Gizmos {
 
-    // todo show drag/hover of these on the specific gizmo parts
-
     val arrowRef = BundledRef("meshes/arrowX.obj")
     val arrowRef1 = BundledRef("meshes/arrowX1.obj")
     val ringRef = BundledRef("meshes/ringX.obj")

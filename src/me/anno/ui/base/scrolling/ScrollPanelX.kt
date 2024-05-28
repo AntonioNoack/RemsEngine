@@ -1,15 +1,15 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
+import me.anno.engine.EngineBase
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.engine.EngineBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -17,7 +17,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
-import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
@@ -53,7 +52,8 @@ open class ScrollPanelX(
 
     val interactionHeight = scrollbarHeight + 2 * interactionPadding
 
-    val hasScrollbar get() = maxScrollPositionX > 0f
+    val hasScrollbar: Boolean get() = maxScrollPositionX > 0f
+    val hasScrollbarF: Float get() = clamp(maxScrollPositionXRaw / (3f * scrollbarHeight) + 1f)
 
     override val childSizeX: Long
         get() {
@@ -62,10 +62,13 @@ open class ScrollPanelX(
         }
 
     override val maxScrollPositionX: Long
+        get() = max(0, maxScrollPositionXRaw)
+
+    val maxScrollPositionXRaw: Long
         get() {
             val child = child
             val childW = if (child is LongScrollable) child.sizeX else child.minW.toLong()
-            return max(0, childW + padding.width - width)
+            return childW + padding.width - width
         }
 
     override fun scrollX(delta: Double): Double {
@@ -107,7 +110,8 @@ open class ScrollPanelX(
 
     override fun setSize(w: Int, h: Int) {
         super.setSize(w, h)
-        child.setSize(max(child.minW, w - padding.width), h - padding.height)
+        val paddingY = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
+        child.setSize(max(child.minW, w - padding.width), h - paddingY)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -122,7 +126,7 @@ open class ScrollPanelX(
         val child = child
         val padding = padding
         // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingY = padding.height + scrollbarHeight
+        val paddingY = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
         child.calculateSize(maxLength - padding.width, h - paddingY)
         minW = min(child.minW + padding.width, w)
         minH = min(child.minH + paddingY, h)

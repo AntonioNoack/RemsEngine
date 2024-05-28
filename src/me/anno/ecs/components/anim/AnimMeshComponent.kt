@@ -314,7 +314,6 @@ open class AnimMeshComponent : MeshComponent() {
                 }
             }
         }
-
         return true
     }
 
