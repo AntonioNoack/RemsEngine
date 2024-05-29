@@ -75,7 +75,7 @@ class WaveFunctionCollapse {
     fun removeInvalidCells() {
         // such a cell cannot have a neighbor -> is not tileable
         // todo the only exception is that it can be placed on a wall
-        types.removeAll { t -> t.neighbors.any { n -> n.isEmpty } }
+        types.removeAll { types -> types.neighbors.any { neighbor -> neighbor.isEmpty } }
     }
 
     fun connect(a: Int, b: Int, side: Int) {

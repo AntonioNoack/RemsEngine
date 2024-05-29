@@ -112,7 +112,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun length() = LastModifiedCache[file, absolutePath].length
 
     override fun deleteRecursively(): Boolean {
-        // todo also invalidate children
         val success = file.deleteRecursively()
         if (success) LastModifiedCache.invalidate(absolutePath)
         return success

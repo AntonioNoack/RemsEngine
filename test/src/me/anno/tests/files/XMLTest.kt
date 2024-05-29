@@ -37,14 +37,26 @@ class XMLTest {
     @Test
     fun testXML2JSON() {
         registerCustomClass(Mesh())
-        val json = JsonStringWriter.toText(flatCube.front, InvalidRef)
+        testEquals(flatCube.front)
+    }
+
+    fun testEquals(instance: Saveable) {
+        val json = JsonStringWriter.toText(instance, InvalidRef)
         println(json)
         val xml = XML2JSON.toXML("xml", JsonReader(json).readArray())
         println(xml)
         val json2 = JsonFormatter.format(XML2JSON.fromXML(xml))
         println(json2)
-        val clone = JsonStringReader.readFirst(json2, InvalidRef, Mesh::class)
+        val clone = JsonStringReader.readFirst(json2, InvalidRef, instance::class)
         val json3 = JsonStringWriter.toText(clone, InvalidRef)
         assertEquals(json, json3)
+    }
+
+    @Test
+    fun testEscaping() {
+        registerCustomClass(Mesh())
+        val mesh = Mesh()
+        mesh.name = "<Hi\"!/"
+        testEquals(mesh)
     }
 }

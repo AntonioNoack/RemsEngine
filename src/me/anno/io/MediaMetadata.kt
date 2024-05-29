@@ -7,9 +7,12 @@ import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Signature
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
 import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -23,8 +26,8 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
     var duration = 0.0
 
-    var hasAudio = false
-    var hasVideo = false
+    var hasAudio = false // has sound/music/audio
+    var hasVideo = false // has image or video data
 
     var audioStartTime = 0.0
     var audioSampleRate = 0
@@ -57,7 +60,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         // type handlers
         for (thi in typeHandlers.indices) {
             val th = typeHandlers[thi]
-            if (th.third(file, this)) {
+            if (th.reader(file, this)) {
                 return
             }
         }
@@ -65,7 +68,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         val signature1 = signature ?: Signature.findNameSync(file)
         for (shi in signatureHandlers.indices) {
             val sh = signatureHandlers[shi]
-            if (sh.third(file, signature1, this)) {
+            if (sh.reader(file, signature1, this)) {
                 return
             }
         }
@@ -99,16 +102,16 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
     companion object {
 
-        private val typeHandlers = ArrayList<Triple<Int, String, (FileReference, MediaMetadata) -> Boolean>>()
+        data class Handler<V>(val priority: Int, val signature: String, val reader: V)
 
-        private val signatureHandlers =
-            ArrayList<Triple<Int, String, (FileReference, String?, MediaMetadata) -> Boolean>>()
+        private val typeHandlers = ArrayList<Handler<(FileReference, MediaMetadata) -> Boolean>>()
+        private val signatureHandlers = ArrayList<Handler<(FileReference, String?, MediaMetadata) -> Boolean>>()
 
-        private fun <V> registerHandler(list: ArrayList<Triple<Int, String, V>>, priority: Int, key: String, value: V) {
+        private fun <V> registerHandler(list: ArrayList<Handler<V>>, priority: Int, key: String, value: V) {
             synchronized(signatureHandlers) {
-                var idx = list.binarySearch { it.first.compareTo(priority) }
+                var idx = list.binarySearch { it.priority.compareTo(priority) }
                 if (idx < 0) idx = -idx - 1
-                list.add(idx, Triple(priority, key, value))
+                list.add(idx, Handler(priority, key, value))
             }
         }
 
@@ -126,8 +129,8 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         fun unregister(keys: String) {
             val keys1 = keys.split(',')
             synchronized(signatureHandlers) {
-                typeHandlers.removeAll { it.second in keys1 }
-                signatureHandlers.removeAll { it.second in keys1 }
+                typeHandlers.removeAll { it.signature in keys1 }
+                signatureHandlers.removeAll { it.signature in keys1 }
             }
         }
 
@@ -173,7 +176,6 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         }
 
         init {
-            // todo xml/svg
             registerHandler(100, "audio-readable") { file, dst ->
                 if (file is AudioReadable) {
                     dst.hasAudio = true

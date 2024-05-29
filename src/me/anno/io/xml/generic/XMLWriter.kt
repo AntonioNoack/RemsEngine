@@ -1,5 +1,7 @@
 package me.anno.io.xml.generic
 
+import me.anno.utils.Color.hex16
+
 object XMLWriter {
 
     fun write(xml: XMLNode, indentation: String? = " ", closeEmptyTypes: Boolean = false): String {
@@ -14,6 +16,44 @@ object XMLWriter {
         for (i in 0 until depth) builder.append(indentation)
     }
 
+    fun StringBuilder.appendStringEscaped(str: String): StringBuilder {
+        for (c in str) {
+            when (c) {
+                in 'A'..'Z', in 'a'..'z', in '0'..'9', in " .:,;-_!§$%&/()=?[]{}<>'" -> {
+                    append(c)
+                }
+                '\n' -> append("\\n")
+                '"' -> append("\\\"")
+                '\\' -> append("\\\\")
+                else -> {
+                    append("\\u")
+                    append(hex16(c.code))
+                }
+            }
+        }
+        return this
+    }
+
+    fun StringBuilder.appendXMLEscaped(str: String): StringBuilder {
+        for (c in str) {
+            when (c) {
+                '<' -> append("&lt;")
+                '>' -> append("&gt;")
+                '\n' -> append("<br>")
+                else -> append(c)
+            }
+        }
+        return this
+    }
+
+    fun escapeXML(str: String): String {
+        val extra = str.count { it in "<>\n" }
+        if (extra <= 0) return str
+        val builder = StringBuilder(str.length + extra * 3)
+        builder.appendXMLEscaped(str)
+        return builder.toString()
+    }
+
     fun write(
         node: XMLNode,
         builder: StringBuilder,
@@ -24,9 +64,9 @@ object XMLWriter {
         tabs(builder, depth, indentation)
         builder.append('<').append(node.type)
         for ((k, v) in node.attributes) {
-            // todo escape string value
+            // escape string value
             builder.append(' ').append(k).append("=\"")
-                .append(v).append('"')
+                .appendStringEscaped(v).append('"')
         }
         if (closeEmptyTypes && node.children.isEmpty()) {
             builder.append("/>")
@@ -36,9 +76,8 @@ object XMLWriter {
                 if (child is XMLNode) {
                     write(child, builder, depth + 1, indentation, closeEmptyTypes)
                 } else {
-                    // todo escape this
                     tabs(builder, depth + 1, indentation)
-                    builder.append(child.toString()).append('\n')
+                    builder.appendXMLEscaped(child.toString()).append('\n')
                 }
             }
             tabs(builder, depth, indentation)

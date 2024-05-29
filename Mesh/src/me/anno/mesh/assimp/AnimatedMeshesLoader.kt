@@ -11,19 +11,19 @@ import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.io.saveable.NamedSaveable
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
+import me.anno.mesh.assimp.StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS
 import me.anno.mesh.assimp.StaticMeshesLoader.buildScene
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
-import me.anno.mesh.assimp.StaticMeshesLoader.DEFAULT_ASSIMP_FLAGS
 import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
 import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
 import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
@@ -108,8 +108,6 @@ object AnimatedMeshesLoader {
         var name = file.nameWithoutExtension
         if (name.equals("scene", true)) name = file.getParent().name
 
-        // todo load lights and cameras for the game engine
-
         // it creates prefabs from the whole file content,
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
@@ -153,14 +151,17 @@ object AnimatedMeshesLoader {
                 emptyMap()
             }
         }
+
         val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures, file, missingFilesLookup).toList()
         val materials = createReferences(root, "materials", materialList)
+
         val boneList = ArrayList<Bone>()
         val boneMap = HashMap<String, Bone>()
+
         val meshList = loadMeshPrefabs(aiScene, materials, boneList, boneMap).toList()
         val meshes = createReferences(root, "meshes", meshList)
-        val hasAnimations = aiScene.mNumAnimations() > 0
 
+        val hasAnimations = aiScene.mNumAnimations() > 0
         if (hasAnimations || boneList.isNotEmpty()) {
             compareBoneWithNodeNames(rootNode, boneMap)
             findAllBones(aiScene, rootNode, boneList, boneMap)
@@ -450,14 +451,14 @@ object AnimatedMeshesLoader {
     }
 
     private fun loadMeshPrefabs(
-        aiScene: AIScene, materials: List<FileReference>, boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
+        aiScene: AIScene, materials: List<FileReference>,
+        boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
     ): List<Prefab> {
         val numMeshes = aiScene.mNumMeshes()
         return if (numMeshes > 0) {
             val aiMeshes = aiScene.mMeshes()!!
             createArrayList(numMeshes) {
-                val aiMesh = AIMesh.create(aiMeshes[it])
-                createMeshPrefab(aiMesh, materials, boneList, boneMap)
+                createMeshPrefab(AIMesh.create(aiMeshes[it]), materials, boneList, boneMap)
             }
         } else emptyList()
     }

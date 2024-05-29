@@ -1,16 +1,11 @@
 package me.anno.io.xml.saveable
 
 import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLWriter.escapeXML
 
 object XML2JSON {
 
-    // todo test special symbols
     // todo make special symbols in lists work
-    private fun escape(value: String): String {
-        return value.replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\n", "<br>")
-    }
 
     // convert XML into JSON and vice-versa
     //  object ->
@@ -48,7 +43,7 @@ object XML2JSON {
                     }
                 }
             }
-            is String -> node.children.add(escape(json))
+            is String -> node.children.add(escapeXML(json))
             else -> node.children.add(json.toString())
         }
         return node

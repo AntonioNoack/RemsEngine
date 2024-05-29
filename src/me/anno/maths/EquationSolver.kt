@@ -11,6 +11,13 @@ object EquationSolver {
 
     private const val TOO_LARGE_RATIO = 1e9 // idk...
 
+    /**
+     * solves a*x² + b*x + c = 0,
+     * places the result into dst,
+     * and returns the number of solutions;
+     *
+     * the bigger solution comes first, the smaller second, if a > 0
+     * */
     fun solveQuadratic(dst: FloatArray, a: Float, b: Float, c: Float): Int {
         // a = 0 -> linear equation
         if (a == 0f || abs(b) + abs(c) > TOO_LARGE_RATIO * abs(a)) {

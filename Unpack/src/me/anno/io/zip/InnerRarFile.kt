@@ -31,10 +31,10 @@ class InnerRarFile(
             } else {
                 // probably for loading a set of files,
                 // which will/would be combined into a single one
-                Archive { a, v ->
+                Archive { archive, volume ->
                     // see FileArchive as an example
-                    if (v == null) {
-                        RarVolume(a, file)
+                    if (volume == null) {
+                        RarVolume(archive, file)
                     } else TODO("joined rar-s not yet supported")
                 }
             }

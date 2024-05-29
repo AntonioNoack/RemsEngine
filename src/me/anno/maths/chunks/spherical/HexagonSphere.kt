@@ -3,12 +3,12 @@ package me.anno.maths.chunks.spherical
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.rotateRight
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3f
@@ -346,15 +346,22 @@ class HexagonSphere(
         val tmp = JomlPools.vec3f.borrow()
         dir.div(dir.dot(tri.center), tmp)
         val uvw = barycentric(a, b, c, tmp, tmp)
-        // todo find the proper formula without magic numbers
-        val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
-        val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
-        val ii = i.toInt()
-        val ji = j.toInt()
+        val ii = findI(uvw.x).toInt()
+        val ji = findJ(uvw.y).toInt()
         val sj = clamp((ji) / hexagonsPerChunk, 0, chunkCount - 1)
         val si = clamp((ii + (ji % hexagonsPerChunk) / 2) / hexagonsPerChunk, 0, chunkCount - 1 - sj)
         val pos = tri.getChunkCenter(si, sj)
         return Chunk(pos, tri.index, si, sj)
+    }
+
+    private fun findI(x: Float): Double {
+        // todo find the proper formula without magic numbers
+        return ((x - 0.5) * 0.797 + 0.5) * hexagonsPerSide - 0.667 * hexagonsPerChunk
+    }
+
+    private fun findJ(y: Float): Double {
+        // todo find the proper formula without magic numbers
+        return ((y - 0.5) * 0.795 + 0.5) * hexagonsPerSide - 0.667 * hexagonsPerChunk
     }
 
     fun findClosestHexagon(dir: Vector3f): Hexagon {
@@ -382,11 +389,8 @@ class HexagonSphere(
             val tmp = JomlPools.vec3f.borrow()
             dir.div(dir.dot(tri.center), tmp)
             val uvw = barycentric(a, b, c, tmp, tmp)
-            // todo find the proper formula without magic numbers
-            val i = ((uvw.x - 0.5f) * 0.797 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
-            val j = ((uvw.y - 0.5f) * 0.795 + 0.5f) * hexagonsPerSide - 0.667 * hexagonsPerChunk
-            val ii = clamp(i.toInt(), 0, hexagonsPerSide - 1)
-            val ji = clamp(j.toInt(), 0, hexagonsPerSide - 1 - ii)
+            val ii = clamp(findI(uvw.x).toInt(), 0, hexagonsPerSide - 1)
+            val ji = clamp(findJ(uvw.y).toInt(), 0, hexagonsPerSide - 1 - ii)
             val hex = tri[ii, ji]
             connectTriHex(tri, hex, ii, ji)
             hex
@@ -448,7 +452,6 @@ class HexagonSphere(
             }
             return false
         }
-
     }
 
     /**
@@ -693,7 +696,6 @@ class HexagonSphere(
 
             pointsToLines[ai].add(hex0)
             pointsToLines[bi].add(hex1)
-
         }
 
         for (i in lineIndices.indices step 2) {
@@ -706,7 +708,6 @@ class HexagonSphere(
 
             connectLine(abLine, hex0, 0)
             connectLine(baLine, hex1, 0)
-
         }
 
         fun connect(a: Hexagon, b: Hexagon) {
@@ -761,7 +762,6 @@ class HexagonSphere(
             tri.baLine = findLine(b, a)
             tri.caLine = findLine(c, a)
             tri.bcLine = findLine(b, c)
-
         }
 
         if (hexagonsPerSide == 0) {
@@ -804,7 +804,6 @@ class HexagonSphere(
                 pentagon.neighbors.rotateRight(2)
             }
         } // else perfectly sorted :)
-
     }
 
     private fun sortNeighbors(hex: Hexagon) {
@@ -966,5 +965,4 @@ class HexagonSphere(
         }
         return group
     }
-
 }

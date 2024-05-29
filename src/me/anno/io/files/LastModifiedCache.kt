@@ -48,8 +48,9 @@ object LastModifiedCache {
 
     fun invalidate(absolutePath: String) {
         // we store both variants
-        values.remove(absolutePath.replace('/', '\\'))
-        values.remove(absolutePath.replace('\\', '/'))
+        val p0 = absolutePath.replace('/', '\\')
+        val p1 = absolutePath.replace('\\', '/')
+        values.removeIf { (key) -> key.startsWith(p0) || key.startsWith(p1) }
     }
 
     fun invalidate(file: File) {

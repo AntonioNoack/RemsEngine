@@ -3,6 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileFileRef
@@ -16,22 +17,28 @@ import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.io.xml.generic.XMLWriter
+import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace.toSRGB
 import org.joml.Matrix4x3f
+import org.joml.Quaterniond
 import org.joml.Vector2f
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.assimp.AIAnimMesh
+import org.lwjgl.assimp.AICamera
 import org.lwjgl.assimp.AIColor4D
 import org.lwjgl.assimp.AIFace
+import org.lwjgl.assimp.AILight
 import org.lwjgl.assimp.AIMaterial
 import org.lwjgl.assimp.AIMatrix4x4
 import org.lwjgl.assimp.AIMesh
@@ -79,8 +86,11 @@ import org.lwjgl.system.MemoryUtil
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import kotlin.math.atan
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sign
+import kotlin.math.tan
 
 object StaticMeshesLoader {
 
@@ -166,8 +176,10 @@ object StaticMeshesLoader {
         val prefab = Prefab("Entity")
         val name = aiNode.mName().dataString()
         if (!name.isBlank2())
-            prefab.setUnsafe(Path.ROOT_PATH, "name", name)
-        buildScene(aiScene, sceneMeshes, hasSkeleton, aiNode, prefab, Path.ROOT_PATH)
+            prefab.setUnsafe(ROOT_PATH, "name", name)
+        buildScene(aiScene, sceneMeshes, hasSkeleton, aiNode, prefab, ROOT_PATH)
+        loadLights(aiScene, prefab) // todo test loading lights
+        loadCameras(aiScene, prefab) // todo test loading cameras
         return prefab
     }
 
@@ -780,4 +792,101 @@ object StaticMeshesLoader {
             m.a4(), m.b4(), m.c4(),
         )
     }
+
+    private fun loadCameras(aiScene: AIScene, prefab: Prefab) {
+        if (aiScene.mNumCameras() <= 0) return
+        val cameras = prefab.add(ROOT_PATH, 'e', "Entity", "Lights")
+        val aiCameras = aiScene.mCameras()!!
+        for(i in 0 until aiScene.mNumCameras()) {
+            createCameraPrefab(AICamera.create(aiCameras[i]), prefab, cameras, i)
+        }
+    }
+
+    private fun createCameraPrefab(aiCamera: AICamera, prefab: Prefab, path: Path, i: Int) {
+        // is there really no orthographic support???
+        val entity = prefab.add(path, 'e', "Entity", "Camera[$i]")
+        val camera = prefab.add(entity, 'c', "Camera", "Camera")
+        entity["name"] = aiCamera.mName().dataString()
+        camera["far"] = aiCamera.mClipPlaneFar().toDouble()
+        camera["near"] = aiCamera.mClipPlaneNear().toDouble()
+        val pos = aiCamera.mPosition()
+        entity["position"] = Vector3d(pos.x(), pos.y(), pos.z())
+        val halfR = aiCamera.mHorizontalFOV() // half angle in radians
+        val aspect = aiCamera.mAspect()
+        camera["fovY"] = (atan(tan(halfR) / aspect) * 2.0).toDegrees()
+        // use these two to calculate the direction
+        val up = aiCamera.mUp()
+        val lookAt = aiCamera.mLookAt()
+        entity["rotation"] = Quaterniond().lookAlong(
+            Vector3d(lookAt.x() - pos.x(), lookAt.y() - pos.y(), lookAt.z() - pos.z()),
+            Vector3d(up.x(), up.y(), up.z())
+        )
+    }
+
+    private fun loadLights(aiScene: AIScene, prefab: Prefab) {
+        if (aiScene.mNumLights() <= 0) return
+        val lights = prefab.add(ROOT_PATH, 'e', "Entity", "Lights")
+        val aiLights = aiScene.mLights()!!
+        for (i in 0 until aiScene.mNumLights()) {
+            createLightPrefab(AILight.create(aiLights[i]), prefab, lights, i)
+        }
+    }
+
+    private fun createLightPrefab(aiLight: AILight, prefab: Prefab, path: Path, i: Int) {
+        val entity = prefab.add(path, 'e', "Entity", "Light[$i]")
+        val clazz = when (aiLight.mType()) {
+            1 -> "DirectionalLight"
+            2 -> "PointLight"
+            3 -> "SpotLight"
+            // 4 -> "AmbientLight" -> not really supported
+            5 -> "RectangleLight"
+            else -> "PointLight" // undefined
+        }
+        val light = prefab.add(entity, 'c', clazz, "Light")
+        entity["name"] = aiLight.mName().dataString()
+        if (clazz == "SpotLight") {
+            // correct?
+            // aiLight.mAngleInnerCone() // - not yet supported
+            light["coneAngle"] = atan(aiLight.mAngleOuterCone())
+        }
+        var maxBrightness = 1f
+        if (clazz != "DirectionalLight") {
+            // brightness = 1/(constant + linear*x + quadratic*x²)
+            // we solve for 0.1 as a cutoff distance...
+            val cutoff = 0.1f
+            // 0.1 = 1/(constant + linear*x + quadratic*x²)
+            // -> 10 = (constant + linear*x + quadratic*x²)
+            // -> constant + linear*x + quadratic*x² - 10 = 0
+            maxBrightness = 1f / max(aiLight.mAttenuationConstant(), 1e3f) // ok so?
+            aiLight.mAttenuationLinear()
+            aiLight.mAttenuationConstant()
+            aiLight.mAttenuationQuadratic()
+            val solution = FloatArray(2)
+            val numSolutions = solveQuadratic(
+                solution, aiLight.mAttenuationQuadratic(), aiLight.mAttenuationLinear(),
+                aiLight.mAttenuationConstant() + 1f / cutoff
+            )
+            if (numSolutions > 0) {
+                val dist = max(solution[0], solution[1])
+                entity["scale"] = Vector3d(dist.toDouble())
+            }
+        }
+        // so we choose diffuse?
+        // aiLight.mColorAmbient()
+        val color = aiLight.mColorDiffuse()
+        // aiLight.mColorSpecular()
+        light["color"] = Vector3f(color.r(), color.g(), color.b()).mul(maxBrightness)
+        val pos = aiLight.mPosition()
+        entity["position"] = Vector3d(pos.x(), pos.y(), pos.z())
+        // transform this into a rotation
+        if (clazz != "PointLight") { // undefined for point lights
+            val up = aiLight.mUp()
+            val dir = aiLight.mDirection()
+            entity["rotation"] = Quaterniond().lookAlong(
+                Vector3d(dir.x(), dir.y(), dir.z()),
+                Vector3d(up.x(), up.y(), up.z())
+            )
+        }
+    }
+
 }

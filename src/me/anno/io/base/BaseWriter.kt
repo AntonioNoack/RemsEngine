@@ -686,13 +686,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                     // e.printStackTrace()
                 }
                 LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
-                // todo write lists and maps with our tools
-                // todo write default serializables...
-                /*val bytes0 = ByteArrayOutputStream()
-                val bytes = ObjectOutputStream(bytes0)
-                bytes.writeObject(value)
-                bytes.close()
-                writeByteArray(name, bytes0.toByteArray())*/
             }
             is Texture, is ITexture2D -> {}
             else -> LOGGER.warn("Ignored saving $name: $value of class ${value.javaClass}")

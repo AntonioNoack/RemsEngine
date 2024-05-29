@@ -13,9 +13,13 @@ import me.anno.image.thumbs.ImageThumbnails
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.MediaMetadata
 import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
+import me.anno.utils.types.Ints.toIntOrDefault
 import net.sf.image4j.codec.ico.ICOReader
 
 class ImagePlugin : Plugin() {
+
     override fun onEnable() {
         super.onEnable()
         registerImageLoading()
@@ -74,6 +78,32 @@ class ImagePlugin : Plugin() {
                 }
             } else false
         }
+        MediaMetadata.registerSignatureHandler(100, "svg") { file, signature, dst ->
+            if ((signature == "xml" && file.lcExtension == "svg") || signature == "svg") {
+                // find out size from first XML node
+                dst.ready = false
+                file.inputStream { stream, err ->
+                    if (stream != null) {
+                        val xml = XMLReader().read(stream)
+                        if (xml is XMLNode && xml.type == "svg") {
+                            dst.hasVideo = true
+                            // width="800px" height="800px"
+                            dst.videoWidth = parseSVGSize(xml["width"])
+                            dst.videoHeight = parseSVGSize(xml["height"])
+                            dst.videoFrameCount = 1
+                        }
+                    } else err?.printStackTrace()
+                    dst.ready = true
+                }
+                true
+            } else false
+        }
+    }
+
+    private fun parseSVGSize(size: String?): Int {
+        val defaultSize = 100
+        return if (size == null || !size.endsWith("px")) defaultSize
+        else size.toIntOrDefault(defaultSize)
     }
 
     private fun registerThumbnails() {
