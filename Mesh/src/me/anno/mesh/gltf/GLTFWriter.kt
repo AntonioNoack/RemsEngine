@@ -2,6 +2,10 @@ package me.anno.mesh.gltf
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.AnimMeshComponent
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightComponent
@@ -15,15 +19,24 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.graph.hdb.allocator.size
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.json.generic.JsonWriter
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
+import me.anno.mesh.gltf.writer.Accessor
+import me.anno.mesh.gltf.writer.AnimationData
+import me.anno.mesh.gltf.writer.BufferView
+import me.anno.mesh.gltf.writer.MaterialData
+import me.anno.mesh.gltf.writer.MeshData
+import me.anno.mesh.gltf.writer.Sampler
+import me.anno.mesh.gltf.writer.SkinData
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black3
 import me.anno.utils.Color.g
@@ -31,14 +44,16 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.white4
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.arrays.IntArrayList.Companion.emptyIntList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.maps.Maps.nextId
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Vectors.toLinear
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
+import org.joml.Matrix4x3f
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -50,56 +65,49 @@ import kotlin.math.max
 /**
  * writes a GLTF file from an Entity or Mesh,
  * writes materials and textures, too
- *
- * todo support skeletons and animation
  * */
-class GLTFWriter(
-    val allDepsToFolder: Boolean = false,
-    val packedDepsToFolder: Boolean = false,
-    val allDepsToBinary: Boolean = false,
-    val packedDepsToBinary: Boolean = true,
-    val maxNumBackPaths: Int = 0,
-    val json: ByteArrayOutputStream = ByteArrayOutputStream(1024)
-) : JsonWriter(json) {
+class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(GLTFWriter::class)
         private const val GL_FLOAT = 0x1406
         private const val GL_UNSIGNED_BYTE = 0x1401
         private const val GL_UNSIGNED_INT = 0x1405
+        private const val GL_ARRAY_BUFFER = 34962
+        private const val GL_ELEMENT_ARRAY_BUFFER = 34963
     }
 
-    private class BufferView(
-        val offset: Int,
-        val length: Int,
-        val target: Int,
-        val byteStride: Int,
-    )
+    var allDepsToFolder = false
+    var packedDepsToFolder = false
+    var allDepsToBinary = false
+    var packedDepsToBinary = true
+    var maxNumBackPaths = 0
 
-    private class Accessor(
-        val type: String,
-        val componentType: Int,
-        val count: Int,
-        val normalized: Boolean,
-        val min: String? = null,
-        val max: String? = null
-    )
-
-    private fun copyRaw(v: String) {
+    private fun copyRaw(value: String) {
         // raw copy
         next()
-        output.write(v.toByteArray())
+        output.write(value.encodeToByteArray())
     }
 
     private val textures = HashMap<IntPair, Int>() // source, sampler
     private val images = HashMap<FileReference, Int>() // uris
-    private val samplers = HashMap<Pair<Filtering, Clamping>, Int>()
-    private val materials = HashMap<Pair<Material, Boolean>, Int>() // material, isDoubleSided
-    private val meshes = HashMap<Pair<Mesh, List<FileReference>>, Int>() // mesh, materials[]
+    private val samplers = HashMap<Sampler, Int>()
+    private val materials = HashMap<MaterialData, Int>() // material, isDoubleSided
+    private val meshes = HashMap<MeshData, Int>() // mesh, materials[]
     private val cameras = HashMap<Camera, Int>()
     private val lights = HashMap<LightComponent, Int>()
+    private val skins = HashMap<SkinData, Int>()
+    private val meshCompToSkin = HashMap<AnimMeshComponent, Int>()
+    private val animations = ArrayList<AnimationData>()
 
     private val binary = ByteArrayOutputStream(4096)
+    private val json get() = output as ByteArrayOutputStream
+
+    private val nodes = ArrayList<Saveable>()
+    private val children = ArrayList<IntArrayList>()
+
+    private val bufferViews = ArrayList<BufferView>()
+    private val accessors = ArrayList<Accessor>()
 
     private fun countMeshes(entity: Entity): Int {
         return entity.components.count {
@@ -114,45 +122,72 @@ class GLTFWriter(
         }
     }
 
-    private val nodes = ArrayList<Saveable>()
-    private val children = ArrayList<IntArrayList>()
+    private fun addChild(comp: Component, childIndices: IntArrayList) {
+        val idx2 = nodes.size
+        nodes.add(comp)
+        childIndices.add(idx2)
+    }
 
-    private fun add(entity: Entity): Int {
+    private fun addEntity(entity: Entity): Int {
         val idx = nodes.size
         nodes.add(entity)
         val cm = countMeshes(entity)
-        if (entity.children.isNotEmpty() ||
-            entity.components.any { it is LightComponent || it is Camera } ||
-            cm > 1
-        ) {
-            val childIndices = IntArrayList(entity.children.size + cm)
-            children.add(childIndices)
-            for (child in entity.children) {
-                childIndices.add(add(child))
-            }
-            fun addChild(comp: Component) {
-                val idx2 = nodes.size
-                nodes.add(comp)
-                childIndices.add(idx2)
-            }
-            for (comp in entity.components) {
-                when (comp) {
-                    is MeshComponentBase -> {
-                        val mesh = comp.getMesh()
-                        if (mesh != null) {
-                            addChild(comp)
-                        }
-                    }
-                    is Camera -> addChild(comp)
-                    is LightComponent -> {
-                        if (supportsLight(comp)) {
-                            addChild(comp)
+        val childIndices = IntArrayList(entity.children.size + cm)
+        children.add(childIndices)
+        for (child in entity.children) {
+            childIndices.add(addEntity(child))
+        }
+        for (comp in entity.components) {
+            when (comp) {
+                is MeshComponentBase -> {
+                    val mesh = comp.getMesh()
+                    if (mesh != null) {
+                        addChild(comp, childIndices)
+                        if (comp is AnimMeshComponent && comp.animations.isNotEmpty()) {
+                            defineSkin(comp, childIndices)
                         }
                     }
                 }
+                is Camera -> addChild(comp, childIndices)
+                is LightComponent -> {
+                    if (supportsLight(comp)) {
+                        addChild(comp, childIndices)
+                    }
+                }
             }
-        } else children.add(emptyIntList)
+        }
         return idx
+    }
+
+    private fun defineSkin(comp: AnimMeshComponent, childIndices: IntArrayList) {
+        val skeleton = SkeletonCache[comp.skeleton]
+        if (skeleton != null) {
+            // add bone/skeleton hierarchy
+            val baseId = nodes.size
+            defineBoneHierarchy(skeleton.bones, childIndices)
+            meshCompToSkin[comp] = skins.nextId(SkinData(skeleton, baseId until nodes.size))
+            for (state in comp.animations) {
+                val animation = AnimationCache[state.source] ?: continue
+                animations.add(AnimationData(skeleton, animation, baseId))
+            }
+        }
+    }
+
+    private fun defineBoneHierarchy(bones: List<Bone>, roots: IntArrayList) {
+        val baseId = nodes.size
+        for (boneId in bones.indices) {
+            val bone = bones[boneId]
+            nodes.add(bone)
+            children.add(IntArrayList(4))
+        }
+        for (boneId in bones.indices) {
+            val bone = bones[boneId]
+            if (bone.parentId in bones.indices) {
+                children[baseId + bone.parentId].add(baseId + boneId)
+            } else {
+                roots.add(baseId + boneId)
+            }
+        }
     }
 
     private fun <K> writeArray(name: String, map: Map<K, Int>, write: (K) -> Unit) {
@@ -166,21 +201,38 @@ class GLTFWriter(
         }
     }
 
-    private val views = ArrayList<BufferView>()
-    private val accessors = ArrayList<Accessor>()
+    private fun minAABB(bounds: AABBf): String = "[${bounds.minX},${bounds.minY},${bounds.minZ}]"
+    private fun maxAABB(bounds: AABBf): String = "[${bounds.maxX},${bounds.maxY},${bounds.maxZ}]"
+
+    private fun aabb(bounds: FloatArray, i: Int, n: Int): String =
+        (i until i + n).joinToString(",", "[", "]") { bounds[it].toString() }
+
+    private fun alignBinary(alignment: Int) {
+        val remainder = binary.size() % alignment
+        if (remainder > 0) {
+            for (i in remainder until alignment) {
+                binary.write(0)
+            }
+        }
+        assertEquals(0, binary.size() % alignment)
+    }
 
     private fun createPositionsView(positions: FloatArray, bounds: AABBf): Int {
+        alignBinary(4)
         val start = binary.size()
         for (v in positions) {
             // NaN is not supported
             binary.writeLE32(if (v.isNaN()) 0 else v.toRawBits())
         }
-        accessors.add(Accessor("VEC3", GL_FLOAT, positions.size / 3, false, minAABB(bounds), maxAABB(bounds)))
-        views.add(BufferView(start, positions.size * 4, 34962, 0))
-        return accessors.size - 1
+        return addBuffer(
+            "VEC3", GL_FLOAT, positions.size / 3, false,
+            minAABB(bounds), maxAABB(bounds),
+            start, GL_ARRAY_BUFFER, 0
+        )
     }
 
     private fun createColorView(data: IntArray): Int {
+        alignBinary(4)
         val pos = binary.size()
         for (v in data) {
             binary.write(v.r())
@@ -188,12 +240,14 @@ class GLTFWriter(
             binary.write(v.b())
             binary.write(255) // unused
         }
-        accessors.add(Accessor("VEC3", GL_UNSIGNED_BYTE, data.size, true, null, null))
-        views.add(BufferView(pos, data.size * 4, 34962, 4))
-        return accessors.size - 1
+        return addBuffer(
+            "VEC3", GL_UNSIGNED_BYTE, data.size, true, null, null,
+            pos, GL_ARRAY_BUFFER, 4
+        )
     }
 
     private fun createIndicesView(data: IntArray, mode: DrawMode, cullMode: CullMode): Int {
+        alignBinary(4)
         val pos = binary.size()
         val reverseIndices = cullMode == CullMode.BACK
         if (reverseIndices && (mode == DrawMode.TRIANGLES || mode == DrawMode.TRIANGLE_STRIP)) {
@@ -205,12 +259,14 @@ class GLTFWriter(
                 binary.writeLE32(data[i])
             }
         }
-        accessors.add(Accessor("SCALAR", GL_UNSIGNED_INT, data.size, false))
-        views.add(BufferView(pos, data.size * 4, 34963, 0))
-        return accessors.size - 1
+        return addBuffer(
+            "SCALAR", GL_UNSIGNED_INT, data.size, false, null, null,
+            pos, GL_ELEMENT_ARRAY_BUFFER, 0
+        )
     }
 
     private fun createNormalsView(data: FloatArray): Int {
+        alignBinary(4)
         val pos = binary.size()
         val v = Vector3f()
         val bounds = AABBf()
@@ -230,16 +286,82 @@ class GLTFWriter(
                 bounds.union(0f, 1f, 0f)
             }
         }
-        val length = data.size * 4
-        accessors.add(Accessor("VEC3", GL_FLOAT, data.size / 3, false, minAABB(bounds), maxAABB(bounds)))
-        views.add(BufferView(pos, length, 34962, 0))
-        return accessors.size - 1
+        return addBuffer(
+            "VEC3", GL_FLOAT, data.size / 3, false, minAABB(bounds), maxAABB(bounds),
+            pos, GL_ARRAY_BUFFER, 0
+        )
     }
 
-    private fun minAABB(bounds: AABBf) = "[${bounds.minX},${bounds.minY},${bounds.minZ}]"
-    private fun maxAABB(bounds: AABBf) = "[${bounds.maxX},${bounds.maxY},${bounds.maxZ}]"
+    private fun createVectorView(data: FloatArray, type: String, numComp: Int, target: Int): Int {
+        alignBinary(if (numComp == 3) 16 else 4 * numComp)
+        val bounds = FloatArray(8)
+        bounds.fill(Float.POSITIVE_INFINITY, 0, 4)
+        bounds.fill(Float.NEGATIVE_INFINITY, 4, 8)
+        val pos = binary.size()
+        var k = 0
+        for (i in 0 until data.size / numComp) {
+            for (j in 0 until numComp) {
+                val value = data[k++]
+                bounds[j] = min(bounds[j], value)
+                bounds[j + 4] = max(bounds[j + 4], value)
+                binary.writeLE32(value)
+            }
+        }
+        return addBuffer(
+            type, GL_FLOAT, data.size / numComp, false,
+            aabb(bounds, 0, numComp), aabb(bounds, 4, numComp),
+            pos, target, 0
+        )
+    }
+
+    private fun addBuffer(
+        type: String, componentType: Int, count: Int, normalized: Boolean,
+        min: String?, max: String?, pos: Int, target: Int, byteStride: Int
+    ): Int {
+        accessors.add(Accessor(bufferViews.size, type, componentType, count, normalized, min, max))
+        bufferViews.add(BufferView(pos, binary.size() - pos, target, byteStride))
+        return accessors.lastIndex
+    }
+
+    private fun createWeightView(data: FloatArray): Int {
+        return createVectorView(data, "VEC4", 4, GL_ARRAY_BUFFER)
+    }
+
+    private fun createJointView(data: ByteArray, weights: FloatArray): Int {
+        alignBinary(4)
+        val pos = binary.size()
+        for (i in data.indices) {
+            binary.write(
+                if (weights[i] != 0f) data[i].toInt()
+                else 0 // zero weights must have zero indices in GLTF
+            )
+        }
+        return addBuffer(
+            "VEC4", GL_UNSIGNED_BYTE, data.size / 4, false, null, null,
+            pos, GL_ARRAY_BUFFER, 0
+        )
+    }
+
+    private fun createInverseBindMatrixView(data: List<Bone>): Int {
+        alignBinary(64)
+        val pos = binary.size()
+        val tmp = FloatArray(16)
+        tmp[15] = 1f // last row must be 0,0,0,1
+        for (v in data) {
+            v.inverseBindPose.get(tmp)
+            for (i in tmp.indices) {
+                val j = i.and(3).shl(2) or i.shr(2) // transpose the matrix
+                binary.writeLE32(tmp[j])
+            }
+        }
+        return addBuffer(
+            "MAT4", GL_FLOAT, data.size, false, null, null,
+            pos, 0, 0
+        )
+    }
 
     private fun createUVView(data: FloatArray): Int {
+        alignBinary(8)
         val pos = binary.size()
         val bounds = AABBf()
         for (i in data.indices step 2) {
@@ -251,28 +373,20 @@ class GLTFWriter(
             binary.writeLE32(v.toRawBits())
             bounds.union(u, v, 0f)
         }
-        val acc = Accessor(
-            "VEC2", GL_FLOAT, data.size / 2, false,
-            "[${bounds.minX},${bounds.minY}]", "[${bounds.maxX},${bounds.maxY}]"
+        val min = "[${bounds.minX},${bounds.minY}]"
+        val max = "[${bounds.maxX},${bounds.maxY}]"
+        return addBuffer(
+            "VEC2", GL_FLOAT, data.size / 2, false, min, max,
+            pos, GL_ARRAY_BUFFER, 0
         )
-        accessors.add(acc)
-        views.add(BufferView(pos, data.size * 4, 34962, 0))
-        return accessors.size - 1
     }
 
     private fun getTextureIndex(source: FileReference, sampler: Int): Int {
-        return textures.getOrPut(
-            IntPair(images.getOrPut(source) { images.size }, sampler)
-        ) { textures.size }
+        return textures.nextId(IntPair(images.nextId(source), sampler))
     }
 
-    private fun writeSamplers() {
-        writeArray("samplers", samplers) { (filtering, clamping) ->
-            writeSampler(filtering, clamping)
-        }
-    }
-
-    private fun writeSampler(filtering: Filtering, clamping: Clamping) {
+    private fun writeSampler(sampler: Sampler) {
+        val (filtering, clamping) = sampler
         writeObject {
             attr("magFilter")
             write(filtering.mag)
@@ -285,9 +399,16 @@ class GLTFWriter(
         }
     }
 
-    private fun writeBufferViews() {
-        attr("bufferViews")
-        writeArray(views, ::writeBufferView)
+    private fun writeSkin(skinData: SkinData) {
+        val (skeleton, nodes) = skinData
+        writeObject {
+            attr("inverseBindMatrices")
+            write(createInverseBindMatrixView(skeleton.bones))
+            attr("joints")
+            writeArrayByIndices(0, nodes.size) {
+                write(nodes.first + it)
+            }
+        }
     }
 
     private fun writeBufferView(bufferView: BufferView) {
@@ -315,11 +436,16 @@ class GLTFWriter(
                 .filterIsInstance<MeshComponentBase>()
                 .firstNotNullOfOrNull {
                     val mesh = it.getMesh() as? Mesh
-                    if (mesh != null) Pair(mesh, it.materials) else null
+                    if (mesh != null) Pair(it, mesh) else null
                 }
             if (mesh != null) {
                 attr("mesh")
-                write(meshes.nextId(mesh))
+                write(meshes.nextId(getMeshData(mesh.first, mesh.second)))
+                val skin = meshCompToSkin[mesh.first]
+                if (skin != null) {
+                    attr("skin")
+                    write(skin)
+                }
             }
         }
 
@@ -357,12 +483,6 @@ class GLTFWriter(
         }
     }
 
-    private fun writeMaterials() {
-        writeArray("materials", materials) { (material, isDoubleSided) ->
-            writeMaterial(material, isDoubleSided)
-        }
-    }
-
     private fun writePbrMetallicRoughness(material: Material, sampler: Int) {
         writeObject {
             if (material.diffuseMap.exists) {
@@ -396,17 +516,18 @@ class GLTFWriter(
             material.normalMap.exists ||
             material.occlusionMap.exists
         ) {
-            samplers.getOrPut(
-                Pair(
+            samplers.nextId(
+                Sampler(
                     if (material.linearFiltering) Filtering.TRULY_LINEAR
                     else Filtering.TRULY_NEAREST,
                     material.clamping
                 )
-            ) { samplers.size }
+            )
         } else -1
     }
 
-    private fun writeMaterial(material: Material, isDoubleSided: Boolean) {
+    private fun writeMaterial(data: MaterialData) {
+        val (material, isDoubleSided) = data
         // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
         writeObject {
             val sampler = findSampler(material)
@@ -433,18 +554,6 @@ class GLTFWriter(
                 attr("index")
                 write(getTextureIndex(texture, sampler))
             }
-        }
-    }
-
-    private fun writeMeshes() {
-        writeArray("meshes", meshes) { (mesh, materialOverrides) ->
-            writeMesh(mesh, materialOverrides)
-        }
-    }
-
-    private fun writeCameras() {
-        writeArray("cameras", cameras) { camera ->
-            writeCamera(camera)
         }
     }
 
@@ -479,7 +588,9 @@ class GLTFWriter(
         }
     }
 
-    private fun writeMesh(mesh: Mesh, materialOverrides: List<FileReference>) {
+    private fun writeMesh(data: MeshData) {
+        val (mesh, materialOverrides, animations) = data
+        val hasSkeleton = animations.isNotEmpty()
         writeObject {
 
             mesh.ensureNorTanUVs()
@@ -496,6 +607,12 @@ class GLTFWriter(
 
             val color = mesh.color0
             val colorI = if (color != null) createColorView(color) else null
+
+            val weights = mesh.boneWeights
+            val joints = mesh.boneIndices
+            val hasBones = weights != null && joints != null && hasSkeleton
+            val weightsI = if (hasBones && weights != null) createWeightView(weights) else null
+            val jointsI = if (hasBones && joints != null && weights != null) createJointView(joints, weights) else null
 
             attr("primitives")
             writeArray {
@@ -521,7 +638,16 @@ class GLTFWriter(
                             write(colorI)
                         }
 
-                        // todo skinning and animation support
+                        if (weightsI != null) {
+                            attr("WEIGHTS_0")
+                            write(weightsI)
+                        }
+
+                        if (jointsI != null) {
+                            attr("JOINTS_0")
+                            write(jointsI)
+                        }
+
                     }
                 }
 
@@ -568,7 +694,7 @@ class GLTFWriter(
             write(mode.id) // triangles / triangle-strip, ...
 
             attr("material")
-            write(materials.nextId(material to (cullMode == CullMode.BOTH)))
+            write(materials.nextId(MaterialData(material, cullMode)))
 
             if (indices != null) {
                 attr("indices")
@@ -592,7 +718,7 @@ class GLTFWriter(
 
             if (material != null) {
                 attr("material")
-                write(materials.nextId(material to (cullMode == CullMode.BOTH)))
+                write(materials.nextId(MaterialData(material, cullMode)))
             }
 
             val indices = helper.indices
@@ -603,13 +729,8 @@ class GLTFWriter(
         }
     }
 
-    private fun writeTextures() {
-        writeArray("textures", textures) { (source, sampler) ->
-            writeTexture(source, sampler)
-        }
-    }
-
-    private fun writeTexture(source: Int, sampler: Int) {
+    private fun writeTexture(texture: IntPair) {
+        val (source, sampler) = texture
         writeObject {
             attr("source")
             write(source)
@@ -618,15 +739,10 @@ class GLTFWriter(
         }
     }
 
-    private fun writeAccessors() {
-        attr("accessors")
-        writeArrayIndexed(accessors, ::writeAccessor)
-    }
-
-    private fun writeAccessor(i: Int, acc: Accessor) {
+    private fun writeAccessor(acc: Accessor) {
         writeObject {
             attr("bufferView")
-            write(i)
+            write(acc.view)
             attr("type")
             write(acc.type)
             attr("componentType")
@@ -646,15 +762,9 @@ class GLTFWriter(
         }
     }
 
-    private fun writeImages(dst: FileReference) {
-        val dstParent = dst.getParent()
-        writeArray("images", images) {
-            writeImage(dstParent, it)
-        }
-    }
-
-    private fun writeImage(dstParent: FileReference, src: FileReference) {
+    private fun writeImage(src: FileReference) {
         writeObject {
+            val dstParent = dstParent
             // if contains inaccessible assets, pack them, or write them to same directory
             val sameFolder = src.getParent() == dstParent
             val packed = src is InnerFile
@@ -683,11 +793,11 @@ class GLTFWriter(
         // "bufferView": 3,
         // "mimeType" : "image/jpeg"
         attr("bufferView")
-        write(views.size)
+        write(bufferViews.size)
         val pos0 = binary.size()
         src.inputStreamSync().copyTo(binary) // must be sync, or we'd need to unpack this loop
         val pos1 = binary.size()
-        views.add(BufferView(pos0, pos1 - pos0, 0, 0))
+        bufferViews.add(BufferView(pos0, pos1 - pos0, 0, 0))
         val ext = when (Signature.findNameSync(src)) {
             "png" -> "image/png"
             "jpg" -> "image/jpeg"
@@ -708,7 +818,12 @@ class GLTFWriter(
         val mesh = node.getMesh()
         if (mesh != null) {
             attr("mesh")
-            write(meshes.nextId(Pair(mesh, node.materials)))
+            write(meshes.nextId(getMeshData(node, mesh)))
+            val skin = meshCompToSkin[node]
+            if (skin != null) {
+                attr("skin")
+                write(skin)
+            }
         }
     }
 
@@ -739,9 +854,19 @@ class GLTFWriter(
         }
     }
 
-    private fun writeNodes() {
-        attr("nodes")
-        writeArrayIndexed(nodes, ::writeNode)
+    private fun writeBoneAttributes(bone: Bone) {
+        val m = bone.relativeTransform // correct??
+        attr("name")
+        write(bone.name)
+        attr("translation")
+        write(m.getTranslation(Vector3f()))
+        attr("rotation")
+        write(m.getUnnormalizedRotation(Quaternionf()))
+        val sc = m.getScale(Vector3f())
+        if (sc.distanceSquared(1f, 1f, 1f) > 1e-3f) {
+            attr("scale")
+            write(sc)
+        }
     }
 
     private fun writeNode(i: Int, node: Any) {
@@ -751,16 +876,15 @@ class GLTFWriter(
                 is MeshComponent -> writeMeshCompAttributes(node)
                 is Camera -> writeCameraAttributes(node)
                 is LightComponent -> writeLightAttributes(node)
+                is Bone -> writeBoneAttributes(node)
                 else -> LOGGER.warn("Unknown node type $node")
             }
 
             val childrenI = children.getOrNull(i)
             if (childrenI != null && !childrenI.isEmpty()) {
                 attr("children")
-                writeArray {
-                    for (j in childrenI.indices) {
-                        write(childrenI[j])
-                    }
+                writeArrayByIndices(0, childrenI.size) {
+                    write(childrenI[it])
                 }
             }
         }
@@ -803,24 +927,31 @@ class GLTFWriter(
         write(0)
     }
 
-    private fun collectNodes(scene: Saveable, callback: (Exception?) -> Unit) {
+    private fun getMeshData(scene: MeshComponentBase, mesh: Mesh): MeshData {
+        val animations = if (scene is AnimMeshComponent && SkeletonCache[scene.skeleton] != null) {
+            scene.animations.map { it.source }.filter { it.exists }
+        } else emptyList()
+        return MeshData(mesh, scene.materials, animations)
+    }
+
+    private fun defineSceneHierarchy(scene: Saveable, callback: (Exception?) -> Unit) {
         when (scene) {
-            is Prefab -> collectNodes(scene.getSampleInstance(), callback)
+            is Prefab -> defineSceneHierarchy(scene.getSampleInstance(), callback)
             is Entity -> {
                 scene.validateTransform()
-                add(scene)
+                addEntity(scene)
                 callback(null)
             }
             is Mesh -> {
                 nodes.add(MeshComponent(scene))
-                meshes[Pair(scene, emptyList())] = 0
+                meshes[MeshData(scene, emptyList(), emptyList())] = 0
                 callback(null)
             }
             is MeshComponentBase -> {
                 val mesh = scene.getMesh()
                 if (mesh is Mesh) {
                     nodes.add(scene)
-                    meshes[Pair(mesh, scene.materials)] = 0
+                    meshes[getMeshData(scene, mesh)] = 0
                     callback(null)
                 } else callback(IllegalArgumentException("Missing mesh"))
             }
@@ -845,63 +976,38 @@ class GLTFWriter(
     }
 
     fun write(scene: Saveable, dst: FileReference) {
-        collectNodes(scene) { err ->
+        defineSceneHierarchy(scene) { err ->
             if (err == null) {
                 writeAll(dst)
             } else err.printStackTrace()
         }
     }
 
-    private fun writeAll(dst: FileReference) {
-        writeObject {
-            writeHeader()
-            writeSceneIndex()
-            writeScenes()
-            writeNodes()
-            writeCameras()
-            writeMeshes()
-            writeMaterials()
-            writeTextures()
-            writeImages(dst)
-            writeSamplers()
-            writeBufferViews()
-            writeAccessors()
-            writeBuffers()
-            writeExtensions()
-        }
-        finish()
-        writeChunks(dst)
-    }
-
     private fun writeExtensions() {
+        if (lights.isEmpty()) return // no extensions needed
         attr("extensions")
         writeObject {
-            if (lights.isNotEmpty()) {
-                attr("KHR_lights_punctual")
-                writeLights()
-            }
+            attr("KHR_lights_punctual")
+            writeLights()
         }
     }
 
-    /**
-     * docs: https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md
-     * */
     private fun writeLights() {
         writeObject {
             writeArray("lights", lights, ::writeLight)
         }
     }
 
+    /**
+     * docs: https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md
+     * */
     private fun writeLight(light: LightComponent) {
         writeObject {
             val color = light.color.toLinear(Vector3f())
             val intensity = max(1e-38f, color.max())
+            color.div(intensity)
             attr("color")
-            writeArray {
-                write(color.x / intensity)
-                write(color.y / intensity)
-                write(color.z / intensity)
-            }
+            write(color)
             attr("intensity")
             write(intensity)
             val type = when (light) {
@@ -929,6 +1035,126 @@ class GLTFWriter(
     private fun writeLightRange() {
         attr("range")
         write(1f)
+    }
+
+    private fun writeAnimationChannel(node: Int, name: String, sampler: Int) {
+        writeObject {
+            attr("target")
+            writeObject {
+                attr("node")
+                write(node)
+                attr("path")
+                write(name)
+            }
+            attr("sampler")
+            write(sampler)
+        }
+    }
+
+    private fun writeAnimation(animData: AnimationData) {
+        writeObject {
+            // we could write one shared buffer for all data...
+            // -> that's error-prone, so let's just be safe
+            val skeleton = animData.skeleton
+            val bones = skeleton.bones
+            val baseId = animData.baseId
+            val animation = animData.animation
+            val frameTimes = FloatArray(animation.numFrames)
+            val dt = animation.duration / frameTimes.size
+            for (i in frameTimes.indices) {
+                frameTimes[i] = dt * i
+            }
+            val inputAccessor = createVectorView(frameTimes, "SCALAR", 1, 0)
+            val accessor0 = accessors.size
+            var ci = 0
+            attr("channels")
+            writeArray {
+                val tmp = Matrix4x3f()
+                val matrices = frameTimes.indices.map { frameIndex ->
+                    val result = createArrayList(bones.size) { Matrix4x3f() }
+                    // todo this matrix or the inverse-bind-matrices are incorrect
+                    //  -> we need the local position, rotation and scale, not the global offset
+                    //  -> inverse of AnimationLoader.readAnimationFrame
+                    // skinning = (parent * local) * binePose^-1 | we want local
+                    // -> skinning * bindPose = (parent * local)
+                    val skinning = animation.getMappedMatrices(frameIndex, result, skeleton.ref)!!
+                    for (boneId in bones.indices) {
+                        val bone = bones[boneId]
+                        val dst = skinning[boneId].mul(bone.bindPose, result[boneId])
+                        if (bone.parentId in bones.indices) {
+                            result[bone.parentId].invert(tmp).mul(dst, dst)
+                        }
+                    }
+                    result
+                }
+                val tmp3 = Vector3f()
+                val tmp4 = Quaternionf()
+                for (boneId in bones.indices) {
+                    val pos = FloatArray(frameTimes.size * 3)
+                    val rot = FloatArray(frameTimes.size * 4)
+                    val sca = FloatArray(frameTimes.size * 3)
+                    for (frameIndex in frameTimes.indices) {
+                        val matrix = matrices[frameIndex][boneId]
+                        matrix.getTranslation(tmp3).get(pos, frameIndex * 3)
+                        matrix.getUnnormalizedRotation(tmp4).get(rot, frameIndex * 4)
+                        matrix.getScale(tmp3).get(sca, frameIndex * 3)
+                    }
+                    createVectorView(pos, "VEC3", 3, 0)
+                    createVectorView(rot, "VEC4", 4, 0)
+                    createVectorView(sca, "VEC3", 3, 0)
+                    val node = boneId + baseId
+                    writeAnimationChannel(node, "translation", ci++)
+                    writeAnimationChannel(node, "rotation", ci++)
+                    writeAnimationChannel(node, "scale", ci++)
+                }
+            }
+            attr("samplers")
+            writeArray { // lots of repetitive data :/
+                for (i in 0 until ci) {
+                    writeObject {
+                        attr("input")
+                        write(inputAccessor)
+                        attr("interpolation")
+                        write("LINEAR") // ok?, or should be use cubic?
+                        attr("output")
+                        write(accessor0 + i)
+                    }
+                }
+            }
+        }
+    }
+
+    fun <V> writeArray(name: String, elements: List<V>, writeElement: (V) -> Unit) {
+        if (elements.isNotEmpty()) {
+            attr(name)
+            writeArray(elements, writeElement)
+        }
+    }
+
+    private var dstParent: FileReference = InvalidRef
+    private fun writeAll(dst: FileReference) {
+        dstParent = dst.getParent()
+        writeObject {
+            writeHeader()
+            writeSceneIndex()
+            writeScenes()
+            attr("nodes")
+            writeArrayIndexed(nodes, ::writeNode)
+            writeArray("cameras", cameras, ::writeCamera)
+            writeArray("meshes", meshes, ::writeMesh)
+            writeArray("materials", materials, ::writeMaterial)
+            writeArray("textures", textures, ::writeTexture)
+            writeArray("samplers", samplers, ::writeSampler)
+            writeArray("skins", skins, ::writeSkin)
+            writeArray("animations", animations, ::writeAnimation)
+            writeArray("images", images, ::writeImage)
+            writeArray("accessors", accessors, ::writeAccessor)
+            writeArray("bufferViews", bufferViews, ::writeBufferView)
+            writeBuffers()
+            writeExtensions()
+        }
+        finish()
+        writeChunks(dst)
     }
 
     private fun ensureAlignment(bos: ByteArrayOutputStream, paddingByte: Int) {

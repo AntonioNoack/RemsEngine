@@ -6,6 +6,7 @@ import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Strings
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -136,6 +137,14 @@ open class JsonWriter(val output: OutputStream) {
         }
     }
 
+    fun writeArrayByIndices(i0: Int, i1: Int, writeElement: (Int) -> Unit) {
+        writeArray {
+            for (i in i0 until i1) {
+                writeElement(i)
+            }
+        }
+    }
+
     inline fun writeObject(writeAttributes: () -> Unit) {
         beginObject()
         writeAttributes()
@@ -181,6 +190,15 @@ open class JsonWriter(val output: OutputStream) {
         write(v.y)
         write(v.z)
         write(v.w)
+        endArray()
+    }
+
+    fun write(q: Quaternionf) {
+        beginArray()
+        write(q.x)
+        write(q.y)
+        write(q.z)
+        write(q.w)
         endArray()
     }
 

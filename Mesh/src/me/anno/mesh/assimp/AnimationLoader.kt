@@ -159,22 +159,19 @@ object AnimationLoader {
             false
         } else isRootAnim
 
-        parentTransform?.mul(localTransform, localTransform)
+        parentTransform?.mul(localTransform, localTransform) // local = parent * local
 
         val bone = boneMap[name]
         if (bone != null) {
-            val boneOffsetMatrix = bone.inverseBindPose
+            val inverseBindPose = bone.inverseBindPose // = bone offset matrix
             val skinningMatrix = skinningMatrices[bone.id]
             if (globalTransform == null || globalInverseTransform == null) {
-                skinningMatrix
-                    .set(localTransform)
-                    .mul(boneOffsetMatrix)
+                localTransform.mul(inverseBindPose, skinningMatrix) // skinning = local * bindPose^-1
             } else {
                 // the same, just converting the vertices temporarily into local global space and then back
-                skinningMatrix
-                    .set(globalInverseTransform)
-                    .mul(localTransform)
-                    .mul(boneOffsetMatrix)
+                globalInverseTransform // skinning = global^-1 * local * bindPose^-1 * global
+                    .mul(localTransform, skinningMatrix)
+                    .mul(inverseBindPose)
                     .mul(globalTransform)
             }
         }
