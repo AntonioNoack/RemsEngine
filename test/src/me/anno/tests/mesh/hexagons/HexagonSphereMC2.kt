@@ -1,23 +1,39 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.getComponent
-import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.ecs.components.mesh.unique.MeshEntry
+import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.ECSRegistry
 import me.anno.engine.Events.addEvent
-import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.DrawMode
+import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.utils.OS.desktop
+import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.AABBd
+import org.joml.AABBf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.Random
@@ -147,7 +163,10 @@ fun main() {
 
     ECSRegistry.init()
 
-    testSceneWithUI("HexSphere MC/2", Entity(HSChunkLoader(sphere, world))) {
+    val scene = Entity()
+    scene.add(HSChunkLoader(sphere, world))
+    scene.add(MeshComponent(IcosahedronModel.createIcosphere(5, 0.999f)))
+    testSceneWithUI("HexSphere MC/2", scene) {
         it.renderer.orbitCenter.set(0.0, 1.0, 0.0)
         it.renderer.radius = 10.0 * sphere.len
         it.renderer.near = it.renderer.radius * 0.01
@@ -158,35 +177,96 @@ fun main() {
 
 val worker = ProcessingGroup("worldGen", 4)
 
-// todo use UniqueMeshRenderer for better performance
-class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) : Component() {
+val attributes = listOf(
+    Attribute("coords", 3),
+    Attribute("colors0", AttributeType.UINT8_NORM, 4)
+)
+
+val hexVertexData = MeshVertexData(
+    listOf(
+        ShaderStage(
+            "hex-coords", listOf(
+                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
+            ), "localPosition = coords;\n"
+        )
+    ),
+    listOf(
+        ShaderStage(
+            "hex-nor", listOf(
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
+            ), "normal = vec3(0.0); tangent = vec4(0.0);\n"
+        )
+    ),
+    listOf(
+        ShaderStage(
+            "hex-col", listOf(
+                Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT),
+            ), "vertexColor0 = colors0;\n"
+        )
+    ),
+    MeshVertexData.DEFAULT.loadMotionVec,
+    listOf(
+        // calculate normals using cross product
+        ShaderStage(
+            "hex-px-nor", listOf(
+                Variable(GLSLType.V3F, "finalPosition"),
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT)
+            ), "normal = normalize(cross(dFdx(finalPosition), dFdy(finalPosition)));\n"
+        )
+    ),
+)
+
+// todo why is this still lagging soo much? shouldn't it be smooth???
+// todo also why is BinarySearch corrupting in AllocationManager???
+class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) :
+    UniqueMeshRenderer<Mesh, HexagonSphere.Chunk>(attributes, hexVertexData, DrawMode.TRIANGLES) {
+
+    override val materials: List<FileReference>
+        get() = listOf(material.ref)
+
+    override fun getData(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
+        val positions = mesh.positions ?: return null
+        val colors = mesh.color0 ?: return null
+        assertEquals(null, mesh.indices) // indices aren't supported here
+        assertEquals(positions.size, colors.size * 3)
+        val buffer = StaticBuffer("hexagons", attributes, positions.size / 3)
+        for (i in colors.indices) {
+            buffer.put(positions, i * 3, 3)
+            buffer.putRGBA(colors[i])
+        }
+        return buffer
+    }
+
+    override fun forEachHelper(key: HexagonSphere.Chunk, transform: Transform): Material {
+        // transform can stay identity
+        return material
+    }
+
     val dir = Vector3f()
     val pos = Vector3d()
     val aabb = AABBd()
-    val chunks = HashMap<HexagonSphere.Chunk, Entity>()
+    val chunks = HashMap<HexagonSphere.Chunk, AABBf>()
     val requests = ArrayList<HexagonSphere.Chunk>()
     var maxAngleDifference = sphere.len * 512
+
     override fun clone() = HSChunkLoader(sphere, world)
     override fun onUpdate(): Int {
-
-        val scene = entity ?: return 1
-        val pos = pos.set(RenderState.cameraPosition).safeNormalize()
+        val pos = pos.set(RenderView.currentInstance!!.orbitCenter).safeNormalize()
         if (pos.lengthSquared() < 0.5) pos.z = 1.0
         dir.set(pos)
-        chunks.removeIf { (_, child) ->
-            val comp = child.getComponent(MeshComponent::class)
-            if (comp != null) {
+        val pos3 = Vector3f(pos)
+        chunks.removeIf { (key, bounds) ->
+            if (!bounds.isEmpty()) {
                 aabb.clear()
-                comp.fillSpace(scene.transform.globalTransform, aabb)
-                if (aabb.distance(pos) > 1.5f * maxAngleDifference) {
-                    scene.remove(child)
-                    val mesh = comp.getMeshOrNull()
-                    if (mesh != null) destroyMesh(mesh)
+                if (bounds.distance(pos3) > 1.5f * maxAngleDifference) {
+                    remove(key, true)
                     true
                 } else false
             } else false
         }
-
         // within a certain radius, request all chunks
         sphere.queryChunks(dir, maxAngleDifference) { sc ->
             if (sc !in chunks) requests.add(sc)
@@ -199,27 +279,22 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
             min(requests.size, 16 - max(worker.remaining, GFX.gpuTasks.size))
         )) {
             val key = requests[i]
-            val entity = Entity()
             worker += {
                 // check if the request is still valid
                 val mesh = createMesh(sphere.queryChunk(key), world)
                 GFX.addGPUTask("chunk", sphere.chunkCount) {
-                    mesh.ensureBuffer()
-                    addEvent {
-                        val comp = MeshComponent(mesh.ref)
-                        entity.add(comp)
-                        entity.invalidateAABBsCompletely()
-                        entity.getBounds()
-                        scene.add(entity)
-                        scene.getBounds()
+                    val buffer = getData(key, mesh)
+                    if (buffer != null) {
+                        addEvent {
+                            add(key, MeshEntry(mesh, mesh.getBounds(), buffer))
+                            chunks[key] = mesh.getBounds()
+                        }
                     }
                 }
             }
-            chunks[key] = entity
+            chunks[key] = AABBf()
         }
         requests.clear()
-
-        (scene.children as MutableList).sortBy { it.aabb.distanceSquared(pos) }
         return 1
     }
 }

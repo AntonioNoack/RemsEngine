@@ -7,6 +7,10 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.maths.Maths
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
@@ -243,6 +247,17 @@ abstract class OpenGLBuffer(
 
     fun putByte(b: Byte): OpenGLBuffer {
         nioBuffer!!.put(b)
+        isUpToDate = false
+        return this
+    }
+
+    fun putRGBA(c: Int): OpenGLBuffer {
+       val buffer = nioBuffer!!
+        buffer
+            .put(c.r().toByte())
+            .put(c.g().toByte())
+            .put(c.b().toByte())
+            .put(c.a().toByte())
         isUpToDate = false
         return this
     }

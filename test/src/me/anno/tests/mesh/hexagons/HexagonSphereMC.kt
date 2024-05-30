@@ -51,9 +51,9 @@ val logic1: Byte = 10
 val light0: Byte = 11
 val light1: Byte = 12
 
-val texIdsXZ = intArrayOf(-1, 16, 32, 48, 65, 67, 17, 33, 253)
-val texIdsPY = intArrayOf(-1, 16, 32, 0, 81, 67, 17, 33, 253)
-val texIdsNY = intArrayOf(-1, 16, 32, 32, 81, 67, 17, 33, 253)
+val texIdsXZ = intArrayOf(-1, 1, 2, 3, 20, 52, 17, 18, 223)
+val texIdsPY = intArrayOf(-1, 1, 2, 0, 22, 52, 17, 18, 223)
+val texIdsNY = intArrayOf(-1, 1, 2, 3, 22, 52, 17, 18, 223)
 
 // categorize blocks into three groups -> shall add wall:
 //  - solid (sand)          -> !solid

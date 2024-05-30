@@ -14,7 +14,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.image.ImageCache
-import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import org.apache.logging.log4j.LogManager
 
@@ -52,7 +51,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
             ), "" +
                     // calculate uv from color to save memory and bandwidth
                     "#ifdef COLORS\n" +
-                    "   int idx = int(colors0.r*65535.0+colors0.g*255.0+0.5);\n" +
+                    "   int idx = int(colors0.r*65280.0+colors0.g*255.0);\n" +
                     "   vertexColor0 = colors0;\n" +
                     "   const vec2 uvArray[11] = vec2[](" +
                     "${uv6.joinToString { "vec2(${it.x},${1f - it.y})" }}, " +
@@ -69,7 +68,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         // return super.createFragmentStages(key)
-        return listOf(ShaderStage(
+        return key.vertexData.onFragmentShader + listOf(ShaderStage(
             "material",
             createFragmentVariables(key).filter {
                 when (it.name) {
@@ -113,6 +112,8 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     "if(dither2x2(color.a)) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = 1.0;//color.a;\n" +
+                    "finalMetallic = 1.0-color.a;\n" +
+                    "finalRoughness = color.a;\n" +
                     normalTanBitanCalculation +
                     // normalMapCalculation +
                     // emissiveCalculation +

@@ -891,11 +891,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
             fun putColor(colors: IntArray?) {
                 if (i < colors!!.size) {
-                    val color = colors[i]
-                    buffer.putByte(color.r().toByte())
-                    buffer.putByte(color.g().toByte())
-                    buffer.putByte(color.b().toByte())
-                    buffer.putByte(color.a().toByte())
+                    buffer.putRGBA(colors[i])
                 } else buffer.putInt(-1)
             }
 
