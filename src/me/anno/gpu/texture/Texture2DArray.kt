@@ -19,6 +19,8 @@ import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2RGBA
+import me.anno.utils.assertions.assertEquals
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.structures.Callback
@@ -28,10 +30,6 @@ import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_COMPARE_REF_TO_TEXTURE
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_NONE
-import org.lwjgl.opengl.GL46C.GL_ONE
-import org.lwjgl.opengl.GL46C.GL_R16
-import org.lwjgl.opengl.GL46C.GL_R16F
-import org.lwjgl.opengl.GL46C.GL_R32F
 import org.lwjgl.opengl.GL46C.GL_R8
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RGBA
@@ -145,30 +143,22 @@ open class Texture2DArray(
     }
 
     fun create(img: Image, sync: Boolean) {
-        // todo we could detect monochrome and such :)
-        val intData = img.createIntImage().data
-        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            // argb -> abgr
-            switchRGB2BGR(intData)
-        } else {
-            for (i in intData.indices) {// argb -> rgba
-                intData[i] = convertARGB2RGBA(intData[i])
-            }
-        }
-        if (sync) createRGBA8(intData)
-        else GFX.addGPUTask("Texture3D.create()", img.width, img.height) {
-            createRGBA8(intData)
-        }
+        create(img.split(1, layers), sync)
     }
 
     fun create(images: List<Image>, sync: Boolean, callback: Callback<Texture2DArray>? = null) {
-        // todo we could detect monochrome and such :)
+        width = images.minOf { it.width }
+        height = images.minOf { it.height }
+        layers = images.size
         val intData = IntArray(width * height * layers)
-        var i0 = 0
+        var dstI = 0
         for (image in images) {
-            val data = image.createIntImage().data
-            data.copyInto(intData, i0)
-            i0 += data.size
+            val intImage = image.createIntImage()
+            for (y in 0 until height) {
+                val srcI = intImage.getIndex(0, y)
+                intImage.data.copyInto(intData, dstI, srcI, srcI + width)
+                dstI += width
+            }
         }
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             // argb -> abgr

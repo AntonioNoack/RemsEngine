@@ -31,9 +31,6 @@ import kotlin.math.sin
  * docs: https://box2d.org/documentation/
  * done stepping like BulletPhysics, maybe join them
  * todo:
- *  - Fast persistent contact solver
- *  - Dynamic tree broadphase
- *  - Edges and polygons
  *  - Several joint types: distance, revolute, prismatic, pulley, gear, mouse
  *  - Motors
  *  - Ray casts

@@ -33,9 +33,12 @@ import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.utils.TestWorld
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.hpc.ProcessingQueue
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3i
 import kotlin.math.floor
+
+private val LOGGER = LogManager.getLogger("UniqueMeshRenderer")
 
 /**
  * load/unload a big voxel world without much stutter;
@@ -93,7 +96,10 @@ fun main() {
             super.generateChunk(chunkX, chunkY, chunkZ, chunk)
             saveSystem.get(Vector3i(chunkX, chunkY, chunkZ), false) { data ->
                 for ((k, v) in data) {
-                    chunk[getIndex(k.x, k.y, k.z)] = v
+                    val index = getIndex(k.x, k.y, k.z)
+                    if(index in chunk.indices) {
+                        chunk[index] = v
+                    } else LOGGER.warn("Out of bounds: $k/$v")
                 }
             }
         }

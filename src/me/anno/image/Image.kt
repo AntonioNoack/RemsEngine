@@ -53,16 +53,19 @@ abstract class Image(
         val width = width
         val height = height
         val data = IntArray(width * height)
-        val image = IntImage(width, height, data, hasAlphaChannel)
         var i = 0
-        val size = width * height
-        while (i < size) {
-            data[i] = getRGB(i)
-            i++
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                data[i++] = getRGB(x, y)
+            }
         }
-        return image
+        return IntImage(width, height, data, hasAlphaChannel)
     }
 
+    /**
+     * get the color at that pixel index;
+     * if you calculate the index yourself, please use getIndex() instead, so offset and stride are considered!
+     * */
     abstract fun getRGB(index: Int): Int
 
     fun getValueAt(x: Float, y: Float, shift: Int): Float {
@@ -74,36 +77,17 @@ abstract class Image(
         val gx = 1f - fx
         val fy = y - yf
         val gy = 1f - fy
-        var c00: Int
-        var c01: Int
-        var c10: Int
-        var c11: Int
-        val width = width
-        if (xi >= 0 && yi >= 0 && xi < width - 1 && yi < height - 1) {
-            // safe
-            val index = xi + yi * width
-            c00 = getRGB(index)
-            c01 = getRGB(index + width)
-            c10 = getRGB(index + 1)
-            c11 = getRGB(index + 1 + width)
-        } else {
-            // border
-            c00 = getSafeRGB(xi, yi)
-            c01 = getSafeRGB(xi, yi + 1)
-            c10 = getSafeRGB(xi + 1, yi)
-            c11 = getSafeRGB(xi + 1, yi + 1)
-        }
-        c00 = c00.shr(shift).and(255)
-        c01 = c01.shr(shift).and(255)
-        c10 = c10.shr(shift).and(255)
-        c11 = c11.shr(shift).and(255)
+        val c00 = getSafeRGB(xi, yi).shr(shift).and(255)
+        val c01 = getSafeRGB(xi, yi + 1).shr(shift).and(255)
+        val c10 = getSafeRGB(xi + 1, yi).shr(shift).and(255)
+        val c11 = getSafeRGB(xi + 1, yi + 1).shr(shift).and(255)
         val r0 = c00 * gy + fy * c01
         val r1 = c10 * gy + fy * c11
         return r0 * gx + fx * r1
     }
 
     fun getRGB(x: Int, y: Int): Int {
-        return getRGB(x + y * width)
+        return getRGB(getIndex(x, y))
     }
 
     fun sampleRGB(x: Float, y: Float, filtering: Filtering, clamping: Clamping): Int {
@@ -137,7 +121,9 @@ abstract class Image(
     }
 
     fun getSafeRGB(x: Int, y: Int): Int {
-        return getRGB(getIndex(x, y))
+        val xi = clamp(x, 0, width - 1)
+        val yi = clamp(y, 0, height - 1)
+        return getRGB(getIndex(xi, yi))
     }
 
     open fun createTexture(
@@ -402,20 +388,25 @@ abstract class Image(
         }
     }
 
-    open fun split(sx: Int, sy: Int): List<Image> {
-        return createArrayList(sx * sy) {
-            val ix = it % sx
-            val iy = it / sx
-            val x0 = WorkSplitter.partition(ix, width, sx)
-            val x1 = WorkSplitter.partition(ix + 1, width, sx)
-            val y0 = WorkSplitter.partition(iy, height, sy)
-            val y1 = WorkSplitter.partition(iy + 1, height, sy)
+    open fun split(numImagesX: Int, numImagesY: Int): List<Image> {
+        return createArrayList(numImagesX * numImagesY) {
+            val ix = it % numImagesX
+            val iy = it / numImagesX
+            val x0 = WorkSplitter.partition(ix, width, numImagesX)
+            val x1 = WorkSplitter.partition(ix + 1, width, numImagesX)
+            val y0 = WorkSplitter.partition(iy, height, numImagesY)
+            val y1 = WorkSplitter.partition(iy + 1, height, numImagesY)
             cropped(x0, y0, x1 - x0, y1 - y0)
         }
     }
 
     open fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
         return CroppedImage(this, x0, y0, w0, h0)
+    }
+
+    fun flipY() {
+        offset = getIndex(0, height - 1)
+        stride = -stride
     }
 
     var ref: FileReference = InvalidRef

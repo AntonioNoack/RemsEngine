@@ -18,7 +18,11 @@ class BooleanArrayList(var size: Int) : Saveable() {
     constructor() : this(0)
 
     private var values = LongArray((size + 63) shr 6)
-    operator fun get(index: Int) = values[index shr 6].and(1L shl (index and 63)) != 0L
+    operator fun get(index: Int): Boolean {
+        if (index < 0 || index >= size) return false
+        return values[index shr 6].and(1L shl (index and 63)) != 0L
+    }
+
     operator fun set(index: Int, value: Boolean) {
         val arrIndex = index shr 6
         val subIndex = index and 63

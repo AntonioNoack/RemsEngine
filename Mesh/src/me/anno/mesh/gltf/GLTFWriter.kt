@@ -22,6 +22,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.hdb.allocator.size
 import me.anno.io.Streams.writeLE32
+import me.anno.io.Streams.writeString
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
@@ -1173,7 +1174,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
 
         val out = dst.outputStream()
         // header
-        out.writeChunkType("glTF")
+        out.writeString("glTF")
         out.writeLE32(version)
         out.writeLE32(totalFileSize)
         // chunks
@@ -1184,14 +1185,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
 
     private fun OutputStream.writeChunk(data: ByteArrayOutputStream, type: String) {
         writeLE32(data.size())
-        writeChunkType(type)
+        writeString(type)
         data.writeTo(this)
-    }
-
-    private fun OutputStream.writeChunkType(str: String) {
-        assertEquals(4, str.length)
-        for (i in 0 until 4) {
-            write(str[i].code)
-        }
     }
 }

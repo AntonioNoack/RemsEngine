@@ -7,12 +7,14 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
     val loaded = HashSet<V>()
 
     fun enable(extensions: List<V>) {
+        printStatus("Enabling", extensions)
         onEnable(extensions)
         loaded += extensions
         printStatus("Enabled", extensions)
     }
 
     fun disable(extensions: List<V> = loaded.toList()) {
+        printStatus("Disabling", extensions)
         onDisable(extensions)
         printStatus("Disabled", extensions)
         if (extensions === loaded) loaded.clear()

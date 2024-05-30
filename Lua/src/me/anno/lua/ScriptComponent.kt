@@ -37,10 +37,6 @@ import java.util.WeakHashMap
  * */
 open class ScriptComponent : Component() {
 
-    // lua starts indexing at 1? I may need to reevaluate choosing lua as basic scripting language 😂
-
-    var instructionLimit: Int = 1000
-
     var source: FileReference = InvalidRef
 
     override fun onCreate() {

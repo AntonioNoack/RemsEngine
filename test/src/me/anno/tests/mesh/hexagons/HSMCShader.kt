@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.image.ImageCache
+import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import org.apache.logging.log4j.LogManager
 
@@ -28,8 +29,8 @@ object HSMCShader : ECSMeshShader("hexagons") {
             LOGGER.warn("Missing $source")
             whiteTex2da
         } else {
-            val images = image.split(16, 1) // create stripes
-            val texture = Texture2DArray("atlas", 16, 16, 256)
+            val images = image.split(16, 16) // create stripes
+            val texture = Texture2DArray("atlas", 1, 1, 1)
             texture.create(images, true)
             texture
         }
@@ -108,7 +109,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     "   color = (texture(diffuseMapStack,vec3(uv,uvW)) + texture(diffuseMapStack,vec3(uv+vec2(0.5,0.0),uvW))) * 0.5;\n" +
                     "} else {\n" +
                     "   color = texture(diffuseMapStack,vec3(uv,uvW));\n" +
-                   "}\n" +
+                    "}\n" +
                     "if(dither2x2(color.a)) discard;\n" +
                     "finalColor = color.rgb;\n" +
                     "finalAlpha = 1.0;//color.a;\n" +

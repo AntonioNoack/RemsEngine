@@ -7,6 +7,8 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.inspector.Inspectable
+import me.anno.engine.projects.GameEngineProject
 import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
@@ -15,20 +17,18 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.ShaderLib
+import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
 import me.anno.io.files.FileReference
-import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.engine.inspector.Inspectable
-import me.anno.engine.projects.GameEngineProject
-import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.WindowStack
@@ -44,8 +44,6 @@ import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.joml.Matrix4f
-
-// todo bug: when changing the hierarchy, e.g. adding/removing, Entity.isCollapsed isn't preserved or loaded correctly
 
 // to do Unity($)/RemsEngine(research) shader debugger:
 //  - go up/down one instruction
@@ -275,8 +273,9 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         }
 
         fun restoreSelected(collected: Any) {
-            val (selection, lastSelection) = @Suppress("unchecked_cast")
-            (collected as Pair<List<Any>, Any?>)
+            if (collected !is Pair<*, *>) return
+            val (selection, lastSelection) = collected
+            if (selection !is List<Any?>) return
             // restore the current selection
             // reloaded prefab; must not be accessed before clearAll
             val prefab = EditorState.prefab

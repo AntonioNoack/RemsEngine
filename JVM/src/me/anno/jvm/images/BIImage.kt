@@ -39,14 +39,17 @@ object BIImage {
                 val dst = dataBuffer.data
                 when (this) {
                     is IntImage -> {
-                        data.copyInto(dst)
+                        for (y in 0 until height) {
+                            val srcI = getIndex(0, y)
+                            data.copyInto(dst, y * width, srcI, srcI + width)
+                        }
                     }
                     else -> {
                         var i = 0
-                        val size = width * height
-                        while (i < size) {
-                            dst[i] = getRGB(i)
-                            i++
+                        for (y in 0 until height) {
+                            for (x in 0 until width) {
+                                dst[i++] = getRGB(x, y)
+                            }
                         }
                     }
                 }
@@ -120,5 +123,4 @@ object BIImage {
             return IntImage(width, height, pixels, hasAlpha)
         }
     }
-
 }

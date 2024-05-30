@@ -14,6 +14,7 @@ import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ProcessingGroup
@@ -311,7 +312,7 @@ fun main() {
                                 for (i in 0 until bitsPerValue) {
                                     sum += bits[offset + i].toInt() shl (bitsPerValue - 1 - i)
                                 }
-                                paletteColors[sum]
+                                paletteColors.getOrNull(sum) ?: (0xff00ff or black)
                             }
                             addModel(colors)
                         }
@@ -335,6 +336,7 @@ fun main() {
             }
         }.ref)
     }
+
     val entities = arrayOfNulls<Entity>(1024)
     worker.processUnbalanced(0, 1024, 4) { i0, i1 ->
         for (ci in i0 until i1) {

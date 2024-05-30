@@ -656,13 +656,13 @@ object Maths {
     @JvmStatic
     fun floorMod(value: Int, divisor: Int): Int {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else divisor
+        return if (rem < 0) rem + divisor else divisor
     }
 
     @JvmStatic
     fun floorMod(value: Long, divisor: Long): Long {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else divisor
+        return if (rem < 0) rem + divisor else divisor
     }
 
     @JvmStatic

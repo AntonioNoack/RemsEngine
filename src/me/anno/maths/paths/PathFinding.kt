@@ -12,17 +12,17 @@ object PathFinding {
 
     private val LOGGER = LogManager.getLogger(PathFinding::class)
 
-    class DataNode(var distance: Double, var score: Double, var previous: Any?) {
+    class DataNode<Node>(var distance: Double, var score: Double, var previous: Node?) {
         constructor() : this(0.0, 0.0, null)
 
-        fun set(dist: Double, score: Double, previous: Any?): DataNode {
+        fun set(dist: Double, score: Double, previous: Node?): DataNode<Node> {
             this.distance = dist
             this.score = score
             this.previous = previous
             return this
         }
 
-        fun set(dist: Double, previous: Any?): DataNode {
+        fun set(dist: Double, previous: Node?): DataNode<Node> {
             this.distance = dist
             this.previous = previous
             return this
@@ -32,7 +32,7 @@ object PathFinding {
     }
 
     // pooled DoublePair() to avoid allocations
-    private val pool = Stack { DataNode() }
+    private val pool = Stack { DataNode<Any?>() }
 
     /**
      * searches for the shortest path within a graph;
@@ -150,7 +150,7 @@ object PathFinding {
         val poolStartIndex = pool.index
         val capacity = if (capacityGuess <= 0) 16
         else max(16, 1 shl log2(capacityGuess.toFloat()).toInt())
-        val cache = HashMap<Node, DataNode>(capacity)
+        val cache = HashMap<Node, DataNode<Node>>(capacity)
         val queue = PriorityQueue<Node> { p0, p1 ->
             val score0 = cache[p0]!!.score
             val score1 = cache[p1]!!.score
@@ -165,8 +165,8 @@ object PathFinding {
 
         for (start in starts) {
             queue.add(start)
-            cache[start] = pool.create()
-                .set(0.0, distStartEnd, null)
+            @Suppress("UNCHECKED_CAST")
+            cache[start] = pool.create().set(0.0, distStartEnd, null) as DataNode<Node>
         }
 
         var end: Node? = null
@@ -197,8 +197,8 @@ object PathFinding {
                         }
                         val oldScore = cache[to]
                         if (oldScore == null) {
-                            cache[to] = pool.create()
-                                .set(newDistance, newScore, from)
+                            @Suppress("UNCHECKED_CAST")
+                            cache[to] = pool.create().set(newDistance, newScore, from) as DataNode<Node>
                             queue.add(to)
                         } else {
                             if (newDistance < oldScore.distance) {
@@ -218,13 +218,11 @@ object PathFinding {
             // backward tracking
             val path = ArrayList<Node>()
             if (includeEnd) path.add(end!!)
-            @Suppress("unchecked_cast")
             var node = previousFromEnd ?: cache[end]!!.previous as Node
             // find the best candidate = node with the smallest distance from start
             // LOGGER.debug("Remaining nodes: $queue")
             while (node !in starts) {
                 path.add(node)
-                @Suppress("unchecked_cast")
                 node = cache[node]!!.previous as Node
             }
             if (includeStart) path.add(node)
