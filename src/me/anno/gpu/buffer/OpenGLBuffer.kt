@@ -17,8 +17,16 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL15C.glDeleteBuffers
+import org.lwjgl.opengl.GL15C.glMapBuffer
+import org.lwjgl.opengl.GL15C.glUnmapBuffer
+import org.lwjgl.opengl.GL30C.GL_MAP_WRITE_BIT
+import org.lwjgl.opengl.GL30C.glFlushMappedBufferRange
+import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
+import org.lwjgl.opengl.GL44C.glBufferStorage
 import org.lwjgl.opengl.GL46C
 import java.nio.ByteBuffer
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -54,8 +62,7 @@ abstract class OpenGLBuffer(
         locallyAllocated = allocate(locallyAllocated, 0L)
     }
 
-    open fun upload(allowResize: Boolean = true, keepLarge: Boolean = false) {
-
+    private fun prepareUpload() {
         checkSession()
 
         GFX.check()
@@ -66,22 +73,9 @@ abstract class OpenGLBuffer(
 
         if (pointer == 0) pointer = GL46C.glGenBuffers()
         if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+    }
 
-        bindBuffer(type, pointer)
-
-        val nio = nioBuffer!!
-        val newLimit = nio.position()
-        elementCount = max(elementCount, newLimit / stride)
-        nio.position(0)
-        nio.limit(elementCount * stride)
-        if (allowResize && locallyAllocated > 0 && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))) {
-            // just keep the buffer
-            GL46C.glBufferSubData(type, 0, nio)
-        } else {
-            locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
-            GL46C.glBufferData(type, nio, usage.id)
-        }
-
+    private fun finishUpload() {
         GFX.check()
         isUpToDate = true
 
@@ -92,28 +86,81 @@ abstract class OpenGLBuffer(
         }
     }
 
-    open fun uploadEmpty(newLimit: Long) {
+    private fun keepBuffer(allowResize: Boolean, newLimit: Int, keepLarge: Boolean): Boolean {
+        return allowResize && locallyAllocated > 0 && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))
+    }
 
-        checkSession()
-
-        GFX.check()
-
-        if (pointer == 0) pointer = GL46C.glGenBuffers()
-        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
-
+    open fun upload(allowResize: Boolean = true, keepLarge: Boolean = false) {
+        prepareUpload()
         bindBuffer(type, pointer)
 
-        locallyAllocated = allocate(locallyAllocated, newLimit)
-        GL46C.glBufferData(type, newLimit, usage.id)
-
-        GFX.check()
-        isUpToDate = true
-
-        if (Build.isDebug) {
-            DebugGPUStorage.buffers.add(this)
-            GL46C.glObjectLabel(GL46C.GL_BUFFER, pointer, name)
-            GFX.check()
+        val nio = nioBuffer!!
+        val newLimit = nio.position()
+        elementCount = max(elementCount, newLimit / stride)
+        nio.position(0)
+        nio.limit(elementCount * stride)
+        if (keepBuffer(allowResize, newLimit, keepLarge)) {
+            // just keep the buffer
+            GL46C.glBufferSubData(type, 0, nio)
+        } else {
+            locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
+            GL46C.glBufferData(type, nio, usage.id)
         }
+
+        finishUpload()
+    }
+
+    open fun uploadAsync(
+        callback: () -> Unit,
+        allowResize: Boolean = true, keepLarge: Boolean = false,
+    ) {
+        prepareUpload()
+        bindBuffer(type, pointer)
+
+        val nio = nioBuffer!!
+        val newLimit = nio.position()
+        elementCount = max(elementCount, newLimit / stride)
+        nio.position(0)
+        nio.limit(elementCount * stride)
+        if (!keepBuffer(allowResize, newLimit, keepLarge)) {
+            glBufferStorage(type, newLimit.toLong(), GL_DYNAMIC_STORAGE_BIT or GL_MAP_WRITE_BIT)
+            locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
+        }
+
+        val dst = glMapBuffer(type, pointer, newLimit.toLong(), nio)!!
+        val name = "OpenGLBuffer.uploadAsync('$name', $newLimit)"
+        thread(name = name) {
+            // copy all data
+            if (dst !== nio) {
+                dst.put(nio)
+            }
+            GFX.addGPUTask(name, newLimit) {
+                if (pointer >= 0) {
+                    GFX.check()
+                    bindBuffer(type, pointer)
+                    glFlushMappedBufferRange(type, 0, newLimit.toLong())
+                    glUnmapBuffer(type)
+
+                    finishUpload()
+                    callback()
+                    GFX.check()
+                } else LOGGER.warn("Buffer was deleted while async upload")
+            }
+        }
+    }
+
+    open fun uploadEmpty(newLimit: Long) {
+
+        if (pointer >= 0) glDeleteBuffers(pointer)
+
+        prepareUpload()
+        bindBuffer(type, pointer)
+
+        GL46C.glBufferStorage(type, newLimit, GL_DYNAMIC_STORAGE_BIT)
+        // GL46C.glBufferData(type, newLimit, usage.id)
+        locallyAllocated = allocate(locallyAllocated, newLimit)
+
+        finishUpload()
     }
 
     fun copyElementsTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
@@ -192,6 +239,12 @@ abstract class OpenGLBuffer(
         if (!isUpToDate) upload()
     }
 
+    fun ensureBufferAsync(callback: () -> Unit) {
+        checkSession()
+        if (!isUpToDate) uploadAsync(callback)
+        else callback()
+    }
+
     fun ensureBufferWithoutResize() {
         checkSession()
         if (!isUpToDate) upload(false)
@@ -252,7 +305,7 @@ abstract class OpenGLBuffer(
     }
 
     fun putRGBA(c: Int): OpenGLBuffer {
-       val buffer = nioBuffer!!
+        val buffer = nioBuffer!!
         buffer
             .put(c.r().toByte())
             .put(c.g().toByte())

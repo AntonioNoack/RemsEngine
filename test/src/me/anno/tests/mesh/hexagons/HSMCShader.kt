@@ -109,19 +109,12 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     "} else {\n" +
                     "   color = texture(diffuseMapStack,vec3(uv,uvW));\n" +
                     "}\n" +
-                    "if(dither2x2(color.a)) discard;\n" +
+                    //"if(dither2x2(color.a)) discard;\n" +
                     "finalColor = color.rgb;\n" +
-                    "finalAlpha = 1.0;//color.a;\n" +
-                    "finalMetallic = 1.0-color.a;\n" +
-                    "finalRoughness = color.a;\n" +
+                    "finalAlpha = color.a;\n" +
+                    "finalMetallic = clamp(2.0-2.0*color.a,0.0,1.0);\n" +
+                    "finalRoughness = clamp(color.a*2.0-1.0,0.0,1.0);\n" +
                     normalTanBitanCalculation +
-                    // normalMapCalculation +
-                    // emissiveCalculation +
-                    // occlusionCalculation +
-                    // metallicCalculation +
-                    // roughnessCalculation +
-                    // v0 + sheenCalculation +
-                    // clearCoatCalculation +
                     reflectionCalculation +
                     finalMotionCalculation
         ).add(dither2x2).add(RendererLib.getReflectivity))

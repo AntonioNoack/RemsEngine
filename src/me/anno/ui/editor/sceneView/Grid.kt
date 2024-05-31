@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shader3DSimple
 import me.anno.maths.Maths.PIf
@@ -236,13 +237,13 @@ object Grid {
      * draws the mesh as lines; used by Rem's Studio
      * */
     @Suppress("unused")
-    fun drawLineMesh(stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
+    fun drawLineMesh(pipeline: Pipeline, stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
         if (color.w <= 0f) return
         val shader = shader3DSimple.value
         shader.use()
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
-        mesh.draw(shader, 0, true)
+        mesh.draw(pipeline, shader, 0, true)
     }
 
     fun drawGrid(stack: Matrix4fArrayList, alpha: Float) {

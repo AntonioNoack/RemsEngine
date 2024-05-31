@@ -48,7 +48,7 @@ private fun testShader() {
             val shader = ShaderLib.shader3DSimple.value
             shader.use()
             shader.m4x4("transform", transform)
-            mesh.draw(shader, 0)
+            mesh.draw(null, shader, 0)
         }
         val result = FBStack["result", w, h, 4, false, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {

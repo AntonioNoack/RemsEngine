@@ -172,8 +172,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return false
     }
 
-    fun draw(shader: Shader, materialIndex: Int) {
-        getMeshOrNull()?.draw(shader, materialIndex, Mesh.drawDebugLines)
+    fun draw(pipeline: Pipeline, shader: Shader, materialIndex: Int) {
+        getMeshOrNull()?.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
     }
 
     @DebugAction

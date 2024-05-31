@@ -109,7 +109,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         needsUpdate1 = true
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         drawShape()
     }
 

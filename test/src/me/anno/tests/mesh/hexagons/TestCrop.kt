@@ -14,7 +14,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     val source = pictures.getChild("textures/atlas.webp")
     val image = ImageCache[source, false]!!
-    val images = image.split(16, 16)
+    val images = image.split(2, 2)
     val texture = Texture2DArray("tex", 1, 1, 1)
     texture.create(images, false)
     val folder = desktop.getChild("test")

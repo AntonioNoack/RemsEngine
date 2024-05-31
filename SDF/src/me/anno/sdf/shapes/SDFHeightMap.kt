@@ -10,6 +10,7 @@ import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.GFX
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -159,7 +160,7 @@ class SDFHeightMap : SDFShape() {
         dst.setMax(+dx, maxHeight, +dy)
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
 
         val img = ImageCache[source, true] ?: return
         val scale = Vector3f(

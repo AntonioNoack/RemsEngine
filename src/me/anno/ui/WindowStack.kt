@@ -57,7 +57,8 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
         if (EngineBase.dragged != null) return
         if (panel != null && panel.windowStack.peek() != panel.window) {
-            LOGGER.warn("illegal focus request")
+            LOGGER.warn("Only panels on the top window can request focus")
+            return
         }
         requestFocus(if (panel == null) emptyList() else listOf(panel), exclusive)
     }

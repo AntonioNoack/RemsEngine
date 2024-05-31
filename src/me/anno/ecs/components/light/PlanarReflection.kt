@@ -215,7 +215,7 @@ class PlanarReflection : LightComponentBase() {
         return aabb
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             drawXYPlane(entity, 0.0)
             drawXYPlane(entity, 1.0)

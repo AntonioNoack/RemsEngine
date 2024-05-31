@@ -1,9 +1,9 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.GridColors.colorX
@@ -13,6 +13,7 @@ import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
@@ -33,45 +34,57 @@ object Gizmos {
     val scaleRef = BundledRef("meshes/scaleX.obj")
 
     fun drawScaleGizmos(
-        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
         clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, scaleRef)
-        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, mouseDirection, arrowRef1)
+        val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, scaleRef)
+        val b = drawMesh(
+            pipeline,
+            cameraTransform,
+            position,
+            scale * 0.35,
+            clickId + 3,
+            chosenId,
+            mouseDirection,
+            arrowRef1
+        )
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawRotateGizmos(
-        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
         clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        return drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, ringRef)
+        return drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, ringRef)
     }
 
     fun drawTranslateGizmos(
-        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
         clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, arrowRef)
-        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, mouseDirection, arrowRef1)
+        val a = drawMesh(pipeline, cameraTransform, position, scale, clickId, chosenId, mouseDirection, arrowRef)
+        val b = drawMesh(
+            pipeline, cameraTransform, position, scale * 0.35,
+            clickId + 3, chosenId, mouseDirection, arrowRef1
+        )
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawMesh(
-        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,
         clickId: Int, chosenId: Int, mouseDirection: Vector3d, ref: FileReference
     ): Int {
         val mesh = MeshCache[ref] ?: return 0
         val x = drawMesh(
-            cameraTransform, position, rotations[0], scale,
+            pipeline, cameraTransform, position, rotations[0], scale,
             colorX, clickId, chosenId, mesh, mouseDirection
         )
         val y = drawMesh(
-            cameraTransform, position, rotations[1], scale,
+            pipeline, cameraTransform, position, rotations[1], scale,
             colorY, clickId + 1, chosenId, mesh, mouseDirection
         )
         val z = drawMesh(
-            cameraTransform, position, rotations[2], scale,
+            pipeline, cameraTransform, position, rotations[2], scale,
             colorZ, clickId + 2, chosenId, mesh, mouseDirection
         )
         return x.toInt() + y.toInt(2) + z.toInt(4)
@@ -90,16 +103,16 @@ object Gizmos {
     )
 
     fun drawMesh(
-        cameraTransform: Matrix4f,
+        pipeline: Pipeline?, cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
         color: Int, clickId: Int, chosenId: Int, mesh: Mesh, mouseDirection: Vector3d
     ): Boolean = drawMesh(
-        cameraTransform, position, rotation, scale, defaultMaterial,
+        pipeline, cameraTransform, position, rotation, scale, defaultMaterial,
         if (clickId == chosenId) -1 else color, mesh, mouseDirection
     )
 
     fun drawMesh(
-        cameraTransform: Matrix4f,
+        pipeline: Pipeline?, cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
         material: Material, color: Int, mesh: Mesh, mouseDirection: Vector3d
     ): Boolean {
@@ -120,12 +133,12 @@ object Gizmos {
         rayDir.normalize()
 
         val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, rayPos, rayDir, Float.POSITIVE_INFINITY, -1)
-        drawMesh(cameraTransform, localTransform, material, color, mesh)
+        drawMesh(pipeline, cameraTransform, localTransform, material, color, mesh)
         return hit
     }
 
     fun drawMesh(
-        cameraTransform: Matrix4f, localTransform: Matrix4x3d?,
+        pipeline: Pipeline?, cameraTransform: Matrix4f, localTransform: Matrix4x3d?,
         material: Material, color: Int, mesh: Mesh
     ) {
         val shader = (material.shader ?: pbrModelShader).value
@@ -145,7 +158,7 @@ object Gizmos {
         shader.v4f("tint", color)
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", false)
-        mesh.draw(shader, 0)
+        mesh.draw(pipeline, shader, 0)
     }
 
     // avoid unnecessary allocations ;)

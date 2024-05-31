@@ -91,7 +91,7 @@ class EnvironmentMap : LightComponentBase() {
         return true
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             drawBox(entity)
             drawCross(entity, crossExtends)

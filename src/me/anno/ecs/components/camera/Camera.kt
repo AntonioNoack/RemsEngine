@@ -14,6 +14,7 @@ import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
@@ -73,7 +74,7 @@ class Camera : Component() {
         return true
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         val entity = entity
         val aspect = RenderView.currentInstance?.run { width.toFloat() / height } ?: 1f
         LineShapes.drawArrowZ(entity, 0.0, -1.0)

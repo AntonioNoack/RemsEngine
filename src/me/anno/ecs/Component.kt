@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -123,7 +124,7 @@ abstract class Component : PrefabSaveable() {
 
     override fun isDefaultValue(): Boolean = false
 
-    open fun onDrawGUI(all: Boolean) {}
+    open fun onDrawGUI(pipeline: Pipeline, all: Boolean) {}
 
     open fun onChangeProperty(name: String, value: Any?) {}
 

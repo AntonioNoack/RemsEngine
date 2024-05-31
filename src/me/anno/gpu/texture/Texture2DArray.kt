@@ -421,7 +421,7 @@ open class Texture2DArray(
         shader.v4f("color", -1)
         shader.v1i("alphaMode", 1 - withAlpha.toInt())
         shader.v1b("applyToneMapping", isHDR)
-        shader.v1f("uvZ", z)
+        shader.v1f("layer", z)
         GFXx2D.noTiling(shader)
         bind(0, filtering, Clamping.CLAMP)
         SimpleBuffer.flat01.draw(shader)

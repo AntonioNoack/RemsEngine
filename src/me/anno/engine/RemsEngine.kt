@@ -22,6 +22,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.ShaderLib
 import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.input.ActionManager
@@ -167,6 +168,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
             val cameraMatrix = Matrix4f()
             override val canDrawOverBorders get() = true
             private val modelMatrix = AssetThumbHelper.createModelMatrix().scale(0.62f)
+            private val pipeline = Pipeline(null)
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 useFrame(previewRenderer) {
                     sky.nadirSharpness = 10f
@@ -183,7 +185,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
                     )
                     AssetThumbHelper.bindShader(shader, cameraMatrix, modelMatrix)
                     sky.material.bind(shader)
-                    sky.getMesh().draw(shader, 0)
+                    sky.getMesh().draw(pipeline, shader, 0)
                 }
             }
         }

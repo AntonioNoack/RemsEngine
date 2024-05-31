@@ -39,6 +39,7 @@ import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.SmoothNormalsNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
+import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
@@ -99,6 +100,7 @@ class RenderMode(
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())
+                .then(UnditherNode())
                 .then(FXAANode())
                 .finish()
         )

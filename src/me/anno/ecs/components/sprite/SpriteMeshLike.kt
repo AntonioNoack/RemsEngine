@@ -23,11 +23,14 @@ class SpriteMeshLike(
     override fun getBounds(): AABBf = roughBounds
     override val numMaterials: Int get() = 1
 
-    override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+    override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         throw NotImplementedError()
     }
 
-    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
+    override fun drawInstanced(
+        pipeline: Pipeline, shader: Shader, materialIndex: Int,
+        instanceData: Buffer, drawLines: Boolean
+    ) {
         throw NotImplementedError()
     }
 

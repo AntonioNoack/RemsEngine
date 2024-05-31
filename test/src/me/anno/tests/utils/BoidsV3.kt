@@ -13,6 +13,7 @@ import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
 import me.anno.engine.EngineBase
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -153,7 +154,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
     }
 
     private val tmp = AABBd()
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (RenderView.currentInstance?.renderMode == RenderMode.SHOW_AABB) {
             draw(accelerator, 127)
         }

@@ -15,6 +15,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.gpu.pipeline.Pipeline
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
@@ -113,7 +114,7 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         LineShapes.drawPoint(entity, selfPosition, 1.0)
         LineShapes.drawPoint(other?.entity ?: entity, otherPosition, 1.0)
     }

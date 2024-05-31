@@ -238,7 +238,7 @@ fun main() {
                                 data1.getTextureI(0).bind(shader, "colorTex", filter, clamp)
                                 data1.depthTexture!!.bind(shader, "depthTex", filter, clamp)
                                 ptBuffer.proceduralLength = width * height // one point per pixel
-                                ptBuffer.draw(shader, 0)
+                                ptBuffer.draw(null, shader, 0)
                             }
                         }
                     }

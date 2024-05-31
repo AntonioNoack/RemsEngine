@@ -1,10 +1,13 @@
 package me.anno.tests.engine.effect
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
 import me.anno.graph.visual.render.effects.DepthOfFieldNode
 import me.anno.ui.base.groups.PanelListX
@@ -15,10 +18,12 @@ import me.anno.ui.input.NumberType
 import me.anno.utils.OS.downloads
 
 fun main() {
-    val scene = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
-    testUI3("Depth Of Field") {
+    OfficialExtensions.initForTests()
+    val scene = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
+    val scene1 = PrefabCache[scene]!!.getSampleInstance()
+    testUI3("Depth Of Field") { // todo this effect is broken :(, being blurry everywhere
         EditorState.prefabSource = scene
-        val sceneView = SceneView(PlayMode.EDITING, style)
+        val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene1, style), style)
         sceneView.renderer.renderMode = RenderMode.DEPTH_OF_FIELD
         sceneView.weight = 1f
         PrefabInspector.currentInspector = PrefabInspector(scene)

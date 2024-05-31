@@ -21,6 +21,7 @@ import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.thumbs.AssetThumbnails
@@ -351,11 +352,11 @@ open class AnimMeshComponent : MeshComponent() {
         } else false
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             // draw animated skeleton as debug mesh
             val skeleton = SkeletonCache[skeleton] ?: return
-            drawAnimatedSkeleton(this, skeleton, transform?.getDrawMatrix(), true)
+            drawAnimatedSkeleton(pipeline, this, skeleton, transform?.getDrawMatrix(), true)
         }
     }
 
@@ -383,6 +384,7 @@ open class AnimMeshComponent : MeshComponent() {
         val tmpMapping1 = createArrayList(256) { Matrix4x3f() }
 
         fun drawAnimatedSkeleton(
+            pipeline: Pipeline,
             animMeshComponent: AnimMeshComponent,
             skeleton: Skeleton,
             transform: Matrix4x3d?,
@@ -398,14 +400,14 @@ open class AnimMeshComponent : MeshComponent() {
                     val pos = Vector3f(bone.bindPosition)
                     matrices[i].transformPosition(pos)
                     MovingGrid.alpha = 1f
-                    drawTextMesh(bone.name, Vector3d(pos), null, 0.1, transform)
+                    drawTextMesh(pipeline, bone.name, Vector3d(pos), null, 0.1, transform)
                 }
             }
 
             AssetThumbnails.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
                 useFrame(simpleNormalRenderer) {
                     Gizmos.drawMesh(
-                        RenderState.cameraMatrix, transform,
+                        pipeline, RenderState.cameraMatrix, transform,
                         Material.defaultMaterial, black or 0xff9999, mesh
                     )
                 }

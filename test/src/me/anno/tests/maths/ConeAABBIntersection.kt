@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes.flatCube
 import org.joml.AABBd
 import org.joml.AABBf
@@ -72,7 +73,7 @@ fun main() {
             }
         }
 
-        override fun onDrawGUI(all: Boolean) {
+        override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
             LineShapes.drawCone(entity, start, end, radiusAtOrigin, radiusPerUnit)
             updateConeColor() // not really necessary to be executed every frame
         }

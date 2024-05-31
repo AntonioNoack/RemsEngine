@@ -35,10 +35,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.tuples.IntPair
@@ -309,8 +305,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     override fun setProperty(name: String, value: Any?) {
-        if(name == "boneIndices" && value is IntArray ){
-            boneIndices = ByteArray(value.size){ value[it].toByte()}
+        if (name == "boneIndices" && value is IntArray) {
+            boneIndices = ByteArray(value.size) { value[it].toByte() }
         } else if (!setSerializableProperty(name, value)) {
             super.setProperty(name, value)
         }
@@ -1059,11 +1055,11 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         boneIndices = null
     }
 
-    fun draw(shader: Shader, materialIndex: Int) {
-        draw(shader, materialIndex, drawDebugLines)
+    fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int) {
+        draw(pipeline, shader, materialIndex, drawDebugLines)
     }
 
-    override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+    override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
             ensureBuffer()
@@ -1103,7 +1099,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         }
     }
 
-    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
+    override fun drawInstanced(
+        pipeline: Pipeline, shader: Shader, materialIndex: Int,
+        instanceData: Buffer, drawLines: Boolean
+    ) {
         if (proceduralLength <= 0) {
             GFX.check()
             ensureBuffer()

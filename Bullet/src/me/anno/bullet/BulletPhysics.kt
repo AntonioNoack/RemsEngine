@@ -36,6 +36,7 @@ import me.anno.engine.ui.render.RenderState.cameraMatrix
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -537,7 +538,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     }
 
     private var debugDraw: BulletDebugDraw? = null
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         val view = RenderView.currentInstance
         drawDebug(view)
     }

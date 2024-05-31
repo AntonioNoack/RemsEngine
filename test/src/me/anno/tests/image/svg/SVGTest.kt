@@ -67,7 +67,7 @@ fun main() {
                         val mesh = MeshCache[srcFile, false]!!
                         defaultMaterial.bind(shader)
                         shader.v1i("hasVertexColors", mesh.hasVertexColors)
-                        mesh.draw(shader, 0)
+                        mesh.draw(null, shader, 0)
                     } else {
                         // old method, uses specialized shader
                         val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!

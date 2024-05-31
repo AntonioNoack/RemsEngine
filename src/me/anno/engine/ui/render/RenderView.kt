@@ -700,7 +700,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         useFrame(deferred.width, deferred.height, true, dst, copyRenderer) {
             dst.clearColor(0)
             pipeline.lightStage.bindDraw(
-                deferred, deferredDepth, depthMask,
+                pipeline, deferred, deferredDepth, depthMask,
                 cameraMatrix, cameraPosition, worldScale
             )
         }
@@ -791,7 +791,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
                     }
 
-                    component.onDrawGUI(true)
+                    component.onDrawGUI(pipeline, true)
 
                     if (entity != null) {
                         stack.popMatrix()
@@ -803,10 +803,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         if (world is Component && world !in EditorState.selection) {
-            world.onDrawGUI(world.isSelectedIndirectly)
+            world.onDrawGUI(pipeline, world.isSelectedIndirectly)
         }
 
-        drawGrid(drawGridMask)
+        drawGrid(pipeline, drawGridMask)
 
         if (drawDebugShapes) {
             DebugRendering.drawDebugShapes(this)

@@ -213,7 +213,7 @@ class HSPhysicsControls(
                 for (key in invalidChunks) {
                     val mesh = chunks[key]!!
                     val (_, tri, si, sj) = key
-                    createMesh(sphere.queryChunk(tri, si, sj), world, mesh)
+                    createMesh(sphere.queryChunk(tri, si, sj), world, null, mesh)
                 }
             }
         }
@@ -270,7 +270,7 @@ fun main() {
         for (si in 0 until sphere.chunkCount) {
             for (sj in 0 until sphere.chunkCount - si) {
                 val hexagons = sphere.queryChunk(tri, si, sj)
-                val mesh = createMesh(hexagons, world)
+                val mesh = createMesh(hexagons, world, null)
                 val comp = MeshComponent(mesh.ref)
                 val entity = Entity()
                 entity.add(comp)

@@ -414,6 +414,9 @@ object GFX {
             val task = queue.poll() ?: return true
             try {
                 task.work()
+                if (queue === gpuTasks) {
+                    check()
+                }
             } catch (e: Throwable) {
                 RuntimeException(task.name, e)
                     .printStackTrace()

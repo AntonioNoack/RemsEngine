@@ -60,8 +60,7 @@ object AssetThumbnails {
 
     fun register() {
         Thumbs.registerFileExtensions("json", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("vox", AssetThumbnails::generateAssetFrame)
-        Thumbs.registerSignatures("maya", AssetThumbnails::generateAssetFrame)
+        Thumbs.registerSignatures("vox,maya", AssetThumbnails::generateAssetFrame)
     }
 
     // todo exclude lights from AABB calculations for thumbnails?

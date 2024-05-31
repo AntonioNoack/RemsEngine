@@ -209,8 +209,6 @@ class DepthOfFieldNode : ActionNode(
                     "   }\n" +
                     "   if(applyToneMapping) result = tonemap(result);\n" +
                     "}\n"
-        ).apply {
-            setTextureIndices("cocTex", "depthTex", "colorTex")
-        }
+        )
     }
 }

@@ -20,6 +20,10 @@ class BooleanArrayList(var size: Int) : Saveable() {
     private var values = LongArray((size + 63) shr 6)
     operator fun get(index: Int): Boolean {
         if (index < 0 || index >= size) return false
+        return getUnsafe(index)
+    }
+
+    fun getUnsafe(index: Int): Boolean {
         return values[index shr 6].and(1L shl (index and 63)) != 0L
     }
 
@@ -132,7 +136,7 @@ class BooleanArrayList(var size: Int) : Saveable() {
     }
 
     fun pop(): Boolean {
-        return get(--size)
+        return getUnsafe(--size)
     }
 
     override val className: String get() = "BoolArray"

@@ -160,13 +160,13 @@ object FlatShaders {
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1B, "applyToneMapping"),
-            Variable(GLSLType.V1F, "uvZ"),
+            Variable(GLSLType.V1F, "layer"),
             Variable(GLSLType.S3D, "tex"),
         ), "" +
                 tonemapGLSL +
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
-                "   vec3 uvw = vec3(uv, uvZ);\n" +
+                "   vec3 uvw = vec3(uv, layer);\n" +
                 "   if(alphaMode == 0) col *= texture(tex, uvw);\n" +
                 "   else if(alphaMode == 1) col.rgb *= texture(tex, uvw).rgb;\n" +
                 "   else col.rgb *= texture(tex, uvw).a;\n" +
@@ -250,16 +250,16 @@ object FlatShaders {
                 "}"
     )
 
-    val flatShader2dArraySlice = BaseShader(
+    val flatShader2DArraySlice = BaseShader(
         "flatShader3dSlice", listOf(
             Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
             Variable(GLSLType.V4F, "posSize"),
             Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V1F, "z"),
+            Variable(GLSLType.V1F, "layer"),
         ), "" +
                 "void main(){\n" +
                 "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
-                "   uvw = vec3(coords, z);\n" +
+                "   uvw = vec3(coords, layer);\n" +
                 "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(
             Variable(GLSLType.S2DA, "tex"),
             Variable(GLSLType.V4F, "color"),

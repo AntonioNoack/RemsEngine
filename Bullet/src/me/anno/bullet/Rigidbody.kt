@@ -23,6 +23,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.pow
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -428,7 +429,7 @@ open class Rigidbody : Component() {
         bulletInstance?.applyGravity()
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (mass > 0.0) LineShapes.drawCircle(entity, pow(mass, 1.0 / 3.0), 0, 1, 0.0)
     }
 

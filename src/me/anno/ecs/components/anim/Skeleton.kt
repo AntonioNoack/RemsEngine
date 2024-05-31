@@ -50,7 +50,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     override val children get() = bones
 
-    fun draw(shader: Shader, stack: Matrix4x3f, skinningMatrices: List<Matrix4x3f>?) {
+    fun draw(pipeline: Pipeline, shader: Shader, stack: Matrix4x3f, skinningMatrices: List<Matrix4x3f>?) {
 
         if (previewMesh == null) {
             val mesh = Mesh()
@@ -87,7 +87,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         }
 
         defaultMaterial.bind(shader)
-        mesh.draw(shader, 0)
+        mesh.draw(pipeline, shader, 0)
     }
 
     var previewData: Mesh? = null

@@ -73,7 +73,7 @@ class GizmoNode : RenderViewNode(
         ] as Framebuffer
 
         pushDrawCallName(name)
-        useFrame(width, height, true, framebuffer, copyRenderer) {
+        useFrame(framebuffer, copyRenderer) {
             copyColorAndDepth(colorT, depthT, framebuffer)
             GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {

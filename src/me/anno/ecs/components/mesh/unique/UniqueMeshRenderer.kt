@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.BufferUsage
@@ -20,16 +21,23 @@ import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.graph.hdb.allocator.size
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
+import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
+import org.lwjgl.opengl.GL14C.glMultiDrawArrays
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.IntBuffer
 
 /**
  * renderer for static geometry, that still can be partially loaded/unloaded
  *
  * all instances must use the same material (for now),
  * but we do support fully custom MeshVertexData
+ *
+ * todo somehow use indexed meshes (less load on the vertex shader)
  * */
 abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     val attributes: List<Attribute>,
@@ -123,13 +131,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
 
     fun remove(key: Key, deleteMesh: Boolean): Boolean {
         val entry = entryLookup.remove(key) ?: return false
-        if (true) {
-            // todo entries are sorted, so use binary search to remove it
-            // todo we also need to remove this section from ranges
-            entries.remove(entry)
-            ranges.clear()
-            ranges.addAll(compact(entries))
-        }
+        assertTrue(remove(entry, entries, ranges))
         numPrimitives -= entry.buffer.vertexCount
         if (deleteMesh) {
             entry.mesh?.destroy()
@@ -153,35 +155,59 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         return clickId + 1
     }
 
-    override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+    private fun push(buffer: StaticBuffer, start: Int, end: Int) {
+        if (start >= end) return
+        if (tmpLengths.position() == tmpLengths.capacity()) {
+            finish(buffer)
+        }
+        tmpStarts.put(start)
+        tmpLengths.put(end - start)
+    }
+
+    private fun finish(buffer: StaticBuffer) {
+        if (tmpLengths.position() > 0) {
+            tmpStarts.flip()
+            tmpLengths.flip()
+            glMultiDrawArrays(buffer.drawMode.id, tmpStarts, tmpLengths)
+            tmpStarts.clear()
+            tmpLengths.clear()
+        }
+    }
+
+    override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
         if (numPrimitives == 0L) return
         val buffer = buffer0
         if (!buffer.isUpToDate) {
             LOGGER.warn("Buffer ${hash32(buffer)} isn't ready")
             return
         }
+        GFXState.bind()
         buffer.drawLength = numPrimitives.toInt()
         buffer.bind(shader)
-        var i0 = 0
-        var i1 = 0
+        val frustum = pipeline?.frustum
+        var currStart = 0
+        var currEnd = 0
         for (i in entries.indices) {
-            val entry = entries[i].range
-            if (entry.first != i1) {
-                if (i1 > i0) {
-                    buffer.draw(i0, i1 - i0)
+            val entry = entries[i]
+            if (frustum == null || frustum.isVisible(entry.bounds)) { // frustum culling
+                val range = entry.range
+                if (range.first != currEnd) {
+                    push(buffer, currStart, currEnd)
+                    currStart = range.first
                 }
-                i0 = entry.first
+                currEnd = range.last + 1
             }
-            i1 = entry.last + 1
         }
-        if (i1 > i0) {
-            buffer.draw(i0, i1 - i0)
-        }
+        push(buffer, currStart, currEnd)
+        finish(buffer)
         buffer.unbind()
     }
 
-    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
-        throw NotImplementedError("Drawing a bulk-mesh instanced doesn't make sense")
+    override fun drawInstanced(
+        pipeline: Pipeline, shader: Shader, materialIndex: Int,
+        instanceData: Buffer, drawLines: Boolean
+    ) {
+        LOGGER.warn("Drawing a bulk-mesh instanced doesn't make sense")
     }
 
     override fun getRange(key: MeshEntry<Mesh>): IntRange {
@@ -222,5 +248,13 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
 
     companion object {
         private val LOGGER = LogManager.getLogger(UniqueMeshRenderer::class)
+        private fun createBuffer(): IntBuffer {
+            val buffer = ByteBuffer.allocateDirect(4096 * 4)
+            buffer.order(ByteOrder.nativeOrder())
+            return buffer.asIntBuffer()
+        }
+
+        private val tmpStarts = createBuffer()
+        private val tmpLengths = createBuffer()
     }
 }

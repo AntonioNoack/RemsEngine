@@ -95,6 +95,7 @@ open class InstancedStack {
                     }
                 }
             }
+            GFX.check()
             return LongTriple(drawnPrimitives, drawnInstances, drawCalls)
         }
 
@@ -118,11 +119,10 @@ open class InstancedStack {
 
                 // val t0 = Time.nanoTime
 
+                GFX.check()
                 val shader = stage.getShader(material)
-                shader.use()
                 GFX.check()
                 bindRandomness(shader)
-                GFX.check()
 
                 // update material and light properties
                 val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
@@ -270,7 +270,7 @@ open class InstancedStack {
                     st45 += t5 - t4
 
                     cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                        mesh.drawInstanced(shader, materialIndex, buffer, Mesh.drawDebugLines)
+                        mesh.drawInstanced(pipeline, shader, materialIndex, buffer, Mesh.drawDebugLines)
                     }
                     drawCalls++
 

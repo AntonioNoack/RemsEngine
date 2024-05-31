@@ -9,38 +9,39 @@ import java.io.OutputStream
 class IndexWriter(stream: OutputStream) : JsonWriter(stream) {
 
     fun writeFolder(folder: Folder) {
-        beginObject()
-        attr("n")
-        write(folder.name)
-        attr("c")
-        beginArray()
-        for (child in folder.children.values) {
-            writeFolder(child)
+        // todo why is this crashing????
+        writeObject {
+            attr("n")
+            write(folder.name)
+            attr("c")
+            writeArray(folder.children.values.toList(), ::writeFolder)
+            val sf = folder.storageFile
+            if (sf != null) {
+                writeStorageFile(sf, folder)
+            }
         }
-        endArray()
-        val sf = folder.storageFile
-        if (sf != null) {
-            attr("i")
-            write(sf.index)
-            attr("f")
-            beginObject()
+    }
+
+    private fun writeStorageFile(sf: StorageFile, folder: Folder) {
+        attr("i")
+        write(sf.index)
+        attr("f")
+        writeObject {
             for ((hash, file) in folder.files) {
                 attr(hash.toString())
                 writeFile(file)
             }
-            endObject()
         }
-        endObject()
     }
 
     private fun writeFile(file: File) {
-        beginObject()
-        attr("a")
-        write(file.lastAccessedMillis)
-        attr("s")
-        write(file.range.first)
-        attr("l")
-        write(file.range.size)
-        endObject()
+        writeObject {
+            attr("a")
+            write(file.lastAccessedMillis)
+            attr("s")
+            write(file.range.first)
+            attr("l")
+            write(file.range.size)
+        }
     }
 }

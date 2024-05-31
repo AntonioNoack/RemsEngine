@@ -13,6 +13,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
@@ -111,14 +112,14 @@ object AssetThumbHelper {
                 val shader2 = material.shader?.value ?: shader
                 bindShader(shader2, cameraMatrix, modelMatrix)
                 material.bind(shader2)
-                draw(shader2, index)
+                draw(null, shader2, index)
             }
         } else {
             bindShader(shader, cameraMatrix, modelMatrix)
             val material = Material.defaultMaterial
             material.bind(shader)
             for (materialIndex in 0 until max(1, materials0.size)) {
-                draw(shader, materialIndex)
+                draw(null, shader, materialIndex)
             }
         }
     }

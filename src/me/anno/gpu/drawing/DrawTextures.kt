@@ -6,7 +6,7 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
-import me.anno.gpu.shader.FlatShaders.flatShader2dArraySlice
+import me.anno.gpu.shader.FlatShaders.flatShader2DArraySlice
 import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
@@ -248,14 +248,14 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = flatShader2dArraySlice.value
+        val shader = flatShader2DArraySlice.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1b("showDepth", showDepth)
-        shader.v1f("z", z + 0.5f)
+        shader.v1f("layer", z + 0.5f)
         texture.bind(0)
         flat01.draw(shader)
         GFX.check()

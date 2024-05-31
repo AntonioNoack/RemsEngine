@@ -115,7 +115,7 @@ fun meshToSeparatedVoxels(
             shader.m4x3("invLocalTransform", null)
             material.bind(shader)
             // draw mesh
-            mesh.draw(shader, i)
+            mesh.draw(null, shader, i)
         }
     }
     if (waitForTextures) {

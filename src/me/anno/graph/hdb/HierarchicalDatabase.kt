@@ -5,7 +5,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.engine.Events.addEvent
 import me.anno.graph.hdb.allocator.FileAllocation
-import me.anno.graph.hdb.allocator.FileAllocation.compact
+import me.anno.graph.hdb.allocator.FileAllocation.calculateSortedRanges
 import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.File
 import me.anno.graph.hdb.index.Folder
@@ -270,7 +270,7 @@ class HierarchicalDatabase(
         val file = File(System.currentTimeMillis(), value.range)
         val files = sf.files
         val (type, data) = FileAllocation.insert(
-            files, compact(files), file,
+            files, calculateSortedRanges(files, ArrayList()), file,
             value.bytes, value.range,
             oldData.size, oldData, true
         )

@@ -26,8 +26,6 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
@@ -183,7 +181,7 @@ class RenderLightsNode : RenderViewNode(
             GFX.copyColorAndDepth(blackTexture, depthTexture)
             stage.bind {
                 stage.draw(
-                    RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
+                    pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
                     ::getShader, depthTexture, depthTexture0.mask!!
                 )
             }

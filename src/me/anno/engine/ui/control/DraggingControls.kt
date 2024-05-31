@@ -293,10 +293,11 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val scale = renderView.radius * 0.15
                 transform.getTranslation(pos)
                 val cam = renderView.cameraMatrix
+                val pip = renderView.pipeline
                 val mask = when (mode) {
-                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, 0, chosenId, md)
-                    Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, 0, chosenId, md)
-                    Mode.SCALING -> Gizmos.drawScaleGizmos(cam, pos, scale, 0, chosenId, md)
+                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                    Mode.ROTATING -> Gizmos.drawRotateGizmos(pip, cam, pos, scale, 0, chosenId, md)
+                    Mode.SCALING -> Gizmos.drawScaleGizmos(pip, cam, pos, scale, 0, chosenId, md)
                     Mode.NOTHING -> 0
                 }
                 if (mask != 0 && Input.mouseKeysDown.isEmpty()) {

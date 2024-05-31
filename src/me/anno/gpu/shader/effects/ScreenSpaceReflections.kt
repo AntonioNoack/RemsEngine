@@ -135,7 +135,7 @@ object ScreenSpaceReflections {
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
                     "       dstUV += increment;\n" +
-                    "       if(dstUV.x < 0.0 || dstUV.y < 0.0 || dstUV.x >= 1.0 || dstUV.y >= 1.0) break;\n" +
+                    "       if(dstUV.x <= 0.0 || dstUV.y <= 0.0 || dstUV.x >= 1.0 || dstUV.y >= 1.0) break;\n" +
                     "       float depthTo = dot(texelFetch(finalDepth,ivec2(dstUV*texSize),0),depthMask);\n" +
                     "       positionTo = rawDepthToPosition(dstUV,depthTo);\n" +
 
@@ -181,7 +181,7 @@ object ScreenSpaceReflections {
 
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
-                    "   if(bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
+                    "   if(bestUV.x <= 0.0 || bestUV.x >= 1.0 || bestUV.y <= 0.0 || bestUV.y >= 1.0){\n" +
                     returnColor0 +
                     "   }\n" +
 

@@ -12,6 +12,7 @@ import me.anno.engine.raycast.RaycastCollider
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
 import me.anno.utils.Color.black
@@ -296,7 +297,7 @@ abstract class Collider : CollidingComponent() {
     }
 
     // a collider needs to be drawn
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all ||
             // entity?.physics?.showDebug == true ||
             RenderView.currentInstance?.renderMode == RenderMode.PHYSICS

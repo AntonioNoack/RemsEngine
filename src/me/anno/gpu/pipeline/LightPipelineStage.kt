@@ -56,13 +56,13 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     val nonInstanced = LightData()
 
     fun bindDraw(
-        source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
+        pipeline: Pipeline, source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
         cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double
     ) {
         bind {
             source.bindTrulyNearestMS(0)
             draw(
-                cameraMatrix, cameraPosition, worldScale,
+                pipeline, cameraMatrix, cameraPosition, worldScale,
                 ::getShader, depthTexture, depthMask
             )
         }
@@ -117,6 +117,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     }
 
     fun draw(
+        pipeline: Pipeline,
         cameraMatrix: Matrix4f,
         cameraPosition: Vector3d,
         worldScale: Double,
@@ -193,7 +194,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
 
                 shader.v4f("data2", 0f, i1, light.getShaderV1(), light.getShaderV2())
 
-                mesh.draw(shader, 0)
+                mesh.draw(pipeline, shader, 0)
 
                 drawnPrimitives += mesh.numPrimitives
                 drawnInstances++
@@ -215,9 +216,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                     val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {
                         GFXState.depthMode.use(alwaysDepthMode) {
-                            drawBatches(depthTexture, lights, size, type, shader)
+                            drawBatches(pipeline, depthTexture, lights, size, type, shader)
                         }
-                    } else drawBatches(depthTexture, lights, size, type, shader)
+                    } else drawBatches(pipeline, depthTexture, lights, size, type, shader)
                 }
             }
         }
@@ -228,7 +229,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
     private var worldScale: Double = 1.0
 
     fun drawBatches(
-        depthTexture: ITexture2D,
+        pipeline: Pipeline, depthTexture: ITexture2D,
         lights: List<LightRequest>, size: Int,
         type: LightType, shader: Shader,
     ) {
@@ -278,7 +279,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 nioBuffer.putFloat(light.getShaderV2())
             }
             buffer.ensureBufferWithoutResize()
-            mesh.drawInstanced(shader, 0, buffer, Mesh.drawDebugLines)
+            mesh.drawInstanced(pipeline, shader, 0, buffer, Mesh.drawDebugLines)
 
             baseIndex += batchSize
             callCount++

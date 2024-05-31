@@ -71,6 +71,16 @@ class AABBf(
         return this
     }
 
+    fun union(other: AABBd, dst: AABBf = this): AABBf {
+        dst.minX = min(minX, other.minX.toFloat())
+        dst.minY = min(minY, other.minY.toFloat())
+        dst.minZ = min(minZ, other.minZ.toFloat())
+        dst.maxX = max(maxX, other.maxX.toFloat())
+        dst.maxY = max(maxY, other.maxY.toFloat())
+        dst.maxZ = max(maxZ, other.maxZ.toFloat())
+        return this
+    }
+
     fun getMin(dim: Int) =
         if (dim == 0) minX
         else (if (dim == 1) minY else minZ)

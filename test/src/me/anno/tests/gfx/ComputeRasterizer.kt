@@ -513,17 +513,20 @@ fun computeRasterizer() {
             return mesh.getBounds()
         }
 
-        override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+        override fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean) {
             if (Input.isShiftDown) {
-                mesh.draw(shader, materialIndex, drawLines)
+                mesh.draw(pipeline, shader, materialIndex, drawLines)
             } else {
                 drawInstanced0(shader, materialIndex, null, drawLines)
             }
         }
 
-        override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
+        override fun drawInstanced(
+            pipeline: Pipeline, shader: Shader, materialIndex: Int,
+            instanceData: Buffer, drawLines: Boolean
+        ) {
             if (Input.isShiftDown) {
-                mesh.drawInstanced(shader, materialIndex, instanceData, drawLines)
+                mesh.drawInstanced(pipeline, shader, materialIndex, instanceData, drawLines)
             } else {
                 drawInstanced0(shader, materialIndex, instanceData, drawLines)
             }

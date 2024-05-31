@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.utils.MeshVertexData
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import org.joml.AABBf
@@ -32,6 +33,6 @@ interface IMesh : Renderable, ICacheData {
 
     fun getBounds(): AABBf
 
-    fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean)
-    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean)
+    fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int, drawLines: Boolean)
+    fun drawInstanced(pipeline: Pipeline, shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean)
 }

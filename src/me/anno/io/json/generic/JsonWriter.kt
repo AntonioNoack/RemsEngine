@@ -57,29 +57,10 @@ open class JsonWriter(val output: OutputStream) {
 
     fun write(b: Boolean) {
         next()
-        if (b) {
-            output.writeString("true")
-        } else {
-            output.writeString("false")
-        }
+        output.writeString(if (b) "true" else "false")
     }
 
-    fun write(i: Int) {
-        next()
-        output.writeString(i.toString())
-    }
-
-    fun write(l: Long) {
-        next()
-        output.writeString(l.toString())
-    }
-
-    fun write(f: Float) {
-        next()
-        output.writeString(f.toString())
-    }
-
-    fun write(d: Double) {
+    fun write(d: Number) {
         next()
         output.writeString(d.toString())
     }

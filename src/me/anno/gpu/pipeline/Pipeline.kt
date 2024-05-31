@@ -220,7 +220,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             shader.v1f("meshScale", 1f)
             shader.v1b("isPerspective", false)
             shader.v1b("reversedDepth", false) // depth doesn't matter
-            sky.getMesh().draw(shader, 0)
+            sky.getMesh().draw(this, shader, 0)
             JomlPools.quat4f.sub(1)
             JomlPools.mat4f.sub(1)
         }
@@ -312,7 +312,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             shader.v2i("randomIdData", 6, 123456)
             shader.v1f("meshScale", scale)
             material.bind(shader)
-            mesh.draw(shader, i)
+            mesh.draw(this, shader, i)
         }
         JomlPools.aabbd.sub(1)
         popDrawCallName()

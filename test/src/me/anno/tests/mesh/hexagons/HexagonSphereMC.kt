@@ -14,6 +14,7 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
@@ -46,11 +47,6 @@ val gravel: Byte = 6
 val sand: Byte = 7
 val water: Byte = 8
 
-val logic0: Byte = 9
-val logic1: Byte = 10
-val light0: Byte = 11
-val light1: Byte = 12
-
 val texIdsXZ = intArrayOf(-1, 1, 2, 3, 20, 52, 17, 18, 223)
 val texIdsPY = intArrayOf(-1, 1, 2, 0, 22, 52, 17, 18, 223)
 val texIdsNY = intArrayOf(-1, 1, 2, 3, 22, 52, 17, 18, 223)
@@ -67,8 +63,13 @@ val matType = intArrayOf(-1, full, full, full, full, partial, full, full, fluidL
 
 val fluidLowY = 7f / 8f
 
-val material = Material().apply {
+val diffuseHexMaterial = Material().apply {
     shader = HSMCShader
+}
+
+val transparentHexMaterial = Material().apply {
+    shader = HSMCShader
+    pipelineStage = PipelineStage.TRANSPARENT
 }
 
 fun interface IndexMap {
@@ -99,11 +100,12 @@ val uv5 = Array(5) {
     Vector2f(x, y + x * 0.5f)
 }
 
-fun needsFace(currType: Byte, otherType: Byte): Boolean {
+fun needsFace(currType: Byte, otherType: Byte, transparent: Boolean?): Boolean {
+    if (currType == otherType) return false
     return when (matType[currType.toInt().and(255)]) {
-        full -> matType[otherType.toInt().and(255)] != full
-        fluid, fluidLow -> currType != otherType && matType[otherType.toInt().and(255)] != full
-        else -> true
+        full -> transparent != true && matType[otherType.toInt().and(255)] != full
+        fluid, fluidLow -> transparent != false && matType[otherType.toInt().and(255)] != full
+        else -> transparent != true
     }
 }
 
@@ -111,7 +113,8 @@ val rnd = FullNoise(1234L)
 fun generateMesh(
     hexagons: List<Hexagon>, size: Int,
     mapping: IndexMap, blocks: ByteArray,
-    world: HexagonSphereMCWorld, mesh: Mesh
+    world: HexagonSphereMCWorld, mesh: Mesh,
+    transparent: Boolean?
 ): Mesh {
 
     for (hex in hexagons) {
@@ -186,7 +189,7 @@ fun generateMesh(
                     }
                 }
                 // add top/bottom
-                if (y > 0 && needsFace(here, blocks[i0 + y - 1])) { // lowest floor is invisible
+                if (y > 0 && needsFace(here, blocks[i0 + y - 1], transparent)) { // lowest floor is invisible
                     // add bottom
                     addLayer(world.h(y), 0, -1, texIdsNY[here.toInt().and(255)])
                     // flip normals
@@ -195,7 +198,7 @@ fun generateMesh(
                         normals[j] = -normals[j]
                     }
                 }
-                if (y + 1 >= sy || needsFace(here, blocks[i0 + y + 1])) {
+                if (y + 1 >= sy || needsFace(here, blocks[i0 + y + 1], transparent)) {
                     // add top
                     val lower = matType[here.toInt().and(255)] == fluidLow
                     addLayer(world.h(y + if (lower) fluidLowY else 1f), -1, 0, texIdsPY[here.toInt().and(255)])
@@ -230,7 +233,7 @@ fun generateMesh(
             var lastY0 = 0
             for (y in 0 until sy) {
                 val currType = blocks[i0 + y]
-                val needsFace = needsFace(currType, blocks[i1 + y])
+                val needsFace = needsFace(currType, blocks[i1 + y],  transparent)
                 if (currType != lastType || needsFace != lastAir) {
                     if (lastType > 0 && lastAir) {
                         addSide(lastType, lastY0, y, currType)
@@ -249,7 +252,7 @@ fun generateMesh(
     mesh.positions = positions.toFloatArray(canReturnSelf = false)
     mesh.normals = normals.toFloatArray(canReturnSelf = false)
     mesh.color0 = colors.toIntArray(canReturnSelf = false)
-    mesh.materials = listOf(material.ref)
+    mesh.materials = listOf(diffuseHexMaterial.ref)
     mesh.invalidateGeometry()
 
     positions.clear()
@@ -259,22 +262,12 @@ fun generateMesh(
     return mesh
 }
 
-fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld, mesh: Mesh = Mesh()): Mesh {
+fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld, transparent: Boolean?, mesh: Mesh = Mesh()): Mesh {
     val size = visualList.size
     val (world1, indexMap) = world.generateWorld(visualList, true)
-    generateMesh(visualList, size, indexMap, world1, world, mesh)
+    generateMesh(visualList, size, indexMap, world1, world, mesh, transparent)
     Texture2D.byteArrayPool.returnBuffer(world1)
     return mesh
-}
-
-fun destroyMesh(mesh: Mesh) {
-    if (useMeshPools) {
-        Texture2D.floatArrayPool.returnBuffer(mesh.positions)
-        Texture2D.floatArrayPool.returnBuffer(mesh.normals)
-        Texture2D.floatArrayPool.returnBuffer(mesh.tangents)
-        Texture2D.intArrayPool.returnBuffer(mesh.color0)
-    }
-    mesh.destroy()
 }
 
 fun main() {
@@ -284,7 +277,7 @@ fun main() {
     val world = HexagonSphereMCWorld(HexagonSphere(n, 1))
 
     val scene = Entity()
-    val mesh = createMesh(hexagons, world)
+    val mesh = createMesh(hexagons, world, null)
     scene.add(MeshComponent(mesh))
 
     val sky = Skybox()

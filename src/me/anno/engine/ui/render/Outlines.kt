@@ -40,14 +40,14 @@ object Outlines {
 
     private val tmpMat4d = Matrix4d()
 
-    fun drawOutline(entity: Entity) {
+    fun drawOutline(pipeline: Pipeline, entity: Entity) {
         whiteTexture.bind(0) // for the albedo
         DrawAABB.drawAABB(entity.aabb, RenderView.aabbColorHovered)
         LineBuffer.finish(RenderState.cameraMatrix)
-        drawOutlineForEntity(entity)
+        drawOutlineForEntity(pipeline, entity)
     }
 
-    fun drawOutline(comp: MeshComponentBase, mesh: IMesh) {
+    fun drawOutline(pipeline: Pipeline, comp: MeshComponentBase, mesh: IMesh) {
 
         // todo respect alpha somehow?
 
@@ -124,7 +124,7 @@ object Outlines {
                         val hasAnim = animated && comp.defineVertexTransform(shader, entity, mesh)
                         shader.v1b("hasAnimation", hasAnim)
 
-                        mesh.draw(shader, 0, Mesh.drawDebugLines)
+                        mesh.draw(pipeline, shader, 0, Mesh.drawDebugLines)
 
                     }
                 }
@@ -132,17 +132,17 @@ object Outlines {
         }
     }
 
-    private fun drawOutlineForEntity(entity: Entity) {
+    private fun drawOutlineForEntity(pipeline: Pipeline, entity: Entity) {
         val children = entity.children
         for (i in children.indices) {
-            drawOutlineForEntity(children[i])
+            drawOutlineForEntity(pipeline, children[i])
         }
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component is MeshComponentBase) {
                 val mesh = component.getMeshOrNull() ?: continue
-                drawOutline(component, mesh)
+                drawOutline(pipeline, component, mesh)
             }
         }
     }

@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
@@ -176,7 +177,7 @@ class NavMesh : Component() {
         return mesh
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         if (all) {
             val data = data ?: return
             val dv = data.vertices

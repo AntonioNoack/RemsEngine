@@ -25,7 +25,6 @@ import me.anno.graph.visual.Graph
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Window
@@ -49,7 +48,6 @@ import org.joml.Vector3d
 
 class ECSSceneTab(
     val inspector: PrefabInspector,
-    file: FileReference,
     val playMode: PlayMode,
     name: String = findName(inspector.reference)
 ) : TextPanel(name, DefaultConfig.style) {
@@ -58,7 +56,7 @@ class ECSSceneTab(
         file: FileReference,
         playMode: PlayMode,
         name: String = findName(file)
-    ) : this(PrefabInspector(file), file, playMode, name)
+    ) : this(PrefabInspector(file), playMode, name)
 
     init {
         padding.set(6, 2, 6, 2)
@@ -251,7 +249,7 @@ class ECSSceneTab(
     fun play() {
         val tab = ECSSceneTabs.currentTab!!
         val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
-        ECSSceneTabs.open(ECSSceneTab(tab.inspector, tab.file, playMode, findName(tab.file)), true)
+        ECSSceneTabs.open(ECSSceneTab(tab.inspector, playMode, findName(tab.file)), true)
     }
 
     fun playFullscreen() {

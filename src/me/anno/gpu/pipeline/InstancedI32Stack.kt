@@ -149,7 +149,7 @@ open class InstancedI32Stack(
                     nioBytes.position(length shl 2)
                     buffer.ensureBufferWithoutResize()
                     // slightly optimized over PSR ^^, ~ 8-fold throughput
-                    mesh.drawInstanced(shader, 0, buffer, Mesh.drawDebugLines)
+                    mesh.drawInstanced(pipeline, shader, 0, buffer, Mesh.drawDebugLines)
 
                     drawCalls++
                     baseIndex += length

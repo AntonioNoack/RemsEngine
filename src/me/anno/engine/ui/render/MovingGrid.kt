@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.TextShapes
 import me.anno.engine.ui.render.ECSShaderLib.simpleShader
@@ -12,6 +12,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Booleans.hasFlag
@@ -29,15 +30,15 @@ import kotlin.math.round
 
 object MovingGrid {
 
-    fun drawGrid(mask: Int) {
+    fun drawGrid(pipeline: Pipeline, mask: Int) {
         if (mask.and(7) == 0) return
         LineBuffer.finish(RenderState.cameraMatrix)
         GFXState.depthMask.use(false) {
-            drawGrid3(mask)
+            drawGrid3(pipeline, mask)
         }
     }
 
-    private fun drawGrid3(mask: Int) {
+    private fun drawGrid3(pipeline: Pipeline, mask: Int) {
 
         val pos0 = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
         val pos1 = RenderView.currentInstance?.cameraPosition ?: pos0
@@ -82,7 +83,7 @@ object MovingGrid {
                     transform.rotate(baseRot)
 
                     alpha = alpha0
-                    drawMesh(gridMesh)
+                    drawMesh(pipeline, gridMesh)
 
                     alpha *= 2f
                     val textSize = radius2 * 0.01
@@ -93,8 +94,8 @@ object MovingGrid {
                         else -> throw NotImplementedError()
                     }
                     for (textRot in textRots) {
-                        drawTextMesh(textSize, 1, textRot)
-                        drawTextMesh(textSize, 5, textRot)
+                        drawTextMesh(pipeline, textSize, 1, textRot)
+                        drawTextMesh(pipeline, textSize, 5, textRot)
                     }
                 }
             }
@@ -105,14 +106,14 @@ object MovingGrid {
         drawAxes(distance)
     }
 
-    fun drawMesh(mesh: Mesh) {
+    fun drawMesh(pipeline: Pipeline, mesh: Mesh) {
         val shader = simpleShader.value
         shader.use()
         val material = defaultMaterial
         material.bind(shader)
         shader.m4x4("transform", transform2.set(transform))
         shader.v4f("diffuseBase", 1f, 1f, 1f, alpha)
-        mesh.draw(shader, 0)
+        mesh.draw(pipeline, shader, 0)
         GFX.check()
     }
 
@@ -153,14 +154,14 @@ object MovingGrid {
     }
 
     fun drawTextMesh(
-        baseSize: Double,
-        factor: Int,
+        pipeline: Pipeline,
+        baseSize: Double, factor: Int,
         rotation: Quaterniond,
     ) {
         val size = baseSize * factor
         val mesh = cachedMeshes.getOrPut(size) { "$factor${getSuffix(baseSize)}" }
         TextShapes.drawTextMesh(
-            mesh, Vector3d(size, size * 0.02, 0.0).rotate(rotation),
+            pipeline, mesh, Vector3d(size, size * 0.02, 0.0).rotate(rotation),
             rotation, size, null
         )
     }

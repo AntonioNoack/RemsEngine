@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import javax.vecmath.Vector3d
 import kotlin.math.abs
@@ -118,7 +119,7 @@ class VehicleWheel : Component() {
     @NotSerializedProperty
     val skidInfo: Double get() = bulletInstance?.skidInfo ?: 0.0
 
-    override fun onDrawGUI(all: Boolean) {
+    override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
         // todo draw steering and power, brake and such for debugging
         LineShapes.drawCircle(entity, radius, 1, 2, 0.0)
     }

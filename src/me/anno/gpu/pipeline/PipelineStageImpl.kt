@@ -736,7 +736,7 @@ class PipelineStageImpl(
                 )
 
                 GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                    mesh.draw(shader, materialIndex, Mesh.drawDebugLines)
+                    mesh.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
                 }
 
                 oc?.stop()

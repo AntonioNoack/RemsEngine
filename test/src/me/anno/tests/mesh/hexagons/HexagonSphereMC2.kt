@@ -41,6 +41,9 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
+// todo split transparent- and non-transparent rendering
+// todo bug: this breaks after a little while... how/why???
+
 // create a Minecraft world on a hex sphere :3
 // use chunks and a visibility system for them
 
@@ -164,18 +167,22 @@ fun main() {
     ECSRegistry.init()
 
     val scene = Entity()
-    scene.add(HSChunkLoader(sphere, world))
+    scene.add(HSChunkLoader(sphere, world, false, diffuseHexMaterial))
+    scene.add(HSChunkLoader(sphere, world, true, transparentHexMaterial))
     scene.add(MeshComponent(IcosahedronModel.createIcosphere(5, 0.999f)))
     testSceneWithUI("HexSphere MC/2", scene) {
-        it.renderer.orbitCenter.set(0.0, 1.0, 0.0)
-        it.renderer.radius = 10.0 * sphere.len
-        it.renderer.near = it.renderer.radius * 0.01
-        it.renderer.far = it.renderer.radius * 1e5
-        it.renderer.updateEditorCameraTransform()
+        // todo this isn't working... why?
+        addEvent {
+            it.renderer.orbitCenter.set(0.0, 1.0, 0.0)
+            it.renderer.radius = 10.0 * sphere.len
+            it.renderer.near = it.renderer.radius * 0.01
+            it.renderer.far = it.renderer.radius * 1e5
+            it.renderer.updateEditorCameraTransform()
+        }
     }
 }
 
-val worker = ProcessingGroup("worldGen", 4)
+val worker = ProcessingGroup("worldGen", 1f)
 
 val attributes = listOf(
     Attribute("coords", 3),
@@ -220,8 +227,10 @@ val hexVertexData = MeshVertexData(
 )
 
 // todo why is this still lagging soo much? shouldn't it be smooth???
-// todo also why is BinarySearch corrupting in AllocationManager???
-class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) :
+class HSChunkLoader(
+    val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
+    val transparent: Boolean?, val material: Material
+) :
     UniqueMeshRenderer<Mesh, HexagonSphere.Chunk>(attributes, hexVertexData, DrawMode.TRIANGLES) {
 
     override val materials: List<FileReference>
@@ -230,6 +239,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
     override fun getData(key: HexagonSphere.Chunk, mesh: Mesh): StaticBuffer? {
         val positions = mesh.positions ?: return null
         val colors = mesh.color0 ?: return null
+        if (positions.isEmpty()) return null
         assertEquals(null, mesh.indices) // indices aren't supported here
         assertEquals(positions.size, colors.size * 3)
         val buffer = StaticBuffer("hexagons", attributes, positions.size / 3)
@@ -252,10 +262,9 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
     val requests = ArrayList<HexagonSphere.Chunk>()
     var maxAngleDifference = sphere.len * 512
 
-    override fun clone() = HSChunkLoader(sphere, world)
     override fun onUpdate(): Int {
         val pos = pos.set(RenderView.currentInstance!!.orbitCenter).safeNormalize()
-        if (pos.lengthSquared() < 0.5) pos.z = 1.0
+        if (pos.lengthSquared() < 0.5) pos.y = 1.0
         dir.set(pos)
         val pos3 = Vector3f(pos)
         chunks.removeIf { (key, bounds) ->
@@ -281,13 +290,16 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
             val key = requests[i]
             worker += {
                 // check if the request is still valid
-                val mesh = createMesh(sphere.queryChunk(key), world)
-                GFX.addGPUTask("chunk", sphere.chunkCount) {
-                    val buffer = getData(key, mesh)
-                    if (buffer != null) {
-                        addEvent {
+                val mesh = createMesh(sphere.queryChunk(key), world, transparent)
+                val buffer = getData(key, mesh)
+                if (buffer != null) {
+                    GFX.addGPUTask("chunk", sphere.chunkCount) {
+                        buffer.ensureBufferAsync {
+                            GFX.check()
                             add(key, MeshEntry(mesh, mesh.getBounds(), buffer))
+                            GFX.check()
                             chunks[key] = mesh.getBounds()
+                            GFX.check()
                         }
                     }
                 }

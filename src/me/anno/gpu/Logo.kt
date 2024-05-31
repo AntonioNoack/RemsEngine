@@ -138,7 +138,7 @@ object Logo {
                 if (mesh != null) {
                     mesh.ensureBuffer()
                     for (i in 0 until mesh.numMaterials) {
-                        mesh.draw(shader, i)
+                        mesh.draw(null, shader, i)
                     }
                     success = true
                 }
