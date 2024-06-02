@@ -8,7 +8,7 @@ import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.image.ImageCache
 import me.anno.mesh.blender.BlenderReader
-import me.anno.tests.files.printTree
+import me.anno.tests.io.files.printTree
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents

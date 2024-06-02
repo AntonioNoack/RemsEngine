@@ -1,4 +1,4 @@
-package me.anno.tests.files
+package me.anno.tests.io.files
 
 import me.anno.io.json.generic.JsonFormatter
 import org.junit.jupiter.api.Test

@@ -55,6 +55,10 @@ open class Server : Closeable {
     private var udpSocket: DatagramSocket? = null
     private val run get() = !shutdown && !Engine.shutdown
 
+    fun stop() {
+        shutdown = true
+    }
+
     fun register(protocol: Protocol) {
         protocols[protocol.bigEndianMagic] = protocol
     }
@@ -102,7 +106,9 @@ open class Server : Closeable {
                 runTCP(socket)
             }
         }
-        if (udpPort in 0..0xffff && protocols.any { it.value.networkProtocol == NetworkProtocol.UDP }) {
+        if (udpPort in 0..0xffff && protocols.any {
+                it.value.networkProtocol == NetworkProtocol.UDP
+            }) {
             val socket = try {
                 DatagramSocket(udpPort)
             } catch (e: Exception) {

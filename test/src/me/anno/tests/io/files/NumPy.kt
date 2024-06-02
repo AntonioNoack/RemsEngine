@@ -1,4 +1,4 @@
-package me.anno.tests.files
+package me.anno.tests.io.files
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material

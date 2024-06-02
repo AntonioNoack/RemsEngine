@@ -1,4 +1,4 @@
-package me.anno.tests.files
+package me.anno.tests.io.files
 
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.PipelineStage

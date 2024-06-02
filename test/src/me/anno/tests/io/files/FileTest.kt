@@ -1,4 +1,4 @@
-package me.anno.tests.files
+package me.anno.tests.io.files
 
 import me.anno.io.files.Reference.getReference
 import org.apache.logging.log4j.LogManager

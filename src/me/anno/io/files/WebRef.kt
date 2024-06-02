@@ -32,7 +32,7 @@ import kotlin.math.min
  * get/put/post? -> this is just reading, so get is fine unless we want outputStream()
  * todo define request headers like user-agent
  *
- * todo if is redirect, automatically redirect? yes
+ * if is redirect, automatically redirect? yes -> and it works by my testing :)
  * watch dogs? we only can ask for changes every x seconds
  * */
 open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
