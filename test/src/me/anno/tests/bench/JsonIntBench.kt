@@ -20,7 +20,7 @@ fun main() {
 
         val writer = JsonStringWriter(4854397, InvalidRef)
 
-        val clock = Clock()
+        val clock = Clock("JsonIntBench")
         clock.start()
 
         writer.writeIntArray("x", ints)

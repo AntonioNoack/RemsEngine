@@ -86,7 +86,7 @@ val sky1BGR = convertABGR2ARGB(sky1)
 
 fun main() {
     OfficialExtensions.initForTests()
-    val clock = Clock()
+    val clock = Clock("BRealtimeTest")
     forceLoadRenderDoc()
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!

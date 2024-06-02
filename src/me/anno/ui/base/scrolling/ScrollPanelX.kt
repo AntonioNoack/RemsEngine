@@ -17,6 +17,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
+import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
@@ -53,7 +54,6 @@ open class ScrollPanelX(
     val interactionHeight = scrollbarHeight + 2 * interactionPadding
 
     val hasScrollbar: Boolean get() = maxScrollPositionX > 0f
-    val hasScrollbarF: Float get() = clamp(maxScrollPositionXRaw / (3f * scrollbarHeight) + 1f)
 
     override val childSizeX: Long
         get() {
@@ -85,7 +85,7 @@ open class ScrollPanelX(
         if (window != null) {
             val mx = window.mouseXi
             val my = window.mouseYi
-            scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+            scrollbar.isHovered = capturesChildEvents(mx, my)
         }
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(deltaTime * scrollHardnessX))
         if (scrollbar.updateAlpha()) invalidateDrawing()
@@ -110,7 +110,7 @@ open class ScrollPanelX(
 
     override fun setSize(w: Int, h: Int) {
         super.setSize(w, h)
-        val paddingY = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
+        val paddingY = padding.height + hasScrollbar.toInt(scrollbarHeight)
         child.setSize(max(child.minW, w - padding.width), h - paddingY)
     }
 
@@ -126,7 +126,7 @@ open class ScrollPanelX(
         val child = child
         val padding = padding
         // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingY = padding.height + (hasScrollbarF * scrollbarHeight).toInt()
+        val paddingY = padding.height + hasScrollbar.toInt(scrollbarHeight)
         child.calculateSize(maxLength - padding.width, h - paddingY)
         minW = min(child.minW + padding.width, w)
         minH = min(child.minH + paddingY, h)

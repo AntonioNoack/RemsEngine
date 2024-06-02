@@ -200,8 +200,8 @@ fun test3() {
         object : MapPanel(style) {
 
             init {
-                minScale = 0.25
-                maxScale = 250.0
+                minScale.set(0.25)
+                maxScale.set(250.0)
             }
 
             var targetAngle = 0.0
@@ -224,9 +224,8 @@ fun test3() {
                         val pos = entity.transform.globalPosition
                         val ang = entity.transform.globalRotation.getEulerAnglesYXZ(tmp).z
                         // calculate anchorWS from mouse position
-                        val scale = scale.toFloat()
-                        val mouseX = (mouse.x - (x + this.width / 2)) / scale + center.x
-                        val mouseY = (mouse.y - (y + this.height / 2)) / scale + center.y
+                        val mouseX = (mouse.x - (x + this.width / 2)) / scale.x.toFloat() + center.x
+                        val mouseY = (mouse.y - (y + this.height / 2)) / scale.y.toFloat() + center.y
                         // calculate global position of anchor target from anchorLS
                         val targetX = pos.x + cos(ang) * anchorLS.x
                         val targetY = pos.y + sin(ang) * anchorLS.y
@@ -268,9 +267,9 @@ fun test3() {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
 
-                val x0i = x + this.width / 2 - (center.x * scale).toFloat()
-                val y0i = y + this.height / 2 - (center.y * scale).toFloat()
-                val scale = scale.toFloat()
+                val x0i = x + this.width / 2 - (center.x * scale.x).toFloat()
+                val y0i = y + this.height / 2 - (center.y * scale.y).toFloat()
+                val scale = scale.y.toFloat()
 
                 val bg = backgroundColor.withAlpha(0)
 

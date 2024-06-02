@@ -67,7 +67,7 @@ class SSGINode : ActionNode(
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion.compute(
             data, depthTT, depthT.mapping, normalT, normalZW,
-            transform, strength, radiusScale, ssaoSamples, blur
+            transform, strength, radiusScale, ssaoSamples, blur, false
         )
         setOutput(1, Texture.texture(result, 0, "rgb", null))
         popDrawCallName()

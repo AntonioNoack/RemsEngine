@@ -197,30 +197,22 @@ object DrawCurves {
             data.skip(8) // padding for 32-byte alignment
             lineBatch.next()
         } else {
-            GFX.check()
             val shader = lineShader
             shader.use()
-            GFX.check()
             GFXx2D.posSize(shader, 0f, 0f, 1f, 1f)
-            GFX.check()
             shader.v4fSq("c0", c0)
             shader.v4fSq("c1", c1)
-            GFX.check()
             shader.v4f("backgroundColor", background.withAlpha(0))
             shader.v1f("thickness", thickness)
             shader.v1f("smoothness", smoothness)
-            GFX.check()
             shader.v2f("p0", x0, y0)
             shader.v2f("p1", x1, y1)
-            GFX.check()
             shader.v1f("extrusion", thickness + smoothness)
             shader.v1f(
                 "tScale", if (flatEnds) 1f else
                     1f + (thickness + smoothness) * 2f / hypot(x1 - x0, y1 - y0)
             )
-            GFX.check()
             flat11x2.draw(shader)
-            GFX.check()
         }
     }
 

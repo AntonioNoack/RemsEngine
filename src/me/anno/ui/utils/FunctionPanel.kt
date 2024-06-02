@@ -35,11 +35,10 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
     var functionName: String? = "f"
 
     init {
-        minScale = 1e-16
-        maxScale = 1e16
-        targetScale = 100.0
-        @Suppress("LeakingThis")
-        scale = targetScale
+        minScale.set(1e-16)
+        maxScale.set(1e16)
+        targetScale.set(100.0)
+        scale.set(targetScale)
     }
 
     private fun formatNumber(i: Long, pow: Int, pow10: Double): String {

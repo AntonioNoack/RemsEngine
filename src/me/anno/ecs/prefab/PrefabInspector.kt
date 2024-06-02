@@ -140,6 +140,11 @@ class PrefabInspector(var reference: FileReference) {
 
     fun inspect(instances: List<PrefabSaveable>, list: PanelListY, style: Style) {
 
+        if (instances.isEmpty()) {
+            LOGGER.warn("No instances found")
+            return
+        }
+
         for (instance in instances) {
             if (instance.prefab !== prefab && instance.prefab != null)
                 LOGGER.warn(
@@ -393,7 +398,7 @@ class PrefabInspector(var reference: FileReference) {
         getter: (PrefabSaveable) -> String,
         setter: (PrefabSaveable, String) -> Unit
     ) {
-        val first = instances.first()
+        val first = instances.firstOrNull() ?: return
         val original = first.getOriginal()
         val text = instances
             .map(getter).filter { it.isNotBlank() }

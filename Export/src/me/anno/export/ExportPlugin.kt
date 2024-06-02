@@ -118,7 +118,7 @@ class ExportPlugin : Plugin() {
         }
 
         fun runExport(preset: ExportSettings) {
-            val clock = Clock()
+            val clock = Clock(LOGGER)
             val progress = GFX.someWindow.addProgressBar("Export", "Files", 1.0)
             progress.intFormatting = true
             thread(name = "Export") {

@@ -3,35 +3,25 @@ package me.anno.io.files.inner
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.extensions.FileRegistry
-import me.anno.extensions.IFileRegistry
+import me.anno.extensions.FileReaderRegistryImpl
+import me.anno.extensions.FileReaderRegistry
 import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.Signature
 import me.anno.mesh.vox.VOXReader
+import kotlin.math.max
 
 object InnerFolderCache : CacheSection("InnerFolderCache"),
-    IFileRegistry<InnerFolderReader> by FileRegistry() {
-
-    // cache all content? if less than a certain file size
-    // cache the whole hierarchy [? only less than a certain depth level - not done]
-
-    // done display unity packages differently: display them as their usual file structure
-    // it kind of is a new format, that is based on another decompression
+    FileReaderRegistry<InnerFolderReader> by FileReaderRegistryImpl() {
 
     val imageFormats = "png,jpg,bmp,pds,hdr,webp,tga,ico,dds,gif,exr,qoi"
     val imageFormats1 = imageFormats.split(',')
 
     init {
         // meshes
-        // to do all mesh extensions
         registerSignatures("vox", VOXReader::readAsFolder)
-
-        // cannot be read by assimp anyway
-        // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about its file signature
         // images
-        // to do all image formats
         registerSignatures(imageFormats, ImageAsFolder::readAsFolder)
         registerSignatures("media", ImageAsFolder::readAsFolder) // correct for webp, not for videos
     }
@@ -49,16 +39,16 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         if (file is InnerFile && file.folder != null) return file.folder
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
             generate(file1)
-        } as? AsyncCacheData<*>
+        }
         if (!async && data != null) data.waitFor()
-        return data?.value as? InnerFile
+        return data?.value
     }
 
     private fun generate(file1: FileReference): AsyncCacheData<InnerFolder?> {
-        val signature = Signature.findNameSync(file1)
+        val signature = Signature.findSync(file1)
         val ext = file1.lcExtension
         val data = AsyncCacheData<InnerFolder?>()
-        if (signature == "json" && ext == "json") {
+        if (signature?.name == "json" && ext == "json") {
             data.value = null
         } else {
             val reader = getReader(signature, ext)
@@ -80,7 +70,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         var path = name.replace('\\', '/')
         while (path.endsWith('/')) path = path.substring(0, path.length - 1)
         val nameIndex = path.indexOfLast { it == '/' }
-        val parent = if (nameIndex < 0) "" else path.substring(0, nameIndex)
+        val parent = path.substring(0, max(nameIndex,0))
         return parent to path
     }
 
@@ -88,7 +78,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
 
     /**
      * opening a packed stream again would be really expensive for large packages;
-     * is there a better strategy than this?? maybe index a few on every go to load something
+     * is there a better strategy than this? -> HeavyIterator reduces the number of required passes
      * */
     var sizeLimit = 500_000L
 }

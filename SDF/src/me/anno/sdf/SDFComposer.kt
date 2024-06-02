@@ -150,8 +150,6 @@ object SDFComposer {
                 val stage = ShaderStage(
                     name, fragmentVariables, defines +
 
-                            // todo calculate motion vectors, if requested
-
                             // todo if transparency is enabled, trace through the model until the result is opaque
 
                             // compute ray position & direction in local coordinates

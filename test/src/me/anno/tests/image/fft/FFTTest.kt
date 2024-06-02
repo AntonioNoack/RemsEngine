@@ -41,7 +41,7 @@ fun main() {
         pl.edu.icm.jlargearrays.ConcurrencyUtils.shutdownThreadPoolAndAwaitTermination()
     }
 
-    val clock = Clock()
+    val clock = Clock("FFTTest")
     val src = ImageCache[desktop.getChild("Moire.jpg"), false]!!
     clock.stop("Load Image")
 

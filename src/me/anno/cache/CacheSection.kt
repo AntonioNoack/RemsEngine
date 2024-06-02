@@ -4,7 +4,6 @@ import me.anno.Build
 import me.anno.Time.nanoTime
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
@@ -90,20 +89,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun removeFileEntry(file: FileReference) = removeEntry(file, file.lastModified)
 
-    fun getFileEntry(
+    fun <R : ICacheData> getFileEntry(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
-        generator: (FileReference, Long) -> ICacheData?
-    ): ICacheData? {
+        generator: (FileReference, Long) -> R?
+    ): R? {
         val validFile = getValidFile(file, allowDirectories) ?: return null
         return getDualEntry(validFile, validFile.lastModified, timeout, asyncGenerator, generator)
     }
 
-    fun getFileEntryAsync(
+    fun <R : ICacheData> getFileEntryAsync(
         file: FileReference, allowDirectories: Boolean,
         timeout: Long, asyncGenerator: Boolean,
-        generator: (FileReference, Long) -> ICacheData?,
-        callback: Callback<ICacheData>
+        generator: (FileReference, Long) -> R?,
+        callback: Callback<R>
     ) {
         val validFile = getValidFile(file, allowDirectories) ?: return callback.err(null)
         getDualEntryAsync(validFile, validFile.lastModified, timeout, asyncGenerator, generator, callback)
@@ -217,8 +216,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return data
     }
 
-    private fun <V, W> generateDualSafely(key0: V, key1: W, generator: (V, W) -> ICacheData?): Any? {
-        var data: ICacheData? = null
+    private fun <V, W, R : ICacheData> generateDualSafely(key0: V, key1: W, generator: (V, W) -> R?): Any? {
+        var data: R? = null
         try {
             data = generator(key0, key1)
         } catch (_: IgnoredException) {
@@ -243,10 +242,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private val limiter = AtomicInteger()
-    fun <V> getEntryLimited(
+    fun <V, R : ICacheData> getEntryLimited(
         key: V, timeout: Long, asyncGenerator: Boolean,
-        limit: Int, generator: (V) -> ICacheData
-    ): ICacheData? {
+        limit: Int, generator: (V) -> R
+    ): R? {
         val accessTry = limiter.getAndIncrement()
         return if (accessTry < limit) {
             // we're good to go, and can make our request
@@ -254,19 +253,21 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 if (value is Exception) throw value
-                value as? ICacheData
+                @Suppress("UNCHECKED_CAST")
+                value as? R
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            getEntryWithoutGenerator(key, 1L)
+            @Suppress("UNCHECKED_CAST")
+            getEntryWithoutGenerator(key, 1L) as? R
         }
     }
 
-    fun <V> getEntryLimited(
+    fun <V, R : ICacheData> getEntryLimited(
         key: V, timeout: Long, queue: ProcessingQueue?,
-        limit: Int, generator: (V) -> ICacheData
-    ): ICacheData? {
+        limit: Int, generator: (V) -> R
+    ): R? {
         val accessTry = limiter.getAndIncrement()
         return if (accessTry < limit) {
             // we're good to go, and can make our request
@@ -274,21 +275,23 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 if (value is Exception) throw value
-                value as? ICacheData
+                @Suppress("UNCHECKED_CAST")
+                value as? ICacheData as? R
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            getEntryWithoutGenerator(key, 1L)
+            @Suppress("UNCHECKED_CAST")
+            getEntryWithoutGenerator(key, 1L) as? R
         }
     }
 
-    fun <V, W> getDualEntryWithIfNotGeneratingCallback(
+    fun <V, W, R : ICacheData> getDualEntryWithIfNotGeneratingCallback(
         key0: V, key1: W,
         timeoutMillis: Long, asyncGenerator: Boolean,
-        generator: (key0: V, key1: W) -> ICacheData?,
+        generator: (key0: V, key1: W) -> R?,
         ifNotGenerating: (() -> Unit)?
-    ): ICacheData? {
+    ): R? {
 
         checkKey(key0)
         checkKey(key1)
@@ -330,15 +333,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else ifNotGenerating?.invoke()
 
         waitMaybe(asyncGenerator, entry, key0, key1)
-        return if (entry.hasBeenDestroyed) null else entry.data
+        @Suppress("UNCHECKED_CAST")
+        return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
-    fun <V> getEntryWithIfNotGeneratingCallback(
+    fun <V, R : ICacheData> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
-        generator: (V) -> ICacheData?,
+        generator: (V) -> R?,
         ifNotGenerating: (() -> Unit)?
-    ): ICacheData? {
+    ): R? {
 
         checkKey(key)
 
@@ -377,14 +381,15 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else ifNotGenerating?.invoke()
 
         waitMaybe(asyncGenerator, entry, key, null)
-        return if (entry.hasBeenDestroyed) null else entry.data
+        @Suppress("UNCHECKED_CAST")
+        return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
-    fun <V> getEntryAsync(
+    fun <V, R : ICacheData> getEntryAsync(
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
-        generator: (V) -> ICacheData?,
-        resultCallback: Callback<ICacheData>
+        generator: (V) -> R?,
+        resultCallback: Callback<R>
     ) {
 
         checkKey(key)
@@ -428,11 +433,11 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun <V, W> getDualEntryAsync(
+    fun <V, W, R : ICacheData> getDualEntryAsync(
         key0: V, key1: W, timeoutMillis: Long,
         asyncGenerator: Boolean,
-        generator: (V, W) -> ICacheData?,
-        resultCallback: Callback<ICacheData>
+        generator: (V, W) -> R?,
+        resultCallback: Callback<R>
     ) {
 
         checkKey(key0)
@@ -497,12 +502,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         LOGGER.warn("Finished waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}")
     }
 
-    fun <V> getEntryWithIfNotGeneratingCallback(
+    fun <V, R : ICacheData> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         queue: ProcessingQueue?,
-        generator: (V) -> ICacheData?,
+        generator: (V) -> R?,
         ifNotGenerating: (() -> Unit)?
-    ): ICacheData? {
+    ): R? {
 
         if (key == null) throw IllegalStateException("Key must not be null")
         checkKey(key)
@@ -540,17 +545,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else ifNotGenerating?.invoke()
 
         if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
-        return if (entry.hasBeenDestroyed) null else entry.data
+        @Suppress("UNCHECKED_CAST")
+        return if (entry.hasBeenDestroyed) null else entry.data as? R
     }
 
-    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? =
+    fun <V, R : ICacheData> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> R?): R? =
         getEntryWithIfNotGeneratingCallback(key, timeoutMillis, asyncGenerator, generator, null)
 
-    fun <V, W> getDualEntry(
+    fun <V, W, R : ICacheData> getDualEntry(
         key0: V, key1: W, timeoutMillis: Long, asyncGenerator: Boolean,
-        generator: (V, W) -> ICacheData?
-    ): ICacheData? =
-        getDualEntryWithIfNotGeneratingCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
+        generator: (V, W) -> R?
+    ): R? = getDualEntryWithIfNotGeneratingCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
 
     fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? =
         getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
@@ -577,6 +582,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     init {
         caches += this
+        registerCache(::update, ::clear)
     }
 
     companion object {
@@ -588,30 +594,35 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         private val updateListeners = ArrayList<() -> Unit>()
 
         @JvmStatic
+        private val clearListeners = ArrayList<() -> Unit>()
+
+        @JvmStatic
         fun updateAll() {
-            for (cache in caches) {
-                cache.update()
-            }
-            synchronized(updateListeners) {
-                for (cache in updateListeners) {
-                    cache()
-                }
-            }
+            callListeners(updateListeners)
         }
 
         @JvmStatic
         fun clearAll() {
-            for (cache in caches) {
-                cache.clear()
-            }
-            // todo listeners for that?
-            LastModifiedCache.clear()
+            callListeners(clearListeners)
         }
 
-        fun registerOnUpdate(update: () -> Unit) {
-            synchronized(updateListeners) {
-                updateListeners.add(update)
+        private fun callListeners(listeners: List<() -> Unit>) {
+            synchronized(listeners) {
+                for (listener in listeners) {
+                    listener()
+                }
             }
+        }
+
+        private fun addListener(listeners: ArrayList<() -> Unit>, listener: () -> Unit) {
+            synchronized(listeners) {
+                listeners.add(listener)
+            }
+        }
+
+        fun registerCache(update: () -> Unit, clear: () -> Unit) {
+            addListener(updateListeners, update)
+            addListener(clearListeners, clear)
         }
 
         fun invalidateFiles(path: String) {

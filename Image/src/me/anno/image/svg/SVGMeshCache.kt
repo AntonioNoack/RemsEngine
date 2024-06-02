@@ -11,9 +11,9 @@ import java.io.InputStream
 
 object SVGMeshCache : CacheSection("Meshes") {
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
-        val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync) as? AsyncCacheData<*> ?: return null
+        val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync) ?: return null
         if (!asyncGenerator) data.waitFor()
-        return data.value as? StaticBuffer
+        return data.value
     }
 
     private fun loadSVGMeshAsync(file: FileReference, lastModified: Long): AsyncCacheData<StaticBuffer> {

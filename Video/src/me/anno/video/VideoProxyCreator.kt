@@ -33,8 +33,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
 
     fun getProxyFile(src: FileReference, sliceIndex: Int, async: Boolean = true): FileReference? {
         init()
-        val data = getEntry(getKey(src, sliceIndex), 10_000, async, ::generateFile) as? CacheData<*>
-        return data?.value as? FileReference
+        return getEntry(getKey(src, sliceIndex), 10_000, async, ::generateFile)?.value
     }
 
     override fun isKeyValid(key: Key): Boolean {

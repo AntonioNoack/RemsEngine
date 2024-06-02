@@ -7,8 +7,23 @@ import me.anno.io.base.BaseWriter
  * */
 open class NamedSaveable : Saveable() {
 
-    open var name = ""
-    open var description = ""
+    var name = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                onChangeNameDesc()
+            }
+        }
+
+    var description = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                onChangeNameDesc()
+            }
+        }
+
+    open fun onChangeNameDesc() {}
 
     override val approxSize get() = 10
 

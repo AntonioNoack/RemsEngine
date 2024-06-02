@@ -29,34 +29,37 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     val target = Vector2d()
     val center = Vector2d()
 
-    var targetScale = 1.0
-    open var scale = 1.0
+    val targetScale = Vector2d(1.0)
+    val scale = Vector2d(1.0)
 
     val isZooming get() = targetScale != scale
 
     val centerX get() = x + width / 2
     val centerY get() = y + height / 2
 
-    var minScale = 0.5
-    var maxScale = 1000.0
+    val minScale = Vector2d(0.5)
+    val maxScale = Vector2d(1000.0)
 
     // most implementations will do so
     override val canDrawOverBorders: Boolean get() = true
 
-    fun windowToCoordsDirX(wx: Double) = wx / scale
-    fun windowToCoordsDirY(wy: Double) = wy / scale
+    open fun onChangeSize() {
+    }
 
-    fun coordsToWindowDirX(cx: Double) = cx * scale
-    fun coordsToWindowDirY(cy: Double) = cy * scale
+    fun windowToCoordsDirX(wx: Double) = wx / scale.x
+    fun windowToCoordsDirY(wy: Double) = wy / scale.y
 
-    fun windowToCoordsX(wx: Double) = (wx - centerX) / scale + center.x
-    fun windowToCoordsY(wy: Double) = (wy - centerY) / scale + center.y
+    fun coordsToWindowDirX(cx: Double) = cx * scale.x
+    fun coordsToWindowDirY(cy: Double) = cy * scale.y
+
+    fun windowToCoordsX(wx: Double) = (wx - centerX) / scale.x + center.x
+    fun windowToCoordsY(wy: Double) = (wy - centerY) / scale.y + center.y
 
     fun windowToCoordsX(wx: Float) = windowToCoordsX(wx.toDouble()).toFloat()
     fun windowToCoordsY(wy: Float) = windowToCoordsY(wy.toDouble()).toFloat()
 
-    fun coordsToWindowX(cx: Double) = (cx - center.x) * scale + centerX
-    fun coordsToWindowY(cy: Double) = (cy - center.y) * scale + centerY
+    fun coordsToWindowX(cx: Double) = (cx - center.x) * scale.x + centerX
+    fun coordsToWindowY(cy: Double) = (cy - center.y) * scale.y + centerY
 
     fun coordsToWindowX(cx: Float) = coordsToWindowX(cx.toDouble()).toFloat()
     fun coordsToWindowY(cy: Float) = coordsToWindowY(cy.toDouble()).toFloat()
@@ -106,11 +109,14 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
 
     override fun onUpdate() {
         val dtx = dtTo01(5.0 * deltaTime)
-        if (abs(1.0 - targetScale / scale) > 0.01) {
-            scale = exp(mix(ln(scale), ln(targetScale), dtx))
+        if (abs(1.0 - targetScale.y / scale.y) > 0.01) {
+            scale.x = exp(mix(ln(scale.x), ln(targetScale.x), dtx))
+            scale.y = exp(mix(ln(scale.y), ln(targetScale.y), dtx))
+            onChangeSize()
             invalidateLayout()
         } else if (scale != targetScale) {
-            scale = targetScale
+            scale.set(targetScale)
+            onChangeSize()
             invalidateLayout()
         }
         if (target.distanceSquared(center) > 1e-5) {
@@ -146,7 +152,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     /** move map in pixel space */
     open fun moveMap(dx: Double, dy: Double) {
         // moving around
-        center.sub(dx / scale, dy / scale)
+        center.sub(dx / scale.x, dy / scale.y)
         target.set(center)
         invalidateLayout()
     }
@@ -162,21 +168,22 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         invalidateLayout()
     }
 
-    fun teleportScaleTo(newScale: Double) {
-        scale = newScale
-        targetScale = newScale
+    fun teleportScaleTo(newScale: Vector2d) {
+        scale.set(newScale)
+        targetScale.set(newScale)
         invalidateLayout()
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         // zoom in on the mouse pointer
-        val oldInv = 1.0 / targetScale
+        val oldInvX = 1.0 / targetScale.x
+        val oldInvY = 1.0 / targetScale.y
         val multiplier = Maths.pow(1.05, dy.toDouble())
-        targetScale = Maths.clamp(targetScale * multiplier, minScale, maxScale)
-        val newInv = 1.0 / targetScale
-        val deltaScale = oldInv - newInv
-        val dxi = (x - centerX) * deltaScale
-        val dyi = (y - centerY) * deltaScale
+        targetScale.mul(multiplier)
+        targetScale.max(minScale)
+        targetScale.min(maxScale)
+        val dxi = (x - centerX) * (oldInvY - 1.0 / targetScale.y)
+        val dyi = (y - centerY) * (oldInvX - 1.0 / targetScale.x)
         target.add(dxi, dyi)
         invalidateLayout()
     }

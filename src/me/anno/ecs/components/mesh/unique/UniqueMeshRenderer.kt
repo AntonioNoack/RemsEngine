@@ -18,7 +18,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
-import me.anno.graph.hdb.allocator.size
+import me.anno.utils.types.size
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
@@ -101,7 +101,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         return true
     }
 
-    val clock = Clock()
+    val clock = Clock(LOGGER)
 
     fun set(key: Key, entry: MeshEntry<Mesh>): Boolean {
         val old = entryLookup[key]
@@ -217,7 +217,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     override fun allocate(newSize: Int): StaticBuffer {
         val buffer = buffer1
         buffer.vertexCount = newSize
-        val clock = Clock()
+        val clock = Clock(LOGGER)
         buffer.uploadEmpty(newSize.toLong() * stride)
         clock.stop("UploadEmpty")
         return buffer

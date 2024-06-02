@@ -64,8 +64,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (graph != null) {
             graphs.add(graph)
         }
-        minScale = 0.001
-        maxScale = 10.0
+        minScale.set(0.001)
+        maxScale.set(10.0)
     }
 
     fun requestFocus(node: Node) {
@@ -77,16 +77,12 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     // large scale = fast movement
-    override var scale = 1.0
-        set(value) {
-            if (field != value) {
-                field = value
-                font = font.withSize(baseTextSize.toFloat())
-            }
-        }
+    override fun onChangeSize() {
+        font = font.withSize(baseTextSize.toFloat())
+    }
 
     var cornerRadius = 24f
-    val baseTextSize: Double get() = 20 * scale
+    val baseTextSize: Double get() = 20 * scale.y
 
     var scrollLeft = 0
     var scrollTop = 0
@@ -184,7 +180,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         ensureChildren()
-        val cornerRadius = (scale * cornerRadius).toFloat()
+        val cornerRadius = (scale.y * cornerRadius).toFloat()
         for (i in children.indices) {
             val panel = children[i]
             panel.backgroundRadius = cornerRadius
@@ -254,7 +250,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (multiplier > 0f) {
             dx2 *= multiplier
             dy2 *= multiplier
-            center.add(dx2 / scale, dy2 / scale)
+            center.add(dx2 / scale.x, dy2 / scale.y)
             target.set(center)
             invalidateLayout()
         } else {
@@ -296,7 +292,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         // what grid makes sense? power of 2
         // what is a good grid? one stripe every 10-20 px maybe
         val targetStripeDistancePx = 30.0
-        val log = log2(targetStripeDistancePx / scale)
+        val log = log2(targetStripeDistancePx / scale.y)
         val fract = Maths.fract(log.toFloat())
         val size = Maths.pow(2.0, floor(log))
         // draw 2 grids, one fading, the other becoming more opaque
@@ -355,7 +351,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         c0: Int, c1: Int, type: String
     ) {
         val yc = (y0 + y1) * 0.5f
-        val d0 = 20f * scale.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
+        val d0 = 20f * scale.y.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
         // line thickness depending on flow/non-flow
         val lt = if (type == "Flow") lineThicknessBold else lineThickness
         val xc = (x0 + x1) * 0.5f
@@ -377,8 +373,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         type: String
     ) {
         val yc = (y0 + y1) * 0.5f
-        val d0 = (30f + outIndex * 10f) * scale.toFloat()
-        val d1 = (30f + inIndex * 10f) * scale.toFloat()
+        val d0 = (30f + outIndex * 10f) * scale.y.toFloat()
+        val d1 = (30f + inIndex * 10f) * scale.y.toFloat()
         // line thickness depending on flow/non-flow
         val lt = if (type == "Flow") lineThicknessBold else lineThickness
         // go back distance x, and draw around

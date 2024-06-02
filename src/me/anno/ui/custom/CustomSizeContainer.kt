@@ -71,7 +71,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
             // find where the mouse went down
             for (index in scrollbars.indices) {
                 val scrollbar = scrollbars[index]
-                if (scrollbar.isBeingHovered) {
+                if (scrollbar.isHovered) {
                     isDownIndex = index
                     return
                 }
@@ -111,7 +111,7 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
     }
 
     fun updateScrollbar(scrollbar: Scrollbar, isYBar: Boolean) {
-        scrollbar.isBeingHovered = (if (isYBar) dy else dx) >= 0
+        scrollbar.isHovered = (if (isYBar) dy else dx) >= 0
         if (scrollbar.updateAlpha()) {
             invalidateDrawing()
         }

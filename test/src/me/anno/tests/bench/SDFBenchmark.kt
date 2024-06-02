@@ -32,7 +32,7 @@ fun main() {
     val font = Font("Verdana", 8f, isBold = false, isItalic = false)
     val text = "Lorem Ipsum is simply text."
 
-    val clock = Clock()
+    val clock = Clock("SDFBenchmark")
     val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
     clock.stop("SDF.createBuffer")
 

@@ -537,7 +537,7 @@ class GimpImage {
         bpp: Int, tileData: ByteArray
     ) {
         when (format) {
-            DataType.U8_LINEAR -> {
+            DataType.U8_LINEAR, DataType.U8_NON_LINEAR, DataType.U8_PERCEPTUAL -> {
                 image as ByteImage
                 val dst = image.data
                 var readIndex = 0

@@ -8,8 +8,11 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.utils.Clock
+import org.apache.logging.log4j.LogManager
 
 object DefaultConfig : StringMap() {
+
+    private val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
     /**
      * The default style, initialized by config
@@ -33,7 +36,7 @@ object DefaultConfig : StringMap() {
 
         clear()
 
-        val tick = Clock()
+        val tick = Clock(LOGGER)
 
         // in case it wasn't registered yet
         registerCustomClass(StringMap())

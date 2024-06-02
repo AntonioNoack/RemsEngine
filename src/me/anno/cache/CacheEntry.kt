@@ -59,10 +59,11 @@ class CacheEntry private constructor(
         }
     }
 
-    fun callback(exception: Exception?, resultCallback: Callback<ICacheData>) {
+    fun <R> callback(exception: Exception?, resultCallback: Callback<R>) {
+        @Suppress("UNCHECKED_CAST")
         resultCallback.call(
             if (hasBeenDestroyed) null
-            else data, exception
+            else data as? R, exception
         )
     }
 

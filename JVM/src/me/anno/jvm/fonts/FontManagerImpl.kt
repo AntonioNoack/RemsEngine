@@ -12,6 +12,7 @@ import me.anno.maths.Maths
 import me.anno.utils.Clock
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Booleans.toInt
+import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
@@ -21,6 +22,7 @@ import java.util.Locale
 
 object FontManagerImpl {
 
+    private val LOGGER = LogManager.getLogger(FontManagerImpl::class)
     private val awtFonts = HashMap<FontKey, Font>()
 
     fun register() {
@@ -50,12 +52,12 @@ object FontManagerImpl {
     }
 
     fun getAWTFont(font: me.anno.fonts.Font): Font {
-        val key = FontKey(font.name, getFontSizeIndex(font.size),font.isBold,font.isItalic)
+        val key = FontKey(font.name, getFontSizeIndex(font.size), font.isBold, font.isItalic)
         return getAWTFont(key)
     }
 
     private fun getInstalledFonts(): List<String> {
-        val tick = Clock()
+        val tick = Clock(LOGGER)
         val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
         val fontNames = ge.getAvailableFontFamilyNames(Locale.ROOT).toList()
         // 0.17s on Win 10, R5 2600, a few extra fonts

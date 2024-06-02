@@ -18,6 +18,7 @@ class SSAONode : ActionNode(
         "Float", "Strength",
         "Float", "Radius Scale",
         "Bool", "Blur",
+        "Bool", "Inverse",
         "Texture", "Normal", // optional
         "Texture", "Depth",
     ), listOf("Texture", "Ambient Occlusion")
@@ -29,6 +30,7 @@ class SSAONode : ActionNode(
         setInput(2, 1f) // strength
         setInput(3, 0.2f) // radius scale
         setInput(4, true) // blur
+        setInput(5, false) // inverse
     }
 
     override fun executeAction() {
@@ -37,18 +39,19 @@ class SSAONode : ActionNode(
         val strength = getFloatInput(2)
         val radiusScale = getFloatInput(3)
         val blur = getBoolInput(4)
+        val inverse = getBoolInput(5)
 
-        val normal = getInput(5) as? Texture ?: return fail()
+        val normal = getInput(6) as? Texture ?: return fail()
         val normalZW = normal.mapping == "zw"
         val normalT = normal.texOrNull ?: normalTexture
-        val depthT = (getInput(6) as? Texture) ?: return fail()
+        val depthT = (getInput(7) as? Texture) ?: return fail()
         val depthTT = depthT.texOrNull ?: return fail()
 
         pushDrawCallName(name)
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion.compute(
             null, depthTT, depthT.mapping, normalT, normalZW,
-            transform, strength, radiusScale, ssaoSamples, blur
+            transform, strength, radiusScale, ssaoSamples, blur, inverse
         )
         setOutput(1, Texture.texture(result, 0, "r", null))
         popDrawCallName()

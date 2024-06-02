@@ -40,16 +40,14 @@ object SpellcheckingImpl {
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val data = Spellchecking.getDualEntry(sentence2, language, timeout, async) { seq, lang ->
+        val value = Spellchecking.getDualEntry(sentence2, language, timeout, async) { seq, lang ->
             val answer = CacheData<List<Suggestion>?>(null)
             getValue(seq, lang) { rawSuggestions ->
                 answer.value = rawSuggestions
             }
             answer
-        } as? CacheData<*> ?: return null
+        }?.value ?: return null
 
-        @Suppress("unchecked_cast")
-        val value = data.value as? List<Suggestion> ?: return null
         return if (sentence != sentence2) {
             val offset = sentence
                 .withIndex()

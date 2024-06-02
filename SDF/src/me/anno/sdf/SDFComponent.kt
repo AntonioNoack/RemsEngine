@@ -82,7 +82,6 @@ import kotlin.math.floor
 // todo signed distance fields, e.g. from meshes
 
 // todo sdf images and maybe text like https://github.com/fogleman/sdf
-// todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
 
 // this principle could be applied on mobile platforms:
 // lighting & environment independent, nice shading

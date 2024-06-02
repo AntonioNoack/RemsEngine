@@ -1,14 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
-import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.gpu.shader.ShaderCache
-import me.anno.jvm.HiddenOpenGLContext
-import me.anno.ui.Panel
-import me.anno.ui.debug.TestEngine.Companion.testUI3
-
-private fun compileCachedShaders() {
+/*private fun compileCachedShaders() {
     GFX.checkIsGFXThread()
     ShaderCache.init()
     val list = ShaderCache.cacheFolder.listChildren().toSet()
@@ -48,4 +40,4 @@ fun main() {
         HiddenOpenGLContext.createOpenGL()
         compileCachedShaders()
     }
-}
+}*/

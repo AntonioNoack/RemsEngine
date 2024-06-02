@@ -47,8 +47,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         val window = window!!
         val mx = window.mouseXi
         val my = window.mouseYi
-        scrollbarX.isBeingHovered = drawsOverX(mx, my)
-        scrollbarY.isBeingHovered = drawsOverY(mx, my)
+        scrollbarX.isHovered = drawsOverX(mx, my)
+        scrollbarY.isHovered = drawsOverY(mx, my)
         scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(deltaTime * scrollHardnessX))
         scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         if (scrollbarX.updateAlpha()) invalidateDrawing()

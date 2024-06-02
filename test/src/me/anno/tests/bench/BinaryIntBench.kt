@@ -5,6 +5,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryReader
 import me.anno.io.binary.BinaryWriter
+import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -42,7 +43,7 @@ fun main() {
         val bos = ByteArrayOutputStream(length * 4 + 1000)
         val writer = BinaryWriter(DataOutputStream(bos))
 
-        val clock = Clock()
+        val clock = Clock(LOGGER)
         clock.start()
 
         writer.add(TestClass().apply { x = ints })

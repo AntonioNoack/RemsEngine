@@ -125,9 +125,11 @@ open class IntImage(
     }
 
     fun copyInto(other: IntImage, x0: Int, y0: Int) {
-        // todo make this safe
         val selfData = data
         val otherData = other.data
+        val width = min(width, other.width - x0)
+        val height = min(height, other.height - y0)
+        if (width <= 0) return
         for (y in 0 until height) {
             val srcI0 = getIndex(0, y)
             val dstI0 = other.getIndex(x0, y0 + y)

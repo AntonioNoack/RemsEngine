@@ -1,6 +1,5 @@
 package me.anno.image
 
-import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.hdr.HDRReader
@@ -85,8 +84,8 @@ object ImageCache : CacheSection("Image") {
         if (file0 is ImageReadable) return file0.readCPUImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
             ImageAsFolder.readImage(file, false)
-        } as? AsyncCacheData<*> ?: return null
+        } ?: return null
         if (!async) data.waitForGFX()
-        return data.value as? Image
+        return data.value
     }
 }

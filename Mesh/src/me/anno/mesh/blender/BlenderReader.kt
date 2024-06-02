@@ -255,7 +255,7 @@ object BlenderReader {
         // transform: +x, +z, -y
         // because we want y up, and Blender has z up
 
-        val clock = Clock()
+        val clock = Clock(LOGGER)
         clock.stop("read bytes")
 
         clock.stop("put into other array")

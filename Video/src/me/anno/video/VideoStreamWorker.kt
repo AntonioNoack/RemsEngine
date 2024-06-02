@@ -6,6 +6,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.utils.types.Strings.shorten
 import me.anno.io.Streams.skipN
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.video.ffmpeg.FFMPEGMetaParser
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame
@@ -93,7 +94,7 @@ object VideoStreamWorker {
                     val sortedFrames = self.sortedFrames
                     synchronized(sortedFrames) {
                         // throw away everything that is too old
-                        val goodFrames = sortedFrames.count { it.first <= self.lastRequestedFrame }
+                        val goodFrames = sortedFrames.count2 { it.first <= self.lastRequestedFrame }
                         val oldFrames = goodFrames - 1
                         if (oldFrames > 0) {
                             val toRemove = sortedFrames.subList(0, oldFrames)

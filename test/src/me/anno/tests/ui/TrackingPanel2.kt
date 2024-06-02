@@ -17,6 +17,7 @@ class TestComponent : Component() {
 }
 
 fun main() {
+    // todo this is broken :/
     registerCustomClass(TestComponent())
     testSceneWithUI("Tracking", TestComponent())
 }

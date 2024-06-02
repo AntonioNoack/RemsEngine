@@ -47,7 +47,7 @@ object HiddenOpenGLContext {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion())
 
-        val tick = Clock()
+        val tick = Clock(LOGGER)
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
         tick.stop("Error callback")
 

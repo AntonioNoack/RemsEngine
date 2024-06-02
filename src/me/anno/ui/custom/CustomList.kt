@@ -10,6 +10,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -170,20 +171,13 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
         if (key == Key.BUTTON_LEFT) {
-            // find where the mouse went down
-            for (index in scrollbars.indices) {
-                val scrollbar = scrollbars[index]
-                if (scrollbar.isBeingHovered) {
-                    isDownIndex = index
-                    return
-                }
-            }
+            isDownIndex = scrollbars.indexOfFirst { it.isHovered }
         } else super.onKeyDown(x, y, key)
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {
-        if (key == Key.BUTTON_LEFT) isDownIndex = -1
-        else super.onKeyUp(x, y, key)
+        isDownIndex = -1
+        super.onKeyUp(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -214,7 +208,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         val window = window!!
         val mx = window.mouseXi
         val my = window.mouseYi
-        scrollbar.isBeingHovered = touchesBar(index + 1, mx, my)
+        scrollbar.isHovered = touchesBar(index + 1, mx, my)
         if (scrollbar.updateAlpha()) {
             invalidateDrawing()
         }
@@ -288,14 +282,9 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     override fun getCursor(): Cursor? {
-        val scrollbars = scrollbars
-        for (index in scrollbars.indices) {
-            val scrollbar = scrollbars[index]
-            if (scrollbar.isBeingHovered) {
-                return if (isY) Cursor.vResize else Cursor.hResize
-            }
-        }
-        return super.getCursor()
+        return if (scrollbars.any2 { it.isHovered }) {
+            if (isY) Cursor.vResize else Cursor.hResize
+        } else super.getCursor()
     }
 
     private val scrollbars = ArrayList<Scrollbar>()

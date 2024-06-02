@@ -9,7 +9,7 @@ import me.anno.utils.Clock
  * */
 fun main() {
     val n = 10000
-    val clock = Clock()
+    val clock = Clock("VisualScriptingBench")
     clock.benchmark(50, 1000, n, "Kotlin") { // ~0.8ns/iteration
         n.factorial()
     }

@@ -3,6 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.light.LightType
 import me.anno.gpu.deferred.PBRLibraryGLTF
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.gpu.pipeline.LightShaders.translucencyNL
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 
@@ -30,6 +31,7 @@ object RendererLib {
             "#endif\n"
 
     val skyMapCode = "" +
+            colorToSRGB +
             // todo it would be nice, if we could search the reflectionMap using its depth
             //  like screen-space reflections to get a more 3d look
             "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
@@ -44,9 +46,9 @@ object RendererLib {
 
     val sampleSkyboxForAmbient = "" +
             // depends on metallic & roughness
-            // todo why does the LOD look to be well-chosen, although I have done nothing?
-            "vec3 sampleSkyboxForAmbient(vec3 dir, float reflectivity) {\n" +
-            "   return (1.0 - reflectivity) * texture(reflectionMap, -${cubemapsAreLeftHanded} * dir).rgb;\n" +
+            "vec3 sampleSkyboxForAmbient(vec3 dir, float finalRoughness, float reflectivity) {\n" +
+            "   float lod = finalRoughness * 10.0;\n" +
+            "   return (1.0 - reflectivity) * textureLod(reflectionMap, -${cubemapsAreLeftHanded} * dir, lod).rgb;\n" +
             "}\n"
 
     val lightCode = "" +
@@ -58,7 +60,7 @@ object RendererLib {
             "   float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
             "   vec3 diffuseColor = finalColor * (1.0 - reflectivity);\n" +
             "   vec3 specularColor = finalColor * reflectivity;\n" +
-            "   vec3 diffuseLight = sampleSkyboxForAmbient(finalNormal, reflectivity);\n" +
+            "   vec3 diffuseLight = sampleSkyboxForAmbient(finalNormal, finalRoughness, reflectivity);\n" +
             "   vec3 specularLight = vec3(0.0);\n" +
             "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.0001;\n" +
             "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.0001;\n" +
@@ -78,17 +80,17 @@ object RendererLib {
             "           float data1 = lightData1[i];\n" + // point: radius, spot: angle
             "           vec4 data2 = shadowData[i];\n" +
             "           vec3 lightColor = data0.rgb;\n" +
-            "           int lightType = int(data0.a);\n" +
-            "           int shadowMapIdx0 = int(data2.r);\n" +
-            "           int shadowMapIdx1 = int(data2.g);\n" +
+            "           int lightType = int(data0.w);\n" +
+            "           int shadowMapIdx0 = int(data2.x);\n" +
+            "           int shadowMapIdx1 = int(data2.y);\n" +
             "           float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
             // local coordinates of the point in the light "cone"
             // removed switch(), because WebGL had issues with continue inside it...
             LightType.entries.joinToString("") {
                 val start = if (it.ordinal == 0) "if" else " else if"
-                val co = "continue" // cutoff keyword
-                val ws = true // with shadows
-                "$start(lightType == ${it.ordinal}){\n${LightType.getShaderCode(it, co, ws)}}"
+                val cutoffKeyword = "continue"
+                val withShadows = true
+                "$start(lightType == ${it.ordinal}){\n${LightType.getShaderCode(it, cutoffKeyword, withShadows)}}"
             } + "\n" +
             "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
             "               specularLight += effectiveSpecular;// * computeSpecularBRDF;\n" +

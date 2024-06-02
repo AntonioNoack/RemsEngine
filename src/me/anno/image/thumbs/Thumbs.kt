@@ -3,8 +3,8 @@ package me.anno.image.thumbs
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.extensions.FileRegistry
-import me.anno.extensions.IFileRegistry
+import me.anno.extensions.FileReaderRegistryImpl
+import me.anno.extensions.FileReaderRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
@@ -18,15 +18,15 @@ import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.image.Image
-import me.anno.image.ImageReadable
 import me.anno.image.ImageAsFolder
+import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.files.inner.InnerStreamFile
+import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
 import me.anno.utils.structures.Callback
@@ -39,9 +39,9 @@ import kotlin.math.min
 /**
  * creates and caches small versions of image, video and mesh resources
  *
- * // todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
+ * todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
  * */
-object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
+object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
@@ -134,6 +134,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
             val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? AsyncCacheData<*>
             val tex = gen?.value as? ITexture2D
             if (tex != null && tex.isCreated()) {
+                println("copying texture for $key")
                 copyTexIfPossible(srcFile, size, tex, callback)
                 return
             }
@@ -219,14 +220,11 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
         callback: Callback<ITexture2D>
     ) {
         if (dstKey != InvalidKey) {
+            // could we write webp? is most efficient
+            //  -> only via ffmpeg, and that procedure is quite inefficient with creating a new process
             val bos = ByteArrayOutputStream()
-            // todo could we write webp? is most efficient
             dst.write(bos, if (dst.hasAlphaChannel) "png" else "jpg")
-            bos.close()
-            // todo we could skip toByteArray() by using our own type,
-            //  and putting a ByteSlice
-            val bytes = bos.toByteArray()
-            hdb.put(dstKey, bytes)
+            hdb.put(dstKey, bos.toByteArray())
         }
         upload(srcFile, checkRotation, dst, callback)
     }
@@ -262,7 +260,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
     }
 
     private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {
-        val file = InnerStreamFile("", "", InvalidRef, bytes::stream)
+        val file = InnerByteSliceFile("", "", InvalidRef, bytes)
         return ImageAsFolder.readImage(file, true)
     }
 
@@ -469,7 +467,7 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
             }
             is PrefabReadable -> AssetThumbnails.generateAssetFrame(srcFile, dstFile, size, callback)
-            else -> Signature.findName(srcFile) { signature, _ ->
+            else -> Signature.find(srcFile) { signature, _ ->
                 generate(srcFile, dstFile, size, signature, callback)
             }
         }
@@ -478,23 +476,19 @@ object Thumbs : IFileRegistry<ThumbGenerator> by FileRegistry() {
     @JvmStatic
     private fun generate(
         srcFile: FileReference, dstFile: HDBKey, size: Int,
-        signature: String?, callback: Callback<ITexture2D>
+        signature: Signature?, callback: Callback<ITexture2D>
     ) {
-        val bySigGen = readerBySignature[signature]
-        if (bySigGen != null) {
-            bySigGen.generate(srcFile, dstFile, size, callback)
-        } else try {
-            val byExtGen = readerByFileExtension[srcFile.lcExtension]
-            if (byExtGen != null) {
-                byExtGen.generate(srcFile, dstFile, size, callback)
+        try {
+            val reader = getReader(signature, srcFile.lcExtension)
+            if (reader != null) {
+                reader.generate(srcFile, dstFile, size, callback)
             } else {
                 // png, jpg, jpeg, ico, webp, mp4, ...
                 ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
             }
         } catch (_: IgnoredException) {
         } catch (e: Exception) {
-            e.printStackTrace()
-            LOGGER.warn("Could not load image from $srcFile: ${e.message}")
+            LOGGER.warn("Could not load image from $srcFile: ${e.message}", e)
         }
     }
 }

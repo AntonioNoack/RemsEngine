@@ -22,12 +22,6 @@ class LineSequence : IntSequence {
         indexTable.add(1)
     }
 
-    fun removeLine(lineIndex: Int) {
-        lines.removeAt(lineIndex)
-        rebuildIndexTable()
-        maxLineLength = lines.maxOf { it.size }
-    }
-
     override fun get(index: Int): Int {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]

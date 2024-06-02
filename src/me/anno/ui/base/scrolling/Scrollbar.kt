@@ -24,13 +24,10 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     @NotSerializedProperty
     var alpha = 0f
 
-    @NotSerializedProperty
-    var isBeingHovered = false
-
     fun updateAlpha(): Boolean {
         val oldAlpha = alpha
         alpha = mix(
-            oldAlpha, if (isBeingHovered) if (Input.isLeftDown) 1f else 0.8f else 0f,
+            oldAlpha, if (isHovered) if (Input.isLeftDown) 1f else 0.8f else 0f,
             dtTo01(10f * deltaTime.toFloat())
         )
         return abs(alpha - oldAlpha) > 0.001f

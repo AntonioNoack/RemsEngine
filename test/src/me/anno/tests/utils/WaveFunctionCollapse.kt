@@ -60,8 +60,8 @@ fun main() {
     testUI3("WaveFunctionCollapse") {
         object : MapPanel(style) {
             init {
-                minScale = 1.0 / 16.0
-                maxScale = 32.0
+                minScale.set(1.0 / 16.0)
+                maxScale.set(32.0)
             }
 
             val xs = IntArray(sizeX + 1)
@@ -73,8 +73,8 @@ fun main() {
                     hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
                 val x0i = x + width / 2
                 val y0i = y + height / 2
-                for (x in 0..sizeX) xs[x] = x0i + ((x * tileW - center.x) * scale).toInt()
-                for (y in 0..sizeY) ys[y] = y0i + ((y * tileH - center.y) * scale).toInt()
+                for (x in 0..sizeX) xs[x] = x0i + ((x * tileW - center.x) * scale.x).toInt()
+                for (y in 0..sizeY) ys[y] = y0i + ((y * tileH - center.y) * scale.y).toInt()
                 for (y in 0 until sizeY) {
                     for (x in 0 until sizeX) {
                         // draw tile onto result

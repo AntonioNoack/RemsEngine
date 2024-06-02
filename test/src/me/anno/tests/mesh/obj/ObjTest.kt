@@ -4,11 +4,13 @@ import me.anno.engine.OfficialExtensions
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 
 fun main() {
 
     OfficialExtensions.initForTests()
 
+    val logger = LogManager.getLogger("ObjTest")
     val source = OS.downloads.getChild("San_Miguel/san-miguel.obj")
     // 20MB, so larger than the L3 cache of my CPU
     // so the theoretical speed limit is my memory bandwidth
@@ -18,7 +20,7 @@ fun main() {
             val data = it!! // remove material references for clearer reading performance
                 .replace("mtllib", "#mtllib")
                 .toByteArray()
-            val clock = Clock()
+            val clock = Clock(logger)
             for (i in 0 until 1000) {
                 clock.start()
                 OBJReader(data.inputStream(), source)

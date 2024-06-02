@@ -38,8 +38,7 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
         val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
         val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
-        val generateVideoFrames = generateVideoFrames ?: return null
-        return getEntryLimited(key, timeout, async, videoGenLimit) { generateVideoFrames(key) } as? VideoSlice
+        return getEntryLimited(key, timeout, async, videoGenLimit, generateVideoFrames ?: return null)
     }
 
     fun getVideoFrame(

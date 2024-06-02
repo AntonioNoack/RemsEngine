@@ -19,7 +19,7 @@ fun main() {
     //  -> reading files is quick, takes only 0.15s for a 393 MB file, which is fine imo (2.6 GB/s)
     HiddenOpenGLContext.createOpenGL()
     OfficialExtensions.initForTests()
-    val clock = Clock()
+    val clock = Clock("BlenderBench2")
     LogManager.disableLogger("BlenderShaderTree")
     LogManager.disableLogger("BlenderFile")
     LogManager.disableLogger("BlockTable")

@@ -9,6 +9,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
 import me.anno.utils.Color.mixARGB
 import me.anno.engine.EngineBase
+import me.anno.gpu.Cursor
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.Style
@@ -118,6 +119,7 @@ class ColorField(
     }
 
     override fun clone(): ColorField = ColorField(this)
+    override fun getCursor() = Cursor.hand
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)

@@ -11,8 +11,6 @@ import me.anno.io.files.FileReference
 @Suppress("unused")
 object ResourceFinder {
 
-    // todo when we drag in a resource, use Scene.json, not the file directly, so we don't need awkward loaders in the shipped game
-
     /**
      * find all resources, that we need to copy over
      * */

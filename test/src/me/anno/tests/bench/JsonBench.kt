@@ -14,7 +14,7 @@ fun main() {
 
     val tries = 20
 
-    val timer = Clock()
+    val timer = Clock("JsonBench")
     timer.start()
 
     val text = file.readTextSync()

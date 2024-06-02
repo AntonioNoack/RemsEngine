@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.cache.CacheSection
 import me.anno.io.MediaMetadata
 import me.anno.io.files.Signature
 import me.anno.maths.Maths
@@ -8,7 +7,7 @@ import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 
-object VideoCacheImpl : CacheSection("Videos") {
+object VideoCacheImpl {
 
     private val LOGGER = LogManager.getLogger(VideoCacheImpl::class)
 

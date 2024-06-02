@@ -80,15 +80,15 @@ open class TrackingPanel(val getValues: List<() -> Double>, val colors: IntArray
 
     fun autoScale() {
         if (maxValue > minValue) {
-            scale = 0.85 * height / (maxValue - minValue)
-            targetScale = scale
+            scale.set(0.85 * height / (maxValue - minValue))
+            targetScale.set(scale)
         }
     }
 
     fun autoMove() {
         // todo only move if there isn't enough space?
         center.set(
-            (Time.nanoTime - times[0]) / 1e9 - 0.2 * height / scale,
+            (Time.nanoTime - times[0]) / 1e9 - 0.2 * height / scale.y,
             -(minValue + maxValue) * 0.5,
         )
         target.set(center)

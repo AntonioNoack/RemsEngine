@@ -11,6 +11,9 @@ import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
+/**
+ * a cache, which writes files to remember values
+ * */
 abstract class FileCache<Key, Value>(val configFileName: String, val configFolderName: String, cacheName: String) :
     CacheSection(cacheName) {
 
@@ -34,7 +37,6 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
     open fun isKeyValid(key: Key): Boolean = true
     abstract fun load(key: Key, src: FileReference?): Value
 
-    fun getFile(key: Key) = getFile(getUniqueFilename(key))
     fun getFile(uniqueFileName: String) = cacheFolder.getChild(uniqueFileName)
 
     fun generateFile(key: Key): CacheData<Value?> {

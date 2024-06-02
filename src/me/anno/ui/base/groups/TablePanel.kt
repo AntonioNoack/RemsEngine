@@ -1,9 +1,13 @@
 package me.anno.ui.base.groups
 
+import me.anno.gpu.Cursor
+import me.anno.input.Key
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.Window
+import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.max
@@ -14,12 +18,33 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     private val placeholder = Panel(style)
 
     final override val children = ArrayList<Panel>(Maths.multiplyExact(sizeX, sizeY))
+    private val scrollbarsX = ArrayList<Scrollbar>()
+    private val scrollbarsY = ArrayList<Scrollbar>()
+
+    val xs = IntArrayList(sizeX + 1)
+    val ys = IntArrayList(sizeY + 1)
+
+    // weights along x/y-axis
+    val weightsX = FloatArrayList(sizeX)
+    val weightsY = FloatArrayList(sizeY)
+
+    var spacing = style.getSize("customList.spacing", 4)
 
     init {
         for (i in 0 until sizeX * sizeY) {
             children.add(placeholder)
         }
+        for (i in 1 until sizeX) {
+            scrollbarsX.add(Scrollbar(style))
+        }
+        for (i in 1 until sizeY) {
+            scrollbarsY.add(Scrollbar(style))
+        }
         placeholder.parent = this
+        weightsX.size = sizeX
+        weightsY.size = sizeY
+        weightsX.fill(1f / sizeX)
+        weightsY.fill(1f / sizeY)
     }
 
     var sizeX: Int = sizeX
@@ -92,104 +117,57 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         }
     }
 
-    open fun getAvailableSizeX(xi: Int, yi: Int, w: Int, h: Int, child: Panel): Int {
-        return w
-    }
-
-    open fun getAvailableSizeY(xi: Int, yi: Int, w: Int, h: Int, child: Panel): Int {
-        return h
-    }
-
-    val xs = IntArrayList(sizeX + 1)
-    val ys = IntArrayList(sizeY + 1)
-
-    // weights along x/y-axis
-    val wxs = FloatArrayList(sizeX)
-    val wys = FloatArrayList(sizeY)
-
     private fun getIndex(x: Int, y: Int): Int {
         return x + y * sizeX
     }
 
-    private fun calculateChildSizes(w: Int, h: Int) {
-        for (y in 0 until sizeY) {
-            for (x in 0 until sizeX) {
-                val child = children[getIndex(x, y)]
-                if (child === placeholder) continue
-                val w2 = getAvailableSizeX(x, y, w, h, child)
-                val h2 = getAvailableSizeY(x, y, w, h, child)
-                child.calculateSize(w2, h2)
-                child.width = min(w2, child.minW)
-                child.height = min(h2, child.minH)
-            }
-        }
-    }
-
+    // todo bring back size calculation for when space is unlimited
+    //  -> calculate actual min size
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
         val sizeX = sizeX
         val sizeY = sizeY
-        calculateChildSizes(w, h)
+
+        val cw = w - (sizeX - 1) * spacing
+        val ch = h - (sizeY - 1) * spacing
+        for (y in 0 until sizeY) {
+            val h2 = (weightsY[y] * ch).toInt()
+            for (x in 0 until sizeX) {
+                val child = children[getIndex(x, y)]
+                val w2 = (weightsX[x] * cw).toInt()
+                child.calculateSize(w2, h2) // for its children
+                child.width = w2
+                child.height = h2
+            }
+        }
 
         var sumW = 0
         var sumH = 0
         xs.size = sizeX + 1
         ys.size = sizeY + 1
-        wxs.size = sizeX
-        wys.size = sizeY
+        weightsX.size = sizeX
+        weightsY.size = sizeY
 
         placeholder.width = 0
         placeholder.height = 0
 
         xs[0] = 0
         for (x in 0 until sizeX) {
-            var maxW = 0
-            for (y in 0 until sizeY) {
-                maxW = max(maxW, this[x, y].width)
-            }
-            sumW += maxW
+            val wi = (weightsX[x] * cw).toInt() + spacing
+            sumW += wi
             xs[x + 1] = sumW
         }
 
         ys[0] = 0
         for (y in 0 until sizeY) {
-            var maxH = 0
-            for (x in 0 until sizeX) {
-                maxH = max(maxH, this[x, y].height)
-            }
-            sumH += maxH
+            val hi = (weightsY[y] * ch).toInt() + spacing
+            sumH += hi
             ys[y + 1] = sumH
         }
 
-        minW = sumW
-        minH = sumH
-
-        if (alignmentX == AxisAlignment.FILL && sumW < w) {
-            distributeExtra(w - sumW, xs, wxs)
-            minW = w
-        }
-
-        if (alignmentY == AxisAlignment.FILL && sumH < h) {
-            distributeExtra(h - sumH, ys, wys)
-            minH = h
-        }
-    }
-
-    private fun distributeExtra(diff: Int, positions: IntArrayList, weights: FloatArrayList) {
-        normalizeWeights(weights)
-        val total = diff + 0.5f
-        var sum = 0f
-        for (i in 0 until weights.size) {
-            sum += weights[i]
-            positions[i + 1] += (total * sum).toInt()
-        }
-    }
-
-    private fun normalizeWeights(weights: FloatArrayList) {
-        val sum = weights.sum()
-        if (sum <= 0f) weights.fill(1f / weights.size)
-        else weights.scale(1f / sum)
+        minW = sumW - spacing
+        minH = sumH - spacing
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -197,14 +175,14 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         placeholder.setPosSize(x, y, 0, 0)
         for (yi in 0 until sizeY) {
             val y0 = ys[yi]
-            val y1 = ys[yi + 1]
+            val y1 = ys[yi + 1] - spacing
+            val h = y1 - y0
             for (xi in 0 until sizeX) {
                 val child = children[xi + yi * sizeX]
                 if (child === placeholder) continue
                 val x0 = xs[xi]
-                val x1 = xs[xi + 1]
+                val x1 = xs[xi + 1] - spacing
                 val w = x1 - x0
-                val h = y1 - y0
                 val alignmentX = child.alignmentX
                 val alignmentY = child.alignmentY
                 val cw = alignmentX.getSize(w, child.minW)
@@ -214,6 +192,83 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
                 child.setPosSize(cx, cy, cw, ch)
             }
         }
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        val window = window!!
+        val padding = interactionPadding
+        for (xi in scrollbarsX.indices) {
+            val xc = x + xs[xi + 1]
+            val x0i = max(x0, xc - spacing)
+            val x1i = min(x1, xc)
+            val sb = scrollbarsX[xi]
+            sb.isHovered = containsMouse(window, x0i - padding, y0, x1i + padding, y1)
+            sb.updateAlpha()
+            sb.draw(x0i, y0, x1i, y1)
+        }
+        for (yi in scrollbarsY.indices) {
+            val yc = y + ys[yi + 1]
+            val y0i = max(y0, yc - spacing)
+            val y1i = min(y1, yc)
+            val sb = scrollbarsY[yi]
+            sb.isHovered = containsMouse(window, x0 - padding, y0i, x1 + padding, y1i)
+            sb.updateAlpha()
+            sb.draw(x0, y0i, x1, y1i)
+        }
+    }
+
+    fun containsMouse(window: Window, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        return window.mouseXi in x0 until x1 && window.mouseYi in y0 until y1
+    }
+
+    fun sx() = scrollbarsX.indexOfFirst { it.isHovered }
+    fun sy() = scrollbarsY.indexOfFirst { it.isHovered }
+
+    override fun getCursor(): Cursor? {
+        val sx = sx() >= 0
+        val sy = sy() >= 0
+        return when {
+            sx && sy -> Cursor.resize
+            sx -> Cursor.hResize
+            sy -> Cursor.vResize
+            else -> super.getCursor()
+        }
+    }
+
+    var isDownIndexX = -1
+    var isDownIndexY = -1
+
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
+            isDownIndexX = sx()
+            isDownIndexY = sy()
+        } else super.onKeyDown(x, y, key)
+    }
+
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        isDownIndexX = -1
+        isDownIndexY = -1
+        super.onKeyUp(x, y, key)
+    }
+
+    private fun move(idx: Int, weights: FloatArrayList, dx: Float): Float {
+        if (idx !in 0 until weights.size) return dx
+        // clamp, and roll-over-to-next
+        val dxi = clamp(dx, -weights[idx], weights[idx + 1])
+        weights[idx] += dxi
+        weights[idx + 1] -= dxi
+        invalidateLayout()
+        val newDx = dx - dxi
+        return if (newDx != 0f) move(idx + (if (dx > 0f) 1 else -1), weights, dx) else 0f
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        val w = max(width - (sizeX - 1) * spacing, 1)
+        val h = max(height - (sizeY - 1) * spacing, 1)
+        val rx = move(isDownIndexX, weightsX, dx / w) * w
+        val ry = move(isDownIndexY, weightsY, dy / h) * h
+        super.onMouseMoved(x, y, rx, ry)
     }
 
     override fun remove(child: Panel) {

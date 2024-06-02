@@ -149,7 +149,7 @@ fun testRasterizerAlgorithm() {
         }
         for (i in 0 until 3) {
             val c3 = 0x00ff00 or Color.black
-            val scale = panel.scale
+            val scale = panel.scale.y
             val r = (3f * scale.toFloat()).toInt()
             drawRect(points1[i].x, points1[i].y, r, r, c3)
         }

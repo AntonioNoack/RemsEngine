@@ -9,7 +9,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
 import me.anno.utils.OS
-import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.math.sqrt
@@ -36,7 +35,6 @@ object TextureCache : CacheSection("Texture") {
         }
         return when {
             entry == null -> false
-            entry !is TextureReader -> true
             entry.hasValue && entry.value == null -> true
             entry.value?.wasCreated == true -> true
             else -> false
@@ -55,8 +53,9 @@ object TextureCache : CacheSection("Texture") {
             LOGGER.warn("Image missing: $file")
             return null
         }
-        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ -> generateImageData(fileI) }
-                as? TextureReader
+        val imageData = getFileEntry(file, false, timeout, asyncGenerator) { fileI, _ ->
+            generateImageData(fileI)
+        }
         return if (imageData != null) {
             if (!asyncGenerator && !OS.isWeb) {
                 // the texture was forced to be loaded -> wait for it
@@ -85,7 +84,7 @@ object TextureCache : CacheSection("Texture") {
                 err?.printStackTrace()
             }
             textureContainer
-        } as? LateinitTexture
+        }
     }
 
     fun getLateinitTextureLimited(
@@ -101,7 +100,7 @@ object TextureCache : CacheSection("Texture") {
                 }
             }
             tex
-        } as? LateinitTexture
+        }
         if (!async) entry?.waitForGFX()
         return entry
     }

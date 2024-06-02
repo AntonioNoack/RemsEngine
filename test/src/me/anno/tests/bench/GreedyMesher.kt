@@ -6,7 +6,7 @@ import me.anno.tests.utils.TestWorld
 import me.anno.utils.Clock
 
 fun main() {
-    val clock = Clock()
+    val clock = Clock("GreedyMesher")
     val world = TestWorld()
     val mesh = Mesh()
     val chunk = world.getChunk(0, 0, 0, true)!!

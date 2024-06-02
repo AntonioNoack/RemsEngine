@@ -1,12 +1,14 @@
 package me.anno.io
 
 import me.anno.Engine
-import me.anno.io.base.InvalidFormatException
+import me.anno.graph.hdb.ByteSlice
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.size
 import java.io.BufferedReader
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.Reader
@@ -338,8 +340,46 @@ object Streams {
     @JvmStatic
     fun InputStream.consumeMagic(magic: String) {
         for (i in magic) {
-            if (read() != i.code)
-                throw InvalidFormatException("Magic incorrect")
+            if (read() != i.code) {
+                throw IOException("Magic incorrect")
+            }
         }
     }
+
+    @JvmStatic
+    fun InputStream.consumeMagic(magic: ByteArray) {
+        for (i in magic.indices) {
+            if (read() != magic[i].toInt().and(255)) {
+                throw IOException("Magic incorrect")
+            }
+        }
+    }
+
+    @JvmStatic
+    fun OutputStream.writeNBytes2(src: ByteBuffer) {
+        val tmp = writeTmp.get()
+        val pos = src.position()
+        while (src.remaining() > 0) {
+            val length = min(tmp.size, src.remaining())
+            src.get(tmp, 0, length)
+            write(tmp, 0, length)
+        }
+        src.position(pos)
+    }
+
+    @JvmStatic
+    fun OutputStream.writeNBytes2(src: ByteBuffer, offset: Int, length: Int) {
+        val pos = src.position()
+        val limit = src.limit()
+        src.position(pos + offset).limit(pos + offset + length)
+        writeNBytes2(src)
+        src.limit(limit).position(pos)
+    }
+
+    @JvmStatic
+    fun OutputStream.write(src: ByteSlice) {
+        write(src.bytes, src.range.first(), src.range.size)
+    }
+
+    private val writeTmp = ThreadLocal2 { ByteArray(4096) }
 }

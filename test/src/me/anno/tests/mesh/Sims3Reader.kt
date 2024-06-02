@@ -1,6 +1,7 @@
 package me.anno.tests.mesh
 
 import me.anno.io.files.Signature
+import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
@@ -78,7 +79,11 @@ fun main() {
                 // read content normally, does not happen in our case
                 input
             }
-            var extension = Signature.findName(outputBuffer) ?: "bin"
+            val outputAsBytes = ByteArray(min(outputBuffer.remaining(), Signature.maxSampleSize))
+            val pos = outputBuffer.position()
+            outputBuffer.get(outputAsBytes)
+            outputBuffer.position(pos)
+            var extension = Signature.findName(outputAsBytes) ?: "bin"
             if ((0 until outputBuffer.remaining()).all { outputBuffer[it] == 0.toByte() })
                 extension = "null"
             if (entry.compressed > 0)

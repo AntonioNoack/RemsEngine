@@ -23,28 +23,31 @@ open class XMLScanner : XMLReader() {
         /**
          * @return whether the node shall be traversed; if not, OnEnd.handle() isn't called.
          * */
-        fun handle(type: CharSequence): Boolean
+        fun handle(depth: Int, type: CharSequence): Boolean
     }
 
     /**
      * Called, when an XML node is exited
      * */
     fun interface OnEnd {
-        fun handle(type: CharSequence)
+        fun handle(depth: Int, type: CharSequence)
     }
 
     /**
      * Called on each XML attribute
      * */
     fun interface OnAttribute {
-        fun handle(type: CharSequence, key: CharSequence, value: CharSequence)
+        fun handle(depth: Int, type: CharSequence, key: CharSequence, value: CharSequence)
     }
 
     fun scan(input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
         return scan(-1, input, onStart, onEnd, onAttribute)
     }
 
-    fun scan(firstChar: Int, input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
+    fun scan(
+        firstChar: Int, input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute,
+        depth: Int = 0
+    ): Any? {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             if (types.size <= typeI) types.add(ComparableStringBuilder())
@@ -82,18 +85,18 @@ open class XMLScanner : XMLReader() {
                 type.startsWith('/') -> return endElement
             }
 
-            if (!onStart.handle(type)) {
+            if (!onStart.handle(depth, type)) {
                 // this node can be ignored
-                var depth = 1
+                var depthI = 1
                 while (true) {
                     when (input.read()) {
                         '>'.code -> {
-                            depth--
-                            if (depth == 0) {
+                            depthI--
+                            if (depthI == 0) {
                                 return sthElement
                             }
                         }
-                        '<'.code -> depth++
+                        '<'.code -> depthI++
                         '"'.code -> input.skipString('"'.code)
                         '\''.code -> input.skipString('\''.code)
                         -1 -> throw EOFException()
@@ -115,7 +118,7 @@ open class XMLScanner : XMLReader() {
                     val start = input.skipSpaces()
                     assert(start, '"', '\'')
                     val value = input.readString(start, valueBuilder)
-                    onAttribute.handle(type, propName, value)
+                    onAttribute.handle(depth, type, propName, value)
                     next = input.skipSpaces()
                     when (next) {
                         '/'.code, '>'.code -> {
@@ -129,7 +132,7 @@ open class XMLScanner : XMLReader() {
             when (end2) {
                 '/'.code -> {
                     assertEquals(input.read(), '>'.code)
-                    onEnd.handle(type)
+                    onEnd.handle(depth, type)
                     return sthElement
                 }
                 '>'.code -> {
@@ -137,16 +140,16 @@ open class XMLScanner : XMLReader() {
                     typeI++
                     var next: Int = -1
                     while (true) {
-                        val child = scan(next, input, onStart, onEnd, onAttribute)
+                        val child = scan(next, input, onStart, onEnd, onAttribute, depth + 1)
                         next = -1
                         when (child) {
                             endElement -> {
                                 typeI--
-                                onEnd.handle(type)
+                                onEnd.handle(depth, type)
                                 return sthElement
                             }
                             is String -> {
-                                onAttribute.handle(type, "", child)
+                                onAttribute.handle(depth, type, "", child)
                                 next = '<'.code
                             }
                             null -> throw RuntimeException()

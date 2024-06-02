@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.Thumbs
+import me.anno.tests.LOGGER
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
@@ -21,7 +22,7 @@ fun main() {
     ECSRegistry.init()
     Thumbs.useCacheFolder = true
 
-    val clock = Clock()
+    val clock = Clock(LOGGER)
 
     // reading the structure alone: 0.7s
     clock.start()

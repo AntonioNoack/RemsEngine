@@ -6,9 +6,9 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstanceAsync
 import me.anno.engine.ECSRegistry
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
@@ -33,10 +33,6 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
     operator fun get(ref: FileReference?, default: V) = get(ref, false) ?: default
 
     val lru = LRUCache<FileReference, V>(16)
-
-    fun update() {
-        lru.clear()
-    }
 
     operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
@@ -79,6 +75,6 @@ abstract class PrefabByFileCache<V : Saveable>(val clazz: KClass<V>) {
     }
 
     init {
-        CacheSection.registerOnUpdate(::update)
+        CacheSection.registerCache(lru::clear, lru::clear)
     }
 }

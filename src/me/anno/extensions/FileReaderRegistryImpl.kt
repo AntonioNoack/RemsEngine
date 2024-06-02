@@ -1,6 +1,9 @@
 package me.anno.extensions
 
-open class FileRegistry<Value> : IFileRegistry<Value> {
+/**
+ * Default implementation for FileReaderRegistry
+ * */
+open class FileReaderRegistryImpl<Value> : FileReaderRegistry<Value> {
     override val readerBySignature = HashMap<String, Value>(64)
     override val readerByFileExtension = HashMap<String, Value>(64)
 

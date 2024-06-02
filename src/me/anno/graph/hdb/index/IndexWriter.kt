@@ -1,6 +1,6 @@
 package me.anno.graph.hdb.index
 
-import me.anno.graph.hdb.allocator.size
+import me.anno.utils.types.size
 import me.anno.io.json.generic.JsonWriter
 import me.anno.utils.InternalAPI
 import java.io.OutputStream

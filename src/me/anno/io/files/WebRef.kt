@@ -29,11 +29,11 @@ import kotlin.math.min
  * http/https resource
  * on the web, these may be the only resources available except for InnerFiles
  *
- * todo get/put/post
+ * get/put/post? -> this is just reading, so get is fine unless we want outputStream()
  * todo define request headers like user-agent
  *
- * todo if is redirect, automatically redirect?
- * todo watch dogs? we only can ask for changes every x seconds
+ * todo if is redirect, automatically redirect? yes
+ * watch dogs? we only can ask for changes every x seconds
  * */
 open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     FileReference(formatAccessURL(url, args)) {

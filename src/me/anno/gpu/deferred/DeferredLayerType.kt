@@ -125,9 +125,7 @@ class DeferredLayerType(
         )
 
         val METALLIC = DeferredLayerType("Metallic", "finalMetallic", 0)
-
-        // roughness = 1-reflectivity
-        val ROUGHNESS = DeferredLayerType("Roughness", "finalRoughness", 0x11)
+        val ROUGHNESS = DeferredLayerType("Roughness", "finalRoughness", 0xff)
 
         // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
         // textures in materials are typically inverted, so they can be inverted here as well

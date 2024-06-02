@@ -132,7 +132,7 @@ object FBStack : CacheSection("FBStack") {
         val key = FBKey1(width, height, channels, quality, clamp(samples, 1, GFX.maxSamples), depthBufferType)
         return getEntry(key, TIMEOUT, false) {
             FBStackData1(it)
-        } as FBStackData
+        }!!
     }
 
     private fun getValue(
@@ -142,7 +142,7 @@ object FBStack : CacheSection("FBStack") {
         val key = FBKey2(width, height, targetType, clamp(samples, 1, GFX.maxSamples), depthBufferType)
         return getEntry(key, TIMEOUT, false) {
             FBStackData2(it)
-        } as FBStackData
+        }!!
     }
 
     private fun getValue(
@@ -152,7 +152,7 @@ object FBStack : CacheSection("FBStack") {
         val key = FBKey3(w, h, targetTypes, clamp(samples, 1, GFX.maxSamples), depthBufferType)
         return getEntry(key, TIMEOUT, false) {
             FBStackData3(it)
-        } as FBStackData
+        }!!
     }
 
     operator fun get(

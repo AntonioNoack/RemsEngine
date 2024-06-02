@@ -1,10 +1,12 @@
 package me.anno.tests.bench
 
 import me.anno.utils.Clock.Companion.measure
+import org.apache.logging.log4j.LogManager
 import kotlin.random.Random
 
 fun main() {
 
+    val logger = LogManager.getLogger("StringChars")
     val alphabet = "abcdefghijklmnopqrstuvxyz0123456"
     val random = Random(1234)
     val randomStrings = Array(1024) {
@@ -14,7 +16,7 @@ fun main() {
     val turns = 2048
 
     // 1.32s
-    measure("toCharArray0") {
+    measure(logger, "toCharArray0") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -24,7 +26,7 @@ fun main() {
     }
 
     // 1.63s
-    measure("toCharArray1") {
+    measure(logger, "toCharArray1") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -37,7 +39,7 @@ fun main() {
     }
 
     // 1.22s
-    measure("iterator()") {
+    measure(logger, "iterator()") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -49,7 +51,7 @@ fun main() {
     }
 
     // 0.59s -> use this
-    measure("getCharAt0") {
+    measure(logger, "getCharAt0") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -61,7 +63,7 @@ fun main() {
     }
 
     // 0.59s -> use the one above
-    measure("getCharAt1") {
+    measure(logger, "getCharAt1") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -73,7 +75,7 @@ fun main() {
     }
 
     // 6.2s -> don't use
-    measure("codePoints()") {
+    measure(logger, "codePoints()") {
         var sum = 0
         for (str in randomStrings) {
             for (i in 0 until turns) {
@@ -81,5 +83,4 @@ fun main() {
             }
         }
     }
-
 }

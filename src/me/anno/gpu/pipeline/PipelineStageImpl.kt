@@ -40,6 +40,7 @@ import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Matrices.set4x3Delta
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -64,6 +65,8 @@ class PipelineStageImpl(
 ) {
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(PipelineStageImpl::class)
 
         val OPAQUE_PASS = PipelineStage.OPAQUE
         val TRANSPARENT_PASS = PipelineStage.TRANSPARENT
@@ -435,29 +438,33 @@ class PipelineStageImpl(
                                     if (light is PointLight) {
                                         buffer.put(cubicSlot.toFloat()) // start index
                                         if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
-                                            val cascades = light.shadowTextures ?: continue
+                                            val cascades = light.shadowTextures
                                             val slot = cubicIndex0 + cubicSlot
-                                            if (slot > maxTextureIndex) continue
-                                            val texture = cascades.depthTexture ?: cascades.getTexture0()
-                                            if (!texture.isCreated()) continue // meh...
-                                            // bind the texture, and don't you dare to use mipmapping ^^
-                                            // (at least without variance shadow maps)
-                                            texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                                            cubicSlot++ // no break necessary
+                                            if (slot <= maxTextureIndex && cascades != null) {
+                                                val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                                if (texture.isCreated()) {
+                                                    // bind the texture, and don't you dare to use mipmapping ^^
+                                                    // (at least without variance shadow maps)
+                                                    texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                                    cubicSlot++ // no break necessary
+                                                }
+                                            }
                                         }
                                         buffer.put(cubicSlot.toFloat()) // end index
                                     } else {
                                         buffer.put(planarSlot.toFloat()) // start index
                                         if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
-                                            val cascades = light.shadowTextures ?: continue
+                                            val cascades = light.shadowTextures
                                             val slot = planarIndex0 + planarSlot
-                                            if (slot > maxTextureIndex) break
-                                            val texture = cascades.depthTexture ?: cascades.getTexture0()
-                                            if (!texture.isCreated()) continue // meh...
-                                            // bind the texture, and don't you dare to use mipmapping ^^
-                                            // (at least without variance shadow maps)
-                                            texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                                            if (slot <= maxTextureIndex && cascades != null) {
+                                                val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                                if (texture.isCreated()) {
+                                                    // bind the texture, and don't you dare to use mipmapping ^^
+                                                    // (at least without variance shadow maps)
+                                                    texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                                    planarSlot++
+                                                }
+                                            }
                                         }
                                         buffer.put(planarSlot.toFloat()) // end index
                                     }

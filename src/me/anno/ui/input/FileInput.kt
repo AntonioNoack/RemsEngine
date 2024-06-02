@@ -40,10 +40,6 @@ open class FileInput(
     var isDirectory: Boolean = false,
 ) : PanelListX(style), InputPanel<FileReference>, TextStyleable {
 
-    // done file preview, if available
-    // todo property inspector, if is mutable prefab
-    // (e.g., would be really nice for quick changes to materials)
-
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
     val base = TextInput(title, "", false, f0.toString2(), style)
     val base2 = base.base

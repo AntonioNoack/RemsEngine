@@ -242,6 +242,8 @@
       <w>markdeep</w>
       <w>matkey</w>
       <w>matl</w>
+      <w>maxlat</w>
+      <w>maxlon</w>
       <w>mediumaquamarine</w>
       <w>mediumblue</w>
       <w>mediumorchid</w>
@@ -254,13 +256,17 @@
       <w>mediumvioletred</w>
       <w>memcpy</w>
       <w>memset</w>
+      <w>mesher</w>
       <w>meshify</w>
       <w>mgtpezy</w>
       <w>microfacet</w>
       <w>microfacets</w>
       <w>midnightblue</w>
       <w>mids</w>
+      <w>minlat</w>
+      <w>minlon</w>
       <w>mintcream</w>
+      <w>mipmap</w>
       <w>mipmapping</w>
       <w>misconfigured</w>
       <w>mistyrose</w>

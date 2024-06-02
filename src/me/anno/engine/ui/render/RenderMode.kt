@@ -18,12 +18,14 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.uvRenderer
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
+import me.anno.graph.visual.render.compiler.ShaderExprNode
 import me.anno.graph.visual.render.effects.AnimeOutlineNode
 import me.anno.graph.visual.render.effects.BloomNode
 import me.anno.graph.visual.render.effects.ColorBlindnessMode
 import me.anno.graph.visual.render.effects.ColorBlindnessNode.Companion.createRenderGraph
 import me.anno.graph.visual.render.effects.DepthOfFieldNode
 import me.anno.graph.visual.render.effects.DepthTestNode
+import me.anno.graph.visual.render.effects.DepthToNormalNode
 import me.anno.graph.visual.render.effects.FSR1HelperNode
 import me.anno.graph.visual.render.effects.FSR1Node
 import me.anno.graph.visual.render.effects.FXAANode
@@ -48,6 +50,8 @@ import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.graph.visual.scalar.FloatMathBinary
+import me.anno.graph.visual.vector.MathF2XNode
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
@@ -144,7 +148,14 @@ class RenderMode(
         private fun defineForwardPipeline(pipeline: QuickPipeline): QuickPipeline {
             return pipeline.then1(RenderForwardNode(), opaqueNodeSettings)
                 .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.DECAL))
-                .then(RenderGlassNode())
+                .then(RenderGlassNode(), mapOf("Illuminated" to listOf("A")))
+                .then(DepthToNormalNode())
+                .then(SSAONode(), mapOf("Inverse" to true), mapOf("Ambient Occlusion" to listOf("B")))
+                .then(
+                    MathF2XNode().setDataType("Vector3f").setEnumType(FloatMathBinary.MUL),
+                    mapOf("Result" to listOf("Data"))
+                )
+                .then(ShaderExprNode(), mapOf("Result" to listOf("Illuminated")))
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode())
         }

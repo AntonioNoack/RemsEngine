@@ -15,7 +15,7 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    val clock = Clock()
+    val clock = Clock("ObjPerfTest")
 
     // 1.75ns/byte (6clk), 10ns/int (34clk) (Ryzen 5 2600) -> pretty good for Java :)
     // C seems only 2x faster (by a stackoverflow post, where DarthGizka claims 115M ints/s at length 9-10 = 1GB/s)

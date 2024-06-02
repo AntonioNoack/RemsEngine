@@ -2,6 +2,7 @@ package me.anno.graph.hdb.allocator
 
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.binarySearch
+import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 
 interface AllocationManager<Key, Data : Any> {

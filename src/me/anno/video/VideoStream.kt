@@ -7,6 +7,7 @@ import me.anno.cache.ICacheData
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.max
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.video.formats.gpu.GPUFrame
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -103,7 +104,7 @@ open class VideoStream(
     fun hasCurrentFrame(): Boolean {
         val frameIndex = getFrameIndex()
         return synchronized(sortedFrames) {
-            sortedFrames.any { it.first == frameIndex && !it.second.isDestroyed }
+            sortedFrames.any2 { it.first == frameIndex && !it.second.isDestroyed }
         }
     }
 

@@ -26,7 +26,7 @@ fun main() {
         val c3 = 0xffff00 or black
         val bg = panel.backgroundColor and 0xffffff
 
-        val scale = panel.scale
+        val scale = panel.scale.y
         val r = 3f * scale.toFloat()
         val th = 7f * scale.toFloat()
 
@@ -82,8 +82,8 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
             var selected: Vector2f? = null
 
             init {
-                minScale = 0.01
-                maxScale = 100.0
+                minScale.set(0.01)
+                maxScale.set(100.0)
             }
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -99,7 +99,7 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
                 if (key == Key.BUTTON_LEFT) {
                     val lx = windowToCoordsX(x)
                     val ly = windowToCoordsY(y)
-                    val maxDistSq = sq(10f / scale.toFloat())
+                    val maxDistSq = sq(10f / scale.y.toFloat())
                     selected = global.withIndex()
                         .filter { it.value.distanceSquared(lx, ly) < maxDistSq }
                         .minByOrNull { it.value.distanceSquared(lx, ly) }?.value
@@ -116,8 +116,7 @@ fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 val selected = selected
                 if (selected != null && (dx != 0f || dy != 0f)) {
-                    val scale = 1f / scale.toFloat()
-                    selected.add(dx * scale, dy * scale)
+                    selected.add(dx / scale.x.toFloat(), dy / scale.y.toFloat())
                     invalidateDrawing()
                 } else super.onMouseMoved(x, y, dx, dy)
             }

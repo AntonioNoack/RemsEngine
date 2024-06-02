@@ -12,13 +12,13 @@ enum class LightType(val id: Int, val shadowMapType: GLSLType) {
     RECTANGLE(4, GLSLType.S2D);
 
     companion object {
-        fun getShaderCode(type: LightType, co: String, ws: Boolean): String {
+        fun getShaderCode(type: LightType, cutoffKeyword: String, withShadows: Boolean): String {
             return when (type) {
-                SPOT -> SpotLight.getShaderCode(co, ws)
-                DIRECTIONAL -> DirectionalLight.getShaderCode(co, ws)
-                POINT -> PointLight.getShaderCode(co, ws)
-                CIRCLE -> CircleLight.getShaderCode(co, ws)
-                RECTANGLE -> RectangleLight.getShaderCode(co, ws)
+                SPOT -> SpotLight.getShaderCode(cutoffKeyword, withShadows)
+                DIRECTIONAL -> DirectionalLight.getShaderCode(cutoffKeyword, withShadows)
+                POINT -> PointLight.getShaderCode(cutoffKeyword, withShadows)
+                CIRCLE -> CircleLight.getShaderCode(cutoffKeyword, withShadows)
+                RECTANGLE -> RectangleLight.getShaderCode(cutoffKeyword, withShadows)
             }
         }
     }

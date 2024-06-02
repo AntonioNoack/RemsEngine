@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color
 
+import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.shader.ShaderLib
@@ -27,6 +28,7 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
     // transparent background can draw over borders
     override val canDrawOverBorders get() = true
 
+    override fun getCursor() = Cursor.hand
     override fun calculateSize(w: Int, h: Int) {
         val size = refSize.minH
         minW = size

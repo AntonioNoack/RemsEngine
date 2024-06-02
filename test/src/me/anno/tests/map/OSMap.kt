@@ -17,7 +17,7 @@ import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
 import me.anno.utils.types.Strings.toLong
-import org.junit.jupiter.api.condition.OS
+import org.joml.Vector2d
 import java.io.InputStream
 import kotlin.math.cos
 
@@ -90,8 +90,6 @@ fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OS
 
     val facX = map.lonScale
     val facY = map.latScale
-
-    val n0 = OSMNode(0f, 0f, null)
 
     fun readTags(child: XMLNode): HashMap<String, String>? {
         if (!shallReadTags) return null
@@ -179,8 +177,8 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
     val tags = HashMap<String, String>(64)
 
     var id = 0L
-    var lat = 0f
-    var lon = 0f
+    var relLat = 0f
+    var relLon = 0f
 
     var lonScale = 1.0
     var latScale = 1.0
@@ -229,17 +227,17 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
         return ((lon - minLon) * lonScale).toFloat()
     }
 
-    XMLScanner().scan(file, { type ->
+    XMLScanner().scan(file, { _, type ->
         shallReadTags || type != "tag"
-    }, { type ->
+    }, { depth, type ->
         when (type) {
-            "bounds" -> {
+            "bounds" -> if (depth == 1) {
                 lonScale = map.lonScale
                 latScale = map.latScale
                 minLon = map.minLon
                 minLat = map.minLat
             }
-            "node" -> map.nodes[id] = OSMNode(lat, lon, readTags2())
+            "node" -> map.nodes[id] = OSMNode(relLat, relLon, readTags2())
             "way" -> {
                 map.ways[id] = OSMWay(
                     mapNodes.toList(),
@@ -267,18 +265,28 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
                     mapNodes.add(node)
                     ref = 0L
                 } else {
-                    val node = OSMNode(lat, lon, emptyMap())
-                    relNodes.add(node)
+                    relNodes.add(OSMNode(relLat, relLon, emptyMap()))
                 }
             }
             "member" -> {
                 when (memType) {
                     "way" -> {
-                        val way = map.ways[memRef]
+                        var way = map.ways[memRef]
                         if (way != null) {
                             way.used = true
                             way.role = memRole
                             relWays.add(way)
+                        } else {
+                            way = OSMWay(
+                                ArrayList(relNodes),
+                                relNodes.minOf { it.relLon },
+                                relNodes.minOf { it.relLat },
+                                relNodes.maxOf { it.relLon },
+                                relNodes.maxOf { it.relLat },
+                                null, true, memRole
+                            )
+                            map.ways[memRef] = way
+                            relNodes.clear()
                         }
                     }
                     "node" -> {
@@ -292,24 +300,26 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
                 }
             }
         }
-    }, { type, k, v ->
+    }, { depth, type, k, v ->
         when (type) {
-            "bounds" -> when (k) {
-                "minlon" -> map.minLon = v.toDouble()
-                "minlat" -> map.minLat = v.toDouble()
-                "maxlon" -> map.maxLon = v.toDouble()
-                "maxlat" -> map.maxLat = v.toDouble()
+            "bounds" -> if (depth == 1) {
+                when (k) {
+                    "minlon" -> map.minLon = v.toDouble()
+                    "minlat" -> map.minLat = v.toDouble()
+                    "maxlon" -> map.maxLon = v.toDouble()
+                    "maxlat" -> map.maxLat = v.toDouble()
+                }
             }
             "node" -> when (k) {
                 "id" -> id = v.toLong()
-                "lat" -> lat = ((v.toDouble() - minLat) * latScale).toFloat()
-                "lon" -> lon = ((v.toDouble() - minLon) * lonScale).toFloat()
+                "lat" -> relLat = latTo01(v.toDouble())
+                "lon" -> relLon = lonTo01(v.toDouble())
             }
             "way", "relation" -> if (k == "id") id = v.toLong()
             "nd" -> when (k) {
                 "ref" -> ref = v.toLong()
-                "lat" -> lat = ((v.toDouble() - minLat) * latScale).toFloat()
-                "lon" -> lon = ((v.toDouble() - minLon) * lonScale).toFloat()
+                "lat" -> relLat = latTo01(v.toDouble())
+                "lon" -> relLon = lonTo01(v.toDouble())
             }
             "tag" -> when (k) {
                 "key" -> tagKey = v.toString()
@@ -322,6 +332,8 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
             }
         }
     })
+
+    println("loaded ${map.nodes.size} nodes + ${map.ways.size} ways + ${map.relations.size} relations")
 
     return map
 }
@@ -353,9 +365,9 @@ fun main() {
         object : MapPanel(style) {
 
             init {
-                minScale = 1.0
-                maxScale = 1e6
-                targetScale = 250.0
+                minScale.set(1.0)
+                maxScale.set(1e6)
+                teleportScaleTo(Vector2d(250.0))
             }
 
             val minSize = 3f

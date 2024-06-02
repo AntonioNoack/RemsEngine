@@ -54,7 +54,6 @@ open class ScrollPanelY(
     val interactionWidth = scrollbarWidth + 2 * interactionPadding
 
     val hasScrollbar: Boolean get() = maxScrollPositionY > 0
-    val hasScrollbarF: Float get() = clamp(maxScrollPositionYRaw / (3f * scrollbarWidth) + 1f)
 
     override val childSizeY: Long
         get() {
@@ -86,7 +85,7 @@ open class ScrollPanelY(
         if (window != null) {
             val mx = window.mouseXi
             val my = window.mouseYi
-            scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+            scrollbar.isHovered = capturesChildEvents(mx, my)
         }
         scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         if (scrollbar.updateAlpha()) invalidateDrawing()
@@ -121,7 +120,7 @@ open class ScrollPanelY(
         val child = child
         val padding = padding
         // calculation must not depend on hasScrollbar, or we get flickering
-        val paddingX = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
+        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
         child.calculateSize(w - paddingX, maxLength - padding.height)
         minW = min(child.minW + paddingX, w)
         minH = min(child.minH + padding.height, h)
@@ -135,7 +134,7 @@ open class ScrollPanelY(
 
     override fun setSize(w: Int, h: Int) {
         super.setSize(w, h)
-        val paddingX = padding.width + (hasScrollbarF * scrollbarWidth).toInt()
+        val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
         child.setSize(w - paddingX, max(child.minH, h - padding.height))
     }
 

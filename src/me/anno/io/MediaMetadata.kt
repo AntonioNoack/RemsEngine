@@ -11,6 +11,7 @@ import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.Sleep
 import me.anno.utils.Warning
+import me.anno.utils.structures.Callback
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.formatTime
@@ -161,16 +162,25 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             val meta = metadataCache.getFileEntry(
                 file, false, 300_000,
                 async, Companion::createMetadata
-            ) as? MediaMetadata ?: return null
+            ) ?: return null
             if (!async) Sleep.waitForGFXThread(true) { meta.ready }
             return meta
+        }
+
+        @JvmStatic
+        fun getMetaAsync(file: FileReference, callback: Callback<MediaMetadata>) {
+            metadataCache.getFileEntryAsync(
+                file, false, 300_000,
+                true, Companion::createMetadata,
+                callback
+            )
         }
 
         @JvmStatic
         fun getMeta(file: FileReference, signature: String?, async: Boolean): MediaMetadata? {
             val meta = metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
                 createMetadata(f, signature)
-            } as? MediaMetadata ?: return null
+            } ?: return null
             if (!async) Sleep.waitForGFXThread(true) { meta.ready }
             return meta
         }

@@ -690,7 +690,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
 
             GFX.check()
-            pipeline.singlePassWithSky(sky)
+            var skyI = sky
+            if (skyI && renderMode == RenderMode.NO_DEPTH) {
+                pipeline.drawSky() // sky must be drawn first in this mode
+                skyI = false
+            }
+            pipeline.singlePassWithSky(skyI)
             GFX.check()
 
         }

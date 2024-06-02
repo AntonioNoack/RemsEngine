@@ -14,7 +14,7 @@ fun main() {
     // 0.114s vs 0.629s for 10k instances, so .clone() is 6x faster than setting properties using reflections
     // -> usable slowdown :)
     Build.isShipped = true // 20% faster, because validation of duplicate names is skipped
-    val clock = Clock()
+    val clock = Clock("PrefabVsClone")
     val prefab = PrefabCache[downloads.getChild("3d/azeria/scene.gltf")]!!
     clock.benchmark(50, 10000, "Prefab.clone") { // this is 7x faster, 11µs/instance
         prefab.createInstance() // calls sampleInstance.clone() internally

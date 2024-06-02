@@ -10,7 +10,7 @@ import me.anno.utils.OS.documents
 
 fun main() {
     OfficialExtensions.initForTests()
-    Clock().benchmark(3, 10, "Loading Mesh") {
+    Clock("MeshLoader").benchmark(3, 10, "Loading Mesh") {
         MeshCache[documents.getChild("Blender/SK_Mannequin.FBX")]!!
         MeshCache.clear()
         PrefabCache.clear()

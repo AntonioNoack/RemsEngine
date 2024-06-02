@@ -49,19 +49,15 @@ class ComputeShader(
 
         updateSession()
 
-        if (useShaderFileCache) {
-            this.program = ShaderCache.createShader(source, null)
-        } else {
-            val program = GL46C.glCreateProgram()
-            /*val shader = */compile(name, program, GL46C.GL_COMPUTE_SHADER, source)
-            GL46C.glLinkProgram(program)
-            postPossibleError(name, program, false, source)
-            // glDeleteShader(shader)
-            logShader(name, source)
-            GFX.check()
-            this.program = program // only assign this value, when no error has occurred
-            this.session = GFXState.session
-        }
+        val program = GL46C.glCreateProgram()
+        /*val shader = */compile(name, program, GL46C.GL_COMPUTE_SHADER, source)
+        GL46C.glLinkProgram(program)
+        postPossibleError(name, program, false, source)
+        // glDeleteShader(shader)
+        logShader(name, source)
+        GFX.check()
+        this.program = program // only assign this value, when no error has occurred
+        this.session = GFXState.session
 
         compileBindTextureNames()
         compileSetDebugLabel()

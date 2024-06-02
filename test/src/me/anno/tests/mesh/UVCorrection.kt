@@ -34,7 +34,7 @@ fun main() {
         "ogldev-source/buddha.obj", // doesn't matter
         "ogldev-source/dabrovic-sponza/sponza.obj"
     )
-    val clock = Clock()
+    val clock = Clock("UVCorrection")
     for (sample in samples) {
         val ref = OS.downloads.getChild(sample)
         OBJReader.readAsFolder(ref) { folder, _ ->

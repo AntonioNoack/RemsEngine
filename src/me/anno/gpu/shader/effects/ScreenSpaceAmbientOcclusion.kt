@@ -219,6 +219,7 @@ object ScreenSpaceAmbientOcclusion {
             if (ssgi) if (blur) "ssgi-blur" else "ssgi-apply"
             else "ssao-blur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
+                Variable(GLSLType.V1B, "inverse"),
                 Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
                 Variable(GLSLType.S2D, "ssaoTex"),
             ) + listOf(
@@ -268,7 +269,8 @@ object ScreenSpaceAmbientOcclusion {
                                 "base.rgb += valueSum * texture(colorTex,uv).xyz;\n" +
                                 "glFragColor = base;\n"
                     } else
-                        "glFragColor = vec4(valueSum / weightSum);\n") +
+                        "glFragColor = vec4(valueSum / weightSum);\n" +
+                                "if(inverse) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
                     "}"
         )
     }
@@ -329,7 +331,8 @@ object ScreenSpaceAmbientOcclusion {
         ssaoTex: IFramebuffer,
         normals: ITexture2D, normalZW: Boolean,
         depth: ITexture2D, depthMask: String,
-        enableBlur: Boolean, ssgi: SSGIData?
+        enableBlur: Boolean, ssgi: SSGIData?,
+        inverse: Boolean
     ): IFramebuffer {
         val w = ssaoTex.width
         val h = ssaoTex.height
@@ -348,6 +351,7 @@ object ScreenSpaceAmbientOcclusion {
             }
             normals.bindTrulyNearest(shader, "normalTex")
             depth.bindTrulyNearest(shader, "depthTex")
+            shader.v1b("inverse", inverse)
             shader.v2f("duv", 1f / w, 1f / h)
             flat01.draw(shader)
             GFX.check()
@@ -365,7 +369,8 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         radiusScale: Float,
         samples: Int,
-        enableBlur: Boolean
+        enableBlur: Boolean,
+        inverse: Boolean
     ): IFramebuffer {
         return GFXState.renderPurely {
             val ssao = calculate(
@@ -377,7 +382,7 @@ object ScreenSpaceAmbientOcclusion {
                 average(
                     ssao, normal, normalZW,
                     depth, depthMask,
-                    enableBlur, ssgi
+                    enableBlur, ssgi, inverse
                 )
             } else ssao
         }

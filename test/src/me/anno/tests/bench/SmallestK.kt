@@ -40,7 +40,7 @@ class SmallestK {
         val comparator = { x: Int, y: Int -> x.compareTo(y) }
 
         val k = 32
-        val clock = Clock()
+        val clock = Clock("SmallestK")
 
         fun check(list: List<Int>) {
             if (list.size != k) throw RuntimeException("Size does not match")

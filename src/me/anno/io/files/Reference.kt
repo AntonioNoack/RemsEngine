@@ -56,10 +56,8 @@ object Reference {
         // todo this method contains quite a few references to random stuff -> make this modular, and register listeners accordingly
         LOGGER.info("Invalidating $absolutePath")
         val path = absolutePath.replace('\\', '/')
-        synchronized(fileCache) {
-            fileCache.remove { key, _ ->
-                key is String && key.startsWith(path)
-            }
+        fileCache.remove { key, _ ->
+            key is String && key.startsWith(path)
         }
         // go over all file explorers, and invalidate them, if they contain it, or are inside
         // a little unspecific; works anyway

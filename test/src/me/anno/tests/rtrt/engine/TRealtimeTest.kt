@@ -31,7 +31,7 @@ import org.joml.Vector3f
 
 fun main() {
     OfficialExtensions.initForTests()
-    val clock = Clock()
+    val clock = Clock("TRealtimeTest")
     val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16, clock)
     run(tlas, cameraPosition, cameraRotation, fovZFactor)
     LOGGER.debug("Finished")

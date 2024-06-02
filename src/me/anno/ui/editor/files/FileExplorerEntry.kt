@@ -271,9 +271,7 @@ open class FileExplorerEntry(
                     previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
-                    frameIndex = if (isHovered && supportsPlayback &&
-                        GFX.activeWindow == GFX.focusedWindow
-                    ) {
+                    frameIndex = if (isHovered && supportsPlayback && GFX.activeWindow == GFX.focusedWindow) {
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = Time.nanoTime
@@ -454,7 +452,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int, meta: MediaMetadata) {
         val image = video?.getFrame()
         if (image != null) {
             val size = width - 2 * padding
@@ -464,41 +462,46 @@ open class FileExplorerEntry(
         } else {
             drawDefaultIcon(x0, y0, x1, y1)
         }
+        if (hasSpaceForVideoProgress()) {
+            drawVideoProgress(x0, y0, x1, y1, meta)
+        }
+    }
 
-        // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
-        if (height >= 3 * titlePanel.font.sizeInt) {
-            val meta = getMeta(path, true)
-            if (meta != null) {
+    private fun hasSpaceForVideoProgress(): Boolean {
+        return height >= 3 * titlePanel.font.sizeInt
+    }
 
-                val totalSeconds = (meta.videoDuration).roundToInt()
-                val needsHours = totalSeconds >= 3600
-                val seconds = max((frameIndex / previewFPS).toInt(), 0) % max(totalSeconds, 1)
+    /**
+     * show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
+     * */
+    private fun drawVideoProgress(x0: Int, y0: Int, x1: Int, y1: Int, meta: MediaMetadata) {
+        val totalSeconds = (meta.duration).roundToInt()
+        val needsHours = totalSeconds >= 3600
+        val seconds = max((time % meta.duration).toInt(), 0)
 
-                val format = if (needsHours) charHHMMSS else charMMSS
-                val data = format.value
-                if (needsHours) {
-                    setNumber(15, totalSeconds % 60, data)
-                    setNumber(12, (totalSeconds / 60) % 60, data)
-                    setNumber(9, totalSeconds / 3600, data)
-                    setNumber(6, seconds % 60, data)
-                    setNumber(3, (seconds / 60) % 60, data)
-                    setNumber(0, seconds / 3600, data)
-                } else {
-                    setNumber(9, totalSeconds % 60, data)
-                    setNumber(6, (totalSeconds / 60) % 60, data)
-                    setNumber(3, seconds % 60, data)
-                    setNumber(0, seconds / 60, data)
-                }
+        val format = if (needsHours) charHHMMSS else charMMSS
+        val data = format.value
+        if (needsHours) {
+            setNumber(15, totalSeconds % 60, data)
+            setNumber(12, (totalSeconds / 60) % 60, data)
+            setNumber(9, totalSeconds / 3600, data)
+            setNumber(6, seconds % 60, data)
+            setNumber(3, (seconds / 60) % 60, data)
+            setNumber(0, seconds / 3600, data)
+        } else {
+            setNumber(9, totalSeconds % 60, data)
+            setNumber(6, (totalSeconds / 60) % 60, data)
+            setNumber(3, seconds % 60, data)
+            setNumber(0, seconds / 60, data)
+        }
 
-                // more clip space, and draw it a little more left and at the top
-                val extra = padding / 2
-                clip2Dual(
-                    x0 - extra, y0 - extra, x1, y1,
-                    this.lx0, this.ly0, this.lx1, this.ly1
-                ) { _, _, _, _ ->
-                    drawSimpleTextCharByChar(x + padding - extra, y + padding - extra, 1, format)
-                }
-            }
+        // more clip space, and draw it a little more left and at the top
+        val extra = padding / 2
+        clip2Dual(
+            x0 - extra, y0 - extra, x1, y1,
+            this.lx0, this.ly0, this.lx1, this.ly1
+        ) { _, _, _, _ ->
+            drawSimpleTextCharByChar(x + padding - extra, y + padding - extra, 1, format)
         }
     }
 
@@ -516,11 +519,16 @@ open class FileExplorerEntry(
                         if (time == 0.0 || !supportsPlayback) { // not playing
                             drawImageOrThumb(x0, y0, x1, y1)
                         } else {
-                            drawVideo(x0, y0, x1, y1)
+                            drawVideo(x0, y0, x1, y1, meta)
                         }
                     } else {
                         drawDefaultIcon(x0, y0, x1, y1)
                         drawCircle(x0, y0, x1, y1)
+                        if (!(time == 0.0 || !supportsPlayback) &&
+                            audio != null && hasSpaceForVideoProgress()
+                        ) {
+                            drawVideoProgress(x0, y0, x1, y1, meta)
+                        }
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }

@@ -259,7 +259,7 @@ object PrefabCache : CacheSection("Prefab") {
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, timeout, async, ::loadPrefabPair)
                 warnLoadFailedMaybe(resource, entry)
-                return entry as? FileReadPrefabData
+                return entry
             }
             else -> null
         }
@@ -291,7 +291,7 @@ object PrefabCache : CacheSection("Prefab") {
                     timeout, true, ::loadPrefabPair
                 ) { entry, err ->
                     warnLoadFailedMaybe(resource, entry)
-                    callback.call(entry as? FileReadPrefabData, err)
+                    callback.call(entry, err)
                 }
             }
             else -> {

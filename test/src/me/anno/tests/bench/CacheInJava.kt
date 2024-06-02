@@ -40,7 +40,7 @@ fun parallelSum(data: IntArray): Int {
 fun main() {
     val length = 1 shl 26
     val data = IntArray(length) { it }
-    val clock = Clock()
+    val clock = Clock("CacheInJava")
     clock.benchmark(3, 10, length, "built-in") { builtInSum(data) }
     clock.benchmark(3, 10, length, "manual") { manualSum(data) }
     clock.benchmark(3, 10, length, "strided") { stridedSum(data) }

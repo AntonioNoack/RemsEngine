@@ -12,13 +12,11 @@ import me.anno.io.saveable.Saveable
 class BulletMod : Mod() {
     override fun onPreInit() {
         super.onPreInit()
+        // base classes
         Saveable.registerCustomClass(BulletPhysics())
         Saveable.registerCustomClass(Rigidbody())
         Saveable.registerCustomClass(Vehicle())
         Saveable.registerCustomClass(VehicleWheel())
-
-        // todo test scene for all these constraints
-        // todo drag on physics to add forces/impulses
         // physics constraints
         Saveable.registerCustomClass(PointConstraint())
         Saveable.registerCustomClass(GenericConstraint())

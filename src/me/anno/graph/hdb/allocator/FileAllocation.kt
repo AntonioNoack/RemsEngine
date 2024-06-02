@@ -2,6 +2,7 @@ package me.anno.graph.hdb.allocator
 
 import me.anno.graph.hdb.index.File
 import me.anno.utils.InternalAPI
+import me.anno.utils.types.size
 
 @InternalAPI
 object FileAllocation : AllocationManager<File, ByteArray> {

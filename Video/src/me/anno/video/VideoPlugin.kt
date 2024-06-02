@@ -72,6 +72,7 @@ class VideoPlugin : Plugin() {
         @Suppress("unused")
         fun checkFFMPEGInstall() {
             if (!FFMPEG.isInstalled && OS.isWindows) {
+                // todo update FFMPEG download, if possible
                 Installer.downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
                 Installer.downloadMaybe("ffmpeg/bin/ffprobe.exe", ffprobePath)
             }

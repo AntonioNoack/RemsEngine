@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.utils.structures.lists.Lists.createArrayList
 
 // maximum size???...
 open class ColorPalette(
@@ -13,9 +14,9 @@ open class ColorPalette(
     style: Style
 ) : PanelGroup(style) {
 
-    override val children: List<Panel> = Array(dimX * dimY) {
+    override val children: List<Panel> = createArrayList(dimX * dimY) {
         ColorField(this, it % dimX, it / dimX, 0, style)
-    }.toList()
+    }
 
     override fun remove(child: Panel) {}
 

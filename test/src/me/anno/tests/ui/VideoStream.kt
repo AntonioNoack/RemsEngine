@@ -10,6 +10,7 @@ fun main() {
     OfficialExtensions.initForTests()
     disableRenderDoc()
     testUI3("Video Playback") {
+        // todo there is broken frames... do we have two readers on the same stream???
         val source = videos.getChild("treemiddle.mp4")
         createSimpleVideoPlayer(source).fill(1f)
     }

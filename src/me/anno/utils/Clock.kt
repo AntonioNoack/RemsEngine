@@ -7,15 +7,19 @@ import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Floats.f4
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import kotlin.math.roundToInt
 
 /**
  * a class for measuring performance
  * */
 class Clock(
+    private val logger: Logger,
     private val printWholeAccuracy: Boolean = false,
     printZeros: Boolean = false
 ) {
+
+    constructor(name: String) : this(LogManager.getLogger(name))
 
     var minTime = if (printZeros) -1.0 else 0.0005
 
@@ -41,7 +45,7 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            LOGGER.info("Used ${formatDt(dt)}s for ${wasUsedFor()}, ${format(nanosPerElement)}")
+            logger.info("Used ${formatDt(dt)}s for ${wasUsedFor()}, ${format(nanosPerElement)}")
         }
         return dt
     }
@@ -76,7 +80,7 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            LOGGER.info("Used ${formatDt(dt)}s for $wasUsedFor, ${format(nanosPerElement)}")
+            logger.info("Used ${formatDt(dt)}s for $wasUsedFor, ${format(nanosPerElement)}")
         }
         return dt
     }
@@ -98,7 +102,7 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            LOGGER.info("Used ${formatDt(dt)}s for $wasUsedFor")
+            logger.info("Used ${formatDt(dt)}s for $wasUsedFor")
         }
         return dt
     }
@@ -108,7 +112,7 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            LOGGER.info("Used ${formatDt(dt)}s for ${wasUsedFor()}")
+            logger.info("Used ${formatDt(dt)}s for ${wasUsedFor()}")
         }
         return dt
     }
@@ -127,9 +131,9 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             if (wasUsedFor.isBlank2()) {
-                LOGGER.info("Used ${formatDt(dt)}s in total")
+                logger.info("Used ${formatDt(dt)}s in total")
             } else {
-                LOGGER.info("Used ${formatDt(dt)}s in total for $wasUsedFor")
+                logger.info("Used ${formatDt(dt)}s in total for $wasUsedFor")
             }
         }
     }
@@ -153,11 +157,8 @@ class Clock(
 
     companion object {
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(Clock::class)
-
-        @JvmStatic
-        fun <V> measure(name: String, func: () -> V): V {
-            val c = Clock()
+        fun <V> measure(logger: Logger, name: String, func: () -> V): V {
+            val c = Clock(logger)
             val value = func()
             c.stop(name)
             return value

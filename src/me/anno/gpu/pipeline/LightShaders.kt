@@ -38,7 +38,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
@@ -140,7 +139,7 @@ object LightShaders {
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
                 colorToLinear +
-                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, getReflectivity(finalRoughness, finalMetallic));\n" +
+                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, getReflectivity(finalRoughness, finalMetallic));\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n" +
                 colorToSRGB +
@@ -292,9 +291,9 @@ object LightShaders {
     private val shaderCache = HashMap<Pair<DeferredSettings, Int>, Shader>()
 
     fun createMainFragmentStage(type: LightType, isInstanced: Boolean): ShaderStage {
-        val ws = !isInstanced // with shadows
-        val co = "discard" // cutoff keyword
-        val coreFragment = LightType.getShaderCode(type, co, ws)
+        val withShadows = !isInstanced
+        val cutoffKeyword = "discard"
+        val coreFragment = LightType.getShaderCode(type, cutoffKeyword, withShadows)
         val fragment = ShaderStage(
             "ls-f", listOf(
                 Variable(GLSLType.V4F, "data0").flat(),

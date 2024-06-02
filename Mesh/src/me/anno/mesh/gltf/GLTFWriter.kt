@@ -20,7 +20,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Filtering
-import me.anno.graph.hdb.allocator.size
+import me.anno.utils.types.size
 import me.anno.io.Streams.writeLE32
 import me.anno.io.Streams.writeString
 import me.anno.io.files.FileReference

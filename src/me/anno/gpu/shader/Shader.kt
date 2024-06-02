@@ -11,8 +11,6 @@ import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 
-// todo locations for the varyings: for debugging with RenderDoc
-
 open class Shader(
     shaderName: String,
     val vertexVariables: List<Variable>,
@@ -180,68 +178,40 @@ open class Shader(
         fragmentSource = builder.toString()
         builder.clear()
 
-        val program = if (useShaderFileCache) {
+        val program = GL46C.glCreateProgram()
+        GFX.check()
+        updateSession()
+        GFX.check()
+        /*val vertexShader = */
+        compile(name, program, GL46C.GL_VERTEX_SHADER, vertexSource)
 
-            val program = ShaderCache.createShader(vertexSource, fragmentSource)
+        GFX.check()
 
-            GFX.check()
+        /*val fragmentShader = */
+        compile(name, program, GL46C.GL_FRAGMENT_SHADER, fragmentSource)
 
-            if (attributes.isNotEmpty()) {
-                val attrs = ArrayList<Variable>()
-                val none = Variable(GLSLType.V1I, "")
-                for (i in attributes.indices) {
-                    val attr = attributes[i]
-                    val loc = GL46C.glGetAttribLocation(program, attr.name)
-                    if (loc >= 0) {
-                        while (loc >= attrs.size) attrs.add(none)
-                        attrs[loc] = attr
-                    }
-                }
-                attrs.trimToSize()
-                attributes = attrs
-            }
+        GFX.check()
 
-            program
-        } else {
-
-            val program = GL46C.glCreateProgram()
-            GFX.check()
-            updateSession()
-            GFX.check()
-            /*val vertexShader = */
-            compile(name, program, GL46C.GL_VERTEX_SHADER, vertexSource)
-
-            GFX.check()
-
-            /*val fragmentShader = */
-            compile(name, program, GL46C.GL_FRAGMENT_SHADER, fragmentSource)
-
-            GFX.check()
-
-            val attributes = attributes
-            for (i in attributes.indices) {
-                GL46C.glBindAttribLocation(program, i, attributes[i].name)
-            }
-
-            GFX.check()
-
-            GL46C.glLinkProgram(program)
-
-            GFX.check()
-
-            // glDeleteShader(vertexShader)
-            // glDeleteShader(fragmentShader)
-            // if (geometryShader >= 0) glDeleteShader(geometryShader)
-
-            logShader(name, vertexSource, fragmentSource)
-
-            GFX.check()
-
-            postPossibleError(name, program, false, vertexSource, fragmentSource)
-
-            program
+        val attributes = attributes
+        for (i in attributes.indices) {
+            GL46C.glBindAttribLocation(program, i, attributes[i].name)
         }
 
+        GFX.check()
+
+        GL46C.glLinkProgram(program)
+
+        GFX.check()
+
+        // glDeleteShader(vertexShader)
+        // glDeleteShader(fragmentShader)
+        // if (geometryShader >= 0) glDeleteShader(geometryShader)
+
+        logShader(name, vertexSource, fragmentSource)
+
+        GFX.check()
+
+        postPossibleError(name, program, false, vertexSource, fragmentSource)
         GFX.check()
 
         this.program = program // only assign the program, when no error happened

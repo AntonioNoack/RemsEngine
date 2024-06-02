@@ -121,6 +121,6 @@ object LastModifiedCache {
     private var timeoutNanos = 20_000L * Maths.MILLIS_TO_NANOS
 
     init {
-        CacheSection.registerOnUpdate(::update)
+        CacheSection.registerCache(::update, ::clear)
     }
 }

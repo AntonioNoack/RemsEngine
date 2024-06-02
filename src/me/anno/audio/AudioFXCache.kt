@@ -90,7 +90,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
             val stream = AudioStreamRaw(it.file, it.repeat, meta, it.time0, it.time1)
             val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
             AudioData(it, pair.first, pair.second)
-        } as AudioData
+        }!!
         rawDataLimiter.release()
         return entry
     }
@@ -102,7 +102,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     ): AudioData? {
         return getEntry(pipelineKey, timeout, async) { key ->
             getRawData(meta, key)
-        } as? AudioData
+        }
     }
 
     fun getBuffer1(
@@ -111,7 +111,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     ): AudioData? {
         return getEntry(pipelineKey, timeout, async) { key ->
             getRawData(MediaMetadata.getMeta(key.file, false)!!, key)
-        } as? AudioData
+        }
     }
 
     fun getBuffer(

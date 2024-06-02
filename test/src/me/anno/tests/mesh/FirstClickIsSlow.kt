@@ -11,7 +11,7 @@ import org.joml.Vector3d
 fun main() {
     // first click onto dragon is slow... why???
     // -> RTAS building takes a long time
-    val clock = Clock()
+    val clock = Clock("FirstClickSlow")
     OfficialExtensions.initForTests()
     clock.stop("Loading Extensions")
     val comp = MeshComponent(downloads.getChild("3d/dragon.obj"))

@@ -19,9 +19,7 @@ class ShaderExprNode : ActionNode(
         "Int", "Channels",
         "Int", "Samples",
     ),
-    listOf(
-        "Texture", "Result", // resampled
-    )
+    listOf("Texture", "Result")
 ), ExpressionRenderer {
 
     init {

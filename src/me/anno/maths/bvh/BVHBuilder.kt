@@ -12,6 +12,7 @@ import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.search.Median.median
 import me.anno.utils.structures.lists.Lists.partition1
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
@@ -20,17 +21,14 @@ import kotlin.math.sqrt
 
 object BVHBuilder {
 
-    // done build whole scene into TLAS+BLAS and then render it correctly
-    // done how do we manage multiple meshes? connected buffer is probably the best...
-
-    // we could reduce the number of materials, and draw the materials sequentially with separate TLASes...
+    private val LOGGER = LogManager.getLogger(BVHBuilder::class)
 
     fun buildTLAS(
         scene: PipelineStageImpl, // filled with meshes
         cameraPosition: Vector3d, worldScale: Double,
         splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode {
-        val clock = Clock()
+        val clock = Clock(LOGGER)
         val sizeGuess = scene.nextInsertIndex + scene.instanced.data.sumOf { it.size }
         val objects = ArrayList<TLASLeaf>(max(sizeGuess, 16))
         // add non-instanced objects

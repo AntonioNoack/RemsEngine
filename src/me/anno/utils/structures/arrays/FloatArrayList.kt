@@ -1,8 +1,8 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.cache.ICacheData
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.FloatArrayPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
@@ -21,6 +21,10 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     }
 
     override var size = 0
+        set(value) {
+            field = value
+            ensureCapacity(value)
+        }
 
     var values = alloc(initCapacity)
     override val capacity: Int get() = values.size
@@ -223,4 +227,6 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         val array = values
         array.fill(s, 0, size)
     }
+
+    fun toList(): List<Float> = toFloatArray().toList()
 }

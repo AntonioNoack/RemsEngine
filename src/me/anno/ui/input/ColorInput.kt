@@ -1,24 +1,24 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.dragged
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.Screenshots
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.raw.IntImage
+import me.anno.input.Clipboard
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
-import me.anno.engine.EngineBase.Companion.dragged
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
-import me.anno.gpu.framebuffer.TargetType
-import me.anno.image.raw.IntImage
-import me.anno.input.Clipboard
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
@@ -37,6 +37,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.withAlpha
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -63,11 +64,13 @@ open class ColorInput(
     @NotSerializedProperty
     private var mouseIsDown = false
 
-    // todo drawing & ignoring inputs
     override var isInputAllowed = true
         set(value) {
             if (field != value) {
                 field = value
+                val alpha = if (value) 255 else 160
+                titleView.textColor = titleView.textColor.withAlpha(alpha)
+                titleView.focusTextColor = titleView.focusTextColor.withAlpha(alpha)
                 invalidateDrawing()
             }
         }
@@ -145,26 +148,35 @@ open class ColorInput(
             }
             isInputAllowed && button == Key.BUTTON_RIGHT -> {
                 val window = GFX.activeWindow!!
-                Menu.openMenu(windowStack, listOf(
-                    MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
-                    MenuOption(NameDesc("Copy #rrggbb")) {
-                        Clipboard.setClipboardContent(
-                            value.toARGB().toHexColor()
-                        )
-                    },
-                    MenuOption(NameDesc("Copy Vector")) { Clipboard.setClipboardContent(value.toString()) },
-                    MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
-                    MenuOption(NameDesc("Pick Color")) {
-                        pickColor(windowStack, style) { color ->
-                            contentView.setARGB(color, -1, true)
-                            invalidateDrawing()
-                        }
-                    },
-                    MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), -1, true) }
-                ))
+                Menu.openMenu(
+                    windowStack, listOf(
+                        MenuOption(NameDesc("Copy")) {
+                            Input.copy(window, contentView)
+                        }, MenuOption(NameDesc("Copy #rrggbb")) {
+                            Clipboard.setClipboardContent(value.toARGB().toHexColor())
+                        }, MenuOption(NameDesc("Copy Vector")) {
+                            Clipboard.setClipboardContent(value.toString())
+                        }, MenuOption(NameDesc("Paste")) {
+                            Input.paste(window, contentView)
+                        }.checkEnabled(),
+                        MenuOption(NameDesc("Pick Color")) {
+                            pickColor(windowStack, style) { color ->
+                                contentView.setARGB(color, -1, true)
+                                invalidateDrawing()
+                            }
+                        }.checkEnabled(),
+                        MenuOption(NameDesc("Reset")) {
+                            setValue(contentView.resetListener(), -1, true)
+                        }.checkEnabled()
+                    )
+                )
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
+    }
+
+    private fun MenuOption.checkEnabled(): MenuOption {
+        return setEnabled(isInputAllowed, "Input disabled")
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
@@ -187,7 +199,7 @@ open class ColorInput(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
-        if (mouseIsDown && dragged == null) {
+        if (mouseIsDown && dragged == null && isInputAllowed) {
             val ws = windowStack
             val speed = 20f * shiftSlowdown / max(ws.width, ws.height)
             val delta = (dx - dy) * speed
@@ -211,8 +223,10 @@ open class ColorInput(
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float, mask: Int) -> Unit): ColorInput {
         contentView.setChangeRGBListener { r, g, b, a, mask ->
-            previewField.color = rgba(r, g, b, if (withAlpha) a else 1f)
-            listener(r, g, b, a, mask)
+            if (isInputAllowed) {
+                previewField.color = rgba(r, g, b, if (withAlpha) a else 1f)
+                listener(r, g, b, a, mask)
+            } else LOGGER.warn("Cannot change color")
         }
         return this
     }
@@ -243,7 +257,7 @@ open class ColorInput(
     }
 
     companion object {
-
+        private val LOGGER = LogManager.getLogger(ColorInput::class)
         fun pickColor(windowStack: WindowStack, style: Style, colorCallback: (Int) -> Unit) {
             // color picker
             // - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...

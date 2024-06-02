@@ -6,10 +6,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.Image
-import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdfwriter.COSWriter
@@ -63,9 +63,9 @@ object PDFCache : CacheSection("PDFCache") {
                     value.returnInstance()
                 }
             }
-        } as? CacheData<*>
+        }
         if (!async) input.close()
-        val value = data?.value as? AtomicCountedDocument
+        val value = data?.value
         if (borrow) value?.borrow()
         return value
     }
@@ -133,25 +133,22 @@ object PDFCache : CacheSection("PDFCache") {
 
     @Suppress("unused")
     fun getImageCached(doc: PDDocument, dpi: Float, pageNumber: Int): Image? {
-        val data = getEntry(Key(doc, dpi, pageNumber), 10_000, false) {
+        return getEntry(Key(doc, dpi, pageNumber), 10_000, false) {
             CacheData(getImage(doc, dpi, pageNumber))
-        } as? CacheData<*>
-        return data?.value as? Image
+        }?.value
     }
 
     fun getImageCachedBySize(doc: PDDocument, size: Int, pageNumber: Int): Image? {
-        val data = getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { (doc, size, pageNumber) ->
+        return getEntry(SizeKey(doc, size, pageNumber), 10_000, false) { (doc, size, pageNumber) ->
             CacheData(getImageBySize(doc, size, pageNumber))
-        } as? CacheData<*>
-        return data?.value as? Image
+        }?.value
     }
 
     @Suppress("unused")
     fun getImageCachedByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image? {
-        val data = getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
+        return getEntry(HeightKey(doc, height, pageNumber), 10_000, false) { (doc, height, pageNumber) ->
             CacheData(getImageByHeight(doc, height, pageNumber))
-        } as? CacheData<*>
-        return data?.value as? Image
+        }?.value
     }
 
     fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): Image {

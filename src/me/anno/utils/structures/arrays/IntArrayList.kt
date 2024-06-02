@@ -7,10 +7,6 @@ import me.anno.utils.types.Strings.joinChars0
 
 open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
 
-    companion object {
-        val emptyIntList = IntArrayList(0)
-    }
-
     override var size = 0
         set(value) {
             field = value

@@ -92,7 +92,7 @@ abstract class EngineBase(
         return OS.documents
     }
 
-    val startClock = Clock()
+    val startClock = Clock(LOGGER)
     fun tick(name: String) {
         startClock.stop(name)
     }

@@ -1,6 +1,8 @@
 package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.graph.hdb.ByteSlice
+import me.anno.utils.types.size
 import me.anno.io.Streams.readNBytes2
 import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
@@ -17,7 +19,11 @@ import kotlin.math.min
  *
  * This class stores the data, and is a registry for known file signatures.
  * */
-class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
+class Signature(
+    val name: String,
+    private val offset: Int,
+    private val pattern: ByteArray
+) {
 
     constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.encodeToByteArray())
 
@@ -43,10 +49,10 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
 
     val order = if (offset < 0) {
         // bad format: no identifier, so test it last
-        1024 + bytes.size
+        1024 + pattern.size
     } else {
         // test long ones first, because they are more specific
-        bytes.size
+        pattern.size
     }
 
     fun matches(bytes: ByteBuffer): Boolean {
@@ -55,9 +61,9 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
         if (offset >= size) return false
         if (offset < 0) {
             // search the signature instead of requiring it
-            search@ for (offset in 0 until size - this.bytes.size) {
-                for (i in 0 until min(size - offset, this.bytes.size)) {
-                    if (bytes[position + i + offset] != this.bytes[i]) {
+            search@ for (offset in 0 until size - pattern.size) {
+                for (i in 0 until min(size - offset, pattern.size)) {
+                    if (bytes[position + i + offset] != pattern[i]) {
                         continue@search
                     }
                 }
@@ -65,21 +71,23 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             }
             return false
         } else {
-            for (i in 0 until min(size - offset, this.bytes.size)) {
-                if (bytes[position + i + offset] != this.bytes[i]) return false
+            for (i in 0 until min(size - offset, pattern.size)) {
+                if (bytes[position + i + offset] != pattern[i]) return false
             }
             return true
         }
     }
 
-    fun matches(bytes: ByteArray): Boolean {
-        val size = min(bytes.size, maxSampleSize)
-        if (offset >= bytes.size) return false
+    fun matches(bytes: ByteArray, range: IntRange): Boolean {
+        val bytesSize = range.size
+        val size = min(bytesSize, maxSampleSize)
+        if (offset >= bytesSize) return false
         if (offset < 0) {
             // search the signature instead of requiring it
-            search@ for (offset in 0 until size - this.bytes.size) {
-                for (i in 0 until min(size - offset, this.bytes.size)) {
-                    if (bytes[i + offset] != this.bytes[i]) {
+            search@ for (offset in 0 until size - pattern.size) {
+                val readOffset = offset + range.first
+                for (i in 0 until min(size - offset, pattern.size)) {
+                    if (bytes[i + readOffset] != pattern[i]) {
                         continue@search
                     }
                 }
@@ -87,38 +95,37 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             }
             return false
         } else {
-            for (i in 0 until min(size - offset, this.bytes.size)) {
-                if (bytes[i + offset] != this.bytes[i]) return false
+            val readOffset = offset + range.first
+            for (i in 0 until min(size - offset, pattern.size)) {
+                if (bytes[i + readOffset] != pattern[i]) return false
             }
             return true
         }
     }
 
-    override fun toString() = "Signature { \"$name\" by [${bytes.joinToString { hex8(it.toInt()) }}] + $offset }"
+    override fun toString() = "Signature { \"$name\" by [${pattern.joinToString { hex8(it.toInt()) }}] + $offset }"
 
     companion object {
 
         const val sampleSize = 128
         const val maxSampleSize = 4096
 
-        fun findName(bytes: ByteBuffer) = find(bytes)?.name
-        fun find(bytes: ByteBuffer): Signature? {
-            val nonHashed = signatures
-            for (i in nonHashed.indices) {
-                val s = nonHashed[i]
-                if (s.matches(bytes)) {
-                    return s
-                }
-            }
-            return null
-        }
-
         fun findName(bytes: ByteArray) = find(bytes)?.name
         fun find(bytes: ByteArray): Signature? {
+            return find(bytes, bytes.indices)
+        }
+
+        fun findName(bytes: ByteSlice) = find(bytes)?.name
+        fun find(bytes: ByteSlice): Signature? {
+            return find(bytes.bytes, bytes.range)
+        }
+
+        fun findName(bytes: ByteArray, range: IntRange) = find(bytes, range)?.name
+        fun find(bytes: ByteArray, range: IntRange): Signature? {
             val nonHashed = signatures
             for (i in nonHashed.indices) {
                 val s = nonHashed[i]
-                if (s.matches(bytes)) {
+                if (s.matches(bytes, range)) {
                     return s
                 }
             }

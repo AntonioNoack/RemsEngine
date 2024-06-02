@@ -66,13 +66,9 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
     }
 
     // large scale = fast movement
-    override var scale = 1.0
-        set(value) {
-            if (field != value) {
-                field = value
-                font = font.withSize(baseTextSize.toFloat())
-            }
-        }
+    override fun onChangeSize() {
+        font = font.withSize(baseTextSize.toFloat())
+    }
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         val graph = graph

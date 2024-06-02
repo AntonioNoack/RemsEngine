@@ -54,7 +54,6 @@ class RenderForwardNode : RenderViewNode(
         setInput(9, DrawSkyMode.DONT_DRAW_SKY)
     }
 
-    // todo can we serialize a renderer somehow? make an enum from it???
     var renderer = pbrRenderer
 
     override fun executeAction() {

@@ -50,7 +50,7 @@ fun main() {
     val uData = Texture2D.bufferPool[s1, false, false]
     val vData = Texture2D.bufferPool[s1, false, false]
 
-    val clock = Clock()
+    val clock = Clock("i420Interpolation")
     clock.benchmark(5, 100, "full") { _ ->
         for (yi in 0 until hx) {
             for (xi in 0 until wx) {

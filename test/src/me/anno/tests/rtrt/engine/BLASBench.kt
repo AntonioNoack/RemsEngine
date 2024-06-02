@@ -9,7 +9,7 @@ import me.anno.utils.Clock
 fun main() {
     val size = 512
     val mesh = Mesh()
-    val clock = Clock()
+    val clock = Clock("BLASBench")
     TerrainUtils.generateRegularQuadHeightMesh(size, size, false, 1f, mesh, true)
     BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
     clock.stop("BLAS Generation")

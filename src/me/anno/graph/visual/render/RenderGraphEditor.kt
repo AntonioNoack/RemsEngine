@@ -18,7 +18,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : Gr
 
     init {
 
-        minScale = 0.01
+        minScale.set( 0.01)
 
         library = RenderGraph.library
         for (it in library.allNodes) {

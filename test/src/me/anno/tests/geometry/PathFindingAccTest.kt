@@ -180,7 +180,7 @@ fun main() {
 
         ECSRegistry.init()
 
-        val clock = Clock()
+        val clock = Clock("PathFindingAccTest")
         val mesh: MeshComponentBase = if (rayTracing) {
             // slower, currently less color support, but avoids triangles ^^
             world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)

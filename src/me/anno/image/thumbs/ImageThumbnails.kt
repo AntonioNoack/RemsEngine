@@ -1,8 +1,6 @@
 package me.anno.image.thumbs
 
 import me.anno.Time
-import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.Image
@@ -100,11 +98,8 @@ object ImageThumbnails {
         dstFile: HDBKey,
         size: Int,
         callback: Callback<ITexture2D>,
-        wantedTime: Double
+        wantedTime: Double, meta: MediaMetadata
     ) {
-
-        val meta = MediaMetadata.getMeta(srcFile, false)
-            ?: throw RuntimeException("Could not load metadata for $srcFile")
 
         val mx = max(meta.videoWidth, meta.videoHeight)
         if (mx < size) {
@@ -130,12 +125,26 @@ object ImageThumbnails {
             if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
             else null
         }, { frame ->
-            ThumbsRendering.renderToImage(
-                srcFile, false, dstFile, false,
-                Renderer.colorRenderer, true, callback, w, h
-            ) {
-                DrawTextures.drawTexture(0, 0, w, h, frame)
-            }
+            val texture = frame.toTexture()
+            if (Thumbs.useCacheFolder) {
+                val dst = texture.createImage(flipY = false, withAlpha = true)
+                Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+            } else callback.ok(texture)
         })
+    }
+
+    @JvmStatic
+    fun generateVideoFrame(
+        srcFile: FileReference,
+        dstFile: HDBKey,
+        size: Int,
+        callback: Callback<ITexture2D>,
+        wantedTime: Double
+    ) {
+        MediaMetadata.getMetaAsync(srcFile) { meta, err ->
+            if (meta != null) {
+                generateVideoFrame(srcFile, dstFile, size, callback, wantedTime, meta)
+            } else callback.err(err)
+        }
     }
 }

@@ -63,10 +63,9 @@ object UnityReader {
                         .any { c -> c.lcExtension == "meta" }
                     else false
                 }) {
-                val data = UnityProjectCache.getEntry(
+                return UnityProjectCache.getEntry(
                     root, unityProjectTimeout, async, UnityReader::loadUnityProject
-                ) as? CacheData<*>
-                return data?.value as? UnityProject
+                )?.value
             }// else invalid project
         }
         return null
@@ -76,11 +75,10 @@ object UnityReader {
         if (file.isDirectory) {
             val children = file.listChildren()
             if (children.any { it.lcExtension == "meta" }) {
-                val data = UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
+                return UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
                     val root = file.getParent()
                     loadUnityProject(root)
-                } as? CacheData<*>
-                return data?.value as? UnityProject
+                }?.value
             }// else invalid project
         }
         return null

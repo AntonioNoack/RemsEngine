@@ -216,8 +216,8 @@ fun main() {
             }
 
             init {
-                minScale = 0.1
-                maxScale = 1e9
+                minScale.set(0.1)
+                maxScale.set(1e9)
                 calculateDependencies(root)
             }
 
@@ -230,13 +230,13 @@ fun main() {
                 super.onDraw(x0, y0, x1, y1)
                 var x = x
                 var y = y
-                val size = scale.toFloat() * 100f
+                val size = scale.y.toFloat() * 100f
                 hoveredDist = Float.POSITIVE_INFINITY
                 hoveredPck = null
                 place(
                     root,
-                    x + width / 2 - (center.x * scale).toFloat(),
-                    y + height / 2 - (center.y * scale).toFloat(),
+                    x + width / 2 - (center.x * scale.x).toFloat(),
+                    y + height / 2 - (center.y * scale.y).toFloat(),
                     0f, size
                 )
                 val tc = textColor

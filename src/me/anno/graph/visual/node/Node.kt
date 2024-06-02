@@ -39,9 +39,6 @@ abstract class Node() : PrefabSaveable() {
         }
     }
 
-    // make name final
-    final override var name = ""
-
     open fun createUI(g: GraphPanel, list: PanelList, style: Style) {}
 
     var position = Vector3d()

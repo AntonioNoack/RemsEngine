@@ -9,7 +9,7 @@ fun main() {
     // -> no, they don't :3, each turn just takes 0.20 ns (in both cases) -> ~0.8 ticks @ 3.9 GHz
     val rnd = Random(System.nanoTime())
     val data = IntArray(1024 * 1024) { rnd.nextInt() }
-    val clock = Clock()
+    val clock = Clock("ColorConversion")
     clock.benchmark(50, 1000, data.size, "Direct") {
         val agMask = 0xff00ff00.toInt()
         for (i in data.indices) {

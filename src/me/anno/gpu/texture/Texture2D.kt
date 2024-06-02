@@ -1036,7 +1036,7 @@ open class Texture2D(
             val t1 = Time.nanoTime
             if (t1 - t0 > MILLIS_TO_NANOS) {
                 val dt = ((t1 - t0).toFloat() / MILLIS_TO_NANOS)
-                LOGGER.warn("glGenerateMipmap took {} ms for {} x {}]", dt.f1(), width, height)
+                LOGGER.warn("glGenerateMipmap took {} ms for {}", dt.f1(), this)
             }
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {

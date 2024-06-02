@@ -141,7 +141,7 @@ object GFXBase {
     @JvmStatic
     fun initLWJGL(): Clock {
         if (!OS.isWeb) LOGGER.info("Using LWJGL Version " + Version.getVersion())
-        val tick = Clock()
+        val tick = Clock(LOGGER)
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
         tick.stop("Error callback")
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
@@ -271,7 +271,7 @@ object GFXBase {
     @JvmStatic
     fun runRenderLoop0(window0: OSWindow) {
         LOGGER.info("Running RenderLoop")
-        val tick = Clock()
+        val tick = Clock(LOGGER)
         window0.makeCurrent()
         window0.forceUpdateVsync()
         tick.stop("Make context current + vsync")

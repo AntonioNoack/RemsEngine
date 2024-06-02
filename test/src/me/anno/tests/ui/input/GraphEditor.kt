@@ -26,11 +26,11 @@ fun main() {
         // performance test for generating lots of text
         val testTextPerformance = false
         if (testTextPerformance) {
-            editor.scale *= 1.02
-            if (editor.scale > 10.0) {
-                editor.scale = 1.0
+            editor.scale.mul(1.02)
+            if (editor.scale.x > 10.0) {
+                editor.scale.set(1.0)
             }
-            editor.targetScale = editor.scale
+            editor.targetScale.set(editor.scale)
             editor.invalidateLayout()
         } else editor.invalidateDrawing() // for testing normal performance
     }

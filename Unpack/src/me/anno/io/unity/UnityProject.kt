@@ -20,7 +20,7 @@ import java.io.IOException
  * */
 class UnityProject(val root: FileReference) : InnerFolder(root) {
 
-    val clock = Clock()
+    val clock = Clock(LOGGER)
 
     private val registry = HashMap<String, FileReference>()
     private val yamlCache = HashMap<FileReference, YAMLNode>()

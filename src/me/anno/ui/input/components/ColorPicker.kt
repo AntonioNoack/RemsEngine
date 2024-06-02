@@ -3,6 +3,7 @@ package me.anno.ui.input.components
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.input.Clipboard.setClipboardContent
@@ -27,11 +28,10 @@ class ColorPicker(
     style: Style
 ) : ImagePanel(style) {
 
-    // todo bug: when zoomed in (after window size change), the color preview is incorrect... why?
-
     init {
         // padding helps nobody, but overflow should help to find pixels within the center better :)
         stretchMode = StretchModes.OVERFLOW
+        filtering = Filtering.NEAREST
         flipY = !flipTexture
     }
 

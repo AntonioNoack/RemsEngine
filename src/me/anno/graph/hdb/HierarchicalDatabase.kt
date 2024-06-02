@@ -27,13 +27,13 @@ import java.io.RandomAccessFile
 class HierarchicalDatabase(
     name: String,
     val storage: FileReference,
-    val targetFileSize: Int,
-    val cacheTimeoutMillis: Long,
-    deletionTimeMillis: Long,
+    val targetFileSize: Int = 10_000_000,
+    val cacheTimeoutMillis: Long = 10_000,
+    deletionTimeMillis: Long = 7 * 24 * 3600 * 1000,
     val dataExtension: String = "bin",
 ) {
 
-    val cache = CacheSection("HDB-$name")
+    private val cache = CacheSection("HDB-$name")
 
     private val root = Folder("")
     private val storageFiles = HashMap<Int, StorageFile>()
@@ -177,6 +177,12 @@ class HierarchicalDatabase(
 
     fun clear() {
         storage.deleteRecursively()
+        clearMemory()
+    }
+
+    fun clearMemory() {
+        cache.clear()
+        loadIndex()
     }
 
     fun get(key: HDBKey, async: Boolean, callback: (ByteSlice?) -> Unit) {
@@ -232,30 +238,31 @@ class HierarchicalDatabase(
     }
 
     fun put(key: HDBKey, value: ByteArray) {
-        put(key.path, key.hash, ByteSlice(value))
+        put(key, ByteSlice(value))
+    }
+
+    fun put(key: HDBKey, value: ByteSlice) {
+        put(key.path, key.hash, value)
     }
 
     fun put(path: List<String>, hash: Long, value: ByteSlice) {
-
-        var folder = root
-        for (i in path.indices) {
-            folder = folder.children.getOrPut(path[i]) {
-                Folder(path[i])
-            }
-        }
-
-        var sf = folder.storageFile
-        if (sf == null) {
-            sf = findStorageFile(value.size)
-            folder.storageFile = sf
-            sf.folders.add(folder)
-        }
-
         synchronized(this) {
+            var folder = root
+            for (i in path.indices) {
+                folder = folder.children.getOrPut(path[i]) {
+                    Folder(path[i])
+                }
+            }
+
+            var sf = folder.storageFile
+            if (sf == null) {
+                sf = findStorageFile(value.size)
+                folder.storageFile = sf
+                sf.folders.add(folder)
+            }
             addFile(hash, value, sf, folder)
         }
-
-        scheduleIndexUpdate()
+        scheduleStoreIndex()
     }
 
     private fun addFile(hash: Long, value: ByteSlice, sf: StorageFile, folder: Folder) {
@@ -324,13 +331,13 @@ class HierarchicalDatabase(
 
     private var lastUpdate = 0L
     private var needsUpdate = false
-    private fun scheduleIndexUpdate() {
+    private fun scheduleStoreIndex() {
         if (needsUpdate) return
         needsUpdate = true
-        runIndexUpdate()
+        storeIndexMaybe()
     }
 
-    private fun runIndexUpdate() {
+    fun storeIndexMaybe() {
         if (!needsUpdate) return
         val time = Time.nanoTime
         if (time - lastUpdate > 1000L * MILLIS_TO_NANOS) {
@@ -339,7 +346,7 @@ class HierarchicalDatabase(
             storeIndex()
         } else {
             addEvent(500L) {
-                runIndexUpdate()
+                storeIndexMaybe()
             }
         }
     }

@@ -3,7 +3,7 @@ package me.anno.io.files.inner
 import me.anno.io.files.FileReference
 import java.io.InputStream
 
-class InnerStreamFile(
+open class InnerStreamFile(
     absolutePath: String, relativePath: String, parent: FileReference,
     val getStream: () -> InputStream
 ) : InnerFile(absolutePath, relativePath, false, parent) {

@@ -21,9 +21,6 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 
-// done sort by column
-// done filter by column
-// todo user-customizable column widths like with CustomListX
 class DataSetPanel(
     val values: ArrayList<Saveable>,
     val reflectionsI: CachedReflections,
@@ -75,7 +72,7 @@ class DataSetPanel(
             filtered.removeIf(filter)
         }
         // reset weights??? -> yes, good idea
-        wys.fill(1f) // todo when changing size of wys, extend its values instead of just replacing them
+        weightsY.fill(1f) // todo when changing size of wys, extend its values instead of just replacing them
         sizeY = filtered.size + 1
         fillInTable(false)
     }
@@ -154,10 +151,7 @@ class DataSetPanel(
     }
 
     private fun fillInColumn(x: Int, prop: CachedProperty) {
-        // define all fields :)
         for (y in filtered.indices) {
-            // todo if value is int or long, align them right
-            // if it is float, how should we align it?
             val v = filtered[y]
             val default = prop[v] // good? maybe...
             val property2 = object : IProperty<Any?> {
@@ -172,7 +166,6 @@ class DataSetPanel(
             }
             val comp = ComponentUI.createUI2(null, "", property2, prop.range, style)
             if (comp != null) {
-                // comp.alignmentX = AxisAlignment.FILL
                 this[x, y + 1] = comp
             }
         }

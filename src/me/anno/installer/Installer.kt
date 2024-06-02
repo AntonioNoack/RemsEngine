@@ -29,7 +29,6 @@ object Installer {
 
     @JvmStatic
     fun checkFFMPEGInstall() {
-        // todo update FFMPEG download, if possible
         try {
             val clazz = Installer.javaClass.classLoader.loadClass("me.anno.video.VideoPlugin")
             val method = clazz.getMethod("checkFFMPEGInstall")

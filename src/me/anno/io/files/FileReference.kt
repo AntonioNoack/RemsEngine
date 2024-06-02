@@ -1,6 +1,5 @@
 package me.anno.io.files
 
-import me.anno.Engine
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.AssetThumbHelper
@@ -21,7 +20,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import kotlin.math.abs
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -333,11 +331,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
-        val signature = Signature.findNameSync(this)
-        if (lcExtension in InnerFolderCache.readerByFileExtension || signature in InnerFolderCache.readerBySignature) {
+        val signature = Signature.findSync(this)
+        if (InnerFolderCache.getReader(signature, lcExtension) != null) {
             return true
         }
-        return when (signature) { // todo these should be handled by InnerFolderCache...
+        return when (signature?.name) { // todo these should be handled by InnerFolderCache...
             null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
                 // dae is XML
                 when (lcExtension) {
@@ -425,7 +423,4 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     override fun destroy() {
     }
-
-    // todo support for ffmpeg to read all zip files
-
 }

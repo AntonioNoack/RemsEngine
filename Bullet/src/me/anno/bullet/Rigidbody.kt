@@ -25,6 +25,7 @@ import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths.pow
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -196,9 +197,8 @@ open class Rigidbody : Component() {
             }
         }
 
-    // todo setter for local velocity :)
     @DebugProperty
-    val localVelocity = Vector3d()
+    var localVelocity = Vector3d()
         get() {
             val bi = bulletInstance
             val tr = transform
@@ -206,13 +206,23 @@ open class Rigidbody : Component() {
                 val t = tr.globalTransform
                 val tmp = Stack.borrowVec()
                 bulletInstance?.getLinearVelocity(tmp)
-                field.set(
-                    t.m00 * tmp.x + t.m01 * tmp.y + t.m02 * tmp.z,
-                    t.m10 * tmp.x + t.m11 * tmp.y + t.m12 * tmp.z,
-                    t.m20 * tmp.x + t.m21 * tmp.y + t.m22 * tmp.z
-                )
+                t.transformDirection(field.set(tmp.x, tmp.y, tmp.z))
             }
             return field
+        }
+        set(value) {
+            field.set(value)
+            val bi = bulletInstance
+            val tr = transform
+            if (tr != null) { // not yet tested, and inverse might be costly
+                tr.globalTransform.invert(Matrix4x3d())
+                    .transformDirection(field)
+                if (bi != null && !isStatic) {
+                    val tmp = Stack.borrowVec()
+                    tmp.set(field.x, field.y, field.z)
+                    bulletInstance?.setLinearVelocity(tmp)
+                }
+            }
         }
 
     val localVelocityX: Double
