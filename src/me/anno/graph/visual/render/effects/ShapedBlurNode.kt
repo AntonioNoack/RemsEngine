@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.filters
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -30,7 +31,7 @@ class ShapedBlurNode() : ActionNode(
     init {
         setInput(1, whiteTexture)
         setInput(2, 1f)
-        setInput(3, 2.2f)
+        setInput(3, gamma.toFloat())
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {

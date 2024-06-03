@@ -57,9 +57,6 @@ object PBRLibraryGLTF {
             // also we don't need two divisions, we can use one
             "vec3 computeSpecularBRDF = (DxPi4 / max(x * x * t.x * t.y, $maxDivisor)) * F;\n"
 
-    // the following functions can be used, if the color isn't yet available
-    // (or you want to use one texture access less)
-    // they have missing color, when H || V, so when you look perpendicular onto the surface
     val specularBRDFv2NoColorStart = "" +
             angularCorrection +
             "float alpha = roughness * roughness;\n" +
@@ -68,10 +65,12 @@ object PBRLibraryGLTF {
             "float k = rp1 * rp1 * 0.125, invK = 1.0-k;\n" +
             "float DxPi4 = Dx * ${0.25 / PI};\n"
 
-    // (finalRoughness, finalNormal, NdotL, NdotV, H)
+    // the following functions can be used, if the color isn't yet available
+    // (or you want to use one texture access less)
+    // they have missing color, when H || V, so when you look perpendicular onto the surface
     val specularBRDFv2NoColor = "" +
             // Compute the microfacet distribution (D)
-            "float NdotH = clamp(dot(finalNormal, H), 0.0, 1.0);\n" + // clamp is probably unnecessary; could be inserted back
+            "float NdotH = clamp(dot(lightNor, lightH), 0.0, 1.0);\n" + // clamp is probably unnecessary
             "float NdotH_squared = NdotH * NdotH;\n" +
             "float x = NdotH_squared * DxM1 + 1.0;\n" +
             // "    float Dx = alpha_squared;\n" +
@@ -85,7 +84,5 @@ object PBRLibraryGLTF {
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
             "#define computeSpecularBRDF DxPi4 / max(x * x * t.x * t.y, $maxDivisor)\n"
-
-    val specularBRDFv2NoColorEnd = "specularLight *= finalMetallic;\n" // * specularColor, just without color
 
 }

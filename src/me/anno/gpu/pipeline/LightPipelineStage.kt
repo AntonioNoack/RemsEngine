@@ -164,8 +164,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) {
                 shader.v4f("depthMask", depthMask)
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
-
-                shader.m4x3delta("lightSpaceToCamSpace", transform)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
                 var i1 = 0f

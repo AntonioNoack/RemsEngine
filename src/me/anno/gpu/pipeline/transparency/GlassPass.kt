@@ -25,6 +25,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -59,7 +60,7 @@ class GlassPass : TransparentPass() {
             override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
                 val vars = pbrRenderer.getPixelPostProcessing(flags).first().variables.filter { !it.isOutput }
                 return listOf(
-                    ShaderStage( // todo glass needs to be shadowed @sunlight
+                    ShaderStage(
                         "glass",
                         vars + listOf(
                             Variable(GLSLType.V1F, "IOR"),
@@ -79,10 +80,7 @@ class GlassPass : TransparentPass() {
                                 "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting, product
                                 "finalMetallic = -log(IOR) * finalAlpha;\n" +
                                 "finalClearCoatRoughMetallic = vec2(dot(finalNormal,dirX), dot(finalNormal,dirY)) * finalAlpha;\n"
-                    )
-                        .add(fresnelSchlick)
-                        .add(getReflectivity)
-                        .add(sampleSkyboxForAmbient)
+                    ).add(fresnelSchlick).add(getReflectivity).add(sampleSkyboxForAmbient).add(brightness)
                 )
             }
         }

@@ -6,6 +6,8 @@ import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.light.sky.shaders.SkyShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.gamma
+import me.anno.gpu.shader.ShaderLib.gammaInv
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.sdf.shapes.SDFShape
 import me.anno.utils.structures.arrays.BooleanArrayList
@@ -271,8 +273,8 @@ object ShaderToyExport {
                 // todo if metallic=1,roughness=0, only use a single sample, and path-trace further
                 "       vec3 reflectedDir = reflect(dir,normal);\n" +
                 "       vec3 light = calcLight(pos + dir * ray.x, normal, aoDist * ray.x, metallic, roughness, dir);\n" +
-                "       vec3 color = pow(color * light,vec3(2.2)) + pow(emissive,vec3(2.2));\n" +
-                "       color = pow(color,vec3(1.0/2.2));\n" +
+                "       vec3 color = pow(color * light,vec3($gamma)) + pow(emissive,vec3($gamma));\n" +
+                "       color = pow(color,vec3($gammaInv));\n" +
                 "       col = vec4(color, 1.0);\n" + // hit something
                 "   } else {\n" + // sky
                 "       sunColor = vec3(500.0);\n" +

@@ -355,8 +355,8 @@ class PipelineStageImpl(
                 shader.v1i(numberOfLightsPtr, numberOfLights)
                 shader.v1b("receiveShadows", receiveShadows)
                 if (numberOfLights > 0) {
-                    val invLightMatrices = shader["invLightMatrices"]
                     val buffer = buffer16x256
+                    val invLightMatrices = shader["invLightMatrices"]
                     if (invLightMatrices >= 0) {
                         // fill all transforms
                         buffer.limit(12 * numberOfLights)
@@ -367,22 +367,6 @@ class PipelineStageImpl(
                         }
                         buffer.position(0)
                         shader.m4x3Array(invLightMatrices, buffer)
-                    }
-                    val lightMatrices = shader.getUniformLocation("lightMatrices", false)
-                    if (invLightMatrices >= 0) {
-                        // fill all transforms
-                        buffer.limit(12 * numberOfLights)
-                        for (i in 0 until numberOfLights) {
-                            buffer.position(12 * i)
-                            m4x3delta(
-                                lights[i]!!.drawMatrix,
-                                RenderState.cameraPosition,
-                                RenderState.worldScale,
-                                buffer
-                            )
-                        }
-                        buffer.position(0)
-                        shader.m4x3Array(lightMatrices, buffer)
                     }
                     // and sharpness; implementation depending on type
                     val lightIntensities = shader["lightData0"]

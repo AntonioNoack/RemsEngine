@@ -15,8 +15,8 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.deferred.PBRLibraryGLTF.angularCorrection
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
-import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
@@ -45,6 +45,35 @@ import me.anno.utils.types.Booleans.toInt
 
 object LightShaders {
 
+    val translucencyNL = 0.5f
+
+    val startLightSum = "" +
+            "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
+            "float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+            "bool hasSpecular = reflectivity > 0.0;\n" +
+            specularBRDFv2NoColorStart
+
+    val addSpecularLight = "" +
+            "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
+            "   vec3 lightV = normalize(matMul(camSpaceToLightSpace,vec4(V,0.0)));\n" +
+            "   vec3 lightH = normalize(lightV + lightDir);\n" +
+            specularBRDFv2NoColor +
+             "   specularLight += (300.0 * pow(reflectivity,2.0)) * effectiveSpecular * computeSpecularBRDF;\n" +
+            "}\n"
+
+    val addDiffuseLight = "" + // translucency; looks good and approximately correct
+            // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
+            "float NdotLi = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
+            "diffuseLight += effectiveDiffuse * clamp(NdotLi, 0.0, 1.0);\n"
+
+    val mixAndClampLight = "" +
+            "light = mix(diffuseLight, specularLight, reflectivity);\n" +
+            // ~65k is the limit, after that only Infinity
+            "light = clamp(light, 0.0, 16e3);\n"
+
+    val combineLightFinishLine =
+        "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n"
+
     private val lightInstancedAttributes = listOf(
         // transform
         Attribute("instanceTrans0", 4),
@@ -60,17 +89,6 @@ object LightShaders {
         Attribute("shadowData", 4)
         // instanced rendering does not support shadows -> no shadow data / as a uniform
     )
-
-    // test: can we get better performance, when we eliminate dependencies?
-    // pro: fewer dependencies
-    // con: we use more vram
-    // con: we remove cache locality
-    /*private val lightInstanceBuffers = Array(512) {
-        StaticBuffer(lightInstancedAttributes, instancedBatchSize, BufferUsage.DYNAMIC)
-    }
-    private var libIndex = 0
-    // performance: the same
-    */
 
     val lightInstanceBuffer = StaticBuffer(
         "lights",
@@ -141,14 +159,11 @@ object LightShaders {
                 colorToLinear +
                 "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, getReflectivity(finalRoughness, finalMetallic));\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
-                "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n" +
+                combineLightFinishLine +
+                "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
                 colorToSRGB +
-                "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                 "   color = vec4(finalColor, 1.0);\n"
-    )
-        .add(tonemapGLSL)
-        .add(getReflectivity)
-        .add(sampleSkyboxForAmbient)
+    ).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)
 
     fun getCombineLightShader(settingsV2: DeferredSettings): Shader {
         val useMSAA = useMSAA
@@ -312,15 +327,12 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalSheen"),
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
-                Variable(GLSLType.M4x3, "lightSpaceToCamSpace"), // lightMatrices[i]
                 Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.V1F, "worldScale"),
-                Variable(GLSLType.V4F, "light", VariableMode.OUT)
+                Variable(GLSLType.V3F, "light", VariableMode.OUT)
             ) + depthVars, "" +
                     // light calculation including shadows if !instanced
-                    "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
-                    "float reflectivity = mix(0.04,1.0,finalMetallic) * (1.0 - finalRoughness);\n" +
-                    "bool hasSpecular = reflectivity > 0.0;\n" +
+                    startLightSum +
                     "vec3 V = -normalize(rawCameraDirection(uv));\n" +
                     "float NdotV = dot(finalNormal,V);\n" +
                     "int shadowMapIdx0 = 0;\n" + // always 0 at the start
@@ -331,31 +343,15 @@ object LightShaders {
                     "vec3 lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
                     "vec3 viewDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
-                    "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0);\n" +
+                    "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0,0.0,-1.0);\n" +
                     "float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
                     coreFragment +
-                    "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
-                    "   vec3 lightDirWS = normalize(matMul(lightSpaceToCamSpace,vec4(lightDir,0.0)));\n" +
-                    "   vec3 H = normalize(V + lightDirWS);\n" +
-                    specularBRDFv2NoColorStart +
-                    specularBRDFv2NoColor +
-                    "   specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
-                    specularBRDFv2NoColorEnd +
-                    "}\n" +
-                    // translucency; looks good and approximately correct
-                    // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
-                    "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
-                    "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
-                    // ~65k is the limit, after that only Infinity
-                    "vec3 color = mix(diffuseLight, specularLight, reflectivity);\n" +
-                    // "light = vec4(fract(-0.01 + finalPosition/worldScale + cameraPosition), 1.0);\n"
-                    "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
-        )
-        fragment.add(quatRot)
+                    addSpecularLight +
+                    addDiffuseLight +
+                    mixAndClampLight
+        ).add(quatRot).add(getReflectivity)
         return fragment
     }
-
-    val translucencyNL = 0.5f
 
     val visualizeLightCountShader = Shader(
         "visualize-light-count",
@@ -387,7 +383,7 @@ object LightShaders {
     ).apply {
         ignoreNameWarnings(
             "cameraPosition,cameraRotation,invScreenSize,receiveShadows,d_camRot,d_fovFactor," +
-                    "data0,data1,data2,cutoff,lightSpaceToCamSpace,camSpaceToLightSpace,worldScale,isDirectional"
+                    "data0,data1,data2,cutoff,camSpaceToLightSpace,worldScale,isDirectional"
         )
     }
 
@@ -426,7 +422,7 @@ object LightShaders {
         ignoreNameWarnings(
             "normals,uvs,tangents,colors,receiveShadows,invScreenSize,cameraPosition,cameraRotation," +
                     "d_camRot,d_fovFactor,worldScale,data0,data1,data2,cutoff," +
-                    "lightSpaceToCamSpace,camSpaceToLightSpace,receiveShadows,isDirectional"
+                    "camSpaceToLightSpace,receiveShadows,isDirectional"
         )
     }
 
@@ -493,11 +489,7 @@ object LightShaders {
             deferredVariables += imported.map { Variable(samplerType, it, VariableMode.IN) }
             deferredVariables += depthVars
             val deferredStage = ShaderStage("deferred", deferredVariables, deferredCode.toString())
-            deferredStage
-                .add(rawToDepth)
-                .add(depthToPosition)
-                .add(quatRot)
-                .add(octNormalPacking)
+                .add(rawToDepth).add(depthToPosition).add(quatRot).add(octNormalPacking)
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID

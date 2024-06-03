@@ -10,6 +10,11 @@ import kotlin.math.sqrt
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ShaderLib {
 
+    // 2.2 would be better, but is probably quite a bit slower
+    // could be set to 1.0 for weak devices like on Android
+    val gamma = 2.0
+    val gammaInv = 1.0 / gamma
+
     /**
      * This function is intended for shaders to be used for matrix-vector multiplication.
      * It makes writing a DirectX backend easier.

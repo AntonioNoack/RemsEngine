@@ -14,6 +14,8 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.gamma
+import me.anno.gpu.shader.ShaderLib.gammaInv
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -77,11 +79,12 @@ class HeightExpFogNode : RenderViewNode(
                 val fx = max(fogColor.x, 0f)
                 val fy = max(fogColor.y, 0f)
                 val fz = max(fogColor.z, 0f)
+                val gamma = gamma.toFloat()
                 shader.v3f(
                     "fogColor",
-                    if (cheapMixing) fx else pow(fx, 2.2f),
-                    if (cheapMixing) fy else pow(fy, 2.2f),
-                    if (cheapMixing) fz else pow(fz, 2.2f),
+                    if (cheapMixing) fx else pow(fx, gamma),
+                    if (cheapMixing) fy else pow(fy, gamma),
+                    if (cheapMixing) fz else pow(fz, gamma),
                 )
                 shader.v1f("invExpDistance", 1f / relativeDistance)
                 shader.v3f("cameraPosition", RenderState.cameraPosition)
@@ -138,7 +141,7 @@ class HeightExpFogNode : RenderViewNode(
                     "   vec3 srcColor = texture(colorTex,uv).xyz;\n" +
                     "   vec3 newColor = cheapMixing ?\n" +
                     "       mix(fogColor, srcColor, heightFogAbsorption) :\n" +
-                    "       mix(fogColor, pow(srcColor,vec3(2.2)), heightFogAbsorption);\n" +
+                    "       mix(fogColor, pow(srcColor,vec3($gamma)), heightFogAbsorption);\n" +
                     "   if(isFinite){\n" + // don't apply distance-based fog onto sky
                     "       float integralOverDistance = distance * invExpDistance / worldScale;\n" +
                     "       float expFogAbsorption = exp(-integralOverDistance);\n" +
@@ -146,11 +149,11 @@ class HeightExpFogNode : RenderViewNode(
                     "       vec3 skyColor = textureLod(skyTex,-$cubemapsAreLeftHanded * dir,10.0).xyz;\n" +
                     "       newColor = cheapMixing ?\n" +
                     "           mix(skyColor, newColor, expFogAbsorption) :\n" +
-                    "           mix(pow(skyColor,vec3(2.2)), newColor, expFogAbsorption);\n" +
+                    "           mix(pow(skyColor,vec3($gamma)), newColor, expFogAbsorption);\n" +
                     "   }\n" +
                     "   newColor = cheapMixing ?\n" +
                     "       newColor :\n" +
-                    "       pow(newColor, vec3(1.0/2.2));\n" +
+                    "       pow(newColor, vec3($gammaInv));\n" +
                     "   result = vec4(newColor, 1.0);\n" +
                     "}\n"
         )

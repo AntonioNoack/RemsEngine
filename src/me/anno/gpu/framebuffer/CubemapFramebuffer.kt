@@ -9,6 +9,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
+import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -68,6 +69,7 @@ class CubemapFramebuffer(
     override fun getTargetType(slot: Int) = targets[slot]
 
     override fun ensure() {
+        checkSession()
         if (pointer == 0) create()
     }
 
@@ -242,6 +244,7 @@ class CubemapFramebuffer(
         GFX.check()
         if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!
+            assertNotEquals(0, depthTexture.pointer)
             glFramebufferTexture2D(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                 tex2D, depthTexture.pointer, 0
@@ -263,12 +266,13 @@ class CubemapFramebuffer(
     }
 
     private fun renderSides(render: (side: Int) -> Unit) {
+        ensure()
         Frame.bind()
         for (side in 0 until 6) {
             // update all attachments, updating the framebuffer texture targets
             updateAttachments(side)
             val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("${GFX.getName(status)}, $this")
             render(side)
         }
         depthTexture?.needsMipmaps = true
@@ -289,5 +293,5 @@ class CubemapFramebuffer(
     }
 
     override fun toString(): String =
-        "FBCubemap[n=$name, i=$pointer, size=$size t=${targets.joinToString()} d=$depthBufferType]"
+        "FBCubemap[\"$name\"@$pointer, $size² x $samples t=$targets d=$depthBufferType]"
 }

@@ -152,6 +152,8 @@ class RenderMode(
                 .then(DepthToNormalNode())
                 .then(SSAONode(), mapOf("Inverse" to true), mapOf("Ambient Occlusion" to listOf("B")))
                 .then(
+                    // multiplying the emissive with ambient occlusion, too, is incorrect,
+                    // but it should be generally a nice approximation :)
                     MathF2XNode().setDataType("Vector3f").setEnumType(FloatMathBinary.MUL),
                     mapOf("Result" to listOf("Data"))
                 )
@@ -160,7 +162,6 @@ class RenderMode(
                 .then(GizmoNode())
         }
 
-        // todo helmet has much too faint smudges in forward rendering -> why?
         val FORWARD = RenderMode("Forward", defineForwardPipeline(QuickPipeline()).finish())
         val MSAA_FORWARD = RenderMode(
             "MSAA Forward",

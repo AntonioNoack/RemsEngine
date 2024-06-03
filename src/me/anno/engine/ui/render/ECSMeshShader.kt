@@ -7,6 +7,8 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.gamma
+import me.anno.gpu.shader.ShaderLib.gammaInv
 import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -53,15 +55,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val colorToSRGB = "" +
                 "#ifdef IS_LINEAR\n" +
-                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3(1.0/2.2));\n" +
-                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3(1.0/2.2));\n" +
+                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3($gammaInv));\n" +
+                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3($gammaInv));\n" +
                 "   #undef IS_LINEAR\n" +
                 "#endif\n"
 
         val colorToLinear = "" +
                 "#ifndef IS_LINEAR\n" +
-                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3(2.2));\n" +
-                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3(2.2));\n" +
+                "   finalColor = pow(max(finalColor,vec3(0.0)),vec3($gamma));\n" +
+                "   finalEmissive = pow(max(finalEmissive,vec3(0.0)),vec3($gamma));\n" +
                 "   #define IS_LINEAR\n" +
                 "#endif\n"
 
@@ -120,7 +122,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "          (textureLod(reflectionPlane, uv7 + duv0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 - duv0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 + duv1, lod).rgb +\n" +
-                "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)) * 0.06125, vec3(2.2));\n" +
+                "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)) * 0.06125, vec3($gamma));\n" +
                 "       finalEmissive += skyEmissive * factor;\n" +
                 "       finalColor    *= 1.0 - factor;\n" +
                 // prevents reflection map and SSR from being applied
@@ -139,7 +141,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // texture is SRGB -> convert to linear
                 // todo like planar reflections, blur LODs (?)
                 "       float lod = finalRoughness * 5.0;\n" +
-                "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3(2.2));\n" +
+                "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3($gamma));\n" +
                 "       finalEmissive += finalColor * skyEmissive * reflectivity;\n" +
                 // doing this would make SSR reflect the incorrect color
                 // "       finalColor    *= 1.0 - reflectivity;\n" +

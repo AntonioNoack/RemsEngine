@@ -11,6 +11,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -136,7 +137,7 @@ class DecalShader(val modifiedLayers: List<DeferredLayerType>, flags: Int) : ECS
                         modifiedLayers.filter { it in availableLayerTypes }.joinToString("") {
                             // gamma correction for color
                             "" + (if (it == DeferredLayerType.COLOR || it == DeferredLayerType.EMISSIVE)
-                                "${it.glslName}_in2 = pow(${it.glslName}_in2,vec3(2.2));\n" else "") +
+                                "${it.glslName}_in2 = pow(${it.glslName}_in2,vec3($gamma));\n" else "") +
                                     "${it.glslName} = mix(${it.glslName}_in2, ${it.glslName}, finalAlpha);\n"
                         } +
                         // for all other values, override them completely with the loaded values

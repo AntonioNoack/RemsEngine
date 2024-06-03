@@ -13,6 +13,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
@@ -151,7 +152,7 @@ object Bloom {
                     "   return length > offset ? col * (length-offset) / length : vec3(0);\n" +
                     "}\n" +
                     "vec3 loadColor(vec3 srgb){\n" +
-                    "   return pow(srgb,vec3(2.2));\n" +
+                    "   return pow(srgb,vec3($gamma));\n" +
                     "}\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.x${if (dx == 0) "" else "*2.0"},gl_FragCoord.y${if (dy == 0) "" else "*2.0"});\n" +

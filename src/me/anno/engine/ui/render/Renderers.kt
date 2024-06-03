@@ -19,8 +19,11 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
+import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
+import me.anno.gpu.shader.ShaderLib.gamma
+import me.anno.gpu.shader.ShaderLib.gammaInv
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
@@ -55,9 +58,9 @@ object Renderers {
             "   return color;\n" +
             "}\n" +
             "vec3 tonemap(vec3 color){\n" +
-            "   color = pow(color,vec3(2.2));\n" +
+            "   color = pow(color,vec3($gamma));\n" +
             "   color = tonemapLinear(color);\n" +
-            "   color = pow(color,vec3(1.0/2.2));\n" +
+            "   color = pow(color,vec3($gammaInv));\n" +
             "   return color;\n" +
             "}\n" +
             "vec4 tonemap(vec4 color){ return vec4(tonemap(color.rgb), color.a); }\n"
@@ -118,7 +121,6 @@ object Renderers {
                         // light data
                         Variable(GLSLType.V1I, "numberOfLights"),
                         Variable(GLSLType.V1B, "receiveShadows"),
-                        Variable(GLSLType.M4x3, "lightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
@@ -162,14 +164,12 @@ object Renderers {
                             combineLightCode +
                             (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
                             "#endif\n" +
+                            colorToLinear +
+                            "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
                             colorToSRGB +
-                            "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                             "   finalResult = vec4(finalColor, finalAlpha);\n"
-                )
-                    .add(randomGLSL)
-                    .add(tonemapGLSL)
-                    .add(getReflectivity)
-                    .add(sampleSkyboxForAmbient),
+                ).add(randomGLSL).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)
+                    .add(brightness),
                 finalResultStage
             )
         }

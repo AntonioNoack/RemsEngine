@@ -2,6 +2,7 @@ package me.anno.mesh.blender
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
+import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.impl.BID
@@ -163,7 +164,7 @@ object BlenderMaterialConverter {
                             LOGGER.debug("ShaderNodeBsdfPrincipled.diffuse: {}", diffuse)
                             if (diffuse != null) {
                                 val base = diffuse.first
-                                val gamma = 1f / 2.2f
+                                val gamma = ShaderLib.gammaInv.toFloat()
                                 prefab["diffuseBase"] = Vector4f(
                                     base.x.pow(gamma),
                                     base.y.pow(gamma),

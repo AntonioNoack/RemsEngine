@@ -2,6 +2,7 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
@@ -14,6 +15,8 @@ import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
+import me.anno.utils.Color.black
+import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.downloads
 
 fun main() {
@@ -23,9 +26,7 @@ fun main() {
     // todo light shine around lamps
     //  particles in air, and viewing ray really close to light source
 
-
-
-    // todo forward lighting model in editor now looks weird/cheap
+    // todo metals look cheap in forward rendering -> fix that somehow with cheats
 
     // todo we need an exposure setting or auto-exposure (and desaturation in the dark)
     // fixed: SkyboxBase looked like it's not reflected
@@ -38,7 +39,15 @@ fun main() {
         redMetal.roughnessMinMax.set(0f)
         sdfMaterials = listOf(redMetal.ref)
     })
-    scene.add(Skybox())
+    val sky = Skybox()
+    scene.add(sky)
+    val sun = DirectionalLight()
+    sun.shadowMapCascades = 1
+    val sunEntity = Entity("Sun")
+        .setScale(5.0)
+        .addComponent(sun)
+    scene.add(sunEntity)
+    sky.applyOntoSun(sunEntity, sun, 20f)
     scene.add(Entity("Image", ImagePlane().apply {
         material.diffuseMap = getReference("res://icon.png")
         // todo way to split transparency rendering into opaque + transparent?
@@ -55,7 +64,7 @@ fun main() {
     scene.add(
         Entity("Golden Cube", SDFBox().apply {
             val golden = Material()
-            golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
+            (0xf5ba6c or black).toVecRGBA(golden.diffuseBase)
             golden.metallicMinMax.set(1f)
             golden.roughnessMinMax.set(1f)
             sdfMaterials = listOf(golden.ref)
@@ -73,7 +82,7 @@ fun main() {
             setPosition(0.0, -1.0, -2.5)
             setScale(2.5)
             val golden = Material()
-            golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
+            (0xf5ba6c or black).toVecRGBA(golden.diffuseBase)
             golden.metallicMinMax.set(1f)
             golden.roughnessMinMax.set(0f)
             forAllComponentsInChildren(MeshComponent::class) {

@@ -1,4 +1,4 @@
-package me.anno.tests.bugs.todo
+package me.anno.tests.bugs.done
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
@@ -13,7 +13,8 @@ import me.anno.utils.types.Floats.toRadians
 fun main() {
     // fixed: shadow was missing
     // fixed: the sphere is wayyy to glossy for roughness=1
-    // todo bug: stuff is too bright, probably accidentally linear instead of sRGB somewhere
+    // fixed: stuff too bright
+    // todo can we get forward and deferred to exact parity?
     DefaultAssets.init()
     val scene = Entity()
     scene.add(MeshComponent(getReference("meshes/PlaneY.json")))

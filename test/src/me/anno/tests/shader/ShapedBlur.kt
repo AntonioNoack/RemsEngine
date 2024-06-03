@@ -1,6 +1,7 @@
 package me.anno.tests.shader
 
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress
 import me.anno.gpu.shader.effects.ShapedBlur.fileName
@@ -81,7 +82,7 @@ fun singleTest() {
     val source = OS.pictures.getChild("blurTest.png")
     val (shader, stages) = decompress(tmp.inputStreamSync())
     val src = TextureCache[source, false]!!
-    applyFilter(src, shader, stages, TargetType.Float16x3, 1f, 2.2f)
+    applyFilter(src, shader, stages, TargetType.Float16x3, 1f, gamma.toFloat())
         .write(OS.desktop.getChild("heart.png"))
 }
 
