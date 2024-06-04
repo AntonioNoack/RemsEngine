@@ -105,6 +105,7 @@ class FlatPacmanGame : Panel(style) {
 
 fun main() {
     // todo show lives and score
+    // todo sounds
     disableRenderDoc()
     testUI3("Flat Pacman", FlatPacmanGame())
 }

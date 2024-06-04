@@ -235,7 +235,7 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     controller.needsClickToRotate = true
     controller.rotateRight = true
     controller.rotation.set(0f, PIf, 0f)
-    controller.movementSpeed = 0f
+    controller.movementSpeed = 0.0
     val base2 = Entity()
     val camera = Camera()
     base2.add(camera)

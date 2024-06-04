@@ -46,7 +46,7 @@ fun main() {
                 val chunk = hexagons.queryChunk(tri.index, si, sj)
                 hexagons.ensureNeighbors(ArrayList(chunk), HashMap(chunk.associateBy { it.index }), 0)
                 scene.add(Entity().apply {
-                    add(MeshComponent(chunkToMesh(chunk, random.nextInt(16_777_216))))
+                    add(MeshComponent(chunkToFaceMesh(chunk, random.nextInt(16_777_216))))
                     // add(MeshComponent(chunkToMesh2(chunk, len, random.nextInt(16_777_216))))
                 })
             }

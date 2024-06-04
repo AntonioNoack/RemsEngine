@@ -7,15 +7,15 @@ import me.anno.maths.Maths.pow
 
 open class OrbitControls : CameraController() {
 
-    var radius = 10f
-    var mouseWheelSpeed = 0.1f
+    var radius = 10.0
+    var mouseWheelSpeed = 0.1
     var useGlobalSpace = false
 
-    var maxRadius = 1e+3f
-    var minRadius = 1e-3f
+    var maxRadius = 1e+3
+    var minRadius = 1e-3
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
-        val newRadius = clamp(pow(2f, -dy * mouseWheelSpeed) * radius, minRadius, maxRadius)
+        val newRadius = clamp(pow(2.0, -dy * mouseWheelSpeed) * radius, minRadius, maxRadius)
         movementSpeed *= newRadius / radius
         radius = newRadius
         return true
@@ -28,20 +28,20 @@ open class OrbitControls : CameraController() {
         }
         if (useGlobalSpace) {
             baseTransform.globalPosition = baseTransform.globalPosition.add(position)
-            position.set(0f)
+            position.set(0.0)
             baseTransform.globalRotation = baseTransform.globalRotation.identity()
-                .rotateY(rotation.y.toDouble())
-                .rotateX(rotation.x.toDouble())
+                .rotateY(rotation.y)
+                .rotateX(rotation.x)
         } else {
             baseTransform.localPosition = baseTransform.localPosition.add(position)
-            position.set(0f)
+            position.set(0.0)
             baseTransform.localRotation = baseTransform.localRotation.identity()
-                .rotateY(rotation.y.toDouble())
-                .rotateX(rotation.x.toDouble())
+                .rotateY(rotation.y)
+                .rotateX(rotation.x)
         }
         camTransform.localPosition = camTransform.localPosition
-            .set(0.0, 0.0, +radius.toDouble())
+            .set(0.0, 0.0, +radius)
         camTransform.localRotation = camTransform.localRotation.identity()
-            .rotateZ(rotation.z.toDouble()) // correct place? probably :)
+            .rotateZ(rotation.z) // correct place? probably :)
     }
 }

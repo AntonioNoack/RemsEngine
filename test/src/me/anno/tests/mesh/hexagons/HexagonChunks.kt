@@ -1,69 +1,74 @@
 package me.anno.tests.mesh.hexagons
 
 import me.anno.ecs.Entity
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
 import me.anno.engine.debug.DebugShapes.debugTexts
 import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
-import me.anno.utils.Color.toVecRGB
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.utils.Color.black
+import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3d
 
 fun createMesh(color: Int): Mesh {
     val mesh = Mesh()
     val material = Material()
-    material.diffuseBase.set(0f, 0f, 0f, 1f)
-    material.emissiveBase.set(color.toVecRGB().mul(3f))
+    color.toVecRGBA(material.diffuseBase)
     material.cullMode = CullMode.BOTH
     mesh.material = material.ref
     return mesh
 }
 
-fun chunkToMesh(chunk: List<Hexagon>, color: Int = (Maths.random() * 1e9).toInt()): Mesh {
+fun randomColor(): Int = (Maths.random() * 1e9).toInt() or black
+
+fun chunkToFaceMesh(chunk: List<Hexagon>, color: Int = randomColor()): Mesh {
     val mesh = createMesh(color)
     createFaceMesh(mesh, chunk)
     return mesh
 }
 
-fun chunkToMesh2(chunk: List<Hexagon>, len: Float, color: Int = (Maths.random() * 1e9).toInt()): Mesh {
+fun chunkToLineMesh(chunk: List<Hexagon>, len: Float, color: Int = randomColor()): Mesh {
     val mesh = createMesh(color)
     createConnectionMesh(mesh, chunk, len)
     return mesh
 }
 
-// no longer supported
 fun main() {
     val n = 10
     val s = 2
-    val hexagons = HexagonSphere(n, s)
-    val entity = Entity()
+    val sphere = HexagonSphere(n, s)
+    val scene = Entity()
+    val faceMeshes = ArrayList<Mesh>()
+    val lineMeshes = ArrayList<Mesh>()
     val duration = 1e9f
     for (tri in 0 until 20) {
-        val triangle = Entity()
         for (si in 0 until s) {
             for (sj in 0 until s - si) {
-                triangle.add(Entity().apply {
-                    val chunk = hexagons.queryChunk(tri, si, sj)
-                    debugTexts.add(
-                        DebugText(
-                            Vector3d(hexagons.getChunkCenter(tri, si, sj)),
-                            "$tri/$si/$sj", -1, duration
-                        )
+                val chunk = sphere.queryChunk(tri, si, sj)
+                debugTexts.add(
+                    DebugText(
+                        Vector3d(sphere.getChunkCenter(tri, si, sj)),
+                        "$tri/$si/$sj", -1, duration
                     )
-                    add(MeshComponent(chunkToMesh(chunk)))
-                })
+                )
+                val color = randomColor()
+                faceMeshes.add(chunkToFaceMesh(chunk, color))
+                lineMeshes.add(chunkToLineMesh(chunk, sphere.len, color xor 0x404040))
             }
         }
-        entity.add(triangle)
     }
-    testSceneWithUI("Hexagon Chunks", entity)
+    val joiner = SimpleMeshJoiner(true, true, false, false)
+    scene.add(MeshComponent(joiner.join(faceMeshes)))
+    scene.add(MeshComponent(joiner.join(lineMeshes)))
+    testSceneWithUI("Hexagon Chunks", scene)
 }
 
 fun createHexSphere(n: Int): Pair<ArrayList<Hexagon>, Float> {

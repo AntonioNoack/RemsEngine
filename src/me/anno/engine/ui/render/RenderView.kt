@@ -656,7 +656,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     private val inverseDepth get() = renderMode == RenderMode.INVERSE_DEPTH
 
-    private val depthMode: DepthMode
+    val depthMode: DepthMode
         get() = if (GFX.supportsClipControl) {
             if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
             else if (inverseDepth) DepthMode.FAR else DepthMode.CLOSE

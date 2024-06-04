@@ -212,10 +212,10 @@ fun main() {
             }
         }
         controls.camera = camera
-        controls.movementSpeed = 100f
+        controls.movementSpeed = 100.0
         controls.needsClickToRotate = true
         controls.rotateRight = true
-        controls.position.add(0f, 10f, 0f)
+        controls.position.add(0.0, 10.0, 0.0)
 
         camEntity.add(camera)
         camBase.add(controls)

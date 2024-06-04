@@ -101,7 +101,7 @@ fun main() {
         for (triangle in sphereWorld.triangles) {
             iterate(triangle, 0)
         }
-        val mesh = meshBuilder.join(Mesh(), elements)
+        val mesh = meshBuilder.join(elements)
         // todo on click raycast & find triangle & place tree there
         // baseShape.copy(mesh)
         testSceneWithUI("SphericalWorld", mesh)

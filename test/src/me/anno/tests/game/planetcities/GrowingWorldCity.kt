@@ -5,13 +5,12 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.control.CameraController.Companion.setup
 import me.anno.ecs.components.camera.control.OrbitControls
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere
-import me.anno.maths.chunks.spherical.HexagonSphere.Companion.TRIANGLE_COUNT
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache.transformMesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.utils.MeshJoiner
+import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.ECSTreeView
@@ -19,12 +18,15 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView1
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.io.saveable.Saveable
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.random
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.maths.chunks.spherical.HexagonSphere.Companion.TRIANGLE_COUNT
 import me.anno.maths.noise.PerlinNoise
 import me.anno.tests.mesh.hexagons.createFaceMesh
 import me.anno.ui.UIColors.dodgerBlue
@@ -44,6 +46,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -81,8 +84,9 @@ import kotlin.math.sin
 
 // todo -> pentagons are blocked tiles for filling up the planet with lava
 
-// todo technicals:
+// technicals:
 //  - do we rotate the camera or the planet? planet seems easier
+//   todo no, rotating the camera is better, because it needs fewer recalculations
 //  - save system? hierarchical db
 //  - building blocks #visuals?
 //    - we find a nice library
@@ -151,10 +155,10 @@ fun main() {
     val world = HexagonSphere(n, n)
     val scale = tileSize * PI / (2.0 * world.len)
     val planet = Entity("Planet", scene)
-    planet.setPosition(0.0, -scale, 0.0)
+    val meshes = ArrayList<Mesh>()
     val tmpQ = Quaternionf()
     for (tri in 0 until TRIANGLE_COUNT) {
-        val bySide = Entity("Side$tri", planet)
+        // val bySide = Entity("Side$tri", planet)
         for (s in 0 until world.chunkCount) {
             for (t in 0 until world.chunkCount - s) {
                 val chunk = world.queryChunk(tri, s, t)
@@ -165,9 +169,12 @@ fun main() {
                         mixARGB(biome.color, white, random().toFloat() * 0.5f),
                         black, random().toFloat() * 0.5f
                     ).withAlpha(255)
-                    mesh.material = Material.diffuse(color).ref
+                    val color0 = IntArray(mesh.positions!!.size / 3)
+                    color0.fill(color)
+                    mesh.color0 = color0
                     transformMesh(mesh, Matrix4x3d().scale(scale))
-                    bySide.add(MeshComponent(mesh))
+                    meshes.add(mesh)
+                    // bySide.add(MeshComponent(mesh))
 
                     // interesting, motivating visuals:
                     //  - biomes: desert, plains, forest, snow, water
@@ -178,7 +185,7 @@ fun main() {
                         Biome.PLAINS -> grass
                         else -> emptyList()
                     }
-                    if (assets.isNotEmpty()) {
+                    if (false && assets.isNotEmpty()) {
                         // place some assets
                         val c = hexagon.center
                         val dx = hexagon.corners[0]
@@ -195,19 +202,24 @@ fun main() {
                             instance.transform.localRotation = instance.transform.localRotation
                                 .set(c.normalToQuaternionY(tmpQ))
                             instance.transform.teleportUpdate()
-                            bySide.add(instance)
+                            // bySide.add(instance)
                         }
                     }
                 }
             }
         }
     }
+
+    val planetMesh = SimpleMeshJoiner(true,true, false, false).join(meshes)
+    planet.add(MeshComponent(planetMesh))
+
     val ui = NineTilePanel(style)
     val rv = RenderView1(PlayMode.PLAYING, scene, style)
 
+    val camBase = Entity(scene)
     val controls = object : OrbitControls() {
         override fun clampRotation() {
-            this.rotation.x = clamp(this.rotation.x, -Maths.PIf * 0.5f, 0f)
+            this.rotation.x = clamp(this.rotation.x, -PI * 0.5, 0.0)
         }
 
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
@@ -216,31 +228,32 @@ fun main() {
                 // rotating camera
                 super.onMouseMoved(x, y, 0f, dy)
                 planetRotation.rotateLocalY(sign(y - (rv.y + rv.height / 2)) * dx * speed)
-                planet.transform.localRotation = planetRotation
-                planet.transform.smoothUpdate()
-                planet.invalidateAABBsCompletely()
             }
             if (Input.isLeftDown) {
                 // handle planet rotation
                 planetRotation.rotateLocalZ(-dx * speed)
                 planetRotation.rotateLocalX(+dy * speed)
-                planet.transform.localRotation = planetRotation
-                planet.transform.smoothUpdate()
-                planet.invalidateAABBsCompletely()
             }
+            applyRotation()
             return true
+        }
+
+        private fun applyRotation() {
+            camBase.transform.localPosition = Vector3d(0.0, scale * 1.5, 0.0).rotate(planetRotation)
+            camBase.transform.localRotation = Quaterniond(planetRotation).invert()
+            camBase.transform.smoothUpdate()
         }
     }
 
     controls.rotation.set(-1.57f, 0f, 0f)
     controls.needsClickToRotate = true
     controls.rotateRight = true
-    controls.movementSpeed = 0f
-    controls.radius = 50f
-    controls.minRadius = 10f
-    controls.maxRadius = controls.radius * 100f
-    controls.position.set(0f, 0f, 0f) // todo this varies with terrain height...
-    scene.add(setup(controls, rv))
+    controls.movementSpeed = 0.0
+    controls.radius = 50.0
+    controls.minRadius = 10.0
+    controls.maxRadius = controls.radius * 1e20
+    controls.position.set(0.0, scale * 1.5, 0.0) // todo this varies with terrain height...
+    camBase.add(setup(controls, rv))
 
     // rv.renderMode = RenderMode.SHOW_AABB
 
@@ -268,5 +281,6 @@ fun main() {
     ui2.add(PropertyInspector({ EditorState.selection }, style).apply {
         alignmentX = AxisAlignment.MAX
     }, 1f)
-    testUI("Planet Cities", ui2)
+    if (false) testUI("Planet Cities", ui2)
+    else testSceneWithUI("Planet Cities", scene)
 }

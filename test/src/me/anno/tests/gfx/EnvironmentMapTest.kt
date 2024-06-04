@@ -55,7 +55,7 @@ fun metalRoughness(): MeshComponent {
             val (x, z) = element
             dst.setTranslation(x * s + di, 0f, z * s + di)
         }
-    }.join(Mesh(), indices)
+    }.join(indices)
     val bounds = mesh.getBounds()
     val pos = mesh.positions!!
     val uvs = FloatArray(pos.size / 3 * 2)

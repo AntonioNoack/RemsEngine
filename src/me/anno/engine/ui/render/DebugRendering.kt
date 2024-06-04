@@ -145,7 +145,11 @@ object DebugRendering {
         LineBuffer.finish(view.cameraMatrix)
         drawDebugTriangles(view)
         TriangleBuffer.finish(view.cameraMatrix)
-        drawDebugTexts(view)
+        GFXState.depthMode.use(view.depthMode.always) {
+            GFXState.depthMask.use(false) {
+                drawDebugTexts(view)
+            }
+        }
     }
 
     private fun drawDebugPoints(view: RenderView) {
@@ -225,6 +229,7 @@ object DebugRendering {
     ) {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
+        val batch = DrawTexts.startSimpleBatch()
         for (index in texts.indices) {
             val text = texts[index]
             val pos = text.position
@@ -238,10 +243,12 @@ object DebugRendering {
                 DrawTexts.drawSimpleTextCharByChar(
                     vx.toInt(), vy.toInt(), 0, text.text,
                     text.color, text.color.withAlpha(0),
-                    AxisAlignment.CENTER, AxisAlignment.CENTER
+                    AxisAlignment.CENTER, AxisAlignment.CENTER,
+                    batched = true
                 )
             }
         }
+        DrawTexts.finishSimpleBatch(batch)
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {

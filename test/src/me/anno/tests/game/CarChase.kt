@@ -206,7 +206,7 @@ fun createUI(): Panel {
     }
     // todo before moving the camera with mouse movement, capture the mouse :)
     // movement is disabled
-    orbitControls.movementSpeed = 0f
+    orbitControls.movementSpeed = 0.0
     orbitControls.camera = camera
     orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
     camBase.add(orbitControls)

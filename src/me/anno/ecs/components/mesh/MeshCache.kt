@@ -134,7 +134,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                             dst.set(transform.globalTransform)
                         } else dst.identity()
                     }
-                }.join(Mesh(), meshes)
+                }.join(meshes)
             }
         }
     }

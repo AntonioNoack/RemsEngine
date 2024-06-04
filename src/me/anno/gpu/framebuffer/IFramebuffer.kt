@@ -208,7 +208,7 @@ interface IFramebuffer {
 
     private fun setClearValue() {
         GFXState.bindDepthMask()
-        glClearDepth(if (GFXState.depthMode.currentValue.reversedDepth) 0.0 else 1.0)
+        glClearDepth(GFXState.depthMode.currentValue.skyDepth)
     }
 
     fun isBound(): Boolean {

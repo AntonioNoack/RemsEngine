@@ -973,35 +973,39 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         // split indices / data, would be of advantage here
         val length = materialIds.maxOrNull()!! + 1
         if (length == 1) return
-        if (drawMode != DrawMode.TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
-        if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
+        val drawMode = drawMode
+        if (drawMode != DrawMode.TRIANGLES &&
+            drawMode != DrawMode.LINES &&
+            drawMode != DrawMode.POINTS
+        ) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
+        val unitSize = drawMode.primitiveSize
         val helperMeshes = arrayListOfNulls<HelperMesh?>(length)
         val indices = indices
         for (materialId in 0 until length) {
             val numTriangles = materialIds.count { it == materialId }
             if (numTriangles > 0) {
-                val helperIndices = IntArray(numTriangles * 3)
                 var j = 0
                 var i3 = 0
+                val helperIndices = IntArray(numTriangles * unitSize)
                 if (indices == null) {
                     for (i in materialIds.indices) {
                         val id = materialIds[i]
                         if (id == materialId) {
-                            helperIndices[j++] = i3++
-                            helperIndices[j++] = i3++
-                            helperIndices[j++] = i3++
-                        } else i3 += 3
+                            for (k in 0 until unitSize) {
+                                helperIndices[j++] = i3++
+                            }
+                        } else i3 += unitSize
                     }
                 } else {
-                    if (indices.size != materialIds.size * 3)
-                        throw IllegalStateException("Material IDs must be exactly 3x smaller than indices")
+                    if (indices.size != materialIds.size * unitSize)
+                        throw IllegalStateException("Material IDs must be exactly ${unitSize}x smaller than indices")
                     for (i in materialIds.indices) {
                         val id = materialIds[i]
                         if (id == materialId) {
-                            helperIndices[j++] = indices[i3++]
-                            helperIndices[j++] = indices[i3++]
-                            helperIndices[j++] = indices[i3++]
-                        } else i3 += 3
+                            for (k in 0 until unitSize) {
+                                helperIndices[j++] = indices[i3++]
+                            }
+                        } else i3 += unitSize
                     }
                 }
                 if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")

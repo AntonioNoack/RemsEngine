@@ -16,11 +16,11 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Floats.toRadians
-import org.joml.Vector3f
+import org.joml.Vector3d
+import kotlin.math.PI
 
 abstract class CameraController : Component(), InputListener {
 
@@ -45,17 +45,17 @@ abstract class CameraController : Component(), InputListener {
     var rotateMiddle = false
     var rotateRight = false
 
-    val acceleration = Vector3f()
-    val velocity = Vector3f()
-    val position = Vector3f()
+    val acceleration = Vector3d()
+    val velocity = Vector3d()
+    val position = Vector3d()
 
     /**
      * euler yxz rotation in radians, where x=x,y=y,z=z
      * */
-    var rotation = Vector3f()
+    var rotation = Vector3d()
 
-    var movementSpeed = 1f
-    var rotationSpeed = 0.3f
+    var movementSpeed = 1.0
+    var rotationSpeed = 0.3
 
     @Type("Camera/SameSceneRef")
     var camera: Camera? = null
@@ -69,8 +69,8 @@ abstract class CameraController : Component(), InputListener {
     var rotateAngleZ = false
 
     /** set to 0 to disable numpad as mouse; degrees per second */
-    var numpadAsMouseSpeed = 90f
-    var numpadWheelSpeed = 1f
+    var numpadAsMouseSpeed = 90.0
+    var numpadWheelSpeed = 1.0
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
@@ -90,13 +90,13 @@ abstract class CameraController : Component(), InputListener {
     }
 
     open fun clampRotation() {
-        rotation.x = clamp(rotation.x, -PIf * 0.5f, PIf * 0.5f)
+        rotation.x = clamp(rotation.x, -PI * 0.5, PI * 0.5)
     }
 
     /**
      * define the acceleration in [-1 .. +1] range. Larger values will be clamped.
      * */
-    open fun collectInputs(acceleration: Vector3f) {
+    open fun collectInputs(acceleration: Vector3d) {
         // todo replace this with actions, so it can be configured easily
         val s = movementSpeed
         if (isKeyDown(Key.KEY_W) || isKeyDown(Key.KEY_ARROW_UP)) acceleration.z -= s
@@ -105,7 +105,7 @@ abstract class CameraController : Component(), InputListener {
         if (isKeyDown(Key.KEY_D) || isKeyDown(Key.KEY_ARROW_RIGHT)) acceleration.x += s
         if (isShiftDown || isKeyDown('q')) acceleration.y -= s
         if (isKeyDown(' ') || isKeyDown('e')) acceleration.y += s
-        if (numpadAsMouseSpeed != 0f || numpadWheelSpeed != 0f) {
+        if (numpadAsMouseSpeed != 0.0 || numpadWheelSpeed != 0.0) {
 
             var dx = 0f
             var dy = 0f
@@ -119,19 +119,19 @@ abstract class CameraController : Component(), InputListener {
             if (isKeyDown("numpad1")) dz--
 
             if (dx != 0f || dy != 0f) {
-                val dt = Time.deltaTime.toFloat() * numpadAsMouseSpeed * rotationSpeed
-                rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0f)
+                val dt = Time.deltaTime * numpadAsMouseSpeed * rotationSpeed
+                rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0.0)
                 clampRotation()
             }
 
             if (dz != 0f) {
-                val dt = Time.deltaTime.toFloat() * numpadWheelSpeed
-                onMouseWheel(0f, 0f, 0f, dz * dt, false)
+                val dt = Time.deltaTime * numpadWheelSpeed
+                onMouseWheel(0f, 0f, 0f, (dz * dt).toFloat(), false)
             }
         }
     }
 
-    open fun clampAcceleration(acceleration: Vector3f) {
+    open fun clampAcceleration(acceleration: Vector3d) {
         val al = acceleration.length()
         if (al > movementSpeed) {
             acceleration.mul(movementSpeed / al)
@@ -152,15 +152,15 @@ abstract class CameraController : Component(), InputListener {
 
                 lastWarning = null
 
-                val dt = Time.deltaTime.toFloat()
+                val dt = Time.deltaTime
 
-                acceleration.set(0f)
+                acceleration.set(0.0)
 
                 collectInputs(acceleration)
 
                 clampAcceleration(acceleration)
 
-                velocity.mul(1f - dtTo01(dt * friction))
+                velocity.mul(1.0 - dtTo01(dt * friction))
                 acceleration.mulAdd(dt, velocity, velocity)
 
                 clampVelocity()
@@ -183,7 +183,7 @@ abstract class CameraController : Component(), InputListener {
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         return if (!needsClickToRotate || (Input.isLeftDown && rotateLeft) || (Input.isMiddleDown && rotateMiddle) || (Input.isRightDown && rotateRight)) {
-            rotation.add(-dy.toRadians() * rotationSpeed, -dx.toRadians() * rotationSpeed, 0f)
+            rotation.add(-dy.toRadians() * rotationSpeed, -dx.toRadians() * rotationSpeed, 0.0)
             clampRotation()
             // ... apply rotation to transform
             true

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.buffer.DrawMode
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.pooling.JomlPools
@@ -47,6 +48,10 @@ abstract class MeshJoiner<V>(
     private fun alloc(needed: Boolean, size: Int, old: IntArray?) = if (needed) old.resize(size) else null
     private fun alloc(needed: Boolean, size: Int, old: ByteArray?) = if (needed) old.resize(size) else null
 
+    fun join(elements: List<V>): Mesh {
+        return join(Mesh(), elements)
+    }
+
     fun join(dstMesh: Mesh, elements: List<V>): Mesh {
 
         if (elements.isEmpty()) {
@@ -59,10 +64,13 @@ abstract class MeshJoiner<V>(
         // if size is one, this could be optimized...
 
         var numPositions = 0
-        var numTriangles = 0
+        var numPrimitives = 0
 
-        val firstMaterial = getMaterials(elements[0])
+        val firstElement = elements[0]
+        val firstMesh = getMesh(firstElement)
+        val firstMaterial = getMaterials(firstElement)
         val hasUniqueMaterial = firstMaterial.size < 2 && elements.all2 { getMaterials(it) == firstMaterial }
+        val drawMode = firstMesh.drawMode
         val materialToId: Map<FileReference, Int>
 
         if (hasUniqueMaterial) {
@@ -79,10 +87,10 @@ abstract class MeshJoiner<V>(
             val model = getMesh(element)
             model.ensureNorTanUVs()
             numPositions += model.positions!!.size / 3
-            numTriangles += model.numPrimitives.toInt()
+            numPrimitives += model.numPrimitives.toInt()
         }
 
-        val numIndices = numTriangles * 3
+        val numIndices = numPrimitives * drawMode.primitiveSize
         val numPositionCoords = numPositions * 3
         val numUVsCoords = numPositions * 2
 
@@ -93,7 +101,7 @@ abstract class MeshJoiner<V>(
         val dstTangents = alloc(hasUVs, numPositions * 4, dstMesh.tangents)
         val dstColors = alloc(hasColors, numPositions, dstMesh.color0)
         val dstIndices = alloc(true, numIndices, dstMesh.indices)!!
-        val dstMaterialIds = alloc(!hasUniqueMaterial, numTriangles, dstMesh.materialIds)
+        val dstMaterialIds = alloc(!hasUniqueMaterial, numPrimitives, dstMesh.materialIds)
         val numBoneIndices = numPositions * 4
         val dstBoneIndices = alloc(hasBones, numBoneIndices, dstMesh.boneIndices)
         val dstBoneWeights = if (dstBoneIndices != null) {
@@ -146,7 +154,7 @@ abstract class MeshJoiner<V>(
 
             // apply material ids
             if (dstMaterialIds != null) {
-                fillMaterialIds(dstMaterialIds, element, srcMesh, materialToId, j0, j)
+                fillMaterialIds(dstMaterialIds, element, srcMesh, materialToId, j0, j, drawMode)
             }
 
             onFinishedMesh(j0, j)
@@ -155,6 +163,7 @@ abstract class MeshJoiner<V>(
         JomlPools.mat4x3f.sub(1)
         JomlPools.vec3f.sub(1)
 
+        dstMesh.drawMode = drawMode
         dstMesh.positions = dstPositions
         dstMesh.indices = dstIndices
         dstMesh.normals = dstNormals
@@ -306,7 +315,8 @@ abstract class MeshJoiner<V>(
 
     private fun fillMaterialIds(
         dstMaterialIds: IntArray, element: V, srcMesh: Mesh,
-        materialToId: Map<FileReference, Int>, j0: Int, j: Int
+        materialToId: Map<FileReference, Int>, j0: Int, j: Int,
+        drawMode: DrawMode
     ) {
         // apply material ids
         val materials = getMaterials(element)
@@ -316,8 +326,8 @@ abstract class MeshJoiner<V>(
             materialIds[k] = materialToId[materials[k]] ?: continue
         }
         if (materialIds.any { it != 0 }) {
-            val k0 = j0 / 3
-            val k1 = j / 3
+            val k0 = j0 / drawMode.primitiveSize
+            val k1 = j / drawMode.primitiveSize
             val srcIds = srcMesh.materialIds
             if (materialIds.minOrNull() == materialIds.maxOrNull() || srcIds == null) {
                 dstMaterialIds.fill(materialIds[0], k0, k1)
