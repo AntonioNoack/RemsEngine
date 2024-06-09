@@ -969,8 +969,8 @@ open class Matrix4x3f {
 
     fun getScaleLengthSquared(): Float {
         return m00 * m00 + m01 * m01 + m02 * m02 +
-                    m10 * m10 + m11 * m11 + m12 * m12 +
-                    m20 * m20 + m21 * m21 + m22 * m22
+                m10 * m10 + m11 * m11 + m12 * m12 +
+                m20 * m20 + m21 * m21 + m22 * m22
     }
 
     override fun toString() =

@@ -294,6 +294,7 @@ open class RenderDeferredNode : RenderViewNode(
                             .add(extraFunctions.toString())
                     )
                     builder.ignored.add("d_camRot")
+                    builder.ignored.add("reverseDepth")
 
                     shader = builder.create("rsdn-${outputs.joinToString { it.value.name }}")
                 }

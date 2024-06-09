@@ -25,7 +25,6 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import kotlin.math.PI
 
-// todo - in proximity, the appearance must not stay as a point, but rather be a sphere
 // todo add visual light cone to all lights; somehow must be post-processing, or like glass, I'd guess... (cannot show background brighter)
 
 class PointLight : LightComponent(LightType.POINT) {
@@ -137,9 +136,9 @@ class PointLight : LightComponent(LightType.POINT) {
                 "if(hasSpecular){\n" +
                 "   effectiveSpecular = effectiveDiffuse;\n" +
                 // 0 = perpendicular, 1 = perfectly aligned for reflection
-                "   float dot = max(-dot(normalize(lightPos), reflect(viewDir, lightNor)), 0.0);\n" +
+                "   float dot1 = max(-dot(normalize(lightPos), reflect(viewDir, lightNor)), 0.0);\n" +
                 "   float smoothness = 1.0 - finalRoughness;\n" +
-                "   effectiveSpecular *= mix(1.0, 2e4, smoothness) * pow(dot, 1.0 + 64.0 * smoothness);\n" +
+                "   effectiveSpecular *= mix(1.0, 2e4, smoothness) * pow(dot1, 1.0 + 64.0 * smoothness);\n" +
                 "}\n"
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {

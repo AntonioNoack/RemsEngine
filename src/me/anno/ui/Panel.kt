@@ -614,11 +614,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val window = window ?: return
         // if panel is larger than window, ignore mouse position, and just center it
         // clamp mouse position to window bounds
+        val padding = 50
         scrollTo(
             if (width >= window.width) window.x + window.width / 2 else
-                clamp(window.mouseXi, window.x, window.x + window.width),
+                clamp(window.mouseXi, window.x + padding, window.x + window.width - padding),
             if (height >= window.height) window.y + window.height / 2 else
-                clamp(window.mouseYi, window.y, window.y + window.height)
+                clamp(window.mouseYi, window.y + padding, window.y + window.height - padding)
         )
     }
 

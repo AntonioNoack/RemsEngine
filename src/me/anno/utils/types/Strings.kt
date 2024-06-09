@@ -356,8 +356,8 @@ object Strings {
     @JvmStatic
     fun isArray(s: String): Boolean {
         // todo only names and such are allowed, only commas, and only valid numbers...
-        // very complex -> currently just say no
-        return false
+        // very complex -> take a guess
+        return s.startsWith('[') && s.endsWith(']')
     }
 
     @JvmStatic

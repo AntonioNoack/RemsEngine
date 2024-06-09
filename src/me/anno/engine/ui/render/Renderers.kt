@@ -238,13 +238,14 @@ object Renderers {
                             "vec3 specularColor = finalColor * reflectivity;\n" +
                             "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
                             specularBRDFv2NoDivInlined2Start +
-                            "vec4 lightData[${previewLights.size}] = vec4[](${
-                                previewLights.joinToString {
-                                    "vec4(${it.x},${it.y},${it.z},${it.w})"
-                                }
-                            });\n" +
+                            "// [loop]\n" + // hlsl instruction
                             "for(int i=0;i<${previewLights.size};i++){\n" +
-                            "   vec4 data = lightData[i];\n" +
+                            "   vec4 data = ${
+                                previewLights.withIndex().joinToString("") { (idx, v) ->
+                                    if (idx < previewLights.lastIndex) "i == $idx ? vec4(${v.x},${v.y},${v.z},${v.w}) :\n"
+                                    else "vec4(${v.x},${v.y},${v.z},${v.w})"
+                                }
+                            };\n" +
                             "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                             "   float NdotL = dot(finalNormal, lightDirection);\n" +
                             "   if(NdotL > 0.0){\n" +

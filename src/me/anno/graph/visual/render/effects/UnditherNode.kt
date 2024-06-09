@@ -92,5 +92,8 @@ class UnditherNode : RenderViewNode(
                     "   result = vec4(color,1.0);\n" +
                     "}\n"
         )
+        init {
+            shader.ignoreNameWarnings("d_camRot")
+        }
     }
 }

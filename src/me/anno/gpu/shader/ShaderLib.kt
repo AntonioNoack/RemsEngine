@@ -620,6 +620,32 @@ object ShaderLib {
             "    return mix(currentTexCoords, prevTexCoords, weight) / texSize;\n" +
             "}\n"
 
+    val inverseMat4x3 = "" + // while technically available in GLSL with casting, this isn't available in HLSL
+            "mat4x3 inverse4x3(mat4x3 m){\n" +
+            "#ifdef HLSL\n" + // HLSL is row-major
+            "   #define get(i,j) m[j][i]\n" +
+            "#else\n" + // GLSL is column-major
+            "   #define get(i,j) m[i][j]\n" +
+            "#endif\n" +
+            "   float m11m00 = get(0,0) * get(1,1), m10m01 = get(0,1) * get(1,0), m10m02 = get(0,2) * get(1,0);\n" +
+            "   float m12m00 = get(0,0) * get(1,2), m12m01 = get(0,1) * get(1,2), m11m02 = get(0,2) * get(1,1);\n" +
+            "   float s = 1.0 / ((m11m00 - m10m01) * get(2,2) + (m10m02 - m12m00) * get(2,1) + (m12m01 - m11m02) * get(2,0));\n" +
+            "   float m10m22 = get(1,0) * get(2,2), m10m21 = get(1,0) * get(2,1), m11m22 = get(1,1) * get(2,2);\n" +
+            "   float m11m20 = get(1,1) * get(2,0), m12m21 = get(1,2) * get(2,1), m12m20 = get(1,2) * get(2,0);\n" +
+            "   float m20m02 = get(2,0) * get(0,2), m20m01 = get(2,0) * get(0,1), m21m02 = get(2,1) * get(0,2);\n" +
+            "   float m21m00 = get(2,1) * get(0,0), m22m01 = get(2,2) * get(0,1), m22m00 = get(2,2) * get(0,0);\n" +
+            "   float nm30 = m10m22 * get(3,1) - m10m21 * get(3,2) + m11m20 * get(3,2) - m11m22 * get(3,0) + m12m21 * get(3,0) - m12m20 * get(3,1);\n" +
+            "   float nm31 = m20m02 * get(3,1) - m20m01 * get(3,2) + m21m00 * get(3,2) - m21m02 * get(3,0) + m22m01 * get(3,0) - m22m00 * get(3,1);\n" +
+            "   float nm32 = m11m02 * get(3,0) - m12m01 * get(3,0) + m12m00 * get(3,1) - m10m02 * get(3,1) + m10m01 * get(3,2) - m11m00 * get(3,2);\n" +
+            "   return mat4x3(\n" +
+            "       m11m22 - m12m21, m21m02 - m22m01, m12m01 - m11m02,\n" +
+            "       m12m20 - m10m22, m22m00 - m20m02, m10m02 - m12m00,\n" +
+            "       m10m21 - m11m20, m20m01 - m21m00, m11m00 - m10m01,\n" +
+            "       nm30,nm31,nm32\n" +
+            "   ) * s;\n" +
+            "#undef get\n" +
+            "}\n"
+
     fun createShader(
         shaderName: String,
         vertexVariables: List<Variable>,

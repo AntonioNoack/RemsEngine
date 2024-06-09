@@ -81,8 +81,9 @@ class MeshInstanceData(
                     "" +
                             "finalId = instanceFinalId;\n" +
                             "localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                            "invLocalTransform = mat4x3(inverse(mat4(localTransform)));\n"
-                ).add(ShaderLib.loadMat4x3)
+                            // todo we could optimize this... only needed by a few shaders...
+                            "invLocalTransform = inverse4x3(localTransform);\n"
+                ).add(ShaderLib.loadMat4x3).add(ShaderLib.inverseMat4x3)
             ) + DEFAULT.transformPosition,
             DEFAULT.transformNorTan,
             emptyList(), // colors aren't changed

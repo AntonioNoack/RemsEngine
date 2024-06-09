@@ -6,18 +6,21 @@ import me.anno.export.Exclusion.excludeLWJGLFiles
 import me.anno.export.Exclusion.excludeNonMinimalUI
 import me.anno.export.Exclusion.excludeWebpFiles
 import me.anno.export.Indexing.indexProject
-import me.anno.export.reflect.Reflections.replaceReflections
 import me.anno.export.idea.IdeaProject
+import me.anno.export.reflect.Reflections.replaceReflections
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.progress.ProgressBar
+import org.apache.logging.log4j.LogManager
+import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-// todo how can we create an executable from a jar like Launch4j?
 object ExportProcess {
+
+    private val LOGGER = LogManager.getLogger(ExportProcess::class)
 
     fun execute(project: GameEngineProject, settings: ExportSettings, progress: ProgressBar) {
         val sources = HashMap<String, ByteArray>(65536)
@@ -54,7 +57,7 @@ object ExportProcess {
         if (progress.isCancelled) return
         // build a zip from it
         settings.dstFile.getParent().tryMkdirs()
-        writeJar(sources, settings.dstFile, progress)
+        writeJar(settings, sources, settings.dstFile, progress)
     }
 
     private fun createConfigJson(settings: ExportSettings): ByteArray {
@@ -72,8 +75,40 @@ object ExportProcess {
         return str.encodeToByteArray()
     }
 
-    private fun writeJar(sources: Map<String, ByteArray>, dst: FileReference, progress: ProgressBar) {
-        val zos = ZipOutputStream(dst.outputStream())
+    private fun writeJar(
+        settings: ExportSettings,
+        sources: Map<String, ByteArray>,
+        dst: FileReference,
+        progress: ProgressBar
+    ) {
+        if (dst.lcExtension == "exe") {
+            // how can we create an executable from a jar like Launch4j?
+            //  -> create a minimal executable, and let it read from the end of itself
+            //  - test if Java is available
+            //       if yes, start
+            //       if no, redirect user to search how to install Java in their browser / show a msg
+            //  - we need an icon somehow...
+            val loc = settings.windowsPlatforms.exeBaseLocation
+            if (loc.exists) {
+                loc.readBytes { bytes, err ->
+                    if (bytes != null) {
+                        dst.outputStream().use { output ->
+                            output.write(bytes)
+                            writeJarContents(sources, output, progress)
+                        }
+                    } else progress.cancel(true)
+                    err?.printStackTrace()
+                }
+                return
+            } else LOGGER.warn("Missing exe-base-location")
+        }
+        dst.outputStream().use { output ->
+            writeJarContents(sources, output, progress)
+        }
+    }
+
+    private fun writeJarContents(sources: Map<String, ByteArray>, output: OutputStream, progress: ProgressBar) {
+        val zos = ZipOutputStream(output)
         for ((name, bytes) in sources) {
             writeZipEntry(zos, name, bytes)
             if (progress.isCancelled) break

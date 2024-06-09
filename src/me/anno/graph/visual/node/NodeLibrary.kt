@@ -51,8 +51,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
                 } + typeNames.map { typeName ->
                     { InlineBranchNode(typeName) }
                 } + NODE_CLASS_NAMES.split(',')
-                    .filter { name -> Saveable.create(name) is Node }
-                    .map { name -> { Saveable.create(name) as Node } }
+                    .filter { name -> Saveable.createOrNull(name) is Node }
+                    .map { name -> { Saveable.createOrNull(name) as Node } }
             )
         }
     }

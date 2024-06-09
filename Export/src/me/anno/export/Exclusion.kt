@@ -100,7 +100,6 @@ object Exclusion {
         excludeFiles(sources, "kotlin/text/", listOf("Regex", "StringsKt", "CharsKt", "Charsets"))
         excludeFiles(sources, "kotlin/io/", listOf("CloseableKt", "ByteStreamsKt", "FilesKt"))
         excludeFiles(sources, "kotlin/collections/unsigned/")
-        excludeFiles(sources, "kotlin/sequences/")
         excludeFiles(sources, "kotlin/test/")
         excludeFiles(sources, "kotlin/ranges/U")
         // opengl
@@ -109,6 +108,7 @@ object Exclusion {
         excludeFiles(sources, "org/lwjgl/opengl/GLX")
         // more of kotlin standard library
         if (customReflections) {
+            excludeFiles(sources, "kotlin/sequences/")
             excludeFiles(sources, "kotlin/collections/builders/")
             excludeFiles(sources, "kotlin/text/Regex")
         }

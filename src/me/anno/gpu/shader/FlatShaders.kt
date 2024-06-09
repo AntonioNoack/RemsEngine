@@ -51,30 +51,30 @@ object FlatShaders {
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
                     (if (colorMS || depthMS) "" +
-                            "vec4 getColor1(sampler2DMS tex, int srcSamples){\n" +
-                            "   ivec2 uvi = ivec2(vec2(textureSize(tex)) * uv);\n" +
+                            "vec4 getColor1(sampler2DMS colorTex, int srcSamples, vec2 uv){\n" +
+                            "   ivec2 uvi = ivec2(vec2(textureSize(colorTex)) * uv);\n" +
                             "   if(srcSamples > targetSamples){\n" +
                             "       vec4 sum = vec4(0.0);\n" +
                             "       int ctr = 0;\n" +
                             "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
-                            "           sum += texelFetch(tex, uvi, i);\n" +
+                            "           sum += texelFetch(colorTex, uvi, i);\n" +
                             "           ctr++;\n" +
                             "       }\n" +
                             "       return sum / float(ctr);\n" +
                             "   } else if(srcSamples == targetSamples){\n" +
-                            "       return texelFetch(tex, uvi, gl_SampleID);\n" +
+                            "       return texelFetch(colorTex, uvi, gl_SampleID);\n" +
                             "   } else {\n" +
-                            "       return texelFetch(tex, uvi, gl_SampleID % srcSamples);\n" +
+                            "       return texelFetch(colorTex, uvi, gl_SampleID % srcSamples);\n" +
                             "   }\n" +
                             "}\n" else "") +
                     (if (!colorMS || !depthMS) "" +
-                            "vec4 getColor0(sampler2D tex, int srcSamples){\n" +
-                            "   return texture(tex,uv);\n" +
+                            "vec4 getColor0(sampler2D colorTex, int srcSamples, vec2 uv){\n" +
+                            "   return texture(colorTex,uv);\n" +
                             "}\n" else "") +
                     "void main() {\n" +
-                    "   result = getColor${it shr 1}(colorTex, colorSamples);\n" +
+                    "   result = getColor${it shr 1}(colorTex, colorSamples, uv);\n" +
                     "   if(monochrome) result.rgb = result.rrr;\n" +
-                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples).x;\n" + // is this [-1,1] or [0,1]? -> looks like it works just fine for now
+                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples, uv).x;\n" + // is this [-1,1] or [0,1]? -> looks like it works just fine for now
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")

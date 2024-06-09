@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.tests.gfx
 
 import me.anno.utils.structures.tuples.FloatPair
 import org.joml.Matrix4f
@@ -7,7 +7,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-// todo this probably should be moved elsewhere... isn't used in the engine currently at all...
+// moved to testing folder, because this isn't used in the engine at the moment
 object Clipping {
 
     @JvmStatic

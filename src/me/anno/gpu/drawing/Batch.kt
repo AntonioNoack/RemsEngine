@@ -3,6 +3,7 @@ package me.anno.gpu.drawing
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 
 /**

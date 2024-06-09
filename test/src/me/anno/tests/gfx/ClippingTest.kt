@@ -1,6 +1,5 @@
 package me.anno.tests.gfx
 
-import me.anno.utils.Clipping
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 

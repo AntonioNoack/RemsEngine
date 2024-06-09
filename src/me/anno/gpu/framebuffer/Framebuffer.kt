@@ -378,7 +378,7 @@ class Framebuffer(
                     remainingMask = remainingMask.withoutFlag(1 shl i)
 
                     // execute blit
-                    glDrawBuffers(GL_COLOR_ATTACHMENT0 + i)
+                    glDrawBuffer(GL_COLOR_ATTACHMENT0 + i)
                     if (needsToCopyDepth && depth != null) {
                         needsToCopyDepth = false
                         GFX.copyColorAndDepth(textures!![i], depth)
