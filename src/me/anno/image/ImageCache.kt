@@ -14,24 +14,26 @@ object ImageCache : CacheSection("Image") {
     val streamReaders = HashMap<String, AsyncImageReader<InputStream>>()
 
     fun registerReader(
-        signature: String,
+        signatures: String,
         byteReader: AsyncImageReader<ByteArray>,
         fileReader: AsyncImageReader<FileReference>,
         streamReader: AsyncImageReader<InputStream>
     ) {
         // todo keep lists instead, and try all until one succeeds
         synchronized(this) {
-            byteReaders[signature] = byteReader
-            fileReaders[signature] = fileReader
-            streamReaders[signature] = streamReader
+            for(signature in signatures.split(',')) {
+                byteReaders[signature] = byteReader
+                fileReaders[signature] = fileReader
+                streamReaders[signature] = streamReader
+            }
         }
     }
 
     fun registerStreamReader(
-        signature: String,
+        signatures: String,
         streamReader: AsyncImageReader<InputStream>
     ) {
-        registerReader(signature, { bytes, callback ->
+        registerReader(signatures, { bytes, callback ->
             streamReader.read(ByteArrayInputStream(bytes), callback)
         }, { fileRef, callback ->
             fileRef.inputStream { input, e ->
@@ -42,10 +44,10 @@ object ImageCache : CacheSection("Image") {
     }
 
     fun registerDirectStreamReader(
-        signature: String,
+        signatures: String,
         streamReader: (InputStream) -> Image
     ) {
-        registerStreamReader(signature) { stream, callback ->
+        registerStreamReader(signatures) { stream, callback ->
             callback.ok(streamReader(stream))
         }
     }

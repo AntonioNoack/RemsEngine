@@ -141,27 +141,13 @@ object GaussianBlur {
 
             drawBlur(
                 FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE],
-                smallerW,
-                smallerH,
-                0,
-                threshold,
-                true,
-                isFullscreen,
-                localTransform,
-                size,
-                pixelSize
+                smallerW, smallerH, 0, threshold, true,
+                isFullscreen, localTransform, size, pixelSize
             )
             drawBlur(
                 FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE],
-                smallerW,
-                smallerH,
-                resultIndex,
-                0f,
-                false,
-                isFullscreen,
-                localTransform,
-                size,
-                pixelSize
+                smallerW, smallerH, resultIndex, 0f, false,
+                isFullscreen, localTransform, size, pixelSize
             )
 
         }

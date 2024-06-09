@@ -60,7 +60,7 @@ import org.joml.Vector4f
  * Defined by either a Renderer, a render graph, or a Material.
  * */
 @Suppress("unused")
-class RenderMode(
+class RenderMode private constructor(
     val name: String,
     val renderer: Renderer? = null,
     val renderGraph: FlowGraph? = null,

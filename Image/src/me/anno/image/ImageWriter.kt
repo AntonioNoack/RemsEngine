@@ -43,7 +43,7 @@ object ImageWriter {
     @JvmStatic
     private val LOGGER = LogManager.getLogger(ImageWriter::class)
 
-    const val tileSize = 8
+    private const val PARALLEL_TILE_SIZE = 8
 
     @JvmStatic
     private fun getFile(name: String): FileReference {
@@ -177,7 +177,7 @@ object ImageWriter {
         getRGB: I3F // x,y,i -> v
     ) {
         val values = FloatArray(w * h)
-        processBalanced2d(0, 0, w, h, tileSize, minPerThread) { x0, y0, x1, y1 ->
+        processBalanced2d(0, 0, w, h, PARALLEL_TILE_SIZE, minPerThread) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = x0 + y * w
                 for (x in x0 until x1) {
@@ -221,7 +221,7 @@ object ImageWriter {
     ) {
         val samples = 8
         val values = FloatArray(w * h * samples)
-        processBalanced2d(0, 0, w, h, tileSize, minPerThread / (tileSize * tileSize)) { x0, y0, x1, y1 ->
+        processBalanced2d(0, 0, w, h, PARALLEL_TILE_SIZE, minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE)) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = x0 + y * w
                 for (x in x0 until x1) {
@@ -271,7 +271,7 @@ object ImageWriter {
     ) {
         val img = IntImage(w, h, alpha)
         val buffer = img.data
-        processBalanced2d(0, 0, w, h, tileSize, max(minPerThread / (tileSize * tileSize), 1)) { x0, y0, x1, y1 ->
+        processBalanced2d(0, 0, w, h, PARALLEL_TILE_SIZE, max(minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE), 1)) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {

@@ -355,7 +355,7 @@ object Strings {
 
     @JvmStatic
     fun isArray(s: String): Boolean {
-        // todo only names and such are allowed, only commas, and only valid numbers...
+        // to do only names and such are allowed, only commas, and only valid numbers...
         // very complex -> take a guess
         return s.startsWith('[') && s.endsWith(']')
     }
@@ -454,7 +454,9 @@ object Strings {
         return if (i < 0) length else i
     }
 
-    // todo S looks off -> probably incorrect (check out Courier New in Rem's Studio)
+    // S looks off -> probably incorrect (check out Courier New in Rem's Studio)
+    //  -> their unicodes aren't continous, and they have varying meanings -> it's the best we can do
+    //     without using an actual font
     @Suppress("SpellCheckingInspection")
     private const val SMALL_CAPS_ALPHABET = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
 

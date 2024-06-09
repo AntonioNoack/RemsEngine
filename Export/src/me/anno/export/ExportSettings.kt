@@ -104,7 +104,8 @@ class ExportSettings : NamedSaveable() {
 
     fun createInspector(
         list: PanelListY, style: Style,
-        getGroup: (nameDesc: NameDesc, parent: PanelList) -> PanelList
+        getGroup: (nameDesc: NameDesc, parent: PanelList) -> PanelList,
+        refresh: () -> Unit
     ) {
         // general settings
         val general = getGroup(NameDesc("General"), list)
@@ -143,11 +144,15 @@ class ExportSettings : NamedSaveable() {
             .setChangeListener { windowsPlatforms.x86 = it })
         windows.add(BooleanInput("arm64", windowsPlatforms.arm64, true, style)
             .setChangeListener { windowsPlatforms.arm64 = it })
+        windows.add(FileInput("Exe-Base-Location", style, windowsPlatforms.exeBaseLocation, emptyList())
+            .addChangeListener { windowsPlatforms.exeBaseLocation = it }
+            .setTooltip("When exporting as an .exe-file, use this file as the base (.jar-contents just get appended to it)"))
         val macos = getGroup(NameDesc("MacOS"), platforms)
         macos.add(BooleanInput("x64 (Intel)", macosPlatforms.x64, true, style)
             .setChangeListener { macosPlatforms.x64 = it })
         macos.add(BooleanInput("arm64 (M-Series)", macosPlatforms.arm64, true, style)
             .setChangeListener { macosPlatforms.arm64 = it })
+
         // modules
         val logicSources = getGroup(NameDesc("Project Roots"), list)
         logicSources.add(
@@ -160,7 +165,7 @@ class ExportSettings : NamedSaveable() {
                 override fun onChange() {
                     projectRoots.clear()
                     projectRoots.addAll(values)
-                    // todo update modules, and their checkboxes
+                    refresh()
                 }
             }.apply {
                 setValues(projectRoots)

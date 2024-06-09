@@ -332,25 +332,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = Signature.findSync(this)
-        if (InnerFolderCache.getReader(signature, lcExtension) != null) {
-            return true
-        }
-        return when (signature?.name) { // todo these should be handled by InnerFolderCache...
-            null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyway
-                // dae is XML
-                when (lcExtension) {
-                    in AssetThumbHelper.unityExtensions, "json" -> {
-                        // LOGGER.info("Checking $absolutePath for mesh file, matches extension")
-                        true
-                    }
-                    else -> false
-                }
-            }
-            else -> {
-                // LOGGER.info("Checking $absolutePath for zip file, other signature: $signature")
-                false
-            }
-        }
+        return InnerFolderCache.getReader(signature, lcExtension) != null
     }
 
     abstract val exists: Boolean

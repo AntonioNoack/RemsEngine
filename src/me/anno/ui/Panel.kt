@@ -392,10 +392,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     /**
-     * sets minW & minH to the minimum size, this panel would like, given the available space;
-     * todo will also calculate size of children as necessary -> make the first part optional, as that may be expensive in
-     *  pointless scenarios (table with 100k entries -> all cell sizes are evaluated without them being shown);
-     *  or optimize the lists...
+     * sets minW & minH to the minimum size, this panel would like, given the available space
      * */
     open fun calculateSize(w: Int, h: Int) {
         minW = 1
@@ -667,23 +664,24 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return null
     }
 
-    fun listOfChildren(filter: ((Panel) -> Boolean)?): List<Panel> {
-        if (filter != null && !filter(this)) {
+    fun listOfChildren(hierarchicalFilter: ((Panel) -> Boolean)?): List<Panel> {
+        return if (hierarchicalFilter != null && !hierarchicalFilter(this)) {
             return emptyList()
-        }
-        val dst = ArrayList<Panel>()
-        dst.add(this)
-        var i = 0
-        while (i < dst.size) {
-            val pi = dst[i++]
-            val children = (pi as? PanelGroup)?.children ?: continue
-            if (filter == null) { // faster version
-                dst.addAll(children)
-            } else {
-                addChildrenIf(children, dst, filter)
+        } else if (this is PanelGroup) {
+            val dst = ArrayList<Panel>()
+            dst.add(this)
+            var i = 0
+            while (i < dst.size) {
+                val pi = dst[i++]
+                val children = (pi as? PanelGroup)?.children ?: continue
+                if (hierarchicalFilter == null) { // faster version
+                    dst.addAll(children)
+                } else {
+                    addChildrenIf(children, dst, hierarchicalFilter)
+                }
             }
-        }
-        return dst
+            dst
+        } else listOf(this)
     }
 
     private fun addChildrenIf(

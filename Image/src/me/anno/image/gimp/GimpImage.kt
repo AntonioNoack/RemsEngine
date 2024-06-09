@@ -95,7 +95,8 @@ class GimpImage {
             }
             val w = gimpImage.width
             val h = gimpImage.height
-            // todo if the source has HDR contents, use HDR here as well
+            // to do if the source has HDR contents, use HDR here as well
+            //  -> we can't read HDR yet anyway
             val dst = IntArray(w * h)
             for (layer in gimpImage.layers) {
                 val image = layer.image

@@ -10,10 +10,9 @@ import javax.imageio.ImageIO
 object ImageImpl {
 
     fun register() {
-        for (signature in listOf("png", "jpg", "gif", "bmp", "webp")) { // todo is there more supported signatures?
-            ImageCache.registerStreamReader(signature) { it, callback ->
-                tryImageIO(it, callback)
-            }
+        // todo is there more supported signatures?
+        ImageCache.registerStreamReader("png,jpg,gif,bmp,webp") { it, callback ->
+            tryImageIO(it, callback)
         }
     }
 

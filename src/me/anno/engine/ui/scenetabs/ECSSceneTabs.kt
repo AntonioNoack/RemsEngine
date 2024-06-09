@@ -8,7 +8,6 @@ import me.anno.engine.projects.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
@@ -82,6 +81,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {
             "SceneTab" -> {
+                // todo bug: dragging is broken (if it ever worked)
                 val tab = dragged!!.getOriginal() as ECSSceneTab
                 if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
@@ -177,13 +177,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
             val failed = project.openTabs.remove(sceneTab.file.toLocalPath(project.location))
             if (failed) LOGGER.warn("Failed to close ${sceneTab.file}!!")
             project.saveMaybe()
-        }
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        for (it in children3) {
-            writer.writeFile("textures/fileExplorer", it.file)
         }
     }
 

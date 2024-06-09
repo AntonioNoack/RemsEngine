@@ -8,6 +8,7 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.maths.Maths.max
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
@@ -144,11 +145,7 @@ class NavMesh : Component() {
             val p = data.polygons[i]
             if (p.type == Poly.DT_POLYTYPE_OFFMESH_CONNECTION) continue
             val detailMesh = data.detailMeshes?.get(i)
-            if (detailMesh != null) {
-                triCount += detailMesh.triCount
-            } else {
-                // todo Use Poly if PolyDetail is unavailable
-            }
+            triCount += detailMesh?.triCount ?: max(0, p.vertCount - 2) // correct?
         }
         val fal = FloatArrayList(triCount * 3)
         for (i in 0 until header.polyCount) {

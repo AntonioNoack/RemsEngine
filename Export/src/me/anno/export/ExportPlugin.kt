@@ -10,10 +10,10 @@ import me.anno.export.platform.WindowsPlatforms
 import me.anno.extensions.events.EventHandler
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
@@ -149,12 +149,12 @@ class ExportPlugin : Plugin() {
                     runExport(preset)
                 })
             // inputs
-            preset.createInspector(body, style) { nameDesc, parent ->
+            preset.createInspector(body, style, { nameDesc, parent ->
                 val group = SettingCategory(nameDesc, style)
                 group.show2()
                 parent.add(group)
                 group.content
-            }
+            }, { createPresetUI(preset) })
             addSeparator(body)
             // buttons
             body.add(TextButton("Export", style)
