@@ -7,11 +7,12 @@ import me.anno.export.idea.IdeaProject.Companion.kotlinc
 import me.anno.export.platform.LinuxPlatforms
 import me.anno.export.platform.MacOSPlatforms
 import me.anno.export.platform.WindowsPlatforms
-import me.anno.io.saveable.NamedSaveable
+import me.anno.extensions.ExtensionInfo
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.saveable.NamedSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -23,6 +24,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.TextInput
 import me.anno.utils.OS.documents
+import kotlin.concurrent.thread
 
 class ExportSettings : NamedSaveable() {
 
@@ -173,14 +175,25 @@ class ExportSettings : NamedSaveable() {
             .sortedBy { it.name }
         for (file in moduleList) {
             val name = file.nameWithoutExtension
-            // todo set ttt based on module's xyz-ext.info-file
-            modules.add(
-                BooleanInput(name, name !in excludedModules, false, style)
-                    .setChangeListener { included ->
-                        if (included) excludedModules.remove(name)
-                        else excludedModules.add(name)
-                    }.setTooltip(file.toLocalPath())
-            )
+            val checkbox = BooleanInput(name, name !in excludedModules, false, style)
+            checkbox.setChangeListener { included ->
+                if (included) excludedModules.remove(name)
+                else excludedModules.add(name)
+            }
+            checkbox.setTooltip(file.toLocalPath())
+            modules.add(checkbox)
+            // load module info for ttt
+            thread(name = "extInfo(${file.nameWithoutExtension})") {
+                val extInfoTxt = file.getSibling("src").listChildren()
+                    .firstOrNull { it.name.endsWith("-ext.info") }
+                val info = if (extInfoTxt != null) {
+                    ExtensionInfo().loadFromTxt(extInfoTxt)
+                } else null
+                checkbox.setTooltip(
+                    if (info?.description.isNullOrBlank()) file.toLocalPath()
+                    else "${info?.description}\n${file.toLocalPath()}"
+                )
+            }
         }
         val opt = getGroup(NameDesc("Space Optimization"), list)
         opt.add(BooleanInput("Minimal UI", minimalUI, false, style)

@@ -55,7 +55,9 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
     val height get() = h1
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
-        if (EngineBase.dragged != null) return
+        if (EngineBase.dragged != null) {
+            return
+        }
         if (panel != null && panel.windowStack.peek() != panel.window) {
             LOGGER.warn("Only panels on the top window can request focus")
             return
@@ -71,12 +73,14 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
                 inFocus[index].invalidateDrawing()
             }
             inFocus.clear()
+        } else {
+            inFocus.removeAll(panels.toSet())
         }
-        inFocus.removeAll(panels.toSet())
         inFocus.addAll(panels)
         for (panel in panels) {
             panel.invalidateDrawing()
         }
+        println("requested focus for $panels")
     }
 
     fun push(panel: Panel, isTransparent: Boolean = false): Window {

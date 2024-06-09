@@ -8,12 +8,9 @@ import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.Reference.getReference
-import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import me.anno.utils.structures.Callback
-import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.URL
@@ -266,7 +263,7 @@ object ExtensionLoader {
             val name = entry.name
             if (name.endsWith("extension.info") || name.endsWith("ext.info")) {
                 callback.ok(loadInfoFromTxt(file))
-               return
+                return
             }
         }
         callback.ok(null)
@@ -278,8 +275,7 @@ object ExtensionLoader {
      * */
     @JvmStatic
     fun loadMainInfo(fileName: String = "res://extension.info") {
-        val extensionSource = getReference(fileName)
-        loadInternally(loadInfoFromTxt(InvalidRef, extensionSource)!!)
+        loadInternally(loadInfoFromTxt(getReference(fileName))!!)
     }
 
     /**
@@ -309,49 +305,8 @@ object ExtensionLoader {
     }
 
     @JvmStatic
-    fun loadInfoFromTxt(modFile: FileReference, infoFile: FileReference = modFile): ExtensionInfo? {
-        val properties = SimpleYAMLReader.read(infoFile.readLinesSync(1024))
-        val dependencies = ArrayList<String>()
-        val info = ExtensionInfo()
-        for ((key, value) in properties) {
-            @Suppress("SpellCheckingInspection")
-            when (key.lowercase()) {
-                "plugin-name", "pluginname", "name" -> {
-                    info.name = value
-                    info.isPluginNotMod = true
-                }
-                "plugin-class", "pluginclass" -> {
-                    info.mainClass = value
-                    info.isPluginNotMod = true
-                }
-                "mod-class", "modclass" -> {
-                    info.mainClass = value
-                    info.isPluginNotMod = false
-                }
-                "mainclass", "main-class" -> {
-                    info.mainClass = value
-                }
-                "mod-name", "modname" -> {
-                    info.name = value
-                    info.isPluginNotMod = false
-                }
-                "plugin-version", "mod-version", "pluginversion", "modversion" -> info.version = value
-                "desc", "description", "mod-description", "moddescription",
-                "plugin-description", "plugindescription" -> info.description = value
-                "plugin-author", "plugin-authors",
-                "mod-author", "mod-authors",
-                "author", "authors" -> info.authors = value
-                "moddependencies", "mod-dependencies",
-                "plugindependencies", "plugin-dependencies",
-                "dependencies" -> dependencies += value.split(',').filter { it.isNotBlank() }.map { it.trim() }
-                "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> info.uuid = value
-                "minversion", "min-version" -> info.minVersion = value.toIntOrDefault(info.minVersion)
-                "maxversion", "max-version" -> info.maxVersion = value.toIntOrDefault(info.maxVersion)
-                "priority" -> info.priority = value.toDoubleOrNull() ?: info.priority
-            }
-        }
-        if (info.uuid.isEmpty()) info.uuid = info.name.trim()
-        return if (info.name.isNotEmpty()) info else null
+    fun loadInfoFromTxt(infoFile: FileReference): ExtensionInfo? {
+        return ExtensionInfo().loadFromTxt(infoFile)
     }
 
     @JvmStatic

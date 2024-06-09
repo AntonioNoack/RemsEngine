@@ -12,7 +12,7 @@ object YAMLReader {
         var i = 0
         while (true) {
             val col = str.indexOf(':', i)
-            if (col + 1 < str.length && str[col + 1] != ' ') {
+            if (col >= 0 && col + 1 < str.length && str[col + 1] != ' ') {
                 i = col + 1
             } else return col
         }

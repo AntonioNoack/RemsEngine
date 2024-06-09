@@ -116,11 +116,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @NotSerializedProperty
     var window: Window? = null
-        get() {
-            if (field != null) return field
-            field = uiParent?.window
-            return field
-        }
+        get() = uiParent?.window ?: field
 
     val windowStack get() = window!!.windowStack
 
