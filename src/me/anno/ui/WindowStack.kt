@@ -80,7 +80,6 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         for (panel in panels) {
             panel.invalidateDrawing()
         }
-        println("requested focus for $panels")
     }
 
     fun push(panel: Panel, isTransparent: Boolean = false): Window {

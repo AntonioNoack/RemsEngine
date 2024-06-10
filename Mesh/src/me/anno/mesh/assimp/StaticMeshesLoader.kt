@@ -795,7 +795,7 @@ object StaticMeshesLoader {
 
     private fun loadCameras(aiScene: AIScene, prefab: Prefab) {
         if (aiScene.mNumCameras() <= 0) return
-        val cameras = prefab.add(ROOT_PATH, 'e', "Entity", "Lights")
+        val cameras = prefab.add(ROOT_PATH, 'e', "Entity", "Cameras")
         val aiCameras = aiScene.mCameras()!!
         for(i in 0 until aiScene.mNumCameras()) {
             createCameraPrefab(AICamera.create(aiCameras[i]), prefab, cameras, i)

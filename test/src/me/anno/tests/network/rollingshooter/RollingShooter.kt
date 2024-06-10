@@ -29,6 +29,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAU
@@ -46,7 +47,6 @@ import me.anno.ui.editor.color.spaces.HSV
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.toVecRGBA
-import me.anno.utils.OS
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LoggerImpl
@@ -358,7 +358,7 @@ fun main() {
         friction = 1.0
     })
 
-    val betterScene = OS.documents.getChild("NavMeshTest2.obj")
+    val betterScene = getReference("res://meshes/NavMesh.fbx")
     if (betterScene.exists) {
         staticScene.add(MeshComponent(betterScene))
         staticScene.add(MeshCollider(betterScene).apply {

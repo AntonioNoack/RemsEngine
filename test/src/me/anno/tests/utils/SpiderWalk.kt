@@ -14,6 +14,7 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.input.Key
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Booleans.hasFlag
@@ -25,7 +26,6 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.utils.Color.black
-import me.anno.utils.OS
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -41,7 +41,7 @@ import kotlin.math.atan2
 import kotlin.math.min
 
 /**
- * eight legged spider, which walks
+ * eight-legged spider, which walks
  *   - terrain
  *   - path finding on it
  *   - legs using IK
@@ -52,7 +52,7 @@ fun main() {
 
     val scene = Entity("Scene")
     val terrain = Entity("Terrain", scene)
-    terrain.add(MeshComponent(OS.documents.getChild("NavMeshTest2.obj")))
+    terrain.add(MeshComponent(getReference("res://meshes/NavMesh.fbx")))
     terrain.setScale(2.5)
 
     val navMesh1 = NavMesh()

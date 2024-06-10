@@ -3,11 +3,11 @@ package me.anno.tests.navmesh
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.raycast.RayHit
@@ -15,24 +15,25 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.OS.documents
 import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
-import java.util.*
+import java.util.Random
 import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.max
 
 // walk along path
 class AgentController1a(
+    val meshEntity: Entity,
     meshData: MeshData,
     navMesh: org.recast4j.detour.NavMesh,
     query: NavMeshQuery,
@@ -43,6 +44,12 @@ class AgentController1a(
     val flag: Entity,
     mask: Int
 ) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask, 10f, 10f) {
+
+    companion object {
+        var nextId = 0
+    }
+
+    private val id = nextId++
 
     override fun findNextTarget() {
         super.findNextTarget()
@@ -63,22 +70,22 @@ class AgentController1a(
 
         // move agent from src to dst
         val entity = entity!!
+        val transform = entity.transform
         val nextPos = crowdAgent.currentPosition
         val distSq = crowdAgent.actualVelocity.lengthSquared()
-        if (!(distSq > 0f && crowdAgent.targetPos.distanceSquared(nextPos) >= 1f)) {
+        if (distSq == 0f || crowdAgent.targetPos.distanceSquared(nextPos) < 1f) {
             findNextTarget()
         }
         // project agent onto surface
-        val lp = entity.transform.localPosition
+        val lp = transform.localPosition
         val start = Vector3d(nextPos)
         start.y = lp.y + crowdAgent.params.height * 0.5
         val dist = crowdAgent.params.height.toDouble()
-        val world = entity.parentEntity!!
         val query = RayQuery(
             start, raycastDir, start + raycastDir * dist, 0.0, 0.0,
             Raycast.TRIANGLE_FRONT, mask, false, emptySet(), RayHit(dist)
         )
-        val hr = Raycast.raycastClosestHit(world, query)
+        val hr = Raycast.raycastClosestHit(meshEntity, query)
         // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
         val np = if (hr) query.result.positionWS else Vector3d(nextPos)
         val dt = Time.deltaTime
@@ -106,7 +113,7 @@ fun main() {
         val world = Entity("World")
         world.add(Skybox())
 
-        val agentMeshRef = documents.getChild("CuteGhost.fbx")
+        val agentMeshRef = getReference("res://meshes/CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
@@ -119,12 +126,11 @@ fun main() {
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)
-        world.add(Entity().apply {
-            add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
+        val meshEntity = Entity(world)
+            .setScale(1.5)
+            .add(MeshComponent(getReference("res://meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
-            scale = scale.set(1.5)
-        })
 
         val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
         navMesh1.data = meshData
@@ -151,19 +157,20 @@ fun main() {
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
-        val flagMesh = documents.getChild("Flag.fbx")
+        val flagMesh = getReference("res://meshes/Flag.fbx")
         for (i in 0 until 500) {
-            val flag = Entity("Flag")
+            val flag = Entity("Flag", world)
             flag.scale = Vector3d(flagScale.toDouble())
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
-            world.add(flag)
-            val agent = Entity("Agent")
-            agent.add(Entity().apply {
-                scale = Vector3d(agentScale.toDouble())
-                add(MeshComponent(agentMeshRef).apply { isInstanced = true })
-            })
-            agent.add(AgentController1a(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
-            world.add(agent)
+            val agent = Entity("Agent", world).add(
+                AgentController1a(
+                    meshEntity, meshData, navMesh, query, filter,
+                    random, navMesh1, crowd, flag, mask
+                )
+            )
+            Entity(agent)
+                .setScale(agentScale.toDouble())
+                .add(MeshComponent(agentMeshRef).apply { isInstanced = true })
         }
 
         world.addComponent(object : Component() {

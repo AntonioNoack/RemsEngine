@@ -8,12 +8,12 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.OS.documents
 import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
@@ -80,7 +80,7 @@ fun main() {
         val mask = 1 shl 16
         val world = Entity("World")
 
-        val agentMeshRef = documents.getChild("CuteGhost.fbx")
+        val agentMeshRef = getReference("res://meshes/CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
@@ -94,7 +94,7 @@ fun main() {
         navMesh1.collisionMask = mask
         world.add(navMesh1)
         world.add(Entity().apply {
-            add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
+            add(MeshComponent(getReference("res://meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
             setScale(2.5)
@@ -112,7 +112,7 @@ fun main() {
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
-        val flagMesh = documents.getChild("Flag.fbx")
+        val flagMesh = getReference("res://meshes/Flag.fbx")
         for (i in 0 until 2500) {
             val flag = Entity("Flag", world)
             flag.setScale(flagScale.toDouble())

@@ -3,19 +3,19 @@ package me.anno.tests.navmesh
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
+import me.anno.io.files.Reference.getReference
 import me.anno.recast.NavMesh
 import me.anno.ui.debug.TestEngine.Companion.testUI
-import me.anno.utils.OS.documents
-import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
@@ -26,6 +26,7 @@ import kotlin.math.max
  * test recast navmesh generation and usage
  * */
 fun main() {
+    OfficialExtensions.initForTests()
     testUI("NavMeshSmall") {
 
         EngineBase.enableVSync = false
@@ -35,7 +36,7 @@ fun main() {
         val world = Entity("World")
         world.add(Skybox())
 
-        val agentMeshRef = documents.getChild("CuteGhost.fbx")
+        val agentMeshRef = getReference("res://meshes/CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
@@ -48,12 +49,12 @@ fun main() {
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)
-        world.add(Entity().apply {
-            add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
+
+        val meshEntity = Entity("Mesh", world)
+            .setScale(1.5)
+            .add(MeshComponent(getReference("res://meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
-            scale = scale.set(1.5)
-        })
 
         val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
         navMesh1.data = meshData
@@ -80,19 +81,22 @@ fun main() {
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
-        val flagMesh = documents.getChild("Flag.fbx")
+        val agents = Entity("Agents", world)
+        val flagMesh = getReference("res://meshes/Flag.fbx")
         for (i in 0 until 5) {
-            val flag = Entity("Flag")
-            flag.scale = Vector3d(flagScale.toDouble())
-            flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
-            world.add(flag)
-            val agent = Entity("Agent")
-            agent.add(Entity().apply {
-                scale = Vector3d(agentScale.toDouble())
-                add(MeshComponent(agentMeshRef).apply { isInstanced = true })
-            })
-            agent.add(AgentController1a(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
-            world.add(agent)
+            val group = Entity("Agent[$i]", agents)
+            val flag = Entity("Flag", group)
+                .setScale(flagScale.toDouble())
+                .add(MeshComponent(flagMesh))
+            val agent = Entity("Agent", group).add(
+                AgentController1a(
+                    meshEntity, meshData, navMesh, query, filter,
+                    random, navMesh1, crowd, flag, mask
+                )
+            )
+            Entity("AgentMesh", agent)
+                .setScale(agentScale.toDouble())
+                .add(MeshComponent(agentMeshRef))
         }
 
         world.addComponent(object : Component() {
