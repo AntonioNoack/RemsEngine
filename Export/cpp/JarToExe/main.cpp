@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 		else return code;
 	}
 	else {
-		// if no, redirect user to Java install, or ask them kindly to install it themselfes
+		// if no, redirect user to Java install, or ask them kindly to install it themselves
 		std::cerr << "Missing Java, redirecting user to download it" << std::endl;
 		openBrowser("https://duckduckgo.com/?q=Install+Java+8");
 		return 101;

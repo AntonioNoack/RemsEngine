@@ -459,8 +459,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
 
         finishGroup()
         reader.close()
-
-        // UVCorrection.correct(folder)
         folder.sealPrefabs()
     }
 
