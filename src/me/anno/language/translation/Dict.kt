@@ -25,7 +25,7 @@ object Dict {
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
         val lines = text.split('\n')
-        SimpleYAMLReader.read(lines.iterator(), values)
+        SimpleYAMLReader.read(lines.iterator(), false, values)
     }
 
     fun getLanguageName(text: String): String? {

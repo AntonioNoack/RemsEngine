@@ -73,27 +73,33 @@ object ImageThumbnailsImpl {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
-
-        val buffer = SVGMeshCache[srcFile, TextureReader.imageTimeout, false]!!
-        val bounds = buffer.bounds!!
-        val maxSize = max(bounds.maxX, bounds.maxY)
-        val w = (size * bounds.maxX / maxSize).roundToInt()
-        val h = (size * bounds.maxY / maxSize).roundToInt()
-
-        if (w < 2 || h < 2) return
-
-        val transform = Matrix4fArrayList()
-        transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)
-        ThumbsRendering.renderToImage(srcFile, false, dstFile, false, Renderer.colorRenderer, false, callback, w, h) {
-            SVGxGFX.draw3DSVG(
-                transform,
-                buffer,
-                TextureLib.whiteTexture,
-                Color.white4,
-                Filtering.NEAREST,
-                TextureLib.whiteTexture.clamping,
-                null
-            )
+        SVGMeshCache.getAsync(srcFile, TextureReader.imageTimeout) { bufferI, err ->
+            if (bufferI != null) {
+                bufferI.waitForGFX {
+                    val buffer = bufferI.value
+                    if (buffer != null) {
+                        val bounds = buffer.bounds!!
+                        val maxSize = max(bounds.maxX, bounds.maxY)
+                        val w = (size * bounds.maxX / maxSize).roundToInt()
+                        val h = (size * bounds.maxY / maxSize).roundToInt()
+                        if (!(w < 2 || h < 2)) {
+                            val transform = Matrix4fArrayList()
+                            transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)
+                            ThumbsRendering.renderToImage(
+                                srcFile, false, dstFile, false,
+                                Renderer.colorRenderer, false, callback, w, h
+                            ) {
+                                SVGxGFX.draw3DSVG(
+                                    transform, buffer,
+                                    TextureLib.whiteTexture, Color.white4,
+                                    Filtering.NEAREST, TextureLib.whiteTexture.clamping,
+                                    null
+                                )
+                            }
+                        } else callback.err(null)
+                    } else callback.err(null)
+                }
+            } else callback.err(err)
         }
     }
 }

@@ -1,0 +1,4 @@
+plugin-name: OpenXR
+author: Antonio Noack
+description: Enables virtual reality rendering (for two eyes) using OpenXR
+main-class: me.anno.openxr.OpenXRPlugin

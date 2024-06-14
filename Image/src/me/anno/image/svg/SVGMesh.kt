@@ -87,104 +87,103 @@ class SVGMesh {
     }
 
     fun parseChildren(children: List<Any>, parentGroup: XMLNode?) {
-        for (it in children) {
-            it as? XMLNode ?: continue
-            it.apply {
-                convertStyle(this)
-                parentGroup?.attributes?.forEach { (key, value) ->
-                    if (key !in this.attributes) {
-                        this[key] = value
+        for (child in children) {
+            child as? XMLNode ?: continue
+            convertStyle(child)
+            parentGroup?.attributes?.forEach { (key, value) ->
+                if (key !in child.attributes) {
+                    child[key] = value
+                }
+            }
+            val style = SVGStyle(this, child)
+            println("style[${child.attributes.keys}]: $style")
+            when (child.type.lowercase()) {
+                "circle" -> {
+                    if (style.isFill) addCircle(child, style, true)
+                    if (style.isStroke) addCircle(child, style, false)
+                }
+                "rect" -> {
+                    if (style.isFill) addRectangle(child, style, true)
+                    if (style.isStroke) addRectangle(child, style, false)
+                }
+                "ellipse" -> {
+                    if (style.isFill) addEllipse(child, style, true)
+                    if (style.isStroke) addEllipse(child, style, false)
+                }
+                "line" -> {
+                    if (style.isFill) addLine(child, style, true)
+                }
+                "polyline" -> {
+                    if (style.isFill) addPolyline(child, style, true)
+                    if (style.isStroke) addPolyline(child, style, false)
+                }
+                "polygon" -> {
+                    if (style.isFill) addPolygon(child, style, true)
+                    if (style.isStroke) addPolygon(child, style, false)
+                }
+                "path" -> {
+                    if (style.isFill) addPath(child, style, true)
+                    if (style.isStroke) addPath(child, style, false)
+                }
+                "g" -> {
+                    val transform2 = child["transform"]
+                    if (transform2 != null) {
+                        transform.pushMatrix()
+                        applyTransform(transform, transform2)
+                    }
+                    parseChildren(child.children, child)
+                    if (transform2 != null) {
+                        transform.popMatrix()
                     }
                 }
-                val style = SVGStyle(this@SVGMesh, this)
-                when (type.lowercase()) {
-                    "circle" -> {
-                        if (style.isFill) addCircle(this, style, true)
-                        if (style.isStroke) addCircle(this, style, false)
+                "switch", "foreignobject", "i:pgfref", "i:pgf", "defs" -> {
+                    parseChildren(child.children, parentGroup)
+                }
+                "lineargradient" -> {
+                    val id = child["id"]
+                    if (id != null) {
+                        /**
+                        Example:
+                        <linearGradient id="x" gradientUnits="userSpaceOnUse" x1="62.2648" y1="50.1708" x2="62.2648" y2="8.5885" gradientTransform="matrix(1 0 0 -1 0 128)">
+                        <stop  offset="0" style="stop-color:#00BFA5"/>
+                        <stop  offset="0.4701" style="stop-color:#00B29A"/>
+                        <stop  offset="1" style="stop-color:#009E89"/>
+                        </linearGradient>
+                        <path style="fill:url(#SVGID_1_);" d="M101.28,124.08c-4.33,0-40.46,0.04-45.29,0.04s-8.11-0.39-9.62-0.67
+                        c-7.08-1.29-14.76-2.53-20.62-6.58c-4.48-3.09-9.13-8.83-4.49-18.98c6.47-14.92,12.14-29.64,25.4-31.52
+                        c4.44-0.63,10.97-0.56,18.3-0.56s12.16,1.21,15.22,1.88c21.85,4.79,22.77,21.98,24.77,40.68
+                        C104.94,108.37,106.65,124.08,101.28,124.08z"/>
+                         * */
+                        styles[id] = LinearGradient(this, child)
+                        // used by fill:url(#id)
                     }
-                    "rect" -> {
-                        if (style.isFill) addRectangle(this, style, true)
-                        if (style.isStroke) addRectangle(this, style, false)
+                }
+                "radialgradient" -> {
+                    val id = child["id"]
+                    if (id != null) {
+                        styles[id] = RadialGradient(this, child)
                     }
-                    "ellipse" -> {
-                        if (style.isFill) addEllipse(this, style, true)
-                        if (style.isStroke) addEllipse(this, style, false)
-                    }
-                    "line" -> {
-                        if (style.isFill) addLine(this, style, true)
-                    }
-                    "polyline" -> {
-                        if (style.isFill) addPolyline(this, style, true)
-                        if (style.isStroke) addPolyline(this, style, false)
-                    }
-                    "polygon" -> {
-                        if (style.isFill) addPolygon(style, true)
-                        if (style.isStroke) addPolygon(style, false)
-                    }
-                    "path" -> {
-                        if (style.isFill) addPath(this, style, true)
-                        if (style.isStroke) addPath(this, style, false)
-                    }
-                    "g" -> {
-                        val transform2 = this["transform"]
-                        if (transform2 != null) {
-                            transform.pushMatrix()
-                            applyTransform(transform, transform2)
+                }
+                "style" -> {
+                    val id = child["id"]
+                    when (val type = child["type"]?.lowercase()) {
+                        "text/css" -> {
+                            val content = child.children.filterIsInstance<String>().joinToString("\n")
+                            CSSReader.read(this, content)
                         }
-                        parseChildren(this.children, this)
-                        if (transform2 != null) {
-                            transform.popMatrix()
+                        null, "" -> {
+                            if (id != null) styles[id] = SVGStyle(this, child)
                         }
-                    }
-                    "switch", "foreignobject", "i:pgfref", "i:pgf", "defs" -> {
-                        parseChildren(this.children, parentGroup)
-                    }
-                    "lineargradient" -> {
-                        val id = this["id"]
-                        if (id != null) {
-                            /**
-                            Example:
-                            <linearGradient id="x" gradientUnits="userSpaceOnUse" x1="62.2648" y1="50.1708" x2="62.2648" y2="8.5885" gradientTransform="matrix(1 0 0 -1 0 128)">
-                            <stop  offset="0" style="stop-color:#00BFA5"/>
-                            <stop  offset="0.4701" style="stop-color:#00B29A"/>
-                            <stop  offset="1" style="stop-color:#009E89"/>
-                            </linearGradient>
-                            <path style="fill:url(#SVGID_1_);" d="M101.28,124.08c-4.33,0-40.46,0.04-45.29,0.04s-8.11-0.39-9.62-0.67
-                            c-7.08-1.29-14.76-2.53-20.62-6.58c-4.48-3.09-9.13-8.83-4.49-18.98c6.47-14.92,12.14-29.64,25.4-31.52
-                            c4.44-0.63,10.97-0.56,18.3-0.56s12.16,1.21,15.22,1.88c21.85,4.79,22.77,21.98,24.77,40.68
-                            C104.94,108.37,106.65,124.08,101.28,124.08z"/>
-                             * */
-                            styles[id] = LinearGradient(this@SVGMesh, this)
-                            // used by fill:url(#id)
+                        else -> {
+                            LOGGER.warn("Unknown style type $type")
                         }
                     }
-                    "radialgradient" -> {
-                        val id = this["id"]
-                        if (id != null) {
-                            styles[id] = RadialGradient(this@SVGMesh, this)
-                        }
-                    }
-                    "style" -> {
-                        val id = this["id"]
-                        when (val type = this["type"]?.lowercase()) {
-                            "text/css" -> {
-                                val content = this.children.filterIsInstance<String>().joinToString("\n")
-                                CSSReader.read(this@SVGMesh, content)
-                            }
-                            null, "" -> {
-                                if (id != null) styles[id] = SVGStyle(this@SVGMesh, this)
-                            }
-                            else -> {
-                                LOGGER.warn("Unknown style type $type")
-                            }
-                        }
-                    }
-                    "metadata" -> {
-                    } // I don't think, that I care...
-                    else -> {
-                        // idc
-                        LOGGER.warn("Unknown svg element $type")
-                    }
+                }
+                "metadata" -> {
+                } // I don't think, that I care...
+                else -> {
+                    // idc
+                    LOGGER.warn("Unknown svg element ${child.type}")
                 }
             }
         }
@@ -472,7 +471,7 @@ class SVGMesh {
         val style = xml["style"]
         if (style != null) {
             val properties = style.split(';')
-            SimpleYAMLReader.read(properties.iterator(), xml.attributes)
+            SimpleYAMLReader.read(properties.iterator(), false, xml.attributes)
         }
         val id = xml["id"]
         if (id != null) {
@@ -644,8 +643,7 @@ class SVGMesh {
         return sign * acos(clamp(dotTerm, -1f, 1f))
     }
 
-    fun addPolyline(xml: XMLNode, style: SVGStyle, fill: Boolean) {
-        init(style, fill)
+    fun addPolylineBody(xml: XMLNode) {
         val data = xml["points"]!!
 
         var i = 0
@@ -720,7 +718,18 @@ class SVGMesh {
                 }
             }
         }
+    }
 
+    fun addPolyline(xml: XMLNode, style: SVGStyle, fill: Boolean) {
+        init(style, fill)
+        addPolylineBody(xml)
+        endElement()
+    }
+
+    fun addPolygon(xml: XMLNode, style: SVGStyle, fill: Boolean) {
+        init(style, fill)
+        addPolylineBody(xml)
+        close()
         endElement()
     }
 
@@ -749,8 +758,8 @@ class SVGMesh {
         val rx = max(xml["rx"]?.toFloat() ?: 0f, 0f)
         val ry = max(xml["ry"]?.toFloat() ?: 0f, 0f)
 
-        val x = xml["x"]!!.toFloat()
-        val y = xml["y"]!!.toFloat()
+        val x = xml["x"]?.toFloat() ?: 0f
+        val y = xml["y"]?.toFloat() ?: 0f
         val w = xml["width"]!!.toFloat()
         val h = xml["height"]!!.toFloat()
 
@@ -807,11 +816,6 @@ class SVGMesh {
         val cx = xml["cx"]!!.toFloat()
         val cy = xml["cy"]!!.toFloat()
         addSimpleEllipse(cx, cy, r, r)
-        endElement()
-    }
-
-    fun addPolygon(style: SVGStyle, fill: Boolean) {
-        init(style, fill)
         endElement()
     }
 

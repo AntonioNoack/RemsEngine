@@ -172,6 +172,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
+        val fb0 = GFX.vrRenderingRoutine?.fb
+        if (false && fb0?.textures?.firstOrNull()?.isCreated() == true) {
+            drawTexture(x, y, width, height, fb0.getTexture0(), true)
+            return
+        }
+
         val drawnPrimitives0 = PipelineStageImpl.drawnPrimitives
         val drawnInstances0 = PipelineStageImpl.drawnInstances
         val drawCalls0 = PipelineStageImpl.drawCalls
@@ -192,8 +198,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         var camera0 = player?.cameraState?.previousCamera ?: editorCamera
         val camera1 = player?.cameraState?.currentCamera ?: editorCamera
         var blending = player?.cameraState?.cameraBlendingProgress ?: 0f
-        if (player == null) updateEditorCameraTransform()
-
         if (blending >= 1f) {
             blending = 1f
             camera0 = camera1
@@ -381,7 +385,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         when (renderMode) {
             RenderMode.FSR2_X8, RenderMode.FSR2_X2 -> {
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
+                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
                 fsr22.render(
                     this, w, h, x0, y0, x1, y1, buffer, buffers.deferred,
                     buffers.lightNBuffer1, buffers.baseSameDepth1
@@ -410,7 +414,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             else -> {
                 drawScene(
                     w, h, renderer, buffer,
-                    changeSize = true, hdr = false
+                    changeSize = true, hdr = false, sky = true
                 )
                 drawGizmos(buffer, true)
                 drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
@@ -697,7 +701,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
             pipeline.singlePassWithSky(skyI)
             GFX.check()
-
         }
     }
 

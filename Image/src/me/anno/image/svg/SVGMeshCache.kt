@@ -7,9 +7,15 @@ import me.anno.io.files.FileReference
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.Warning.unused
+import me.anno.utils.structures.Callback
 import java.io.InputStream
 
 object SVGMeshCache : CacheSection("Meshes") {
+
+    fun getAsync(file: FileReference, timeout: Long, callback: Callback<AsyncCacheData<StaticBuffer>>) {
+        getFileEntryAsync(file, false, timeout, true, ::loadSVGMeshAsync, callback)
+    }
+
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
         val data = getFileEntry(file, false, timeout, asyncGenerator, ::loadSVGMeshAsync) ?: return null
         if (!asyncGenerator) data.waitFor()

@@ -490,6 +490,9 @@ object GFX {
         viewportHeight = height
     }
 
+    var vrRenderingRoutine: VRRenderingRoutine? = null
+    var shallRenderVR = false
+
     @JvmStatic
     fun renderStep(window: OSWindow, doRender: Boolean) {
 
@@ -531,23 +534,30 @@ object GFX {
 
         val inst = EngineBase.instance
         if (inst != null && doRender) {
-            // in case of an error, we have to fix it,
-            // so give us the best chance to do so:
-            //  - on desktop, sleep a little, so we don't get too many errors
-            //  - on web, just crash, we cannot sleep there
-            if (OS.isWeb) {
-                inst.onGameLoop(window, window.width, window.height)
+            if (shallRenderVR) {
+                shallRenderVR = vrRenderingRoutine!!.drawFrame()
             } else {
-                try {
-                    inst.onGameLoop(window, window.width, window.height)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Thread.sleep(250)
-                }
+                callOnGameLoop(inst, window)
             }
             resetFBStack()
-
             check()
+        }
+    }
+
+    fun callOnGameLoop(inst: EngineBase, window: OSWindow) {
+        // in case of an error, we have to fix it,
+        // so give us the best chance to do so:
+        //  - on desktop, sleep a little, so we don't get too many errors
+        //  - on web, just crash, we cannot sleep there
+        if (OS.isWeb) {
+            inst.onGameLoop(window, window.width, window.height)
+        } else {
+            try {
+                inst.onGameLoop(window, window.width, window.height)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Thread.sleep(250)
+            }
         }
     }
 

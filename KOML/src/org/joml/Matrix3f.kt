@@ -706,21 +706,25 @@ open class Matrix3f {
     }
 
     fun rotation(quat: Quaternionf): Matrix3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotationQ(quat.x, quat.y, quat.z, quat.w)
+    }
+
+    fun rotationQ(qx: Float, qy: Float, qz: Float, qw: Float): Matrix3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         m00 = w2 + x2 - z2 - y2
         m01 = dxy + dzw
@@ -1081,21 +1085,25 @@ open class Matrix3f {
 
     @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Matrix3f = this): Matrix3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix3f = this): Matrix3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw
@@ -1126,21 +1134,25 @@ open class Matrix3f {
 
     @JvmOverloads
     fun rotateLocal(quat: Quaternionf, dst: Matrix3f = this): Matrix3f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateLocalQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateLocalQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix3f = this): Matrix3f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val lm00 = w2 + x2 - z2 - y2
         val lm01 = dxy + dzw

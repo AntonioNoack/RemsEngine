@@ -8,14 +8,16 @@ object YAMLReader {
 
     const val LIST_KEY = ""
 
-    fun findColon(str: String): Int {
-        var i = 0
-        while (true) {
-            val col = str.indexOf(':', i)
-            if (col >= 0 && col + 1 < str.length && str[col + 1] != ' ') {
-                i = col + 1
-            } else return col
-        }
+    fun findColon(str: String, needsSpaceAfterColon: Boolean): Int {
+        if (needsSpaceAfterColon) {
+            var i = 0
+            while (true) {
+                val col = str.indexOf(':', i)
+                if (col >= 0 && col + 1 < str.length && str[col + 1] != ' ') {
+                    i = col + 1
+                } else return col
+            }
+        } else return str.indexOf(':')
     }
 
     /**
@@ -86,7 +88,7 @@ object YAMLReader {
                     trimmed = trimmed.substring(2)
                 }
                 // process the line
-                val colonIndex = if (trimmed.startsWith("{")) -1 else findColon(trimmed)
+                val colonIndex = if (trimmed.startsWith("{")) -1 else findColon(trimmed, true)
                 var key: String = trimmed
                 var value: String? = null
                 if (colonIndex > 0) {

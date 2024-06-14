@@ -10,9 +10,9 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
@@ -21,6 +21,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
+import me.anno.gpu.GFX
 import me.anno.graph.visual.Graph
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
@@ -39,6 +40,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -215,35 +217,57 @@ class ECSSceneTab(
                 }
             }
             Key.BUTTON_RIGHT -> {
-                openMenu(windowStack, listOf(
-                    MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
-                    MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
-                    MenuOption(NameDesc("Copy Path")) { setClipboardContent(file.absolutePath) },
-                    MenuOption(NameDesc("Copy Name")) { setClipboardContent(file.name) },
-                    MenuOption(NameDesc("Clear History")) {
-                        ECSSceneTabs.open(this, true)
-                        val history = inspector.prefab.history
-                        if (history != null) {
-                            val oldSize = history.numStates
-                            history.clearToSize(1)
-                            LogManager.enableLogger(LOGGER) // the user will want to see this
-                            LOGGER.info("Removed ${oldSize - 1} items")
-                        }
-                    },
-                    MenuOption(NameDesc("Close")) {
-                        ECSSceneTabs.close(this, true)
-                    },
-                    MenuOption(NameDesc("Close All Others")) {
-                        ECSSceneTabs.children2.clear()
-                        ECSSceneTabs.project?.openTabs?.clear()
-                        ECSSceneTabs.currentTab = null
-                        ECSSceneTabs.open(this, true)
-                        ECSSceneTabs.project?.saveMaybe()
-                    }
-                ))
+                openMenu(
+                    windowStack, listOf(
+                        MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
+                        MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
+                        MenuOption(NameDesc("Copy Path")) { setClipboardContent(file.absolutePath) },
+                        MenuOption(NameDesc("Copy Name")) { setClipboardContent(file.name) },
+                        MenuOption(NameDesc("Clear History")) {
+                            ECSSceneTabs.open(this, true)
+                            val history = inspector.prefab.history
+                            if (history != null) {
+                                val oldSize = history.numStates
+                                history.clearToSize(1)
+                                LogManager.enableLogger(LOGGER) // the user will want to see this
+                                LOGGER.info("Removed ${oldSize - 1} items")
+                            }
+                        },
+                        MenuOption(NameDesc("Close")) {
+                            ECSSceneTabs.close(this, true)
+                        },
+                        MenuOption(NameDesc("Close All Others")) {
+                            ECSSceneTabs.children2.clear()
+                            ECSSceneTabs.project?.openTabs?.clear()
+                            ECSSceneTabs.currentTab = null
+                            ECSSceneTabs.open(this, true)
+                            ECSSceneTabs.project?.saveMaybe()
+                        },
+                        MenuOption(NameDesc("Play VR")) {
+                            tryStartVR()
+                        }.setEnabled(GFX.vrRenderingRoutine != null, "VR isn't supported")
+                    )
+                )
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
+    }
+
+    fun tryStartVR() {
+        if (GFX.shallRenderVR) {
+            LOGGER.warn("Already running VR")
+            return
+        }
+        val rr = GFX.vrRenderingRoutine
+        if (rr != null) {
+            val window = window?.windowStack?.osWindow
+            val rv = rootPanel.listOfAll.firstInstanceOrNull2(RenderView::class)
+            if (window != null && rv != null) {
+                GFX.shallRenderVR = rr.startSession(window, rv)
+                if (!GFX.shallRenderVR) LOGGER.warn("Failed to initialize VR")
+                else LOGGER.info("Started VR")
+            } else LOGGER.warn(if (window == null) "Window is null" else "RenderView is missing")
+        } else LOGGER.warn("VR isn't supported")
     }
 
     fun play() {

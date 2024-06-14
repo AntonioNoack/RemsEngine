@@ -123,7 +123,7 @@ object DebugRendering {
             GFXState.pushDrawCallName("DebugCamera")
             GFXState.pushDrawCallName("DrawScene")
             view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
-            view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
+            view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
             GFXState.popDrawCallName()
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterward, because we seem to have a kind-of-bug somewhere
@@ -279,7 +279,8 @@ object DebugRendering {
             w, h,
             renderer, buffer,
             changeSize = true,
-            hdr = false // doesn't matter
+            hdr = false, // doesn't matter
+            sky = false // doesn't matter, I think
         )
         view.pipeline.lightStage.visualizeLightCount = true
 

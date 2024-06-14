@@ -7,6 +7,7 @@ import me.anno.maths.Maths.fract
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.mulAlpha
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
 import org.apache.logging.log4j.LogManager
@@ -259,5 +260,9 @@ open class Gradient1D {
     fun String.parseOffset(): Float {
         if (endsWith("%")) return 0.01f * substring(0, lastIndex).toFloat()
         return toFloat()
+    }
+
+    override fun toString(): String {
+        return "Gradient1D{$colors,${averageColor.toHexColor()},$spreadMethod,$hasStops}"
     }
 }

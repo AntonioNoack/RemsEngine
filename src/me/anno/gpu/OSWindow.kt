@@ -27,6 +27,8 @@ open class OSWindow(var title: String) {
         var defaultHeight = 700
     }
 
+    var vsyncOverride: Boolean? = null
+
     var positionX = 0
     var positionY = 0
 
@@ -81,6 +83,8 @@ open class OSWindow(var title: String) {
     var savedY = 10
 
     var enableVsync = true
+        private set
+
     private var lastVsyncInterval = -1
 
     val currentWindow: Window?
@@ -91,11 +95,11 @@ open class OSWindow(var title: String) {
     }
 
     fun setVsyncEnabled(enabled: Boolean) {
-        enableVsync = enabled
+        enableVsync = vsyncOverride ?: enabled
     }
 
     fun toggleVsync() {
-        enableVsync = !enableVsync
+        enableVsync = vsyncOverride ?: !enableVsync
     }
 
     open fun forceUpdateVsync() {

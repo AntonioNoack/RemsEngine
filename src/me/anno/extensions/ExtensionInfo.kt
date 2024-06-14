@@ -31,7 +31,7 @@ class ExtensionInfo() {
     var clazz: KClass<*>? = null
 
     fun loadFromTxt(infoFile: FileReference): ExtensionInfo? {
-        val properties = SimpleYAMLReader.read(infoFile.readLinesSync(1024))
+        val properties = SimpleYAMLReader.read(infoFile.readLinesSync(1024), false)
         val dependencies = ArrayList<String>()
         for ((key, value) in properties) {
             @Suppress("SpellCheckingInspection")

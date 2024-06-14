@@ -178,7 +178,7 @@ abstract class EngineBase(
 
         if (isFirstFrame) tick("Game loop")
 
-        updateVSync(window)
+        window.setVsyncEnabled(enableVSync)
         updateHoveredAndCursor(window)
         processMouseMovement(window)
 
@@ -223,13 +223,6 @@ abstract class EngineBase(
         CacheSection.updateAll()
 
         onGameLoopEnd()
-    }
-
-    fun updateVSync(window: OSWindow) {
-        val vsync = enableVSync
-        if (vsync != window.enableVsync) {
-            window.setVsyncEnabled(vsync)
-        }
     }
 
     fun toggleVsync() {

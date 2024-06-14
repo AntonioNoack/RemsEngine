@@ -24,7 +24,8 @@ object Installer {
 
     private val mirrors = SimpleYAMLReader.read(
         getReference("res://mirrors.yaml")
-            .readLinesSync(1024)
+            .readLinesSync(1024),
+        false
     )
 
     @JvmStatic

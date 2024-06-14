@@ -371,12 +371,14 @@ object GFXState {
 
     fun pushDrawCallName(name: String) {
         if (Build.isDebug) {
+            GFX.checkIsGFXThread()
             GL46C.glPushDebugGroup(GL46C.GL_DEBUG_SOURCE_APPLICATION, 0, name)
         }
     }
 
     fun popDrawCallName() {
         if (Build.isDebug) {
+            GFX.checkIsGFXThread()
             GL46C.glPopDebugGroup()
         }
     }

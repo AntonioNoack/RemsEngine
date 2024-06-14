@@ -12,6 +12,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
@@ -120,6 +121,7 @@ interface IFramebuffer {
             }
         } else {
             useFrame(this) {
+                assertTrue(isBound())
                 clearColor(r, g, b, a, depth)
             }
         }
@@ -141,6 +143,7 @@ interface IFramebuffer {
             }
         } else {
             useFrame(this) {
+                assertTrue(isBound())
                 clearColor(colors, depth)
             }
         }

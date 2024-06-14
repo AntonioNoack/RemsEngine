@@ -287,7 +287,7 @@ class FSR2v2 : ICacheData {
 
         val motion = FBStack["motion", w, h, 4, BufferQuality.FP_16, 1, DepthBufferType.INTERNAL]
         val motionRenderer = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
-        view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true)
+        view.drawScene(w, h, motionRenderer, motion, changeSize = false, hdr = true, sky = true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
         view.drawSceneLights(buffer, tex.texOrNull as Texture2D, tex.mask!!, lightNBuffer1)

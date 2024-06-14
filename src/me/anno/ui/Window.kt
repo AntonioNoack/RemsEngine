@@ -478,6 +478,7 @@ open class Window(
         val x1 = min(panel.x + panel.width, windowStack.width)
         val y1 = min(panel.y + panel.height, windowStack.height)
         val tex = buffer.getTexture0()
+        if (!tex.isCreated()) return // shouldn't happen
         GFXState.depthMode.use(GFXState.alwaysDepthMode) {
             val blendMode = if (isTransparent) BlendMode.DEFAULT else null
             GFXState.blendMode.use(blendMode) {

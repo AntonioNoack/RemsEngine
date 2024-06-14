@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
@@ -50,6 +51,7 @@ import kotlin.math.min
  * */
 fun main() {
 
+    OfficialExtensions.initForTests()
     val scene = Entity("Scene")
     val terrain = Entity("Terrain", scene)
     terrain.add(MeshComponent(getReference("res://meshes/NavMesh.fbx")))

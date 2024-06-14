@@ -21,6 +21,7 @@ object OfficialExtensions {
             "res://image-ext.info",
             "res://video-ext.info",
             "res://export-ext.info",
+            "res://openxr-ext.info",
         )
         for (path in paths) {
             ExtensionLoader.tryLoadMainInfo(path)

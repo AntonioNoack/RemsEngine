@@ -45,7 +45,7 @@ object SaveableRegistry {
     }
 
     fun registerClasses(lines: ReadLineIterator) {
-        val pairs = SimpleYAMLReader.read(lines)
+        val pairs = SimpleYAMLReader.read(lines, false)
         for ((name, classPath) in pairs) {
             Saveable.registerCustomClass(name, LazyRegistryEntry(classPath), print = false)
         }
