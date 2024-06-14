@@ -173,8 +173,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val fb0 = GFX.vrRenderingRoutine?.fb
-        if (false && fb0?.textures?.firstOrNull()?.isCreated() == true) {
-            drawTexture(x, y, width, height, fb0.getTexture0(), true)
+        if (fb0?.textures?.firstOrNull()?.isCreated() == true) {
+            drawTexture(x, y + height, width, -height, fb0.getTexture0(), true)
             return
         }
 

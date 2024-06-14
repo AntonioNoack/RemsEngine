@@ -2,15 +2,12 @@ package me.anno.openxr
 
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.Renderers
 import me.anno.extensions.plugins.Plugin
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.VRRenderingRoutine
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -22,18 +19,11 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureCache
-import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.io.files.Reference.getReference
-import me.anno.utils.assertions.assertEquals
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL30C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL30C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL30C.glFramebufferTexture2D
-import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
-import org.lwjgl.opengl.GL46C.GL_LINEAR
-import org.lwjgl.opengl.GL46C.glBlitNamedFramebuffer
 import org.lwjgl.openxr.XrSpaceLocation
 
 class OpenXRPlugin : Plugin(), VRRenderingRoutine {
@@ -71,7 +61,6 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     needsFilling = true
                 }
 
-                private val cameraEntity get() = rv.editorCameraNode
                 private val camera get() = rv.editorCamera
 
                 fun updateCamera(
@@ -92,12 +81,11 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     val position = position
                     val rotation = rotation
                     updateCamera(position.x, position.y, position.z, rotation.x, rotation.y, rotation.z, rotation.w)
-                    // todo define frustum culling properly
-                    val camera = camera
-                    rv.prepareDrawScene(w, h, 1f, camera, camera, 0f, true)
                 }
 
-                private fun defineTexture(ct: Texture2D, colorTexture: Int, session: Int) {
+                private fun defineTexture(w: Int, h: Int, ct: Texture2D, colorTexture: Int, session: Int) {
+                    ct.width = w
+                    ct.height = h
                     ct.pointer = colorTexture
                     ct.session = session
                     ct.wasCreated = true
@@ -111,53 +99,39 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long, handLocations: XrSpaceLocation.Buffer?,
                     framebuffer: Int, colorTexture: Int, depthTexture: Int
                 ) {
-                    if (false) {
-                        val pose = views[viewIndex].pose()
-                        val pos = pose.`position$`()
-                        val rot = pose.orientation()
-                        updateCamera(pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z(), rot.w())
-                    }
+
+                    // todo fill pipeline only once
+                    // todo use our perspective matrix, not the one given by the engine
+
+                    val pose = views[viewIndex].pose()
+                    val pos = pose.`position$`()
+                    val rot = pose.orientation()
+                    updateCamera(pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z(), rot.w())
+
+                    // todo define frustum culling properly
+                    val camera = camera
+                    rv.prepareDrawScene(w, h, 1f, camera, camera, 0f, true)
+
                     if (depthTexture < 0 && !dt.isCreated()) {
                         dt.create(TargetType.DEPTH16)
                     }
                     val depthTextureI = if (depthTexture < 0) dt.pointer else depthTexture
                     val session = GFXState.session
+                    fb.width = w
+                    fb.height = h
                     fb.pointer = framebuffer
                     fb.session = session
-                    defineTexture(ct, colorTexture, session)
-                    defineTexture(dt, depthTextureI, session)
+                    defineTexture(w, h, ct, colorTexture, session)
+                    defineTexture(w, h, dt, depthTextureI, session)
                     fb.bind()
                     attachTexture(GL_COLOR_ATTACHMENT0, colorTexture)
                     attachTexture(GL_DEPTH_ATTACHMENT, depthTextureI)
                     Framebuffer.drawBuffers1(0)
                     fb.checkIsComplete()
-                    // todo why is the screen just blue, and not red or sky-colored????
-                    useFrame(fb) {
-                        assertEquals(framebuffer, fb.pointer)
-                        fb.clearColor(0f, 0f, 1f, 1f, true)
-                        val sample = TextureCache[getReference("res://icon.png"), true] ?: missingTexture
-                        GFXState.depthMode.use(DepthMode.ALWAYS) {
-                            val shader = simpleShader
-                            shader.use()
-                            flat01.draw(shader)
-                            drawTexture(0, 0, w, h, sample, true)
-                            rv.pipeline.drawSky()
-                        }
-                    }
-                    val window0 = window.windowStack.first()
-                    val srcFramebuffer = window0.buffer
-                    glBlitNamedFramebuffer(
-                        srcFramebuffer.pointer,
-                        framebuffer, rv.x, rv.y, rv.width, rv.height,
-                        0, 0, w, h,
-                        GL_COLOR_BUFFER_BIT,
-                        GL_LINEAR
-                    )
-                    /*rv.drawScene(
-                        w, h, Renderer.colorRenderer,
+                    rv.drawScene(
+                        w, h, Renderers.pbrRenderer,
                         fb, changeSize = false, hdr = false, sky = true
-                    )*/
-                    GFX.check()
+                    )
                 }
             }
             initFramebuffers()
