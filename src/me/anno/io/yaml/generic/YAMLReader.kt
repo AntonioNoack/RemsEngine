@@ -3,21 +3,22 @@ package me.anno.io.yaml.generic
 import me.anno.utils.types.Strings.titlecase
 import java.io.BufferedReader
 import java.io.IOException
+import kotlin.math.max
 
 object YAMLReader {
 
     const val LIST_KEY = ""
 
     fun findColon(str: String, needsSpaceAfterColon: Boolean): Int {
+        val i0 = str.indexOf(':')
         if (needsSpaceAfterColon) {
-            var i = 0
+            var i = i0
             while (true) {
-                val col = str.indexOf(':', i)
-                if (col >= 0 && col + 1 < str.length && str[col + 1] != ' ') {
-                    i = col + 1
-                } else return col
+                if (i >= 0 && i + 1 < str.length && str[i + 1] != ' ') {
+                    i = str.indexOf(':', i) // find the next place
+                } else return max(i, i0) // i will be -1 or a good position, i0 is the first colon
             }
-        } else return str.indexOf(':')
+        } else return i0
     }
 
     /**

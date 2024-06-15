@@ -41,9 +41,6 @@ class Camera : Component() {
     @Docs("the fov when orthographic, in base units")
     var fovOrthographic = 5f
 
-    val bloomStrength = 0.001f
-    val bloomOffset = 0f
-
     @Docs("offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²")
     var center = Vector2f()
 

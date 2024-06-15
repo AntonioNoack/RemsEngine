@@ -14,6 +14,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
+import me.anno.engine.ui.render.DebugRendering.showStereoView
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
@@ -55,7 +56,6 @@ import me.anno.graph.visual.render.RenderGraph
 import me.anno.input.Input
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
@@ -67,6 +67,7 @@ import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
@@ -96,9 +97,6 @@ import kotlin.math.tan
 abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     abstract fun getWorld(): PrefabSaveable?
-
-    private var bloomStrength = 0f // defined by the camera
-    private var bloomOffset = 0f // defined by the camera
 
     var controlScheme: ControlScheme? = null
 
@@ -173,8 +171,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val fb0 = GFX.vrRenderingRoutine?.fb
-        if (fb0?.textures?.firstOrNull()?.isCreated() == true) {
-            drawTexture(x, y + height, width, -height, fb0.getTexture0(), true)
+        if (fb0?.textures?.all2 { it.isCreated() } == true) {
+            showStereoView(x, y + height, width, -height, fb0, false)
             return
         }
 
@@ -206,7 +204,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val aspectRatio = findAspectRatio()
 
         val t1 = Time.nanoTime
-        prepareDrawScene(width, height, aspectRatio, camera0, camera1, blending, true)
+        prepareDrawScene(width, height, aspectRatio, camera0, true)
         val t2 = Time.nanoTime
         FrameTimings.add(t2 - t1, UIColors.midOrange)
 
@@ -214,18 +212,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         pipeline.superMaterial = renderMode.superMaterial
         updatePipelineStage0(renderMode)
 
-        val renderGraph = renderMode.renderGraph
-        if (renderGraph != null) {
-            // graph will draw all things
-            RenderGraph.draw(this, this, renderGraph)
-        } else {
-            // we have to draw based on Renderer/RenderMode
-            // todo this forgetting to clear, which looks weird...
-            val renderer = renderMode.renderer ?: DeferredRenderer
-            val buffer = findBuffer(renderer)
-            updateSkybox(renderer)
-            drawScene(x0, y0, x1, y1, renderer, buffer)
-        }
+        render(x0, y0, x1, y1)
 
         val t3 = Time.nanoTime
         FrameTimings.add(t3 - t1, UIColors.cornFlowerBlue)
@@ -251,6 +238,20 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val t4 = Time.nanoTime
         FrameTimings.add(t4 - t1, paleGoldenRod)
+    }
+
+    fun render(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val renderGraph = renderMode.renderGraph
+        if (renderGraph != null) {
+            // graph will draw all things
+            RenderGraph.draw(this, this, renderGraph)
+        } else {
+            // we have to draw based on Renderer/RenderMode
+            val renderer = renderMode.renderer ?: DeferredRenderer
+            val buffer = findBuffer(renderer)
+            updateSkybox(renderer)
+            drawScene(x0, y0, x1, y1, renderer, buffer)
+        }
     }
 
     fun updatePipelineStage0(renderMode: RenderMode) {
@@ -478,15 +479,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         } else return Pair(null, null)
     }
 
-    fun prepareDrawScene(
-        width: Int,
-        height: Int,
-        aspectRatio: Float,
-        currCam: Camera,
-        prevCam: Camera,
-        blending: Float,
-        update: Boolean
-    ) {
+    private fun findFOV(camera: Camera): Float {
+        return if (camera.isPerspective) camera.fovY else camera.fovOrthographic * 0.5f
+    }
+
+    fun prepareDrawScene(width: Int, height: Int, aspectRatio: Float, camera: Camera, update: Boolean) {
 
         val world = getWorld()
 
@@ -496,23 +493,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             updateWorld(world)
         }
 
-        val blend = clamp(blending, 0f, 1f).toDouble()
-        val blendF = blend.toFloat()
-
-        val near = mix(prevCam.near, currCam.near, blend)
-        val far = mix(prevCam.far, currCam.far, blend)
-        val isPerspective = currCam.isPerspective
-        val fov = if (isPerspective) {
-            mix(prevCam.fovY, currCam.fovY, blending)
-        } else {
-            mix(prevCam.fovOrthographic, currCam.fovOrthographic, blending) * 0.5f
-        }
-
-        bloomStrength = mix(prevCam.bloomStrength, currCam.bloomStrength, blendF)
-        bloomOffset = mix(prevCam.bloomOffset, currCam.bloomOffset, blendF)
-
-        val centerX = mix(prevCam.center.x, currCam.center.x, blendF)
-        val centerY = mix(prevCam.center.x, currCam.center.y, blendF)
+        val near = camera.near
+        val far = camera.far
+        val isPerspective = camera.isPerspective
+        val fov = findFOV(camera)
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
@@ -520,6 +504,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         this.scaledFar = (far * worldScale)
         this.isPerspective = isPerspective
         if (isPerspective) {
+            val centerX = camera.center.x
+            val centerY = camera.center.y
             setPerspectiveCamera(fov, aspectRatio, centerX, centerY)
         } else {
             setOrthographicCamera(fov, aspectRatio)
@@ -534,28 +520,21 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             LOGGER.warn("Set matrix to identity, because it was non-finite! $cameraMatrix")
         }
 
-        val t0 = prevCam.entity?.transform?.getValidDrawMatrix()
-        val t1 = currCam.entity?.transform?.getValidDrawMatrix()
+        val t1 = camera.entity?.transform?.getValidDrawMatrix()
 
-        val rot0 = JomlPools.quat4d.create()
-        val rot1 = JomlPools.quat4d.create()
-        if (t0 != null) t0.getUnnormalizedRotation(rot0) else rot0.identity()
-        if (t1 != null) t1.getUnnormalizedRotation(rot1) else rot1.identity()
-        if (!rot0.isFinite) rot0.identity()
-        if (!rot1.isFinite) rot1.identity()
+        val camRot = JomlPools.quat4d.create()
+        val camRotInv = JomlPools.quat4d.create()
+        if (t1 != null) {
+            t1.getUnnormalizedRotation(camRot)
+            if (!camRot.isFinite) camRot.identity()
+        } else camRot.identity()
 
-        val camRot = rot0.slerp(rot1, blend)
-        val camRotInv = camRot.conjugate(rot1)
-
-        cameraMatrix.rotate(camRotInv)
-        cameraRotation.set(camRot)
-        cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+        camRot.conjugate(camRotInv)
+        rotateCamMatrix(camRot, camRotInv)
         JomlPools.quat4d.sub(2)
 
-        if (t0 != null) t0.getTranslation(cameraPosition)
+        if (t1 != null) t1.getTranslation(cameraPosition)
         else cameraPosition.set(0.0)
-        if (t1 != null) cameraPosition.lerp(t1.getTranslation(Vector3d()), blend)
-        else cameraPosition.mul(1.0 - blend)
 
         // camera matrix and mouse position to ray direction
         if (update) {
@@ -563,14 +542,23 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
         }
 
+        storePrevTransform()
+        currentInstance = this
+
+        definePipeline(width, height, aspectRatio, fov, world)
+    }
+
+    private fun rotateCamMatrix(camRot: Quaterniond, camRotInv: Quaterniond) {
+        cameraMatrix.rotate(camRotInv)
+        cameraRotation.set(camRot)
+        camRot.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+    }
+
+    private fun storePrevTransform() {
         prevCamMatrix.set(lastCamMat)
         prevCamPosition.set(lastCamPos)
         prevCamRotation.set(lastCamRot)
         prevWorldScale = lastWorldScale
-
-        currentInstance = this
-
-        definePipeline(width, height, aspectRatio, fov, world)
     }
 
     fun setPerspectiveCamera(fov: Float, aspectRatio: Float, centerX: Float, centerY: Float) {

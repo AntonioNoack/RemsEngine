@@ -229,6 +229,7 @@ abstract class OpenXR(val window: Long) {
     }
 
     init {
+        LOGGER.info("Views: $viewCount")
         checkOpenGLRequirements(systemId)
     }
 

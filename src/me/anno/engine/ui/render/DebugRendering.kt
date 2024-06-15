@@ -11,21 +11,31 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.DepthTransforms
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
@@ -52,6 +62,38 @@ import kotlin.math.min
  * Helpers to draw debug information onto RenderView
  * */
 object DebugRendering {
+
+    // https://en.wikipedia.org/wiki/Anaglyph_3D
+    val redCyanShader = BaseShader(
+        "redCyanShader",
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, uvList,
+        listOf(
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.S2D, "tex0"),
+            Variable(GLSLType.S2D, "tex1"),
+        ), "" +
+                tonemapGLSL +
+                "void main(){\n" +
+                "   vec3 col = mix(texture(tex0, uv).rgb, texture(tex1, uv).rgb, vec3(0.0, 1.0, 1.0));\n" +
+                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
+                "   else if(applyToneMapping) { col = tonemap(col); }\n" +
+                "   gl_FragColor = vec4(col,1.0);\n" +
+                "}"
+    )
+
+    fun showStereoView(x: Int, y: Int, w: Int, h: Int, fb: Framebuffer, applyToneMapping: Boolean) {
+        GFX.check()
+        val shader = redCyanShader.value
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v1b("applyToneMapping", applyToneMapping)
+        GFXx2D.tiling(shader, null)
+        fb.getTextureI(0).bindTrulyLinear(shader, "tex0")
+        fb.getTextureI(1).bindTrulyLinear(shader, "tex1")
+        flat01.draw(shader)
+        GFX.check()
+    }
 
     fun showShadowMapDebug(view: RenderView) {
         // show the shadow map for debugging purposes
@@ -122,7 +164,7 @@ object DebugRendering {
             val renderer = Renderers.pbrRenderer
             GFXState.pushDrawCallName("DebugCamera")
             GFXState.pushDrawCallName("DrawScene")
-            view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
+            view.prepareDrawScene(w, h, w.toFloat() / h, camera, false)
             view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
             GFXState.popDrawCallName()
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
@@ -131,7 +173,7 @@ object DebugRendering {
             view.prepareDrawScene(
                 view.width, view.height,
                 view.width.toFloat() / view.height,
-                camera2, camera2, 0f, false
+                camera2, false
             )
             GFXState.popDrawCallName()
         }

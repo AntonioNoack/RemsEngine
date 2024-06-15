@@ -3,6 +3,7 @@ package me.anno.openxr
 import me.anno.openxr.OpenXRUtils.checkXR
 import me.anno.openxr.OpenXRUtils.ptr
 import me.anno.utils.types.Booleans.hasFlag
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.openxr.XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE
 import org.lwjgl.openxr.XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION
 import org.lwjgl.openxr.XR10.XR_TYPE_FRAME_BEGIN_INFO
@@ -29,6 +30,10 @@ import org.lwjgl.openxr.XrViewLocateInfo
 import org.lwjgl.openxr.XrViewState
 
 class XrFrameStructs {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(XrFrameStructs::class)
+    }
 
     // frame structs
     val frameState: XrFrameState = XrFrameState.calloc()
@@ -75,7 +80,7 @@ class XrFrameStructs {
             .type(XR_TYPE_FRAME_END_INFO)
             .next(0)
             .displayTime(frameState.predictedDisplayTime())
-            .layerCount(findSubmittedLayerCount(viewState, frameState))
+            .layerCount(findSubmittedLayerCount())
             .layers(ptr)
             // real AR glasses only support additive blending
             // todo why is alpha-blending unsupported in SteamVR?
@@ -83,15 +88,15 @@ class XrFrameStructs {
         checkXR(xrEndFrame(session, frameEndInfo))
     }
 
-    private fun findSubmittedLayerCount(viewState: XrViewState, frameState: XrFrameState): Int {
+    private fun findSubmittedLayerCount(): Int {
         var submittedLayerCount = 1
         if (!viewState.viewStateFlags().hasFlag(XR_VIEW_STATE_ORIENTATION_VALID_BIT.toLong())) {
-            println("Submitting no layers, because orientation is invalid")
+            LOGGER.info("Submitting no layers, because orientation is invalid")
             submittedLayerCount = 0
         }
 
         if (!frameState.shouldRender()) {
-            println("Submitting no layers, because shouldRender is false")
+            LOGGER.info("Submitting no layers, because shouldRender is false")
             submittedLayerCount = 0
         }
         return submittedLayerCount

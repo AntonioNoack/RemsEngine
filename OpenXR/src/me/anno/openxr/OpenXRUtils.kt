@@ -1,5 +1,6 @@
 package me.anno.openxr
 
+import me.anno.Time
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.PointerBuffer
@@ -14,7 +15,9 @@ import org.lwjgl.openxr.EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT
 import org.lwjgl.openxr.EXTDebugUtils.XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT
 import org.lwjgl.openxr.EXTDebugUtils.xrCreateDebugUtilsMessengerEXT
 import org.lwjgl.openxr.EXTHandTracking.XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT
+import org.lwjgl.openxr.XR10.XR_ERROR_POSE_INVALID
 import org.lwjgl.openxr.XR10.XR_EVENT_UNAVAILABLE
+import org.lwjgl.openxr.XR10.XR_FRAME_DISCARDED
 import org.lwjgl.openxr.XR10.XR_SUCCESS
 import org.lwjgl.openxr.XR10.XR_TYPE_INSTANCE_PROPERTIES
 import org.lwjgl.openxr.XR10.XR_TYPE_SYSTEM_PROPERTIES
@@ -147,6 +150,14 @@ object OpenXRUtils {
     fun checkXR(result: Int): Boolean {
         if (result == XR_SUCCESS) return false
         if (result == XR_EVENT_UNAVAILABLE) return true
+        if (result == XR_ERROR_POSE_INVALID) {
+            LOGGER.warn("[${Time.nanoTime}] Invalid pose")
+            return true
+        }
+        if (result == XR_FRAME_DISCARDED) {
+            LOGGER.warn("[${Time.nanoTime}] Frame discarded")
+            return true
+        }
         val instance = xrInstance ?: throw IllegalStateException("Error $result")
         if (xrResultToString(instance, result, xrResultBuffer) == XR_SUCCESS) {
             val stringLength = (0 until xrResultBuffer.capacity())

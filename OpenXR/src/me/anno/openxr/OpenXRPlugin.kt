@@ -2,22 +2,16 @@ package me.anno.openxr
 
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.Renderers
+import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.extensions.plugins.Plugin
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.VRRenderingRoutine
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
-import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL30C.GL_DEPTH_ATTACHMENT
@@ -35,21 +29,13 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     private var instance: OpenXR? = null
     override val fb = Framebuffer("OpenXR", 1, 1, 1, TargetType.UInt8x4, DepthBufferType.TEXTURE)
-    private val ct = Texture2D("OpenXR-Depth", 1, 1, 1)
+    private val ct0 = Texture2D("OpenXR-Left", 1, 1, 1)
+    private val ct1 = Texture2D("OpenXR-Right", 1, 1, 1)
     private val dt = Texture2D("OpenXR-Depth", 1, 1, 1)
 
     init {
-        fb.textures = listOf(ct)
+        fb.textures = listOf(ct0, ct1)
     }
-
-    val simpleShader = Shader(
-        "simple", coordsList, coordsUVVertexShader, uvList, listOf(
-            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "" +
-                "void main(){\n" +
-                "   result = vec4(1,0,0,1);\n" +
-                "}\n"
-    )
 
     override fun startSession(window: OSWindow, rv: RenderView): Boolean {
         try {
@@ -81,6 +67,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     val position = position
                     val rotation = rotation
                     updateCamera(position.x, position.y, position.z, rotation.x, rotation.y, rotation.z, rotation.w)
+                    rv.prepareDrawScene(w, h, 1f, camera, true)
                 }
 
                 private fun defineTexture(w: Int, h: Int, ct: Texture2D, colorTexture: Int, session: Int) {
@@ -95,23 +82,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     glFramebufferTexture2D(GL_FRAMEBUFFER, target, GL_TEXTURE_2D, colorTexture, 0)
                 }
 
-                override fun renderFrame(
-                    viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long, handLocations: XrSpaceLocation.Buffer?,
-                    framebuffer: Int, colorTexture: Int, depthTexture: Int
-                ) {
-
-                    // todo fill pipeline only once
-                    // todo use our perspective matrix, not the one given by the engine
-
-                    val pose = views[viewIndex].pose()
-                    val pos = pose.`position$`()
-                    val rot = pose.orientation()
-                    updateCamera(pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z(), rot.w())
-
-                    // todo define frustum culling properly
-                    val camera = camera
-                    rv.prepareDrawScene(w, h, 1f, camera, camera, 0f, true)
-
+                private fun setupFramebuffer(viewIndex: Int, w: Int, h: Int, colorTexture: Int, depthTexture: Int) {
                     if (depthTexture < 0 && !dt.isCreated()) {
                         dt.create(TargetType.DEPTH16)
                     }
@@ -121,6 +92,7 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     fb.height = h
                     fb.pointer = framebuffer
                     fb.session = session
+                    val ct = if (viewIndex == 0) ct0 else ct1
                     defineTexture(w, h, ct, colorTexture, session)
                     defineTexture(w, h, dt, depthTextureI, session)
                     fb.bind()
@@ -128,14 +100,55 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
                     attachTexture(GL_DEPTH_ATTACHMENT, depthTextureI)
                     Framebuffer.drawBuffers1(0)
                     fb.checkIsComplete()
-                    rv.drawScene(
-                        w, h, Renderers.pbrRenderer,
-                        fb, changeSize = false, hdr = false, sky = true
+                }
+
+                private fun renderFrame(w: Int, h: Int) {
+                    val ox = rv.x
+                    val oy = rv.y
+                    val ow = rv.width
+                    val oh = rv.height
+                    rv.setRenderState()
+                    if (true) {
+                        rv.drawScene(w, h, pbrRenderer, fb, false, false, true)
+                    } else {
+                        useFrame(fb) {
+                            rv.render(0, 0, w, h)
+                        }
+                    }
+                    rv.x = ox
+                    rv.y = oy
+                    rv.width = ow
+                    rv.height = oh
+                }
+
+                override fun renderFrame(
+                    viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long, handLocations: XrSpaceLocation.Buffer?,
+                    framebuffer: Int, colorTexture: Int, depthTexture: Int
+                ) {
+
+                    val view = views[viewIndex]
+                    val pose = view.pose()
+                    val pos = pose.`position$`()
+                    val rot = pose.orientation()
+
+                    rv.cameraRotation.set(rot.x(), rot.y(), rot.z(), rot.w())
+                    createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f)
+                    // todo offset camera matrix by (pos - centerPos) / worldScale
+                    println(
+                        listOf(
+                            rv.worldScale, viewIndex, pos.x() - position.x, pos.y() - position.y, pos.z() - position.z,
+                            rot.x(), rot.y(), rot.z(), rot.w()
+                        )
                     )
+                    rv.cameraMatrix.translate(pos.x() - position.x, pos.y() - position.y, pos.z() - position.z)
+                    rv.cameraMatrix.rotate(rv.cameraRotation)
+                    rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+
+                    setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
+                    renderFrame(w, h)
                 }
             }
             initFramebuffers()
-            // GFXState.newSession() // todo remove this, when everything is working :/
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -146,10 +159,10 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
     override fun drawFrame(): Boolean {
         val instance = instance!!
         instance.renderFrameMaybe()
-        if (!instance.events.instanceAlive) {
+        return if (!instance.events.instanceAlive) {
             // ensure we'd crash next time
             this.instance = null
-        }
-        return instance.events.instanceAlive
+            false
+        } else true
     }
 }
