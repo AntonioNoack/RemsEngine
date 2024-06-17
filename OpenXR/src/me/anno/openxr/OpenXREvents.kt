@@ -1,7 +1,7 @@
 package me.anno.openxr
 
+import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
 import me.anno.openxr.OpenXRUtils.checkXR
-import me.anno.openxr.OpenXRUtils.viewConfigType
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openxr.XR10.XR_SESSION_STATE_EXITING
@@ -46,13 +46,13 @@ class OpenXREvents(val instance: XrInstance, val session: XrSession, val window:
     val stateEvent = XrEventDataSessionStateChanged(eventBuffer)
     val runtimeEvent = XrEventDataBuffer(eventBuffer)
 
-    fun pollEvents() {
+    fun pollEvents(xr: OpenXR) {
         while (true) {
             runtimeEvent
                 .type(XR_TYPE_EVENT_DATA_BUFFER)
                 .next(0)
             if (checkXR(xrPollEvent(instance, runtimeEvent))) break
-            handleEvent()
+            handleEvent(xr)
         }
     }
 
@@ -71,15 +71,14 @@ class OpenXREvents(val instance: XrInstance, val session: XrSession, val window:
         }
     }
 
-    var currentState = XR_SESSION_STATE_UNKNOWN
-    private fun handleEvent() {
+    private fun handleEvent(xr: OpenXR) {
         when (runtimeEvent.type()) {
             // todo monitor state changes, e.g. for whether we should render
             XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING -> {}
             XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED -> {
                 val newState = stateEvent.state()
                 LOGGER.info("State changed: ${getStateName(newState)}")
-                currentState = newState
+                xr.state = newState
                 when (newState) {
                     XR_SESSION_STATE_IDLE, XR_SESSION_STATE_UNKNOWN -> {
                         canSkipRendering = true
@@ -93,7 +92,7 @@ class OpenXREvents(val instance: XrInstance, val session: XrSession, val window:
                             LOGGER.info("Starting session")
                             val beginInfo = XrSessionBeginInfo.calloc()
                                 .type(XR_TYPE_SESSION_BEGIN_INFO).next(0)
-                                .primaryViewConfigurationType(viewConfigType)
+                                .primaryViewConfigurationType(VIEW_CONFIG_TYPE)
                             checkXR(xrBeginSession(session, beginInfo))
                             beginInfo.free() // no longer needed
                             LOGGER.info("Session started")

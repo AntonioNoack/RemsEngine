@@ -15,6 +15,8 @@ import org.lwjgl.openxr.EXTDebugUtils.XR_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT
 import org.lwjgl.openxr.EXTDebugUtils.XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT
 import org.lwjgl.openxr.EXTDebugUtils.xrCreateDebugUtilsMessengerEXT
 import org.lwjgl.openxr.EXTHandTracking.XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT
+import org.lwjgl.openxr.KHROpenGLEnable.XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR
+import org.lwjgl.openxr.KHROpenGLEnable.xrGetOpenGLGraphicsRequirementsKHR
 import org.lwjgl.openxr.XR10.XR_ERROR_POSE_INVALID
 import org.lwjgl.openxr.XR10.XR_EVENT_UNAVAILABLE
 import org.lwjgl.openxr.XR10.XR_FRAME_DISCARDED
@@ -24,12 +26,12 @@ import org.lwjgl.openxr.XR10.XR_TYPE_SYSTEM_PROPERTIES
 import org.lwjgl.openxr.XR10.XR_VERSION_MAJOR
 import org.lwjgl.openxr.XR10.XR_VERSION_MINOR
 import org.lwjgl.openxr.XR10.XR_VERSION_PATCH
-import org.lwjgl.openxr.XR10.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
 import org.lwjgl.openxr.XR10.xrGetInstanceProperties
 import org.lwjgl.openxr.XR10.xrGetSystemProperties
 import org.lwjgl.openxr.XR10.xrResultToString
 import org.lwjgl.openxr.XrDebugUtilsMessengerCallbackDataEXT
 import org.lwjgl.openxr.XrDebugUtilsMessengerCreateInfoEXT
+import org.lwjgl.openxr.XrGraphicsRequirementsOpenGLKHR
 import org.lwjgl.openxr.XrInstance
 import org.lwjgl.openxr.XrInstanceProperties
 import org.lwjgl.openxr.XrSystemHandTrackingPropertiesEXT
@@ -39,19 +41,22 @@ import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 
-// todo can we query supported texture formats using OpenGL? would reduce guessing
 object OpenXRUtils {
 
     private val LOGGER = LogManager.getLogger(OpenXRUtils::class)
 
-    val ptrBuffer = ByteBufferPool.allocateDirect(8)
-    val intPtr: IntBuffer = ptrBuffer.asIntBuffer()
-    val longPtr: LongBuffer = ptrBuffer.asLongBuffer()
+    val intPtr: IntBuffer
+    val longPtr: LongBuffer
+
+    init {
+        val ptrBuffer = ByteBufferPool.allocateDirect(8)
+        intPtr = ptrBuffer.asIntBuffer()
+        longPtr = ptrBuffer.asLongBuffer()
+    }
+
     val ptr: PointerBuffer = PointerBuffer.allocateDirect(1)
 
-    val viewConfigType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
-
-    fun printSystemProperties(sp: XrSystemProperties, ht: XrSystemHandTrackingPropertiesEXT?) {
+    fun printSystemProperties(xr: OpenXRSystem, sp: XrSystemProperties, ht: XrSystemHandTrackingPropertiesEXT?) {
         LOGGER.info("System properties for ${sp.systemId()}, ${sp.systemNameString()}, vendor ${sp.vendorId()}")
         val gp = sp.graphicsProperties()
         LOGGER.info("Max layers: ${gp.maxLayerCount()}")
@@ -59,25 +64,25 @@ object OpenXRUtils {
         val tp = sp.trackingProperties()
         LOGGER.info("Orientation tracking: ${tp.orientationTracking()}")
         LOGGER.info("Position tracking: ${tp.positionTracking()}")
-        hasHandTracking = if (ht != null) {
+        xr.hasHandTracking = if (ht != null) {
             LOGGER.info("Hand tracking: ${ht.supportsHandTracking()}")
             ht.supportsHandTracking()
         } else false
     }
 
-    fun checkHandTrackingAndPrintSystemProperties(instance: XrInstance, systemId: Long) {
+    fun checkHandTrackingAndPrintSystemProperties(xr: OpenXRSystem, instance: XrInstance, systemId: Long) {
         // optional hand tracking queries
         val sp = XrSystemProperties.calloc()
             .type(XR_TYPE_SYSTEM_PROPERTIES)
             .next(0)
-        val ht = if (hasHandTracking) {
+        val ht = if (xr.hasHandTracking) {
             val ht = XrSystemHandTrackingPropertiesEXT.calloc()
                 .type(XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT)
             sp.next(ht)
             ht
         } else null
         checkXR(xrGetSystemProperties(instance, systemId, sp))
-        printSystemProperties(sp, ht)
+        printSystemProperties(xr, sp, ht)
     }
 
     fun printInstanceProperties(instance: XrInstance) {
@@ -95,8 +100,8 @@ object OpenXRUtils {
         )
     }
 
-    fun setupDebugging(instance: XrInstance) {
-        if (hasDebug) {
+    fun setupDebugging(xr: OpenXRSystem, instance: XrInstance) {
+        if (xr.hasDebug) {
             val debugInfo = XrDebugUtilsMessengerCreateInfoEXT.calloc()
                 .type(XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT)
                 .messageSeverities(
@@ -132,6 +137,19 @@ object OpenXRUtils {
             val ptr = PointerBuffer.allocateDirect(1)
             checkXR(xrCreateDebugUtilsMessengerEXT(instance, debugInfo, ptr))
         }
+    }
+
+    fun checkOpenGLRequirements(systemId: Long, instance: XrInstance) {
+        val openGLRequirements = XrGraphicsRequirementsOpenGLKHR.calloc()
+            .type(XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR).next(0)
+        checkXR(xrGetOpenGLGraphicsRequirementsKHR(instance, systemId, openGLRequirements))
+        LOGGER.info( // 4.3 to 4.6 for Meta Quest 3 in SteamVR, 4.0 to 4.6 in Meta Quest Link
+            "Graphics Requirements: " +
+                    "${XR_VERSION_MAJOR(openGLRequirements.minApiVersionSupported())}." +
+                    "${XR_VERSION_MINOR(openGLRequirements.minApiVersionSupported())} to " +
+                    "${XR_VERSION_MAJOR(openGLRequirements.maxApiVersionSupported())}." +
+                    "${XR_VERSION_MINOR(openGLRequirements.maxApiVersionSupported())}"
+        )
     }
 
     val stringBuffers = HashMap<String, ByteBuffer>() // keep them in memory, so we don't get any ugly segfaults

@@ -12,10 +12,10 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
+import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -348,7 +348,9 @@ object DebugRendering {
         GFXState.pushDrawCallName("AllBuffers")
         val layers = deferred.storageLayers
         val size = layers.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
-        val (rows, cols) = view.findRowsCols(size)
+        val colsRows = findGoodTileLayout(size, view.width, view.height)
+        val cols = colsRows.x
+        val rows = colsRows.y
 
         GFXState.pushDrawCallName("Scene")
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
@@ -385,7 +387,11 @@ object DebugRendering {
                     lightBuffer.getTexture0()
                 }
                 size - 1 -> buffer.depthTexture ?: missingTexture
-                else -> buffer.getTextureI(index)
+                else -> {
+                    val texture = buffer.getTextureI(index)
+                    applyToneMapping = texture.isHDR
+                    texture
+                }
             }
 
             // y flipped, because it would be incorrect otherwise
@@ -419,7 +425,9 @@ object DebugRendering {
     ) {
         GFXState.pushDrawCallName("AllLayers")
         val size = deferred.layerTypes.size + 1 + GFX.supportsDepthTextures.toInt() /* 1 for light, 1 for depth */
-        val (rows, cols) = view.findRowsCols(size)
+        val colsRows = findGoodTileLayout(size, view.width, view.height)
+        val cols = colsRows.x
+        val rows = colsRows.y
 
         GFXState.pushDrawCallName("Scene")
         view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
@@ -478,7 +486,7 @@ object DebugRendering {
                         shader.use()
                         DepthTransforms.bindDepthUniforms(shader)
                         settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
-                        SimpleBuffer.flat01.draw(shader)
+                        flat01.draw(shader)
                     }
                     texture = tmp.getTexture0()
                 }

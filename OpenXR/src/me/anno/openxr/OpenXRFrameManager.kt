@@ -29,10 +29,10 @@ import org.lwjgl.openxr.XrSwapchainImageWaitInfo
 import org.lwjgl.openxr.XrViewLocateInfo
 import org.lwjgl.openxr.XrViewState
 
-class XrFrameStructs {
+class OpenXRFrameManager {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(XrFrameStructs::class)
+        private val LOGGER = LogManager.getLogger(OpenXRFrameManager::class)
     }
 
     // frame structs

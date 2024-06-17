@@ -12,7 +12,7 @@ interface VRRenderingRoutine {
     /**
      * returns whether the next frame still shall be drawn by this context
      * */
-    fun drawFrame(): Boolean
+    fun drawFrame(window: OSWindow): Boolean
 
     val fb: Framebuffer
 }

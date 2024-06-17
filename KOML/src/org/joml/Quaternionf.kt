@@ -59,12 +59,7 @@ open class Quaternionf(
 
     @JvmOverloads
     fun normalize(dst: Quaternionf = this): Quaternionf {
-        val invNorm = JomlMath.invsqrt(lengthSquared())
-        dst.x = x * invNorm
-        dst.y = y * invNorm
-        dst.z = z * invNorm
-        dst.w = w * invNorm
-        return dst
+        return scaleDirectly(JomlMath.invsqrt(lengthSquared()), dst)
     }
 
     @JvmOverloads
@@ -78,11 +73,7 @@ open class Quaternionf(
 
     @JvmOverloads
     fun add(q2: Quaternionf, dst: Quaternionf = this): Quaternionf {
-        dst.x = x + q2.x
-        dst.y = y + q2.y
-        dst.z = z + q2.z
-        dst.w = w + q2.w
-        return dst
+        return add(q2.x, q2.y, q2.z, q2.z, dst)
     }
 
     fun dot(o: Quaternionf): Float {
@@ -233,10 +224,11 @@ open class Quaternionf(
         val halfAngle = angle / 2f
         val sinAngle = sin(halfAngle)
         val invVLength = JomlMath.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-        return this.set(
-            axisX * invVLength * sinAngle,
-            axisY * invVLength * sinAngle,
-            axisZ * invVLength * sinAngle,
+        val factor = invVLength * sinAngle
+        return set(
+            axisX * factor,
+            axisY * factor,
+            axisZ * factor,
             cos(halfAngle)
         )
     }
@@ -1506,11 +1498,14 @@ open class Quaternionf(
 
     @JvmOverloads
     fun scale(factor: Float, dst: Quaternionf = this): Quaternionf {
-        val sqrt = sqrt(factor)
-        dst.x = sqrt * x
-        dst.y = sqrt * y
-        dst.z = sqrt * z
-        dst.w = sqrt * w
+        return scaleDirectly(sqrt(factor), dst)
+    }
+
+    fun scaleDirectly(factor: Float, dst: Quaternionf = this): Quaternionf {
+        dst.x = factor * x
+        dst.y = factor * y
+        dst.z = factor * z
+        dst.w = factor * w
         return dst
     }
 
@@ -1850,8 +1845,7 @@ open class Quaternionf(
         val halfAngle = angle * 0.5f
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dst.set(c * x + s * w, c * y - s * z, c * z + s * y, c * w - s * x)
-        return dst
+        return dst.set(c * x + s * w, c * y - s * z, c * z + s * y, c * w - s * x)
     }
 
     @JvmOverloads
@@ -1859,8 +1853,7 @@ open class Quaternionf(
         val halfAngle = angle * 0.5f
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dst.set(c * x + s * z, c * y + s * w, c * z - s * x, c * w - s * y)
-        return dst
+        return dst.set(c * x + s * z, c * y + s * w, c * z - s * x, c * w - s * y)
     }
 
     @JvmOverloads
@@ -1868,8 +1861,7 @@ open class Quaternionf(
         val halfAngle = angle * 0.5f
         val s = sin(halfAngle)
         val c = cos(halfAngle)
-        dst.set(c * x - s * y, c * y + s * x, c * z + s * w, c * w - s * z)
-        return dst
+        return dst.set(c * x - s * y, c * y + s * x, c * z + s * w, c * w - s * z)
     }
 
     @JvmOverloads
@@ -1877,9 +1869,10 @@ open class Quaternionf(
         val halfAngle = angle / 2f
         val sinAngle = sin(halfAngle)
         val invVLength = JomlMath.invsqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-        val rx = axisX * invVLength * sinAngle
-        val ry = axisY * invVLength * sinAngle
-        val rz = axisZ * invVLength * sinAngle
+        val factor = invVLength * sinAngle
+        val rx = axisX * factor
+        val ry = axisY * factor
+        val rz = axisZ * factor
         val rw = cos(halfAngle)
         return dst.set(
             w * rx + x * rw + y * rz - z * ry,

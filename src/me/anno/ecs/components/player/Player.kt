@@ -6,9 +6,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.utils.StringMap
 
-// a special component, which can be added to one entity only? idk...
-// multiple roots? this sounds like a kind-of-solution :)
-
 open class Player : Component() {
 
     val cameraState = CameraState()

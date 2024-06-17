@@ -1,4 +1,4 @@
-package me.anno.openxr
+package me.anno.tests.openxr
 
 import me.anno.gpu.GFX
 import me.anno.utils.assertions.assertEquals
@@ -44,7 +44,6 @@ import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenBuffers
-import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.glGenVertexArrays
 import org.lwjgl.opengl.GL46C.glGetProgrami
 import org.lwjgl.opengl.GL46C.glGetShaderi
@@ -58,11 +57,9 @@ import org.lwjgl.opengl.GL46C.glUseProgram
 import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 import org.lwjgl.opengl.GL46C.glViewport
 import org.lwjgl.openxr.XR10.XR_SPACE_LOCATION_ORIENTATION_VALID_BIT
-import org.lwjgl.openxr.XrFovf
 import org.lwjgl.openxr.XrQuaternionf
 import org.lwjgl.openxr.XrSpaceLocation
 import org.lwjgl.openxr.XrVector3f
-import kotlin.math.tan
 
 const val vertexShader = "#version 330 core\n" +
         "#extension GL_ARB_explicit_uniform_location : require\n" +
@@ -86,13 +83,11 @@ const val fragmentShader = "#version 330 core\n" +
         "	FragColor = uniformColor.x == 0.0 ? vec4(vertexColor, 1.0, 1.0) : vec4(uniformColor, 1.0);\n" +
         "}\n"
 
+var window = 0L
+
 var program = 0
 var vao = 0
 var vbo = 0
-
-fun initFramebuffers(){
-    framebuffer = glGenFramebuffers()
-}
 
 fun initGL() {
     val vsi = glCreateShader(GL_VERTEX_SHADER)
@@ -206,7 +201,7 @@ fun renderFrame1(
 
     if (framebuffer != 0) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image, 0)
-        if (hasDepth) {
+        if (depthBuffer > 0) {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0)
         } else {
             // todo of task: use separately generated depth renderbuffer
@@ -260,10 +255,6 @@ fun renderFrame1(
 }
 
 fun copyToFB1(framebuffer: Int, w: Int, h: Int) {
-    // todo red-blue glasses support,
-    //  - visualizing VR over streams? (sickness!)
-    //  - virtualize VR for people without VR devices
-    //  -> just a normal renderMode
     // copy left eye to desktop window
     glfwGetWindowSize(window, ws, hs)
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -279,38 +270,6 @@ fun copyToFB1(framebuffer: Int, w: Int, h: Int) {
 
 val ws = IntArray(1)
 val hs = IntArray(1)
-
-fun createProjectionFov(projectionMatrix: Matrix4f, fov: XrFovf, nearZ: Float, farZ: Float) {
-    val tanAngleLeft = tan(fov.angleLeft())
-    val tanAngleRight = tan(fov.angleRight())
-    val tanAngleUp = tan(fov.angleUp())
-    val tanAngleDown = tan(fov.angleDown())
-    val tanAngleWidth = tanAngleRight - tanAngleLeft
-    val tanAngleHeight = tanAngleUp - tanAngleDown
-    val offsetZ = nearZ + 0f
-    val m00 = 2f / tanAngleWidth
-    val m11 = 2f / tanAngleHeight
-    val m20 = (tanAngleRight + tanAngleLeft) / tanAngleWidth
-    val m21 = (tanAngleUp + tanAngleDown) / tanAngleHeight
-    if (farZ <= nearZ) { // reverse depth
-        val m32 = -(nearZ + offsetZ)
-        projectionMatrix.set(
-            m00, 0f, 0f, 0f,
-            0f, m11, 0f, 0f,
-            m20, m21, -1f, -1f,
-            0f, 0f, m32, 0f
-        )
-    } else { // normal projection
-        val m22 = -(farZ + offsetZ) / (farZ - nearZ)
-        val m32 = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ)
-        projectionMatrix.set(
-            m00, 0f, 0f, 0f,
-            0f, m11, 0f, 0f,
-            m20, m21, m22, -1f,
-            0f, 0f, m32, 0f
-        )
-    }
-}
 
 fun createViewMatrix(viewMatrix: Matrix4f, pos: XrVector3f, orientation: XrQuaternionf) {
     viewMatrix.identity()

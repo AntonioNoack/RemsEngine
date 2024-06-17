@@ -22,6 +22,7 @@ import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
@@ -68,7 +69,6 @@ import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
@@ -192,19 +192,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         setRenderState()
 
-        val player = localPlayer
-        var camera0 = player?.cameraState?.previousCamera ?: editorCamera
-        val camera1 = player?.cameraState?.currentCamera ?: editorCamera
-        var blending = player?.cameraState?.cameraBlendingProgress ?: 0f
-        if (blending >= 1f) {
-            blending = 1f
-            camera0 = camera1
-        }
-
+        val camera = localPlayer?.cameraState?.currentCamera ?: editorCamera
         val aspectRatio = findAspectRatio()
 
         val t1 = Time.nanoTime
-        prepareDrawScene(width, height, aspectRatio, camera0, true)
+        prepareDrawScene(width, height, aspectRatio, camera, true)
         val t2 = Time.nanoTime
         FrameTimings.add(t2 - t1, UIColors.midOrange)
 
@@ -263,9 +255,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun findBuffer(renderer: Renderer): IFramebuffer {
-        // multi-sampled buffer
         return when {
-            // aliased, multi-target
+            // used for FSR2, ALL_DEFERRED_LAYERS, ALL_DEFERRED_BUFFERS and LIGHT_COUNT at the moment
             renderer == DeferredRenderer -> buffers.baseNBuffer1
             else -> buffers.base1Buffer
         }
@@ -273,23 +264,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun updateSkybox(renderer: Renderer) {
         // blacklist for renderModes?
-        if (renderer !in attributeRenderers.values && renderMode != RenderMode.LIGHT_COUNT) {
-            pipeline.bakeSkybox(256)
-        } else {
-            pipeline.destroyBakedSkybox()
-        }
-    }
-
-    fun findRowsCols(size: Int): IntPair {
-        val rows = when {
-            size % 2 == 0 -> 2
-            size % 3 == 0 -> 3
-            size > 12 -> 3
-            size > 6 -> 2
-            else -> 1
-        }
-        val cols = ceilDiv(size, rows)
-        return IntPair(rows, cols)
+        if (renderer !in attributeRenderers.values &&
+            renderMode != RenderMode.LIGHT_COUNT &&
+            renderMode != RenderMode.LIGHT_SUM &&
+            renderMode != RenderMode.LIGHT_SUM_MSAA
+        ) pipeline.bakeSkybox(256)
+        else pipeline.destroyBakedSkybox()
     }
 
     fun findAspectRatio(): Float {
@@ -303,7 +283,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         if (size > 1) {
-            val (rows, cols) = findRowsCols(size)
+            val colsRows = findGoodTileLayout(size, width, height)
+            val cols = colsRows.x
+            val rows = colsRows.y
             aspect *= rows.toFloat() / cols.toFloat()
         }
 

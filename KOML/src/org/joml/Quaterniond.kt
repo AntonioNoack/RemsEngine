@@ -14,7 +14,7 @@ open class Quaterniond(
     @JvmField var y: Double,
     @JvmField var z: Double,
     @JvmField var w: Double
-): Vector() {
+) : Vector() {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
 
@@ -78,20 +78,9 @@ open class Quaterniond(
         return dst
     }
 
-    fun add(q2: Quaterniond): Quaterniond {
-        x += q2.x
-        y += q2.y
-        z += q2.z
-        w += q2.w
-        return this
-    }
-
-    fun add(q2: Quaterniond, dst: Quaterniond): Quaterniond {
-        dst.x = x + q2.x
-        dst.y = y + q2.y
-        dst.z = z + q2.z
-        dst.w = w + q2.w
-        return dst
+    @JvmOverloads
+    fun add(q2: Quaterniond, dst: Quaterniond = this): Quaterniond {
+        return add(q2.x, q2.y, q2.z, q2.w, dst)
     }
 
     fun dot(otherQuat: Quaterniond): Double {
