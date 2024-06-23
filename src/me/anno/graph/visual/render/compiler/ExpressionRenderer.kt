@@ -18,6 +18,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.node.NodeInput
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
+import me.anno.utils.assertions.assertTrue
 import org.joml.Vector4f
 
 interface ExpressionRenderer {
@@ -53,7 +54,7 @@ interface ExpressionRenderer {
             val shader: Shader
 
             init {
-                assert(builder.isEmpty())
+                assertTrue(builder.isEmpty())
                 expr(inputs[1])
                 val expr = builder.toString()
                 builder.clear()

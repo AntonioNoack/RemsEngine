@@ -1,13 +1,14 @@
 package me.anno.engine.ui.input
 
-import me.anno.utils.structures.Pointer
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.stacked.ArrayPanel
 import me.anno.ui.input.InputVisibility
+import me.anno.utils.structures.Pointer
 import me.anno.utils.structures.tuples.MutablePair
+import me.anno.utils.types.Defaults
 
 // todo sort list/map by key or property of the users choice
 
@@ -21,7 +22,7 @@ open class AnyMapPanel(
     val valueType: String,
     style: Style
 ) : ArrayPanel<MutablePair<Any?, Any?>, Panel>(title, visibilityKey, {
-    MutablePair(ComponentUI.getDefault(keyType), ComponentUI.getDefault(valueType))
+    MutablePair(Defaults.getDefaultValue(keyType), Defaults.getDefaultValue(valueType))
 }, style) {
 
     override fun createPanel(value: MutablePair<Any?, Any?>): Panel {
@@ -40,7 +41,7 @@ open class AnyMapPanel(
         valuePanel.weight = Maths.GOLDEN_RATIOf
         valuePanelPtr.value = valuePanel
 
-        val list = object: PanelListX(style){
+        val list = object : PanelListX(style) {
             override var isEnabled: Boolean
                 get() = InputVisibility[visibilityKey]
                 set(_) {}

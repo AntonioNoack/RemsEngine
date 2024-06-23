@@ -10,6 +10,7 @@ import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.indexOf2
+import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -238,7 +239,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                     res.append(cp.toChar())
                 } else {
                     try {
-                        val b = String(intArrayOf(cp), 0, 1).toByteArray()
+                        val b = cp.joinChars().toString().encodeToByteArray()
                         for (j in b.indices) {
                             res.append('%')
                             res.append(hex4(b[j].toInt().shr(4)))

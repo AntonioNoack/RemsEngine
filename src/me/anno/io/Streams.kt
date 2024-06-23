@@ -357,7 +357,7 @@ object Streams {
 
     @JvmStatic
     fun OutputStream.writeNBytes2(src: ByteBuffer) {
-        val tmp = writeTmp.get()
+        val tmp = tmpBuffer.get()
         val pos = src.position()
         while (src.remaining() > 0) {
             val length = min(tmp.size, src.remaining())
@@ -380,6 +380,4 @@ object Streams {
     fun OutputStream.write(src: ByteSlice) {
         write(src.bytes, src.range.first(), src.range.size)
     }
-
-    private val writeTmp = ThreadLocal2 { ByteArray(4096) }
 }

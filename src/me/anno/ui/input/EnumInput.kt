@@ -13,6 +13,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
 import kotlin.reflect.KProperty
@@ -226,12 +227,12 @@ open class EnumInput(
             return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
         }
 
-        fun getEnumConstants(clazz: Class<*>): List<Any> {
-            return if (clazz.isEnum) clazz.enumConstants!!.toList()
+        fun getEnumConstants(clazz: Class<*>): List<Enum<*>> {
+            return if (clazz.isEnum) clazz.enumConstants!!.toList().filterIsInstance2(Enum::class)
             else getEnumConstants(clazz.superclass)
         }
 
-        fun enumToNameDesc(instance: Any): NameDesc {
+        fun enumToNameDesc(instance: Enum<*>): NameDesc {
             val clazz = instance::class
             val naming = clazz.memberProperties
                 .firstOrNull { it.name == "naming" }?.getter?.call(instance) as? NameDesc

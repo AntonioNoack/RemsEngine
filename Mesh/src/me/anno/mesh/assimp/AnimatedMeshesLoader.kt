@@ -41,6 +41,7 @@ import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.lwjgl.PointerBuffer
 import org.lwjgl.assimp.AIAnimMesh
 import org.lwjgl.assimp.AIAnimation
 import org.lwjgl.assimp.AIBone

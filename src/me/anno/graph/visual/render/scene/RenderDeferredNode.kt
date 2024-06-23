@@ -28,6 +28,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 
@@ -252,7 +253,7 @@ open class RenderDeferredNode : RenderViewNode(
                         extraVariables.add(Variable(GLSLType.V4F, "finalId", VariableMode.INOUT))
                     }
 
-                    assert(builder.isEmpty())
+                    assertTrue(builder.isEmpty())
                     var expressions = outputs.joinToString("") { (i, type) ->
                         val nameI = type.glslName
                         expr(inputs[firstInputIndex + i])

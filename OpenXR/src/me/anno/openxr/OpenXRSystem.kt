@@ -30,7 +30,6 @@ import org.lwjgl.openxr.XrInstance
 import org.lwjgl.openxr.XrInstanceCreateInfo
 import org.lwjgl.openxr.XrSystemGetInfo
 import java.nio.ByteBuffer
-import kotlin.concurrent.thread
 
 class OpenXRSystem(val window: Long) {
 

@@ -30,6 +30,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
+import me.anno.utils.assertions.assertTrue
 
 /**
  * combines diffuse, emissive, and light into a single, final color
@@ -82,7 +83,7 @@ class CombineLightsNode : RenderViewNode(
                     DeferredLayerType.OCCLUSION.glslName,
                     "ambientOcclusion"
                 )
-                assert(builder.isEmpty())
+                assertTrue(builder.isEmpty())
                 val expressions = sizes.indices
                     .joinToString("") { i ->
                         val nameI = names[i]

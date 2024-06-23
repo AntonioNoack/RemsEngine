@@ -22,13 +22,12 @@ import me.anno.utils.types.size
 import me.anno.utils.Clock
 import me.anno.utils.Logging.hash32
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
-import org.lwjgl.opengl.GL14C.glMultiDrawArrays
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import org.lwjgl.opengl.GL46C.glMultiDrawArrays
 import java.nio.IntBuffer
 
 /**
@@ -249,9 +248,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
     companion object {
         private val LOGGER = LogManager.getLogger(UniqueMeshRenderer::class)
         private fun createBuffer(): IntBuffer {
-            val buffer = ByteBuffer.allocateDirect(4096 * 4)
-            buffer.order(ByteOrder.nativeOrder())
-            return buffer.asIntBuffer()
+            return ByteBufferPool.allocateDirect(4096 * 4).asIntBuffer()
         }
 
         private val tmpStarts = createBuffer()

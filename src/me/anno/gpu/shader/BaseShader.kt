@@ -40,7 +40,7 @@ open class BaseShader(
 
     var glslVersion = GPUShader.DefaultGLSLVersion
     var textures: List<String>? = null
-    var ignoredNameWarnings = HashSet<String>()
+    val ignoredNameWarnings = HashSet<String>()
 
     data class ShaderKey(
         val renderer: Renderer,
@@ -150,12 +150,12 @@ open class BaseShader(
     }
 
     fun ignoreNameWarnings(names: Collection<String>): BaseShader {
-        ignoredNameWarnings += names
+        ignoredNameWarnings.addAll(names)
         return this
     }
 
     fun ignoreNameWarnings(name: String): BaseShader {
-        ignoredNameWarnings += name.split(',')
+        ignoredNameWarnings.addAll(name.split(','))
         return this
     }
 
@@ -163,7 +163,7 @@ open class BaseShader(
         this.textures = textures
     }
 
-   open fun finish(shader: Shader, minVersion: Int = 0) {
+    open fun finish(shader: Shader, minVersion: Int = 0) {
         shader.glslVersion = max(glslVersion, minVersion)
         shader.use()
         shader.setTextureIndices(textures)

@@ -32,6 +32,7 @@ import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.types.Booleans.toInt
 
 /**
@@ -93,7 +94,7 @@ class RenderLightsNode : RenderViewNode(
                     DeferredLayerType.DEPTH
                 )
 
-                assert(builder.isEmpty())
+                assertTrue(builder.isEmpty())
                 val expressions = types.indices
                     .joinToString("") { i ->
                         val nameI = types[i].glslName

@@ -155,7 +155,7 @@ class GameEngineProject() : NamedSaveable() {
         }
     }
 
-    fun indexFolder(
+    private fun indexFolder(
         progressBar: ProgressBar,
         file: FileReference, depth: Int,
         resourcesToIndex: MutableCollection<FileReference>
@@ -174,7 +174,7 @@ class GameEngineProject() : NamedSaveable() {
         }
     }
 
-    fun indexResource(file: FileReference) {
+    private fun indexResource(file: FileReference) {
         if (file.isDirectory) return
         Signature.findName(file) { sign, _ ->
             when (sign) {

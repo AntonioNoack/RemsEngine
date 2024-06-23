@@ -56,7 +56,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         size++
     }
 
-    inline fun getOrPut(
+    fun getOrPut(
         k1: KManifold,
         k2: KFewOnly,
         v: (k1: KManifold, k2: KFewOnly) -> Value
@@ -75,7 +75,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return list.any { it.first == k2 }
     }
 
-    inline fun <Result> map(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result): List<Result> {
+    fun <Result> map(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result): List<Result> {
         val result = ArrayList<Result>(size)
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
@@ -85,7 +85,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return result
     }
 
-    inline fun <Result> mapNotNull(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result?): List<Result> {
+    fun <Result> mapNotNull(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result?): List<Result> {
         val result = ArrayList<Result>(size)
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
@@ -95,7 +95,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return result
     }
 
-    inline fun forEach(callback: (k1: KManifold, k2: KFewOnly, v: Value) -> Unit) {
+    fun forEach(callback: (k1: KManifold, k2: KFewOnly, v: Value) -> Unit) {
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
                 callback(k1, k2, v)
@@ -104,7 +104,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     }
 
     @Suppress("unused")
-    inline fun replaceValues(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
+    fun replaceValues(run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
         var changed = 0
         for ((k1, k2s) in values) {
             changed += k2s.replaceSeconds { a, b -> run(k1, a, b) }
@@ -123,7 +123,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         } else false
     }
 
-    inline fun removeIf(crossinline predicate: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
+    fun removeIf(predicate: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
         if (isEmpty()) return 0
         var removed = 0
         for ((k1, k2s) in values) {

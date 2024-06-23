@@ -43,7 +43,6 @@ import org.lwjgl.opengl.GL46C.glShaderSource
 import org.lwjgl.opengl.GL46C.glUniform1f
 import org.lwjgl.opengl.GL46C.glUniform1fv
 import org.lwjgl.opengl.GL46C.glUniform1i
-import org.lwjgl.opengl.GL46C.glUniform1iv
 import org.lwjgl.opengl.GL46C.glUniform2f
 import org.lwjgl.opengl.GL46C.glUniform2fv
 import org.lwjgl.opengl.GL46C.glUniform2i
@@ -395,17 +394,6 @@ abstract class GPUShader(val name: String) : ICacheData {
         if (loc > -1) {
             potentiallyUse()
             glUniform1fv(loc, vs)
-        }
-    }
-
-    /**
-     * sets an array of int uniforms
-     * */
-    fun v1is(name: String, vs: IntArray) = v1is(getUniformLocation(name), vs)
-    fun v1is(loc: Int, vs: IntArray) {
-        if (loc > -1) {
-            potentiallyUse()
-            glUniform1iv(loc, vs)
         }
     }
 
@@ -803,6 +791,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v2Array(name: String, value: FloatBuffer) = v2Array(getUniformLocation(name), value)
     fun v2Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
@@ -820,6 +809,7 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
+    @Suppress("unused")
     fun v4Array(name: String, value: FloatBuffer) = v4Array(getUniformLocation(name), value)
     fun v4Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {

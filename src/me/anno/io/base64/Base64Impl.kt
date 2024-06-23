@@ -20,7 +20,6 @@ open class Base64Impl(char62: Char, char63: Char) {
     private val codeToBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".encodeToByteArray()
 
     init {
-
         base64ToCode.fill(invalidCode)
         for (index in codeToBase64.indices) {
             val letter = codeToBase64[index]
@@ -48,7 +47,7 @@ open class Base64Impl(char62: Char, char63: Char) {
     }
 
     fun decodeBase64(bytes: String): ByteArray {
-        val input = bytes.byteInputStream()
+        val input = ByteArrayInputStream(bytes.encodeToByteArray())
         val output = ByteArrayOutputStream(ceilDiv(bytes.length * 3, 4))
         decodeBase64(input, output, false, null)
         return output.toByteArray()
@@ -59,18 +58,13 @@ open class Base64Impl(char62: Char, char63: Char) {
         // 3 long -> 4 long
         while (true) {
             val a = input.read()
-            if (a < 0) return
+            if (a < 0) break
             val b = input.read()
             val c = input.read()
             val value = a.shl(16) + max(b, 0).shl(8) + max(c, 0)
             output.write(codeToBase64[value.shr(18).and(63)].toInt())
             output.write(codeToBase64[value.shr(12).and(63)].toInt())
-            if (b < 0) {
-                if (writePadding) {
-                    output.write('='.code)
-                    output.write('='.code)
-                }
-            } else {
+            if (b >= 0) {
                 output.write(codeToBase64[value.shr(6).and(63)].toInt())
                 if (c < 0) {
                     if (writePadding) {
@@ -79,6 +73,9 @@ open class Base64Impl(char62: Char, char63: Char) {
                 } else {
                     output.write(codeToBase64[value.and(63)].toInt())
                 }
+            } else if (writePadding) {
+                output.write('='.code)
+                output.write('='.code)
             }
         }
     }

@@ -104,7 +104,7 @@ object Reference {
         val str2 = if ('\\' in str) str.replace('\\', '/') else str
         val data = fileCache.getEntry(str2, fileTimeout, false) {
             createReference(it)
-        } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
+        }
         return data ?: createReference(str)
     }
 
@@ -130,7 +130,7 @@ object Reference {
         if (LastModifiedCache.exists(str2)) return createReference(str2)
         return fileCache.getEntry(str2, fileTimeout, true) {
             createReference(it)
-        } as? FileReference
+        }
     }
 
     @JvmStatic

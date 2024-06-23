@@ -20,6 +20,10 @@ import org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Display
 import org.lwjgl.glfw.GLFWNativeX11.glfwGetX11Window
 import org.lwjgl.opengl.EXTTextureSRGB.GL_SRGB8_ALPHA8_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.GL_SRGB8_EXT
+import org.lwjgl.opengl.GL11C.GL_RGB10_A2
+import org.lwjgl.opengl.GL11C.GL_RGBA12
+import org.lwjgl.opengl.GL11C.GL_RGBA16
+import org.lwjgl.opengl.GL30C.GL_RGBA16F
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT24
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32
@@ -111,7 +115,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
             .systemId(systemId)
 
         // https://gitlab.freedesktop.org/monado/demos/openxr-simple-example/-/blob/master/main.c?ref_type=heads
-        if (OS.isWindows) {
+        val bindingFreeable = if (OS.isWindows) {
             val hGLRC = glfwGetWGLContext(window)
             val hDC = GetDC(glfwGetWin32Window((window)))
             LOGGER.info("wglContext: $hGLRC, dc: $hDC")
@@ -121,6 +125,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
                 .hDC(hDC)
                 .hGLRC(hGLRC)
             sessionCreateInfo.next(binding)
+            binding
         } else {
             val display = glfwGetX11Display()
             val window1 = glfwGetX11Window(window)
@@ -134,18 +139,22 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
                 .glxDrawable(window1)
                 .glxContext(glxContext)
             sessionCreateInfo.next(binding)
+            binding
         }
 
         checkXR(xrCreateSession(instance, sessionCreateInfo, ptr))
+        sessionCreateInfo.free()
+        bindingFreeable.free()
         return XrSession(ptr[0], instance)
     }
 
     private fun createSpace(session: XrSession): XrSpace {
-        val playSpaceCreateInfo = XrReferenceSpaceCreateInfo.calloc()
+        val spaceCreateInfo = XrReferenceSpaceCreateInfo.calloc()
             .type(XR_TYPE_REFERENCE_SPACE_CREATE_INFO).next(0)
             .referenceSpaceType(XR_REFERENCE_SPACE_TYPE_LOCAL)
             .poseInReferenceSpace(identityPose)
-        checkXR(xrCreateReferenceSpace(session, playSpaceCreateInfo, ptr))
+        checkXR(xrCreateReferenceSpace(session, spaceCreateInfo, ptr))
+        spaceCreateInfo.free()
         return XrSpace(ptr[0], session)
     }
 
@@ -184,6 +193,10 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
             formats, listOf(
                 GL_SRGB8_ALPHA8_EXT,
                 GL_SRGB8_EXT,
+                GL_RGBA16F,
+                GL_RGBA16,
+                GL_RGBA12,
+                GL_RGB10_A2,
                 GL_RGBA8,
                 GL_RGB8,
             ), true
@@ -204,7 +217,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
     }
 
     private fun createSwapchain(i: Int, format: Long, usage: Int) {
-        val sci = XrSwapchainCreateInfo.calloc()
+        val swapchainCreateInfo = XrSwapchainCreateInfo.calloc()
             .type(XR_TYPE_SWAPCHAIN_CREATE_INFO)
             .next(0)
             .usageFlags(usage.toLong())
@@ -216,7 +229,8 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
             .faceCount(1)
             .arraySize(1)
             .mipCount(1)
-        checkXR(xrCreateSwapchain(session, sci, ptr))
+        checkXR(xrCreateSwapchain(session, swapchainCreateInfo, ptr))
+        swapchainCreateInfo.free()
         val swapchain = XrSwapchain(ptr[0], session)
         swapchains.add(swapchain)
 
@@ -294,10 +308,11 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
 
     private fun attachActionSet() {
         ptr.put(0, actions.actionSet)
-        val actionSetAttachInfo: XrSessionActionSetsAttachInfo = XrSessionActionSetsAttachInfo.calloc()
+        val actionSetAttachInfo = XrSessionActionSetsAttachInfo.calloc()
             .type(XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO).next(0)
             .actionSets(ptr)
         checkXR(xrAttachSessionActionSets(session, actionSetAttachInfo))
+        actionSetAttachInfo.free()
     }
 
     init {

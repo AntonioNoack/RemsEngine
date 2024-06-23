@@ -38,7 +38,7 @@ class AudioStreamRaw(
         // if you do that, consider overriding bufferSize as well, so the audio could be adjusted faster if needed (idk yet)
         val ffmpegSliceSampleDuration = 30.0 // seconds, 30s of music
 
-        inline fun averageSamples(
+        fun averageSamples(
             mni: Double, mxi: Double,
             s0: ShortPair, s1: ShortPair, s2: ShortPair, dst: ShortPair,
             getMaxAmplitudesSync: (i: Long, s: ShortPair) -> Unit

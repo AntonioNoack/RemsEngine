@@ -15,6 +15,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
+import java.lang.Math.floorDiv
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
@@ -204,7 +205,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
                     val index1i = min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
                     for (i in index0i until index1i) {
 
-                        val bufferIndex = i.floorDiv(bufferSize)
+                        val bufferIndex = floorDiv(i, bufferSize.toLong())
                         if (i == index0 || lastBufferIndex != bufferIndex) {
                             val time0 = getTime(bufferIndex)
                             val time1 = getTime(bufferIndex + 1)

@@ -385,7 +385,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
-    private inline fun executeOptimizedEvent(
+    private fun executeOptimizedEvent(
         hasEvent: (Entity) -> Boolean,
         call: (Entity) -> Boolean,
         call2: (Component) -> Boolean

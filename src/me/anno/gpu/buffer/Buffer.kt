@@ -12,9 +12,13 @@ import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withoutFlag
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
+import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
+import org.lwjgl.opengl.GL46C.glVertexAttribPointer
 
 abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUsage) :
-    OpenGLBuffer(name, GL46C.GL_ARRAY_BUFFER, attributes, usage), Drawable {
+    OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
     constructor(name: String, attributes: List<Attribute>) : this(name, attributes, BufferUsage.STATIC)
 
@@ -30,6 +34,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
         ensureBuffer()
         bindBuffer(type, pointer)
+        GFX.check()
 
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         val attrs1 = attributes
@@ -54,8 +59,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             if (attrs1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
+                GFX.check()
             }
         }
+        GFX.check()
     }
 
     private fun bindBufferAttributes(shader: Shader) {
@@ -70,13 +77,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
     override fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, drawMode: DrawMode) {
-        GFX.check()
         bind(shader) // defines drawLength
-        GFX.check()
         if (drawLength > 0) {
             draw(drawMode, 0, drawLength)
             unbind(shader)
-            GFX.check()
         }
     }
 
@@ -112,7 +116,6 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     fun bind(shader: Shader) {
         checkSession()
         if (!isUpToDate) upload()
-        // else if (drawLength > 0) bindBuffer(GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributes(shader)
         }
@@ -161,20 +164,21 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
+            GFX.check()
             return if (index > -1) {
                 val type = attr.type
                 if (attr.isNativeInt) {
-                    GL46C.glVertexAttribIPointer(
+                    glVertexAttribIPointer(
                         index, attr.components, type.id,
                         attr.stride, attr.offset.toLong()
                     )
                 } else {
-                    GL46C.glVertexAttribPointer(
+                    glVertexAttribPointer(
                         index, attr.components, type.id,
                         type.normalized, attr.stride, attr.offset.toLong()
                     )
                 }
-                GL46C.glVertexAttribDivisor(index, instanceDivisor)
+                glVertexAttribDivisor(index, instanceDivisor)
                 enable(index)
                 true
             } else false

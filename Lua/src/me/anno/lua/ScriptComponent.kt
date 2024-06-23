@@ -168,7 +168,7 @@ open class ScriptComponent : Component() {
         }
 
         @JvmStatic
-        inline fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
+        fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
             if (code.isBlank2()) return LuaValue.NIL
             val (globals, func) = getRawScopeAndFunction(code) ?: return LuaValue.NIL
             if (func is LuaValue && func.isfunction()) {

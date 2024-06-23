@@ -13,6 +13,7 @@ import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.shorten2Way
@@ -39,12 +40,12 @@ object AutoInspector {
                      param.kind
             } */
             val title = action.name.camelCaseToTitle()
+            val clazz = instances.first()::class // todo find class of debug action
             val button = TextButton(title, style)
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {
-                        // todo check class using inheritance / whether it exists...
-                        if (instance.javaClass == instances.first().javaClass) {
+                        if (clazz.isInstance(instance)) {
                             action.call(instance)
                         }
                     }
@@ -59,11 +60,12 @@ object AutoInspector {
         for (property in reflections.debugProperties) {
             val title = property.name.camelCaseToTitle()
             val list1 = PanelListX(style)
+            val clazz = instances.first()::class // todo find class of debug property
             list1.add(TextPanel("$title:", style))
             list1.add(UpdatingTextPanel(100L, style) {
-                // todo call on all, where class matches
-                val relevantInstances = instances.filter { it.javaClass == instances.first().javaClass }
-                relevantInstances.joinToString { property.getter(it).toString() }
+                instances
+                    .filterIsInstance2(clazz)
+                    .joinToString { property.getter(it).toString() }
                     .shorten2Way(200)
             })
             /*list1.addLeftClickListener {

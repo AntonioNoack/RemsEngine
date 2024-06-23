@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Done
 import me.anno.utils.structures.arrays.IntArrayList
@@ -27,18 +28,18 @@ fun main() {
     val total = 1000
     val field = BooleanArray(sx * sy)
     val tasks = IntArrayList(64)
-    val random = Random(System.nanoTime())
+    val random = Random(Time.nanoTime)
     val fieldI = LongArray(ceilDiv(sx, 64) * sy)
     val reachedI = LongArray(fieldI.size)
     for (i in 0 until total) {
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         // fill(random, field)
         fill(random, fieldI, sx, sy)
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         sum += isConnectedBitMasks(fieldI, reachedI, sx, sy, tasks).toInt()
         // sum += isConnectedCustomStack(field, sx, sy, tasks).toInt()
         // sum += isConnectedRecursive(field, sx, sy).toInt()
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
         dt0 += t1 - t0
         dt1 += t2 - t1
     }

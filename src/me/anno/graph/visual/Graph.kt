@@ -95,7 +95,7 @@ open class Graph : PrefabSaveable() {
     }
 
     open fun canConnectTo(self: NodeConnector, other: NodeConnector): Boolean {
-        if (self.javaClass == other.javaClass) return false
+        if (self::class == other::class) return false
         return if (self is NodeInput) {
             canConnectTypeToOtherType(self.type, other.type)
         } else {

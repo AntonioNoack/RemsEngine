@@ -36,6 +36,7 @@ import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3i
+import java.lang.Math.floorDiv
 import kotlin.math.floor
 
 private val LOGGER = LogManager.getLogger("UniqueMeshRenderer")
@@ -97,7 +98,7 @@ fun main() {
             saveSystem.get(Vector3i(chunkX, chunkY, chunkZ), false) { data ->
                 for ((k, v) in data) {
                     val index = getIndex(k.x, k.y, k.z)
-                    if(index in chunk.indices) {
+                    if (index in chunk.indices) {
                         chunk[index] = v
                     } else LOGGER.warn("Out of bounds: $k/$v")
                 }
@@ -305,9 +306,9 @@ fun main() {
 
             fun coordsToChunkId(coords: Vector3i): Vector3i {
                 return Vector3i(
-                    coords.x.floorDiv(csx),
-                    coords.y.floorDiv(csy),
-                    coords.z.floorDiv(csz)
+                    floorDiv(coords.x, csx),
+                    floorDiv(coords.y, csy),
+                    floorDiv(coords.z, csz)
                 )
             }
 

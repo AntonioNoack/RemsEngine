@@ -285,9 +285,6 @@ object ComponentUI {
             is Inspectable -> "Inspectable"
             is FileReference -> "FileReference"
 
-            // todo edit native arrays (byte/short/int/float/...) as images
-
-
             // collections and maps
             is Array<*> -> {
                 val arrayType = getArrayType(value.iterator(), name) ?: return null
@@ -297,7 +294,6 @@ object ComponentUI {
                     }
                 }.apply { setValues(value.toList()) }
             }
-
             is List<*> -> {
                 val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
@@ -306,7 +302,6 @@ object ComponentUI {
                     }
                 }.apply { setValues(value.toList()) }
             }
-
             is Set<*> -> {
                 val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
@@ -315,7 +310,6 @@ object ComponentUI {
                     }
                 }.apply { setValues(value.toList()) }
             }
-
             is Map<*, *> -> {
                 val keyType = getType(value.keys.iterator(), name) ?: return null
                 val valueType = getType(value.values.iterator(), name) ?: return null
@@ -327,9 +321,6 @@ object ComponentUI {
                     setValues(value.map { MutablePair(it.key, it.value) })
                 }
             }
-
-            // todo tables for structs? (database table type)
-
             else -> {
                 if (value != null && value is Enum<*>) {
                     val input = EnumInput.createInput(title, value, style)
@@ -343,7 +334,6 @@ object ComponentUI {
                 return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
             }
         }
-
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
     }
 
@@ -947,44 +937,6 @@ object ComponentUI {
             is Saveable -> value.className
             is Serializable -> value::class.simpleName
             else -> value::class.simpleName
-        }
-    }
-
-    fun getDefault(type: String): Any? {
-        if (type.endsWith("?")) return null
-        return when (type) {
-            "Byte" -> 0.toByte()
-            "Short" -> 0.toShort()
-            "Char" -> ' '
-            "Int", "Integer" -> 0
-            "Long" -> 0L
-            "Float" -> 0f
-            "Double" -> 0.0
-            "String" -> ""
-            "Vector2f" -> Vector2f()
-            "Vector3f", "Color3", "Color3HDR" -> Vector3f()
-            "Vector4f", "Color4", "Color4HDR" -> Vector4f()
-            "Vector2d" -> Vector2d()
-            "Vector3d" -> Vector3d()
-            "Vector4d" -> Vector4d()
-            "Vector2i" -> Vector2i()
-            "Vector3i" -> Vector3i()
-            "Vector4i" -> Vector4i()
-            "Quaternionf" -> Quaternionf()
-            "Quaterniond" -> Quaterniond()
-            "Matrix4f" -> Matrix4f()
-            "Matrix4d" -> Matrix4d()
-            "File", "FileReference", "Reference" -> InvalidRef
-            else -> {
-                if (type.endsWith("/FileReference") || type.endsWith("/Reference")) {
-                    return InvalidRef
-                }
-                val newInstance = Saveable.createOrNull(type)
-                if (newInstance == null) {
-                    LOGGER.warn("Unknown type $type for getDefault()")
-                }
-                newInstance
-            }
         }
     }
 

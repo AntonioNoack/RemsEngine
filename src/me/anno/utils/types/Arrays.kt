@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
 
 object Arrays {
@@ -33,7 +34,7 @@ object Arrays {
 
     @JvmStatic
     fun <V> ArrayList<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI: Int, srcEndI: Int) {
-        assert(this !== dst)
+        assertTrue(this !== dst)
         var dstI = dstI0
         for (i in srcI until srcEndI) {
             dst[dstI++] = this[i]

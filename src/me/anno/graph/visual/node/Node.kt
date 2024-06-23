@@ -11,6 +11,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.graph.GraphPanel
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
+import kotlin.reflect.KClass
 
 abstract class Node() : PrefabSaveable() {
 
@@ -132,11 +133,11 @@ abstract class Node() : PrefabSaveable() {
         when (name) {
             "inputs" -> {
                 val values = value as? List<*> ?: return
-                cloneAssign(values, inputs)
+                cloneAssign(values, inputs, NodeInput::class)
             }
             "outputs" -> {
                 val values = value as? List<*> ?: return
-                cloneAssign(values, outputs)
+                cloneAssign(values, outputs, NodeOutput::class)
             }
             "layer" -> layer = value as? Int ?: return
             "position" -> position.set(value as? Vector3d ?: return)
@@ -144,8 +145,8 @@ abstract class Node() : PrefabSaveable() {
         }
     }
 
-    private inline fun <reified V : NodeConnector> cloneAssign(values: List<*>, self: MutableList<V>) {
-        val newbies = values.filterIsInstance<V>()
+    private fun <V : NodeConnector> cloneAssign(values: List<*>, self: MutableList<V>, clazz: KClass<V>) {
+        val newbies: List<V> = values.filterIsInstance(clazz.java)
         for (i in newbies.indices) {
             val newbie = newbies[i]
             newbie.node = this

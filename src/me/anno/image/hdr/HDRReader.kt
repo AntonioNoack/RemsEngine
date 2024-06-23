@@ -1,6 +1,7 @@
 package me.anno.image.hdr
 
 import me.anno.image.raw.FloatImage
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.assertions.assertTrue
 import java.io.BufferedInputStream
@@ -20,13 +21,7 @@ import kotlin.math.pow
 object HDRReader {
 
     fun readHDR(input: InputStream): FloatImage {
-        return optimizeStream(input).use(HDRReader::readHDR1)
-    }
-
-    private fun optimizeStream(input: InputStream): InputStream {
-        return if (input is BufferedInputStream ||
-            input is ByteArrayInputStream
-        ) input else BufferedInputStream(input)
+        return input.useBuffered().use(HDRReader::readHDR1)
     }
 
     // Construction method if the input is a InputStream.

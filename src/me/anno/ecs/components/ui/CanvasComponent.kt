@@ -276,7 +276,7 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         }
     }
 
-    private inline fun findPanel(callback: (panel: Panel, x: Float, y: Float) -> Unit): Boolean {
+    private fun findPanel(callback: (panel: Panel, x: Float, y: Float) -> Unit): Boolean {
         val x = windowStack.mouseX
         val y = windowStack.mouseY
         val xi = x.toInt()

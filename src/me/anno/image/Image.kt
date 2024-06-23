@@ -24,7 +24,6 @@ import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.OutputStream
 import kotlin.math.floor
-import kotlin.math.nextDown
 import kotlin.math.roundToInt
 
 abstract class Image(
@@ -40,7 +39,7 @@ abstract class Image(
             this(width, height, numChannels, hasAlphaChannel, 0, width)
 
     override fun toString(): String {
-        return "${javaClass.name}@${hash32(this)}[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
+        return "${this::class.simpleName}@${hash32(this)}[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
     }
 
     open fun getIndex(x: Int, y: Int): Int {
@@ -175,15 +174,15 @@ abstract class Image(
         val img = IntImage(dstWidth, dstHeight, hasAlphaChannel)
 
         val xf = FloatArray(dstWidth + 1)
-
         val xi = IntArray(dstWidth + 1)
 
         val sx = srcWidth.toFloat() / dstWidth
-        val maxWidth = srcWidth.toFloat().nextDown()
+        val maxWidth = srcWidth.toFloat()
+        val maxWidthM1 = srcWidth - 1
 
         for (i in xf.indices) {
             xf[i] = min(i * sx, maxWidth)
-            xi[i] = xf[i].toInt()
+            xi[i] = min(xf[i].toInt(), maxWidthM1)
         }
 
         // area is constant
@@ -242,10 +241,11 @@ abstract class Image(
 
         val sx = srcWidth.toFloat() / srcWidth
         val sy = srcHeight.toFloat() / dstHeight
-        val maxHeight = srcHeight.toFloat().nextDown()
+        val maxHeight = srcHeight.toFloat()
+        val maxHeightM1 = srcHeight - 1
         for (i in yf.indices) {
             yf[i] = min(i * sy, maxHeight)
-            yi[i] = yf[i].toInt()
+            yi[i] = min(yf[i].toInt(), maxHeightM1)
         }
 
         // area is constant

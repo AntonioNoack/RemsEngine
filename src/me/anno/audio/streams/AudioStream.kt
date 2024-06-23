@@ -1,9 +1,11 @@
 package me.anno.audio.streams
 
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
+import me.anno.maths.Maths.floorMod
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.ByteBufferPool
+import java.lang.Math.floorDiv
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
@@ -28,14 +30,14 @@ abstract class AudioStream(
         @JvmStatic
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
-            return progressedSamples.floorDiv(bufferSize.toLong())
+            return floorDiv(progressedSamples, bufferSize.toLong())
         }
 
         @JvmStatic
         fun getFraction(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
             val bs = bufferSize.toLong()
-            return progressedSamples - progressedSamples.floorDiv(bs) * bs
+            return floorMod(progressedSamples, bs)
         }
     }
 

@@ -113,15 +113,13 @@ object SearchAlgorithm {
                     }
                 ) {
                     val children = file.listChildren()
-                    if (children != null) {
-                        for (child in children) {
-                            if (!child.isHidden && newSearch.matches(child.name)) {
-                                resultSet.add(child)
-                            }
+                    for (child in children) {
+                        if (!child.isHidden && newSearch.matches(child.name)) {
+                            resultSet.add(child)
                         }
-                        nextLevel.addAll(children)
-                        Thread.sleep(0)
                     }
+                    nextLevel.addAll(children)
+                    Thread.sleep(0)
                 }
             }
             searchedSize += nextLevel.size

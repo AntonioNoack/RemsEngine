@@ -106,7 +106,6 @@ fun build(src: List<FileReference>, dst: FileReference, path: String) {
                 importIf("KClass", "kotlin.reflect.KClass")
                 importIf("Runtime.getRuntime()", "java.lang.Runtime")
                 importIf("System.", "java.lang.System")
-                importIf(".nextDown()", "java.lang.System.nextDown")
                 importIf(".toSortedMap()", "java.lang.System.toSortedMap")
                 importIf("NoClassDefFoundError", "java.lang.NoClassDefFoundError")
                 importIf("ClassNotFoundException", "java.lang.ClassNotFoundException")

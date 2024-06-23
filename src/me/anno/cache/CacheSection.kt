@@ -46,7 +46,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         thread(name = name, block = runnable)
     }
 
-    inline fun remove(crossinline filter: (Any?, CacheEntry) -> Boolean): Int {
+    fun remove(filter: (Any?, CacheEntry) -> Boolean): Int {
         return synchronized(cache) {
             cache.removeIf { (k, v) ->
                 if (filter(k, v)) {
@@ -57,7 +57,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    inline fun removeDual(crossinline filter: (Any?, Any?, CacheEntry) -> Boolean): Int {
+    fun removeDual(filter: (Any?, Any?, CacheEntry) -> Boolean): Int {
         return synchronized(dualCache) {
             dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {

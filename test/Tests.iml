@@ -41,5 +41,6 @@
     <orderEntry type="module" module-name="Export" />
     <orderEntry type="library" name="Apache Imaging" level="project" />
     <orderEntry type="module" module-name="OpenXR" />
+    <orderEntry type="module" module-name="Network" />
   </component>
 </module>

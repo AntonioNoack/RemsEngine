@@ -118,7 +118,7 @@ open class QuickInputScriptComponent : QuickScriptComponent(), InputListener {
         dst.mouseWheelScript = mouseWheelScript
     }
 
-    inline fun callBoolFunction(code: String, defines: (scope: LuaValue) -> Unit): Boolean {
+    fun callBoolFunction(code: String, defines: (scope: LuaValue) -> Unit): Boolean {
         val func = getFunction1(code, defines)
         if (func.isnil()) return false
         val ret = func.call()

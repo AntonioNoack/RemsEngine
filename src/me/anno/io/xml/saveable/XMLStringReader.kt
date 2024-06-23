@@ -10,17 +10,16 @@ import me.anno.io.saveable.StreamReader
 import me.anno.io.saveable.StringReader
 import me.anno.io.xml.generic.XMLNode
 import me.anno.io.xml.generic.XMLReader
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 class XMLStringReader(val xmlStr: CharSequence, val workspace: FileReference) : ReaderImpl {
 
     override fun readAllInList() {
+        val stream = ByteArrayInputStream(xmlStr.toString().encodeToByteArray())
         sortedContent = JsonStringReader.read(
-            JsonFormatter.format(
-                XML2JSON.fromXML(
-                    XMLReader().read(xmlStr.toString().byteInputStream()) as XMLNode
-                )
-            ), workspace, false
+            JsonFormatter.format(XML2JSON.fromXML(XMLReader().read(stream) as XMLNode)),
+            workspace, false
         )
     }
 

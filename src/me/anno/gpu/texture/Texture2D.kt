@@ -47,7 +47,6 @@ import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_INT
 import org.lwjgl.opengl.GL46C.GL_NONE
-import org.lwjgl.opengl.GL46C.GL_ONE
 import org.lwjgl.opengl.GL46C.GL_PACK_ALIGNMENT
 import org.lwjgl.opengl.GL46C.GL_PIXEL_UNPACK_BUFFER
 import org.lwjgl.opengl.GL46C.GL_R16F

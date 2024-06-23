@@ -24,7 +24,7 @@ object NumberFormatter {
             val base = round(absV * pow)
             if (base < Long.MAX_VALUE) {
                 val digits = base.toLong().toString()
-                val len = max(numDigits + 1, digits.length) + 1 + isNegative.toInt()
+                val len = max(numDigits + 1, digits.length) + 1 + (isNegative || signExtend).toInt()
                 val result = StringBuilder(len)
                 if (isNegative) {
                     result.append('-')

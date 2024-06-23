@@ -36,6 +36,7 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import java.io.Serializable
+import kotlin.reflect.KClass
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -547,8 +548,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is LongArray -> writeLongArray2D(name, cast(value), forceSaving)
             is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
             is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
-            is PrefabSaveable -> writeNullableObjectList(self, name, filterII(value as List<*>), forceSaving)
-            is Saveable -> writeNullableObjectList(self, name, filterII(value as List<*>), forceSaving)
+            is PrefabSaveable -> writeNullableObjectList(self, name, filterII(value, PrefabSaveable::class), forceSaving)
+            is Saveable -> writeNullableObjectList(self, name, filterII(value, Saveable::class), forceSaving)
             is FileReference -> writeFileList(name, cast(value), forceSaving)
             is List<*> -> {
                 if (sample.isNotEmpty()) {
@@ -671,24 +672,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             // java-serializable
             is Serializable -> {
                 // implement it?...
-                // if it is an enum, write its value
-                // enums always are Serializable
-                val clazz = value.javaClass
-                try {
-                    val getId = clazz.getMethod("getId")
-                    val id = getId.invoke(value)
-                    if (id is Int) {
-                        // all good :)
-                        writeInt(name, id, forceSaving)
-                        return
-                    }
-                } catch (ignored: NoSuchMethodException) {
-                    // e.printStackTrace()
-                }
-                LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
+                LOGGER.warn("Could not serialize field $name with value $value of class ${value::class}, Serializable")
             }
             is Texture, is ITexture2D -> {}
-            else -> LOGGER.warn("Ignored saving $name: $value of class ${value.javaClass}")
+            else -> LOGGER.warn("Ignored saving $name: $value of class ${value::class}")
         }
     }
 
@@ -698,8 +685,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         return input as V
     }
 
-    inline fun <reified V> filterII(value: List<Any?>): List<V> {
-        return value.filterIsInstance<V>()
+    fun <V: Any> filterII(value: List<Any?>, clazz: KClass<V>): List<V> {
+        return value.filterIsInstance(clazz.java)
     }
 
     companion object {

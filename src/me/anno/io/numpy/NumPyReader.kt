@@ -17,6 +17,7 @@ import me.anno.utils.structures.Callback.Companion.mapCallback
 import me.anno.utils.types.Strings.indexOf2
 import java.io.DataInputStream
 import java.io.InputStream
+import java.io.Serializable
 import java.nio.ByteOrder
 import kotlin.math.min
 
@@ -72,7 +73,7 @@ object NumPyReader {
             throw IllegalStateException("Unsupported descriptor $descriptor") // unknown, maybe structured type
         val totalSize = shape.reduce { a, b -> a * b }
         val doubleSize = totalSize * 2
-        val data1 = when (val sub = descriptor.substring(1)) {
+        val data1: Any = when (val sub = descriptor.substring(1)) {
             // floats
             "f4" -> if (littleEndian) FloatArray(totalSize) { data.readLE32F() }
             else FloatArray(totalSize) { data.readBE32F() }

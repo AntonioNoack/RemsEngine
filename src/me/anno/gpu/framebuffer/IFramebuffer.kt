@@ -13,6 +13,7 @@ import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
@@ -26,8 +27,6 @@ import org.lwjgl.opengl.GL46C.glClearBufferfv
 import org.lwjgl.opengl.GL46C.glClearColor
 import org.lwjgl.opengl.GL46C.glClearDepth
 import org.lwjgl.opengl.GL46C.glClearStencil
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 interface IFramebuffer {
 
@@ -225,7 +224,7 @@ interface IFramebuffer {
     }
 
     companion object {
-        private val tmp4f = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
+        private val tmp4f = ByteBufferPool.allocateDirect(16).asFloatBuffer()
         fun createTargets(targetCount: Int, fpTargets: Boolean): List<TargetType> {
             val target = if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4
             return createList(targetCount, target)

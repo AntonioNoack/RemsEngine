@@ -50,7 +50,7 @@ open class QuickScriptComponent : Component() {
         dst.destroyScript = destroyScript
     }
 
-    inline fun getFunction1(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
+    fun getFunction1(code: String, init: ((scope: LuaValue) -> Unit)? = null): LuaValue {
         return getFunction(code) { globals ->
             globals.set("entity", entity.toLua())
             globals.set("transform", entity?.transform.toLua())
@@ -58,7 +58,7 @@ open class QuickScriptComponent : Component() {
             globals.set("dt", LuaValue.valueOf(Time.deltaTime))
             globals.set("t", LuaValue.valueOf(Time.gameTime))
             globals.set("player", LocalPlayer.currentLocalPlayer.toLua())
-            init(globals)
+            init?.invoke(globals)
         }
     }
 

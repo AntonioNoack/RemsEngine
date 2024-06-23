@@ -191,9 +191,13 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 
     @JvmStatic
     private fun getSize(neededSize: Int): Int {
-        val i = sizes.binarySearch(neededSize)
-        return if (i < 0) sizes[max(min(-i - 1, sizes.lastIndex), 0)]
-        else neededSize
+        for (i in 0 until sizes.lastIndex) {
+            val size = sizes[i]
+            if (size >= neededSize) {
+                return size
+            }
+        }
+        return sizes.last()
     }
 
     @JvmStatic

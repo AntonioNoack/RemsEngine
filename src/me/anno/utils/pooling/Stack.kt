@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager
 import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
 import java.nio.BufferUnderflowException
+import kotlin.reflect.KClass
 
 class Stack<V : Any>(private val createInstance: () -> V) {
 
@@ -17,10 +18,14 @@ class Stack<V : Any>(private val createInstance: () -> V) {
                 (stacks.getOrNull(i) ?: continue).get()?.reset()
             }
         }
+
+        private fun <V : Any> getConstructor(clazz: KClass<V>): () -> V {
+            val constructor = clazz.constructors.first { it.parameters.isEmpty() }
+            return { constructor.call() }
+        }
     }
 
-    constructor(clazz: Class<V>) : this(clazz.getConstructor())
-    constructor(constructor: Constructor<V>) : this({ constructor.newInstance() })
+    constructor(clazz: KClass<V>) : this(getConstructor(clazz))
 
     init {
         stacks.add(WeakReference(this))
@@ -64,7 +69,6 @@ class Stack<V : Any>(private val createInstance: () -> V) {
             if (index - delta < localFloor) throw BufferUnderflowException()
             index -= delta
         }
-
     }
 
     private val storage = ThreadLocal.withInitial { LocalStack(createInstance) }
@@ -104,5 +108,4 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         set(value) {
             storage.get().index = value
         }
-
 }

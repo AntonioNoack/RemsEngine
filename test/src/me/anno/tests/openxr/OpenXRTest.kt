@@ -37,10 +37,10 @@ import org.lwjgl.openxr.XrVector3f
 /**
  * My test device: Meta Quest 3
  * Working with SteamVR
- * Not yet working on Meta Link
+ * Worked 1x on Meta Link
  * */
 fun main() {
-    val debugRendering = false
+    val debugRendering = true
     if (debugRendering) {
         RenderDoc.forceLoadRenderDoc()
     }

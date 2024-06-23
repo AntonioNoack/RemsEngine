@@ -69,7 +69,7 @@ class DataSetPanel(
         filtered.clear()
         filtered.addAll(values)
         for (filter in filters) {
-            filtered.removeIf(filter)
+            filtered.removeAll(filter)
         }
         // reset weights??? -> yes, good idea
         weightsY.fill(1f) // todo when changing size of wys, extend its values instead of just replacing them

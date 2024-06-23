@@ -39,7 +39,7 @@ class BInstantList<V : BlendData>(override val size: Int, val instance: V?) : Li
     /**
      * Checks if any instance fulfills the criterion; not thread-safe.
      * */
-    inline fun any(lambda: (V) -> Boolean): Boolean {
+    fun any(lambda: (V) -> Boolean): Boolean {
         for (i in 0 until size) {
             if (lambda(this[i])) {
                 return true

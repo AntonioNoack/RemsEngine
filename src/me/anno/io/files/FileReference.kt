@@ -373,15 +373,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     open fun ifUndefined(other: FileReference): FileReference = this
 
-    inline fun anyInHierarchy(run: (FileReference) -> Boolean): Boolean {
-        var element = this
-        while (element != InvalidRef) {
-            if (run(this)) return true
-            element = element.getParent()
-        }
-        return false
-    }
-
     fun printTree(depth: Int = 0) {
         LOGGER.info("${Strings.spaces(depth * 2)}$name")
         if (isDirectory) {

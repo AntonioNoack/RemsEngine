@@ -25,7 +25,6 @@ import org.lwjgl.opengl.GL46C.GL_BGRA
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_LINEAR
 import org.lwjgl.opengl.GL46C.GL_NEAREST
-import org.lwjgl.opengl.GL46C.GL_ONE
 import org.lwjgl.opengl.GL46C.GL_R8
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RGBA

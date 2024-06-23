@@ -1,5 +1,6 @@
 package me.anno.engine.raycast
 
+import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths
@@ -64,13 +65,13 @@ object RaycastMesh {
             val orderOfMagnitudeIsFine = true // relativePositionsSquared in 1e-6f..1e6f
 
             if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
-                val t0 = System.nanoTime()
+                val t0 = Time.nanoTime
                 // todo executing a raycast is 20x cheaper than building a BLAS (30ms vs 600ms for dragon.obj),
                 //  so only build it if truly necessary
                 //  - async builder?
                 //  - build only if demand is high?
                 val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
-                val t1 = System.nanoTime()
+                val t1 = Time.nanoTime
                 if (t1 - t0 > MILLIS_TO_NANOS) {
                     LOGGER.warn("Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
                             "${mesh.numPrimitives} primitives")

@@ -1,15 +1,16 @@
 package me.anno.engine.ui.input
 
-import me.anno.utils.structures.Pointer
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.editor.stacked.ArrayPanel
+import me.anno.utils.structures.Pointer
+import me.anno.utils.types.Defaults
 
 /**
  * UI for editing arrays
  * */
 open class AnyArrayPanel(title: String, visibilityKey: String, val childType: String, style: Style) :
-    ArrayPanel<Any?, Panel>(title, visibilityKey, { ComponentUI.getDefault(childType) }, style) {
+    ArrayPanel<Any?, Panel>(title, visibilityKey, { Defaults.getDefaultValue(childType) }, style) {
 
     override fun createPanel(value: Any?): Panel {
         val panel = Pointer<Panel?>(null)

@@ -20,7 +20,7 @@ abstract class StringHistory : History<String>() {
                 val i0 = indices[i * 2]
                 val delta = indices[i * 2 + 1]
                 val added = values[i + 1]
-                val prev = states.last
+                val prev = states.last()
                 val endI = i0 + added.length - delta
                 states.add(prev.substring(0, i0) + added + prev.substring(endI))
             }

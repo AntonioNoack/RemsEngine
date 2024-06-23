@@ -23,25 +23,25 @@ import org.joml.Vector4f
 import org.joml.Vector4i
 
 object JomlPools {
-    val vec2i = Stack { Vector2i() }
-    val vec2f = Stack { Vector2f() }
-    val vec2d = Stack { Vector2d() }
-    val vec3i = Stack { Vector3i() }
-    val vec3f = Stack { Vector3f() }
-    val vec3d = Stack { Vector3d() }
-    val vec4i = Stack { Vector4i() }
-    val vec4f = Stack { Vector4f() }
-    val vec4d = Stack { Vector4d() }
-    val quat4f = Stack { Quaternionf() }
-    val quat4d = Stack { Quaterniond() }
-    val mat2f = Stack { Matrix2f() }
-    val mat2d = Stack { Matrix2d() }
-    val mat3f = Stack { Matrix3f() }
-    val mat3d = Stack { Matrix3d() }
-    val mat4f = Stack { Matrix4f() }
-    val mat4d = Stack { Matrix4d() }
-    val mat4x3f = Stack { Matrix4x3f() }
-    val mat4x3d = Stack { Matrix4x3d() }
-    val aabbf = Stack { AABBf() }
-    val aabbd = Stack { AABBd() }
+    val vec2i = Stack(Vector2i::class)
+    val vec2f = Stack(Vector2f::class)
+    val vec2d = Stack(Vector2d::class)
+    val vec3i = Stack(Vector3i::class)
+    val vec3f = Stack(Vector3f::class)
+    val vec3d = Stack(Vector3d::class)
+    val vec4i = Stack(Vector4i::class)
+    val vec4f = Stack(Vector4f::class)
+    val vec4d = Stack(Vector4d::class)
+    val quat4f = Stack(Quaternionf::class)
+    val quat4d = Stack(Quaterniond::class)
+    val mat2f = Stack(Matrix2f::class)
+    val mat2d = Stack(Matrix2d::class)
+    val mat3f = Stack(Matrix3f::class)
+    val mat3d = Stack(Matrix3d::class)
+    val mat4f = Stack(Matrix4f::class)
+    val mat4d = Stack(Matrix4d::class)
+    val mat4x3f = Stack(Matrix4x3f::class)
+    val mat4x3d = Stack(Matrix4x3d::class)
+    val aabbf = Stack(AABBf::class)
+    val aabbd = Stack(AABBd::class)
 }

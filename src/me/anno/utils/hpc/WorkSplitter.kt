@@ -68,12 +68,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         processUnbalanced(i0, i1, if (heavy) 1 else 5, func)
     }
 
-    open fun processUnbalanced(
-        i0: Int,
-        i1: Int,
-        countPerThread: Int,
-        func: Task1d
-    ) {
+    open fun processUnbalanced(i0: Int, i1: Int, countPerThread: Int, func: Task1d) {
         val count = i1 - i0
         val threadCount = ceilDiv(count, countPerThread)
         val counter = AtomicInteger(1)
@@ -143,7 +138,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         }
     }
 
-    inline fun <V> processStage(entries: List<V>, allInParallel: Boolean, crossinline stage: (V) -> Unit) {
+    fun <V> processStage(entries: List<V>, allInParallel: Boolean, stage: (V) -> Unit) {
         if (allInParallel) {// for IO, just process everything in parallel
             val threads = entries.map {
                 thread(name = "Stage[$it]") {
@@ -171,11 +166,11 @@ abstract class WorkSplitter(val numThreads: Int) {
     /**
      * groups execution by priority; high priorities get executed first
      * */
-    inline fun <V> processStage(
+    fun <V> processStage(
         entries: List<V>,
         getPriority: (V) -> Double,
         allInParallel: Boolean,
-        crossinline stage: (V) -> Unit
+        stage: (V) -> Unit
     ) {
         // may be expensive, if there is tons of extensions...
         // however, most stuff is inited once only, so it shouldn't matter that much

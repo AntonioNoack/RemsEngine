@@ -1,5 +1,7 @@
 package me.anno.utils.structures
 
+import kotlin.reflect.KClass
+
 /**
  * utility functions for collections;
  * currently only used for cross product
@@ -53,5 +55,14 @@ object Collections {
     fun <V> MutableCollection<V>.setContains(element: V, shallContain: Boolean) {
         if (shallContain) add(element)
         else remove(element)
+    }
+
+    /**
+     * non-inline filterIsInstance()
+     * */
+    @JvmStatic
+    fun <V : Any> Collection<*>.filterIsInstance2(clazz: KClass<V>): List<V> {
+        @Suppress("UNCHECKED_CAST")
+        return filter { clazz.isInstance(it) } as List<V>
     }
 }
