@@ -7,7 +7,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.FlatShaders
@@ -129,7 +128,7 @@ open class Texture3D(
 
     fun create(img: Image, sync: Boolean) {
         // todo we could detect monochrome and such :)
-        val intData = img.createIntImage().data
+        val intData = img.asIntImage().data
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             for (i in intData.indices) {// argb -> abgr
                 val argb = intData[i]

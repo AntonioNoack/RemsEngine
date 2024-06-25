@@ -223,7 +223,7 @@ fun main() {
 
     val maxError = 0.01f
     val image = ImageCache[downloads.getChild("lib/rem sakamileo deviantart.png"), false]!!
-        .createIntImage()
+        .asIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...
 

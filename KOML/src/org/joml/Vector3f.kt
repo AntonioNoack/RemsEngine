@@ -458,12 +458,7 @@ open class Vector3f(
         return dst
     }
 
-    fun zero(): Vector3f {
-        x = 0f
-        y = 0f
-        z = 0f
-        return this
-    }
+    fun zero(): Vector3f = set(0f)
 
     override fun toString(): String {
         return "($x,$y,$z)"

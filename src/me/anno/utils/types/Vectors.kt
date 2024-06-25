@@ -13,6 +13,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.max
 import kotlin.math.sqrt
 
 @Suppress("unused")
@@ -205,6 +206,11 @@ object Vectors {
         val cz = ax * by - ay * bx
         return cx * cx + cy * cy + cz * cz
     }
+
+    fun getMaxComponent(x: Double, y: Double): Int = if (y >= x) 1 else 0
+    fun getMaxComponent(x: Double, y: Double, z: Double): Int = if (z >= max(x, y)) 2 else getMaxComponent(x, y)
+    fun getMaxComponent(x: Double, y: Double, z: Double, w: Double): Int =
+        if (w >= max(x, max(y, z))) 3 else getMaxComponent(x, y)
 
     /**
      * transforms color from sRGB (standard) to linear space (light calculations)

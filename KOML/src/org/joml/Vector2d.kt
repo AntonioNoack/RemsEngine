@@ -182,7 +182,7 @@ open class Vector2d(
     @JvmOverloads
     fun add(v: Vector2f, dst: Vector2d = this) = add(v.x.toDouble(), v.y.toDouble(), dst)
 
-    fun zero() = set(0.0, 0.0)
+    fun zero(): Vector2d = set(0.0, 0.0)
 
     @JvmOverloads
     fun negate(dst: Vector2d = this): Vector2d {

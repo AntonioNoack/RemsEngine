@@ -75,7 +75,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         throw NotImplementedError()
     }
 
-    override fun createIntImage(): IntImage {
+    override fun asIntImage(): IntImage {
         val tex = Texture2D("gmaps", width, height, 1)
         var isReady = false
         createTexture(tex, false, false) { ready, _ ->

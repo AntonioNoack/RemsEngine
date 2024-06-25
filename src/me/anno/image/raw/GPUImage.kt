@@ -59,7 +59,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         TextureMapper.mapTexture(this.texture, texture, mapping, type, callback)
     }
 
-    override fun createIntImage() = texture.createImage(false, hasAlphaChannel)
+    override fun asIntImage() = texture.createImage(false, hasAlphaChannel)
 
     override fun toString(): String {
         return "GPUImage { $texture, $numChannels ch, ${if (hasAlphaChannel) "alpha" else "opaque"} }"

@@ -202,7 +202,7 @@ open class VideoCreator(
 
     fun writeFrame(frame: Image) {
         if (frame.width != width || frame.height != height) throw IllegalArgumentException("Resolution does not match!")
-        if (frame is GPUImage) return writeFrame(frame.createIntImage())
+        if (frame is GPUImage) return writeFrame(frame.asIntImage())
         val output = videoOut
         synchronized(output) {
             if (frame is IntImage) {

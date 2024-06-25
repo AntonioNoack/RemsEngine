@@ -25,13 +25,13 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
     override fun getRGB(index: Int): Int {
         val msg = "GPUFrameImage.getRGB() is extremely inefficient!!!"
         LOGGER.warn(msg, RuntimeException(msg))
-        val image = createIntImage()
+        val image = asIntImage()
         val color = image.getRGB(index)
         image.destroy()
         return color
     }
 
-    override fun createIntImage(): IntImage {
+    override fun asIntImage(): IntImage {
         val texture = frame.toTexture()
         val image = texture.createImage(false, hasAlphaChannel)
         texture.destroy()
@@ -39,7 +39,7 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
     }
 
     override fun write(dst: FileReference, quality: Float) {
-        createIntImage().write(dst, quality)
+        asIntImage().write(dst, quality)
     }
 
     override fun createTexture(

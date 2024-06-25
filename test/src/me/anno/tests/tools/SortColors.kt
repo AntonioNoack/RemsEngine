@@ -18,7 +18,7 @@ fun main() {
     OfficialExtensions.initForTests()
     val src = pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
     val image = ImageCache[src, false]!!
-    val intImage = image.createIntImage()
+    val intImage = image.asIntImage()
     val sortedY = intImage.data.sortedBy { it.g() }
     val sortedX = (0 until image.height).flatMap { y ->
         val i0 = y * image.width

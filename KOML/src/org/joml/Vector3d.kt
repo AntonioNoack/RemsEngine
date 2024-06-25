@@ -611,7 +611,7 @@ open class Vector3d(
         return dst
     }
 
-    fun zero() = set(0.0, 0.0, 0.0)
+    fun zero(): Vector3d = set(0.0, 0.0, 0.0)
 
     override fun toString(): String {
         return "($x,$y,$z)"

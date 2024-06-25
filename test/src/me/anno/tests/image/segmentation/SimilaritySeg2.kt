@@ -18,7 +18,7 @@ fun main(){
 
     val maxError = 0.1f
     val image = ImageCache[OS.pictures.getChild("Anime/img (3).webp"), false]!!
-        .createIntImage()
+        .asIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...
 

@@ -211,21 +211,8 @@ open class Matrix2f {
         return arr
     }
 
-    fun zero(): Matrix2f {
-        m00 = 0f
-        m01 = 0f
-        m10 = 0f
-        m11 = 0f
-        return this
-    }
-
-    fun identity(): Matrix2f {
-        m00 = 1f
-        m01 = 0f
-        m10 = 0f
-        m11 = 1f
-        return this
-    }
+    fun zero(): Matrix2f = set(0f, 0f, 0f, 0f)
+    fun identity(): Matrix2f = set(1f, 0f, 0f, 1f)
 
     fun scale(xy: Vector2f, dst: Matrix2f): Matrix2f {
         return this.scale(xy.x, xy.y, dst)

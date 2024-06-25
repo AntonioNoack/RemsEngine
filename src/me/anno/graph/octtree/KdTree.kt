@@ -167,6 +167,23 @@ abstract class KdTree<Point, Data>(
         return false
     }
 
+    fun queryLists(min: Point, max: Point, hasFound: (List<Data>) -> Boolean): Boolean {
+        val left = left
+        val minV = get(min, axis)
+        val maxV = get(max, axis)
+        if (left != null && get(left.max, axis) >= minV) {
+            if (left.queryLists(min, max, hasFound)) return true
+        }
+        val right = right
+        if (right != null && get(right.min, axis) <= maxV) {
+            if (right.queryLists(min, max, hasFound)) return true
+        }
+        val children = children
+        return if (children != null) {
+            hasFound(children)
+        } else false
+    }
+
     fun find(hasFound: (Data) -> Boolean): Boolean {
         val left = left
         if (left != null && left.find(hasFound)) return true
@@ -205,19 +222,19 @@ abstract class KdTree<Point, Data>(
 
     fun remove(d: Data, minI: Point = getMin(d), maxI: Point = getMax(d)): Boolean {
         val left = left
-        if (left != null) {
-            val right = right!!
-            if (left.overlaps(left.min, left.max, minI, maxI)) {
+        val right = right
+        if (left != null && right != null) {
+            if (overlaps(left.min, left.max, minI, maxI)) {
                 if (left.remove(d)) {
                     size--
-                    recalculateBounds()
+                    recalculateBoundsLeftRight(left, right)
                     return true
                 }
             }
-            if (right.overlaps(right.min, right.max, minI, maxI)) {
+            if (overlaps(right.min, right.max, minI, maxI)) {
                 if (right.remove(d)) {
                     size--
-                    recalculateBounds()
+                    recalculateBoundsLeftRight(left, right)
                     return true
                 }
             }
@@ -234,40 +251,63 @@ abstract class KdTree<Point, Data>(
                 }
                 // update bounds
                 size--
-                recalculateBounds()
+                recalculateBoundsChildren()
                 return false
             }
         }
         return false
     }
 
-    fun update(d: Data, oldMin: Point, oldMax: Point): Boolean {
+    /**
+     * returns whether it was found
+     * */
+    fun update(d: Data, oldMin: Point, oldMax: Point = oldMin): Boolean {
         val left = left
-        if (left != null) {
-            val right = right!!
-            if (left.overlaps(left.min, left.max, oldMin, oldMax)) {
-                if (left.update(d, oldMin, oldMax)) {
-                    recalculateBounds()
-                    return true
-                }
+        val right = right
+        if (left != null && right != null) {
+            if (overlaps(left.min, left.max, oldMin, oldMax) && left.update(d, oldMin, oldMax)) {
+                recalculateBoundsLeftRight(left, right)
+                return true
             }
-            if (right.overlaps(right.min, right.max, oldMin, oldMax)) {
-                if (right.update(d,oldMin,oldMax)) {
-                    recalculateBounds()
-                    return true
-                }
+            if (overlaps(right.min, right.max, oldMin, oldMax) && right.update(d, oldMin, oldMax)) {
+                recalculateBoundsLeftRight(left, right)
+                return true
             }
         } else {
             val children = children
             if (children != null && d in children) {
-                recalculateBounds()
-                return false
+                recalculateBoundsChildren()
+                return true
             }
         }
         return false
     }
 
-    private fun recalculateBounds() {
+    /**
+     * returns the node, where d is contained
+     * */
+    fun find(d: Data, oldMin: Point, oldMax: Point = oldMin): KdTree<Point, Data>? {
+        val left = left
+        val right = right
+        if (left != null && right != null) {
+            if (overlaps(left.min, left.max, oldMin, oldMax)) {
+                val v0 = left.find(d, oldMin, oldMax)
+                if (v0 != null) return v0
+            }
+            if (overlaps(right.min, right.max, oldMin, oldMax)) {
+                val v0 = right.find(d, oldMin, oldMax)
+                if (v0 != null) return v0
+            }
+        } else {
+            val children = children
+            if (children != null && d in children) {
+                return this
+            }
+        }
+        return null
+    }
+
+    private fun recalculateBoundsChildren() {
         val children = children ?: return
         val d0 = children.firstOrNull() ?: return
         var min = getMin(d0)
@@ -279,6 +319,11 @@ abstract class KdTree<Point, Data>(
         }
         this.min = min
         this.max = max
+    }
+
+    private fun recalculateBoundsLeftRight(left: KdTree<Point, Data>, right: KdTree<Point, Data>) {
+        min = min(left.min, right.min)
+        max = max(left.max, right.max)
     }
 
     private fun join() {

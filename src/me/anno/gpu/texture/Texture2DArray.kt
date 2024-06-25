@@ -19,8 +19,6 @@ import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.Color.convertARGB2RGBA
-import me.anno.utils.assertions.assertEquals
-import me.anno.utils.assertions.assertTrue
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.structures.Callback
@@ -153,7 +151,7 @@ open class Texture2DArray(
         val intData = IntArray(width * height * layers)
         var dstI = 0
         for (image in images) {
-            val intImage = image.createIntImage()
+            val intImage = image.asIntImage()
             for (y in 0 until height) {
                 val srcI = intImage.getIndex(0, y)
                 intImage.data.copyInto(intData, dstI, srcI, srcI + width)

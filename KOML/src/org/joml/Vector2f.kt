@@ -20,7 +20,8 @@ open class Vector2f(
     constructor() : this(0f, 0f)
     constructor(v: Float) : this(v, v)
     constructor(v: Vector2f) : this(v.x, v.y)
-    constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
+    constructor(v: Vector2i) : this(v.x, v.y)
+    constructor(x: Int, y: Int) : this(x.toFloat(), y.toFloat())
     constructor(xy: FloatArray) : this(xy[0], xy[1])
     constructor(v: Vector2d) : this(v.x.toFloat(), v.y.toFloat())
 
@@ -119,7 +120,7 @@ open class Vector2f(
     @JvmOverloads
     fun add(x: Float, y: Float, dst: Vector2f = this) = dst.set(this.x + x, this.y + y)
 
-    fun zero() = set(0f, 0f)
+    fun zero(): Vector2f = set(0f, 0f)
 
     @JvmOverloads
     fun negate(dst: Vector2f = this) = dst.set(-x, -y)

@@ -9,7 +9,7 @@ import me.anno.utils.OS.pictures
 fun main() {
     OfficialExtensions.initForTests()
     val src = pictures.getChild("textures/atlas.webp")
-    val image = ImageCache[src, false]!!.createIntImage()
+    val image = ImageCache[src, false]!!.asIntImage()
     println("alpha-pixels: ${image.data.count { it.a() < 255 }}/${image.data.size}")
     for (file in pictures.getChild("Anime").listChildren()) {
         Signature.findName(file) { it, _ -> println(it) }

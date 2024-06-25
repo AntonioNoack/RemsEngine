@@ -53,7 +53,7 @@ fun testVideo(image: FileReference) {
         }
         val t1 = Time.nanoTime
         val img = GPUImage(dst1.getTexture0(), 4, hasAlphaChannel = true)
-        println("out: " + img.createIntImage().data[0].toHexColor())
+        println("out: " + img.asIntImage().data[0].toHexColor())
         VideoCreator.renderVideo2(w, h, 1.0, dst, 1) { img }
         img.write(tmp0.getSibling("${ctr++}.png"))
         val t2 = Time.nanoTime

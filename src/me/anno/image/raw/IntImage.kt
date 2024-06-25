@@ -92,7 +92,7 @@ open class IntImage(
 
     override fun getRGB(index: Int): Int = data[index]
 
-    override fun createIntImage() = this
+    override fun asIntImage(): IntImage = this
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,

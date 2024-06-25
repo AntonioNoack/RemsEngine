@@ -369,7 +369,7 @@ open class Vector4f(
 
     fun length3() = sqrt(x * x + y * y + z * z)
 
-    fun distance(v: Vector4f) = distance(v.x, v.y, v.z, v.w)
+    fun distance(v: Vector4f): Float = distance(v.x, v.y, v.z, v.w)
     fun distance(x: Float, y: Float, z: Float, w: Float): Float {
         val dx = this.x - x
         val dy = this.y - y
@@ -398,14 +398,7 @@ open class Vector4f(
         return acos(cos)
     }
 
-    fun zero(): Vector4f {
-        x = 0f
-        y = 0f
-        z = 0f
-        w = 0f
-        return this
-    }
-
+    fun zero(): Vector4f = set(0f)
     fun negate(dst: Vector4f = this): Vector4f {
         dst.x = -x
         dst.y = -y

@@ -11,6 +11,7 @@ fun main() {
     val mesh = Mesh()
     val clock = Clock("BLASBench")
     TerrainUtils.generateRegularQuadHeightMesh(size, size, false, 1f, mesh, true)
+    clock.stop("Mesh Generation")
     BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
     clock.stop("BLAS Generation")
 }

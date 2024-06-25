@@ -87,11 +87,7 @@ open class Vector4i(
     }
 
     fun sub(v: Vector4i, dst: Vector4i = this): Vector4i {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        dst.w = w - v.w
-        return dst
+        return sub(v.x, v.y, v.z, v.w, dst)
     }
 
     fun sub(x: Int, y: Int, z: Int, w: Int, dst: Vector4i = this): Vector4i {
@@ -103,11 +99,7 @@ open class Vector4i(
     }
 
     fun add(v: Vector4i, dst: Vector4i = this): Vector4i {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        dst.w = w + v.w
-        return dst
+        return add(v.x, v.y, v.z, v.w, dst)
     }
 
     fun add(x: Int, y: Int, z: Int, w: Int, dst: Vector4i = this): Vector4i {
@@ -164,7 +156,7 @@ open class Vector4i(
     }
 
     fun length() = sqrt(lengthSquared().toFloat()).toDouble()
-    fun distance(v: Vector4i) = distance(v.x, v.y, v.z, v.w)
+    fun distance(v: Vector4i): Double = distance(v.x, v.y, v.z, v.w)
     fun distance(x: Int, y: Int, z: Int, w: Int): Double {
         val dx = this.x - x
         val dy = this.y - y
@@ -180,15 +172,15 @@ open class Vector4i(
     }
 
     fun gridDistance(x: Int, y: Int, z: Int, w: Int): Long {
-        return (abs(x - this.x) + abs(y - this.y) + abs(z - this.z) + abs(w - this.w)).toLong()
+        val dx = this.x - x.toLong()
+        val dy = this.y - y.toLong()
+        val dz = this.z - z.toLong()
+        val dw = this.w - w.toLong()
+        return abs(dx) + abs(dy) + abs(dz) + abs(dw)
     }
 
     fun distanceSquared(v: Vector4i): Long {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        val dw = w - v.w
-        return lengthSquared(dx, dy, dz, dw)
+        return distanceSquared(v.x, v.y, v.z, v.w)
     }
 
     fun distanceSquared(x: Int, y: Int, z: Int, w: Int): Long {
@@ -203,8 +195,7 @@ open class Vector4i(
         return x * v.x + y * v.y + z * v.z + w * v.w
     }
 
-    fun zero() = set(0, 0, 0, 0)
-
+    fun zero(): Vector4i = set(0, 0, 0, 0)
     fun negate(dst: Vector4i = this): Vector4i {
         dst.x = -x
         dst.y = -y
@@ -217,14 +208,7 @@ open class Vector4i(
         return "($x,$y,$z,$w)"
     }
 
-    fun min(v: Vector4i): Vector4i {
-        x = min(x, v.x)
-        y = min(y, v.y)
-        z = min(z, v.z)
-        w = min(w, v.w)
-        return this
-    }
-
+    @JvmOverloads
     fun min(v: Vector4i, dst: Vector4i = this): Vector4i {
         dst.x = min(x, v.x)
         dst.y = min(y, v.y)
@@ -233,14 +217,7 @@ open class Vector4i(
         return dst
     }
 
-    fun max(v: Vector4i): Vector4i {
-        x = max(x, v.x)
-        y = max(y, v.y)
-        z = max(z, v.z)
-        w = max(w, v.w)
-        return this
-    }
-
+    @JvmOverloads
     fun max(v: Vector4i, dst: Vector4i = this): Vector4i {
         dst.x = max(x, v.x)
         dst.y = max(y, v.y)
@@ -249,14 +226,7 @@ open class Vector4i(
         return dst
     }
 
-    fun absolute(): Vector4i {
-        x = abs(x)
-        y = abs(y)
-        z = abs(z)
-        w = abs(w)
-        return this
-    }
-
+    @JvmOverloads
     fun absolute(dst: Vector4i = this): Vector4i {
         dst.x = abs(x)
         dst.y = abs(y)
@@ -275,19 +245,11 @@ open class Vector4i(
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Vector4i && other.x == x && other.y == y && other.z == z && other.w == w
+        return other is Vector4i && equals(other.x, other.y, other.z, other.w)
     }
 
     fun equals(x: Int, y: Int, z: Int, w: Int): Boolean {
-        return if (this.x != x) {
-            false
-        } else if (this.y != y) {
-            false
-        } else if (this.z != z) {
-            false
-        } else {
-            this.w == w
-        }
+        return x == this.x && y == this.y && z == this.z && w == this.w
     }
 
     companion object {

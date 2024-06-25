@@ -191,12 +191,7 @@ open class Vector3i(
         return lengthSquared(dx, dy, dz)
     }
 
-    fun zero(): Vector3i {
-        x = 0
-        y = 0
-        z = 0
-        return this
-    }
+    fun zero(): Vector3i = set(0)
 
     override fun toString(): String {
         return "($x,$y,$z)"

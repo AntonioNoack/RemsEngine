@@ -675,14 +675,7 @@ open class Vector4d(
         return acos(cos)
     }
 
-    fun zero(): Vector4d {
-        x = 0.0
-        y = 0.0
-        z = 0.0
-        w = 0.0
-        return this
-    }
-
+    fun zero(): Vector4d = set(0.0)
     fun negate(dst: Vector4d = this): Vector4d {
         dst.x = -x
         dst.y = -y
