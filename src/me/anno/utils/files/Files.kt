@@ -158,6 +158,9 @@ object Files {
     fun Long.formatFileSize(): String =
         formatFileSize(if (DefaultConfig["ui.file.showGiB", true]) 1024 else 1000)
 
+    fun Int.formatFileSize(): String =
+        toLong().formatFileSize()
+
     fun Long.formatFileSize(divider: Int): String {
         if (this < 0) return "-" + (-this).formatFileSize()
         val endings = "kMGTPEZY"

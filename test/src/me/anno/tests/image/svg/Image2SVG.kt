@@ -7,17 +7,23 @@ import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
+import me.anno.tests.LOGGER
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
+import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import org.joml.Vector2i
 import org.joml.Vector4f
@@ -40,32 +46,48 @@ fun main() {
     val seg = segmentation(png.asIntImage())
     mapRandomly(seg.indices).write(desktop.getChild("segments.png"))
     val segmentBySize = seg.weights.withIndex().sortedByDescending { it.value }
-    val builder = StringBuilder()
     val bg = seg.colors[segmentBySize.first().index].toHexColor()
-    builder.append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ${png.width} ${png.height}\" style=\"background-color:$bg\">\n")
+    val builders = createArrayList(4) { initSVG(png, bg) }
     for (j in 1 until segmentBySize.size) {
         val i = segmentBySize[j].index
         val ci = seg.indices.data[i]
         if (seg.weights[i] < 3f) continue
         if (seg.maxXs[ci] - seg.minXs[ci] < 2 || seg.maxYs[ci] - seg.minYs[ci] < 2) continue
-        val line = extractSegment(seg, ci)
-        // todo results:
-        //  p1 is broken in some places,
-        //  p0 is fine, but unoptimized,
-        //  p2 is a little crooked (off by one error, probably)
-        appendPolygon2(builder, seg.colors[ci], line)
-        // appendPolygon0(builder, Vector4f(seg.colors[ci]).apply { w *= 0.3f }, line)
-        // val line1 = simplifyLine(line)
-        //appendPolygon1(builder, seg.colors[ci], line1)
+        val line1 = extractSegment(seg, ci)
+        val color = seg.colors[ci].toHexColor()
+        appendWithLinearMatching(builders[2], color, line1)
+        appendRawPolygon(builders[0], color, line1)
+        appendSimpleOptimization(builders[3], color, line1)
+        val line2 = findComplexSegments(line1)
+        appendOptimizedPolygon(builders[1], color, line2)
     }
-    builder.append("</svg>")
-    desktop.getChild("png2svg.svg")
-        .writeText(builder.toString())
+    for (builder in builders) {
+        finishSVG(builder)
+    }
+    write("unoptimized.svg", builders[0])
+    write("good.svg", builders[1])
+    write("crooked.svg", builders[2])
+    write("simple.svg", builders[3])
     Engine.requestShutdown()
 }
 
-fun appendPolygon0(builder: StringBuilder, color: Vector4f, line: List<Vector2f>) {
-    builder.append("  <polygon fill=\"${color.toHexColor()}\" points=\"")
+fun write(name: String, builder: StringBuilder) {
+    desktop.getChild("png2svg-$name").writeText(builder.toString())
+    LOGGER.info("$name: ${builder.length.formatFileSize()}")
+}
+
+fun initSVG(png: Image, bg: String): StringBuilder {
+    val builder = StringBuilder()
+    builder.append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 ${png.width} ${png.height}\" style=\"background-color:$bg\">\n")
+    return builder
+}
+
+fun finishSVG(builder: StringBuilder) {
+    builder.append("</svg>")
+}
+
+fun appendRawPolygon(builder: StringBuilder, color: String, line: List<Vector2f>) {
+    builder.append("  <polygon fill=\"$color\" points=\"")
     for (vertex in line) {
         builder
             .append1(vertex.x).append(',')
@@ -75,8 +97,48 @@ fun appendPolygon0(builder: StringBuilder, color: Vector4f, line: List<Vector2f>
     builder.append("\"/>\n")
 }
 
-fun appendPolygon2(builder: StringBuilder, color: Vector4f, line: List<Vector2f>) {
-    builder.append("  <path fill=\"${color.toHexColor()}\" d=\"")
+fun angleDiff(d: Float): Float {
+    if (d < -PIf) return d + TAUf
+    if (d > PIf) return d - TAUf
+    return d
+}
+
+fun isLinear(x0: Vector2f, x1: Vector2f, x2: Vector2f): Boolean {
+    return abs(angleDiff(x0.angle(x1) - x1.angle(x2))) < 0.001f
+}
+
+fun appendSimpleOptimization(builder: StringBuilder, color: String, line: List<Vector2f>) {
+    // val line = line.filterIndexed { idx, _ -> idx % 5 == 0 } // ^^
+    builder.append("  <path fill=\"$color\" d=\"")
+    var v0 = line.last()
+    var v1 = v0
+    builder.append('M').append1(v0.x).append(' ').append1(v0.y)
+    for (v2 in line) {
+        if (isLinear(v0, v1, v2)) {
+            v1 = v2
+        } else {
+            when {
+                v0.x == v1.x -> {
+                    builder.append('v').append1(v1.y - v0.y)
+                }
+                v0.y == v1.y -> {
+                    builder.append('h').append1(v1.x - v0.x)
+                }
+                else -> {
+                    builder.append('l').append1(v1.x - v0.x)
+                        .append(' ').append1(v1.y - v0.y)
+                }
+            }
+            v0 = v1
+            v1 = v2
+        }
+    }
+    builder.append('z')
+    builder.append("\"/>\n")
+}
+
+fun appendWithLinearMatching(builder: StringBuilder, color: String, line: List<Vector2f>) {
+    builder.append("  <path fill=\"$color\" d=\"")
     var last = line.first()
     builder.append('M').append1(last.x).append(',').append1(last.y)
     var i0 = 0
@@ -116,8 +178,8 @@ fun StringBuilder.append1(v: Float): StringBuilder {
     return this
 }
 
-fun appendPolygon1(builder: StringBuilder, color: Vector4f, line: List<EdgeSegment>) {
-    builder.append("  <path fill=\"${color.toHexColor()}\" d=\"")
+fun appendOptimizedPolygon(builder: StringBuilder, color: String, line: List<EdgeSegment>) {
+    builder.append("  <path fill=\"$color\" d=\"")
     val s0 = line[0]
     val p0 = s0.point(0f, Vector2f())
     builder.append('M').append1(p0.x).append(' ')
@@ -125,16 +187,22 @@ fun appendPolygon1(builder: StringBuilder, color: Vector4f, line: List<EdgeSegme
     var last = p0
     val tmp = Vector2f()
     for (i in line.indices) {
-        assertEquals(last, line[i].point(0f, tmp))
-        last = when (val segment = line[i]) {
+        val segment = line[i]
+        val li0 = when (segment) {
+            is LinearSegment -> segment.p0
+            is QuadraticSegment -> segment.p0
+            else -> throw NotImplementedError()
+        }
+        assertEquals(last, li0)
+        last = when (segment) {
             is LinearSegment -> {
                 when {
                     segment.p0.x == segment.p1.x -> {
-                        builder.append('h')
+                        builder.append('v')
                             .append1(segment.p1.y - segment.p0.y)
                     }
                     segment.p0.y == segment.p1.y -> {
-                        builder.append('v')
+                        builder.append('h')
                             .append1(segment.p1.x - segment.p0.x)
                     }
                     else -> {
@@ -166,13 +234,12 @@ fun getSimplificationOptions(list: List<Vector2f>): List<EdgeSegment> {
     val pn = list.last()
     val pc = list[list.size / 2]
     val pq = Vector2f(
-        2f * pc.x - (p0.x + pn.x),
-        2f * pc.y - (p0.y + pn.y)
+        2f * pc.x - (p0.x + pn.x) * 0.5f,
+        2f * pc.y - (p0.y + pn.y) * 0.5f
     )
     return listOf(
         LinearSegment(p0, pn),
-        //   QuadraticSegment(p0, pc, pn),
-        //   QuadraticSegment(p0, pq, pn)
+        QuadraticSegment(p0, pq, pn)
     )
 }
 
@@ -192,11 +259,11 @@ fun isValid(line: List<Vector2f>, segment: EdgeSegment, err: Float): Boolean {
 
 fun getSimplification(line: List<Vector2f>): EdgeSegment? {
     return getSimplificationOptions(line).firstOrNull { option ->
-        isValid(line, option, 0.9f)
+        isValid(line, option, 1.5f)
     }
 }
 
-fun simplifyLine(line: List<Vector2f>): List<EdgeSegment> {
+fun findComplexSegments(line: List<Vector2f>): List<EdgeSegment> {
     val dst = ArrayList<EdgeSegment>()
     var i = 0
     while (i < line.size) {

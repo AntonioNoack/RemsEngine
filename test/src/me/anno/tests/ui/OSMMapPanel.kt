@@ -117,7 +117,7 @@ object OSMMapCache : CacheSection("OSMMapData") {
                     val bytes = con.inputStream.use { it.readBytes() }
                     result = readOSM1(ByteArrayInputStream(bytes))
                     hdb.put(path, hash, ByteSlice(bytes))
-                    println("made successful request, ${bytes.size.toLong().formatFileSize()}")
+                    println("made successful request, ${bytes.size.formatFileSize()}")
                     Thread.sleep(apiLimitMillis)
                     limit.release()
                 } else {
