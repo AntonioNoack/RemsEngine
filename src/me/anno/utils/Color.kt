@@ -219,7 +219,11 @@ object Color {
 
     @JvmStatic
     fun Vector4f.toHexColor(): String {
-        return "#${if (w == 1f) "" else hex8(w)}${hex8(x)}${hex8(y)}${hex8(z)}"
+        return if(w == 1f) {
+            "#${hex8(x)}${hex8(y)}${hex8(z)}"
+        } else {
+            "#${hex8(x)}${hex8(y)}${hex8(z)}${hex8(w)}"
+        }
     }
 
     @JvmStatic

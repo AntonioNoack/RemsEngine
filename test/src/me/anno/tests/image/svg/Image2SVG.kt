@@ -10,6 +10,7 @@ import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.min
@@ -20,7 +21,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.desktop
-import me.anno.utils.assertions.assertEquals
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -33,6 +33,11 @@ import kotlin.math.round
 
 val maxColorDiffSq = sq(10f / 255f)
 
+// make this into an online tool :3
+//  -> https://phychi.com/image2svg/
+
+// to do find gradients (?)
+
 // covert an easy image from PNG to SVG
 //  - find blobs of the same color
 //  - separate/segment that area
@@ -41,22 +46,23 @@ val maxColorDiffSq = sq(10f / 255f)
 //  -> simplify the shape by combining linear sections into splines as much as possible to reduce the size
 fun main() {
     OfficialExtensions.initForTests()
-    val src = desktop.getChild("gofluent-for-svg.png")
+    val src = getReference("C:\\Users\\Antonio\\Documents\\IdeaProjects\\RemsEngine\\progress/rem-face-500.png")
     val png = ImageCache[src, false]!!
     val seg = segmentation(png.asIntImage())
     mapRandomly(seg.indices).write(desktop.getChild("segments.png"))
-    val segmentBySize = seg.weights.withIndex().sortedByDescending { it.value }
+    val segmentBySize = seg.weights.withIndex()
+        .filter { it.value >= 3f }
+        .sortedByDescending { it.value }
     val bg = seg.colors[segmentBySize.first().index].toHexColor()
     val builders = createArrayList(4) { initSVG(png, bg) }
     for (j in 1 until segmentBySize.size) {
         val i = segmentBySize[j].index
         val ci = seg.indices.data[i]
-        if (seg.weights[i] < 3f) continue
-        if (seg.maxXs[ci] - seg.minXs[ci] < 2 || seg.maxYs[ci] - seg.minYs[ci] < 2) continue
+        // if (seg.maxXs[ci] - seg.minXs[ci] < 2 || seg.maxYs[ci] - seg.minYs[ci] < 2) continue
         val line1 = extractSegment(seg, ci)
         val color = seg.colors[ci].toHexColor()
         appendWithLinearMatching(builders[2], color, line1)
-        appendRawPolygon(builders[0], color, line1)
+        //appendRawPolygon(builders[0], color, line1)
         appendSimpleOptimization(builders[3], color, line1)
         val line2 = findComplexSegments(line1)
         appendOptimizedPolygon(builders[1], color, line2)
@@ -64,7 +70,7 @@ fun main() {
     for (builder in builders) {
         finishSVG(builder)
     }
-    write("unoptimized.svg", builders[0])
+    //write("unoptimized.svg", builders[0])
     write("good.svg", builders[1])
     write("crooked.svg", builders[2])
     write("simple.svg", builders[3])
@@ -86,6 +92,7 @@ fun finishSVG(builder: StringBuilder) {
     builder.append("</svg>")
 }
 
+@Suppress("unused")
 fun appendRawPolygon(builder: StringBuilder, color: String, line: List<Vector2f>) {
     builder.append("  <polygon fill=\"$color\" points=\"")
     for (vertex in line) {
@@ -178,23 +185,21 @@ fun StringBuilder.append1(v: Float): StringBuilder {
     return this
 }
 
+private fun p0(segment: EdgeSegment): Vector2f {
+    return when (segment) {
+        is LinearSegment -> segment.p0
+        is QuadraticSegment -> segment.p0
+        else -> throw NotImplementedError()
+    }
+}
+
 fun appendOptimizedPolygon(builder: StringBuilder, color: String, line: List<EdgeSegment>) {
     builder.append("  <path fill=\"$color\" d=\"")
     val s0 = line[0]
-    val p0 = s0.point(0f, Vector2f())
-    builder.append('M').append1(p0.x).append(' ')
-        .append1(p0.y).append(' ')
-    var last = p0
-    val tmp = Vector2f()
+    val p0 = p0(s0)
+    builder.append('M').append1(p0.x).append(' ').append1(p0.y)
     for (i in line.indices) {
-        val segment = line[i]
-        val li0 = when (segment) {
-            is LinearSegment -> segment.p0
-            is QuadraticSegment -> segment.p0
-            else -> throw NotImplementedError()
-        }
-        assertEquals(last, li0)
-        last = when (segment) {
+        when (val segment = line[i]) {
             is LinearSegment -> {
                 when {
                     segment.p0.x == segment.p1.x -> {
@@ -305,11 +310,10 @@ class Segmentation(
     val maxXs: IntArray, val maxYs: IntArray,
 )
 
-fun extractSegment(seg: Segmentation, i: Int): List<Vector2f> {
+fun extractSegment(seg: Segmentation, ci: Int): List<Vector2f> {
     val src = seg.indices
     val w = src.width
     val srcI = src.data
-    val ci = srcI[i]
     val x0 = seg.minXs[ci]
     val x1 = seg.maxXs[ci]
     val y0 = seg.minYs[ci]
@@ -376,8 +380,6 @@ fun segmentation(src: IntImage): Segmentation {
     for (i in colors.indices) {
         srcI[i].toVecRGBA(colors[i])
     }
-    val remap = IntArray(dstI.size)
-    for (i in dstI.indices) remap[i] = i
     val minXs = IntArray(dstI.size)
     val minYs = IntArray(dstI.size)
     val maxXs = IntArray(dstI.size)
@@ -422,10 +424,6 @@ fun segmentation(src: IntImage): Segmentation {
                         val i = x + y * w
                         if (dstI[i] == cj) {
                             dstI[i] = ci
-                            minXs[ci] = min(minXs[ci], x)
-                            minYs[ci] = min(minYs[ci], y)
-                            maxXs[ci] = max(maxXs[ci], x)
-                            maxYs[ci] = max(maxYs[ci], y)
                             if (d < 500) {
                                 val di = d + 1
                                 1 + // self
@@ -439,17 +437,18 @@ fun segmentation(src: IntImage): Segmentation {
                 }
 
                 val colorJ = colors[cj]
-                if (ci != cj && colorJ.distanceSquared(colorI) < maxColorDiffSq) {
-                    if (weights[ci] + 16 >= weights[cj]) {
-                        val w0 = weights[ci]
-                        val w1 = weights[cj]
-                        // we need to remap all its members
-                        val wx = remap(x + d.x, y + d.y, 0)
-                        val t = wx / (w0 + w1)
-                        colorI.lerp(colors[cj], t)
-                        weights[ci] = w0 + wx
-                        weights[cj] = w1 - wx
-                    }
+                if (ci != cj &&
+                    colorJ.distanceSquared(colorI) < maxColorDiffSq &&
+                    weights[ci] + 16 >= weights[cj]
+                ) {
+                    val w0 = weights[ci]
+                    val w1 = weights[cj]
+                    // we need to remap all its members
+                    val wx = remap(x + d.x, y + d.y, 0)
+                    val t = wx / (w0 + w1)
+                    colorI.lerp(colorJ, t)
+                    weights[ci] = w0 + wx
+                    weights[cj] = w1 - wx
                 }
             }
         }

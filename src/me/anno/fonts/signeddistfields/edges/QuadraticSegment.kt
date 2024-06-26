@@ -101,9 +101,9 @@ class QuadraticSegment(val p0: Vector2f, p10: Vector2f, val p2: Vector2f) : Edge
         val ab = JomlPools.vec2f.create()
         val br = JomlPools.vec2f.create()
 
-        qa.set(p0).sub(origin)
-        ab.set(p1).sub(p0)
-        br.set(p2).sub(p1).sub(ab)
+        p0.sub(origin, qa)
+        p1.sub(p0, ab)
+        p2.sub(p1, br).sub(ab)
 
         val a = br.lengthSquared()
         val b = 3f * ab.dot(br)

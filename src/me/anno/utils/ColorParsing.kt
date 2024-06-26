@@ -5,6 +5,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b
+import me.anno.utils.Color.convertRGBA2ARGB
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
@@ -91,6 +92,10 @@ object ColorParsing {
         return parseColor(name)
     }
 
+    private fun parseHex3(name: String): Int {
+        return parseHex(name[0]) * 0x110000 + parseHex(name[1]) * 0x1100 + parseHex(name[2]) * 0x11
+    }
+
     /**
      * @param name color in with hex characters only
      * @return argb color code
@@ -99,12 +104,10 @@ object ColorParsing {
     @JvmStatic
     fun parseHex(name: String): Int {
         return when (name.length) {
-            3 -> (parseHex(name[0]) * 0x110000 + parseHex(name[1]) * 0x1100 + parseHex(name[2]) * 0x11) or black
-            4 -> (parseHex(name[0]) * 0x11000000 + parseHex(name[1]) * 0x110000 + parseHex(name[2]) * 0x1100 + parseHex(
-                name[3]
-            ) * 0x11)
+            3 -> parseHex3(name) or black
+            4 -> parseHex(name[3]) * 0x11000000 + parseHex3(name)
             6 -> name.toInt(16) or black
-            8 -> name.toLong(16).toInt()
+            8 -> convertRGBA2ARGB(name.toLong(16).toInt())
             else -> throw InvalidFormatException("Unknown color $name")
         }
     }

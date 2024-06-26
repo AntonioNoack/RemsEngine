@@ -1,9 +1,9 @@
 package me.anno.maths
 
 import me.anno.maths.Maths.TAUf
-import me.anno.maths.Maths.pow
 import kotlin.math.abs
 import kotlin.math.acos
+import kotlin.math.cbrt
 import kotlin.math.cos
 import kotlin.math.sqrt
 
@@ -63,14 +63,14 @@ object EquationSolver {
             dst[2] = q * cos((t - TAUf) / 3f) - a
             3
         } else {
-            var a3 = -pow(abs(r) + sqrt(r2 - q3), 1f / 3f)
+            var a3 = -cbrt(abs(r) + sqrt(r2 - q3))
             if (r < 0) a3 = -a3
             val b3 = if (a3 == 0f) 0f else q / a3
             a /= 3f
             dst[0] = a3 + b3 - a
             dst[1] = -0.5f * (a3 + b3) - a
-            dst[2] = +0.5f * sqrt(3f) * (a3 - b3)
-            if (abs(dst[2]) < 1e-14) 2 else 1
+            val cond = +0.5f * sqrt(3f) * (a3 - b3)
+            if (abs(cond) < 1e-14) 2 else 1
         }
     }
 
