@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -8,24 +7,17 @@ import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.change.Path
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 
-object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
+object MeshCache : PrefabByFileCache<Mesh>(Mesh::class, "Mesh") {
 
     private val LOGGER = LogManager.getLogger(MeshCache::class)
-
-    val cache = CacheSection("MeshCache2")
-
-    fun clear() {
-        cache.clear()
-        lru.clear()
-    }
 
     override fun castInstance(instance: Saveable?, ref: FileReference): Mesh? {
         return when (instance) {

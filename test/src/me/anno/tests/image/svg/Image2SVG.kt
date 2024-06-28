@@ -259,7 +259,7 @@ fun isValid(line: List<Vector2f>, segment: EdgeSegment, err: Float): Boolean {
     val tmp1 = FloatPtr()
     val tmp2 = FloatArray(3)
     val tmp3 = SignedDistance()
-    return line.all2 { abs(segment.signedDistance(it, tmp1, tmp2, tmp3).distance) < err }
+    return line.all2 { abs(segment.getSignedDistance(it, tmp1, tmp2, tmp3).distance) < err }
 }
 
 fun getSimplification(line: List<Vector2f>): EdgeSegment? {

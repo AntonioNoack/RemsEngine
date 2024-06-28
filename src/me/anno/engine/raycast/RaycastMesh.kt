@@ -3,9 +3,9 @@ package me.anno.engine.raycast
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.CullMode
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.Done
@@ -73,8 +73,10 @@ object RaycastMesh {
                 val blas = mesh.raycaster// ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
                 val t1 = Time.nanoTime
                 if (t1 - t0 > MILLIS_TO_NANOS) {
-                    LOGGER.warn("Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
-                            "${mesh.numPrimitives} primitives")
+                    LOGGER.warn(
+                        "Took ${(t1 - t0) / 1e6f}ms for BLAS generation for ${mesh.ref}, " +
+                                "${mesh.numPrimitives} primitives"
+                    )
                 }
                 if (blas != null) {
                     mesh.raycaster = blas
@@ -182,20 +184,21 @@ object RaycastMesh {
     }
 
     fun raycastLocalMeshClosestHit(
-        mesh: Mesh, globalTransform: Matrix4x3d?, inverse: Matrix4x3d,
+        mesh: Mesh, globalTransform: Matrix4x3d?, inverse: Matrix4x3d?,
         localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
         extraDistance: Double, tmp0: Array<Vector3f>, query: RayQuery,
     ) {
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         val typeMask = query.typeMask
-        val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
 
         // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
         // for that test, extend the radius at the start & end or sth like that
         // calculate local radius & radius extend
-        val radiusScale = inverse.getScaleLength() / Maths.SQRT3 // a guess
+        val radiusScale = if (inverse != null) inverse.getScaleLength() / Maths.SQRT3 else 1.0// a guess
         val localRadiusAtOrigin = (query.radiusAtOrigin * radiusScale).toFloat()
         val localRadiusPerUnit = query.radiusPerUnit.toFloat()
         val localMaxDistance = localSrt.distance(localEnd)
@@ -245,9 +248,9 @@ object RaycastMesh {
 
     fun raycastGlobalClosestHit1(query: RayQuery, globalTransform: Matrix4x3d?, mesh: Mesh) {
         val typeMask = query.typeMask
-        val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
-        if (!acceptFront && !acceptBack) return
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
         val tmp = query.result.tmpVector3ds
         mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
             val tmpPos = tmp[0]
@@ -284,8 +287,9 @@ object RaycastMesh {
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         val typeMask = query.typeMask
-        val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return false
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
 
         // for that test, extend the radius at the start & end or sth like that
         // calculate local radius & radius extend
@@ -340,9 +344,9 @@ object RaycastMesh {
     fun raycastGlobalAnyHit1(globalTransform: Matrix4x3d?, mesh: Mesh, query: RayQuery) {
         try {
             val typeMask = query.typeMask
-            val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-            val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
-            if (!acceptFront && !acceptBack) return
+            if (typeMask.and(Raycast.TRIANGLES) == 0) return
+            val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+            val acceptBack = getCullingBack(typeMask, mesh.cullMode)
             val result = query.result
             val tmp = result.tmpVector3ds
             mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
@@ -386,9 +390,9 @@ object RaycastMesh {
     fun raycastLocalMeshAnyHit(mesh: Mesh, start: Vector3f, dir: Vector3f, maxDistance: Float, typeMask: Int): Boolean {
 
         if (maxDistance <= 0.0) return false
-        val acceptFront = typeMask.hasFlag(Raycast.TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(Raycast.TRIANGLE_BACK)
-        if (!acceptFront && !acceptBack) return false
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return false
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         // test whether we intersect the aabb of this mesh
@@ -402,8 +406,7 @@ object RaycastMesh {
                 mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
                     // check collision of localStart-localEnd with triangle ABC
                     val localDistance = Triangles.rayTriangleIntersection(
-                        start, dir, ai, bi, ci,
-                        maxDistance, localHitTmp, localNormalTmp
+                        start, dir, ai, bi, ci, maxDistance, localHitTmp, localNormalTmp
                     )
                     if (localDistance < maxDistance && if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack) {
                         throw Done
@@ -417,5 +420,64 @@ object RaycastMesh {
             }
         }
         return false
+    }
+
+    fun getCullingFront(typeMask: Int, mode: CullMode): Boolean {
+        return getCulling(typeMask, mode, Raycast.TRIANGLE_FRONT, Raycast.TRIANGLE_BACK)
+    }
+
+    fun getCullingBack(typeMask: Int, mode: CullMode): Boolean {
+        return getCulling(typeMask, mode, Raycast.TRIANGLE_BACK, Raycast.TRIANGLE_FRONT)
+    }
+
+    fun getCulling(typeMask: Int, mode: CullMode, frontMask: Int, backMask: Int): Boolean {
+        val mask = when (mode) {
+            CullMode.FRONT -> frontMask
+            CullMode.BACK -> backMask
+            else -> Raycast.TRIANGLES
+        }
+        return mask.and(typeMask) != 0
+    }
+
+    fun raycastLocalMeshClosestHit(
+        mesh: Mesh, start: Vector3f, dir: Vector3f,
+        maxDistance: Float, typeMask: Int, dstNormal: Vector3f?
+    ): Float {
+
+        var bestDistance = Float.POSITIVE_INFINITY
+        if (maxDistance <= 0f) return bestDistance
+
+        if (typeMask.and(Raycast.TRIANGLES) == 0) return bestDistance
+        val acceptFront = getCullingFront(typeMask, mesh.cullMode)
+        val acceptBack = getCullingBack(typeMask, mesh.cullMode)
+
+        // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
+        // test whether we intersect the aabb of this mesh
+        if (mesh.getBounds().testLine(start, dir, bestDistance)) {
+            val localHitTmp = JomlPools.vec3f.create()
+            val localNormalTmp = JomlPools.vec3f.create()
+            val a = JomlPools.vec3f.create()
+            val b = JomlPools.vec3f.create()
+            val c = JomlPools.vec3f.create()
+
+            mesh.forEachTriangle(a, b, c) { ai, bi, ci ->
+                // check collision of localStart-localEnd with triangle ABC
+                val localDistance = Triangles.rayTriangleIntersection(
+                    start, dir, ai, bi, ci, bestDistance, localNormalTmp, localHitTmp,
+                )
+                if (localDistance < bestDistance && localDistance <= maxDistance &&
+                    if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack
+                ) {
+                    bestDistance = localDistance
+                    dstNormal?.set(localNormalTmp)
+                }
+            }
+
+            JomlPools.vec3f.sub(5)
+            if (bestDistance.isFinite()) {
+                dstNormal?.safeNormalize()
+            }
+        }
+        return bestDistance
     }
 }

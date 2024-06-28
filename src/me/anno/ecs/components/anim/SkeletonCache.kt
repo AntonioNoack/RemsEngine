@@ -5,4 +5,4 @@ import me.anno.ecs.prefab.PrefabByFileCache
 /**
  * cache for loaded skeletons
  * */
-object SkeletonCache : PrefabByFileCache<Skeleton>(Skeleton::class)
+object SkeletonCache : PrefabByFileCache<Skeleton>(Skeleton::class, "Skeleton")

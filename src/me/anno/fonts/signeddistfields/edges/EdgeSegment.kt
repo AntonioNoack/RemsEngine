@@ -9,29 +9,29 @@ import kotlin.math.abs
 
 abstract class EdgeSegment {
 
-    abstract fun point(t: Float, dst: Vector2f): Vector2f
+    abstract fun getPointAt(t: Float, dst: Vector2f): Vector2f
 
-    abstract fun direction(t: Float, dst: Vector2f): Vector2f
+    abstract fun getDirectionAt(t: Float, dst: Vector2f): Vector2f
 
     abstract fun length(): Float
 
     abstract fun union(bounds: AABBf, tmp: FloatArray)
 
-    abstract fun signedDistance(
+    abstract fun getSignedDistance(
         origin: Vector2f,
-        param: FloatPtr,
-        tmp: FloatArray,
+        outT: FloatPtr,
+        tmp3: FloatArray,
         dst: SignedDistance
     ): SignedDistance
 
-    fun trueSignedDistance(
+    fun getTrueSignedDistance(
         origin: Vector2f,
-        tmpParam: FloatPtr,
-        tmp2: FloatArray,
-        tmp: SignedDistance
+        outT: FloatPtr,
+        tmp3: FloatArray,
+        tmpD: SignedDistance
     ): Float {
-        val distance = signedDistance(origin, tmpParam, tmp2, tmp)
-        distanceToPseudoDistance(distance, origin, tmpParam.value)
+        val distance = getSignedDistance(origin, outT, tmp3, tmpD)
+        distanceToPseudoDistance(distance, origin, outT.value)
         return distance.distance
     }
 
@@ -40,8 +40,8 @@ abstract class EdgeSegment {
         val v1 = JomlPools.vec2f.create()
         val v2 = JomlPools.vec2f.create()
         if (param < 0f) {
-            val dir = direction(0f, v0).normalize()
-            val aq = v2.set(origin).sub(point(0f, v1))
+            val dir = getDirectionAt(0f, v0).normalize()
+            val aq = v2.set(origin).sub(getPointAt(0f, v1))
             val ts = aq.dot(dir)
             if (ts < 0f) {
                 val pseudoDistance = aq.cross(dir)
@@ -50,8 +50,8 @@ abstract class EdgeSegment {
                 }
             }
         } else if (param > 1f) {
-            val dir = direction(1f, v0).normalize()
-            val bq = v2.set(origin).sub(point(1f, v1))
+            val dir = getDirectionAt(1f, v0).normalize()
+            val bq = v2.set(origin).sub(getPointAt(1f, v1))
             val ts = bq.dot(dir)
             if (ts > 0f) {
                 val pseudoDistance = bq.cross(dir)

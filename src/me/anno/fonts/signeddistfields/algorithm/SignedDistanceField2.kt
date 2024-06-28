@@ -82,7 +82,7 @@ class SignedDistanceField2(contours: List<Contour>, roundEdges: Boolean, sdfReso
                         val edges = contour.segments
                         for (edgeIndex in edges.indices) {
                             val edge = edges[edgeIndex]
-                            val distance = edge.signedDistance(origin, ptr, tmpArray, tmpDistance)
+                            val distance = edge.getSignedDistance(origin, ptr, tmpArray, tmpDistance)
                             if (distance < minDistance) {
                                 minDistance.set(distance)
                                 closestEdge = edge
@@ -94,7 +94,7 @@ class SignedDistanceField2(contours: List<Contour>, roundEdges: Boolean, sdfReso
                 val trueDistance = if (closestEdge != null) {
                     if (roundEdges) {
                         minDistance.distance
-                    } else closestEdge.trueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
+                    } else closestEdge.getTrueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
                 } else 100f
 
                 val dist = clamp(trueDistance, -maxDistance, +maxDistance)

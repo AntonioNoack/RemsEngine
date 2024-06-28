@@ -7,14 +7,14 @@ import me.anno.io.files.FileReference
 /**
  * caches animations with their specific retargetings
  * */
-object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
+object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animation") {
 
     var timeout = 10_000L
     val animTexCache = CacheSection("AnimTextures")
 
     operator fun get(skeleton: Skeleton) = getTexture(skeleton)
     fun getTexture(skeleton: Skeleton): AnimTexture {
-        return animTexCache.getEntry(skeleton.prefab!!.source, timeout, false) { _ ->
+        return animTexCache.getEntry(skeleton.prefab!!.source, timeoutMillis, false) { _ ->
             AnimTexture(skeleton)
         } as AnimTexture
     }
@@ -22,7 +22,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
     fun invalidate(animation: Animation, skeleton: Skeleton) {
         (animTexCache.getEntryWithoutGenerator(
             skeleton.prefab!!.source,
-            timeout
+            timeoutMillis
         ) as? AnimTexture)?.invalidate(animation)
     }
 
@@ -35,7 +35,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
         val s1 = dstSkeleton.ref
         return animTexCache.getEntry(
             DualFileKey(s0, s1),
-            timeout, false
+            timeoutMillis, false
         ) {
             val retargeting = Retargetings.getRetargeting(animation.skeleton, dstSkeleton.ref)
                 ?: throw NullPointerException("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")

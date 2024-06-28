@@ -33,7 +33,7 @@ class CubicSegment(
 
     override fun toString() = "[$p0 $p1 $p2 $p3]"
 
-    override fun point(t: Float, dst: Vector2f): Vector2f {
+    override fun getPointAt(t: Float, dst: Vector2f): Vector2f {
         val b = 1f - t
         val b2 = b * b
         val pr2 = t * t
@@ -47,7 +47,7 @@ class CubicSegment(
             .add(p3.x * aaa, p3.y * aaa)
     }
 
-    override fun direction(t: Float, dst: Vector2f): Vector2f {
+    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f {
         val b = 1f - t
         val a2 = t * t
         val ab2 = 2f * t * b
@@ -88,7 +88,7 @@ class CubicSegment(
         for (i in 0 until solutions) {
             val tmpI = tmp[i]
             if (tmpI > 0f && tmpI < 1f) {
-                bounds.union(point(tmpI, tmpV2))
+                bounds.union(getPointAt(tmpI, tmpV2))
             }
         }
 
@@ -96,17 +96,17 @@ class CubicSegment(
         for (i in 0 until solutions) {
             val tmpI = tmp[i]
             if (tmpI > 0f && tmpI < 1f) {
-                bounds.union(point(tmpI, tmpV2))
+                bounds.union(getPointAt(tmpI, tmpV2))
             }
         }
 
         JomlPools.vec2f.sub(4)
     }
 
-    override fun signedDistance(
+    override fun getSignedDistance(
         origin: Vector2f,
-        param: FloatPtr,
-        tmp: FloatArray,
+        outT: FloatPtr,
+        tmp3: FloatArray,
         dst: SignedDistance
     ): SignedDistance {
 
@@ -124,17 +124,17 @@ class CubicSegment(
         br.set(p2).sub(p1).sub(ab)
         az.set(p3).sub(p2).sub(p2).add(p1).sub(br)
 
-        direction(0f, epDir)
+        getDirectionAt(0f, epDir)
         var minDistance = nonZeroSign(epDir.cross(qa)) * qa.length() // distance from A
 
-        param.value = -qa.dot(epDir) / epDir.lengthSquared()
+        outT.value = -qa.dot(epDir) / epDir.lengthSquared()
 
-        direction(1f, epDir)
+        getDirectionAt(1f, epDir)
         val distance = p3.distance(origin) // distance from B
         if (distance < abs(minDistance)) {
             minDistance = nonZeroSign(crossProductXYY(epDir, p3, origin)) * distance
             val dotProduct = epDir.lengthSquared() - p3.dot(epDir) + origin.dot(epDir)
-            param.value = dotProduct / epDir.lengthSquared()
+            outT.value = dotProduct / epDir.lengthSquared()
         }
 
         // Iterative minimum distance search
@@ -153,17 +153,17 @@ class CubicSegment(
                 interpolate(qe, qa, ab, br, az, t)
                 val distance2 = qe.length()
                 if (distance2 < abs(minDistance)) {
-                    minDistance = nonZeroSign(direction(t, epDir).cross(qe)) * distance2
-                    param.value = t
+                    minDistance = nonZeroSign(getDirectionAt(t, epDir).cross(qe)) * distance2
+                    outT.value = t
                 }
             }
         }
 
         dst.set(
             minDistance, when {
-                param.value in 0f..1f -> 0f
-                param.value < 0.5f -> absDotNormalized(direction(0f, epDir), qa)
-                else -> absDotNormalizedXYY(direction(1f, epDir), p3, origin)
+                outT.value in 0f..1f -> 0f
+                outT.value < 0.5f -> absDotNormalized(getDirectionAt(0f, epDir), qa)
+                else -> absDotNormalizedXYY(getDirectionAt(1f, epDir), p3, origin)
             }
         )
 

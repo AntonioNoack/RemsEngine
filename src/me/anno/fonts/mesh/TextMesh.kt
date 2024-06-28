@@ -44,7 +44,7 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
                     else -> throw NotImplementedError()
                 }
                 for (i in 0 until steps) {
-                    points.add(s.point(i.toFloat() / steps, Vector2f()))
+                    points.add(s.getPointAt(i.toFloat() / steps, Vector2f()))
                 }
             }
             // y is mirrored, because y is up, not down in our 3D coordinate system

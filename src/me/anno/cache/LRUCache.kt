@@ -39,4 +39,8 @@ class LRUCache<K, V>(val size: Int) {
         }
     }
 
+    fun register(): LRUCache<K,V> {
+        CacheSection.registerCache(::clear, ::clear)
+        return this
+    }
 }

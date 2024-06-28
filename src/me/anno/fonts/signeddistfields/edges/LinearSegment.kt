@@ -13,9 +13,9 @@ import kotlin.math.abs
 
 class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
-    override fun point(t: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, t)
+    override fun getPointAt(t: Float, dst: Vector2f): Vector2f = dst.set(p0).lerp(p1, t)
 
-    override fun direction(t: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
+    override fun getDirectionAt(t: Float, dst: Vector2f): Vector2f = dst.set(p1).sub(p0)
 
     override fun length(): Float = p1.distance(p0)
 
@@ -26,10 +26,10 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
         bounds.union(p1.x, p1.y, 0f)
     }
 
-    override fun signedDistance(
+    override fun getSignedDistance(
         origin: Vector2f,
-        param: FloatPtr,
-        tmp: FloatArray,
+        outT: FloatPtr,
+        tmp3: FloatArray,
         dst: SignedDistance
     ): SignedDistance {
 
@@ -39,10 +39,10 @@ class LinearSegment(val p0: Vector2f, val p1: Vector2f) : EdgeSegment() {
 
         aq.set(origin).sub(p0)
         ab.set(p1).sub(p0)
-        param.value = aq.dot(ab) / ab.lengthSquared()
-        val eqRef = if (param.value > 0.5) p1 else p0
+        outT.value = aq.dot(ab) / ab.lengthSquared()
+        val eqRef = if (outT.value > 0.5) p1 else p0
         val endpointDistance = eqRef.distance(origin)
-        if (param.value > 0 && param.value < 1) {
+        if (outT.value > 0 && outT.value < 1) {
             ab.getOrthonormal(false, allowZero = false, orthoNormal)
             val orthoDistance = orthoNormal.dot(aq)
             if (abs(orthoDistance) < endpointDistance) {
