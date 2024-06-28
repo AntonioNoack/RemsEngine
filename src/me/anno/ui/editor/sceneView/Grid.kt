@@ -237,7 +237,7 @@ object Grid {
      * draws the mesh as lines; used by Rem's Studio
      * */
     @Suppress("unused")
-    fun drawLineMesh(pipeline: Pipeline, stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
+    fun drawLineMesh(pipeline: Pipeline?, stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
         if (color.w <= 0f) return
         val shader = shader3DSimple.value
         shader.use()

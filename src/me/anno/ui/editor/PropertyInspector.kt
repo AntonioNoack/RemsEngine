@@ -15,13 +15,13 @@ import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
+import me.anno.utils.structures.Collections.filterIsInstance2
 import org.apache.logging.log4j.LogManager
 
 open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
@@ -79,7 +79,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             oldValues.clear()
             if (selected.isNotEmpty()) {
                 oldValues.add(searchPanel)
-                createInspector(selected, oldValues, style)
+                createInspector1(selected, oldValues, style)
             }
         } else if (needsUpdate) {
             update(selected)
@@ -97,15 +97,15 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
         newValues.clear()
         if (selected.isNotEmpty()) {
-            createInspector(selected, newValues, style)
+            createInspector1(selected, newValues, style)
         }
 
         // is matching required? not really
         val newPanels = newValues.listOfAll
-            .filterIsInstance<InputPanel<*>>().toList()
+            .filterIsInstance2(InputPanel::class)
         val oldPanels = oldValues.listOfAll
             .filter { !it.anyInHierarchy { p -> p == searchPanel } }
-            .filterIsInstance<InputPanel<*>>().toList()
+            .filterIsInstance2(InputPanel::class)
 
         val newSize = newPanels.size
         val oldSize = oldPanels.size
@@ -174,16 +174,11 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             }
         }
 
-        fun createInspector(ins: List<Inspectable>, list: PanelListY, style: Style) {
+        private fun createInspector1(ins: List<Inspectable>, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
             ins[0].createInspector(ins, list, style) {
                 createGroup(it, list, groups, style)
             }
-            addSpacingForFrameTimings(list)
-        }
-
-        fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
-            ins.createInspector(list, style)
             addSpacingForFrameTimings(list)
         }
 

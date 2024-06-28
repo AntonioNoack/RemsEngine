@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.utils
 
 import me.anno.utils.structures.tuples.FloatPair
 import org.joml.Matrix4f
@@ -7,7 +7,9 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-// moved to testing folder, because this isn't used in the engine at the moment
+/**
+ * used in Rem's Studio to check whether a video is visible
+ * */
 object Clipping {
 
     @JvmStatic
@@ -45,6 +47,7 @@ object Clipping {
     }
 
     @JvmStatic
+    @Suppress("unused")
     fun isPlaneVisible(matrix: Matrix4f, dx: Float, dy: Float): Boolean {
         val v000 = getPoint(matrix, +dx, +dy) ?: return true
         val v001 = getPoint(matrix, +dx, -dy) ?: return true

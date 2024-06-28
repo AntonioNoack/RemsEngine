@@ -1,20 +1,15 @@
 package me.anno.io.utils
 
-import me.anno.Engine
-import me.anno.Time.nanoTime
-import me.anno.engine.Events.addEvent
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.io.saveable.Saveable
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.Maps.removeIf
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
-import kotlin.concurrent.thread
 import kotlin.math.min
 
 /**
@@ -294,30 +289,9 @@ open class StringMap(
         return this
     }
 
-    private val saveDelay = SECONDS_TO_NANOS
-    private var lastSaveTime = nanoTime - saveDelay - 1
+    private val sm = SaveMaybe()
     fun saveMaybe(name: String) {
-        if (wasChanged) {
-            synchronized(this) {
-                if (nanoTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
-                    if (OS.isWeb) {
-                        save(name)
-                        lastSaveTime = nanoTime
-                    } else {
-                        // delay in case it needs longer
-                        lastSaveTime = nanoTime + 60 * SECONDS_TO_NANOS
-                        thread(name = "Saving $name") {
-                            save(name)
-                            lastSaveTime = nanoTime
-                        }
-                    }
-                } else {
-                    addEvent(10) {
-                        saveMaybe(name)
-                    }
-                }
-            }
-        }
+        sm.saveMaybe(name, { wasChanged }, { save(name) })
     }
 
     fun save(name: String) {

@@ -21,7 +21,7 @@ class OptionPanel(
 ) : SettingCategory(nameDesc, stackPanel.style) {
 
     init {
-        PropertyInspector.createInspector(value, content, style)
+        value.createInspector(content, style)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
