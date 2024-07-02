@@ -117,10 +117,18 @@ object Strings {
     private const val DEFAULT_IMPORT_TYPE = "Text"
 
     @JvmStatic
-    fun String.getImportType(): String =
-        DefaultConfig["import.mapping.$this"]?.toString()
-            ?: DefaultConfig["import.mapping.${lowercase()}"]?.toString()
+    fun getImportTypeByExtension(fileExtension: String): String {
+        return DefaultConfig["import.mapping.$fileExtension"]?.toString()
             ?: DefaultConfig["import.mapping.*"]?.toString() ?: DEFAULT_IMPORT_TYPE
+    }
+
+    @JvmStatic
+    fun findImportTypeExtensions(importType: String): List<String> {
+        val prefix = "import.mapping."
+        return DefaultConfig.entries
+            .filter { it.key.startsWith(prefix) && it.value == importType }
+            .map { it.key.substring(prefix.length) }
+    }
 
     // 00:57:28.87 -> 57 * 60 + 28.87
     @JvmStatic

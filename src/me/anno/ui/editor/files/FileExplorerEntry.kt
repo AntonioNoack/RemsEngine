@@ -91,7 +91,7 @@ import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.formatTime
-import me.anno.utils.types.Strings.getImportType
+import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.setNumber
 import me.anno.video.VideoStream
@@ -147,7 +147,7 @@ open class FileExplorerEntry(
     var hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
     var darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
 
-    private val importType = file.extension.getImportType()
+    private val importType = getImportTypeByExtension(file.lcExtension)
     private var iconPath = if (isParent || file.isDirectory) {
         if (isParent) {
             folderPath

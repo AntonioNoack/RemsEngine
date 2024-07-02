@@ -134,18 +134,19 @@ object FileChooser {
         buttons.add(submit)
         val ui = PanelListY(style)
         if (filters.isNotEmpty()) {
-
             fun applyFilter(filter: FileExtensionFilter) {
                 extensions = filter.extensions
-                files.invalidate()
+                files.invalidate(force = true)
             }
-
-            val select = EnumInput(NameDesc("Filter"), filters.first().nameDesc, filters.map { it.nameDesc }, style)
-            select.setChangeListener { _, index, _ ->
-                applyFilter(filters[index])
-            }
-            applyFilter(filters.first())
-            ui.add(select)
+            val chosenByDefault = filters.first()
+            if (filters.size > 1) {
+                val select = EnumInput(NameDesc("Filter"), chosenByDefault.nameDesc, filters.map { it.nameDesc }, style)
+                select.setChangeListener { _, index, _ ->
+                    applyFilter(filters[index])
+                }
+                ui.add(select)
+            } // else there isn't really any choice
+            applyFilter(chosenByDefault)
         }
         ui.add(files)
         ui.add(filesList)

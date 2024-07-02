@@ -12,7 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
-import me.anno.utils.types.Strings.getImportType
+import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
 import kotlin.math.floor
@@ -72,7 +72,7 @@ object ImageThumbnails {
         }, {
             if (image == null) {
                 val ext = srcFile.lcExtension
-                when (val importType = ext.getImportType()) {
+                when (val importType = getImportTypeByExtension(ext)) {
                     "Video" -> {
                         LOGGER.info("Generating frame for $srcFile")
                         generateVideoFrame(srcFile, dstFile, size, callback, 1.0)

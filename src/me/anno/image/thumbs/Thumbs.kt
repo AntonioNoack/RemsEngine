@@ -3,8 +3,8 @@ package me.anno.image.thumbs
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.IgnoredException
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.extensions.FileReaderRegistry
+import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
@@ -134,7 +134,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             val gen = TextureCache.getEntryWithoutGenerator(keyI, 500) as? AsyncCacheData<*>
             val tex = gen?.value as? ITexture2D
             if (tex != null && tex.isCreated()) {
-                println("copying texture for $key")
+                LOGGER.info("Copying texture for $key")
                 copyTexIfPossible(srcFile, size, tex, callback)
                 return
             }
