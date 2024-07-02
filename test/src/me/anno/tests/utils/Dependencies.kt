@@ -33,7 +33,7 @@ class Package(val name: String) {
     val dependencies = HashSet<Package>()
     val dependencies2 = HashMap<Package, HashSet<Package>>()
     val children = ArrayList<Package>()
-    lateinit var path: String
+    var path: String = ""
     var parent: Package? = null
     var isCollapsed = true
     var depth = 0

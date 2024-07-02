@@ -19,8 +19,7 @@ import me.anno.ui.editor.PropertyInspector
 
 object EditorState {
 
-    lateinit var projectFile: FileReference
-
+    var projectFile: FileReference = InvalidRef
     var prefabSource: FileReference = InvalidRef
     val prefab get() = PrefabCache[prefabSource]
 

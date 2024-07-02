@@ -183,7 +183,7 @@ object ExtensionLoader {
             try {
                 // call with arguments??..., e.g. config or StudioBase or sth...
                 val ext = clazz.java.newInstance() as? Extension
-                ext?.setInfo(ex)
+                ext?.info = ex
                 ext?.isRunning = true
                 return ext
             } catch (e: Exception) {
@@ -209,7 +209,7 @@ object ExtensionLoader {
                 val classToLoad = Class.forName(className, true, urlClassLoader)
                 // call with arguments??..., e.g. config or StudioBase or sth...
                 val ext = classToLoad.newInstance() as? Extension
-                ext?.setInfo(ex)
+                ext?.info = ex
                 ext?.isRunning = true
                 return ext
             } catch (e: Exception) {

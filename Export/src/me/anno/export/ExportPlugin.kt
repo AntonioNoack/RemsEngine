@@ -192,7 +192,6 @@ class ExportPlugin : Plugin() {
             createPresetUI(loadedInitially)
         }
 
-        lateinit var preset: ExportSettings
         ui.add(EnumInput(
             NameDesc("Preset"),
             NameDesc(loadedInitially?.name ?: "Please Choose"),
@@ -212,7 +211,7 @@ class ExportPlugin : Plugin() {
                     }
                 )
             } else {
-                preset = presets[index - 1]
+                val preset = presets[index - 1]
                 preset.lastUsed = System.currentTimeMillis()
                 storePresets(presets)
                 createPresetUI(preset)

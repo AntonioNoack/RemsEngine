@@ -9,38 +9,17 @@ import java.lang.reflect.Modifier
 abstract class Extension {
 
     // these values will be injected when the extension is loaded
-    lateinit var name: String
-    lateinit var uuid: String
-    lateinit var description: String
-    lateinit var version: String
-    lateinit var authors: String
-
-    lateinit var dependencies: List<String>
-
-    /**
-     * extensions with the same priorities can be inited in parallel,
-     * default value: 0.0; high priorities get executed first
-     * */
-    var priority = 0.0
-
-    private val listeners = HashMap<Class<*>, HashSet<ListenerData>>()
+    var info: ExtensionInfo? = null
+    val priority get() = info?.priority ?: 0.0
 
     var isRunning = true
+
+    private val listeners = HashMap<Class<*>, HashSet<ListenerData>>()
 
     class ListenerData(val listener: Any, val method: Method, val priority: Int) : Comparable<ListenerData> {
         override fun compareTo(other: ListenerData): Int {
             return priority.compareTo(other.priority)
         }
-    }
-
-    fun setInfo(info: ExtensionInfo) {
-        uuid = info.uuid
-        name = info.name
-        description = info.description
-        version = info.version
-        authors = info.authors
-        dependencies = info.dependencies
-        priority = info.priority
     }
 
     fun clearListeners() {

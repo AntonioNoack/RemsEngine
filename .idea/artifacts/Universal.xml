@@ -96,6 +96,7 @@
       <element id="module-output" name="JVM" />
       <element id="module-output" name="Export" />
       <element id="module-output" name="OpenXR" />
+      <element id="module-output" name="Network" />
     </root>
   </artifact>
 </component>

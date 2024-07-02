@@ -26,7 +26,16 @@ class ExtensionInfo() {
     var maxVersion = Int.MAX_VALUE
     var mainClass = ""
     var isPluginNotMod = false
+
+    /**
+     * extensions with the same priorities can be inited in parallel,
+     * default value: 0.0; high priorities get executed first
+     * */
     var priority = 0.0
+
+    /**
+     * list of UUIDs
+     * */
     var dependencies: List<String> = emptyList()
     var clazz: KClass<*>? = null
 
@@ -71,7 +80,7 @@ class ExtensionInfo() {
             }
         }
         if (uuid.isEmpty()) uuid = name.trim()
-        return if(name.isNotEmpty()) this else null
+        return if (name.isNotEmpty()) this else null
     }
 
     override fun toString(): String {

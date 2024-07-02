@@ -23,14 +23,14 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
 
     private fun printStatus(type: String, extensions: List<V>) {
         if (extensions.isNotEmpty()) {
-            LOGGER.info("$type ${instanceName}s ${extensions.map { "\"${it.name}\"" }}")
+            LOGGER.info("$type ${instanceName}s ${extensions.map { "\"${it.info?.name}\"" }}")
         }
     }
 
     abstract fun onEnable(extensions: List<V>)
     abstract fun onDisable(extensions: List<V>)
 
-    operator fun contains(uuid: String): Boolean = loaded.any { it.uuid == uuid }
+    operator fun contains(uuid: String): Boolean = loaded.any { it.info?.uuid == uuid }
 
     companion object {
         private val LOGGER = LogManager.getLogger(ExtensionManager::class)
