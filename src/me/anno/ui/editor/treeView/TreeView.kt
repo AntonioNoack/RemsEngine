@@ -204,7 +204,7 @@ abstract class TreeView<V : Any>(
         return if (canBeInserted(hovered, clone, index)) {
             addChild(hovered, clone, type, index)
         } else {
-            LOGGER.warn("Cannot add child")
+            warnCannotAddChild()
             false
         }
     }
@@ -216,19 +216,21 @@ abstract class TreeView<V : Any>(
         return if (canBeInserted(parent, added, index)) {
             addChild(parent, added, type, index)
         } else {
-            LOGGER.warn("Cannot add child")
+            warnCannotAddChild()
             false
         }
+    }
+
+    private fun warnCannotAddChild() {
+        LOGGER.warn("Cannot add child")
     }
 
     fun getIndexInParent(parent: V, child: V): Int = getChildren(parent).indexOf(child)
 
     abstract fun stringifyForCopy(element: V): String
 
-    // todo use these functions to show indicator colors
+    // todo respect these in ECSTreeView
     abstract fun canBeRemoved(element: V): Boolean
-
-    // todo use this functions to actually forbid the action
     abstract fun canBeInserted(parent: V, element: V, index: Int): Boolean
 
     abstract fun getDragType(element: V): String
@@ -376,7 +378,7 @@ abstract class TreeView<V : Any>(
                                 if (canBeRemoved(element)) {
                                     if (parent == null) removeRoot(element)
                                     else removeChild(parent, element)
-                                } else LOGGER.info("Cannot remove element")
+                                } else LOGGER.warn("Cannot remove element")
                             }
                         }
                     }
@@ -391,9 +393,9 @@ abstract class TreeView<V : Any>(
     // todo we'd need a selection mode with the arrow keys, too...
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        for (file in files) {
+        for (i in files.indices) {
             fileContentImporter.addChildFromFile(
-                listRoots().lastOrNull(), file,
+                listRoots().lastOrNull(), files[i],
                 FileContentImporter.SoftLinkMode.ASK,
                 true
             ) {}

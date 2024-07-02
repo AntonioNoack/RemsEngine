@@ -75,14 +75,15 @@ object GFX {
      * window, that is in focus; may be null
      * */
     @JvmStatic
-    val focusedWindow get() = windows.firstOrNull2 { it.isInFocus }
+    val focusedWindow
+        get(): OSWindow? = windows.firstOrNull2 { it.isInFocus && !it.shouldClose }
 
     /**
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
     val someWindow // we also could choose the one closest to the mouse :)
-        get() = focusedWindow ?: windows.firstOrNull() ?: firstWindow
+        get(): OSWindow = focusedWindow ?: windows.firstOrNull() ?: firstWindow
 
     @JvmField
     var supportsAnisotropicFiltering = false

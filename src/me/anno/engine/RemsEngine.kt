@@ -28,6 +28,7 @@ import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
 import me.anno.io.files.FileReference
+import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -201,9 +202,11 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             openConfigWindow(windowStack)
         }
-
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             openStylingWindow(windowStack)
+        }
+        options.addAction(configTitle, Dict["Keymap", "ui.top.config.keymap"]) {
+            openConfigWindow(windowStack, ActionManager, false)
         }
 
         list.add(options)
@@ -254,18 +257,19 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
     companion object {
 
-        fun openConfigWindow(windowStack: WindowStack) {
-            val panel = ConfigPanel(DefaultConfig, false, style)
+        fun openConfigWindow(windowStack: WindowStack, config: StringMap, isStyle: Boolean) {
+            val panel = ConfigPanel(config, isStyle, style)
             val window = createReloadWindow(panel, transparent = false, fullscreen = true) { instance?.createUI() }
             panel.create()
             windowStack.push(window)
         }
 
+        fun openConfigWindow(windowStack: WindowStack) {
+            openConfigWindow(windowStack, DefaultConfig, false)
+        }
+
         fun openStylingWindow(windowStack: WindowStack) {
-            val panel = ConfigPanel(style.values, true, style)
-            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { instance?.createUI() }
-            panel.create()
-            windowStack.push(window)
+            openConfigWindow(windowStack, style.values, true)
         }
 
         fun collectSelected(): Any {

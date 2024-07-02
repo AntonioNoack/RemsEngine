@@ -19,6 +19,10 @@ object EngineActions {
 
     private val LOGGER = LogManager.getLogger(EngineActions::class)
 
+    private fun warnNoPanelHovered() {
+        LOGGER.warn("No panel was hovered for drop")
+    }
+
     fun register() {
 
         val actions = listOf(
@@ -43,12 +47,12 @@ object EngineActions {
                                 window.mouseX, window.mouseY,
                                 data.split("\n").map { getReference(it) }
                             )
-                            else LOGGER.warn("No panel was hovered for drop")
+                            else warnNoPanelHovered()
                         }
                         else -> {
                             val hp = EngineBase.instance?.hoveredPanel
                             if (hp != null) hp.onPaste(window.mouseX, window.mouseY, data, type)
-                            else LOGGER.warn("No panel was hovered for drop")
+                            else warnNoPanelHovered()
                         }
                     } else LOGGER.warn("Could not drop, because no window was focussed")
 
@@ -227,10 +231,16 @@ object EngineActions {
         register["HSVBoxMain.left.press", "SelectColor"]
 
         for (i in 0 until 10) {
-            register["SceneView.numpad$i.down", "Cam$i"]
-            register["SceneView.numpad$i.down.c", "Cam$i"]
-            register["DraggingControls.numpad$i.down", "Cam$i"]
-            register["DraggingControls.numpad$i.down.c", "Cam$i"]
+            fun registerForClass(clazz: String) {
+                // not everyone has a numpad -> support normal number keys, too
+                val action = "Cam$i"
+                register["$clazz.$i.down", action]
+                register["$clazz.$i.down.c", action]
+                register["$clazz.numpad$i.down", action]
+                register["$clazz.numpad$i.down.c", action]
+            }
+            registerForClass("SceneView")
+            registerForClass("DraggingControls")
         }
 
         register["TextInput.backspace.typed", "DeleteBefore"]

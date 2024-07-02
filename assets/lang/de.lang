@@ -154,6 +154,7 @@ ui.top.project.save: Speichern
 ui.top.project.load: Laden
 ui.top.config.settings: Einstellungen
 ui.top.config.style: Darstellung
+ui.top.config.keymap: Tastenkombinationen
 ui.top.config.language: Sprache
 
 ui.project.folderNotEmpty: Ordner ist nicht leer

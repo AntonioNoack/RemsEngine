@@ -2,8 +2,9 @@ package me.anno.input
 
 import me.anno.Time
 import me.anno.config.ConfigRef
-import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
+import me.anno.io.config.ConfigBasics.loadConfig
+import me.anno.io.files.InvalidRef
 import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
@@ -12,7 +13,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-object ActionManager {
+object ActionManager: StringMap() {
 
     @JvmStatic
     private val LOGGER = LogManager.getLogger(ActionManager::class)
@@ -33,16 +34,16 @@ object ActionManager {
     private val globalActions = HashMap<String, () -> Boolean>()
 
     @JvmStatic
-    private lateinit var keyMap: StringMap
-
-    @JvmStatic
     fun init() {
-
-        keyMap = DefaultConfig["ui.keyMap", { StringMap() }]
+        try {
+            putAll(loadConfig("keymap.config", InvalidRef, this, true))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         // this should be fine
         // if an action is supposed to do nothing, then it should be set to ""
-        createDefaultKeymap(keyMap)
-        parseConfig(keyMap)
+        createDefaultKeymap(this)
+        parseConfig()
     }
 
     @JvmField
@@ -51,8 +52,8 @@ object ActionManager {
     }
 
     @JvmStatic
-    fun parseConfig(config: StringMap) {
-        for ((key, value) in config) {
+    fun parseConfig() {
+        for ((key, value) in this) {
             value as? String ?: continue
             register(key, value)
         }

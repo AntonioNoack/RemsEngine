@@ -80,7 +80,10 @@ object FileChooser {
             filesList.base.enableSpellcheck = false
             filesList
         } else {
-            TextPanel(style)
+            TextPanel(
+                if (allowMultiples) "No files selected"
+                else "No file selected", style
+            )
         }
 
         fun updateFileListText() {
@@ -138,6 +141,7 @@ object FileChooser {
                 extensions = filter.extensions
                 files.invalidate(force = true)
             }
+
             val chosenByDefault = filters.first()
             if (filters.size > 1) {
                 val select = EnumInput(NameDesc("Filter"), chosenByDefault.nameDesc, filters.map { it.nameDesc }, style)
