@@ -1,6 +1,5 @@
 package me.anno.ui
 
-import me.anno.config.DefaultConfig
 import me.anno.io.utils.StringMap
 import me.anno.fonts.Font
 import me.anno.fonts.FontStats

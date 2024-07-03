@@ -1,5 +1,6 @@
 package me.anno.utils.structures.lists
 
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 import kotlin.math.min
@@ -573,5 +574,15 @@ object Lists {
     @JvmStatic
     fun <V> List<V>.iff(condition: Boolean): List<V> {
         return if (condition) this else emptyList()
+    }
+
+    @JvmStatic
+    fun <V : Any> Any?.castToList(clazz: KClass<V>): List<V> {
+        return if (this is List<*>) {
+            if (all2 { clazz.isInstance(it) }) {
+                @Suppress("UNCHECKED_CAST")
+                this as List<V>
+            } else filterIsInstance2(clazz)
+        } else emptyList()
     }
 }

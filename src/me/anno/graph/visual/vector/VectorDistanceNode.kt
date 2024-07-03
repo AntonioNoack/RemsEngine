@@ -13,6 +13,7 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 private val vectorDistanceData = LazyMap { type: String ->
     MathNodeData(
@@ -27,34 +28,27 @@ private val vectorDistanceData = LazyMap { type: String ->
 }
 
 class VectorDistanceNode : TypedMathNode<VectorLengthMode>(vectorDistanceData, vectorTypes) {
+    private fun distanceSquared(a: Any?, b: Any?): Double {
+        return when (a) {
+            is Vector2f -> a.distanceSquared(b as Vector2f).toDouble()
+            is Vector3f -> a.distanceSquared(b as Vector3f).toDouble()
+            is Vector4f -> a.distanceSquared(b as Vector4f).toDouble()
+            is Vector2d -> a.distanceSquared(b as Vector2d)
+            is Vector3d -> a.distanceSquared(b as Vector3d)
+            is Vector4d -> a.distanceSquared(b as Vector4d)
+            is Vector2i -> a.distanceSquared(b as Vector2i).toDouble() // not really double -> is that an issue?
+            is Vector3i -> a.distanceSquared(b as Vector3i).toDouble()
+            is Vector4i -> a.distanceSquared(b as Vector4i).toDouble()
+            else -> throw NotImplementedError()
+        }
+    }
+
     override fun compute() {
         val a = getInput(0)
         val b = getInput(1)
         val v = when (enumType) {
-            VectorLengthMode.LENGTH -> when (a) {
-                is Vector2f -> a.distance(b as Vector2f)
-                is Vector3f -> a.distance(b as Vector3f)
-                is Vector4f -> a.distance(b as Vector4f)
-                is Vector2d -> a.distance(b as Vector2d)
-                is Vector3d -> a.distance(b as Vector3d)
-                is Vector4d -> a.distance(b as Vector4d)
-                is Vector2i -> a.distance(b as Vector2i)
-                is Vector3i -> a.distance(b as Vector3i)
-                is Vector4i -> a.distance(b as Vector4i)
-                else -> throw NotImplementedError()
-            }
-            VectorLengthMode.LENGTH_SQUARED -> when (a) {
-                is Vector2f -> a.distanceSquared(b as Vector2f)
-                is Vector3f -> a.distanceSquared(b as Vector3f)
-                is Vector4f -> a.distanceSquared(b as Vector4f)
-                is Vector2d -> a.distanceSquared(b as Vector2d)
-                is Vector3d -> a.distanceSquared(b as Vector3d)
-                is Vector4d -> a.distanceSquared(b as Vector4d)
-                is Vector2i -> a.distanceSquared(b as Vector2i) // not really double -> is that an issue?
-                is Vector3i -> a.distanceSquared(b as Vector3i)
-                is Vector4i -> a.distanceSquared(b as Vector4i)
-                else -> throw NotImplementedError()
-            }
+            VectorLengthMode.LENGTH -> sqrt(distanceSquared(a, b))
+            VectorLengthMode.LENGTH_SQUARED -> distanceSquared(a, b)
             VectorLengthMode.NORM1 -> when (a) {
                 is Vector2f -> abs(a.x - (b as Vector2f).x) + abs(a.y - b.y)
                 is Vector3f -> abs(a.x - (b as Vector3f).x) + abs(a.y - b.y) + abs(a.z - b.z)

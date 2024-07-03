@@ -1,7 +1,11 @@
 package me.anno.audio
 
+import me.anno.maths.Maths.mix
 import me.anno.utils.types.Floats.f2
 
+/**
+ * used in Rem's Studio
+ * */
 open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 0f) {
 
     override fun l2l(f: Float, s: AudioTransfer) = l2l * (1f - f) + f * s.l2l
@@ -9,12 +13,12 @@ open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 
     override fun l2r(f: Float, s: AudioTransfer) = 0f
     override fun r2l(f: Float, s: AudioTransfer) = 0f
 
-    override fun getLeft(left: Float, right: Float, f: Float, s: AudioTransfer) = left * (l2l * (1f - f) + f * s.l2l)
-    override fun getRight(left: Float, right: Float, f: Float, s: AudioTransfer) = left * (r2r * (1f - f) + f * s.r2r)
+    override fun getLeft(left: Float, right: Float, f: Float, s: AudioTransfer) = left * mix(l2l, s.l2l, f)
+    override fun getRight(left: Float, right: Float, f: Float, s: AudioTransfer) = right * mix(r2r, s.r2r, f)
 
     override fun toString() = "[${l2l.f2()} ${r2r.f2()} ${l2r.f2()} ${r2l.f2()}]"
 
-    override fun multiply(s: Float) =
+    override fun multiply(s: Float): AudioTransfer =
         when {
             s == 1f -> this
             s < 0.0003f -> ZeroTransfer
@@ -35,5 +39,4 @@ open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 
     }
 
     override fun isZero(): Boolean = l2l == 0f && r2r == 0f
-
 }

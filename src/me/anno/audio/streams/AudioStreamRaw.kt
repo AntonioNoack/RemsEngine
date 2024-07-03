@@ -9,10 +9,8 @@ import me.anno.audio.AudioSliceKey
 import me.anno.audio.openal.SoundBuffer
 import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
-import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.structures.tuples.ShortPair
 import kotlin.math.max
 import kotlin.math.min
@@ -87,48 +85,22 @@ class AudioStreamRaw(
     private var lastSliceIndex = Long.MAX_VALUE
     private var lastSoundBuffer: SoundBuffer? = null
 
-    fun getAmplitudeSync(index0: Long, shortPair: ShortPair) {
+    fun getAmplitudeSync(index0: Long, dst: ShortPair) {
 
         val maxSampleIndex = sampleCount
         val repeat = repeat
 
         if (index0 < 0 || (repeat === LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) {
-
-            shortPair.set(0, 0)
+            dst.set(0, 0)
         } else {
-
             val index = repeat[index0, maxSampleIndex]
-
             if (file is AudioReadable) {
-
-                if (file.prefersBufferedSampling) {
-                    // we use buffer-length slices by our internal generation functions,
-                    // because they probably have low overhead
-                    val sliceSampleCount = ((time1 - time0) * sampleRate).toInt()
-                    val index0i = (time0 * sampleRate).toLong()
-                    val soundBuffer = if (lastSoundBuffer == null) {
-                        val soundBuffer = file.getBuffer(time0, time1, sampleRate)
-                        lastSoundBuffer = soundBuffer
-                        soundBuffer
-                    } else lastSoundBuffer!!
-                    val data = soundBuffer.data!!
-                    val localIndex = clamp((index - index0i).toInt(), 0, sliceSampleCount - 1)
-                    if (soundBuffer.isStereo) {
-                        val arrayIndex0 = localIndex * 2 // for stereo
-                        shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
-                    } else {
-                        val v = data[localIndex] // mono
-                        shortPair.set(v, v)
-                    }
+                val time = index.toDouble() / sampleRate
+                if (file.channels >= 2) {
+                    dst.set(file.sample(time, 0), file.sample(time, 1))
                 } else {
-                    // easiest case: file wants to be sampled one-by-one
-                    val time = index.toDouble() / sampleRate
-                    if (file.channels == 2) {
-                        shortPair.set(file.sample(time, 0), file.sample(time, 1))
-                    } else {
-                        val v = file.sample(time, 0)
-                        shortPair.set(v, v)
-                    }
+                    val v = file.sample(time, 0)
+                    dst.set(v, v)
                 }
             } else {
 
@@ -159,12 +131,12 @@ class AudioStreamRaw(
                 if (soundBuffer.isStereo) {
                     val localIndex0 = localIndex * 2 // for stereo
                     if (localIndex0 + 1 < data.limit()) {
-                        shortPair.set(data[localIndex0], data[localIndex0 + 1])
-                    } else shortPair.set(0, 0)
+                        dst.set(data[localIndex0], data[localIndex0 + 1])
+                    } else dst.set(0, 0)
                 } else if (localIndex < data.limit()) {
                     val value = data[localIndex] // mono
-                    shortPair.set(value, value)
-                } else shortPair.set(0, 0)
+                    dst.set(value, value)
+                } else dst.set(0, 0)
             }
         }
     }

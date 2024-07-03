@@ -71,38 +71,6 @@ object GFXx3D {
                 "}"
     )
 
-    val shader3DGaussianBlur = Shader(
-        "3d-blur", ShaderLib.v3DlMasked, ShaderLib.v3DMasked, ShaderLib.y3DMasked, listOf(
-            Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V2F, "stepSize"),
-            Variable(GLSLType.V1F, "steps"),
-            Variable(GLSLType.V1F, "threshold")
-        ), "" +
-                ShaderLib.brightness +
-                "void main(){\n" +
-                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
-                "   vec4 color;\n" +
-                "   float sum = 0.0;\n" +
-                // test all steps for -pixelating*2 .. pixelating*2, then average
-                "   int iSteps = max(0, int(2.7 * steps));\n" +
-                "   if(iSteps == 0){\n" +
-                "       color = texture(tex, uv2);\n" +
-                "   } else {\n" +
-                "       color = vec4(0.0);\n" +
-                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
-                "           float fi = float(i);\n" +
-                "           float relativeX = fi/steps;\n" +
-                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
-                "           float weight = exp(-relativeX*relativeX);\n" +
-                "           sum += weight;\n" +
-                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
-                "       }\n" +
-                "       color /= sum;\n" +
-                "   }\n" +
-                "   gl_FragColor = color;\n" +
-                "}"
-    )
-
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4f,
         w: Int, h: Int, tiling: Vector4f?

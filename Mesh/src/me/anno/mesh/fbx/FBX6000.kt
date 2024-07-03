@@ -15,6 +15,7 @@ import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.pop
 import me.anno.io.Streams.readNBytes2
+import me.anno.utils.structures.lists.Lists.castToList
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException
@@ -143,8 +144,8 @@ object FBX6000 {
                 val indices = obj["PolygonVertexIndex"] as? List<Int> ?: continue
                 val uvData = objects.subList(oi, objects.size)
                     .firstOrNull { it is Map<*, *> && it["UV"] is List<*> } as? Map<*, *>
-                val uvs1 = uvData?.run { (this["UV"] as List<Double>).map { it.toFloat() }.toFloatArray() }
-                val uvIndices = uvData?.run { this["UVIndex"] as List<Int> }
+                val uvs1 = uvData?.run { (this["UV"].castToList(Double::class)).map { it.toFloat() }.toFloatArray() }
+                val uvIndices = uvData?.run { this["UVIndex"].castToList(Int::class) }
                 val mesh = Mesh()
                 when (val type = (obj["MappingInformationType"] as? List<*>)?.first()) {
                     "ByPolygonVertex" -> {

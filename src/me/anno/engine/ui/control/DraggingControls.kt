@@ -45,6 +45,7 @@ import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
+import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
@@ -130,7 +131,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             if (dragged.getContentType() == "File") {
                 val original = dragged.getOriginal()
                 val files = if (original is FileReference) listOf(original)
-                else (original as List<*>).filterIsInstance<FileReference>()
+                else original.castToList(FileReference::class)
                 val dropPosition = JomlPools.vec3d.create()
                 for (file in files) {
 

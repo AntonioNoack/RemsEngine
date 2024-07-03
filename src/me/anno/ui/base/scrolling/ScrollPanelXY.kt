@@ -329,28 +329,36 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
 
         fun PanelContainer.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
+            drawShadowX(x0, y0, y1, y1, shadowColor, shadowRadius)
+        }
+
+        fun PanelContainer.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
+            drawShadowY(x0, y0, x1, y1, shadowColor, shadowRadius)
+        }
+
+        fun Panel.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowColor: Int, shadowRadius: Int) {
             // draw left shadow
-            for (x in max(x0, x) until Maths.min(x1, x + shadowRadius)) {
+            for (x in max(x0, x) until min(x1, x + shadowRadius)) {
                 val alpha = Maths.sq(1f - (x - this.x).toFloat() / shadowRadius)
                 DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
             }
 
             // draw right shadow
-            for (x in max(x0, x + width - shadowRadius) until Maths.min(x1, x + width)) {
+            for (x in max(x0, x + width - shadowRadius) until min(x1, x + width)) {
                 val alpha = Maths.sq(1f - ((this.x + width) - x).toFloat() / shadowRadius)
                 DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
             }
         }
 
-        fun PanelContainer.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
+        fun Panel.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowColor: Int, shadowRadius: Int) {
             // draw top shadow
-            for (y in max(y0, y) until Maths.min(y1, y + shadowRadius)) {
+            for (y in max(y0, y) until min(y1, y + shadowRadius)) {
                 val alpha = Maths.sq(1f - (y - this.y).toFloat() / shadowRadius)
                 DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
             }
 
             // draw bottom shadow
-            for (y in max(y0, y + height - shadowRadius) until Maths.min(y1, y + height)) {
+            for (y in max(y0, y + height - shadowRadius) until min(y1, y + height)) {
                 val alpha = Maths.sq(1f - ((this.y + height) - y).toFloat() / shadowRadius)
                 DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
             }

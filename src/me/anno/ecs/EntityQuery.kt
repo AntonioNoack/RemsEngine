@@ -1,6 +1,8 @@
 package me.anno.ecs
 
+import me.anno.utils.structures.Collections.filterIsInstance2
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 /**
  * utility functions for finding sibling-, ancestor- or children components
@@ -83,8 +85,7 @@ object EntityQuery {
     }
 
     fun <V : Any> Entity.getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
-        @Suppress("unchecked_cast")
-        return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
+        return components.filter { (includingDisabled || it.isEnabled) }.filterIsInstance2(clazz)
     }
 
     fun <V : Any> Component.getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
@@ -117,9 +118,11 @@ object EntityQuery {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            @Suppress("unchecked_cast")
-            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && !predicate(c as V)) {
-                return false
+            if ((includingDisabled || c.isEnabled)) {
+                val cv = clazz.safeCast(c)
+                if (cv != null && !predicate(cv)) {
+                    return false
+                }
             }
         }
         return true
@@ -157,9 +160,12 @@ object EntityQuery {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            @Suppress("unchecked_cast")
-            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && predicate(c as V))
-                return true
+            if ((includingDisabled || c.isEnabled)) {
+                val cv = clazz.safeCast(c)
+                if (cv != null && predicate(cv)) {
+                    return true
+                }
+            }
         }
         return false
     }

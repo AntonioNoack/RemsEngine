@@ -18,7 +18,7 @@ open class NumberInputComponent(val visibilityKey: String, style: Style) :
     var indexInProperty = 0
 
     override var isEnabled: Boolean
-        get() = InputVisibility[visibilityKey] // can be null in constructor
+        get() = InputVisibility[visibilityKey]
         set(_) {}
 
     override fun acceptsChar(char: Int): Boolean {

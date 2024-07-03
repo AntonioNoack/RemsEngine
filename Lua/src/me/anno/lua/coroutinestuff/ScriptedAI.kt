@@ -12,8 +12,9 @@ class ScriptedAI : Component() {
 
     override fun onUpdate(): Int {
         val behaviour = behaviour ?: sequence?.run { if (hasNext()) next() else null }
-        if (behaviour != null) {
-            behaviour.update(entity!!, entity!!.transform)
+        val entity = entity
+        if (behaviour != null && entity != null) {
+            behaviour.update(entity, entity.transform)
             if (behaviour.isDead) this.behaviour = null
         }
         return 1

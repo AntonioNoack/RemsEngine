@@ -3,18 +3,21 @@ package me.anno.image.utils
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.drawing.GFXx3D.shader3DGaussianBlur
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths
+import me.anno.utils.types.Booleans.withFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import kotlin.math.max
@@ -23,6 +26,38 @@ import kotlin.math.min
 object GaussianBlur {
 
     private val LOGGER = LogManager.getLogger(GaussianBlur::class)
+
+    private val shader3DGaussianBlur = Shader(
+        "3d-blur", ShaderLib.v3DlMasked, ShaderLib.v3DMasked, ShaderLib.y3DMasked, listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V2F, "stepSize"),
+            Variable(GLSLType.V1F, "steps"),
+            Variable(GLSLType.V1F, "threshold")
+        ), "" +
+                ShaderLib.brightness +
+                "void main(){\n" +
+                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec4 color;\n" +
+                "   float sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "   int iSteps = max(0, int(2.7 * steps));\n" +
+                "   if(iSteps == 0){\n" +
+                "       color = texture(tex, uv2);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
+                "           float fi = float(i);\n" +
+                "           float relativeX = fi/steps;\n" +
+                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
+                "           float weight = exp(-relativeX*relativeX);\n" +
+                "           sum += weight;\n" +
+                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
+                "       }\n" +
+                "       color /= sum;\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+    )
 
     private fun draw3DGaussianBlur(
         stack: Matrix4fArrayList,
@@ -49,13 +84,14 @@ object GaussianBlur {
         stride: Int, thickness: Int,
         normalize: Boolean
     ): Boolean {
+        // todo for small sizes, actually use a kernel
         // box blur 3x with a third of the thickness is a nice gaussian blur approximation :),
         // which in turn is a bokeh-blur approximation
-        val f0 = thickness / 3
-        val f1 = thickness - 2 * f0
+        val f0 = (thickness / 3).withFlag(1) // even results move the image -> prefer odd f0's, so we don't double the error
+        val f1 = thickness - 2 * (f0 - 1)
         if (f0 < 2 && f1 < 2) return false
         val tmp1 = FloatArray(w)
-        val tmp2 = FloatArray(w * (h - thickness.shr(1)))
+        val tmp2 = FloatArray(w * h)
         var x = 1
         // if the first row in the result is guaranteed to be zero,
         // we could use the image itself as buffer; (but only we waste space in the first place ->

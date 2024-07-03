@@ -14,8 +14,8 @@ import kotlin.math.max
 class FloatImage(
     width: Int, height: Int, channels: Int,
     val data: FloatArray = FloatArray(width * height * channels),
-    map: ColorMap = LinearColorMap.default
-) : IFloatImage(width, height, channels, map) {
+    map: ColorMap = LinearColorMap.default, offset: Int = 0, stride: Int = width
+) : IFloatImage(width, height, channels, map, offset, stride) {
 
     constructor(width: Int, height: Int, channels: Int, map: ColorMap) :
             this(width, height, channels, FloatArray(width * height * channels), map)

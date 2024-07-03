@@ -23,8 +23,18 @@ object Booleans {
     fun Long.hasFlag(flag: Long): Boolean = (this and flag) == flag
 
     @JvmStatic
+    fun Int.withFlag(flag: Int): Int {
+        return withoutFlag(flag) or flag
+    }
+
+    @JvmStatic
     fun Int.withFlag(flag: Int, isSet: Boolean): Int {
         return withoutFlag(flag) or isSet.toInt(flag)
+    }
+
+    @JvmStatic
+    fun Long.withFlag(flag: Long): Long {
+        return withoutFlag(flag) or flag
     }
 
     @JvmStatic

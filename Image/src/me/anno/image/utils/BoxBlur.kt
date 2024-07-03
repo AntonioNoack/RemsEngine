@@ -7,7 +7,7 @@ object BoxBlur {
         image: FloatArray, w: Int, h: Int, i0: Int, stride: Int, thickness: Int, normalize: Boolean,
         tmp: FloatArray = FloatArray(w)
     ) {
-        if (thickness <= 1) return
+        if (thickness <= 1 || w <= 1) return
         if (thickness > w) return boxBlurX(image, w, h, i0, stride, w, normalize, tmp)
         val th2 = thickness shr 1
         val th1 = thickness - th2
@@ -63,8 +63,9 @@ object BoxBlur {
         sum: FloatArray = FloatArray(w),
         tmp: FloatArray = FloatArray(w * (h - thickness.shr(1)))
     ) {
-        if (thickness <= 1) return
+        if (thickness <= 1 || h <= 1) return
         if (thickness > h) return boxBlurY(image, w, h, i0, stride, h, normalize, sum)
+
         sum.fill(0f, 0, w)
 
         val th2 = thickness shr 1

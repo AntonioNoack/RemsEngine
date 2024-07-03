@@ -1,11 +1,9 @@
 package me.anno.image
 
 import me.anno.Time
-import me.anno.utils.callbacks.F2F
-import me.anno.utils.callbacks.I3F
-import me.anno.utils.callbacks.I3I
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
+import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.image.utils.GaussianBlur
 import me.anno.io.files.FileReference
@@ -17,6 +15,9 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.callbacks.F2F
+import me.anno.utils.callbacks.I3F
+import me.anno.utils.callbacks.I3I
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -86,17 +87,8 @@ object ImageWriter {
     @JvmStatic
     fun writeImageFloat(
         w: Int, h: Int, name: String,
-        normalize: Boolean,
-        colorMap: ColorMap,
-        values: FloatArray
-    ) {
-        val cm = if (normalize) colorMap.normalized(values) else colorMap
-        val imgData = IntArray(w * h)
-        for (i in 0 until w * h) {
-            imgData[i] = cm.getColor(values[i])
-        }
-        writeImage(name, IntImage(w, h, imgData, false))
-    }
+        normalize: Boolean, colorMap: ColorMap, values: FloatArray
+    ): Unit = writeImageFloatWithOffsetAndStride(w, h, 0, w, name, normalize, colorMap, values)
 
     @JvmStatic
     fun writeImageFloatWithOffsetAndStride(
@@ -107,18 +99,9 @@ object ImageWriter {
         colorMap: ColorMap,
         values: FloatArray
     ) {
-        val cm = if (normalize) colorMap.normalized(values) else colorMap
-        val imgData = IntArray(w * h)
-        var j = offset
-        for (y in 0 until h) {
-            val i0 = y * h
-            val i1 = i0 + h
-            for (i in i0 until i1) {
-                imgData[i] = cm.getColor(values[j++])
-            }
-            j += stride - h
-        }
-        writeImage(name, IntImage(w, h, imgData, false))
+        val image = FloatImage(w, h, 1, values, colorMap, offset, stride)
+        if (normalize) image.normalize01()
+        image.write(getFile(name))
     }
 
     @JvmStatic
@@ -129,31 +112,28 @@ object ImageWriter {
         samples: Int,
         values: FloatArray
     ) {
+        if (samples <= 1) {
+            return writeImageFloat(w, h, name, normalize, colorMap, values)
+        }
         val cm = if (normalize) colorMap.normalized(values) else colorMap
         val img = BufferedImage(w, h, if (colorMap.hasAlpha) 2 else 1)
         val buffer = img.raster.dataBuffer
         val alpha = if (colorMap.hasAlpha) 0 else (0xff shl 24)
-        if (samples <= 1) {
-            for (i in 0 until w * h) {
-                buffer.setElem(i, alpha or cm.getColor(values[i]))
+        for (i in 0 until w * h) {
+            var r = 0
+            var g = 0
+            var b = 0
+            var a = 0
+            val j = i * samples
+            for (sample in 0 until samples) {
+                val color = cm.getColor(values[j + sample])
+                r += color.r()
+                g += color.g()
+                b += color.b()
+                a += color.a()
             }
-        } else {
-            for (i in 0 until w * h) {
-                var r = 0
-                var g = 0
-                var b = 0
-                var a = 0
-                val j = i * samples
-                for (sample in 0 until samples) {
-                    val color = cm.getColor(values[j + sample])
-                    r += color.r()
-                    g += color.g()
-                    b += color.b()
-                    a += color.a()
-                }
-                val color = alpha or Color.rgba(r / samples, g / samples, b / samples, a / samples)
-                buffer.setElem(i, color)
-            }
+            val color = alpha or Color.rgba(r / samples, g / samples, b / samples, a / samples)
+            buffer.setElem(i, color)
         }
         writeImage(name, img)
     }
@@ -161,12 +141,9 @@ object ImageWriter {
     @JvmStatic
     fun writeImageFloat(
         w: Int, h: Int, name: String,
-        minPerThread: Int,
-        normalize: Boolean,
+        minPerThread: Int, normalize: Boolean,
         getRGB: I3F // x,y,i -> v
-    ) {
-        return writeImageFloat(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
-    }
+    ): Unit = writeImageFloat(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
 
     @JvmStatic
     fun writeImageFloat(
@@ -186,7 +163,7 @@ object ImageWriter {
                 }
             }
         }
-        return writeImageFloat(w, h, name, normalize, colorMap, values)
+        writeImageFloat(w, h, name, normalize, colorMap, values)
     }
 
     @JvmField
@@ -207,9 +184,7 @@ object ImageWriter {
         minPerThread: Int,
         normalize: Boolean,
         getValue: F2F // x,y -> v
-    ) {
-        writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
-    }
+    ): Unit = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
 
     @JvmStatic
     fun writeImageFloatMSAA(
@@ -221,7 +196,10 @@ object ImageWriter {
     ) {
         val samples = 8
         val values = FloatArray(w * h * samples)
-        processBalanced2d(0, 0, w, h, PARALLEL_TILE_SIZE, minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE)) { x0, y0, x1, y1 ->
+        processBalanced2d(
+            0, 0, w, h, PARALLEL_TILE_SIZE,
+            minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE)
+        ) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = x0 + y * w
                 for (x in x0 until x1) {
@@ -271,7 +249,10 @@ object ImageWriter {
     ) {
         val img = IntImage(w, h, alpha)
         val buffer = img.data
-        processBalanced2d(0, 0, w, h, PARALLEL_TILE_SIZE, max(minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE), 1)) { x0, y0, x1, y1 ->
+        processBalanced2d(
+            0, 0, w, h, PARALLEL_TILE_SIZE,
+            max(minPerThread / (PARALLEL_TILE_SIZE * PARALLEL_TILE_SIZE), 1)
+        ) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {
@@ -304,9 +285,8 @@ object ImageWriter {
     fun writeImageCurve(
         wr: Int, hr: Int,
         autoScale: Boolean,
-        minColor: Int, maxColor: Int,
-        thickness: Int,
-        points: List<Vector2f>, name: String
+        backgroundColor: Int, lineColor: Int,
+        thickness: Int, points: List<Vector2f>, name: String
     ) {
         val w = wr + 2 * thickness
         val h = hr + 2 * thickness
@@ -365,7 +345,7 @@ object ImageWriter {
         // ~ 24ns/px for everything, including copy;
         // for 2048² pixels, and thickness = 75
         LOGGER.info("${(t1 - t0).toFloat() / (w * h)}ns/px")
-        val cm = LinearColorMap(0, minColor, maxColor)
+        val cm = LinearColorMap(backgroundColor, backgroundColor, lineColor)
         writeImageFloatWithOffsetAndStride(wr, hr, thickness * (w + 1), w, name, false, cm, image)
     }
 

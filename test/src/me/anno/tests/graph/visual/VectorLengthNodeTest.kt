@@ -6,6 +6,7 @@ import me.anno.graph.visual.vector.VectorLengthMode
 import me.anno.graph.visual.vector.VectorLengthNode
 import me.anno.graph.visual.vector.vectorTypes
 import org.joml.Vector2d
+import org.joml.Vector2f
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -32,5 +33,13 @@ class VectorLengthNodeTest {
         node.setInput(1, Vector2d(3.0, 6.0))
         node.compute()
         assertEquals(20.0, node.getOutput(0))
+    }
+
+    @Test
+    fun testLengthV2f() {
+        val node = VectorLengthNode().setDataType("Vector2d").setEnumType(VectorLengthMode.LENGTH_SQUARED)
+        node.setInput(0, Vector2f(1f, 2f))
+        node.compute()
+        assertEquals(5.0, node.getOutput(0))
     }
 }

@@ -1,6 +1,7 @@
 package me.anno.utils.structures
 
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 /**
  * utility functions for collections;
@@ -62,7 +63,6 @@ object Collections {
      * */
     @JvmStatic
     fun <V : Any> Collection<*>.filterIsInstance2(clazz: KClass<V>): List<V> {
-        @Suppress("UNCHECKED_CAST")
-        return filter { clazz.isInstance(it) } as List<V>
+        return mapNotNull { clazz.safeCast(it) }
     }
 }

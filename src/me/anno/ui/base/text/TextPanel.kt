@@ -225,7 +225,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     open val heightLimit get() = -1
 
     override fun isOpaqueAt(x: Int, y: Int): Boolean {
-        // todo this could be more pixel accurate...
+        // to do this could be more pixel accurate...
         return super.isOpaqueAt(x, y) || textColor.a() >= minOpaqueAlpha
     }
 

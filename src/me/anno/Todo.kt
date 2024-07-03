@@ -4,8 +4,6 @@ package me.anno
 
 // todo SDF Physics
 
-// todo write nice documentation with comparisons to Godot/Unity/Unreal for base classes :)
-
 // low priority
 // todo support most svg files as meshes
 // to do load svg animations?
