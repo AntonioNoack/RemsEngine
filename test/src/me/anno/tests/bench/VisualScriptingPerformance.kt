@@ -10,11 +10,15 @@ import me.anno.utils.Clock
 fun main() {
     val n = 10000
     val clock = Clock("VisualScriptingBench")
-    clock.benchmark(50, 1000, n, "Kotlin") { // ~0.8ns/iteration
+    // ~0.8ns/iteration on Ryzen 5 2600,
+    // 0.6ns on Ryzen 9 7950x3d
+    clock.benchmark(50, 1000, n, "Kotlin") {
         n.factorial()
     }
     val (g, start) = createFactorialGraph(n)
-    clock.benchmark(5, 100, n, "Visual Scripting") { // ~300ns/iteration
+    // ~300ns/iteration on Ryzen 5 2600,
+    // 170ns on Ryzen 9 7950x3d
+    clock.benchmark(5, 100, n, "Visual Scripting") {
         g.execute(start)
     }
 }

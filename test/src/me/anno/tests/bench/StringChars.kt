@@ -15,7 +15,7 @@ fun main() {
 
     val turns = 2048
 
-    // 1.32s
+    // 1.32s on Ryzen 5 2600, 0.69s on Ryzen 9 7950x3d
     measure(logger, "toCharArray0") {
         var sum = 0
         for (str in randomStrings) {
@@ -25,7 +25,7 @@ fun main() {
         }
     }
 
-    // 1.63s
+    // 1.63s | 0.61s
     measure(logger, "toCharArray1") {
         var sum = 0
         for (str in randomStrings) {
@@ -38,7 +38,7 @@ fun main() {
         }
     }
 
-    // 1.22s
+    // 1.22s | 0.84s
     measure(logger, "iterator()") {
         var sum = 0
         for (str in randomStrings) {
@@ -50,7 +50,7 @@ fun main() {
         }
     }
 
-    // 0.59s -> use this
+    // 0.59s -> use this | 0.84s
     measure(logger, "getCharAt0") {
         var sum = 0
         for (str in randomStrings) {
@@ -62,7 +62,7 @@ fun main() {
         }
     }
 
-    // 0.59s -> use the one above
+    // 0.59s -> use the one above | 0.84s
     measure(logger, "getCharAt1") {
         var sum = 0
         for (str in randomStrings) {
@@ -74,7 +74,7 @@ fun main() {
         }
     }
 
-    // 6.2s -> don't use
+    // 6.2s -> don't use | 2.94s
     measure(logger, "codePoints()") {
         var sum = 0
         for (str in randomStrings) {

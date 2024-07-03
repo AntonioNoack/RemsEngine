@@ -14,7 +14,9 @@ fun main() {
         override fun getBlock(x: Int, y: Int, z: Int) =
             chunk[getIndex(x, y, z)].toInt()
     }
-    clock.benchmark(100, 1000, "Greedy Meshing") { // 1.7ms on Ryzen 5 2600 -> ok-ish :)
+    // 1.7ms on Ryzen 5 2600 -> ok-ish :)
+    // 1.35ms on Ryzen 9 7950x3d
+    clock.benchmark(100, 1000, "Greedy Meshing") {
         model.createMesh(null, null, null, mesh)
     }
 }

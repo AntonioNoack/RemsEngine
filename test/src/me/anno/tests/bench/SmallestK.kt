@@ -49,12 +49,12 @@ class SmallestK {
             }
         }
 
-        // 233ms
+        // 233ms on Ryzen 5 2600, 128ms on Ryzen 9 7950x3d
         clock.benchmark(1, tries, "sort-sublist") {
             check(elementList.sorted().subList(0, k))
         }
 
-        // 27ms
+        // 27ms on Ryzen 5 2600, 12ms on Ryzen 9 7950x3d
         clock.benchmark(1, tries, "heap") {
             check(
                 elementList
@@ -63,7 +63,7 @@ class SmallestK {
             )
         }
 
-        // 2.7-3.0ms
+        // 2.7-3.0ms on Ryzen 5 2600, 1.5ms on Ryzen 9 7950x3d
         clock.benchmark(1, tries, "n*k") {
             val topK = IntArray(k)
             for (j in 0 until k) topK[j] = elementList[j]
@@ -84,7 +84,8 @@ class SmallestK {
             check(topK.toList())
         }
 
-        // 6-7ms, because generic, but still 3x faster compared to the heap :)
+        // 6-7ms, because generic, but still 3x faster compared to the heap :) | on Ryzen 5 2600
+        // 3.3ms on Ryzen 9 7950x3d
         clock.benchmark(1, tries, "n*k generic") {
             val topK = elementList.extractMin(k, comparator)
             check(topK)

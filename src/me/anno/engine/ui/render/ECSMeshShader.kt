@@ -274,6 +274,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         builder.addVertex(key.renderer.getVertexPostProcessing(flags))
         builder.addFragment(createFragmentStages(key))
         builder.addFragment(key.renderer.getPixelPostProcessing(flags))
+        builder.ignored.addAll(
+            ("worldScale,cameraPosition,cameraRotation,numberOfLights," +
+                    "IOR,hasAnimation,prevTransform,applyToneMapping").split(',')
+        )
         return builder
     }
 

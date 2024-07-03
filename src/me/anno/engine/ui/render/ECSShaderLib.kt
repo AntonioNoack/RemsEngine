@@ -7,16 +7,12 @@ import me.anno.gpu.shader.builder.VariableMode
 
 object ECSShaderLib {
 
-    val defaultIgnored = listOf(
-        "finalSheen", "finalTranslucency", "metallicMinMax",
-        "emissiveBase", "normalStrength",
-        "occlusionStrength", "invLocalTransform",
-        "numberOfLights", "roughnessMinMax", "finalClearCoat",
-        "worldScale", "drawMode", "applyToneMapping",
-        "colors", "cameraPosition", "cameraRotation",
-        "prevWorldScale", "prevTransform", "tint",
-        "hasAnimation", "sheen", "clearCoat", "IOR"
-    )
+    val defaultIgnored = (
+            "finalSheen,finalTranslucency,metallicMinMax,emissiveBase,normalStrength,occlusionStrength," +
+                    "invLocalTransform,numberOfLights,roughnessMinMax,finalClearCoat,worldScale,drawMode," +
+                    "applyToneMapping,colors,cameraPosition,cameraRotation,prevWorldScale,prevTransform,tint," +
+                    "hasAnimation,sheen,clearCoat,IOR,reverseDepth,finalId"
+            ).split(',')
 
     val simpleShader = BaseShader(
         "SimpleECS", listOf(
