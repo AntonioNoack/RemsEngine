@@ -73,7 +73,7 @@ class AABBi(
         dst.maxX = max(maxX, other.maxX)
         dst.maxY = max(maxY, other.maxY)
         dst.maxZ = max(maxZ, other.maxZ)
-        return this
+        return dst
     }
 
     fun union(other: AABBf, dst: AABBi = this): AABBi {
@@ -83,7 +83,7 @@ class AABBi(
         dst.maxX = max(maxX, other.maxX.toInt())
         dst.maxY = max(maxY, other.maxY.toInt())
         dst.maxZ = max(maxZ, other.maxZ.toInt())
-        return this
+        return dst
     }
 
     fun union(other: Vector3i, dst: AABBi = this) =
@@ -96,7 +96,7 @@ class AABBi(
         dst.maxX = max(maxX, x)
         dst.maxY = max(maxY, y)
         dst.maxZ = max(maxZ, z)
-        return this
+        return dst
     }
 
     fun testPoint(v: Vector3i): Boolean {
@@ -301,5 +301,11 @@ class AABBi(
         val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return if (far >= near) near else Double.POSITIVE_INFINITY
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is AABBi &&
+                other.minX == minX && other.minY == minY && other.minZ == minZ &&
+                other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
     }
 }

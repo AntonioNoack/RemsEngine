@@ -2,9 +2,9 @@ package me.anno.tests.rtrt.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.Shapes.flatCube
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.abs
@@ -26,7 +26,7 @@ fun main() {
 
     val entity = Entity()
     val s = 75
-    val meshFile = flatCube.front
+    val meshFile = IcosahedronModel.createIcosphere(2)
     for (y in 0 until s) {
         val yf = y / (s - 1f)
         for (x in 0 until s) {

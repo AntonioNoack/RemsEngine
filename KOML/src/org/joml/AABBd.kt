@@ -460,4 +460,10 @@ class AABBd(
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return if (far >= near) near else Double.POSITIVE_INFINITY
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is AABBd &&
+                other.minX == minX && other.minY == minY && other.minZ == minZ &&
+                other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
+    }
 }

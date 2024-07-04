@@ -199,6 +199,7 @@ object BVHBuilder {
 
     // todo parallelize using GPU, if possible
     //  because this can be quite slow, taking 600ms for the dragon with 800k triangles
+    // -> improved it a bit, it's now taking 42ms for the dragon :) (still slow, but much better)
 
     private fun createBLASLeaf(
         positions: FloatArray,
@@ -362,7 +363,6 @@ object BVHBuilder {
             while (true) {
                 do {
                     j--
-                    // todo we changed this order, so check that the CPU- and GPU-shaders are still optimized as expected
                 } while (j >= 0 && sample(j * 3) >= pivot)
                 do {
                     i++

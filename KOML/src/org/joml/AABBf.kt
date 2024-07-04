@@ -68,7 +68,7 @@ class AABBf(
         dst.maxX = max(maxX, other.maxX)
         dst.maxY = max(maxY, other.maxY)
         dst.maxZ = max(maxZ, other.maxZ)
-        return this
+        return dst
     }
 
     fun union(other: AABBd, dst: AABBf = this): AABBf {
@@ -78,7 +78,7 @@ class AABBf(
         dst.maxX = max(maxX, other.maxX.toFloat())
         dst.maxY = max(maxY, other.maxY.toFloat())
         dst.maxZ = max(maxZ, other.maxZ.toFloat())
-        return this
+        return dst
     }
 
     fun getMin(dim: Int) =
@@ -768,5 +768,11 @@ class AABBf(
         val far = min(farX, min(farY, farZ))
         val near = max(max(nearX, max(nearY, nearZ)), 0f)
         return if (far >= near) near else Float.POSITIVE_INFINITY
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is AABBf &&
+                other.minX == minX && other.minY == minY && other.minZ == minZ &&
+                other.maxX == maxX && other.maxY == maxY && other.maxZ == maxZ
     }
 }
