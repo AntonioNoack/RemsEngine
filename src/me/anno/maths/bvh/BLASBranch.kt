@@ -7,6 +7,9 @@ import org.joml.Vector3f
 
 class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABBf) : BLASNode(bounds) {
 
+    constructor(axis: Int, n0: BLASNode, n1: BLASNode) :
+            this(axis, n0, n1, n0.bounds.union(n1.bounds, AABBf()))
+
     val mask = 1 shl axis
 
     override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {

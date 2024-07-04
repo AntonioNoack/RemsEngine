@@ -4,6 +4,7 @@ import me.anno.Time
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
@@ -105,10 +106,13 @@ object Maths {
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
     @JvmStatic
-    private val randomInst = Random(Time.startTime)
+    fun random(): Double = ThreadLocalRandom.current().nextDouble()
 
     @JvmStatic
-    fun random(): Double = synchronized(randomInst) { randomInst.nextDouble() }
+    fun randomInt(start: Int, endExclusive: Int): Int = ThreadLocalRandom.current().nextInt(start, endExclusive)
+
+    @JvmStatic
+    fun randomInt(): Int = ThreadLocalRandom.current().nextInt()
 
     /**
      * if you want good smoothing depending on timeStep/dt, use this function

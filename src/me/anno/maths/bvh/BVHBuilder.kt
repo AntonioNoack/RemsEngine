@@ -9,6 +9,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.log2i
 import me.anno.maths.Maths.max
 import me.anno.utils.Clock
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.search.Median.median
 import me.anno.utils.structures.lists.Lists.partition1
@@ -17,6 +18,7 @@ import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 
 object BVHBuilder {
@@ -93,7 +95,7 @@ object BVHBuilder {
     @Suppress("DEPRECATION")
     fun <V : TLASLeaf0> buildTLAS(
         objects: ArrayList<V>, splitMethod: SplitMethod,
-        start: Int, end: Int, // array indices
+        start: Int, end: Int // array indices
     ): TLASNode {
         val count = end - start
         if (count <= 1) {
@@ -118,6 +120,7 @@ object BVHBuilder {
             } else {
                 // partition based on split method
                 // for the very start, we'll only implement the simplest methods
+                val pivot0 = (centroidBounds.getMin(dim) + centroidBounds.getMax(dim)) * 0.5f
                 when (splitMethod) {
                     SplitMethod.MIDDLE -> {
                         val midF = (centroidBounds.getMin(dim) + centroidBounds.getMax(dim)) * 0.5f
@@ -125,7 +128,7 @@ object BVHBuilder {
                             t.centroid[dim] < midF
                         }
                         if (mid == start || mid >= end - 1) {// middle didn't work -> use more elaborate scheme
-                            mid = medianApprox(objects, start, end, dim)
+                            mid = medianApprox(objects, start, end, dim, pivot0)
                         }
                     }
                     SplitMethod.MEDIAN -> {
@@ -135,7 +138,7 @@ object BVHBuilder {
                         mid = (start + end) ushr 1
                     }
                     SplitMethod.MEDIAN_APPROX -> {
-                        mid = medianApprox(objects, start, end, dim)
+                        mid = medianApprox(objects, start, end, dim, pivot0)
                     }
                     SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                     SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
@@ -144,29 +147,31 @@ object BVHBuilder {
 
             val n0 = buildTLAS(objects, splitMethod, start, mid)
             val n1 = buildTLAS(objects, splitMethod, mid, end)
-
-            val bounds = AABBf(n0.bounds)
-            bounds.union(n1.bounds)
-
-            return TLASBranch(dim, n0, n1, bounds)
+            return TLASBranch(dim, n0, n1)
         }
     }
 
-    private fun <V : TLASLeaf0> medianApprox(objects: ArrayList<V>, start: Int, end: Int, dim: Int): Int {
+    private fun <V : TLASLeaf0> medianApprox(
+        objects: ArrayList<V>, start: Int, end: Int, dim: Int,
+        pivot0: Float
+    ): Int {
         // don't sort, use statistical median
         fun sampleRandomly(): Float {
-            val inst = objects[start + ((end - start) * Maths.random()).toInt()]
+            val inst = objects[Maths.randomInt(start, end)]
             return inst.centroid[dim]
         }
 
         var mid = (start + end) ushr 1
         val count = end - start
-        val tries = count.toFloat().log2i() / 2
-        for (ti in 0 until tries) {
+        val maxNumTries = count.toFloat().log2i().shr(1)
+        for (tryIndex in 0 until maxNumTries) {
 
-            var pivot = 0f
-            for (i in 0 until 5) pivot += sampleRandomly()
-            pivot *= 0.2f
+            var pivot = pivot0
+            if (tryIndex > 0) {
+                pivot = 0f
+                for (i in 0 until 5) pivot += sampleRandomly()
+                pivot *= 0.2f
+            }
 
             var i = start - 1
             var j = end
@@ -193,7 +198,7 @@ object BVHBuilder {
     }
 
     // todo parallelize using GPU, if possible
-    // this can be quite slow, taking 600ms for the dragon with 800k triangles
+    //  because this can be quite slow, taking 600ms for the dragon with 800k triangles
 
     private fun createBLASLeaf(
         positions: FloatArray,
@@ -211,29 +216,36 @@ object BVHBuilder {
         return BLASLeaf(start, count, geometryData, bounds)
     }
 
+    private fun getCentroidX3(positions: FloatArray, indices: IntArray, triIndex: Int, dst: Vector3f): Vector3f {
+        val pointIndex = triIndex * 3
+        var ai = indices[pointIndex] * 3
+        var bi = indices[pointIndex + 1] * 3
+        var ci = indices[pointIndex + 2] * 3
+        return dst.set(
+            positions[ai++] + positions[bi++] + positions[ci++],
+            positions[ai++] + positions[bi++] + positions[ci++],
+            positions[ai] + positions[bi] + positions[ci]
+        )
+    }
+
     private fun calculateCentroidX3(positions: FloatArray, indices: IntArray, start: Int, end: Int): AABBf {
         val centroidBoundsX3 = AABBf()
+        val tmp = Vector3f()
         for (triIndex in start until end) {
-            val pointIndex = triIndex * 3
-            var ai = indices[pointIndex] * 3
-            var bi = indices[pointIndex + 1] * 3
-            var ci = indices[pointIndex + 2] * 3
-            centroidBoundsX3.union(
-                positions[ai++] + positions[bi++] + positions[ci++],
-                positions[ai++] + positions[bi++] + positions[ci++],
-                positions[ai] + positions[bi] + positions[ci]
-            )
+            centroidBoundsX3.union(getCentroidX3(positions, indices, triIndex, tmp))
         }
         return centroidBoundsX3
     }
 
+    val centroidTime = AtomicLong()
+    val splitTime = AtomicLong()
     private fun recursiveBuildBLAS(
         positions: FloatArray,
         indices: IntArray,
         start: Int, end: Int, // triangle indices
         maxNodeSize: Int,
         splitMethod: SplitMethod,
-        geometryData: GeometryData,
+        geometryData: GeometryData
     ): BLASNode {
 
         val count = end - start
@@ -242,7 +254,10 @@ object BVHBuilder {
         }
 
         // bounds of center of primitives for efficient split dimension
+        val t0 = System.nanoTime()
         val centroidBoundsX3 = calculateCentroidX3(positions, indices, start, end)
+        val t1 = System.nanoTime()
+        centroidTime.addAndGet(t1 - t0)
 
         // split dimension
         val dim = centroidBoundsX3.maxDim()
@@ -276,23 +291,44 @@ object BVHBuilder {
                     }
                 }
                 SplitMethod.MEDIAN_APPROX -> {
-                    medianApprox(positions, indices, start, end, dim)
+                    val pivot0 = (centroidBoundsX3.getMin(dim) + centroidBoundsX3.getMax(dim)) * 0.5f
+                    medianApprox(positions, indices, start, end, dim, pivot0)
                 }
                 SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                 SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
             }
         }
 
-        val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, geometryData)
-        val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, geometryData)
+        val t2 = System.nanoTime()
+        splitTime.addAndGet(t2 - t1)
 
-        val bounds = AABBf(n0.bounds)
-        bounds.union(n1.bounds)
-
-        return BLASBranch(dim, n0, n1, bounds)
+        val usingThreading = max(mid - start, mid - end) > 4000
+        if (usingThreading) {
+            // todo use proper parallel algorithm
+            // brings the dragon down from 180ms to 80ms on my Ryzen 9 7950x3d
+            // and I think I got similar results on my Ryzen 5 2600
+            // -> pretty bad speedup, doesn't scale well at all :(
+            // 17% utilisation = 2.7 cores for 2.25x speedup -> ok-ish efficiency
+            var n0: BLASNode? = null
+            pool += {
+                n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, geometryData)
+            }
+            val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, geometryData)
+            pool.workUntil { n0 != null }
+            return BLASBranch(dim, n0!!, n1)
+        } else {
+            val n0 = recursiveBuildBLAS(positions, indices, start, mid, maxNodeSize, splitMethod, geometryData)
+            val n1 = recursiveBuildBLAS(positions, indices, mid, end, maxNodeSize, splitMethod, geometryData)
+            return BLASBranch(dim, n0, n1)
+        }
     }
 
-    fun medianApprox(positions: FloatArray, indices: IntArray, start: Int, end: Int, dim: Int): Int {
+    private val pool = ProcessingGroup("BVHBuilder", 1f)
+
+    fun medianApprox(
+        positions: FloatArray, indices: IntArray, start: Int, end: Int, dim: Int,
+        pivot0: Float
+    ): Int {
         fun sample(idx: Int): Float {
             val ai = indices[idx] * 3 + dim
             val bi = indices[idx + 1] * 3 + dim
@@ -301,29 +337,36 @@ object BVHBuilder {
         }
 
         fun sample(): Float {
-            val idx = (start + ((end - start) * Maths.random()).toInt())
+            val idx = Maths.randomInt(start, end)
             return sample(idx * 3)
         }
 
         var mid = (start + end) ushr 1
 
         val count = end - start
-        val tries = count.toFloat().log2i() / 2
-        for (ti in 0 until tries) {
-
-            var pivot = 0f
-            for (i in 0 until 5) pivot += sample()
-            pivot *= 0.2f
+        val maxNumTries = count.toFloat().log2i().shr(1)
+        for (tryIndex in 0 until maxNumTries) {
+            // using this guessed pivot as a first try reduced the time from 80ms to 57ms on my Ryzen 9 7950x3d
+            var pivot = pivot0
+            if (tryIndex > 0) {
+                // try finding a better median
+                pivot = 0f
+                for (i in 0 until 5) {
+                    pivot += sample()
+                }
+                pivot *= 0.2f
+            }
 
             var i = start - 1
             var j = end
             while (true) {
                 do {
                     j--
-                } while (j >= 0 && sample(j * 3) < pivot)
+                    // todo we changed this order, so check that the CPU- and GPU-shaders are still optimized as expected
+                } while (j >= 0 && sample(j * 3) >= pivot)
                 do {
                     i++
-                } while (i < end && sample(i * 3) >= pivot)
+                } while (i < end && sample(i * 3) < pivot)
                 if (i < j) {
                     val i3 = i * 3
                     val j3 = j * 3

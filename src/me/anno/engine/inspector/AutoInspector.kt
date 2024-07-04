@@ -17,6 +17,7 @@ import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.shorten2Way
+import kotlin.reflect.jvm.javaMethod
 
 object AutoInspector {
     fun inspect(instances: List<Inspectable>, list: PanelListY, style: Style) {
@@ -36,15 +37,16 @@ object AutoInspector {
         val debugActionWrapper = PanelListY(style)
         for (action in reflections.debugActions) {
             // todo if there are extra arguments, we would need to create a list inputs for them
+            //  and then ask them via a menu, and remember the arguments for the last invocation
             /* for (param in action.parameters) {
                      param.kind
             } */
             val title = action.name.camelCaseToTitle()
-            val clazz = instances.first()::class // todo find class of debug action
+            val clazz = (action.javaMethod ?: continue).declaringClass.kotlin
             val button = TextButton(title, style)
                 .addLeftClickListener {
-                    // could become a little heavy....
-                    for (instance in instances) {
+                    for (i in instances.indices) {
+                        val instance = instances[i]
                         if (clazz.isInstance(instance)) {
                             action.call(instance)
                         }
@@ -142,16 +144,18 @@ object AutoInspector {
                     }
                     list.add(panel)
                 } catch (e: Error) {
-                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                        .printStackTrace()
-                } catch (e: ClassCastException) { // why is this not covered by the catch above?
-                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                        .printStackTrace()
+                    warn(reflections, name, e)
                 } catch (e: Exception) {
-                    RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                        .printStackTrace()
+                    warn(reflections, name, e)
+                } catch (e: ClassCastException) {
+                    warn(reflections, name, e)
                 }
             }
         }
+    }
+
+    private fun warn(reflections: CachedReflections, name: String, e: Throwable) {
+        RuntimeException("Error from ${reflections.clazz}, property $name", e)
+            .printStackTrace()
     }
 }

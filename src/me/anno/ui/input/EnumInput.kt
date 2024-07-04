@@ -16,6 +16,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.ifBlank2
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
@@ -230,6 +231,10 @@ open class EnumInput(
         fun getEnumConstants(clazz: Class<*>): List<Enum<*>> {
             return if (clazz.isEnum) clazz.enumConstants!!.toList().filterIsInstance2(Enum::class)
             else getEnumConstants(clazz.superclass)
+        }
+
+        fun getEnumConstants(clazz: KClass<*>): List<Enum<*>> {
+            return getEnumConstants(clazz.java)
         }
 
         fun enumToNameDesc(instance: Enum<*>): NameDesc {

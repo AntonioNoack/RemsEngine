@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
+import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -52,16 +53,14 @@ class CachedProperty(
                 // an enum, let's try our best to find the correct value
                 val values = EnumInput.getEnumConstants(oldValue.javaClass)
                 val parsingFailure = -1
-                val index = AnyToInt.getInt(value, parsingFailure)
-                if (index != parsingFailure && index !in values.indices)
-                    LOGGER.warn("Index $index out of bounds! 0 until ${values.size} for ${oldValue::class}")
+                val id = AnyToInt.getInt(value, parsingFailure)
                 val newValue = when {
-                    index != parsingFailure -> {
-                        // todo use hashmap or array or sth like that for ~O(1) lookup
-                        val oldId = getEnumId(oldValue)
-                        if (oldId != null) {
-                            values.firstOrNull { getEnumId(it) == oldId } ?: values[0]
-                        } else values.getOrNull(index) ?: values[0]
+                    id != parsingFailure -> {
+                        val valueOrNull = getEnumById(oldValue::class, id)
+                        if (valueOrNull == null) {
+                            LOGGER.warn("Missing ${oldValue::class} with id $id")
+                        }
+                        valueOrNull ?: oldValue
                     }
                     value is String -> {
                         /**
@@ -77,14 +76,20 @@ class CachedProperty(
                         val ordinal = if (splitIndex < 0) -1 else value.substring(0, splitIndex).toInt()
                         val name = value.substring(splitIndex + 1)
                         val idGetter = getEnumId(oldValue)
-                        values.firstOrNull { it.name == name }
+                        val valueOrNull = values.firstOrNull { it.name == name }
                             ?: values.firstOrNull { it.name.equals(name, true) }
                             ?: (if (idGetter != null) values.firstOrNull { getEnumId(it) == ordinal } else null)
                             ?: (if (ordinal > -1) values.firstOrNull { it.ordinal == ordinal } else null)
-                            // as a last resort, we could try to use the Levenshtein distance
-                            ?: throw RuntimeException("Could not find appropriate enum value for value '$value' and class ${oldValue::class}")
+                        // as a last resort, we could try to use the Levenshtein distance
+                        if (valueOrNull == null) {
+                            LOGGER.warn("Could not find appropriate enum value for value '$value' and class ${oldValue::class}")
+                        }
+                        valueOrNull ?: oldValue
                     }
-                    else -> throw RuntimeException("Value $value cannot be converted to enum, type is incorrect")
+                    else -> {
+                        LOGGER.warn("Value $value cannot be converted to enum, type is incorrect")
+                        oldValue
+                    }
                 }
                 setter(instance, newValue)
             } else setter(instance, value)

@@ -6,14 +6,14 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
-import java.util.LinkedList
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.min
 
 open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter(numThreads) {
 
-    private val tasks = LinkedList<() -> Unit>()
+    private val tasks = ConcurrentLinkedQueue<() -> Unit>()
 
     private var hasBeenStarted = false
     private var shouldStop = false
@@ -36,11 +36,20 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         stop()
     }
 
+    fun workUntil(condition: () -> Boolean) {
+        while (!condition()) {
+            if (!workItem()) {
+                // reaching this is weird, as we're usually waiting on the queue
+                Thread.sleep(0)
+            }
+        }
+    }
+
     open fun start(name: String = this.name, force: Boolean = false) {
         if (hasBeenStarted && !force) return
         hasBeenStarted = true
         shouldStop = false
-        LOGGER.info("Starting queue $name")
+        // LOGGER.info("Starting queue $name")
         aliveThreads.incrementAndGet()
         thread(name = name) {
             workLoop@ while (!shutdown && !shouldStop) {
@@ -64,7 +73,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
                 }
             }
             aliveThreads.decrementAndGet()
-            LOGGER.info("Finished $name")
+            // LOGGER.info("Finished $name")
         }
     }
 
@@ -72,7 +81,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
      * returns true if items was processed
      * */
     fun workItem(): Boolean {
-        val task = synchronized(tasks) { tasks.poll() } ?: null
+        val task = tasks.poll()
         if (task != null) task()
         return task != null
     }
@@ -97,15 +106,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
 
     override operator fun plusAssign(task: () -> Unit) {
         if (!hasBeenStarted) start()
-        synchronized(tasks) { tasks += task }
-    }
-
-    fun addPrioritized(highPriority: Boolean, task: () -> Unit) {
-        if (!hasBeenStarted) start()
-        synchronized(tasks) {
-            if (highPriority) tasks.add(0, task)
-            else tasks.add(task)
-        }
+        tasks.add(task)
     }
 
     companion object {

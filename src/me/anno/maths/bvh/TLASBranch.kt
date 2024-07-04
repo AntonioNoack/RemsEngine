@@ -8,6 +8,9 @@ import org.joml.Vector3f
 // this is just like BLASBranch
 class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABBf) : TLASNode(bounds) {
 
+    constructor(axis: Int, n0: TLASNode, n1: TLASNode) :
+            this(axis, n0, n1, n0.bounds.union(n1.bounds, AABBf()))
+
     val mask = 1 shl axis
 
     override fun collectMeshes(result: MutableCollection<BLASNode>) {

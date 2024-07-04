@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.EditorField
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.ui.input.EnumInput.Companion.getEnumConstants
 import me.anno.utils.structures.lists.Lists.partition1
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Strings.titlecase
@@ -337,6 +338,31 @@ class CachedReflections(
                     null
                 }
             }
+        }
+
+        fun getEnumIdGetter(value: Any): (Enum<*>) -> Int {
+            try {
+                val field = value.javaClass.getField("id")
+                field.get(value) as? Int ?: throw NoSuchFieldException()
+                return { it: Enum<*> -> field.get(it) as Int }
+            } catch (ignored: NoSuchFieldException) {
+                try {
+                    val method = value.javaClass.getMethod("getId")
+                    method.invoke(value) as? Int ?: throw NoSuchMethodException()
+                    return { it: Enum<*> -> method.invoke(it) as Int }
+                } catch (ignored: NoSuchMethodException) {
+                    return { it: Enum<*> -> it.ordinal }
+                }
+            }
+        }
+
+        private val enumByClass = HashMap<KClass<*>, Map<Int, Enum<*>>>()
+        fun getEnumById(clazz: KClass<*>, id: Int): Enum<*>? {
+            return enumByClass.getOrPut(clazz) {
+                val constants = getEnumConstants(clazz)
+                val getter = getEnumIdGetter(constants.first())
+                constants.associateBy { getter(it) }
+            }[id]
         }
     }
 }
