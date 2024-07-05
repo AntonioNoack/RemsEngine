@@ -3,7 +3,7 @@ package me.anno.tests.engine
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.language.embeddings.WordEmbedding
+import me.anno.tests.language.WordEmbedding
 
 /**
  * Experiments for retargeting
