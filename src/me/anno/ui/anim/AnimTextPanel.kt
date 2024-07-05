@@ -132,7 +132,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         val equalSpaced = useMonospaceCharacters
 
         val time = (Time.gameTime % max(1.0, periodMillis * 1e-3)).toFloat()
-        val shader = (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextShader[0]).value
+        val shader = (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextGraphicsShader[0]).value
         shader.use()
 
         var h = font.sizeInt

@@ -25,8 +25,8 @@ interface InputListener {
 
     // todo ???, do we do that? we would need to track all input listeners constantly, and raycast a ray once per frame
     // todo this is cool, and really would be nice to have
-    // todo we need a 2D mode
-    // todo maybe the UI is just 3D meshes (with a different renderer)? :)
+    // done we need a 2D mode: CanvasComponent.space = Space.CAMERA_SPACE
+    // maybe the UI is just 3D meshes (with a different renderer)? :)
     fun onMouseEnter() = false
     fun onMouseExit() = false
 

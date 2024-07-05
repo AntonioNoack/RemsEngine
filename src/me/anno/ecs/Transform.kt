@@ -279,7 +279,6 @@ class Transform() : Saveable() {
             // so we use tricks, and compute an ideal local rotation instead
             val parent = parent
             if (parent != null) {
-                // todo test this
                 // now the rotation is like an inversion to the parent
                 val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
                 localRotation = parentInv.mul(value) // then apply this afterward
@@ -292,7 +291,9 @@ class Transform() : Saveable() {
 
     /**
      * WARNING: setting this does not work together with setGlobalPosition().
-     * Call validateTransform() in-between to make them work.
+     * Call validateTransform() in-between to make them work;
+     *
+     * Only works well if object isn't rotated, or you set a uniform scale.
      * */
     var globalScale: Vector3d
         get() = globalTransform.getScale(JomlPools.vec3d.create())

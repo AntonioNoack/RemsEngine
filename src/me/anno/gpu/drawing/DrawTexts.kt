@@ -65,7 +65,7 @@ object DrawTexts {
             Attribute("color1", AttributeType.UINT8_NORM, 4),
         ), 4096
     ) {
-        override fun bindShader() = ShaderLib.subpixelCorrectTextShader[1].value
+        override fun bindShader() = ShaderLib.subpixelCorrectTextGraphicsShader[1].value
     }
 
     fun drawSimpleTextCharByChar(
@@ -367,11 +367,12 @@ object DrawTexts {
         }
     }
 
+    var disableSubpixelRendering = false
     private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): GPUShader {
         GFX.check()
         val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
-        val shader = if (cuc && !ShaderLib.subpixelCorrectTextShader2[instanced].failedCompilation) {
-            val shader = ShaderLib.subpixelCorrectTextShader2[instanced]
+        val shader = if (cuc && !ShaderLib.subpixelCorrectTextComputeShader[instanced].failedCompilation) {
+            val shader = ShaderLib.subpixelCorrectTextComputeShader[instanced]
             try {
                 shader.use()
                 shader.bindTexture(
@@ -382,12 +383,13 @@ object DrawTexts {
             } catch (e: Exception) {
                 shader.failedCompilation = true
                 LOGGER.warn("Failed to compile subpixel blending shader", e)
-                ShaderLib.subpixelCorrectTextShader[instanced].value
+                ShaderLib.subpixelCorrectTextGraphicsShader[instanced].value
             }
-        } else ShaderLib.subpixelCorrectTextShader[instanced].value
+        } else ShaderLib.subpixelCorrectTextGraphicsShader[instanced].value
         shader.use()
         shader.v4f("textColor", textColor)
         shader.v4f("backgroundColor", backgroundColor)
+        shader.v1b("disableSubpixelRendering", disableSubpixelRendering)
         val windowWidth = GFX.viewportWidth.toFloat()
         val windowHeight = GFX.viewportHeight.toFloat()
         shader.v2f("windowSize", windowWidth, windowHeight)

@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -102,7 +103,6 @@ class TransformTest {
         assertTrue(childGlobal.getScale(Vector3d()).equals(child.transform.globalScale, 1e-15))
     }
 
-    // todo test setting global transform onto child
     @Test
     fun testInverseTransformToParent() {
         val parent = Entity()
@@ -117,9 +117,28 @@ class TransformTest {
         child.transform.globalRotation = Quaterniond()
         parent.validateTransform()
 
-        assertTrue(child.transform.globalTransform.equals(Matrix4x3d(), 1e-15))
-        assertTrue(child.transform.globalPosition.equals(Vector3d(), 1e-15))
-        assertTrue(child.transform.globalRotation.equals(Quaterniond(), 1e-15))
-        assertTrue(child.transform.globalScale.equals(Vector3d(1.0), 1e-15))
+        checkIdentityTransform(child.transform)
+    }
+
+    private fun checkIdentityTransform(transform: Transform){
+        assertTrue(transform.globalTransform.equals(Matrix4x3d(), 1e-15))
+        assertTrue(transform.globalPosition.equals(Vector3d(), 1e-15))
+        assertTrue(transform.globalRotation.equals(Quaterniond(), 1e-15))
+        assertTrue(transform.globalScale.equals(Vector3d(1.0), 1e-15))
+    }
+
+    @Test
+    fun testInverseTransformToParent2() {
+        val parent = Entity()
+        val child = Entity(parent)
+
+        parent.position = pos
+        parent.rotation = rot
+
+        parent.validateTransform()
+        child.transform.setGlobal(Matrix4x3d())
+        parent.validateTransform()
+
+        checkIdentityTransform(child.transform)
     }
 }

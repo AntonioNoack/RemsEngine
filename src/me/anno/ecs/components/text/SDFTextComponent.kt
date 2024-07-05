@@ -24,6 +24,7 @@ import kotlin.math.sign
 
 class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : MeshSpawner() {
 
+    @Suppress("unused")
     constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
 
     @SerializedProperty

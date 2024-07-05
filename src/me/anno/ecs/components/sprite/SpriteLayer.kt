@@ -78,7 +78,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
     override val materials = listOf(material.ref)
 
     // todo define clusters:
-    //  tiles, which belong together
+    //  tiles, which belong together (e.g. trees)
 
     // todo define collision shapes/polygons for each tile
 

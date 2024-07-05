@@ -296,7 +296,7 @@ class FullNoise(val seed: Long) {
         return getSmooth(x.toDouble(), y.toDouble(), z.toDouble()).toFloat()
     }
 
-    // todo smooth gradient
+    // todo smooth gradient 3d
     fun getSmooth(x: Double, y: Double, z: Double): Double {
         val xi = floor(x)
         val yi = floor(y)
@@ -437,7 +437,7 @@ class FullNoise(val seed: Long) {
         return getSmooth(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble()).toFloat()
     }
 
-    // todo smooth gradient
+    // todo smooth gradient 4d
     fun getSmooth(x: Double, y: Double, z: Double, w: Double): Double {
         val xi = floor(x)
         val yi = floor(y)

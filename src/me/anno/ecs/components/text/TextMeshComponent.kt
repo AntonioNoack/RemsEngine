@@ -1,14 +1,17 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.fonts.Font
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
+import org.joml.Matrix4x3d
 
 // todo MeshSpawner component for long texts?
 class TextMeshComponent : TextComponent {
 
+    @Suppress("unused")
     constructor() : super()
 
     @Suppress("unused")
@@ -21,17 +24,16 @@ class TextMeshComponent : TextComponent {
         meshGroup.createJoinedMesh(mesh)
         val bounds = mesh.getBounds()
         val scale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
-        val dy = -0.5f
+        val dy = -0.5
         val dx = -bounds.centerX * scale + when (alignmentX) {
             AxisAlignment.MIN -> -1
             AxisAlignment.MAX -> +1
             else -> 0
-        } * bounds.deltaX / bounds.deltaY
-        val pos = mesh.positions!!
-        for (i in pos.indices step 3) {
-            pos[i] = pos[i] * scale + dx
-            pos[i + 1] = pos[i + 1] * scale + dy
-        }
-        mesh.invalidateGeometry()
+        }.toDouble() * bounds.deltaX / bounds.deltaY
+        MeshCache.transformMesh(
+            mesh, Matrix4x3d()
+                .translate(dx, dy, 0.0)
+                .scale(scale.toDouble())
+        )
     }
 }

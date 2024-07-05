@@ -39,12 +39,13 @@ fun main() {
     OfficialExtensions.initForTests()
     val scene = Entity()
     val mainLayer = SpriteLayer()
-    mainLayer.material.diffuseMap = pictures.getChild("Textures/poloviiinkin.png")
+    val textureFile = pictures.getChild("Textures/poloviiinkin.png")
+    mainLayer.material.diffuseMap = textureFile
     mainLayer.material.textureTileCount.set(16, 32)
     buildSampleWorld(mainLayer)
     scene.add(mainLayer)
     val skyLayer = SpriteLayer()
-    skyLayer.material.diffuseMap = pictures.getChild("Textures/poloviiinkin.png")
+    skyLayer.material.diffuseMap = textureFile
     skyLayer.material.textureTileCount.set(16, 32)
     for (y in -5 until 15) {
         for (x in -10 until 30) {

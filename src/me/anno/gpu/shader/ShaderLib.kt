@@ -454,7 +454,7 @@ object ShaderLib {
                 "}"
     )
 
-    val subpixelCorrectTextShader = Array(2) {
+    val subpixelCorrectTextGraphicsShader = Array(2) {
         val instanced = it > 0
         val type = if (instanced) VariableMode.ATTR else VariableMode.IN
         BaseShader(
@@ -466,7 +466,7 @@ object ShaderLib {
                 Variable(GLSLType.V4F, "posSize"),
                 // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
                 Variable(GLSLType.M4x4, "transform"),
-                Variable(GLSLType.V2F, "windowSize"),
+                Variable(GLSLType.V2F, "windowSize")
             ), if (instanced) {
                 "" +
                         "void main(){\n" +
@@ -498,6 +498,7 @@ object ShaderLib {
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V2F, "windowSize"),
+                Variable(GLSLType.V1B, "disableSubpixelRendering"),
                 Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
             ) + (if (instanced) emptyList() else listOf(
                 Variable(GLSLType.V4F, "textColor"),
@@ -509,7 +510,8 @@ object ShaderLib {
                     // the conditions are a black border implementation for WebGL; they could be skipped on desktop
                     "   vec3 mixing = any(lessThan(uv.xy,vec2(0.0))) || any(greaterThan(uv.xy,vec2(1.0))) ? vec3(0.0) :\n" +
                     "                 texture(tex, uv).rgb * textColor.a;\n" +
-                    "   float mixingAlpha = brightness(mixing);\n" +
+                    "   if(disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
+                    "   float mixingAlpha = disableSubpixelRendering ? mixing.g : brightness(mixing);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                     "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
@@ -521,7 +523,7 @@ object ShaderLib {
         )
     }
 
-    val subpixelCorrectTextShader2 = Array(2) {
+    val subpixelCorrectTextComputeShader = Array(2) {
         val instanced = it > 0
         ComputeShader(
             "subpixelCorrectTextShader2", Vector3i(16, 16, 1), listOf(
@@ -531,6 +533,7 @@ object ShaderLib {
                 Variable(GLSLType.V2I, "srcOffset"),
                 Variable(GLSLType.V2I, "dstOffset"),
                 Variable(GLSLType.V2I, "invokeSize"),
+                Variable(GLSLType.V1B, "disableSubpixelRendering"),
                 Variable(if (instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
             ), "" +
                     brightness +
@@ -564,7 +567,8 @@ object ShaderLib {
                         "   vec3 mixingSrc = textureLod(tex, vec3(uv1,uvZ), 0.0).rgb;\n" else
                         "   vec3 mixingSrc = textureLod(tex, uv1, 0.0).rgb;\n") +
                     "   vec3 mixing = mixingSrc * textColor.a;\n" +
-                    "   float mixingAlpha = brightness(mixing);\n" +
+                    "   if(disableSubpixelRendering) { mixing = mixing.ggg; }\n" +
+                    "   float mixingAlpha = disableSubpixelRendering ? mixing.g : brightness(mixing);\n" +
                     "   size = imageSize(dst);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                     "   if(uv.x <= 0 || uv.y <= 0 || uv.x >= invokeSize.x-1 || uv.y >= invokeSize.y - 1)\n" +

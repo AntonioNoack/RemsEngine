@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
@@ -116,6 +117,9 @@ class FlagMesh : MeshComponent() {
     private var fract = 0f
     var dt = 1f / 30f
 
+    // todo test this
+    var useCustomMesh = false
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val mesh = getMesh()
         if (mesh != null) {
@@ -129,14 +133,15 @@ class FlagMesh : MeshComponent() {
 
     override fun onUpdate(): Int {
 
-        // todo allow custom meshes, and project onto them
         val w = resolutionX
         val h = resolutionY
-        if (tex0.width != w || tex0.height != h || tex0.pointer == 0 || tex1.pointer == 0) {
-            val key = IntPair(w, h)
-            val data = meshCache[key]
-            createTargets(key, data.positions!!)
-            meshFile = data.ref
+        if (!useCustomMesh) {
+            if (tex0.width != w || tex0.height != h || tex0.pointer == 0 || tex1.pointer == 0) {
+                val key = IntPair(w, h)
+                val data = meshCache[key]
+                createTargets(key, data.positions!!)
+                meshFile = data.ref
+            }
         }
 
         val dt0 = Time.deltaTime.toFloat()
@@ -155,6 +160,17 @@ class FlagMesh : MeshComponent() {
         material.shaderOverrides["duv"] = TypeValue(GLSLType.V2F, Vector2f(1f / (w - 1f), 1f / (h - 1f)))
 
         return 1
+    }
+
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as FlagMesh
+        dst.useCustomMesh = useCustomMesh
+        dst.dt = dt
+        dst.time = time
+        dst.fract = fract
+        dst.randomnessSeed = randomnessSeed
+        dst.windStrength.set(windStrength)
     }
 
     override fun destroy() {

@@ -1,8 +1,9 @@
 package me.anno.ecs.components.text
 
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.GFXx2D
@@ -10,14 +11,15 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.Shapes
-import me.anno.fonts.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.sign
 
 class TextTextureComponent : TextComponent {
 
+    @Suppress("unused")
     constructor() : super()
+
     @Suppress("unused")
     constructor(text: String, font: Font, alignment: AxisAlignment) : super(text, font, alignment)
     constructor(text: String, font: Font, alignment: AxisAlignment, widthLimit: Int) :

@@ -22,6 +22,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.drawing.DrawTexts.disableSubpixelRendering
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -50,11 +51,6 @@ import org.joml.Matrix4d
 // todo enter ui, exit ui
 
 // todo just set inFocus, then input works magically
-
-// done how can we automatically adjust the viewport to the camera?
-// done how can we disable drawing depth and such, if camera space?
-
-// todo remove subpixel rendering in world space here
 
 class CanvasComponent : MeshComponentBase(), InputListener {
 
@@ -85,8 +81,10 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         }
     }
 
-    // different spaces like in Unity: world space, camera space
     // todo allow custom meshes (?)
+    /**
+     * different spaces like in Unity: world space, camera space
+     * */
     enum class Space {
         WORLD_SPACE,
         CAMERA_SPACE
@@ -205,10 +203,13 @@ class CanvasComponent : MeshComponentBase(), InputListener {
             framebuffer = fb
             internalMesh.material = materialPath
         }
+        val dsr = disableSubpixelRendering
+        disableSubpixelRendering = true
         useFrame(width, height, true, fb) {
             fb.clearColor(0, true)
             render(width, height)
         }
+        disableSubpixelRendering = dsr
         GFX.check()
     }
 

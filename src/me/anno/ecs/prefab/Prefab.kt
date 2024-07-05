@@ -234,9 +234,8 @@ class Prefab : Saveable {
             val sourcePrefab = PrefabCache[prefab]
             return sourcePrefab?.canAdd(change) ?: true
         } else {
-            return (adds[change.path] ?: emptyList()).none2 {
-                it.nameId == change.nameId
-            }
+            val addsI = adds[change.path] ?: return true
+            return addsI.none2 { it.nameId == change.nameId }
         }
     }
 
