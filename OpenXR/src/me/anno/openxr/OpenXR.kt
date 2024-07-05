@@ -16,7 +16,6 @@ import org.lwjgl.openxr.XR10.xrDestroyInstance
 import org.lwjgl.openxr.XR10.xrDestroySession
 import org.lwjgl.openxr.XrFovf
 import org.lwjgl.openxr.XrSpaceLocation
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.tan
@@ -69,13 +68,15 @@ abstract class OpenXR(val window: Long) {
     val system = OpenXRSystem(window)
     var session: OpenXRSession? = null
     var hasBeenDestroyed = false
+    private var lastSessionTest = 0L
 
     init {
-        validateSession()
+        if (system.systemId != 0L) {
+            session = OpenXRSession(window, system)
+        }
         addShutdownHook()
     }
 
-    private var lastSessionTest = 0L
     fun validateSession(): OpenXRSession? {
         val time = Time.nanoTime
         if (abs(time - lastSessionTest) >= sessionTestTimeout) {

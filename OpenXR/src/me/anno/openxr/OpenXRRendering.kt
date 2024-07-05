@@ -2,7 +2,6 @@ package me.anno.openxr
 
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
@@ -44,6 +43,9 @@ class OpenXRRendering(
         rv.updateEditorCameraTransform()
     }
 
+    val signP = +1f
+    val signR = -1f
+
     override fun beginRenderViews() {
         super.beginRenderViews()
         val session = session ?: return
@@ -52,7 +54,11 @@ class OpenXRRendering(
         val h = view0.recommendedImageRectHeight()
         val position = position
         val rotation = rotation
-        updateCamera(position.x, position.y, position.z, rotation.x, rotation.y, rotation.z, rotation.w)
+        val signR = -signR
+        updateCamera(
+            signP * position.x, signP * position.y, signP * position.z,
+            signR * rotation.x, signR * rotation.y, signR * rotation.z, rotation.w
+        )
         rv.prepareDrawScene(w, h, 1f, camera, true)
     }
 
@@ -93,13 +99,13 @@ class OpenXRRendering(
         val oy = rv.y
         val ow = rv.width
         val oh = rv.height
+        rv.x = 0
+        rv.y = 0
+        rv.width = w
+        rv.height = h
         rv.setRenderState()
-        if (true) {
-            rv.drawScene(w, h, pbrRenderer, fb, false, false, true)
-        } else {
-            useFrame(fb) {
-                rv.render(0, 0, w, h)
-            }
+        useFrame(fb) {
+            rv.render(0, 0, w, h)
         }
         rv.x = ox
         rv.y = oy
@@ -118,16 +124,26 @@ class OpenXRRendering(
         val pos = pose.`position$`()
         val rot = pose.orientation()
 
-        rv.cameraRotation.set(rot.x(), rot.y(), rot.z(), rot.w())
+        rv.cameraRotation.set(signR * rot.x(), signR * rot.y(), signR * rot.z(), rot.w())
         createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f)
-        // todo offset camera matrix by (pos - centerPos) / worldScale
+        // offset camera matrix by (pos - centerPos) / worldScale
+        val signP = -signP * rv.worldScale.toFloat()
         println(
             listOf(
-                rv.worldScale, viewIndex, pos.x() - position.x, pos.y() - position.y, pos.z() - position.z,
-                rot.x(), rot.y(), rot.z(), rot.w()
+                rv.worldScale, viewIndex,
+                signP * (pos.x() - position.x),
+                signP * (pos.y() - position.y),
+                signP * (pos.z() - position.z),
+                signR * rot.x(),
+                signR * rot.y(),
+                signR * rot.z(), rot.w()
             )
         )
-        rv.cameraMatrix.translate(pos.x() - position.x, pos.y() - position.y, pos.z() - position.z)
+        rv.cameraMatrix.translate(
+            signP * (pos.x() - position.x),
+            signP * (pos.y() - position.y),
+            signP * (pos.z() - position.z)
+        )
         rv.cameraMatrix.rotate(rv.cameraRotation)
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
