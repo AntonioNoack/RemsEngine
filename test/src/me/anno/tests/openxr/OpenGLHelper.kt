@@ -15,6 +15,7 @@ import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.glfwGetWindowSize
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.opengl.GL45C.glCreateVertexArrays
+import org.lwjgl.opengl.GL45C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
@@ -66,6 +67,7 @@ val shader = Shader(
 lateinit var buffer1: StaticBuffer
 
 var vao = 0
+var framebuffer = 0
 
 fun initGL() {
 
@@ -102,6 +104,7 @@ fun initGL() {
         )
     )
 
+    framebuffer = glGenFramebuffers()
     vao = glCreateVertexArrays()
     glBindVertexArray(vao)
 

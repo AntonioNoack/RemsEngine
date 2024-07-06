@@ -4,7 +4,6 @@ import me.anno.gpu.RenderDoc
 import me.anno.openxr.OpenXR
 import me.anno.openxr.OpenXR.Companion.createProjectionFov
 import me.anno.openxr.OpenXR.Companion.farZ
-import me.anno.openxr.OpenXR.Companion.initFramebuffers
 import me.anno.openxr.OpenXR.Companion.nearZ
 import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.assertions.assertTrue
@@ -58,13 +57,13 @@ fun runOpenXRRenderLoop() {
     glfwSwapInterval(0)
 
     val xr = object : OpenXR(window) {
-        override fun copyToDesktopWindow(framebuffer: Int, w: Int, h: Int) {
+        override fun copyToDesktopWindow(w: Int, h: Int) {
             copyToFB1(framebuffer, w, h)
         }
 
         override fun renderFrame(
-            viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long, handLocations: XrSpaceLocation.Buffer?,
-            framebuffer: Int, colorTexture: Int, depthTexture: Int
+            viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long,
+            handLocations: XrSpaceLocation.Buffer?, colorTexture: Int, depthTexture: Int
         ) {
             val session = session ?: return
             val view = session.views[viewIndex]
@@ -75,7 +74,6 @@ fun runOpenXRRenderLoop() {
             )
         }
     }
-    initFramebuffers()
     initGL()
     val printer = FPSPrinter()
     while (!glfwWindowShouldClose(window)) {

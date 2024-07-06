@@ -14,7 +14,6 @@ import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTab.Companion.tryStartVR
@@ -47,7 +46,6 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.joml.Matrix4f
 
 // to do Unity($)/RemsEngine(research) shader debugger:
@@ -143,22 +141,26 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         val customUI = CustomList(true, style)
         customUI.weight = 10f
 
-        val animationWindow = CustomList(false, style)
-
         val libraryBase = EditorState
         val library = libraryBase.uiLibrary
 
-        animationWindow.add(CustomContainer(ECSTreeView(style), library, style), 1f)
-        animationWindow.add(CustomContainer(SceneView(PlayMode.EDITING, style), library, style), 3f)
-        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
-        animationWindow.weight = 1f
-        customUI.add(animationWindow, 2f)
+        val sceneView = SceneView(PlayMode.EDITING, style)
+        val top = CustomList(false, style)
+        top.add(CustomContainer(ECSTreeView(style), library, style), 1f)
+        top.add(CustomContainer(sceneView, library, style), 3f)
+        top.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
+        top.weight = 1f
+        customUI.add(top, 2f)
 
-        val explorers = CustomList(false, style).apply { weight = 0.3f }
-        explorers.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
-        explorers.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
+        val bottom = CustomList(false, style).apply { weight = 0.3f }
+        bottom.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
+        bottom.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
+        customUI.add(bottom)
 
-        customUI.add(explorers)
+        // todo if RenderView is deleted/disabled, make other RenderView VR-renderer
+        val osWindow = GFX.someWindow
+        tryStartVR(osWindow, sceneView.renderer)
+
         return customUI
     }
 
@@ -211,14 +213,6 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         }
         options.addAction(configTitle, Dict["Keymap", "ui.top.config.keymap"]) {
             openConfigWindow(windowStack, ActionManager, false)
-        }
-
-        val vrTitle = Dict["VR", "ui.top.vr"]
-        options.addAction(vrTitle, Dict["Start", "ui.top.vr.start"]) {
-            val rv = windowStack.firstNotNullOfOrNull {
-                it.panel.listOfVisible.firstInstanceOrNull2(RenderView::class)
-            }
-            tryStartVR(osWindow, rv)
         }
 
         list.add(options)

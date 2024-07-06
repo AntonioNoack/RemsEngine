@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
 import me.anno.openxr.OpenXR.Companion.createProjectionFov
 import me.anno.openxr.OpenXR.Companion.farZ
-import me.anno.openxr.OpenXR.Companion.framebuffer
 import me.anno.openxr.OpenXR.Companion.nearZ
 import me.anno.openxr.OpenXRUtils.checkHandTrackingAndPrintSystemProperties
 import me.anno.openxr.OpenXRUtils.checkOpenGLRequirements
@@ -396,18 +395,17 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         val w = viewConfig.recommendedImageRectWidth()
         val h = viewConfig.recommendedImageRectHeight()
 
-        val framebuffer = framebuffer
         val colorImage = swapchainImages[viewIndex][colorAcquiredIndex].image()
         val depthImage = if (xr.system.hasDepth) {
             swapchainImages[viewCount + viewIndex][depthAcquiredIndex].image()
         } else -1
         xr.renderFrame(
             viewIndex, w, h, fs.frameState.predictedDisplayTime(),
-            actions.handLocations, framebuffer,
+            actions.handLocations,
             colorImage, depthImage
         )
         if (viewIndex == viewCount - 1) {
-            xr.copyToDesktopWindow(framebuffer, w, h)
+            xr.copyToDesktopWindow(w, h)
         }
 
         releaseSwapchainImage(colorSwapchain, fs.releaseInfo)

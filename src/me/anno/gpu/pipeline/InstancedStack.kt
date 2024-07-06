@@ -124,6 +124,7 @@ open class InstancedStack {
 
                 GFX.check()
                 val shader = stage.getShader(material)
+                shader.use()
                 GFX.check()
                 bindRandomness(shader)
 

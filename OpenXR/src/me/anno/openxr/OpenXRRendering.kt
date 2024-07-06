@@ -19,25 +19,19 @@ import org.lwjgl.opengl.GL30C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL30C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL30C.glFramebufferTexture2D
+import org.lwjgl.opengl.GL30C.glGenFramebuffers
 import org.lwjgl.openxr.XrSpaceLocation
 import kotlin.math.PI
 
 class OpenXRRendering(
-    val window0: OSWindow, val rv: RenderView,
+    val window0: OSWindow, var rv: RenderView,
     val fb: Framebuffer, val ct0: Texture2D, val ct1: Texture2D, val dt: Texture2D,
 ) : OpenXR(window0.pointer) {
 
-    init {
-        initFramebuffers()
-    }
-
-    var needsFilling = true
-    override fun copyToDesktopWindow(framebuffer: Int, w: Int, h: Int) {
+    override fun copyToDesktopWindow(w: Int, h: Int) {
         GFX.callOnGameLoop(EngineBase.instance!!, window0)
-        needsFilling = true
     }
 
-    private val camera get() = rv.editorCamera
     private val lastPosition = Vector3d()
     private var additionalRotationY = 0.0
     private var additionalRotationYTarget = 0.0
@@ -81,7 +75,7 @@ class OpenXRRendering(
         }
 
         rv.updateEditorCameraTransform()
-        rv.prepareDrawScene(w, h, 1f, camera, true)
+        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, true)
     }
 
     private fun defineTexture(w: Int, h: Int, ct: Texture2D, colorTexture: Int, session: Int) {
@@ -102,10 +96,15 @@ class OpenXRRendering(
         }
         val depthTextureI = if (depthTexture < 0) dt.pointer else depthTexture
         val session = GFXState.session
+        if (fb.session != session) {
+            fb.session = session
+            fb.pointer = 0
+        }
         fb.width = w
         fb.height = h
-        fb.pointer = framebuffer
-        fb.session = session
+        if (fb.pointer == 0) {
+            fb.pointer = glGenFramebuffers()
+        }
         val ct = if (viewIndex == 0) ct0 else ct1
         defineTexture(w, h, ct, colorTexture, session)
         defineTexture(w, h, dt, depthTextureI, session)
@@ -116,7 +115,7 @@ class OpenXRRendering(
         fb.checkIsComplete()
     }
 
-    private fun renderFrame(w: Int, h: Int) {
+    private fun renderFrame(w: Int, h: Int, rv: RenderView) {
         val ox = rv.x
         val oy = rv.y
         val ow = rv.width
@@ -136,8 +135,10 @@ class OpenXRRendering(
     }
 
     override fun renderFrame(
-        viewIndex: Int, w: Int, h: Int, predictedDisplayTime: Long, handLocations: XrSpaceLocation.Buffer?,
-        framebuffer: Int, colorTexture: Int, depthTexture: Int
+        viewIndex: Int, w: Int, h: Int,
+        predictedDisplayTime: Long,
+        handLocations: XrSpaceLocation.Buffer?,
+        colorTexture: Int, depthTexture: Int
     ) {
 
         val session = session ?: return
@@ -163,7 +164,7 @@ class OpenXRRendering(
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
-        renderFrame(w, h)
+        renderFrame(w, h, rv)
 
         // todo all controller inputs (2x thumbsticks, 4x trigger, ABXY, HOME)
         // todo somehow define controller positions, and show objects there

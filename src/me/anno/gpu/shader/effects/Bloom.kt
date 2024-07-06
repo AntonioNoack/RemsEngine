@@ -21,6 +21,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
 import kotlin.math.exp
@@ -177,7 +178,7 @@ object Bloom {
     private val forwardShaderY = createForwardShader(0, 1, false)
     private val forwardShader0 = createForwardShader(1, 0, true)
 
-    private val compositionShader = Array(2) {
+    private val compositionShader = createArrayList(2) {
         val msIn = it > 0
         val shader = Shader(
             "composeBloom", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,

@@ -19,7 +19,6 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.InputListener
@@ -104,7 +103,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @DebugProperty
     @NotSerializedProperty
     var hasOnUpdate: Boolean
-        get() = flags.hasFlag(ON_UPDATE_FLAG)
+        get() = true // flags.hasFlag(ON_UPDATE_FLAG) // todo this isn't correctly set when loading a scene, why? :/
         set(value) {
             flags = flags.withFlag(ON_UPDATE_FLAG, value)
         }

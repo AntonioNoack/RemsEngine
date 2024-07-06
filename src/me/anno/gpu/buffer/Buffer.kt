@@ -6,10 +6,10 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
@@ -164,8 +164,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
-            GFX.check()
-            return if (index > -1) {
+            return if (index in 0 until GFX.maxAttributes) {
+                GFX.check()
                 val type = attr.type
                 if (attr.isNativeInt) {
                     glVertexAttribIPointer(
@@ -180,6 +180,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
                 enable(index)
+                GFX.check()
                 true
             } else false
         }
@@ -188,7 +189,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             val flag = 1 shl index
             if (!enabledAttributes.hasFlag(flag)) {
                 GL46C.glEnableVertexAttribArray(index)
-                enabledAttributes = enabledAttributes.withAlpha(flag)
+                enabledAttributes = enabledAttributes.withFlag(flag)
             }
         }
 
@@ -203,7 +204,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         @JvmStatic
         fun unbindAttribute(shader: Shader, attr: String) {
             val index = shader.getAttributeLocation(attr)
-            if (index > -1) {
+            if (index in 0 until GFX.maxAttributes) {
                 disable(index)
                 when (shader.attributes[index].type) {
                     GLSLType.V1B, GLSLType.V2B, GLSLType.V3B, GLSLType.V4B,

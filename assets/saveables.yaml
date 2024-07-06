@@ -45,6 +45,7 @@ ConsoleLogFullscreen: me.anno.ui.debug.console.ConsoleLogFullscreen
 ConsoleOutputPanel: me.anno.ui.debug.ConsoleOutputPanel
 ControlFlowGraph: me.anno.graph.visual.ControlFlowGraph
 ControllerCalibration: me.anno.input.controller.ControllerCalibration
+ControllerTransform: me.anno.ecs.components.player.ControllerTransform
 ConvexCollider: me.anno.ecs.components.collider.ConvexCollider
 CrossProductNode: me.anno.graph.visual.vector.CrossProductNode
 CubemapSkybox: me.anno.ecs.components.light.sky.CubemapSkybox

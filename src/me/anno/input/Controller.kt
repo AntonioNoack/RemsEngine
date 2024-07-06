@@ -19,7 +19,10 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.GLFW_JOYSTICK_1
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetGamepadState
@@ -36,6 +39,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 // todo rumble using external library? glfw and lwjgl sadly have no support for it
+// todo can this be moved to the JVM module? since it's using GLFW only anyway
 // https://github.com/williamahartman/Jamepad?
 @Suppress("unused")
 class Controller(val id: Int) {
@@ -51,6 +55,9 @@ class Controller(val id: Int) {
     val axisValues = FloatArray(MAX_NUM_AXES)
     val axisSpeeds = FloatArray(MAX_NUM_AXES)
     val buttonDownTime = LongArray(MAX_NUM_BUTTONS)
+
+    val position = Vector3f()
+    val rotation = Quaternionf()
 
     var calibration = ControllerCalibration()
 
@@ -241,29 +248,12 @@ class Controller(val id: Int) {
             val time = Time.nanoTime
             numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
             for (buttonId in 0 until numButtons) {
-                val rawState = buttons.get()
+                val rawState = buttons.get(buttonId)
                 val state = rawState.toInt() // press or release, nothing else
-                if (state == GLFW_PRESS) {
-                    if (buttonDownTime[buttonId] == 0L) {
-                        buttonDownTime[buttonId] = time
-                        buttonDown(window, buttonId)
-                        buttonType(window, buttonId)
-                    }
-                    val timeSinceDown = time - buttonDownTime[buttonId]
-                    if (timeSinceDown > initialTypeDelayNanos) {
-                        buttonDownTime[buttonId] = max(
-                            buttonDownTime[buttonId] + typeDelayNanos, // reset
-                            time - initialTypeDelayNanos - typeDelayNanos * 2 // & we must not collect too many,
-                            // when the window is not active
-                        )
-                        buttonType(window, buttonId)
-                    }
-                } else {
-                    if (buttonDownTime[buttonId] != 0L) {
-                        buttonDownTime[buttonId] = 0L
-                        buttonUp(window, buttonId)
-                    }
-                }
+                val eventFlags = ButtonLogic.process(time, state == GLFW_PRESS, buttonDownTime, buttonId)
+                if (eventFlags.hasFlag(ButtonLogic.DOWN)) buttonDown(window, buttonId)
+                if (eventFlags.hasFlag(ButtonLogic.TYPE)) buttonType(window, buttonId)
+                if (eventFlags.hasFlag(ButtonLogic.UP)) buttonUp(window, buttonId)
             }
         }
     }
@@ -467,10 +457,6 @@ class Controller(val id: Int) {
          * could be increased by adding more enum values to enum class Key
          * */
         const val MAX_NUM_CONTROLLERS = 4
-
-        // should get a place in the config
-        private val initialTypeDelayNanos get() = DefaultConfig["controller.initialTypeDelayMillis", 1000] * 1_000_000L
-        private val typeDelayNanos get() = DefaultConfig["controller.typeDelayMillis", 100] * 1_000_000L
 
         // should probably get a place in the config as well
         private val axisKeyTriggerPoint get() = DefaultConfig["controller.axisKeyTriggerPoint", 0.25f]

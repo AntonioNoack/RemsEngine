@@ -9,7 +9,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL46C.glGenFramebuffers
 import org.lwjgl.openxr.XR10.XR_SESSION_STATE_UNKNOWN
 import org.lwjgl.openxr.XR10.XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
 import org.lwjgl.openxr.XR10.xrDestroyInstance
@@ -39,22 +38,16 @@ abstract class OpenXR(val window: Long) {
             )
         }
 
-        var framebuffer = 0
-
         val nearZ = 0.01f
         val farZ = 100f
-
-        fun initFramebuffers() {
-            framebuffer = glGenFramebuffers()
-        }
     }
 
-    abstract fun copyToDesktopWindow(framebuffer: Int, w: Int, h: Int)
+    abstract fun copyToDesktopWindow(w: Int, h: Int)
     abstract fun renderFrame(
         viewIndex: Int, w: Int, h: Int,
         predictedDisplayTime: Long,
         handLocations: XrSpaceLocation.Buffer?,
-        framebuffer: Int, colorTexture: Int, depthTexture: Int,
+        colorTexture: Int, depthTexture: Int,
     )
 
     var state = XR_SESSION_STATE_UNKNOWN

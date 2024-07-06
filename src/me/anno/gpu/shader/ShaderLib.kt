@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Matrix4x3f
 import org.joml.Vector3i
 import org.joml.Vector4f
@@ -454,7 +455,7 @@ object ShaderLib {
                 "}"
     )
 
-    val subpixelCorrectTextGraphicsShader = Array(2) {
+    val subpixelCorrectTextGraphicsShader = createArrayList(2) {
         val instanced = it > 0
         val type = if (instanced) VariableMode.ATTR else VariableMode.IN
         BaseShader(
@@ -523,7 +524,7 @@ object ShaderLib {
         )
     }
 
-    val subpixelCorrectTextComputeShader = Array(2) {
+    val subpixelCorrectTextComputeShader = createArrayList(2) {
         val instanced = it > 0
         ComputeShader(
             "subpixelCorrectTextShader2", Vector3i(16, 16, 1), listOf(
