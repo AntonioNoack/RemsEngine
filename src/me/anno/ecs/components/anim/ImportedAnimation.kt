@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.min
+import me.anno.utils.structures.Collections.filterIsInstance2
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 
@@ -67,10 +68,10 @@ class ImportedAnimation : Animation() {
 
     override fun setProperty(name: String, value: Any?) {
         when (name) {
-            "frames" -> frames = (value as? List<*> ?: emptyList<Any?>())
+            "frames" -> frames = (value as? List<*> ?: return)
                 .mapNotNull { list ->
                     when (list) {
-                        is List<*> -> list.filterIsInstance<Matrix4x3f>()
+                        is List<*> -> list.filterIsInstance2(Matrix4x3f::class)
                         is FloatArray -> splitValues(list)
                         else -> null
                     }

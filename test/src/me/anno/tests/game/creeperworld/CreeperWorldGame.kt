@@ -7,7 +7,6 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Key
@@ -25,6 +24,7 @@ import me.anno.tests.physics.fluid.RWState
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Floats.f3
@@ -258,7 +258,7 @@ fun main() {
                     worker += {
                         world.update(tickIndex)
                         world.render(image)
-                        switchRGB2BGR(image)
+                        convertARGB2ABGR(image)
                         addGPUTask("texUpdate", 10) {
                             texture.createRGB(image, false)
                             tickIndex++

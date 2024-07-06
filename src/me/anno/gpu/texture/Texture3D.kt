@@ -16,6 +16,8 @@ import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
+import me.anno.utils.Color.convertARGB2ABGR
+import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.types.Booleans.toInt
@@ -130,19 +132,9 @@ open class Texture3D(
         // todo we could detect monochrome and such :)
         val intData = img.asIntImage().data
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            for (i in intData.indices) {// argb -> abgr
-                val argb = intData[i]
-                val r = argb.shr(16) and 0xff
-                val b = (argb and 0xff).shl(16)
-                intData[i] = (argb and 0xff00ff00.toInt()) or r or b
-            }
+            convertARGB2ABGR(intData)
         } else {
-            for (i in intData.indices) {// argb -> rgba
-                val argb = intData[i]
-                val a = argb.shr(24) and 255
-                val rgb = argb.and(0xffffff) shl 8
-                intData[i] = rgb or a
-            }
+            convertARGB2RGBA(intData)
         }
         if (sync) createRGBA8(intData)
         else GFX.addGPUTask("Texture3D.create()", img.width, img.height) {

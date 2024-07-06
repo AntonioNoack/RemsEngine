@@ -7,6 +7,7 @@ import me.anno.image.raw.ByteImage
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
+import me.anno.utils.Color.convertARGB2ABGR
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -79,7 +80,7 @@ object BIImage {
                     return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    Texture2D.switchRGB2BGR(data2)
+                    convertARGB2ABGR(data2)
                     return {
                         createRGBA(data2, checkRedundancy)
                     }
@@ -93,7 +94,7 @@ object BIImage {
                     return null
                 } else {
                     val data2 = if (checkRedundancy) checkRedundancy(data) else data
-                    Texture2D.switchRGB2BGR(data2)
+                    convertARGB2ABGR(data2)
                     return {
                         createRGB(data2, false)
                     }

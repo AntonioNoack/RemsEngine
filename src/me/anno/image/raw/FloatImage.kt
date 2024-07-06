@@ -7,6 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
+import me.anno.utils.Color
 import me.anno.utils.Color.black
 import me.anno.utils.structures.Callback
 import kotlin.math.max
@@ -38,26 +39,17 @@ class FloatImage(
     }
 
     override fun getRGB(index: Int): Int {
-        return when (numChannels) {
-            1 -> map.getColor(data[index])
-            2 -> {
-                val idx = index * 2
-                getColor(data[idx]).shl(16) or
-                        getColor(data[idx + 1]).shl(8) or black
-            }
-            3 -> {
-                val idx = index * 3
-                getColor(data[idx]).shl(16) or
-                        getColor(data[idx + 1]).shl(8) or
-                        getColor(data[idx + 2]) or black
-            }
-            else -> {
-                val idx = index * numChannels
-                getColor(data[idx]).shl(16) or
-                        getColor(data[idx + 1]).shl(8) or
-                        getColor(data[idx + 2]) or
-                        getColor(data[idx + 3]).shl(24)
-            }
+        val nc = numChannels
+        return if (nc == 1) {
+            map.getColor(data[index])
+        } else {
+            val idx = index * nc
+            Color.rgba(
+                getColor(data[idx]),
+                getColor(data[idx + 1]),
+                if (nc >= 2) getColor(data[idx + 2]) else 0,
+                if (nc >= 3) getColor(data[idx + 3]) else 255
+            )
         }
     }
 

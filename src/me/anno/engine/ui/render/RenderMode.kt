@@ -140,6 +140,7 @@ class RenderMode private constructor(
         )
 
         val CLICK_IDS = RenderMode("ClickIds (Random)", randomIdRenderer)
+        val DRAW_CALL_ID = RenderMode("Draw Call ID (Random)", randomIdRenderer)
 
         val DEPTH = RenderMode("Depth", attributeRenderers[DeferredLayerType.DEPTH])
 

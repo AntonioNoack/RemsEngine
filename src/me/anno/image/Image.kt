@@ -56,8 +56,8 @@ abstract class Image(
     }
 
     /**
-     * get the color at that pixel index;
-     * if you calculate the index yourself, please use getIndex() instead, so offset and stride are considered!
+     * get the argb-color at that pixel index;
+     * please use getIndex() or getRGB(x,y) instead of calculating the index yourself
      * */
     abstract fun getRGB(index: Int): Int
 
@@ -79,6 +79,10 @@ abstract class Image(
         return r0 * gx + fx * r1
     }
 
+    /**
+     * returns argb value at these coordinates;
+     * might crash if x or y are out of bounds
+     * */
     fun getRGB(x: Int, y: Int): Int {
         return getRGB(getIndex(x, y))
     }
@@ -113,10 +117,14 @@ abstract class Image(
         }
     }
 
+    /**
+     * returns argb value at these coordinates;
+     * clamped access, if x or y are out of bounds
+     * */
     fun getSafeRGB(x: Int, y: Int): Int {
         val xi = clamp(x, 0, width - 1)
         val yi = clamp(y, 0, height - 1)
-        return getRGB(getIndex(xi, yi))
+        return getRGB(xi, yi)
     }
 
     open fun createTexture(

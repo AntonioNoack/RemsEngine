@@ -95,20 +95,22 @@ open class OSWindow(var title: String) {
     }
 
     fun setVsyncEnabled(enabled: Boolean) {
-        enableVsync = vsyncOverride ?: enabled
+        enableVsync = enabled
     }
 
     fun toggleVsync() {
-        enableVsync = vsyncOverride ?: !enableVsync
+        enableVsync = !enableVsync
     }
 
     open fun forceUpdateVsync() {
+        val enableVsync = vsyncOverride ?: enableVsync
         val targetInterval = if (isInFocus || !GFXBase.mayIdle) if (enableVsync) 1 else 0 else 2
         GLFW.glfwSwapInterval(targetInterval)
         lastVsyncInterval = targetInterval
     }
 
     open fun updateVsync() {
+        val enableVsync = vsyncOverride ?: enableVsync
         val targetInterval = if (isInFocus || !GFXBase.mayIdle) if (enableVsync) 1 else 0 else 2
         if (lastVsyncInterval != targetInterval) {
             GLFW.glfwSwapInterval(targetInterval)

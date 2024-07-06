@@ -86,7 +86,7 @@ abstract class MeshJoiner<V>(
         for (element in elements) {
             val model = getMesh(element)
             model.ensureNorTanUVs()
-            numPositions += model.positions!!.size / 3
+            numPositions += (model.positions ?: continue).size / 3
             numPrimitives += model.numPrimitives.toInt()
         }
 
@@ -125,7 +125,7 @@ abstract class MeshJoiner<V>(
             srcMesh.ensureBuffer() // ensure normals, tangents and such have been initialized
             srcMesh.ensureNorTanUVs()
 
-            val srcPositions = srcMesh.positions!!
+            val srcPositions = srcMesh.positions ?: continue
             val srcNormals = srcMesh.normals!!
             getTransform(element, localToGlobal)
 

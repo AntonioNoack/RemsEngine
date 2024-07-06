@@ -1,6 +1,5 @@
 package me.anno.maths
 
-import me.anno.Time
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -16,7 +15,6 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 @Suppress("unused", "ConstPropertyName")
 object Maths {

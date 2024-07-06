@@ -24,6 +24,9 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
     private val ct1 = Texture2D("OpenXR-Right", 1, 1, 1)
     private val dt = Texture2D("OpenXR-Depth", 1, 1, 1)
 
+    override var isActive = false
+        private set
+
     init {
         fb.textures = listOf(ct0, ct1)
     }
@@ -48,11 +51,30 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
             GFX.callOnGameLoop(EngineBase.instance!!, window)
             return true
         }
-        session.renderFrameMaybe(instance)
+        val oldIsActive = isActive
+        isActive = session.renderFrameMaybe(instance)
+        if (!isActive) {
+            if (oldIsActive) { // became inactive
+                onInactive(window)
+            }
+            GFX.callOnGameLoop(EngineBase.instance!!, window)
+        } else if (!oldIsActive) { // became active again
+            onActive(window)
+        }
         return if (!session.events.instanceAlive) {
+            onInactive(window)
             this.instance = null
-            window.vsyncOverride = null
             false
         } else true
+    }
+
+    private fun onActive(window: OSWindow) {
+        window.vsyncOverride = false
+    }
+
+    private fun onInactive(window: OSWindow) {
+        // reset roll
+        (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTarget?.z = 0.0
+        window.vsyncOverride = null
     }
 }

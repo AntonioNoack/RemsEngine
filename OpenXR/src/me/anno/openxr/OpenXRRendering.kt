@@ -1,5 +1,6 @@
 package me.anno.openxr
 
+import me.anno.Time
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
@@ -9,12 +10,17 @@ import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.dtTo01
+import me.anno.utils.types.Floats.toRadians
+import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL30C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL30C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL30C.glFramebufferTexture2D
 import org.lwjgl.openxr.XrSpaceLocation
+import kotlin.math.PI
 
 class OpenXRRendering(
     val window0: OSWindow, val rv: RenderView,
@@ -32,19 +38,11 @@ class OpenXRRendering(
     }
 
     private val camera get() = rv.editorCamera
-
-    fun updateCamera(
-        px: Float, py: Float, pz: Float,
-        rx: Float, ry: Float, rz: Float, rw: Float
-    ) {
-        rv.enableOrbiting = false
-        rv.orbitCenter.set(px, py, pz)
-        rv.orbitRotation.set(rx, ry, rz, rw)
-        rv.updateEditorCameraTransform()
-    }
-
-    val signP = +1f
-    val signR = -1f
+    private val lastPosition = Vector3d()
+    private var additionalRotationY = 0.0
+    private var additionalRotationYTarget = 0.0
+    private var lastAngleY = 0.0
+    private val tmp = Vector3d()
 
     override fun beginRenderViews() {
         super.beginRenderViews()
@@ -52,13 +50,37 @@ class OpenXRRendering(
         val view0 = session.viewConfigViews[0]
         val w = view0.recommendedImageRectWidth()
         val h = view0.recommendedImageRectHeight()
-        val position = position
-        val rotation = rotation
-        val signR = -signR
-        updateCamera(
-            signP * position.x, signP * position.y, signP * position.z,
-            signR * rotation.x, signR * rotation.y, signR * rotation.z, rotation.w
-        )
+        val pos = position
+        val rot = rotation
+        rv.enableOrbiting = false
+
+        val rt = rv.controlScheme?.rotationTarget
+        if (rt != null) {
+            val manualRotationY = (rt.y - lastAngleY).toRadians()
+            additionalRotationYTarget += manualRotationY
+        }
+
+        tmp.set(pos).sub(lastPosition).rotateY(additionalRotationY)
+        rv.orbitCenter.add(tmp)
+        rv.radius = 5.0 // to define the general speed
+        lastPosition.set(pos)
+
+        // prevent 360° jumps
+        var da = additionalRotationYTarget - additionalRotationY
+        if (da < -PI) da += TAU
+        if (da > PI) da -= TAU
+        additionalRotationY += da * dtTo01(Time.deltaTime * 5.0)
+
+        rv.orbitRotation
+            .identity().rotateY(additionalRotationY)
+            .mul(rot.x.toDouble(), rot.y.toDouble(), rot.z.toDouble(), rot.w.toDouble())
+
+        if (rt != null) {
+            rv.orbitRotation.toEulerAnglesDegrees(rt)
+            lastAngleY = rt.y
+        }
+
+        rv.updateEditorCameraTransform()
         rv.prepareDrawScene(w, h, 1f, camera, true)
     }
 
@@ -124,30 +146,27 @@ class OpenXRRendering(
         val pos = pose.`position$`()
         val rot = pose.orientation()
 
-        rv.cameraRotation.set(signR * rot.x(), signR * rot.y(), signR * rot.z(), rot.w())
+        rv.cameraRotation.identity()
+            .rotateY(additionalRotationY)
+            .mul(rot.x().toDouble(), rot.y().toDouble(), rot.z().toDouble(), rot.w().toDouble())
+            .invert()
+
         createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f)
-        // offset camera matrix by (pos - centerPos) / worldScale
-        val signP = -signP * rv.worldScale.toFloat()
-        println(
-            listOf(
-                rv.worldScale, viewIndex,
-                signP * (pos.x() - position.x),
-                signP * (pos.y() - position.y),
-                signP * (pos.z() - position.z),
-                signR * rot.x(),
-                signR * rot.y(),
-                signR * rot.z(), rot.w()
-            )
-        )
+        // offset camera matrix by (pos - centerPos) * worldScale
+        val scale = -rv.worldScale.toFloat() // negative for inverse
         rv.cameraMatrix.translate(
-            signP * (pos.x() - position.x),
-            signP * (pos.y() - position.y),
-            signP * (pos.z() - position.z)
+            (pos.x() - position.x) * scale,
+            (pos.y() - position.y) * scale,
+            (pos.z() - position.z) * scale
         )
         rv.cameraMatrix.rotate(rv.cameraRotation)
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h)
+
+        // todo all controller inputs (2x thumbsticks, 4x trigger, ABXY, HOME)
+        // todo somehow define controller positions, and show objects there
+        // todo finger tracking: display user-controlled hand
     }
 }

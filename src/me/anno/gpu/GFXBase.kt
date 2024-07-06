@@ -568,15 +568,17 @@ object GFXBase {
         val w = srcImage.width
         val h = srcImage.height
         val pixels = ByteBufferPool.allocateDirect(w * h * 4)
-            .order(ByteOrder.BIG_ENDIAN) // why is big-endian correct here?
+        val pixelsAsInt = pixels.asIntBuffer()
+        val srcIntImage = srcImage.asIntImage()
         for (y in 0 until h) {
-            for (x in 0 until w) {
-                val argb = srcImage.getRGB(x, y)
-                val rgba = Color.convertARGB2RGBA(argb)
-                pixels.putInt(rgba)
-            }
+            pixelsAsInt.put(srcIntImage.data, srcIntImage.getIndex(0, y), w)
         }
-        pixels.flip()
+        pixelsAsInt.flip()
+        if (pixels.order() == ByteOrder.BIG_ENDIAN) {
+            Color.convertARGB2RGBA(pixelsAsInt)
+        } else {
+            Color.convertARGB2ABGR(pixelsAsInt)
+        }
         image.set(w, h, pixels)
         return image to pixels
     }

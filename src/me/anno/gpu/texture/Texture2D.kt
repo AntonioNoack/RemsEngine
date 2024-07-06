@@ -27,7 +27,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.convertABGR2ARGB
+import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
@@ -677,21 +677,21 @@ open class Texture2D(
     fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        switchRGB2BGR(data2)
+        convertARGB2ABGR(data2)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 4)
-        switchRGB2BGR(data2)
+        convertARGB2ABGR(data2)
     }
 
     fun createBGR(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        switchRGB2BGR(data2)
+        convertARGB2ABGR(data2)
         setWriteAlignment(4 * width)
         upload(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4, 3)
-        switchRGB2BGR(data2)
+        convertARGB2ABGR(data2)
     }
 
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
@@ -899,7 +899,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancyRGB(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        switchRGB2BGR3(buffer)
+        convertRGB2BGR3(buffer)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 3)
@@ -908,7 +908,7 @@ open class Texture2D(
     fun createBGR(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyRGB(data)
-        switchRGB2BGR3(data)
+        convertRGB2BGR3(data)
         upload(GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 4, 3)
@@ -949,7 +949,7 @@ open class Texture2D(
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         beforeUpload(4, buffer.remaining())
-        switchRGB2BGR4(buffer)
+        convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
@@ -958,7 +958,7 @@ open class Texture2D(
     fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean) {
         if (checkRedundancy) checkRedundancy(buffer)
         beforeUpload(4, buffer.remaining())
-        switchRGB2BGR4(buffer)
+        convertRGB2BGR4(buffer)
         upload(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 4, 4)
@@ -1132,7 +1132,7 @@ open class Texture2D(
             check()
         }
         check()
-        switchRGB2BGR(buffer)
+        convertARGB2ABGR(buffer)
         val image = IntImage(width, height, buffer, channels > 3)
         if (flipY) image.flipY()
         return image
@@ -1291,23 +1291,7 @@ open class Texture2D(
         }
 
         @JvmStatic
-        fun switchRGB2BGR(values: IntArray) {
-            // convert argb to abgr
-            for (i in values.indices) {
-                values[i] = convertABGR2ARGB(values[i])
-            }
-        }
-
-        @JvmStatic
-        fun switchRGB2BGR(values: IntBuffer) {
-            // convert argb to abgr
-            for (i in 0 until values.limit()) {
-                values.put(i, convertABGR2ARGB(values[i]))
-            }
-        }
-
-        @JvmStatic
-        fun switchRGB2BGR3(values: ByteBuffer) {
+        fun convertRGB2BGR3(values: ByteBuffer) {
             // convert rgb to bgr
             val pos = values.position()
             for (i in pos until pos + values.remaining() step 3) {
@@ -1318,7 +1302,7 @@ open class Texture2D(
         }
 
         @JvmStatic
-        fun switchRGB2BGR4(values: ByteBuffer) {
+        fun convertRGB2BGR4(values: ByteBuffer) {
             // convert rgba to bgra
             val pos = values.position()
             for (i in pos until pos + values.remaining() step 4) {

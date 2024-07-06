@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.terrain
 
+import me.anno.maths.Packing.pack64
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 
@@ -14,7 +15,7 @@ class RegularTerrainInit(
     fun backwardX(x: Float, y: Float) = x - k2 * y
     fun backwardY(x: Float, y: Float) = y * k1
 
-    val generated = HashSet<ULong>()
+    val generated = HashSet<Long>()
 
     fun getCoordinates(x: Float): Int = (x / size).roundToInt()
 
@@ -51,7 +52,6 @@ class RegularTerrainInit(
                 l++
             }
         }
-
     }
 
     override fun ensure(position: Vector3f, radius: Float, terrain: TriTerrain) {
@@ -61,12 +61,11 @@ class RegularTerrainInit(
         val maxZ = getCoordinates(forwardY(position.x + radius, position.y + radius))
         for (x in minX..maxX) {
             for (z in minZ..maxZ) {
-                val hash = x.toULong().shl(32) or z.toULong()
+                val hash = pack64(x, z)
                 if (hash !in generated) {
                     generate(terrain, x, z)
                 }
             }
         }
     }
-
 }

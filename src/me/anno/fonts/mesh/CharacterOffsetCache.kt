@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.Font
 import me.anno.fonts.FontStats.getTextLength
 import me.anno.maths.Maths
+import me.anno.maths.Packing.pack64
 import me.anno.utils.types.Strings.joinChars
 
 class CharacterOffsetCache(val font: Font) {
@@ -32,16 +33,12 @@ class CharacterOffsetCache(val font: Font) {
         }
 
         return synchronized(this) {
-            charDistance.getOrPut(pair(previous, current)) {
+            charDistance.getOrPut(pack64(previous, current)) {
                 val bLength = getCharLength(current)
                 val abLength = getLength(previous.joinChars().toString() + current.joinChars().toString())
                 abLength - bLength
             }
         }
-    }
-
-    private fun pair(a: Int, b: Int): Long {
-        return a.toLong().shl(32) or b.toLong().and(0xffffffffL)
     }
 
     companion object {

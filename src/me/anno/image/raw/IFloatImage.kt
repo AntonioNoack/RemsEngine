@@ -6,6 +6,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.smoothStep
+import me.anno.utils.Color
 import kotlin.math.floor
 
 abstract class IFloatImage(
@@ -153,26 +154,19 @@ abstract class IFloatImage(
         return toFloatImage().reinhard()
     }
 
-    fun getColor(f: Float) = clamp(f * 255f, 0f, 255f).toInt()
+    fun getColor(f: Float): Int = clamp(f * 255f, 0f, 255f).toInt()
 
     override fun getRGB(index: Int): Int {
-        return when (numChannels) {
-            1 -> map.getColor(getValue(index, 0))
-            2 -> {
-                getColor(getValue(index, 0)).shl(16) or
-                        getColor(getValue(index, 1)).shl(8)
-            }
-            3 -> {
-                getColor(getValue(index, 0)).shl(16) or
-                        getColor(getValue(index, 1)).shl(8) or
-                        getColor(getValue(index, 2))
-            }
-            else -> {
-                getColor(getValue(index, 0)).shl(16) or
-                        getColor(getValue(index, 1)).shl(8) or
-                        getColor(getValue(index, 2)) or
-                        getColor(getValue(index, 3)).shl(24)
-            }
+        val nc = numChannels
+        return if (nc == 1) {
+            map.getColor(getValue(index, 0))
+        } else {
+            Color.rgba(
+                getColor(getValue(index, 0)),
+                getColor(getValue(index, 1)),
+                if (nc >= 2) getColor(getValue(index, 2)) else 0,
+                if (nc >= 3) getColor(getValue(index, 3)) else 255
+            )
         }
     }
 }

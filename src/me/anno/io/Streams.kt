@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.Engine
 import me.anno.graph.hdb.ByteSlice
+import me.anno.maths.Packing.pack64
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
@@ -209,8 +210,9 @@ object Streams {
 
     @JvmStatic
     fun InputStream.readLE64(): Long {
-        return readLE32().toLong().and(0xffffffff) +
-                readLE32().toLong().shl(32)
+        val low = readLE32()
+        val high = readLE32()
+        return pack64(high, low)
     }
 
     @JvmStatic
@@ -225,8 +227,7 @@ object Streams {
 
     @JvmStatic
     fun InputStream.readBE64(): Long {
-        return readBE32().toLong().shl(32) +
-                readBE32().toLong().and(0xffffffff)
+        return pack64(readBE32(), readBE32())
     }
 
     @JvmStatic

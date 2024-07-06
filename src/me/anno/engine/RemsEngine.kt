@@ -14,8 +14,10 @@ import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.scenetabs.ECSSceneTab.Companion.tryStartVR
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.gpu.GFX
@@ -45,6 +47,7 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.joml.Matrix4f
 
 // to do Unity($)/RemsEngine(research) shader debugger:
@@ -194,7 +197,8 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
     override fun createProjectUI() {
 
-        val windowStack = GFX.someWindow.windowStack
+        val osWindow = GFX.someWindow
+        val windowStack = osWindow.windowStack
         val style = style
         val list = PanelListY(style)
         val options = OptionBar(style)
@@ -207,6 +211,14 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         }
         options.addAction(configTitle, Dict["Keymap", "ui.top.config.keymap"]) {
             openConfigWindow(windowStack, ActionManager, false)
+        }
+
+        val vrTitle = Dict["VR", "ui.top.vr"]
+        options.addAction(vrTitle, Dict["Start", "ui.top.vr.start"]) {
+            val rv = windowStack.firstNotNullOfOrNull {
+                it.panel.listOfVisible.firstInstanceOrNull2(RenderView::class)
+            }
+            tryStartVR(osWindow, rv)
         }
 
         list.add(options)

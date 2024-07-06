@@ -14,10 +14,10 @@ import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
-import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
+import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.callbacks.I3B
 import me.anno.utils.callbacks.I3I
@@ -159,12 +159,9 @@ open class Texture2DArray(
             }
         }
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            // argb -> abgr
-            switchRGB2BGR(intData)
+            convertARGB2ABGR(intData)
         } else {
-            for (i in intData.indices) {// argb -> rgba
-                intData[i] = convertARGB2RGBA(intData[i])
-            }
+            convertARGB2RGBA(intData)
         }
         if (sync && GFX.isGFXThread()) {
             createRGBA8(intData)

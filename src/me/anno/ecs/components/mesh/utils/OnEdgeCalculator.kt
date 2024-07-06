@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.maths.Packing.pack64
 import me.anno.utils.structures.arrays.BooleanArrayList
 import kotlin.math.max
 import kotlin.math.min
@@ -16,9 +17,9 @@ object OnEdgeCalculator {
         val sides = HashMap<Long, Int>()
         var index = 0
         mesh.forEachLineIndex { a, b ->
-            val min = min(a, b).toLong()
-            val max = max(a, b).toLong()
-            val hash = min.shl(32) or max
+            val min = min(a, b)
+            val max = max(a, b)
+            val hash = pack64(min, max)
             val previousIndex = sides.put(hash, index)
             if (previousIndex != null) {
                 // it was already included -> this side is an edge

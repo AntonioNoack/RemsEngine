@@ -2,6 +2,7 @@ package me.anno.image.qoi
 
 import me.anno.io.Streams.readBE32
 import me.anno.maths.Maths
+import me.anno.utils.Color
 import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
 import java.io.InputStream
@@ -72,8 +73,8 @@ object QOIReader {
                     pixel = (pixelR and maskR) or (pixelG and maskG) or (pixelB and maskB) or (pixel and maskA)
                 }
                 else -> when (b1) {
-                    0xfe -> pixel = rgb(input.read(), input.read(), input.read()) or (pixel and maskA) // rgb
-                    0xff -> pixel = rgb(input.read(), input.read(), input.read()) or (input.read() shl 24) // rgba
+                    0xfe -> pixel = Color.rgb(input.read(), input.read(), input.read()) or (pixel and maskA)
+                    0xff -> pixel = Color.rgba(input.read(), input.read(), input.read(), input.read())
                     else -> {// run-length encoding
                         val endIndex = pixelPos + (b1 and 0x3f)
                         data.fill(pixel, pixelPos, endIndex)
@@ -93,7 +94,4 @@ object QOIReader {
 
         return QOIImage(width, height, numChannels, linearColorSpace, data)
     }
-
-    @JvmStatic
-    private fun rgb(r: Int, g: Int, b: Int) = r.shl(16) or g.shl(8) or b
 }

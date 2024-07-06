@@ -15,4 +15,5 @@ interface VRRenderingRoutine {
     fun drawFrame(window: OSWindow): Boolean
 
     val fb: Framebuffer
+    val isActive: Boolean
 }

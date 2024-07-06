@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Packing.pack32
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -41,13 +42,13 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             LOGGER.warn("Splitting non-deferred renderer??? $name")
             return this
         }
-        return cache!!.getOrPut(index.shl(16) + spliceSize) {
+        return splitCache!!.getOrPut(pack32(index, spliceSize)) {
             val settings = deferredSettings.split(index, spliceSize)
             SplitRenderer("$name/$index/$spliceSize", settings, this)
         }
     }
 
-    val cache = if (deferredSettings == null) null else HashMap<Int, Renderer>()
+    val splitCache = if (deferredSettings == null) null else HashMap<Int, Renderer>()
 
     override fun toString(): String = name
 

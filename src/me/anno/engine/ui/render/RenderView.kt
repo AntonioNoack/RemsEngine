@@ -170,8 +170,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val fb0 = GFX.vrRenderingRoutine?.fb
-        if (fb0?.textures?.all2 { it.isCreated() } == true) {
+        val vrr = GFX.vrRenderingRoutine
+        val fb0 = vrr?.fb
+        if (vrr != null && vrr.isActive && fb0?.textures?.all2 { it.isCreated() } == true) {
             showStereoView(x, y + height, width, -height, fb0, false)
             return
         }

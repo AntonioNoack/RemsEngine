@@ -11,6 +11,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
+import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.Callback
 import kotlin.math.abs
@@ -108,7 +109,7 @@ open class IntImage(
             val dataI = data1.asIntBuffer()
             dataI.put(this.data).position(0)
             if (checkRedundancy) texture.checkRedundancy(dataI)
-            Texture2D.switchRGB2BGR(dataI)
+            convertARGB2ABGR(dataI)
             // for testing, convert the data into a byte buffer
             // -> 33% faster, partially because of wrong alignment and using 25% less data effectively
             texture.createTiled(

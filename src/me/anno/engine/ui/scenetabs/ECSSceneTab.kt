@@ -22,6 +22,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.OSWindow
 import me.anno.graph.visual.Graph
 import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Key
@@ -242,32 +243,12 @@ class ECSSceneTab(
                             ECSSceneTabs.currentTab = null
                             ECSSceneTabs.open(this, true)
                             ECSSceneTabs.project?.saveMaybe()
-                        },
-                        MenuOption(NameDesc("Play VR")) {
-                            tryStartVR()
-                        }.setEnabled(GFX.vrRenderingRoutine != null, "VR isn't supported")
+                        }
                     )
                 )
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
-    }
-
-    fun tryStartVR() {
-        if (GFX.shallRenderVR) {
-            LOGGER.warn("Already running VR")
-            return
-        }
-        val rr = GFX.vrRenderingRoutine
-        if (rr != null) {
-            val window = window?.windowStack?.osWindow
-            val rv = rootPanel.listOfAll.firstInstanceOrNull2(RenderView::class)
-            if (window != null && rv != null) {
-                GFX.shallRenderVR = rr.startSession(window, rv)
-                if (!GFX.shallRenderVR) LOGGER.warn("Failed to initialize VR")
-                else LOGGER.info("Started VR")
-            } else LOGGER.warn(if (window == null) "Window is null" else "RenderView is missing")
-        } else LOGGER.warn("VR isn't supported")
     }
 
     fun play() {
@@ -328,5 +309,21 @@ class ECSSceneTab(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
+
+        fun tryStartVR(window: OSWindow?, rv: RenderView?) {
+            if (GFX.shallRenderVR) {
+                LOGGER.warn("Already running VR")
+                return
+            }
+            val rr = GFX.vrRenderingRoutine
+            if (rr != null) {
+                if (window != null && rv != null) {
+                    GFX.shallRenderVR = rr.startSession(window, rv)
+                    if (!GFX.shallRenderVR) LOGGER.warn("Failed to initialize VR")
+                    else LOGGER.info("Started VR")
+                } else LOGGER.warn(if (window == null) "Window is null" else "RenderView is missing")
+            } else LOGGER.warn("VR isn't supported")
+        }
+
     }
 }

@@ -8,6 +8,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
+import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -219,7 +220,7 @@ object Color {
 
     @JvmStatic
     fun Vector4f.toHexColor(): String {
-        return if(w == 1f) {
+        return if (w == 1f) {
             "#${hex8(x)}${hex8(y)}${hex8(z)}"
         } else {
             "#${hex8(x)}${hex8(y)}${hex8(z)}${hex8(w)}"
@@ -227,35 +228,41 @@ object Color {
     }
 
     @JvmStatic
-    fun Vector3f.toRGB(scale: Int = 255): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                (255 shl 24)
+    fun Vector3f.toRGB(scale: Float = 255f): Int {
+        return rgb(
+            (x * scale).toInt(),
+            (y * scale).toInt(),
+            (z * scale).toInt()
+        )
     }
 
     @JvmStatic
-    fun Vector4f.toARGB(scale: Int = 255): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                clamp((w * 255).toInt(), 0, 255).shl(24)
+    fun Vector4f.toARGB(scale: Float = 255f): Int {
+        return argb(
+            (x * scale).toInt(),
+            (y * scale).toInt(),
+            (z * scale).toInt(),
+            (w * scale).toInt()
+        )
     }
 
     @JvmStatic
-    fun Vector3d.toRGB(scale: Int = 255): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                (255 shl 24)
+    fun Vector3d.toRGB(scale: Double = 255.0): Int {
+        return rgb(
+            (x * scale).toInt(),
+            (y * scale).toInt(),
+            (z * scale).toInt()
+        )
     }
 
     @JvmStatic
-    fun Vector4d.toARGB(scale: Int = 255): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                clamp((w * 255).toInt(), 0, 255).shl(24)
+    fun Vector4d.toARGB(scale: Double = 255.0): Int {
+        return argb(
+            (x * scale).toInt(),
+            (y * scale).toInt(),
+            (z * scale).toInt(),
+            (w * scale).toInt()
+        )
     }
 
     @JvmStatic
@@ -264,13 +271,86 @@ object Color {
     }
 
     @JvmStatic
+    fun convertARGB2RGBA(src: IntArray, dst: IntArray = src): IntArray {
+        for (i in src.indices) {
+            dst[i] = convertARGB2RGBA(src[i])
+        }
+        return dst
+    }
+
+    @JvmStatic
+    fun convertARGB2RGBA(src: IntBuffer, dst: IntBuffer = src): IntBuffer {
+        val si = src.position()
+        val di = dst.position()
+        for (i in 0 until src.remaining()) {
+            dst.put(di + i, convertARGB2RGBA(src[si + i]))
+        }
+        return dst
+    }
+
+    @JvmStatic
+    fun convertARGB2ABGR(argb: Int): Int {
+        val r = argb.shr(16) and 0xff
+        val b = (argb and 0xff).shl(16)
+        return (argb and 0xff00ff00.toInt()) or r or b
+    }
+
+    @JvmStatic
+    fun convertARGB2ABGR(src: IntArray, dst: IntArray = src): IntArray {
+        for (i in src.indices) {
+            dst[i] = convertARGB2ABGR(src[i])
+        }
+        return dst
+    }
+
+    @JvmStatic
+    fun convertARGB2ABGR(src: IntBuffer, dst: IntBuffer = src): IntBuffer {
+        val si = src.position()
+        val di = dst.position()
+        for (i in 0 until src.remaining()) {
+            dst.put(di + i, convertARGB2ABGR(src[si + i]))
+        }
+        return dst
+    }
+
+    @JvmStatic
     fun convertRGBA2ARGB(i: Int): Int {
         return i.ushr(8) or i.shl(24)
     }
 
     @JvmStatic
+    @Suppress("unused")
+    fun convertRGBA2ARGB(src: IntArray, dst: IntArray = src): IntArray {
+        for (i in src.indices) {
+            dst[i] = convertRGBA2ARGB(src[i])
+        }
+        return dst
+    }
+
+    @JvmStatic
+    @Suppress("unused")
+    fun convertRGBA2ARGB(src: IntBuffer, dst: IntBuffer = src): IntBuffer {
+        val si = src.position()
+        val di = dst.position()
+        for (i in 0 until src.remaining()) {
+            dst.put(di + i, convertRGBA2ARGB(src[si + i]))
+        }
+        return dst
+    }
+
+    @JvmStatic
     fun convertABGR2ARGB(i: Int): Int {
-        return i.and(0xff00ff00.toInt()) or i.shr(16).and(0xff) or i.and(0xff).shl(16)
+        return convertARGB2ABGR(i)
+    }
+
+    @JvmStatic
+    fun convertABGR2ARGB(src: IntArray, dst: IntArray = src): IntArray {
+        return convertARGB2ABGR(src, dst)
+    }
+
+    @JvmStatic
+    fun convertABGR2ARGB(src: IntBuffer, dst: IntBuffer = src): IntBuffer {
+        return convertARGB2ABGR(src, dst)
     }
 
     @JvmStatic

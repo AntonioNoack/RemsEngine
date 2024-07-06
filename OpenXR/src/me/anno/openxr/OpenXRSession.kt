@@ -406,7 +406,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
             actions.handLocations, framebuffer,
             colorImage, depthImage
         )
-        if (viewIndex == 0) {
+        if (viewIndex == viewCount - 1) {
             xr.copyToDesktopWindow(framebuffer, w, h)
         }
 
@@ -435,10 +435,10 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         checkXR(xrReleaseSwapchainImage(swapchain, releaseInfo))
     }
 
-    fun renderFrameMaybe(xr: OpenXR) {
+    fun renderFrameMaybe(xr: OpenXR): Boolean {
         events.pollEvents(xr)
         if (events.canSkipRendering) {
-            return
+            return false
         }
 
         fs.waitFrame(session)
@@ -446,7 +446,8 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         actions.updateActions(space, fs.frameState)
         fs.beginFrame(session)
 
-        if (fs.frameState.shouldRender()) {
+        val rendered = fs.frameState.shouldRender()
+        if (rendered) {
             xr.beginRenderViews()
             for (viewIndex in 0 until viewCount) {
                 renderView(xr, viewIndex)
@@ -454,5 +455,6 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         }
 
         fs.endFrame(session, space, projectionViews)
+        return rendered
     }
 }
