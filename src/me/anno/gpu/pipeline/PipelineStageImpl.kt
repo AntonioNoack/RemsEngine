@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
@@ -40,7 +41,6 @@ import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Matrices.set4x3Delta
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -66,8 +66,6 @@ class PipelineStageImpl(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(PipelineStageImpl::class)
-
         val OPAQUE_PASS = PipelineStage.OPAQUE
         val TRANSPARENT_PASS = PipelineStage.TRANSPARENT
         val DECAL_PASS = PipelineStage.DECAL
@@ -75,6 +73,7 @@ class PipelineStageImpl(
         var drawnPrimitives = 0L
         var drawnInstances = 0L
         var drawCalls = 0L
+        var drawCallId = 0
 
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp4x3 = Matrix4x3f()
@@ -719,7 +718,9 @@ class PipelineStageImpl(
 
                 shader.v4f("tint", 1f)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-                shader.v4f("finalId", renderer.gfxId)
+                val renderMode = RenderView.currentInstance?.renderMode
+                val finalId = if (renderMode == RenderMode.DRAW_CALL_ID) drawCallId++ else renderer.gfxId
+                shader.v4f("finalId", finalId)
                 shader.v2i(
                     "randomIdData",
                     if (mesh.proceduralLength > 0) 3 else 0,

@@ -6,13 +6,16 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferA
@@ -184,6 +187,7 @@ open class InstancedStack {
                 val noWorldScale = worldScale == 1.0 && (prevWorldScale == 1.0 || !motionVectors)
 
                 val batchSize = buffer.vertexCount
+                val overrideGfxId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
                 for (baseIndex in 0 until instanceCount step batchSize) {
 
                     val t2 = Time.nanoTime
@@ -193,6 +197,7 @@ open class InstancedStack {
                     val t3 = Time.nanoTime
                     st23 += t3 - t2
 
+                    val drawCallId = drawCallId++
                     val endIndex = Maths.min(instanceCount, baseIndex + batchSize)
                     if (highPerformanceMode) {
                         val cx = cameraPosition.x
@@ -248,7 +253,12 @@ open class InstancedStack {
                                 // put current animation data
                                 if (useAnimations) buffer.put(anim!!, index * 16, 8)
                             }
-                            nioBuffer.putInt(convertABGR2ARGB(gfxIds[index]))
+                            nioBuffer.putInt(
+                                convertABGR2ARGB(
+                                    if (overrideGfxId) drawCallId
+                                    else gfxIds[index]
+                                )
+                            )
                         }
                     }
 

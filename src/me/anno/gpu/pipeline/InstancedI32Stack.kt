@@ -1,14 +1,17 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.utils.structures.arrays.IntArrayList
@@ -128,13 +131,16 @@ open class InstancedI32Stack(
             var baseIndex = 0
             val batchSize = buffer.vertexCount
             val metadata = instances.metadata
+            val overrideFinalId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
             for (i in 0 until (metadata.size ushr 1)) {
 
                 val offsetIdx = i * 2 + 2
                 val totalEndIndex = if (offsetIdx < metadata.size)
                     metadata[offsetIdx] else instances.size
 
-                shader.v4f("finalId", metadata[i * 2 + 1])
+                if (!overrideFinalId) {
+                    shader.v4f("finalId", metadata[i * 2 + 1])
+                }
                 shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
 
                 // draw them in batches of size <= batchSize
@@ -148,6 +154,7 @@ open class InstancedI32Stack(
                     nioInt.put(data.values, baseIndex, length)
                     nioBytes.position(length shl 2)
                     buffer.ensureBufferWithoutResize()
+                    if (overrideFinalId) shader.v4f("finalId", drawCallId++)
                     // slightly optimized over PSR ^^, ~ 8-fold throughput
                     mesh.drawInstanced(pipeline, shader, 0, buffer, Mesh.drawDebugLines)
 

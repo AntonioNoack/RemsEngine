@@ -5,10 +5,13 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.utils.structures.arrays.IntArrayList
@@ -107,7 +110,9 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
-        shader.v4f("finalId", stack.clickIds[indexIntoStack])
+        val finalId = if (RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID) drawCallId++
+        else stack.clickIds[indexIntoStack]
+        shader.v4f("finalId", finalId)
         GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
             mesh.drawInstanced(pipeline, shader, 0, stack.data[indexIntoStack], Mesh.drawDebugLines)
         }

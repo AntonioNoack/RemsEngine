@@ -42,6 +42,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
@@ -247,6 +248,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun singlePassWithSky(drawSky: Boolean) {
+        drawCallId = 0
         var hasDrawnSky = !drawSky
         for (i in stages.indices) {
             val stage = stages[i]
@@ -267,6 +269,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         if (needsClear) {
             GFXState.currentBuffer.clearColor(0)
         }
+        drawCallId = 0
         defaultStage.bind {
             for (i in stages.indices) {
                 val stage = stages[i]

@@ -1,13 +1,16 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.maths.Maths
@@ -104,13 +107,15 @@ class InstancedTRSStack(capacity: Int = 64) :
 
         var baseIndex = 0
         var drawCalls = 0L
+        val overrideFinalId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
         for (i in 0 until instances.gfxIds.size / 2) {
 
             val totalEndIndex = if (i * 2 + 2 < instances.gfxIds.size)
                 instances.gfxIds[i * 2 + 2] else instances.size
 
-            val gfxId = instances.gfxIds[i * 2 + 1]
-            shader.v4f("finalId", gfxId)
+            if (!overrideFinalId) {
+                shader.v4f("finalId", instances.gfxIds[i * 2 + 1])
+            }
 
             // draw them in batches of size <= batchSize
             val batchSize = buffer.vertexCount
@@ -150,6 +155,9 @@ class InstancedTRSStack(capacity: Int = 64) :
                         nioBuffer.putFloat(data[i8 + 6])
                         nioBuffer.putFloat(data[i8 + 7])
                     }
+                }
+                if (overrideFinalId) {
+                    shader.v4f("finalId", drawCallId++)
                 }
                 GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
                     mesh.drawInstanced(pipeline, shader, 0, buffer, Mesh.drawDebugLines)
