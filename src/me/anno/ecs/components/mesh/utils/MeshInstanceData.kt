@@ -5,6 +5,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.structures.lists.Lists.wrap
 
 /**
  * Defines how InstanceStacks apply their data onto drawn instances.
@@ -24,8 +25,7 @@ class MeshInstanceData(
     ) : this(
         listOf(transformPosition),
         listOf(transformNorTan),
-        if (transformColors != null) listOf(transformColors)
-        else emptyList(),
+        transformColors.wrap(),
         listOf(transformMotionVec)
     )
 

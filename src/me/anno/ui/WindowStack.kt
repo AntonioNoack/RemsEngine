@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.wrap
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.util.Stack
@@ -62,7 +63,7 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
             LOGGER.warn("Only panels on the top window can request focus")
             return
         }
-        requestFocus(if (panel == null) emptyList() else listOf(panel), exclusive)
+        requestFocus(panel.wrap(), exclusive)
     }
 
     fun requestFocus(panels: Collection<Panel>, exclusive: Boolean) {

@@ -22,6 +22,7 @@ import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.lists.Lists.wrap
 import org.apache.logging.log4j.LogManager
 
 open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
@@ -29,7 +30,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
 
     @Suppress("unused")
     constructor(getInspectable: () -> Inspectable?, style: Style, @Suppress("unused_parameter") ignored: Unit) :
-            this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
+            this({ getInspectable().wrap() }, style)
 
     val oldValues = child as PanelListY
     val newValues = PanelListY(style)

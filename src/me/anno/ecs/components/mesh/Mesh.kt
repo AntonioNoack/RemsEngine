@@ -37,6 +37,7 @@ import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.hasFlag
@@ -210,8 +211,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     var material: FileReference?
         get() = materials.firstOrNull()
         set(value) {
-            materials = if (value != null) listOf(value)
-            else emptyList()
+            materials = value.wrap()
         }
 
     /**

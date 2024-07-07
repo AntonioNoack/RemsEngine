@@ -37,7 +37,8 @@ This scene contains glb/gltf, obj and fbx files, jpegs and webps.
 ### Rendering Debug Modes
 
 Currently, the scene is in "MSAA Deferred" mode, so it renders MSAAx8 with deferred light rendering.
-There is many more modes. There is also a bit of post-processing: SSR, SSAO, Bloom, outline for selection,
+There is more than fifty render modes for debugging all kinds of features and rendering processes.
+In the shown scene, there is also a bit of post-processing: SSR, SSAO, Bloom, outline for selection,
 refraction for glass. Shadows are conditionally real-time ofc, too.
 
 ### Skeletal Animations
@@ -77,15 +78,15 @@ Some depend on local files, which you might not have, but most should work, and 
 
 ### Architecture
 
-- entity - component based system like Unity
+- Entity-Component based system like Unity, plus Systems similar to Bevy
 - 64-bit fp transformations for universe-scale games
-  - on GPU-side, camera is always at origin, FP32
+  - on GPU-side, camera is always at (or close-to in VR) origin, FP32
 - AABB optimized scene hierarchy
 - mods / plugins from the start: your game is a mod(ule) for the engine
 - in editor: automatic file reload, on file change
 - heavy operations are cache-based, with automatic free after not-requesting for a set time
   - ImageCache/TextureCache (CPU/GPU)
-  - MeshCache, AnimationCache, PrefabCache
+  - MeshCache, MaterialCache, AnimationCache, SkeletonCache, PrefabCache
   - AudioCache
   - FontManager for textures and sizes
   - PDFCache, VideoCache
@@ -94,38 +95,51 @@ Some depend on local files, which you might not have, but most should work, and 
 
 ### File Formats
 
-- supports loading all kinds of formats
-    - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, qoi, xcf (Gimp)
-    - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
-    - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh, mitsuba
-    - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
-    - Metadata formats (custom): json, csv, yaml, xml
-    - Others (Apache PDFBox, custom): pdf, tar/text-based Unity-packages
-    - Note: not all are fully supported
-- can load files from compressed folders (recursively as well)
-- files have been abstracted into FileReference, for storage files, web files, files inside zips, in-memory-files, pseudo-files, ...
+As this engine is a toolbox, I want to be able to load all kinds of formats:
+
+  - Image formats (ffmpeg, ImageIO, Image4j, custom): png, jpg, tga, ico, dds, exr, hdr, svg, pcx, qoi, xcf (Gimp)
+  - Video formats (ffmpeg): wav, mp3, mp4, avi, flv, gif
+  - Mesh formats (Assimp, custom) obj, fbx, gltf, dae, blend, vox, md2, md5mesh, mitsuba
+  - Package formats (Apache Compress, JUnRar): zip, tar, tar.gz, rar, 7z, bz2, lz4, xar, oar
+  - Metadata formats (custom): json, csv, yaml, xml
+  - Others (Apache PDFBox, custom): pdf, tar/text-based Unity-packages
+  - Note: not all are fully supported
+
+The engine can also load most files from compressed folders (recursively as well), just not video at the moment.
+Files have been abstracted into a class called FileReference, for storage files, web files, files inside zips, in-memory-files, pseudo-files, ...,
+so you can handle and reference them all the same way.
 
 ### Graphics
 
-- pbr workflow
+Instead of relying on pre-defined text files that are compiled shaders, Rem's Engine goes the route of runtime-compilation.
+For future Vulkan ports, a list of used shaders may be required, so all shaders then can be pre-compiled.
+
+This has the advantage that shaders for materials only need to be defined once, for forward- and deferred rendering, for non-instanced, instances, skeleton-animated,
+and any other special kind of rendering.
+
+- PBR-based material descriptions (roughness-metallic)
 - pipeline / shader-object abstraction over graphics APIs like OpenGL
 - simple switch between forward- and deferred rendering
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
-    - Note: forward rendering does not support SSR nor SSAO
+    - Note: forward rendering does not support SSR
 - FXAA as cheap anti-aliasing, MSAA as expensive anti-aliasing
-- different light types, with shadow support: directional, spot, point
-- shadows with cascades (directional)
+- different light types, with shadow support: directional, spot, point, circular, rectangle
+- shadows with cascades (directional, spot, point)
 - planar reflections
 - screen space reflections (SSR)
 - screen space ambient occlusion (SSAO)
-- static, animated and procedural meshes
+- environment map reflections
+- non-animated, animated, procedural and GPU-only meshes
 - static and animated meshes can be drawn using instanced rendering
     - animation states are stored in 2d texture per skeleton -> instanced meshes can be in different animations, but still be rendered together
-- signed distance functions as mesh replacement
+- signed distance functions can be used as mesh replacements
 - bloom to convey brightness
-- AMD FSR: dynamic upscaling and sharpening
+- AMD FSR 1.0: dynamic upscaling and sharpening
     - is used to upscale images in the file explorer as well
+- transparent (glass-like) meshes
+  - looks fine until there is dark layers
+  - order independent
 
 ### UI
 
@@ -135,9 +149,6 @@ Some depend on local files, which you might not have, but most should work, and 
     - materials (shaders)
     - render pipelines (post-processing)
     - animations
-- transparent meshes
-    - looks fine until there is dark layers
-    - order independent
 - Android-inspired layout system
 - text inputs have integrated spellchecking
 - all kinds of other value inputs
@@ -154,11 +165,16 @@ Some depend on local files, which you might not have, but most should work, and 
 - Box2d as 2d physics engine
     - currently a prototype
 
+### VR
+
+Virtual Reality support is currently WIP, and implemented using OpenXR.
+Scenes can be already viewed in 3d, but controls, e.g., for 3d UI, haven't really been implemented yet.
+
 ### Planned Features
 
 - easy local multiplayer
 - usable Multiplayer, local and tcp/udp
-- per-button export to Windows/Linux (currently manual)
+- per-button export to Windows/Linux (currently WIP/manual)
 - fully supported Lua scripting
     - [LuaAnimTextPanel](Lua/src/me/anno/lua/ui/LuaAnimTextPanel.kt)
     - [QuickScriptComponent](Lua/src/me/anno/lua/QuickScriptComponent.kt)
@@ -170,7 +186,7 @@ Some depend on local files, which you might not have, but most should work, and 
 - light baking for realistic graphics
 - visual coding? works for some stuff already (pipelines, materials, animation trees)
 - support separate mice / keyboards for local multiplayer?
-- Vulkan backend to support hardware raytracing
+- Vulkan/DirectX12 backend to support hardware raytracing
 
 ## Projects using Rem's Engine
 
@@ -187,8 +203,13 @@ Some depend on local files, which you might not have, but most should work, and 
 - Download an IDE of your choice. I prefer IntelliJ IDEA, but have worked with Eclipse in the past.
 - Download either the engine source code, and compile it yourself, or download a pre-compiled jar.
     - If there is no release available yet, just ask for a build, and I'll create one :)
-- Add the engine jar as a dependency to your project.
-- Either create an extension (mod), or work directly with the engine.
+
+Trying out things is fastest by adding RemsEngine.jar to your project dependencies, or by directly working
+in the tests folder in the engine project.
+
+For creating your own games, there's two ways:
+- Data oriented: use predefined components, and combine them into scenes using the built-in editor; maybe use flow graphs for custom logic
+- Code oriented: define scenes and logic procedurally
 
 ## Samples
 
@@ -219,11 +240,13 @@ the engine works :).
 ## Ports
 
 - Linux, Windows by default
-- MacOS should be simple as long as Java is working there
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
 - [Web (WASM) v1, currently very slow and limited](https://github.com/AntonioNoack/JVM2WASM); v2 is in work, not yet
   published;
 - [DirectX11 backend](https://github.com/AntonioNoack/JDirectX11), not perfect yet
+- MacOS should be simple, if OpenGL support is good enough
+  - I've tried running it inside a VirtualBox VM, but I've got issues creating an OpenGL context
+- iOS: not yet tested, and idk whether Java runs on iOS. "codenameone"?
 
 ## Build It
 
@@ -235,13 +258,18 @@ Then run any of the tests you want 😊.
 Some parts of the engine have been packed into modules.
 This is the preferred way to create a game, or library.
 Currently extracted modules:
-- PDF (pdf document to image converter),
-- SDF (signed distance functions),
-- Bullet (3d physics),
-- Box2d (2d physics),
+- PDF (pdf document to image converter)
+- SDF (signed distance functions)
+- Bullet (3d physics)
+- BulletJME (3d physics running in C++ code)
+- Box2d (2d physics)
 - Recast (path finding)
 - Image (image loaders)
 - Mesh (mesh loaders)
+- Network (general server-client logic)
+- JVM (JVM-only functionality/implementations)
+- Lua (Lua language support using Lua4J)
+- Unpack (Unzipping files; loading Unity project files)
 
 So if you need them, don't forget to import them into your project.
 (either as a compiled artifact = .jar, or as an Intellij module)
@@ -294,7 +322,7 @@ Until I create a release, they might be a bit out of date 😅.
 
 ## Used libraries
 
-* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL)
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL, GLFW, OpenAL, OpenXR)
 * [Assimp](https://github.com/assimp/assimp) (loading 3d meshes; from LWJGL)
 * [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
 * [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)

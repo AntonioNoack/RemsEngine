@@ -44,6 +44,7 @@ import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.flattenWithSeparator
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
@@ -58,7 +59,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
 
     override fun listRoots(): List<Saveable> {
         val world = EditorState.prefab?.getSampleInstance()// ?: library.world
-        return if (world != null) listOf(world) else emptyList()
+        return world.wrap()
     }
 
     override fun isValidElement(element: Any?): Boolean {

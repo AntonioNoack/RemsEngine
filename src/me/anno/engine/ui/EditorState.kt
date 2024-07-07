@@ -16,6 +16,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.custom.CustomPanelType
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.structures.lists.Lists.wrap
 
 object EditorState {
 
@@ -59,7 +60,7 @@ object EditorState {
     var lastSelection: Inspectable? = null
 
     fun select(major: Inspectable?, add: Boolean = false) {
-        select(if (major != null) listOf(major) else emptyList(), add)
+        select(major.wrap(), add)
     }
 
     fun select(major: List<Inspectable>, add: Boolean = false) {
