@@ -5,12 +5,13 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
-import me.anno.engine.EngineBase
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -47,7 +48,7 @@ class Boid(
     val index: Int, val n: Int,
     val positions: List<Vector3f>,
     val directions: List<Vector3f>
-) : Component() {
+) : Component(), OnUpdate {
 
     val newDir = Vector3f()
     val center = Vector3f()
@@ -55,7 +56,7 @@ class Boid(
 
     val velocity = Vector3f()
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         // easy, lazy, O(n²) algorithm
         // should be fast enough for 1k birds
@@ -112,7 +113,6 @@ class Boid(
         transform.localPosition = transform.localPosition.set(posA)
         transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
         entity.invalidateAABBsCompletely()
-        return 1
     }
 }
 

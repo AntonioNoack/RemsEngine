@@ -91,7 +91,7 @@ object Installer {
             } catch (e: IOException) {
                 if (url == urls.last()) {
                     progress.cancel(false)
-                    LOGGER.error("Tried to download $fileName from $url to $dstFile, but failed! You can try to do it yourself.")
+                    warnDownloadFailed(fileName, url, dstFile)
                     e.printStackTrace()
                 }
             }
@@ -152,10 +152,14 @@ object Installer {
                 callback()
             } catch (e: IOException) {
                 progress.cancel(false)
-                LOGGER.error("Tried to download $fileName from $srcFile to $dstFile, but failed! You can try to do it yourself.")
+                warnDownloadFailed(fileName, srcFile, dstFile)
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun warnDownloadFailed(fileName: String, srcFile: Any, dstFile: FileReference) {
+        LOGGER.error("Tried to download $fileName from $srcFile to $dstFile, but failed! You can try to do it yourself.")
     }
 
     @JvmStatic

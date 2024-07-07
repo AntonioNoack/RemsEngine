@@ -7,18 +7,17 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
-import me.anno.maths.chunks.PlayerLocation
-import me.anno.maths.chunks.cartesian.SingleChunkSystem
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.AutoTileableMaterial
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.mesh.material.AutoTileableMaterial
-import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc
@@ -29,6 +28,8 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
+import me.anno.maths.chunks.PlayerLocation
+import me.anno.maths.chunks.cartesian.SingleChunkSystem
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
@@ -118,15 +119,14 @@ fun createTerrain(player: LocalPlayer): Entity {
     }
 
     // dynamic chunk loading based on plane/camera position
-    terrain.add(object : Component() {
-        override fun onUpdate(): Int {
+    terrain.add(object : Component(), Updatable {
+        override fun update(instances: Collection<Component>) {
             val pos = player.cameraState.currentCamera!!.transform!!.globalPosition
             terrainSystem.updateVisibility(
                 5.0, 10.0, listOf(
                     PlayerLocation(pos.x / chunkSize, 0.0, pos.z / chunkSize)
                 )
             )
-            return 1
         }
     })
 
@@ -152,11 +152,11 @@ fun createPlane(player: LocalPlayer): List<Entity> {
 
     val body = Rigidbody()
     val rotor = plane.children.first { it.name.startsWith("SM_Veh_Plane_American_01_Prop") }
-    rotor.add(object : Component() {
+    rotor.add(object : Component(), Updatable {
         var position = 0.0
         var speed = 0.0
         val tmp = Vector3d()
-        override fun onUpdate(): Int {
+        override fun update(instances: Collection<Component>) {
             val dt = Time.deltaTime
             val transform = transform!!
             val lv = body.localVelocity
@@ -199,7 +199,6 @@ fun createPlane(player: LocalPlayer): List<Entity> {
                     )*/
                 )
             )
-            return 1
         }
     })
 
@@ -242,18 +241,16 @@ fun createPlane(player: LocalPlayer): List<Entity> {
     controller.camera = camera
     val base0 = Entity()
     val base1 = Entity()
-    base1.add(object : Component() {
-        override fun onUpdate(): Int {
+    base1.add(object : Component(), Updatable {
+        override fun update(instances: Collection<Component>) {
             val dst = base0.transform
             val src = plane.transform
             dst.localPosition = dst.localPosition
                 .lerp(src.localPosition, dtTo01(10f * Time.deltaTime))
-            dst.localRotation = dst.localRotation
-                .slerp(
-                    Quaterniond().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3d()).y),
-                    dtTo01(2f * Time.deltaTime)
-                )
-            return 1
+            dst.localRotation = dst.localRotation.slerp(
+                Quaterniond().rotateY(src.localRotation.getEulerAnglesYXZ(Vector3d()).y),
+                dtTo01(2f * Time.deltaTime)
+            )
         }
     })
     base1.add(base2)

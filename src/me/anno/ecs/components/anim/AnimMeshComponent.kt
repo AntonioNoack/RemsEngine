@@ -11,6 +11,8 @@ import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.raycast.RaycastSkeletal
@@ -42,7 +44,7 @@ import kotlin.math.min
 /**
  * Renders a skeletal animation / applies animation to a mesh with bones
  * */
-open class AnimMeshComponent : MeshComponent() {
+open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
 
     // todo in debug mode, we could render the skeleton as well/instead :)
 
@@ -90,9 +92,9 @@ open class AnimMeshComponent : MeshComponent() {
     }
 
     private var lastUpdate = 0L
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         // update all weights
-        return if (lastUpdate != Time.gameTimeN) {
+        if (lastUpdate != Time.gameTimeN) {
             lastUpdate = Time.gameTimeN
             val dt = Time.deltaTime.toFloat()
             var anyIsRunning = false
@@ -102,8 +104,7 @@ open class AnimMeshComponent : MeshComponent() {
                 if (anim.speed != 0f) anyIsRunning = true
             }
             updateAnimState()
-            if (anyIsRunning) 1 else 10
-        } else 1
+        }
     }
 
     override val hasAnimation: Boolean

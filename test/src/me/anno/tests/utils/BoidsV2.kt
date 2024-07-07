@@ -4,10 +4,12 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.engine.EngineBase
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -17,7 +19,7 @@ import kotlin.random.Random
 class BoidV2(
     val index: Int, val n: Int,
     val accelerator: OctTreeF<BoidV2>,
-) : Component() {
+) : Component(), OnUpdate {
 
     val posA = Vector3f()
     val dirA = Vector3f()
@@ -30,7 +32,7 @@ class BoidV2(
     val min = Vector3f()
     val max = Vector3f()
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         center.set(0f)
         newDir.set(dirA)
@@ -88,7 +90,6 @@ class BoidV2(
         transform.localPosition = transform.localPosition.set(posA)
         transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
         entity.invalidateAABBsCompletely()
-        return 1
     }
 }
 
@@ -108,13 +109,12 @@ fun main() {
     val accelerator = Accelerator()
     val s = 1000f
     val boids = ArrayList<BoidV2>()
-    scene.add(object : Component() {
-        override fun onUpdate(): Int {
+    scene.add(object : Component(), Updatable {
+        override fun update(instances: Collection<Component>) {
             accelerator.clear()
             for (bird in boids) {
                 accelerator.add(bird)
             }
-            return 1
         }
     })
 

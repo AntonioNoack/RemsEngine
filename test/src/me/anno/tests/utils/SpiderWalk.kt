@@ -4,10 +4,12 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -18,7 +20,6 @@ import me.anno.input.Key
 import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
@@ -27,6 +28,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.utils.Color.black
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -35,7 +37,7 @@ import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
-import java.util.*
+import java.util.Random
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.atan2
@@ -154,13 +156,16 @@ fun main() {
     val futureTransform = Matrix4x3d()
     val predictionDeltaTime = 0.5 / stepFrequency
 
-    val agent = object : NavMeshAgent(meshData, navMesh, query, filter, Random(1234), navMesh1, crowd, 1, 10f, 300f) {
+    val agent = object : NavMeshAgent(
+        meshData, navMesh, query, filter, Random(1234),
+        navMesh1, crowd, 1, 10f, 300f
+    ), Updatable {
 
         val velocity = Vector3d(1.0, 0.0, 0.0)
         val lastPos = Vector3d()
         val angleDictator = Vector3d(0.0, 1.0, 0.0)
 
-        override fun onUpdate(): Int {
+        override fun update(instances: Collection<Component>) {
 
             crowd.update(Time.deltaTime.toFloat(), null)
 
@@ -201,8 +206,6 @@ fun main() {
                 .rotateZ(rotZ)
                 .rotateX(rotX)
                 .rotateY(rotY)
-
-            return 1
         }
     }
     spider.add(agent)
@@ -225,7 +228,7 @@ fun main() {
             foot.add(MeshComponent(footMesh, black1))
             foot.setPosition(-1.8, 0.0, 0.0)
 
-            upperLeg.add(object : Component() {
+            class Leg : Component(), OnUpdate {
 
                 val zero = Vector3d(x * 3.0, -0.5, zf)
                 val target = Vector3d()
@@ -234,7 +237,8 @@ fun main() {
                 var timeAccu = if ((z + (x + 1) / 2).hasFlag(1)) 1.0 else 1.5
                 val angles = Vector4d()
                 var isWalking = false
-                override fun onUpdate(): Int {
+
+                override fun onUpdate() {
 
                     val step = Time.deltaTime * stepFrequency
                     timeAccu += step
@@ -297,9 +301,10 @@ fun main() {
                     middleLeg.setRotation(0.0, 0.0, angles.z)
                     lowerLeg.setRotation(0.0, 0.0, angles.w)
                     foot.setRotation(0.0, 0.0, -(angles.x + angles.z + angles.w))
-                    return 1
                 }
-            })
+            }
+
+            upperLeg.add(Leg())
         }
     }
 

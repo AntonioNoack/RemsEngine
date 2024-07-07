@@ -6,11 +6,12 @@ import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnPhysicsUpdate
 import me.anno.input.Input
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 
-class TestVehicleController : Component(), InputListener {
+class TestVehicleController : Component(), InputListener, OnPhysicsUpdate {
 
     var accelerationStrength = 1.0
     var steeringStrength = 0.5
@@ -33,7 +34,7 @@ class TestVehicleController : Component(), InputListener {
     @NotSerializedProperty
     var lastBrake = 0.0
 
-    override fun onPhysicsUpdate(dt: Double): Boolean {
+    override fun onPhysicsUpdate(dt: Double) {
 
         val controls = controls.padEnd(4)
 
@@ -58,7 +59,6 @@ class TestVehicleController : Component(), InputListener {
             // bullet engine refused to brake, if the motor is running
             it.engineForce = if (it.brakeForce > 0.0) 0.0 else lastForce * it.engineForceMultiplier
         }
-        return true
     }
 
     override fun copyInto(dst: PrefabSaveable) {

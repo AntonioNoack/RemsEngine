@@ -10,6 +10,8 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
 import me.anno.engine.serialization.NotSerializedProperty
@@ -32,7 +34,7 @@ import kotlin.reflect.KClass
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidComponentClass: KClass<InternalRigidBody>
-) : Component() {
+) : Component(), OnUpdate {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Physics::class)
@@ -244,7 +246,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         val components = self.components
         for (i in components.indices) {
             val c = components[i]
-            if (c.isEnabled) {
+            if (c.isEnabled && c is OnPhysicsUpdate) {
                 c.onPhysicsUpdate(dt)
             }
         }
@@ -343,8 +345,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    override fun onUpdate(): Int {
-        super.onUpdate()
+    override fun onUpdate() {
         lastUpdate = Time.nanoTime
         val shallExecute = updateInEditMode || RenderView.currentInstance?.playMode != PlayMode.EDITING
         if (shallExecute) {
@@ -358,7 +359,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 } else stopWorker()
             }
         } else stopWorker()
-        return 1
     }
 
     override fun destroy() {

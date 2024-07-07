@@ -12,6 +12,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
@@ -41,7 +42,7 @@ import java.util.WeakHashMap
  * todo make using Lua as similar as possible to Kotlin, and make it was easy as possible, too
  *  -> to make conversions to Kotlin easy
  * */
-open class ScriptComponent : Component() {
+open class ScriptComponent : Component(), OnUpdate {
 
     var source: FileReference = InvalidRef
 
@@ -50,8 +51,8 @@ open class ScriptComponent : Component() {
         callFunction("onCreate", source, this)
     }
 
-    override fun onUpdate(): Int {
-        return callIntFunction("onUpdate", source, this, 1)
+    override fun onUpdate() {
+        callFunction("onUpdate", source, this)
     }
 
     override fun destroy() {

@@ -4,8 +4,9 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Group
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
@@ -44,7 +45,7 @@ fun main() {
     for (box in boxes) boxesEntity.add(box)
     scene.add(boxesEntity)
 
-    val tested = object : Component() {
+    val tested = object : Component(), OnDrawGUI {
 
         @Group("Points")
         var start = Vector3f(0f, 0f, 0f)

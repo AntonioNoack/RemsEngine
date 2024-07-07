@@ -7,6 +7,7 @@ import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
@@ -26,7 +27,7 @@ import kotlin.math.sin
 /**
  * spline meshes are parts of many simulator games, e.g. street building
  * */
-class SplineMesh : ProceduralMesh() {
+class SplineMesh : ProceduralMesh(), OnUpdate {
 
     var profile: PathProfile = TestProfiles.cubeProfile
         set(value) {
@@ -127,21 +128,18 @@ class SplineMesh : ProceduralMesh() {
         dst.profile = profile
     }
 
-    override fun onUpdate(): Int {
-        super.onUpdate()
+    override fun onUpdate() {
         // if a child is selected, invalidate this
         if (Build.isDebug) {
-            val children = entity?.children ?: return 16
+            val children = entity?.children ?: return
             val lastSelection = EditorState.lastSelection
             for (i in children.indices) {
                 val child = children[i]
                 if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
                     invalidateMesh()
-                    return 1
                 }
             }
         }
-        return 32
     }
 
     override fun generateMesh(mesh: Mesh) {

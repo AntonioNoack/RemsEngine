@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -25,7 +26,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
     ),
     spriteVertexData,
     DrawMode.TRIANGLES,
-) {
+), OnUpdate {
 
     companion object {
         val spriteVertexData = MeshVertexData(
@@ -104,7 +105,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
         return value - 1
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         for (key in invalidChunks) {
             val bounds = AABBf()
             val chunk = chunks.getChunk(key.x, key.y, 0, true)!!
@@ -141,6 +142,5 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
             }
         }
         invalidChunks.clear()
-        return 1
     }
 }

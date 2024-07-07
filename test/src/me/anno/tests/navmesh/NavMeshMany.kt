@@ -5,6 +5,8 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -18,7 +20,7 @@ import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
-import java.util.*
+import java.util.Random
 import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.max
@@ -34,7 +36,10 @@ class AgentController1b(
     crowd: Crowd,
     val flag: Entity,
     mask: Int
-) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask, 10f, 10f) {
+) : NavMeshAgent(
+    meshData, navMesh, query, filter, random,
+    navMesh1, crowd, mask, 10f, 10f
+), OnUpdate {
 
     override fun findNextTarget() {
         super.findNextTarget()
@@ -45,7 +50,7 @@ class AgentController1b(
 
     val np = Vector3d()
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         // move agent from src to dst
         val entity = entity!!
         val nextPos = crowdAgent.currentPosition
@@ -64,7 +69,6 @@ class AgentController1b(
             .rotateY(atan2(np.x - lp.x, np.z - lp.z))
             .rotateX(upDownAngle)
         entity.position = np
-        return 1
     }
 }
 
@@ -125,10 +129,9 @@ fun main() {
             agent.add(AgentController1b(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
         }
 
-        world.addComponent(object : Component() {
-            override fun onUpdate(): Int {
+        world.addComponent(object : Component(), Updatable {
+            override fun update(instances: Collection<Component>) {
                 crowd.update(Time.deltaTime.toFloat(), null)
-                return 1
             }
         })
 

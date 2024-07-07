@@ -10,6 +10,7 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
@@ -22,7 +23,7 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import kotlin.math.PI
 
-abstract class CameraController : Component(), InputListener {
+abstract class CameraController : Component(), InputListener, OnUpdate {
 
     companion object {
         fun setup(controller: CameraController, renderView: RenderView): Entity {
@@ -138,16 +139,16 @@ abstract class CameraController : Component(), InputListener {
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         val camera = camera
         val camEntity = camera?.entity
         val base = entity
 
-        lastWarning = when {
-            camera == null -> "Camera Missing"
-            camEntity == null -> "Camera Missing Entity"
-            base == null -> "Base Missing"
+        when {
+            camera == null -> lastWarning = "Camera Missing"
+            camEntity == null -> lastWarning = "Camera Missing Entity"
+            base == null -> lastWarning = "Base Missing"
             else -> {
 
                 lastWarning = null
@@ -172,11 +173,8 @@ abstract class CameraController : Component(), InputListener {
                 if (rotateAngleZ) position.rotateZ(rotation.z)
 
                 computeTransform(base.transform, camEntity.transform, camera)
-
-                return 1
             }
         }
-        return 5
     }
 
     abstract fun computeTransform(baseTransform: Transform, camTransform: Transform, camera: Camera)

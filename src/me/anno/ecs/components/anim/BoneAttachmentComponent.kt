@@ -5,11 +5,12 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 
 /**
  * Controls its entity such that it follows the bone of another entity's AnimMeshComponent.
  * */
-class BoneAttachmentComponent() : Component() {
+class BoneAttachmentComponent() : Component(), OnUpdate {
 
     constructor(boneName: String, animMeshComponent: AnimMeshComponent) : this() {
         this.boneName = boneName
@@ -37,7 +38,7 @@ class BoneAttachmentComponent() : Component() {
             ?.bones?.firstOrNull { it.name == boneName }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val target = entity
         val bone = bone
         val entity = animMeshComponent?.entity
@@ -60,7 +61,6 @@ class BoneAttachmentComponent() : Component() {
             }
             null // all is fine
         } else "Incomplete setup"
-        return 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {

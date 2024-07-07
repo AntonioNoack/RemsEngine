@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -22,7 +23,7 @@ import me.anno.gpu.pipeline.Pipeline.Companion.getMaterial
 //  - format of data??? -> flags     |  1
 //  - transform                      | 12
 
-class StaticMeshManager : Component(), Renderable {
+class StaticMeshManager : Component(), Renderable, OnUpdate {
 
     val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
     val meshes = HashSet<MeshComponent>(1024)
@@ -39,13 +40,13 @@ class StaticMeshManager : Component(), Renderable {
     var scanLimit = 5000
     private var fullScan = true
     private val collectStackE = ArrayList<Entity>()
-    override fun onUpdate(): Int {
+
+    override fun onUpdate() {
         // this entity must only operate on Root level
-        if (entity?.parentEntity != null) return 0
+        if (entity?.parentEntity != null) return
         // todo regularly check whether all transforms are still static
         //  do this more spread out: respect scanLimit
         collect()
-        return 1
     }
 
     fun collect() {

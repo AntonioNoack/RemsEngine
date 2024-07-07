@@ -3,6 +3,7 @@ package me.anno.ecs.components.text
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.systems.OnUpdate
 import me.anno.fonts.Font
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
@@ -15,7 +16,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.sign
 
-class TextTextureComponent : TextComponent {
+class TextTextureComponent : TextComponent, OnUpdate {
 
     @Suppress("unused")
     constructor() : super()
@@ -61,14 +62,13 @@ class TextTextureComponent : TextComponent {
         mesh.uvs = uvs
     }
 
-    override fun onUpdate(): Int {
-        return if (material.diffuseMap == InvalidRef) {
+    override fun onUpdate() {
+        if (material.diffuseMap == InvalidRef) {
             val texture = FontManager.getTexture(key, true)
             if (texture != null && texture.isCreated()) {
                 material.diffuseMap = texture.createImage(flipY = false, withAlpha = false).ref
                 material.clamping = Clamping.CLAMP
-                -1 // done
-            } else 1 // wait
-        } else -1 // done
+            }
+        }
     }
 }

@@ -10,6 +10,8 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
@@ -24,7 +26,7 @@ import kotlin.math.round
 import kotlin.math.sin
 import kotlin.random.Random
 
-class FoxSpeedController : Component() {
+class FoxSpeedController : Component(), OnUpdate {
 
     var localTime = 0.0
     var speed = 1.0
@@ -42,9 +44,8 @@ class FoxSpeedController : Component() {
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         localTime += speed * Time.deltaTime
-        return 1
     }
 }
 
@@ -107,11 +108,10 @@ fun main() {
         val radius = i * 2.0 + 1.0
         val count = min(round(radius * 3.0).toInt(), remainingFoxes)
         val ring = Entity("Ring $i", scene)
-        ring.add(object : Component() {
-            override fun onUpdate(): Int {
+        ring.add(object : Component(), Updatable {
+            override fun update(instances: Collection<Component>) {
                 val progress = dir * controller.localTime / radius
                 entity!!.setRotation(0.0, progress, 0.0)
-                return 1
             }
         })
         for (j in 0 until count) {

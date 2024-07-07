@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -34,7 +35,7 @@ import kotlin.math.min
 class PacmanControls(
     val game: PacmanLogic, val camEntity: Entity,
     val enemies: Entity, val player: Entity
-) : Component() {
+) : Component(), Updatable {
 
     fun setPos(moveable: Moveable, entity: Entity, mixDt: Float) {
         val transform = entity.transform
@@ -59,7 +60,7 @@ class PacmanControls(
     }
 
     val baseCameraHeight = camEntity.position.y
-    override fun onUpdate(): Int {
+    override fun update(instances: Collection<Component>) {
         // controls
         game.updateControls()
         // update visuals
@@ -78,7 +79,6 @@ class PacmanControls(
             setPos(enemy, entity, mixDt)
         }
         setPos(game.player, player, mixDt)
-        return 1
     }
 }
 

@@ -7,6 +7,8 @@ import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
+import me.anno.ecs.systems.Systems
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
@@ -69,11 +71,18 @@ abstract class EngineBase(
             versionSuffix
         )
 
+    val systems = Systems()
+
     open fun loadConfig() {}
 
     abstract fun createUI()
 
-    open fun onGameLoopStart() {}
+    open fun onGameLoopStart() {
+        // todo can we beautify this?
+        systems.world = ECSSceneTabs.currentTab?.inspector?.prefab?.getSampleInstance()
+        systems.onUpdate()
+    }
+
     open fun onGameLoopEnd() {}
     open fun onGameInit() {}
     open fun onGameClose() {}

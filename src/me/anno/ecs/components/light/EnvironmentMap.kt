@@ -4,6 +4,8 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PlanarReflection.Companion.clearSky
+import me.anno.ecs.systems.OnDrawGUI
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
@@ -13,6 +15,7 @@ import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.Perspective
@@ -24,8 +27,6 @@ import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.gpu.GFX
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
@@ -39,7 +40,7 @@ import org.joml.Vector3d
  * environment map for reflections,
  * radiance map, sky map, ...
  * */
-class EnvironmentMap : LightComponentBase() {
+class EnvironmentMap : LightComponentBase(), OnDrawGUI {
 
     @Range(1.0, 8192.0)
     var resolution = 256

@@ -3,10 +3,10 @@ package me.anno.tests.terrain
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.maths.chunks.cartesian.ChunkSystem
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -19,6 +19,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
+import me.anno.maths.chunks.cartesian.ChunkSystem
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.white
@@ -162,7 +163,8 @@ class EditSettings : Component() {
 
 data class TerrainElement(val height: Float, val color: Int)
 
-class TerrainChunkSystem(val childrenContainer: Entity) : ChunkSystem<TerrainChunk, TerrainElement>(wBits, 0, hBits) {
+class TerrainChunkSystem(val childrenContainer: Entity) :
+    ChunkSystem<TerrainChunk, TerrainElement>(wBits, 0, hBits), OnUpdate {
 
     override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): TerrainChunk {
         return TerrainChunk(chunkX, chunkZ)
@@ -238,9 +240,8 @@ class TerrainChunkSystem(val childrenContainer: Entity) : ChunkSystem<TerrainChu
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         manageChunkLoading()
-        return 1
     }
 }
 

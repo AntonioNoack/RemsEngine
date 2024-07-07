@@ -5,12 +5,13 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.PlayMode
@@ -52,7 +53,7 @@ import org.joml.Matrix4d
 
 // todo just set inFocus, then input works magically
 
-class CanvasComponent : MeshComponentBase(), InputListener {
+class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
 
     // todo this element always need glCullFace, or you see the back when it's transparent
 
@@ -162,14 +163,13 @@ class CanvasComponent : MeshComponentBase(), InputListener {
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         if (space == Space.WORLD_SPACE ||
             RenderView.currentInstance?.playMode == PlayMode.EDITING
         ) {
             defineMesh()
             render()
         }
-        return 1
     }
 
     @DebugAction

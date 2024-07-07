@@ -14,6 +14,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
@@ -23,7 +24,7 @@ import org.joml.Vector3d
 import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-open class Rigidbody : Component() {
+open class Rigidbody : Component(), OnDrawGUI {
 
     @Range(0.0, 15.0)
     var group = 1

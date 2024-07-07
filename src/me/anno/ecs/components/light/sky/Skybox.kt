@@ -7,10 +7,11 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.sky.shaders.SkyShader
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.utils.TypeValueV3
-import me.anno.ecs.components.light.sky.shaders.SkyShader
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.DefaultSun
@@ -21,7 +22,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 
-open class Skybox : SkyboxBase() {
+open class Skybox : SkyboxBase(), OnUpdate {
 
     // todo the sky controls ambient and primary directional light...
     //  -> make the sky actually control the primary directional light
@@ -120,12 +121,11 @@ open class Skybox : SkyboxBase() {
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val dt = Time.deltaTime.toFloat()
         cirrusSpeed.mulAdd(dt, cirrusOffset, cirrusOffset)
         cumulusSpeed.mulAdd(dt, cumulusOffset, cumulusOffset)
         sunRotation.mul(JomlPools.quat4f.borrow().identity().slerp(sunSpeed, dt))
-        return 1
     }
 
     fun applyOntoSun(sun: Entity, sun1: DirectionalLight, brightness: Float) {

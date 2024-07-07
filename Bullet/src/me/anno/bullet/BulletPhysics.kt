@@ -28,6 +28,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
@@ -54,7 +55,7 @@ import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
 
-open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
+open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class), OnDrawGUI {
 
     // todo onPreEnable() // before all children
     // todo onPostEnable() // after all children

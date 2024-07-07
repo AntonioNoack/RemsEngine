@@ -8,6 +8,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.raycast.RayHit
@@ -43,13 +45,10 @@ class AgentController1a(
     crowd: Crowd,
     val flag: Entity,
     mask: Int
-) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask, 10f, 10f) {
-
-    companion object {
-        var nextId = 0
-    }
-
-    private val id = nextId++
+) : NavMeshAgent(
+    meshData, navMesh, query, filter, random,
+    navMesh1, crowd, mask, 10f, 10f
+), OnUpdate {
 
     override fun findNextTarget() {
         super.findNextTarget()
@@ -63,9 +62,9 @@ class AgentController1a(
 
     private var ctr = (Maths.random() * 16).toInt()
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
-        if (ctr++ < 16) return 1
+        if (ctr++ < 16) return
         else ctr = 0
 
         // move agent from src to dst
@@ -96,7 +95,6 @@ class AgentController1a(
             .rotateY(atan2(np.x - lp.x, np.z - lp.z))
             .rotateX(upDownAngle)
         entity.position = np
-        return 1
     }
 }
 
@@ -173,10 +171,9 @@ fun main() {
                 .add(MeshComponent(agentMeshRef).apply { isInstanced = true })
         }
 
-        world.addComponent(object : Component() {
-            override fun onUpdate(): Int {
+        world.addComponent(object : Component(), Updatable {
+            override fun update(instances: Collection<Component>) {
                 crowd.update(Time.deltaTime.toFloat(), null)
-                return 1
             }
         })
 

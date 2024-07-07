@@ -8,6 +8,7 @@ import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.components.player.Player
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.engine.ui.LineShapes.drawRect
@@ -25,7 +26,7 @@ import kotlin.math.tan
 
 // like the studio camera,
 // a custom state, which stores all related rendering information
-class Camera : Component() {
+class Camera : Component(), OnDrawGUI {
 
     var isPerspective = true
 

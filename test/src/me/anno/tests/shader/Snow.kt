@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
@@ -28,6 +29,8 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.effects.BloomNode
@@ -36,10 +39,8 @@ import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
-import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
@@ -131,7 +132,7 @@ val snowShader = Shader(
             "}\n"
 )
 
-class SnowControl : Component() {
+class SnowControl : Component(), OnUpdate {
 
     @Range(0.0, 100.0)
     var density = 2f
@@ -154,7 +155,8 @@ class SnowControl : Component() {
     var worldRotation = Quaternionf()
 
     private var lastDensity = density
-    override fun onUpdate(): Int {
+
+    override fun onUpdate() {
         val deltaDensity = (lastDensity / density).toDouble()
         lastDensity = density
         if (deltaDensity != 1.0 && deltaDensity in 0.5..2.0) {
@@ -162,8 +164,7 @@ class SnowControl : Component() {
             position.mul(deltaDensity)
             position.sub(center)
         }
-        velocity.mulAdd(-Time.deltaTime.toDouble(), position, position)
-        return 1
+        velocity.mulAdd(-Time.deltaTime, position, position)
     }
 }
 

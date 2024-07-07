@@ -123,7 +123,7 @@ fun main() {
             val rot = Quaternionf()
             val nor = Vector3f()
             var dynamicAngle = true
-            override fun onUpdate(): Int {
+            override fun onUpdate() {
                 super.onUpdate()
 
                 // create sample instance
@@ -179,8 +179,6 @@ fun main() {
                         hitEntity = null
                     }
                 }
-
-                return 1
             }
 
             override fun onKeyTyped(key: Key): Boolean {

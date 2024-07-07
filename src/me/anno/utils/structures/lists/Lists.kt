@@ -585,4 +585,18 @@ object Lists {
             } else filterIsInstance2(clazz)
         } else emptyList()
     }
+
+    @JvmStatic
+    fun <V : Any> V?.wrap(): List<V> {
+        return if (this == null) emptyList()
+        else listOf(this)
+    }
+
+    @JvmStatic
+    fun <V> MutableList<V>.sortedAdd(instance: V, comparator: Comparator<V>, insertIfEquals: Boolean) {
+        var index = binarySearch(instance, comparator)
+        if (index < 0) index = -1 - index
+        else if (!insertIfEquals && this[index] == instance) return
+        add(index, instance)
+    }
 }

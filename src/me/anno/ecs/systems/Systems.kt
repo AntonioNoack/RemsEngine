@@ -4,24 +4,51 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.utils.structures.lists.Lists.sortedAdd
+import me.anno.utils.structures.lists.Lists.wrap
 
 // this would lie on the root level only...,
 // and only if needed...
-class Systems {
+// todo make physics into systems
+class Systems : PrefabSaveable() {
 
-    val systems = HashSet<System>()
+    companion object {
+        private val registeredIDs = HashSet<String>()
+        private val systems = ArrayList<System>()
+
+        // do we need unregistering?
+        fun registerSystem(id: String, instance: System) {
+            synchronized(registeredIDs) {
+                if (registeredIDs.add(id)) {
+                    systems.sortedAdd(instance, Comparator.comparingInt(System::priority), true)
+                }
+            }
+        }
+
+        init {
+            registerSystem("Update", UpdateSystem())
+        }
+    }
+
     var world: PrefabSaveable? = null
         set(value) {
             if (field !== value) {
-                for (system in systems) system.clear()
+                for (i in systems.indices) {
+                    systems[i].clear()
+                }
                 addOrRemoveRecursively(value, true)
                 field = value
             }
         }
 
+    override fun listChildTypes(): String = "sw"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> {
+        return if (type == 's') systems else world.wrap()
+    }
+
     fun onUpdate() {
-        for (system in systems) {
-            system.onUpdate()
+        for (i in systems.indices) {
+            systems[i].onUpdate()
         }
     }
 
@@ -36,7 +63,7 @@ class Systems {
     }
 
     fun addOrRemoveRecursively(element: PrefabSaveable?, add: Boolean) {
-        val systems = systems.toList()
+        val systems = systems
         when (element) {
             is Component -> {
                 for (i in systems.indices) {

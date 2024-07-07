@@ -3,6 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawXYPlane
@@ -32,7 +33,7 @@ import org.joml.Vector3f
 import org.lwjgl.opengl.GL46C.glScissor
 import kotlin.math.abs
 
-class PlanarReflection : LightComponentBase() {
+class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     @NotSerializedProperty
     var lastBuffer: Framebuffer? = null
@@ -48,11 +49,11 @@ class PlanarReflection : LightComponentBase() {
     var far = 1e3
 
     // todo everything lags behind 1 frame -> this needs to be calculated after the camera position has been calculated!!!
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         lastDrawn = Time.gameTimeN
 
-        val instance = RenderView.currentInstance ?: return 1
+        val instance = RenderView.currentInstance ?: return
         val pipeline = instance.pipeline
 
         val w = instance.width
@@ -71,8 +72,6 @@ class PlanarReflection : LightComponentBase() {
 
         // restore state just in case we have multiple planes or similar
         instance.setRenderState()
-
-        return 1
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

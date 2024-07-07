@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
@@ -34,7 +35,7 @@ import org.joml.Matrix4x3d
 import org.joml.Vector2f
 import org.joml.Vector3f
 
-class FlagMesh : MeshComponent() {
+class FlagMesh : MeshComponent(), OnUpdate {
 
     var windStrength = Vector3f(10f, 0f, 0f)
     var randomnessSeed = 0f
@@ -131,7 +132,7 @@ class FlagMesh : MeshComponent() {
         return true
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         val w = resolutionX
         val h = resolutionY
@@ -158,8 +159,6 @@ class FlagMesh : MeshComponent() {
         material.shaderOverrides["coords1Tex"] = TypeValue(GLSLType.S2D, tex1.getTexture0())
         material.shaderOverrides["coordsFract"] = TypeValue(GLSLType.V1F, fract)
         material.shaderOverrides["duv"] = TypeValue(GLSLType.V2F, Vector2f(1f / (w - 1f), 1f / (h - 1f)))
-
-        return 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {

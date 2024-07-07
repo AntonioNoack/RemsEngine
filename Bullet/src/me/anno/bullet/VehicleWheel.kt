@@ -8,15 +8,16 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import javax.vecmath.Vector3d
 import kotlin.math.abs
 
-class VehicleWheel : Component() {
+class VehicleWheel : Component(), OnDrawGUI {
 
     /*// raycast direction, e.g. down = -y axis
     @SerializedProperty

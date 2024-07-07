@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.CullMode
@@ -14,7 +15,7 @@ import me.anno.utils.types.Arrays.resize
 import kotlin.math.max
 
 // todo video component? :D
-class ImagePlane() : ProceduralMesh() {
+class ImagePlane() : ProceduralMesh(), OnUpdate {
 
     constructor(source: FileReference) : this() {
         this.source = source
@@ -127,13 +128,12 @@ class ImagePlane() : ProceduralMesh() {
         dst.alignmentY = alignmentY
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         // our save system was evil and first loaded source, then materials, overriding any changes
         if (materials.firstOrNull() != material.ref) {
             materials = listOf(material.ref)
             invalidateMesh()
         }
-        return 10
     }
 
     companion object {

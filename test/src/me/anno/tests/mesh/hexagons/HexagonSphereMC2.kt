@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ECSRegistry
 import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.render.RenderView
@@ -230,8 +231,7 @@ val hexVertexData = MeshVertexData(
 class HSChunkLoader(
     val sphere: HexagonSphere, val world: HexagonSphereMCWorld,
     val transparent: Boolean?, val material: Material
-) :
-    UniqueMeshRenderer<Mesh, HexagonSphere.Chunk>(attributes, hexVertexData, DrawMode.TRIANGLES) {
+) : UniqueMeshRenderer<Mesh, HexagonSphere.Chunk>(attributes, hexVertexData, DrawMode.TRIANGLES), OnUpdate {
 
     override val materials: List<FileReference>
         get() = listOf(material.ref)
@@ -262,7 +262,7 @@ class HSChunkLoader(
     val requests = ArrayList<HexagonSphere.Chunk>()
     var maxAngleDifference = sphere.len * 512
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val pos = pos.set(RenderView.currentInstance!!.orbitCenter).safeNormalize()
         if (pos.lengthSquared() < 0.5) pos.y = 1.0
         dir.set(pos)
@@ -307,6 +307,5 @@ class HSChunkLoader(
             chunks[key] = AABBf()
         }
         requests.clear()
-        return 1
     }
 }

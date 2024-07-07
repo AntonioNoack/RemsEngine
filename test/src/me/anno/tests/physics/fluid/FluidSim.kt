@@ -1,11 +1,13 @@
 package me.anno.tests.physics.fluid
 
 import me.anno.Time
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
@@ -214,9 +216,10 @@ fun main() {
     }
 
     val mesh = createFluidMesh(sim, waveHeight)
-    val comp = object : MeshComponent(mesh) {
+    val comp = object : MeshComponent(mesh), Updatable {
 
-        fun update(ci: RenderView) {
+        override fun update(instances: Collection<Component>) {
+            val ci = RenderView.currentInstance ?: return
             // calculate interaction coordinates
             val rayDir = ci.getMouseRayDirection()
             val rayPos = ci.cameraPosition
@@ -229,13 +232,6 @@ fun main() {
             init.value
             // step physics
             step(ci, lx, ly, 0.2f * dist.toFloat() / (max(w, h) * cellSize), sim)
-        }
-
-        override fun onUpdate(): Int {
-            super.onUpdate()
-            val ci = RenderView.currentInstance
-            if (ci != null) update(ci)
-            return 1
         }
 
         override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

@@ -9,6 +9,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.render.RenderState
@@ -43,7 +44,7 @@ import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.pow
 
-abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
+abstract class LightComponent(val lightType: LightType) : LightComponentBase(), OnDrawGUI {
 
     // todo AES lights, and their textures?
 
@@ -58,7 +59,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         set(value) {
             if (field != value) {
                 field = value
-                entity?.invalidateUpdates()
                 if (value < 1) {
                     ensureShadowBuffers()
                 }

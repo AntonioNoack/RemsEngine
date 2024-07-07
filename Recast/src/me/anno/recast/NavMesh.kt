@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.LineShapes
@@ -22,7 +23,7 @@ import org.recast4j.recast.RecastBuilderConfig
 import org.recast4j.recast.RecastConfig
 import org.recast4j.recast.RecastConstants
 
-class NavMesh : Component() {
+class NavMesh : Component(), OnDrawGUI {
 
     // todo probably should be bakeable for quicker navigation at runtime in static scenes
 

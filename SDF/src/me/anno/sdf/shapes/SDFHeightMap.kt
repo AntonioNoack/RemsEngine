@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.material.utils.TypeValue
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -33,7 +34,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.max
 
-class SDFHeightMap : SDFShape() {
+class SDFHeightMap : SDFShape(), OnDrawGUI {
 
     companion object {
 

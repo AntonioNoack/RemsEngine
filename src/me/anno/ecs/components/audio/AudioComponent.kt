@@ -7,9 +7,9 @@ import me.anno.audio.AudioReadable
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.MediaMetadata
 import kotlin.math.abs
 import kotlin.math.ceil
 
@@ -67,7 +67,7 @@ class AudioComponent : AudioComponentBase() {
         return true
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         super.onUpdate()
         if (keepInMemory && source !is AudioReadable) {
             keepInMemory()
@@ -75,6 +75,5 @@ class AudioComponent : AudioComponentBase() {
         if (autoStart && !isPlaying && abs(startTime - Time.nanoTime) > 1e9) {
             start()
         }
-        return 1
     }
 }

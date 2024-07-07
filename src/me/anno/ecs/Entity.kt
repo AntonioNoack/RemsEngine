@@ -102,14 +102,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasOnUpdate: Boolean
-        get() = true // flags.hasFlag(ON_UPDATE_FLAG) // todo this isn't correctly set when loading a scene, why? :/
-        set(value) {
-            flags = flags.withFlag(ON_UPDATE_FLAG, value)
-        }
-
-    @DebugProperty
-    @NotSerializedProperty
     var hasControlReceiver: Boolean
         get() = flags.hasFlag(CONTROL_RECEIVER_FLAG)
         set(value) {
@@ -416,22 +408,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return hasEventReceiver
     }
 
-    @DebugAction
-    fun update(): Boolean {
-        val hasUpdate = executeOptimizedEvent(
-            { it.hasOnUpdate },
-            Entity::update,
-            Component::callUpdate
-        )
-        this.hasOnUpdate = hasUpdate
-        return hasUpdate
-    }
-
-    fun invalidateUpdates() {
-        parentEntity?.invalidateUpdates()
-        hasOnUpdate = true
-    }
-
     fun onUIEvent(event: UIEvent): Boolean {
         val hasUpdate = executeOptimizedEvent(
             { it.hasControlReceiver },
@@ -556,7 +532,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         // collision mask
         parent.invalidateCollisionMask()
         invalidateAABBsCompletely()
-        invalidateUpdates()
 
         checkNeedsPhysics()
 

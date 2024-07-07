@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.lua.ScriptComponent.Companion.getFunction
 import me.anno.lua.ScriptComponent.Companion.toLua
 import org.apache.logging.log4j.LogManager
@@ -13,7 +14,7 @@ import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class QuickScriptComponent : Component() {
+open class QuickScriptComponent : Component(), OnUpdate {
 
     @Type("Lua/Code")
     var createScript = ""
@@ -31,9 +32,8 @@ open class QuickScriptComponent : Component() {
     }
 
     @DebugAction
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         callFunction(updateScript)
-        return 1
     }
 
     @DebugAction

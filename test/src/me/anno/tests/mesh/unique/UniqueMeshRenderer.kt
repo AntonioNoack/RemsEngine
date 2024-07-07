@@ -11,6 +11,8 @@ import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.ecs.systems.OnUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
@@ -149,7 +151,7 @@ fun main() {
         }
     }
 
-    class ChunkLoader(val chunkRenderer: ChunkRenderer) : Component() {
+    class ChunkLoader(val chunkRenderer: ChunkRenderer) : Component(), OnUpdate {
 
         val worker = ProcessingQueue("chunks")
 
@@ -225,14 +227,13 @@ fun main() {
             return delta
         }
 
-        override fun onUpdate(): Int {
+        override fun onUpdate() {
             // load next mesh
             if (worker.remaining == 0) {
                 val chunkId = getPlayerChunkId()
                 loadChunks(chunkId)
                 unloadChunks(chunkId)
             }
-            return 1
         }
     }
 
@@ -246,10 +247,10 @@ fun main() {
     sun.shadowMapCascades = 3
     val sunEntity = Entity("Sun")
         .setScale(100.0)
-    sunEntity.add(object : Component() {
+    sunEntity.add(object : Component(), Updatable {
         // move shadows with player
         // todo only update every so often
-        override fun onUpdate(): Int {
+        override fun update(instances: Collection<Component>) {
             val rv = RenderView.currentInstance
             if (rv != null) {
                 sunEntity.transform.localPosition =
@@ -259,7 +260,6 @@ fun main() {
                         .round()
                 sunEntity.validateTransform()
             }
-            return 1
         }
     })
     sunEntity.add(sun)

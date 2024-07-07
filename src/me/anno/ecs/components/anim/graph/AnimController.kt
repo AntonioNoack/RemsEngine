@@ -10,15 +10,16 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.graph.visual.states.StateMachine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.engine.serialization.NotSerializedProperty
 
 @Docs("Controls animations using a state machine like in Unity")
-class AnimController : Component() {
+class AnimController : Component(), OnUpdate {
 
     @Docs("Source file for animation graph")
     @Type("StateMachine/Reference")
@@ -63,22 +64,21 @@ class AnimController : Component() {
         renderer = entity.getComponent(AnimMeshComponent::class)
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val renderer = renderer
         if (renderer == null) { // wait for renderer
             lastWarning = "Renderer missing"
-            return 5
+            return
         }
         val graph = loadGraph()
         if (graph == null) { // wait for a graph
             lastWarning = "Graph missing"
-            return 5
+            return
         }
         val newState = graph.update()
         if (newState is AnimStateNode) {
             newState.updateRenderer(renderer)
         } else lastWarning = "Graph is missing default state"
-        return 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {

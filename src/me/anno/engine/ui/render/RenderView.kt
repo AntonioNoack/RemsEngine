@@ -11,6 +11,7 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
@@ -589,14 +590,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun updateWorld(world: PrefabSaveable?) {
-        when (world) {
-            is Entity -> {
-                world.update()
-                world.validateTransform()
-            }
-            is Component -> {
-                world.onUpdate()
-            }
+        if (world is Entity) {
+            world.validateTransform()
         }
     }
 
@@ -758,7 +753,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         // traverse over visible & selected
         for (component in EditorState.selection) {
-            if (component is Component && component.isEnabled) {
+            if (component is Component && component.isEnabled && component is OnDrawGUI) {
                 val entity = component.entity
                 if (entity == null || pipeline.frustum.contains(entity.aabb)) {
 
@@ -781,7 +776,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             }
         }
 
-        if (world is Component && world !in EditorState.selection) {
+        if (world is Component && world is OnDrawGUI && world !in EditorState.selection) {
             world.onDrawGUI(pipeline, world.isSelectedIndirectly)
         }
 

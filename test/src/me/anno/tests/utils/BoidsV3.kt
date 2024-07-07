@@ -3,17 +3,19 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnDrawGUI
+import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
 import me.anno.maths.Maths.dtTo01
-import me.anno.engine.EngineBase
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -38,7 +40,7 @@ class Accelerator(val boids: BoidV3) : OctTreeF<Int>(32) {
 
 // only a little faster,
 // which means we did good, I think, with Entity optimizations and such :)
-class BoidV3(val n: Int) : MeshSpawner() {
+class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
 
     val newDir = Vector3f()
     val center = Vector3f()
@@ -54,7 +56,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
     val accPool = Stack { Accelerator(this) }
     val accelerator = Accelerator(this)
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
 
         accelerator.clear()
         for (i in 0 until n) {
@@ -127,7 +129,6 @@ class BoidV3(val n: Int) : MeshSpawner() {
         accPool.sub(accPool.index)
 
         entity?.invalidateAABBsCompletely()
-        return 1
     }
 
     override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {

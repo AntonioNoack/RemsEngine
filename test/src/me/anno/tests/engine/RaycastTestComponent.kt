@@ -3,14 +3,14 @@ package me.anno.tests.engine
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.serialization.SerializedProperty
 import org.joml.Vector3d
-
-class RaycastTestComponent : Component() {
+class RaycastTestComponent : Component(), OnUpdate {
 
     @Docs("Only colliders with matching flags will be tested")
     @SerializedProperty
@@ -31,7 +31,7 @@ class RaycastTestComponent : Component() {
     @SerializedProperty
     var radiusPerUnit = 0.0
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         // throw ray cast, and draw the result
         val entity = entity!!
         val transform = entity.transform.globalTransform
@@ -47,7 +47,6 @@ class RaycastTestComponent : Component() {
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
-        return 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {

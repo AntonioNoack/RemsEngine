@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
@@ -99,10 +100,9 @@ fun main() {
                 .add(MeshComponent(agentMeshRef))
         }
 
-        world.addComponent(object : Component() {
-            override fun onUpdate(): Int {
+        world.addComponent(object : Component(), Updatable {
+            override fun update(instances: Collection<Component>) {
                 crowd.update(Time.deltaTime.toFloat(), null)
-                return 1
             }
         })
 

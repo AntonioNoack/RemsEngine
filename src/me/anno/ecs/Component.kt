@@ -45,12 +45,6 @@ abstract class Component : PrefabSaveable() {
     @NotSerializedProperty
     var lastDrawn = 0L
 
-    // can be overridden, e.g. for materials
-    override fun listChildTypes(): String = ""
-    override fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
-    override fun getChildListNiceName(type: Char): String = ""
-    override fun getIndexOf(child: PrefabSaveable): Int = -1
-
     @HideInInspector
     @NotSerializedProperty
     var gfxId = 0
@@ -93,38 +87,7 @@ abstract class Component : PrefabSaveable() {
 
     open fun onChangeStructure(entity: Entity) {}
 
-    /**
-     * called every x frames
-     * return 0, if you don't need this event
-     * return n, if you need this event every n-th frame; there is no strict guarantee,
-     *      that you will be called exactly then, because this would allow us to reduce events, when the fps are low
-     * */
-    open fun onUpdate(): Int = 0
-    private var nextUpdateItr = 1
-
-    fun callUpdate(): Boolean {
-        return if (nextUpdateItr > 0) {
-            if (--nextUpdateItr <= 0) {
-                nextUpdateItr = onUpdate()
-            }
-            true
-        } else false
-    }
-
-    /**
-     * whether onUpdate() needs to be called
-     * */
-    fun needsUpdate() = nextUpdateItr > 0
-
-    /**
-     * called on rigidbodies, when the physics engine does a simulation step; async
-     * return true, if you need this update
-     * */
-    open fun onPhysicsUpdate(dt: Double): Boolean = false
-
     override fun isDefaultValue(): Boolean = false
-
-    open fun onDrawGUI(pipeline: Pipeline, all: Boolean) {}
 
     open fun onChangeProperty(name: String, value: Any?) {}
 
@@ -139,8 +102,6 @@ abstract class Component : PrefabSaveable() {
     override fun toString(): String {
         return "$className('$name')"
     }
-
-    override val className = this::class.simpleName ?: "?"
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

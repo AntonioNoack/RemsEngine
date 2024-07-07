@@ -14,14 +14,15 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.components.mesh.material.utils.TypeValueV2
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayQuery
@@ -44,7 +45,6 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
@@ -59,6 +59,7 @@ import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -89,7 +90,7 @@ import kotlin.math.floor
 // we then could directly link an online library for fast development
 // ... or generate them synthetically ...
 
-open class SDFComponent : ProceduralMesh(), Renderable,
+open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     BlenderCATransformable,
     DCMovable, DCDroppable {
 
@@ -332,16 +333,17 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         }
     }
 
-    override fun onUpdate(): Int {
-        super.onUpdate()
+    override fun onUpdate() {
         ensureValidShader()
         ensureValidBounds()
+        // todo I don't like this... Systems should have these components registered and do their work
         val components = internalComponents
         for (index in components.indices) {
             val child = components[index]
-            if (child.isEnabled) child.callUpdate()
+            if (child.isEnabled && child is OnUpdate) {
+                child.update(listOf(child))
+            }
         }
-        return 1
     }
 
     fun ensureValidShader() {

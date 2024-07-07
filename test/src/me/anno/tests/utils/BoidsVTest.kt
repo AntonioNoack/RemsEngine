@@ -3,8 +3,9 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.EngineBase
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
@@ -23,7 +24,7 @@ import kotlin.random.Random
 
 // only a little faster,
 // which means we did good, I think, with Entity optimizations and such :)
-class BoidVTest(val m: Int, val n: Int) : MeshSpawner() {
+class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
 
     val speed = m * 90f
 
@@ -44,7 +45,7 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner() {
         return true
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val dt = Time.deltaTime.toFloat()
         for (i in 0 until n) {
 
@@ -69,7 +70,6 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner() {
             velocity.mulAdd(dt * speed, posA, posA) // update position by velocity
             velocity.normalToQuaternionY(rotations[i])
         }
-        return 1
     }
 
     fun addNeighbor(j: Int, posA: Vector3f) {

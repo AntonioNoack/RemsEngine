@@ -20,6 +20,8 @@ import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.InputListener
+import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -149,9 +151,9 @@ fun main() {
         bullet.setRotation(0.0, atan2(p.dir.z, p.dir.x).toDouble(), 0.0)
         bullet.setScale(0.1)
         val flash = PointLight()
-        bullet.add(object : Component() {
+        bullet.add(object : Component(), Updatable {
             var distance = 0f
-            override fun onUpdate(): Int {
+            override fun update(instances: Collection<Component>) {
                 val step = (90 * Time.deltaTime).toFloat()
                 if (step != 0f) {
                     distance += step
@@ -163,7 +165,6 @@ fun main() {
                         bullet.position = bullet.position.add(p.dir)
                     }
                 }
-                return 1
             }
         })
         val lightE = Entity(bullet)
@@ -228,7 +229,7 @@ fun main() {
     var rotX = -30.0
     var rotY = 0.0
 
-    selfPlayerEntity.add(object : Component(), InputListener {
+    selfPlayerEntity.add(object : Component(), InputListener, OnPhysicsUpdate {
 
         val jumpTimeout = (0.1 * SECONDS_TO_NANOS).toLong()
         var lastJumpTime = 0L
@@ -279,7 +280,7 @@ fun main() {
             }
         }
 
-        override fun onPhysicsUpdate(dt: Double): Boolean {
+        override fun onPhysicsUpdate(dt: Double) {
             val entity = entity!!
             val rigidbody = entity.getComponent(Rigidbody::class)!!
             val strength = 12.0 * rigidbody.mass
@@ -300,7 +301,6 @@ fun main() {
                     rigidbody.applyImpulse(0.0, strength, 0.0)
                 }
             }
-            return true
         }
     })
 
@@ -313,7 +313,7 @@ fun main() {
     val cameraArm = Entity(cameraBase1)
     cameraArm.setPosition(1.5, 1.0, 4.0)
     cameraArm.setRotation(0.0, 0.0, 0.0)
-    cameraBase.add(object : Component(), InputListener {
+    cameraBase.add(object : Component(), InputListener, Updatable {
 
         override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
             cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))
@@ -330,7 +330,7 @@ fun main() {
             } else super.onMouseMoved(x, y, dx, dy)
         }
 
-        override fun onUpdate(): Int {
+        override fun update(instances: Collection<Component>) {
             // update transforms
             val pos = selfPlayerEntity.position
             cameraBase.position = cameraBase.position.lerp(pos, dtTo01(5.0 * Time.deltaTime))
@@ -348,7 +348,6 @@ fun main() {
                 color = selfColor
                 // our name is set by the server, we don't have to set/send it ourselves
             }, udpProtocol, false)
-            return 1
         }
     })
     cameraArm.add(camera)

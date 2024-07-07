@@ -40,8 +40,4 @@ class ScriptedLuaAI : Component() {
         return LuaThread(vm, func)
     }
 
-    override fun onUpdate(): Int {
-        return super.onUpdate()
-    }
-
 }

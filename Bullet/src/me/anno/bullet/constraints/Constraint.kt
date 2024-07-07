@@ -13,14 +13,16 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.LineShapes
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.ui.LineShapes
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
-// https://download.autodesk.com/global/docs/maya2014/en_us/index.html?url=files/GUID-CDB3638D-23AF-49EF-8EF6-53081EE4D39D.htm,topicNumber=d30e571077
-abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constraintsolver.TypedConstraint> : Component() {
+// constraints: https://download.autodesk.com/global/docs/maya2014/en_us/index.html?url=files/GUID-CDB3638D-23AF-49EF-8EF6-53081EE4D39D.htm,topicNumber=d30e571077
+abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constraintsolver.TypedConstraint> :
+    Component(), OnDrawGUI {
 
     override var isEnabled: Boolean
         get() = super.isEnabled

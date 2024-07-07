@@ -13,6 +13,8 @@ import me.anno.ecs.prefab.PrefabSaveable
  * */
 abstract class System : PrefabSaveable() {
 
+    open val priority: Int get() = 1
+
     open fun onEnable(entity: Entity) {}
     open fun onEnable(component: Component) {}
 

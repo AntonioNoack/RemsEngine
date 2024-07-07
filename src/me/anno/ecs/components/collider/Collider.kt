@@ -5,6 +5,7 @@ import me.anno.ecs.EntityPhysics.invalidateRigidbody
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.raycast.Raycast
@@ -32,7 +33,7 @@ import kotlin.math.max
 
 // todo collider events
 
-abstract class Collider : CollidingComponent() {
+abstract class Collider : CollidingComponent(), OnDrawGUI {
 
     @Range(0.0, 1.0)
     @SerializedProperty

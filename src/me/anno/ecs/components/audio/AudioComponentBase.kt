@@ -11,6 +11,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
 import org.joml.Vector3f
@@ -29,7 +30,7 @@ import kotlin.math.max
  * base class for components that shall play audio;
  * audio can be loaded from files, or be procedurally generated
  * */
-abstract class AudioComponentBase : Component() {
+abstract class AudioComponentBase : Component(), OnUpdate {
 
     companion object {
 
@@ -285,7 +286,7 @@ abstract class AudioComponentBase : Component() {
         }
     }
 
-    override fun onUpdate(): Int {
+    override fun onUpdate() {
         val stream0 = stream0
         if (stream0 != null) {
 
@@ -321,7 +322,6 @@ abstract class AudioComponentBase : Component() {
                 }
             }
         }
-        return 1
     }
 
     override fun copyInto(dst: PrefabSaveable) {
