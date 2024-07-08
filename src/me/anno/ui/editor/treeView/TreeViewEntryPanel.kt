@@ -23,7 +23,6 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black
 import me.anno.utils.Color.g
-import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.count2

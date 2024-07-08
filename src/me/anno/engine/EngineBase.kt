@@ -8,7 +8,7 @@ import me.anno.cache.CacheSection
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
 import me.anno.ecs.systems.Systems
-import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
@@ -78,8 +78,7 @@ abstract class EngineBase(
     abstract fun createUI()
 
     open fun onGameLoopStart() {
-        // todo can we beautify this?
-        systems.world = ECSSceneTabs.currentTab?.inspector?.prefab?.getSampleInstance()
+        systems.world = EditorState.prefab?.getSampleInstance()
         systems.onUpdate()
     }
 

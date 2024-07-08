@@ -22,7 +22,7 @@ import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
 
-class CachedReflections(
+class CachedReflections private constructor(
     val clazz: KClass<*>,
     val allProperties: Map<String, CachedProperty>,
     val debugActions: List<KFunction<*>>,
@@ -32,7 +32,7 @@ class CachedReflections(
 ) {
 
     constructor(clazz: KClass<*>) : this(clazz, getMemberProperties(clazz))
-    constructor(clazz: KClass<*>, allProperties: Map<String, CachedProperty>) : this(
+    private constructor(clazz: KClass<*>, allProperties: Map<String, CachedProperty>) : this(
         clazz, allProperties,
         getDebugActions(clazz),
         getDebugProperties(allProperties),
@@ -223,9 +223,9 @@ class CachedReflections(
                 val serialize = serial != null || (isPublic && notSerial == null)
                 var name = serial?.name
                 if (name.isNullOrEmpty()) name = field.name
-                if (name in map) continue
+                if (name in map || name == null) continue
                 try {
-                    map[name!!] = saveField(field, name, serial, serialize, annotations.toList())
+                    map[name] = saveField(field, name, serial, serialize, annotations.toList())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -260,7 +260,7 @@ class CachedReflections(
                         val setterMethod = methods.firstOrNull {
                             it.name == setterName && it.parameterCount == 1 &&
                                     it.parameters[0].type == getterMethod.returnType
-                        } ?: continue
+                        }
                         val annotations = getterMethod.annotations.toMutableList()
                         val kotlinAnnotationName = "$name\$annotations" // todo is this still correct???
                         val m = methods.firstOrNull { it.name == kotlinAnnotationName }
@@ -272,7 +272,9 @@ class CachedReflections(
                         map[betterName] = saveField(
                             getterMethod.declaringClass, getterMethod.returnType,
                             betterName, serial, serialize, annotations,
-                            getterMethod::invoke, setterMethod::invoke
+                            getterMethod::invoke,
+                            if (setterMethod != null) { i, v -> setterMethod(i, v) }
+                            else null
                         )
                     }
                 }
@@ -317,7 +319,7 @@ class CachedReflections(
             serialize: Boolean,
             annotations: List<Annotation>,
             getter: (instance: Any) -> Any?,
-            setter: (instance: Any, value: Any?) -> Unit
+            setter: ((instance: Any, value: Any?) -> Unit)?
         ): CachedProperty {
             // save the field
             val forceSaving = serial?.forceSaving ?: (valueClass == Boolean::class.java)

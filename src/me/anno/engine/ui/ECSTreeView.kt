@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityStats.totalNumComponents
 import me.anno.ecs.EntityStats.totalNumEntities
+import me.anno.ecs.System
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
@@ -22,10 +23,10 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.saveable.NamedSaveable
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
@@ -58,8 +59,10 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     val inspector get() = currentInspector!!
 
     override fun listRoots(): List<Saveable> {
-        val world = EditorState.prefab?.getSampleInstance()// ?: library.world
-        return world.wrap()
+        val instance = EngineBase.instance
+        val systems = instance?.systems
+        val world = EditorState.prefab?.getSampleInstance()
+        return (systems?.getChildListByType('s') ?: emptyList()) + world.wrap()
     }
 
     override fun isValidElement(element: Any?): Boolean {
@@ -368,6 +371,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
         return when (element) {
             is Panel -> element.tooltip ?: desc
+            is System -> descLn + "System"
             !is Entity -> desc
             else -> descLn + "${element.children.size} E + ${element.components.size} C, " +
                     "${element.totalNumEntities} E + ${element.totalNumComponents} C total"
@@ -432,6 +436,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     override fun getSymbol(element: Saveable): String {
         return if (isCollapsed(element) && getChildren(element).isNotEmpty()) "📁"
         else if (element is PrefabSaveable && element.root.prefab?.isWritable == false) "\uD83D\uDD12" // lock
+        else if (element is System) "\uD83D\uDEE0\uFE0F" // tools
         else "⚪"
     }
 

@@ -35,6 +35,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.InputPanel
@@ -50,6 +51,7 @@ import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
+import java.util.Comparator
 import kotlin.reflect.jvm.javaMethod
 
 /**
@@ -508,11 +510,16 @@ class PrefabInspector(var reference: FileReference) {
         instances: List<PrefabSaveable>, style: Style
     ) {
         // group them by their @Group-value
-        for ((_, properties) in reflections.debugProperties
-            .groupBy { it.annotations.firstInstanceOrNull<Group>()?.name }) {
-            // todo show title for group
+        for ((group, properties) in reflections.debugProperties
+            .groupBy { it.annotations.firstInstanceOrNull<Group>()?.name ?: "" }
+            .toSortedMap()) {
+            val helper = if (group.isNotEmpty()) { // show title for group
+                val sc = SettingCategory(NameDesc(group), style)
+                list.add(sc)
+                sc.content
+            } else list
             for (property in properties) {
-                showDebugProperty(list, property, style, instances)
+                showDebugProperty(helper, property, style, instances)
             }
         }
     }

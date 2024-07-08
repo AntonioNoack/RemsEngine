@@ -22,7 +22,7 @@ class CachedProperty(
     val forceSaving: Boolean?,
     val annotations: List<Annotation>,
     val getter: (instance: Any) -> Any?,
-    val setter: (instance: Any, value: Any?) -> Unit
+    val setter: ((instance: Any, value: Any?) -> Unit)?
 ) {
 
     val range = annotations.firstInstanceOrNull<Range>()
@@ -32,6 +32,10 @@ class CachedProperty(
     val group = annotations.firstInstanceOrNull<Group>()?.name
 
     operator fun set(instance: Any, value: Any?): Boolean {
+        if (setter == null) {
+            LOGGER.warn("Cannot set {}", name)
+            return false
+        }
         if (!instanceClass.isInstance(instance)) throw IllegalArgumentException("Instance is not instance of $instanceClass, it is ${instance::class}")
         if (!valueClass.isInstance(value)) {
             if (value != null) {
@@ -91,8 +95,8 @@ class CachedProperty(
                         oldValue
                     }
                 }
-                setter(instance, newValue)
-            } else setter(instance, value)
+                setter.invoke(instance, newValue)
+            } else setter.invoke(instance, value)
             true
         } catch (e: Exception) {
             LOGGER.error(

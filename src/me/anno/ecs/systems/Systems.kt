@@ -4,12 +4,14 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.utils.structures.lists.Lists.sortedAdd
 import me.anno.utils.structures.lists.Lists.wrap
 
 // this would lie on the root level only...,
 // and only if needed...
 // todo make physics into systems
+// todo show settings for physics somehow...
 class Systems : PrefabSaveable() {
 
     companion object {
@@ -30,6 +32,11 @@ class Systems : PrefabSaveable() {
         }
     }
 
+    init {
+        isCollapsed = false
+    }
+
+    @NotSerializedProperty
     var world: PrefabSaveable? = null
         set(value) {
             if (field !== value) {
