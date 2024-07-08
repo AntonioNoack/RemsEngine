@@ -120,7 +120,7 @@ class TreeViewEntryPanel<V : Any>(
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
         val isInFocus = isAnyChildInFocus || EngineBase.instance?.isSelected(transform) == true
-        val textColor = mixARGB(black, treeView.getLocalColor(transform, isHovered, isInFocus), 180f / 255f)
+        val textColor = treeView.getLocalColor(transform, isHovered, isInFocus)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +
                 sq(textColor.b() - backgroundColor.b())
