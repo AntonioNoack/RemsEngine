@@ -55,7 +55,8 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
-// pick random x: grep 'x' -r . | shuf -n 1 | head -n 1
+// todo bug: some thumbnails still are upside-down
+// todo: create a list of all visual effects, including images, so we can show them off a bit :)
 
 // todo: translate everything (again xD)
 

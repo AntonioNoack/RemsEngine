@@ -18,8 +18,8 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import kotlin.math.tan
@@ -76,12 +76,12 @@ class DepthOfFieldNode : ActionNode(
     companion object {
 
         fun bindDepth(shader: Shader, spherical: Float) {
+            DepthTransforms.bindDepthUniforms(shader)
             val factor = 2f * spherical
-            shader.v3f(
-                "d_fovFactor",
+            shader.v2f(
+                "fovFactorUV",
                 factor * tan(RenderState.fovXRadians * 0.5f),
                 factor * tan(RenderState.fovYRadians * 0.5f),
-                RenderState.near
             )
         }
 
@@ -97,7 +97,7 @@ class DepthOfFieldNode : ActionNode(
                 val shader = cocShader
                 shader.use()
                 bindDepth(shader, spherical)
-                shader.v1f("focusPoint", focusPoint)
+                shader.v1f("focusPointInv", 1f / focusPoint)
                 shader.v1f("focusScale", focusScale)
                 color.bind(shader, "colorTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 depth.bindTrulyNearest(shader, "depthTex")
@@ -108,24 +108,24 @@ class DepthOfFieldNode : ActionNode(
                 val shader = dofShader
                 shader.use()
                 bindDepth(shader, spherical)
-                shader.v1f("focusPoint", focusPoint)
+                shader.v1f("focusPointInv", 1f / focusPoint)
                 shader.v1f("focusScale", focusScale)
                 shader.v1f("maxBlurSize", maxBlurSize)
                 shader.v1f("radScale", radScale)
                 shader.v1b("applyToneMapping", applyToneMapping)
                 shader.v2f("pixelSize", 1f / color.width, 1f / color.height)
+                coc.getTexture0().bind(shader, "cocTex", Filtering.LINEAR, Clamping.CLAMP)
                 color.bindTrulyNearest(shader, "colorTex")
                 depth.bindTrulyNearest(shader, "depthTex")
-                coc.getTexture0().bind(shader, "cocTex", Filtering.LINEAR, Clamping.CLAMP)
                 SimpleBuffer.flat01.draw(shader)
             }
             return buffer
         }
 
-        const val coc = "" +
+        const val getBlurSize = "" +
                 "float getBlurSize(float depth, vec2 uv) {\n" +
-                "   float len = length(vec3((uv-0.5)*d_fovFactor.xy, 1.0));\n" +
-                "   float coc = (1.0 / focusPoint - 1.0 / (depth * len)) * focusScale;\n" +
+                "   float len = length(vec3((uv-0.5)*fovFactorUV.xy, 1.0));\n" +
+                "   float coc = (focusPointInv - 1.0 / (depth * len)) * focusScale;\n" +
                 "   return min(abs(coc), 1.0);\n" +
                 "}"
 
@@ -133,25 +133,27 @@ class DepthOfFieldNode : ActionNode(
             "coc", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
-                Variable(GLSLType.V1F, "focusPoint"),
+                Variable(GLSLType.V1F, "focusPointInv"),
+                Variable(GLSLType.V2F, "fovFactorUV"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + DepthTransforms.depthVars, "" +
                     DepthTransforms.rawToDepth +
-                    coc +
+                    getBlurSize +
                     "void main() {\n" +
                     "   float depth = rawToDepth(texture(depthTex,uv).r);\n" +
                     "   vec3 color = texture(colorTex,uv).xyz;\n" +
                     "   result = clamp(vec4(color,getBlurSize(depth,uv)),0.0,1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_camRot") }
 
         val dofShader = Shader(
             "dof", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
-                Variable(GLSLType.V1F, "focusPoint"),
+                Variable(GLSLType.V1F, "focusPointInv"),
+                Variable(GLSLType.V2F, "fovFactorUV"),
                 Variable(GLSLType.V1F, "maxBlurSize"),
                 Variable(GLSLType.V1F, "radScale"),
                 Variable(GLSLType.V1B, "applyToneMapping"),
@@ -163,7 +165,7 @@ class DepthOfFieldNode : ActionNode(
             ) + DepthTransforms.depthVars, "" +
                     ShaderLib.quatRot +
                     DepthTransforms.rawToDepth +
-                    coc +
+                    getBlurSize +
                     Renderers.tonemapGLSL +
                     "const float GOLDEN_ANGLE = 2.39996323;\n" +
                     "vec3 dof(vec2 uv, float centerDepth, float centerSize){\n" +
@@ -209,6 +211,6 @@ class DepthOfFieldNode : ActionNode(
                     "   }\n" +
                     "   if(applyToneMapping) result = tonemap(result);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_camRot") }
     }
 }
