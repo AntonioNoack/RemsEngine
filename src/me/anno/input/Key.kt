@@ -1,5 +1,7 @@
 package me.anno.input
 
+import me.anno.utils.structures.lists.Lists.arrayListOfNulls
+
 /**
  * List of all keycodes, baseline is GLFW (and ASCII), because that's our default platform;
  * */
@@ -315,11 +317,13 @@ enum class Key(val id: Int) {
     }
 
     companion object {
-        private val byId = arrayOfNulls<Key>(528)
+        private val byId = arrayListOfNulls<Key>(528)
 
         init {
             for (v in entries) {
-                if (v.id >= 0) byId[v.id] = v
+                if (v.id >= 0) {
+                    byId[v.id] = v
+                }
             }
         }
 

@@ -16,10 +16,6 @@ abstract class UpdateByClassSystem : System() {
     val numRegisteredInstances: Int
         get() = components.values.sumOf { it.size }
 
-    @DebugProperty
-    val worldName: String
-        get() = EngineBase.instance?.systems?.world?.name ?: "null"
-
     private val components = HashMap<KClass<*>, HashSet<Component>>()
     override fun onEnable(component: Component) {
         if (isInstance(component)) {

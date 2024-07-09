@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.maths.Maths

@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.input.ButtonLogic
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.maths.Maths.clamp
 import me.anno.openxr.OpenXRController.Companion.xrControllers
 import me.anno.openxr.OpenXRRendering.Companion.additionalOffset
 import me.anno.openxr.OpenXRRendering.Companion.additionalRotationY
@@ -259,6 +260,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         val ret0 = xrSyncActions(session, actionsSyncInfo)
         if (ret0 != XR_SESSION_NOT_FOCUSED) checkXR(ret0)
 
+        val window1 = GFX.someWindow
+        val dt = frameState.predictedDisplayPeriod() * 1e-9f
         val displayTime = frameState.predictedDisplayTime()
         for (hand in 0 until 2) {
             val handPath = handPaths[hand]
@@ -287,10 +290,9 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 .action(thumbstickAction).subactionPath(handPath)
             checkXR(xrGetActionStateVector2f(session, getInfo, vector2fState))
             if (vector2fState.isActive) {
-                // todo it would be good to disable controllers for GLFW, add extra ones, or generalize them
                 val value = vector2fState.currentState()
-                controller.axisValues[0] = value.x()
-                controller.axisValues[1] = value.y()
+                controller.setAxisValue(window1, 0, value.x(), dt)
+                controller.setAxisValue(window1, 1, value.y(), dt)
             }
 
             floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
@@ -299,7 +301,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             checkXR(xrGetActionStateFloat(session, getInfo, floatState))
 
             val grab = if (floatState.isActive) floatState.currentState() else Float.NaN
-            controller.axisValues[2] = grab
+            controller.setAxisValue(window1, 2, grab, dt)
 
             floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
             getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
@@ -307,11 +309,12 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             checkXR(xrGetActionStateFloat(session, getInfo, floatState))
 
             val squeeze = if (floatState.isActive) floatState.currentState() else Float.NaN
-            controller.axisValues[3] = squeeze
+            controller.setAxisValue(window1, 3, squeeze, dt)
 
-            if (grab > 0.75f || squeeze > 0.75f) {
+            val rumble = clamp(controller.rumble)
+            if (rumble > 0f) {
                 vibration.type(XR_TYPE_HAPTIC_VIBRATION).next(0)
-                    .amplitude(0.5f).duration(XR_MIN_HAPTIC_DURATION)
+                    .amplitude(rumble).duration(XR_MIN_HAPTIC_DURATION)
                     .frequency(XR_FREQUENCY_UNSPECIFIED)
                 hapticActionInfo.type(XR_TYPE_HAPTIC_ACTION_INFO).next(0)
                     .action(hapticAction).subactionPath(handPath)

@@ -31,7 +31,7 @@ object ScreenSpaceReflections {
     fun createShader(inPlace: Boolean): Shader {
         val variables = arrayListOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
-            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.M4x4, "cameraMatrix"),
             Variable(GLSLType.S2D, "finalColor"),
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
@@ -98,7 +98,7 @@ object ScreenSpaceReflections {
                     // guess a distance to the border
                     "   float dist = startDistance;\n" +
                     "   endView = positionFrom + pivot * dist;\n" +
-                    "   endUV0 = matMul(transform, vec4(endView, 1.0));\n" +
+                    "   endUV0 = matMul(cameraMatrix, vec4(endView, 0.0));\n" +
                     "   endUV = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
                     // correct that distance
                     "   dist *= min(\n" +
@@ -108,7 +108,7 @@ object ScreenSpaceReflections {
 
                     // now we're on the border :)
                     "   endView = positionFrom + pivot * dist;\n" +
-                    "   endUV0 = matMul(transform, vec4(endView, 1.0));\n" +
+                    "   endUV0 = matMul(cameraMatrix, vec4(endView, 0.0));\n" +
                     "   endUV = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
                     "   float endDistance = length(endView);\n" +
 
@@ -219,7 +219,7 @@ object ScreenSpaceReflections {
         roughness: ITexture2D,
         roughnessMask: Vector4f,
         illuminated: ITexture2D,
-        transform: Matrix4f,
+        cameraMatrix: Matrix4f,
         strength: Float, // 1f
         maskSharpness: Float, // 1f
         wallThickness: Float, // 0.2f
@@ -236,7 +236,7 @@ object ScreenSpaceReflections {
             shader.v1f("maskSharpness", maskSharpness)
             shader.v1f("thickness", wallThickness) // thickness, when we are under something
             shader.v1f("strength", strength)
-            shader.m4x4("transform", transform)
+            shader.m4x4("cameraMatrix", cameraMatrix)
             shader.v1b("normalZW", normalZW)
             val n = Filtering.TRULY_LINEAR
             val c = Clamping.CLAMP

@@ -12,7 +12,6 @@ import me.anno.ui.editor.code.HexEditor
 import me.anno.utils.OS.documents
 
 fun main() {
-    // todo why is it only showing 85kB?
     disableRenderDoc()
     testUI3("Hex Editor") {
         EngineBase.enableVSync = false

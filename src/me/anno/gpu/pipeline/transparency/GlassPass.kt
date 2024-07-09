@@ -174,7 +174,5 @@ class GlassPass : TransparentPass() {
 
             flat01.draw(shader)
         }
-
-        tmp.destroy()
     }
 }

@@ -5,16 +5,17 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.Events.addEvent
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
+import me.anno.engine.ui.scenetabs.ECSSceneTab.Companion.tryStartVR
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.graph.visual.Graph
-import me.anno.ui.editor.graph.GraphEditor
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -23,7 +24,7 @@ import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
-import me.anno.utils.Color.withAlpha
+import me.anno.ui.editor.graph.GraphEditor
 
 @Suppress("MemberVisibilityCanBePrivate")
 class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
@@ -107,6 +108,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             list.add(sceneView, 3f)
             list.add(PropertyInspector({ EditorState.selection }, style), 1f)
             if (init != null) init(sceneView)
+            tryStartVR(sceneView)
             listY.add(list)
             list.weight = 1f
             listY.weight = 1f
@@ -119,7 +121,15 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             val sceneView = SceneView(PlayMode.EDITING, style)
             PrefabInspector.currentInspector = PrefabInspector(scene.ref)
             if (init != null) init(sceneView)
+            tryStartVR(sceneView)
             return sceneView
+        }
+
+        private fun tryStartVR(sceneView: SceneView) {
+            addEvent {
+                val osWindow = GFX.someWindow
+                tryStartVR(osWindow, sceneView.renderer)
+            }
         }
     }
 }

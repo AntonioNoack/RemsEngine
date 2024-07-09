@@ -2,6 +2,7 @@ package me.anno.input.controller
 
 import me.anno.Time
 import me.anno.config.DefaultConfig
+import me.anno.ecs.annotations.Range
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
@@ -10,6 +11,7 @@ import me.anno.input.Input.isMouseLocked
 import me.anno.input.Key
 import me.anno.input.Output
 import me.anno.maths.Maths.sq
+import me.anno.utils.InternalAPI
 import me.anno.utils.structures.Collections.setContains
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
@@ -20,7 +22,12 @@ import kotlin.math.abs
 @Suppress("unused")
 abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
 
+    @InternalAPI
     var id = 0
+
+    // not supported by all types, currently only in VR (via OpenXR)
+    @Range(0.0, 1.0)
+    var rumble = 0f
 
     // only set for VR controllers
     val position = Vector3d()
@@ -29,6 +36,8 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
     val axisValues = FloatArray(maxNumAxes)
     val axisSpeeds = FloatArray(maxNumAxes)
     val buttonDownTime = LongArray(maxNumButtons)
+
+    @InternalAPI // used for calibration
     val rawAxisValues = FloatArray(maxNumAxes)
 
     fun getRawAxis(axis: Int): Float {

@@ -3,6 +3,10 @@ package me.anno.graph.visual.render
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.ReturnNode
+import me.anno.graph.visual.StartNode
+import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.render.compiler.ShaderExprNode
 import me.anno.graph.visual.render.compiler.ShaderGraphNode
 import me.anno.graph.visual.render.effects.BloomNode
@@ -22,46 +26,22 @@ import me.anno.graph.visual.render.effects.SSRNode
 import me.anno.graph.visual.render.effects.ShapedBlurNode
 import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.scene.BakeSkyboxNode
-import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
+import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.graph.visual.render.scene.UVNode
 import me.anno.graph.visual.render.scene.UViNode
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.node.NodeLibrary
-import me.anno.graph.visual.ReturnNode
-import me.anno.graph.visual.StartNode
 import me.anno.image.ImageScale
 import me.anno.ui.Panel
 import me.anno.utils.Color.white4
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 
-// stage 0:
-//  scene, meshes
-//  filtering & adding to pipeline
-//  pipeline list with their settings
-// stage 3:
-//  applying effects & calculations
-// todo stage 4:
-//  primary & debug outputs; name -> enum in RenderView
-// data type is RGBA or Texture2D or sth like this
-
-// todo create collection of render graphs for debugging
-
 object RenderGraph {
 
     private val LOGGER = LogManager.getLogger(RenderGraph::class)
 
     var throwExceptions = false
-
-    // todo inputs / settings:
-    //  - stage index/id
-    //  - depth sorting
-    //  - number of lights if forward
-    //  - clear sky / use other background (e.g. transparent uses backside pass)
-    //  - camera override / camera index
-    //  - relative size (or maybe even more flexible by width x height)
 
     // todo highlight cpu/gpu computations (silver/gold)
 

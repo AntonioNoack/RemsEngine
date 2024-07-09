@@ -212,8 +212,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         get() = transform.localPosition
         set(value) {
             transform.localPosition = value
-            invalidateAABBsCompletely()
-            invalidatePhysicsTransform(false)
+            onChangeTransform()
         }
 
     @RotationType
@@ -223,8 +222,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         get() = transform.localRotation
         set(value) {
             transform.localRotation = value
-            invalidateAABBsCompletely()
-            invalidatePhysicsTransform(false)
+            onChangeTransform()
         }
 
     @ScaleType
@@ -234,10 +232,15 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         get() = transform.localScale
         set(value) {
             transform.localScale = value
-            invalidateAABBsCompletely()
-            // scale is not just transform in bullet, it is scaling the collider
-            invalidatePhysics(false)
+            onChangeTransform()
         }
+
+    private fun onChangeTransform() {
+        invalidateAABBsCompletely()
+        // scale is not just transform in bullet, it is scaling the collider
+        invalidatePhysics(false)
+        validateTransform()
+    }
 
     fun setPosition(x: Double, y: Double, z: Double): Entity {
         position = position.set(x, y, z)

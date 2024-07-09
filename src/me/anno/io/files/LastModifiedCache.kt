@@ -63,11 +63,14 @@ object LastModifiedCache {
         }
     }
 
+    private var nextCheckTime = 0L
     fun update() {
+        if (Time.gameTimeN < nextCheckTime) return
+        val deathTime = Time.gameTimeN - timeoutNanos
         values.removeIf { (_, value) ->
-            Time.gameTimeN - value.lastChecked > timeoutNanos
-            false
+            value.lastChecked < deathTime
         }
+        nextCheckTime = Time.gameTimeN + timeoutNanos.shr(1)
     }
 
     operator fun get(file: File, absolutePath: String): Result {

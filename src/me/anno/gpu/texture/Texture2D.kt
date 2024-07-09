@@ -1315,6 +1315,7 @@ open class Texture2D(
         @JvmStatic
         fun destroyTextures() {
             if (texturesToDelete.isNotEmpty()) {
+                // LOGGER.info("Deleting ${texturesToDelete.size} textures")
                 unbindAllTextures()
                 synchronized(texturesToDelete) {
                     // unbind old textures

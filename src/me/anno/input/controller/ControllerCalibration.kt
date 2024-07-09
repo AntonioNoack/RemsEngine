@@ -22,9 +22,15 @@ class ControllerCalibration() : Saveable() {
 
     var isCalibrated = false
 
-    var deadZone = FloatArray(MAX_NUM_AXES) { 0.1f }
-    var scale = FloatArray(MAX_NUM_AXES) { 1f }
-    var center = FloatArray(MAX_NUM_AXES) { 0f }
+    var deadZone = FloatArray(MAX_NUM_AXES)
+    var scale = FloatArray(MAX_NUM_AXES)
+    var center = FloatArray(MAX_NUM_AXES)
+
+    init {
+        deadZone.fill(0.1f)
+        scale.fill(1f)
+        center.fill(0f)
+    }
 
     fun getValue(state: Float, axis: Int): Float {
         return if (axis in 0 until min(deadZone.size, min(scale.size, center.size))) {

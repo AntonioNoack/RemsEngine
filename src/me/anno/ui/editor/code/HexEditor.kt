@@ -121,7 +121,9 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         if (showText) {
             minW += bytesPerLine * charWidth
         }
-        minH = clamp(sizeY, 0L, 100_000L).toInt()
+        // todo support really long files, multiple GB in size
+        // (current limit is ~1GB with lineHeight 16)
+        minH = clamp(sizeY, 0L, 1_000_000_000L).toInt()
         if (showAddress) {
             addressDigits = max(1, ceil(log2(fileLength.toDouble()) * 0.25).toInt())
             minW += spacing + charWidth * addressDigits
@@ -195,7 +197,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             }
         }
 
-        lateinit var buffer: ByteArray
+        var buffer: ByteArray? = null
         var lastBufferIndex = -1L
         // draw content
         val ox2 = bytesPerLine * spacing2 + addressDx + bx
@@ -203,18 +205,20 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         loop@ for (lineNumber in l0 until l1) {
             for (lineIndex in 0 until bytesPerLine) {
                 val byteIndex = lineNumber * bytesPerLine + lineIndex
-                val bufferIndex = byteIndex / sectionSize
+                val bufferIndex = byteIndex / BUFFER_SIZE
                 if (bufferIndex != lastBufferIndex) {
-                    buffer = Companion.get(file, bufferIndex, false) ?: break@loop
+                    buffer = getByteSliceAsync(file, bufferIndex)
                     buffers.clear()
                     for (i in compareTo.indices) {
-                        buffers.add(Companion.get(compareTo[i], bufferIndex, false))
+                        buffers.add(getByteSliceAsync(compareTo[i], bufferIndex))
                     }
                     lastBufferIndex = bufferIndex
                 }
-                val localIndex = (byteIndex and (sectionSize - 1L)).toInt()
-                if (localIndex >= buffer.size) break@loop
-                val rawValue = buffer[localIndex]
+
+                val bufferI = buffer ?: continue@loop
+                val localIndex = (byteIndex and (BUFFER_SIZE - 1L)).toInt()
+                if (localIndex >= bufferI.size) break@loop
+                val rawValue = bufferI[localIndex]
                 val value = rawValue.toInt() and 0xff
 
                 val allSame = buffers.all { it == null || it.size <= localIndex || it[localIndex] == rawValue }
@@ -338,11 +342,11 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         }
         val dst = ByteArray((maxIndex - minIndex).toInt())
         var posInFile = minIndex
-        var sectionIndex = posInFile / sectionSize
+        var sectionIndex = posInFile / BUFFER_SIZE
         while (posInFile < maxIndex) {
-            val startIndex = sectionIndex * sectionSize
-            val endIndex = min(maxIndex, startIndex + sectionSize)
-            val partData = Companion.get(file, sectionIndex, false)!!
+            val startIndex = sectionIndex * BUFFER_SIZE
+            val endIndex = min(maxIndex, startIndex + BUFFER_SIZE)
+            val partData = getByteSlice(file, sectionIndex, false)!!
             val posInSection = (posInFile - startIndex).toInt()
             val posInDst = (posInFile - minIndex).toInt()
             val copyableLength = (endIndex - posInFile).toInt()
@@ -414,7 +418,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
         private val LOGGER = LogManager.getLogger(HexEditor::class)
 
-        private const val sectionSize = 4096
+        private const val BUFFER_SIZE = 16 shl 10
         private const val timeout = 5_000L
         private val cache = CacheSection("ByteSections")
 
@@ -436,12 +440,17 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             }]
         }
 
-        fun get(file: FileReference, index: Long, async: Boolean): ByteArray? {
+        private fun getByteSliceAsync(file: FileReference, index: Long): ByteArray? {
+            return getByteSlice(file, index, true)
+        }
+
+        @Deprecated("Only async should be used")
+        private fun getByteSlice(file: FileReference, index: Long, async: Boolean): ByteArray? {
             val data = cache.getEntry(Triple(file, file.lastModified, index), timeout, async) { (file1, _, index1) ->
                 val data = AsyncCacheData<ByteArray>()
                 file1.inputStream { it, err ->
-                    data.value = it?.skipN(index1 * sectionSize)
-                        ?.readNBytes2(sectionSize, ByteArray(sectionSize), false)
+                    data.value = it?.skipN(index1 * BUFFER_SIZE)
+                        ?.readNBytes2(BUFFER_SIZE, ByteArray(BUFFER_SIZE), false)
                     err?.printStackTrace()
                 }
                 data

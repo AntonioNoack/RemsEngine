@@ -60,7 +60,7 @@ class OpenXRRendering(
 
         tmp.set(pos).sub(lastPosition).rotateY(additionalRotationY)
         rv.orbitCenter.add(tmp) // scene space
-        rv.radius = 5.0 // to define the general speed
+        rv.radius = 3.0 // define the general speed
         lastPosition.set(pos)
 
         additionalOffset
@@ -174,6 +174,8 @@ class OpenXRRendering(
         // to do what's the correct eye position? xD
         // todo SSAO looks weird with Meta Quest Link:
         //  as if eyes, which are tilted to the sides, aren't tilted for that
+        // todo SSR has the same issue (gold-material-override is unbearable)
+        // todo lights and shadows are currently weirdly offset, too
         if (false) rv.cameraPosition.set(rv.orbitCenter).sub(
             (pos.x() - position.x) * scale,
             (pos.y() - position.y) * scale,
@@ -181,7 +183,7 @@ class OpenXRRendering(
         )
 
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
-
+        rv.pipeline.superMaterial = rv.renderMode.superMaterial
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
 

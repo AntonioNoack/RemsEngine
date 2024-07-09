@@ -65,6 +65,7 @@ class RenderForwardNode : RenderViewNode(
 
         val stage = getInput(4) as PipelineStage
         pushDrawCallName("$name-$stage")
+
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
         val applyToneMapping = getBoolInput(7)

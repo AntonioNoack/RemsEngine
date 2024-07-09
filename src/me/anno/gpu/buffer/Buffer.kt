@@ -193,9 +193,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
 
         private fun checkNCrash(index: Int, instanceDivisor: Int, attr: Attribute) {
             val err = glGetError()
-            if (err != 0) { // todo why is this triggered??? is the shader not bound???
+            if (err != 0) { // todo why is this triggered???
+                // is the shader not bound??? no, the shader is apparently fine
                 Engine.requestShutdown()
-                throw RuntimeException("Error: $err, #$index/${GFX.maxAttributes}, $instanceDivisor, $attr")
+                throw RuntimeException("Error: $err, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, $attr, offset/stride: ${attr.offset}, ${attr.stride}")
             }
         }
 

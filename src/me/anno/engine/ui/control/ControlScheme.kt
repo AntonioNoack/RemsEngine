@@ -28,6 +28,7 @@ import me.anno.input.Key
 import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
@@ -40,6 +41,7 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.sin
@@ -263,9 +265,41 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             velocity.z += (isKeyDown(Key.KEY_S).toInt() - isKeyDown(Key.KEY_W).toInt()) * acceleration
             velocity.y += (up.toInt() - down.toInt()) * acceleration
         }
+
+        var controllerIndex = 0
+        for (i in Input.controllers.indices) {
+            val controller = Input.controllers[i]
+            // it's a VR controller
+            if (controller.position.lengthSquared() > 0f && controller.numAxes >= 4 &&
+                controller.axisValues[0].isFinite() && controller.axisValues[1].isFinite()
+            ) {
+                when (controllerIndex++) {
+                    0 -> {
+                        // left hand
+                        val dx = controller.axisValues[0]
+                        rotateCamera(0f, -dx * dt.toFloat() * 100f, 0f)
+                        controller.rumble = 0.5f * abs(dx)
+                    }
+                    1 -> {
+                        // right hand
+                        val dx = controller.axisValues[0]
+                        val dz = controller.axisValues[1]
+                        velocity.x += dx * acceleration
+                        velocity.z -= dz * acceleration
+                        // trigger and squeeze
+                        val dy = controller.axisValues[2] - controller.axisValues[3]
+                        velocity.y += dy * acceleration
+                        controller.rumble = 0.5f * clamp(length(dx, dy, dz))
+                    }
+                    else -> {}
+                }
+            }
+        }
+
         if (velocity.lengthSquared() > 0.0001 * sq(radius)) {
             moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
         }
+
         val position = view.orbitCenter
         if (!position.isFinite) {
             LOGGER.warn("Invalid position $position from $velocity * mat($dirX, $dirY, $dirZ)")

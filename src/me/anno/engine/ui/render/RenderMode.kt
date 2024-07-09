@@ -120,6 +120,8 @@ class RenderMode private constructor(
                 .finish()
         )
 
+        // todo MSAA DEFERRED and FORWARD are very slow in VR (1 fps), and task manager shows a mysterious
+        //  ~8GB (100%) VRAM usage although Rem's Engine reports ~2GB -> is VRAM being put onto system memory?
         val MSAA_DEFERRED = RenderMode(
             "MSAA Deferred",
             QuickPipeline()

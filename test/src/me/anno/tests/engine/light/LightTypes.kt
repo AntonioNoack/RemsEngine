@@ -9,6 +9,7 @@ import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.maths.Maths.mix
@@ -27,7 +28,7 @@ import kotlin.math.PI
 fun main() {
 
     forceLoadRenderDoc()
-    ECSRegistry.init()
+    OfficialExtensions.initForTests()
 
     val scene = Entity("Scene")
     // scene.add(SkyboxBase().apply { skyColor.set(0f) })
