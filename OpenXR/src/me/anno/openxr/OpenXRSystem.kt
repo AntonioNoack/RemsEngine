@@ -103,7 +103,6 @@ class OpenXRSystem(val window: Long) {
     }
 
     fun createSystemId(): Long {
-        LOGGER.info("Trying to get OpenXR System")
         val systemGetInfo = XrSystemGetInfo.calloc()
             .type(XR_TYPE_SYSTEM_GET_INFO).next(0)
             .formFactor(XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY)

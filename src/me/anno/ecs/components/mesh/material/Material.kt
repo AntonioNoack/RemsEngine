@@ -49,7 +49,7 @@ open class Material : PrefabSaveable(), Renderable {
 
     @Docs("Uniforms to be overridden in the shader when applying this material")
     @Type("Map<String,TypeValue>")
-    @SerializedProperty
+    @NotSerializedProperty // cannot really be overridden yet
     var shaderOverrides = HashMap<String, TypeValue>()
         set(value) {
             if (field !== value) {

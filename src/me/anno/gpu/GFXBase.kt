@@ -374,8 +374,6 @@ object GFXBase {
         val time = Time.nanoTime
 
         var workedTasks = false
-        val firstWindow = windows.firstOrNull()
-        if (firstWindow != null) Input.pollControllers(firstWindow)
         Touch.updateAll()
 
         for (index in 0 until windows.size) {

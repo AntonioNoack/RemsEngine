@@ -374,6 +374,7 @@
       <w>sint</w>
       <w>skewx</w>
       <w>skewy</w>
+      <w>skippable</w>
       <w>skyblue</w>
       <w>skybox</w>
       <w>skyboxes</w>
@@ -412,6 +413,8 @@
       <w>texel</w>
       <w>thinnen</w>
       <w>thumbnailator</w>
+      <w>thumbstick</w>
+      <w>thumbsticks</w>
       <w>tileable</w>
       <w>titlecase</w>
       <w>tlas</w>

@@ -25,12 +25,12 @@ fun main() {
     val child = Entity()
     child.add(MeshComponent(Shapes.flatCube.front.ref))
     child.add(object : Component(), Updatable {
-        var skippable = 0
+        var skippableUpdates = 0
         override fun update(instances: Collection<Component>) {
-            if (skippable-- <= 0) {
+            if (skippableUpdates-- <= 0) {
                 val transform = transform!!
                 transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
-                skippable = Time.currentFPS.toInt()
+                skippableUpdates = Time.currentFPS.toInt()
             }
         }
     })

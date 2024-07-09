@@ -7138,6 +7138,10 @@ open class Matrix4f {
         return rotateQ(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
     }
 
+    fun rotateInv(q: Quaterniond): Matrix4f {
+        return rotateQ(-q.x.toFloat(), -q.y.toFloat(), -q.z.toFloat(), q.w.toFloat())
+    }
+
     companion object {
         const val PROPERTY_IDENTITY = 4
 

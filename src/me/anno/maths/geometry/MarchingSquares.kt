@@ -3,6 +3,7 @@ package me.anno.maths.geometry
 import me.anno.image.raw.FloatImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -50,7 +51,7 @@ object MarchingSquares {
 
         // there is at max 1 point per edge & they will always be on edges
 
-        val edges = Array(4) { Vector2f() }
+        val edges = createArrayList(4) { Vector2f() }
         val next = HashMap<Vector2f, Vector2f>()
         val field = FloatImage(w, h, 1, values)
 

@@ -71,7 +71,7 @@ fun main() {
 }
 
 fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, List<Vector2f>) -> Unit) {
-    val global = Array(np) {
+    val global = createArrayList(np) {
         val a = it * TAUf / np
         Vector2f(cos(a), sin(a)).mul(300f)
     }

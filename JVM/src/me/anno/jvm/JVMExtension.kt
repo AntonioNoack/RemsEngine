@@ -2,8 +2,11 @@ package me.anno.jvm
 
 import me.anno.audio.openal.AudioManager
 import me.anno.config.DefaultStyle
+import me.anno.extensions.events.EventHandler
+import me.anno.extensions.events.GameLoopStartEvent
 import me.anno.extensions.plugins.Plugin
 import me.anno.fonts.signeddistfields.Contour
+import me.anno.gpu.GFX
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.MediaMetadata
 import me.anno.io.utils.LinkCreator
@@ -31,7 +34,18 @@ import javax.sound.sampled.AudioSystem
 class JVMExtension : Plugin() {
     override fun onEnable() {
         super.onEnable()
+        registerListener(this)
         initSafely(::initUnsafely)
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        unregisterListener(this)
+    }
+
+    @EventHandler
+    fun onGameLoopStart(event: GameLoopStartEvent) {
+        GLFWController.pollControllers(GFX.someWindow)
     }
 
     private fun initUnsafely(step: Int): Boolean { // I hope the generated code isn't too bad/slow :/

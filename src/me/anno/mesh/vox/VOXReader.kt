@@ -12,6 +12,7 @@ import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.structures.Callback
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -238,7 +239,7 @@ class VOXReader {
                     else -> {
                         // todo these frames define an animation -> would should load it somehow...
                         // todo maybe an animation data attribute/component? :)
-                        val frames = Array(numFrames) { readDict(bytes) }
+                        val frames = createArrayList(numFrames) { readDict(bytes) }
                         decodeFrame(node, frames[0])
                         LOGGER.warn("Todo multiple frames")
                     }

@@ -116,7 +116,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
             bounds1.setMin(min2.x.toFloat(), min2.y.toFloat(), min2.z.toFloat())
             bounds1.setMax(max2.x.toFloat(), max2.y.toFloat(), max2.z.toFloat())
 
-            val triangle = Array(3) { javax.vecmath.Vector3d() }
+            val triangle = Array(3) { javax.vecmath.Vector3d() } // must be array
             var ctr = 0
             MarchingCubes.march(fx, fy, fz, field, 0f, bounds1, false) { a, b, c ->
                 // is the order correct? (front/back sides)

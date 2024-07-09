@@ -1,6 +1,7 @@
 package me.anno.lua
 
 import me.anno.lua.ScriptComponent.Companion.toLua
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.LuaDouble
@@ -52,7 +53,7 @@ class LuaConstructor(clazz: KClass<*>) : VarArgFunction() {
         }
         if (bestMatch == null) return LuaValue.NIL
         val parameters = bestMatch.parameters
-        val values = Array(size) {
+        val values = Array(size) { // must be an array
             convert(parameters[it].type, args[it])
         }
         return try {

@@ -31,6 +31,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -43,7 +44,7 @@ object DrawTexts {
 
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
 
-    val simpleChars = Array(126 + 1 - 33) { (it + 33).toChar().toString() }
+    val simpleChars = createArrayList(126 + 1 - 33) { (it + 33).toChar().toString() }
 
     val monospaceFont by lazy {
         val size = DefaultConfig.style.getSize("fontSize", 12)

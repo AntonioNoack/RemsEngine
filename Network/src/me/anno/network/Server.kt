@@ -5,6 +5,7 @@ import me.anno.Time
 import me.anno.io.Streams.readBE32
 import me.anno.maths.Maths
 import me.anno.utils.Color.hex32
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
 import java.io.Closeable
@@ -48,7 +49,7 @@ open class Server : Closeable {
 
     private val nextRandomId = Random((Maths.random() * 1e16).toLong())
     private val clients = UnsafeArrayList<TCPClient>(1024)
-    private val hashedClients = Array<ArrayList<TCPClient>>(512) { ArrayList() }
+    private val hashedClients = createArrayList<ArrayList<TCPClient>>(512) { ArrayList() }
     private val protocols = HashMap<Int, Protocol>()
 
     private var tcpSocket: ServerSocket? = null

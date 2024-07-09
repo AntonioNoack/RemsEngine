@@ -10,6 +10,7 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.min
@@ -152,7 +153,7 @@ class SDFBezierCurve : SDFShape() {
         super.copyInto(dst)
         dst as SDFBezierCurve
         val points = points
-        dst.points = Array(points.size) { Vector4f(points[it]) }.toMutableList() as ArrayList<Vector4f>
+        dst.points = createArrayList(points.size) { Vector4f(points[it]) }
     }
 
     companion object {

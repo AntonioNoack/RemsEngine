@@ -1,6 +1,7 @@
 package org.the3deers.util
 
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -342,7 +343,7 @@ object EarCut {
      * */
     @JvmStatic
     private fun eliminateHoles(data: FloatArray, holeIndices: IntArray, outerNode0: EarCutNode, dim: Int): EarCutNode {
-        val queue = Array(holeIndices.size) { i ->
+        val queue = createArrayList(holeIndices.size) { i ->
             val start = holeIndices[i] * dim
             val end = if (i < holeIndices.lastIndex) holeIndices[i + 1] * dim else data.size
             val list = linkedList(data, start, end, dim, false)!!

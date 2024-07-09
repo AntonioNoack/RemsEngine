@@ -28,6 +28,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.float16ToFloat32
 import org.apache.logging.log4j.LogManager
@@ -417,7 +418,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         private const val timeout = 5_000L
         private val cache = CacheSection("ByteSections")
 
-        val displayedBytes = Array(256) { "." }
+        val displayedBytes = createArrayList(256, ".")
 
         init {
             val d = displayedBytes

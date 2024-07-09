@@ -14,6 +14,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.engine.EngineBase.Companion.showRedraws
 import me.anno.engine.OfficialExtensions
 import me.anno.utils.OS.music
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
@@ -49,7 +50,7 @@ fun main() {
         val audiosEntity = Entity("Audios")
         scene.add(audiosEntity)
         var audioIndex = 0
-        val audios = Array(16) {
+        val audios = createArrayList(16) {
             AudioComponent().apply {
                 source = music.getChild("domino-click.wav")
                 maxDistance = inch * 250f

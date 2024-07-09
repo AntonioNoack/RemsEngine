@@ -1,6 +1,7 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.max
@@ -55,7 +56,7 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
     // 1f .. infinity; higher = more perspective error but also faster
     var tolerance = 3f
 
-    val tmpVector3fs = Array(10) { Vector3f() }
+    val tmpVector3fs = createArrayList(10) { Vector3f() }
 
     val mapping = IntArray(size)
 

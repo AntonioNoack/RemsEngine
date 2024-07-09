@@ -1,4 +1,5 @@
 lang.name: Deutsch
+lang.enName: German
 lang.spellcheck: de-DE
 obj.particles.spawnRate: Neue Objekte / s
 obj.particles.spawnRate.desc: Wie viele neue Objekte je Sekunde erscheinen

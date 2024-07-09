@@ -1,7 +1,6 @@
 package me.anno.input.controller
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.input.Controller
 import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 

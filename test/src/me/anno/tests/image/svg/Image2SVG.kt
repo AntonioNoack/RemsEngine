@@ -304,7 +304,7 @@ val dir = listOf(
 
 class Segmentation(
     val indices: IntImage,
-    val colors: Array<Vector4f>,
+    val colors: List<Vector4f>,
     val weights: FloatArray,
     val minXs: IntArray, val minYs: IntArray,
     val maxXs: IntArray, val maxYs: IntArray,
@@ -374,7 +374,7 @@ fun segmentation(src: IntImage): Segmentation {
     val srcI = src.data
     val dstI = dst.data
     for (i in dstI.indices) dstI[i] = i
-    val colors = Array(dstI.size) { Vector4f() }
+    val colors = createArrayList(dstI.size) { Vector4f() }
     val weights = FloatArray(dstI.size)
     weights.fill(1f)
     for (i in colors.indices) {

@@ -13,6 +13,7 @@ import me.anno.utils.Color.hex4
 import me.anno.utils.Color.r01
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.video.formats.cpu.YUVFrames
 import org.joml.AABBf
 import org.joml.Vector3f
@@ -71,7 +72,7 @@ fun main() {
             }
         }
 
-        val clusters = Array(maxNumClusters) { Cluster(it) }
+        val clusters = createArrayList(maxNumClusters) { Cluster(it) }
         val mostCommonColors = uniqueColors.entries.sortedByDescending { it.value }
         for ((index, entry) in mostCommonColors.withIndex()) {
             if (index >= maxNumClusters) break

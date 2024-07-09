@@ -24,6 +24,7 @@ import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Triangles
@@ -94,7 +95,7 @@ val uv6 = listOf(
     it.y += it.x * 0.5f
 }
 
-val uv5 = Array(5) {
+val uv5 = createArrayList(5) {
     val a = it * TAUf / 5f
     val x = cos(a) * .5f + .5f
     val y = sin(a) * .5f + .5f

@@ -9,6 +9,7 @@ import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
 import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.Stack
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData
@@ -83,8 +84,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
             val massData = MassData()
             var mass = 0f
-            val shapes = Array(colliders.size) {
-                val collider = colliders[it]
+            val shapes = colliders.map { collider ->
                 val trans = collider.entity!!.fromLocalToOtherLocal(entity)
                 val shape = when (collider) {
                     is CircleCollider -> {
@@ -117,7 +117,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
                         ) {
                             val v0 = shape.vertices
                             // copy is unfortunately needed
-                            val vertices = Array(v0.size) { i -> Vec2(v0[i]) }
+                            val vertices = Array(v0.size) { i -> Vec2(v0[i]) } // must be an array
                             // transform all vertices individually
                             // translation, rotation and scale are all included automatically :)
                             for (i in 0 until shape.m_count) {

@@ -18,6 +18,7 @@ import me.anno.io.json.generic.JsonFormatter
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Planef
 import org.joml.Vector3d
 import org.junit.jupiter.api.BeforeEach
@@ -97,7 +98,7 @@ class HierarchyTests {
         val prefab = Prefab("Entity")
         val clazz = "PointLight"
         val n = 10
-        val names = Array(n) { "child$it" }
+        val names = createArrayList(n) { "child$it" }
         for (i in 0 until n) {
             val child = prefab.add(Path.ROOT_PATH, 'c', clazz, names[i])
             prefab[child, "description"] = "desc$i"

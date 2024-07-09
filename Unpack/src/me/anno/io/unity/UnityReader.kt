@@ -466,7 +466,7 @@ object UnityReader {
             val vertexCount = vertexData["VertexCount"]?.value?.toInt() ?: 0
             val dataSize = vertexData["DataSize"]?.value?.toInt() ?: 0
             val data = vertexData["Typelessdata"]?.value?.parseBuffer() // dataSize bytes in hex
-            if (data == null) LOGGER.warn("typeless-data wasn't found! ${vertexData.children?.map { it.key }}")
+            if (data == null) LOGGER.warn("typeless-data wasn't found! ${vertexData.children.map { it.key }}")
             // there are channels, and they probably define position,normal,...
             // how many channels are actually filled with data (dimension > 0)
             // val numChannels = vertexData["CurrentChannels"]?.value?.toInt()
@@ -722,8 +722,8 @@ object UnityReader {
                     val prefab3 = (transform as? PrefabReadable)?.readPrefab()
                     if (components != null && prefab3 != null) {
                         val children = components.children
-                        if (children != null) for (listNode in children) {
-                            val childPath = decodePath(guid, listNode.children!!.first().value, project)
+                        for (listNode in children) {
+                            val childPath = decodePath(guid, listNode.children.first().value, project)
                             if (childPath is PrefabReadable) {
                                 val child = childPath.readPrefab()
                                 val type2 = child.instanceName
@@ -838,7 +838,7 @@ object UnityReader {
     }
 
     private fun forAllUnityObjects(node: YAMLNode, callback: (fileId: String, node: YAMLNode) -> Unit) {
-        val children = node.children ?: return
+        val children = node.children
         if (!children[0].key.startsWith("%YAML")) {
             LOGGER.warn("Not a unity yaml file")
             return
@@ -860,7 +860,7 @@ object UnityReader {
                 // LOGGER.info("$key -> $fileId (${main.key})")
                 callback(fileId, main)
                 index++
-            } else if (descriptor.children != null) {
+            } else if (descriptor.children.isNotEmpty()) {
                 // LOGGER.info("$key -> ? (${descriptor.key})")
                 callback(zeroAssetName, descriptor)
             }

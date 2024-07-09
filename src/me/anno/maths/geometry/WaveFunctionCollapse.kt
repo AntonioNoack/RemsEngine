@@ -88,7 +88,7 @@ class WaveFunctionCollapse {
     val types = ArrayList<CellType>()
 
     open class CellType(val tileIndex: Int) {
-        val neighbors = Array(4) { BooleanArrayList() }
+        val neighbors = createArrayList(4) { BooleanArrayList() }
         override fun toString() = "$tileIndex"
     }
 
@@ -167,7 +167,7 @@ class WaveFunctionCollapse {
                     if (type is DerivedImageCellType)
                         throw RuntimeException("Must not execute this function twice")
                     val edges = type.edges
-                    val mirrors = Array(edges.size) { edges[it].reversedArray() }
+                    val mirrors = createArrayList(edges.size) { edges[it].reversedArray() }
                     var remaining = allowed xor default
                     while (remaining > 0) {
                         var bit = remaining.takeLowestOneBit()
@@ -235,7 +235,7 @@ class WaveFunctionCollapse {
 
     class Cell(var length: Int) {
         var types: ArrayList<CellType>? = null
-        val typeNeighbors = Array(4) { BooleanArrayList(length) }
+        val typeNeighbors = createArrayList(4) { BooleanArrayList(length) }
         var result: CellType? = null
     }
 

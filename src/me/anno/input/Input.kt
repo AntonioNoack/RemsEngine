@@ -15,6 +15,7 @@ import me.anno.input.Clipboard.setClipboardContent
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.input.controller.Controller
 import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -402,18 +403,7 @@ object Input {
         }
     }
 
-    val controllers = Array(15) { Controller(it) }
-    fun pollControllers(window: OSWindow) {
-        // controllers need to be pulled constantly
-        synchronized(GFXBase.glfwLock) {
-            var isFirst = true
-            for (index in controllers.indices) {
-                if (controllers[index].pollEvents(window, isFirst)) {
-                    isFirst = false
-                }
-            }
-        }
-    }
+    val controllers = ArrayList<Controller>()
 
     fun onClickIntoWindow(window: OSWindow, button: Key, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {

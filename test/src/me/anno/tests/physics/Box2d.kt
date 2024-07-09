@@ -22,6 +22,7 @@ import me.anno.maths.Maths.angleDifference
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Triangles.subCross
 import org.jbox2d.collision.shapes.PolygonShape
@@ -186,7 +187,7 @@ fun test3() {
     // more resolution = fewer pixels need to be evaluated, but also more vertices
     val circleResolution = 12
     val offset = 4f / 3f * tan(PIf / (2f * circleResolution))
-    val circle = Array(circleResolution) {
+    val circle = createArrayList(circleResolution) {
         val a = PIf * 2f * it / circleResolution
         val c = cos(a)
         val s = sin(a)

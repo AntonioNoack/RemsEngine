@@ -3,11 +3,11 @@ package me.anno.ecs.systems
 import me.anno.ecs.Component
 import me.anno.ecs.System
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.engine.EngineBase
 import kotlin.reflect.KClass
 
 abstract class UpdateByClassSystem : System() {
 
-    // todo why are these not shown?
     @DebugProperty
     val numRegisteredClasses: Int
         get() = components.count { it.value.isNotEmpty() }
@@ -15,6 +15,10 @@ abstract class UpdateByClassSystem : System() {
     @DebugProperty
     val numRegisteredInstances: Int
         get() = components.values.sumOf { it.size }
+
+    @DebugProperty
+    val worldName: String
+        get() = EngineBase.instance?.systems?.world?.name ?: "null"
 
     private val components = HashMap<KClass<*>, HashSet<Component>>()
     override fun onEnable(component: Component) {

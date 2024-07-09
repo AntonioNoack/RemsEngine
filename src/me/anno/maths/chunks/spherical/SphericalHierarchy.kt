@@ -2,6 +2,7 @@ package me.anno.maths.chunks.spherical
 
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector3d
 
 /**
@@ -14,7 +15,7 @@ open class SphericalHierarchy(
     var maxLevels: Int = 15, // 15 lods ~ max 32000² per mesh triangle
 ) {
 
-    val triangles = Array(shape.numPrimitives.toInt()) { SphereTriangle(0, it + 1) }
+    val triangles = createArrayList(shape.numPrimitives.toInt()) { SphereTriangle(0, it + 1) }
 
     open var radius = radius
         set(value) {

@@ -16,6 +16,7 @@ import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix4f
@@ -86,7 +87,7 @@ private fun testEdgeAA() {
     val rot = Matrix2f()
         .rotate(0.5f)
 
-    val planes = Array(4) {
+    val planes = createArrayList(4) {
         val dx = it.and(1) * 2 - 1f
         val dy = it.and(2) - 1f
         val normal = rot.transform(Vector2f(dx, dy))

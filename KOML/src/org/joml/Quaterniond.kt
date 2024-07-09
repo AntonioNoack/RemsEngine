@@ -430,6 +430,11 @@ open class Quaterniond(
     }
 
     @JvmOverloads
+    fun mul(qx: Float, qy: Float, qz: Float, qw: Float, dst: Quaterniond = this): Quaterniond {
+        return mul(qx.toDouble(), qy.toDouble(), qz.toDouble(), qw.toDouble(), dst)
+    }
+
+    @JvmOverloads
     fun mul(qx: Double, qy: Double, qz: Double, qw: Double, dst: Quaterniond = this): Quaterniond {
         return dst.set(
             w * qx + x * qw + y * qz - z * qy,

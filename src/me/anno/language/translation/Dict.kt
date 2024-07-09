@@ -28,8 +28,7 @@ object Dict {
         SimpleYAMLReader.read(lines.iterator(), false, values)
     }
 
-    fun getLanguageName(text: String): String? {
-        val prefix = "lang.name:"
+    private fun getValue(text: String, prefix: String): String? {
         val startIndex = text.indexOf(prefix)
         if (startIndex >= 0) {
             val valueStartIndex = startIndex + prefix.length
@@ -40,6 +39,12 @@ object Dict {
             }
         }
         return null
+    }
+
+    fun getLanguageName(text: String): NameDesc? {
+        val name = getValue(text, "lang.name:") ?: return null
+        val desc = getValue(text, "lang.enName:") ?: name
+        return NameDesc(name, desc, "")
     }
 
     private fun load(file: FileReference): LanguageOption? {
@@ -73,7 +78,7 @@ object Dict {
             }
         }
         if (options.isEmpty()) {
-            options += LanguageOption("", InvalidRef, "Missing :/")
+            options += LanguageOption("", InvalidRef, NameDesc("Missing :/"))
         }
         return options
     }
@@ -100,10 +105,9 @@ object Dict {
         val options = getOptions()
         val currentLanguage = getDefaultOption()
         val input = EnumInput(
-            Dict["Language", "ui.input.language.title"],
-            true,
-            currentLanguage.name,
-            options.map { NameDesc(it.name) },
+            Dict["Language", "ui.input.language.title"], true,
+            currentLanguage.nameDesc.name,
+            options.map { it.nameDesc },
             style
         )
         input.setChangeListener { _, index, _ ->

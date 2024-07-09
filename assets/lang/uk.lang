@@ -1,4 +1,5 @@
 lang.name: украї́нська
+lang.enName: Ukrainian
 lang.spellcheck: uk-UA
 obj.particles.spawnRate: Нові об'єкти / с
 obj.particles.spawnRate.desc: Скільки нових об'єктів з'являється за секунду

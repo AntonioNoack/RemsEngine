@@ -7,6 +7,7 @@ import me.anno.maths.Maths.sq
 import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.maths.geometry.DualContouring3d.Grad3d
 import me.anno.maths.geometry.MarchingSquares.findZero
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix3f
 import org.joml.Vector3f
@@ -170,7 +171,7 @@ object DualContouring3d {
         z0: Float, z1: Float,
         g: Vector3f, q: QEF3d,
         wi: Int,
-        vertices: Array<Vector3f>,
+        vertices: ArrayList<Vector3f>,
     ) {
         val v0 = values[i0]
         val v1 = values[i0 + diz]
@@ -261,7 +262,7 @@ object DualContouring3d {
         values: FloatArray, function: Func3d, gradient: Grad3d
     ): List<Vector3f> {
         val invalid = Vector3f()
-        val vertices = Array(sx * sy * sz) { invalid }
+        val vertices = createArrayList(sx * sy * sz, invalid)
         var writeIndex = 0
         var vIndex = 0
         val diy = sx + 1

@@ -10,6 +10,9 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
+import me.anno.extensions.events.EventBroadcasting
+import me.anno.extensions.events.EventBroadcasting.callEvent
+import me.anno.extensions.events.GameLoopStartEvent
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
@@ -182,6 +185,7 @@ abstract class EngineBase(
 
         GFX.check()
 
+        callEvent(GameLoopStartEvent())
         onGameLoopStart()
 
         if (isFirstFrame) tick("Game loop")

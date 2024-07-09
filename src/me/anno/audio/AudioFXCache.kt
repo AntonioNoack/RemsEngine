@@ -229,7 +229,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
                 data.value = values
             }
             data
-        } as? ShortData ?: return null
+        } ?: return null
         return entry.value
     }
 

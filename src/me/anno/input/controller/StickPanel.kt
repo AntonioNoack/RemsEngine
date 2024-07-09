@@ -2,7 +2,6 @@ package me.anno.input.controller
 
 import me.anno.utils.Color.black
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.input.Controller
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.ui.Style

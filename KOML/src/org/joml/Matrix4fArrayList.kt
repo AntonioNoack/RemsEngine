@@ -76,13 +76,13 @@ class Matrix4fArrayList : Matrix4f() {
         return result
     }
 
-    override fun equals(m: Any?): Boolean {
-        if (this === m) return true
-        if (!super.equals(m)) return false
-        if (m is Matrix4fArrayList) {
-            if (currentIndex != m.currentIndex) return false
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (!super.equals(other)) return false
+        if (other is Matrix4fArrayList) {
+            if (currentIndex != other.currentIndex) return false
             for (i in 0 until currentIndex) {
-                if (matrices[i] != m.matrices[i]) return false
+                if (matrices[i] != other.matrices[i]) return false
             }
         }
         return true

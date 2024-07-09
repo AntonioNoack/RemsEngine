@@ -124,7 +124,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     // read struct dna
-    private val names = Array(file.readInt()) {
+    private val names = createArrayList(file.readInt()) {
         file.read0String()
     }
 
@@ -133,7 +133,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('T', 'Y', 'P', 'E')
     }
 
-    private val typeNames = Array(file.readInt()) {
+    private val typeNames = createArrayList(file.readInt()) {
         file.read0String()
     }
 
@@ -154,9 +154,9 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         file.consumeIdentifier('S', 'T', 'R', 'C')
     }
 
-    private val structsWithIndices = Array(file.readInt()) { Struct(file) }
+    private val structsWithIndices = createArrayList(file.readInt()) { Struct(file) }
 
-    val structs = Array(structsWithIndices.size) { i ->
+    val structs = createArrayList(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
         val type = types[s.type.toUShort().toInt()]
         val fields = createArrayList(s.fieldsAsTypeName.size shr 1) { j ->

@@ -460,7 +460,7 @@ class MainStage {
                         }
                     }
                 }
-                settings.appendLayerWriters(code, disabledLayers, builder.useRandomness, defined)
+                settings.appendLayerWriters(code, disabledLayers, builder.useRandomness)
             }
         }
         code.append("}\n")

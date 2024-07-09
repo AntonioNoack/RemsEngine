@@ -563,15 +563,6 @@ open class SDFGroup : SDFComponent() {
         return null
     }
 
-    override fun onUpdate() {
-        super.onUpdate()
-        val children = children
-        for (index in children.indices) {
-            val child = children[index]
-            if (child.isEnabled) child.onUpdate()
-        }
-    }
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFGroup

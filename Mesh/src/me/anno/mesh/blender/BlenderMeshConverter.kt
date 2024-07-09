@@ -23,6 +23,7 @@ import me.anno.mesh.blender.impl.primitives.BVector3f
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -373,7 +374,7 @@ object BlenderMeshConverter {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
                     val vec2Index = HashMap<Vector3f, Int>()
-                    val vectors = Array(loopSize) {
+                    val vectors = createArrayList(loopSize) {
                         val index = (loopData[loopStart + it]).v
                         val vec = Vector3f(
                             positions[index * 3],
@@ -385,7 +386,7 @@ object BlenderMeshConverter {
                     }
                     val uvIndex0 = uvIndex
                     uvIndex += loopSize
-                    val triangles = Triangulation.ringToTrianglesVec3f(vectors.toList())
+                    val triangles = Triangulation.ringToTrianglesVec3f(vectors)
                     for (idx0 in triangles.indices step 3) {
                         val i0 = vec2Index[triangles[idx0]]!!
                         val i1 = vec2Index[triangles[idx0 + 1]]!!
@@ -477,13 +478,13 @@ object BlenderMeshConverter {
                     // complex triangulation, because it may be more complicated than it seems, and
                     // we have to be correct
                     val vec2Index = HashMap<Vector3d, Int>()
-                    val vectors = Array(loopSize) {
+                    val vectors = createArrayList(loopSize) {
                         val index = loopData[loopStart + it].v
                         val vec = Vector3d(positions, index * 3)
                         vec2Index[vec] = index
                         vec
                     }
-                    val triangles = Triangulation.ringToTrianglesVec3d(vectors.toList())
+                    val triangles = Triangulation.ringToTrianglesVec3d(vectors)
                     for (tri in triangles) {
                         indices.add(vec2Index[tri]!!)
                     }

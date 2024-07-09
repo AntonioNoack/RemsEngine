@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.PI
 
@@ -37,7 +38,7 @@ object FlatShaders {
     /**
      * blit-like shader without any stupid OpenGL constraints like size or format
      * */
-    val copyShaderAnyToAny = Array(4) {
+    val copyShaderAnyToAny = createArrayList(4) {
         val colorMS = it.hasFlag(2)
         val depthMS = it.hasFlag(1)
         Shader(

@@ -3,6 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.Matrix3d
 import org.joml.Matrix4x3d
@@ -24,11 +25,11 @@ class Frustum {
     // if we replace those floats with doubles
 
     // -x,+x,-y,+y,-z,+z
-    val planes = Array(13) { Planed() }
+    val planes = createArrayList(13) { Planed() }
     var length = 6
 
-    private val normals = Array(13) { Vector3d() }
-    private val positions = Array(13) { Vector3d() }
+    private val normals = createArrayList(13) { Vector3d() }
+    private val positions = createArrayList(13) { Vector3d() }
 
     // frustum information, for the size estimation
     private val cameraPosition = Vector3d()

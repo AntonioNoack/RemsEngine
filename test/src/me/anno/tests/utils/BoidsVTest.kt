@@ -14,6 +14,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -31,11 +32,11 @@ class BoidVTest(val m: Int, val n: Int) : MeshSpawner(), OnUpdate {
     val newDir = Vector3f()
     val tmp = Vector3f()
 
-    val positions = Array(n) { Vector3f() }
-    val pos2 = Array(n) { Vector3d() }
-    val directions = Array(n) { Vector3f() }
-    val rotations = Array(n) { Quaternionf() }
-    val velocities = Array(n) { Vector3f() }
+    val positions = createArrayList(n) { Vector3f() }
+    val pos2 = createArrayList(n) { Vector3d() }
+    val directions = createArrayList(n) { Vector3f() }
+    val rotations = createArrayList(n) { Quaternionf() }
+    val velocities = createArrayList(n) { Vector3f() }
     val following = IntArray(m * n)
 
     val group = ProcessingGroup("boids", 1f)

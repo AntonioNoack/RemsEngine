@@ -2,6 +2,7 @@ package me.anno.export.reflect.clazz
 
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -22,10 +23,10 @@ class Clazz(input: DataInputStream) {
     val accessFlags = input.readUnsignedShort()
     val clazz = constantPool[input.readUnsignedShort()] as ClassInfo
     val superClass = constantPool[input.readUnsignedShort()] as? ClassInfo
-    val interfaces = Array(input.readUnsignedShort()) { constantPool[input.readUnsignedShort()] as ClassInfo }
-    val fields = Array(input.readUnsignedShort()) { Member(this, input) }
-    val methods = Array(input.readUnsignedShort()) { Member(this, input) }
-    val attributes = Array(input.readUnsignedShort()) { Attribute(this, input) }
+    val interfaces = createArrayList(input.readUnsignedShort()) { constantPool[input.readUnsignedShort()] as ClassInfo }
+    val fields = createArrayList(input.readUnsignedShort()) { Member(this, input) }
+    val methods = createArrayList(input.readUnsignedShort()) { Member(this, input) }
+    val attributes = createArrayList(input.readUnsignedShort()) { Attribute(this, input) }
 
     val constantMap = constantPool.withIndex().associate { it.value to it.index }
     val usedConstants = BooleanArrayList(constantPool.size)

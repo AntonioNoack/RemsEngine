@@ -1,4 +1,5 @@
 lang.name: Español
+lang.enName: Spanish
 lang.spellcheck: es
 obj.particles.spawnRate: Nuevos objetos / s
 obj.particles.spawnRate.desc: Cuántos objetos nuevos aparecen por segundo

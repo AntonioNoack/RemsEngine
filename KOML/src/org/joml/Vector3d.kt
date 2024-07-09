@@ -19,7 +19,7 @@ open class Vector3d(
     @JvmField var x: Double,
     @JvmField var y: Double,
     @JvmField var z: Double,
-): Vector() {
+) : Vector() {
 
     constructor() : this(0.0, 0.0, 0.0)
     constructor(v: Double) : this(v, v, v)
@@ -73,6 +73,9 @@ open class Vector3d(
     fun sub(v: Double, dst: Vector3d = this): Vector3d = sub(v, v, v, dst)
     fun sub(v: Vector3d, dst: Vector3d = this): Vector3d = sub(v.x, v.y, v.z, dst)
     fun sub(v: Vector3f, dst: Vector3d = this): Vector3d = sub(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
+    fun sub(x: Float, y: Float, z: Float, dst: Vector3d = this): Vector3d =
+        sub(x.toDouble(), y.toDouble(), z.toDouble(), dst)
+
     fun sub(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
         dst.x = this.x - x
         dst.y = this.y - y
@@ -83,6 +86,9 @@ open class Vector3d(
     fun add(v: Double, dst: Vector3d = this): Vector3d = add(v, v, v, dst)
     fun add(v: Vector3d, dst: Vector3d = this): Vector3d = add(v.x, v.y, v.z, dst)
     fun add(v: Vector3f, dst: Vector3d = this): Vector3d = add(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
+    fun add(x: Float, y: Float, z: Float, dst: Vector3d = this): Vector3d =
+        add(x.toDouble(), y.toDouble(), z.toDouble(), dst)
+
     fun add(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
         dst.x = this.x + x
         dst.y = this.y + y

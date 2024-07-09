@@ -3,6 +3,7 @@ package me.anno.tests.game.creeperworld
 import me.anno.image.ImageCache
 import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
+import me.anno.utils.structures.lists.Lists.createArrayList
 
 object RockTypes {
 
@@ -24,7 +25,7 @@ object RockTypes {
 
     val rockTypes = listOf(stone, rock, clay, sand)
     val rockById = rockTypes.associateBy(RockType::id)
-    val rockTextures = Array(rockTypes.maxOf(RockType::id) + 1) { id ->
+    val rockTextures = createArrayList(rockTypes.maxOf(RockType::id) + 1) { id ->
         rockById[id]?.texture ?: skyColor
     }
 }

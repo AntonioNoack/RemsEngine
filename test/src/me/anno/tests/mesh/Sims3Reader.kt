@@ -6,6 +6,7 @@ import me.anno.utils.types.Booleans.hasFlag
 import me.anno.tests.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Buffers.skip
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -62,7 +63,7 @@ fun main() {
         // read n entries
         val header = IndexHeader(input, indexType)
         val invIndexType = indexType.inv()
-        val entries = Array(numberOfEntries) {
+        val entries = createArrayList(numberOfEntries) {
             IndexEntry(input, invIndexType, header)
         }
         val buffer = ByteBuffer.allocate(entries.maxOf { it.memSize })

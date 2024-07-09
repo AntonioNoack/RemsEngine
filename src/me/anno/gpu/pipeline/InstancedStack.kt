@@ -274,6 +274,7 @@ open class InstancedStack {
                             localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
                         }
                         setupLights(pipeline, shader, aabb, receiveShadows)
+                        shader.checkIsUsed()
                     }
                     GFX.check()
 

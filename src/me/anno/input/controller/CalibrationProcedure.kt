@@ -1,9 +1,8 @@
 package me.anno.input.controller
 
 import me.anno.gpu.OSWindow
-import me.anno.input.Controller
-import me.anno.input.Controller.Companion.saveCalibration
 import me.anno.input.Input.controllers
+import me.anno.input.controller.ControllerCalibration.Companion.saveCalibration
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpyPanel

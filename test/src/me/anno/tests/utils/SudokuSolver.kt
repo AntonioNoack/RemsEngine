@@ -3,6 +3,7 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.utils.Done
 import me.anno.utils.OS.downloads
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.junit.jupiter.api.Assertions.assertEquals
 
 class Cell(val xi: Int, val yi: Int, val ci: Int, val index: Int)
@@ -41,7 +42,7 @@ class SudokuSolver {
         field[cell.index] = value
     }
 
-    private val cells = Array(n * n) {
+    private val cells = createArrayList(n * n) {
         val xi = it % n
         val yi = it / n
         Cell(xi, yi, (xi / 3) + (yi / 3) * 3, it)

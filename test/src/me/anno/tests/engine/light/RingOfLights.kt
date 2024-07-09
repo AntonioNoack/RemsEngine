@@ -16,6 +16,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.AABBd
 import org.joml.Matrix4x3f
 import org.joml.Quaterniond
@@ -76,7 +77,7 @@ fun main() {
         val numColors = 3
         val colorRepetitions = 3
         val scale = Vector3d(elementSize)
-        val colors = Array(numColors) {
+        val colors = createArrayList(numColors) {
             val angle = it / numColors.toFloat()
             val color = HSLuv.toRGB(Vector3f(angle, 1f, 0.7f)).mul(lightLevel)
             PointLight().apply { this.color.set(color) }

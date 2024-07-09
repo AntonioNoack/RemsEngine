@@ -42,6 +42,6 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class, "Animatio
             val bbb = if (animation is BoneByBoneAnimation) animation
             else BoneByBoneAnimation(animation as ImportedAnimation)
             retargeting.map(bbb)
-        } as? BoneByBoneAnimation
+        }
     }
 }

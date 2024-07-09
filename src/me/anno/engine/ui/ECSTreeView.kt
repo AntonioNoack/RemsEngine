@@ -1,5 +1,6 @@
 package me.anno.engine.ui
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityStats.totalNumComponents
@@ -434,10 +435,13 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
     }
 
     override fun getSymbol(element: Saveable): String {
-        return if (isCollapsed(element) && getChildren(element).isNotEmpty()) "📁"
-        else if (element is PrefabSaveable && element.root.prefab?.isWritable == false) "\uD83D\uDD12" // lock
-        else if (element is System) "\uD83D\uDEE0\uFE0F" // tools
-        else "⚪"
+        return when {
+            isCollapsed(element) && getChildren(element).isNotEmpty() -> "📁"
+            element is PrefabSaveable && element.root.prefab?.isWritable == false -> "\uD83D\uDD12" // lock
+            element is System -> "\uD83D\uDEE0\uFE0F" // tools
+            element is Component -> "\uD83E\uDDE9" // puzzle piece
+            else -> "⚪"
+        }
     }
 
     override fun getParent(element: Saveable): Saveable? {

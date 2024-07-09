@@ -6,6 +6,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Optimization
 import me.anno.maths.geometry.DualContouring.Grad2d
 import me.anno.maths.geometry.MarchingSquares.findZero
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix2f
 import org.joml.Vector2f
@@ -109,7 +110,7 @@ object DualContouring {
         x0: Float, x1: Float,
         y0: Float, y1: Float,
         g: Vector2f, qef: QEF2d,
-        wi: Int, vertices: Array<Vector2f>,
+        wi: Int, vertices: ArrayList<Vector2f>,
     ) {
         val v00 = values[i0]
         val v01 = values[i0 + di]
@@ -191,7 +192,7 @@ object DualContouring {
         func: Func2d, gradient: Grad2d
     ): Pair<List<Vector2f>, List<Vector2f>> {
         val invalid = Vector2f()
-        val vertices = Array(sx * sy) { invalid }
+        val vertices = createArrayList(sx * sy, invalid)
         var writeIndex = 0
         var i = 0
         val di = sx + 1

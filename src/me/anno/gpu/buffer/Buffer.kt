@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -13,6 +14,7 @@ import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
+import org.lwjgl.opengl.GL46C.glGetError
 import org.lwjgl.opengl.GL46C.glVertexAttribDivisor
 import org.lwjgl.opengl.GL46C.glVertexAttribIPointer
 import org.lwjgl.opengl.GL46C.glVertexAttribPointer
@@ -172,17 +174,29 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                         index, attr.components, type.id,
                         attr.stride, attr.offset.toLong()
                     )
+                    checkNCrash(index, instanceDivisor, attr)
                 } else {
                     glVertexAttribPointer(
                         index, attr.components, type.id,
                         type.normalized, attr.stride, attr.offset.toLong()
                     )
+                    checkNCrash(index, instanceDivisor, attr)
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
+                checkNCrash(index, instanceDivisor, attr)
                 enable(index)
+                checkNCrash(index, instanceDivisor, attr)
                 GFX.check()
                 true
             } else false
+        }
+
+        private fun checkNCrash(index: Int, instanceDivisor: Int, attr: Attribute) {
+            val err = glGetError()
+            if (err != 0) { // todo why is this triggered??? is the shader not bound???
+                Engine.requestShutdown()
+                throw RuntimeException("Error: $err, #$index/${GFX.maxAttributes}, $instanceDivisor, $attr")
+            }
         }
 
         private fun enable(index: Int) {

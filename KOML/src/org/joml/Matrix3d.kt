@@ -1804,11 +1804,11 @@ open class Matrix3d {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return this === obj || (obj is Matrix3d &&
-                m00 == obj.m00 && m01 == obj.m01 && m02 == obj.m02 &&
-                m10 == obj.m10 && m11 == obj.m01 && m12 == obj.m12 &&
-                m20 == obj.m20 && m21 == obj.m01 && m22 == obj.m22)
+    override fun equals(other: Any?): Boolean {
+        return this === other || (other is Matrix3d &&
+                m00 == other.m00 && m01 == other.m01 && m02 == other.m02 &&
+                m10 == other.m10 && m11 == other.m01 && m12 == other.m12 &&
+                m20 == other.m20 && m21 == other.m01 && m22 == other.m22)
     }
 
     fun equals(m: Matrix3d?, delta: Double): Boolean {

@@ -17,6 +17,7 @@ import me.anno.gpu.texture.LazyTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Booleans.withoutFlag
@@ -547,7 +548,7 @@ class Framebuffer(
         private val LOGGER = LogManager.getLogger(Framebuffer::class)
 
         // more than 16 attachments are probably not supported
-        private val attachments = Array(14) { size ->
+        private val attachments = createArrayList(14) { size ->
             IntArray(size + 2) { GL_COLOR_ATTACHMENT0 + it }
         }
 

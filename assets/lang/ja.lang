@@ -1,4 +1,5 @@
 lang.name: 日本
+lang.enName: Japanese
 lang.spellcheck: ja-JP
 obj.particles.spawnRate: 新しいオブジェクトの出現数/秒
 obj.particles.spawnRate.desc: 1秒間に何個の新しいオブジェクトが現れるか

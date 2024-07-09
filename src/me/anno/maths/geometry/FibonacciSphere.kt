@@ -1,5 +1,6 @@
 package me.anno.maths.geometry
 
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
@@ -27,8 +28,8 @@ object FibonacciSphere {
      * creates a sphere with N regularly positioned points
      * https://stackoverflow.com/a/26127012/4979303
      * */
-    fun create(n: Int): Array<Vector3f> {
-        return Array(n) { i -> get(i, n, Vector3f()) }
+    fun create(n: Int): List<Vector3f> {
+        return createArrayList(n) { i -> get(i, n, Vector3f()) }
     }
 
     fun create2(n: Int): FloatArray {

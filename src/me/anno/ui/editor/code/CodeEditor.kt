@@ -32,6 +32,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.arrays.IntSequence
 import me.anno.utils.structures.arrays.LineSequence
 import me.anno.utils.structures.lists.Lists.binarySearch
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.log10
@@ -84,7 +85,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     val padding = Padding(4)
     var font = Font("Courier New", 16)
-    val fonts = Array(4) {
+    val fonts = createArrayList(4) {
         font.withBold(it.and(1) > 0)
             .withItalic(it.and(2) > 0)
     }

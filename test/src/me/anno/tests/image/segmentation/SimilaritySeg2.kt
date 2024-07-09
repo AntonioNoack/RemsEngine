@@ -6,6 +6,7 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths
 import me.anno.utils.Color.a
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.video.formats.cpu.YUVFrames
 import kotlin.math.log2
@@ -42,7 +43,7 @@ fun main(){
 
     val numClusters = clustersX * clustersY + 1
 
-    val clusters = Array(numClusters) { Cluster(it) }
+    val clusters = createArrayList(numClusters) { Cluster(it) }
     val clusterIdMapping = IntArray(numClusters - 1) { it }
     clusterIdMapping.shuffle()
 

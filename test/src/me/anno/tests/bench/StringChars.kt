@@ -1,6 +1,7 @@
 package me.anno.tests.bench
 
 import me.anno.utils.Clock.Companion.measure
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.random.Random
 
@@ -9,7 +10,7 @@ fun main() {
     val logger = LogManager.getLogger("StringChars")
     val alphabet = "abcdefghijklmnopqrstuvxyz0123456"
     val random = Random(1234)
-    val randomStrings = Array(1024) {
+    val randomStrings = createArrayList(1024) {
         String(CharArray(1024) { alphabet[random.nextInt(alphabet.length)] })
     }
 

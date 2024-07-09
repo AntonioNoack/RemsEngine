@@ -598,7 +598,7 @@ class HexagonSphere(
         return creator.create(index, pos, corners)
     }
 
-    val triangleCenters = Array(20) { i ->
+    val triangleCenters = createArrayList(20) { i ->
         val i3 = i * 3
         val ai = indices[i3]
         val bi = indices[i3 + 1]
@@ -609,7 +609,7 @@ class HexagonSphere(
         Vector3f(a).add(b).add(c).div(3f).normalize()
     }
 
-    val triangles = Array(20) { i ->
+    val triangles = createArrayList(20) { i ->
 
         val i3 = i * 3
         val ai = indices[i3]
@@ -667,7 +667,7 @@ class HexagonSphere(
 
     init {
 
-        val pointsToLines = Array(12) { ArrayList<Hexagon>(5) }
+        val pointsToLines = createArrayList(12) { ArrayList<Hexagon>(5) }
 
         // define edges
         for (i in lineIndices.indices step 2) {

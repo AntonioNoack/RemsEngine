@@ -46,6 +46,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.castToList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
@@ -665,10 +666,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                                     windowStack, NameDesc("Destination Slot for ${file.nameWithoutExtension}?"),
                                     (0 until numMaterials).map { i ->
                                         MenuOption(NameDesc("$i", "", "")) {
-                                            hovComponent.materials = Array(numMaterials) {
+                                            hovComponent.materials = createArrayList(numMaterials) {
                                                 if (it == i) file
                                                 else hovComponent.materials.getOrNull(it) ?: InvalidRef
-                                            }.toList()
+                                            }
                                             hovComponent.prefab?.set(
                                                 hovComponent,
                                                 "materials",

@@ -229,7 +229,7 @@ object BlenderReader {
                     val name = bObject.id.realName
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
-                    createObject(prefab, bObject, path, false, fps, meshes)
+                    createObject(prefab, bObject, path, false, fps)
                 }
                 if (postTransform) {
                     prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
@@ -237,7 +237,7 @@ object BlenderReader {
             } else {
                 // there must be a root
                 paths[roots.first()] = Path.ROOT_PATH
-                createObject(prefab, roots.first(), Path.ROOT_PATH, true, fps, meshes)
+                createObject(prefab, roots.first(), Path.ROOT_PATH, true, fps)
             }
 
             for (obj in objects) {
@@ -295,7 +295,7 @@ object BlenderReader {
             val parent = makeObject(prefab, obj.parent!!, paths, fps, meshes)
             val childIndex = prefab.adds[parent]?.count { it.type == 'e' } ?: 0
             val path = Path(parent, name, childIndex, 'e')
-            createObject(prefab, obj, path, false, fps, meshes)
+            createObject(prefab, obj, path, false, fps)
             path
         }
     }
@@ -362,10 +362,7 @@ object BlenderReader {
         return dstBoneIndices
     }
 
-    fun createObject(
-        prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float,
-        meshes: InnerFolder
-    ) {
+    fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean, fps: Float) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
                 path.parent ?: Path.ROOT_PATH,

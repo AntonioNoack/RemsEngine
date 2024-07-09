@@ -10,6 +10,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import me.anno.openxr.OpenXRController.Companion.xrControllers
 
 class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
@@ -75,6 +76,11 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
     private fun onInactive(window: OSWindow) {
         // reset roll
         (instance as? OpenXRRendering)?.rv?.controlScheme?.rotationTarget?.z = 0.0
+        // reset vsync
         window.vsyncOverride = null
+        // disable controllers
+        for (i in xrControllers.lastIndex downTo 0) {
+            xrControllers[i].isConnected = false
+        }
     }
 }

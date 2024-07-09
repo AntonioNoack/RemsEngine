@@ -1,6 +1,7 @@
 package me.anno.tests.mesh.unreal
 
 import me.anno.io.files.Reference.getReference
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Buffers.skip
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -119,7 +120,7 @@ object UnrealReader {
         buffer.skip(4)
         val filesDataOffset = buffer.int
         println("name vs offset: ${buffer.position()} vs $nameDirOffset")
-        val names = Array(numNames) {
+        val names = createArrayList(numNames) {
             val length = buffer.int // including null
             println("length $it/$numNames: $length")
             val name = ByteArray(length - 1) { buffer.get() }.decodeToString()
@@ -128,7 +129,7 @@ object UnrealReader {
             val flags = buffer.int
             name to flags
         }
-        val imports = Array(numImports) {
+        val imports = createArrayList(numImports) {
             val parentDirNameId = buffer.long
             val classId = buffer.long
             val parentImportObjectId = buffer.int xor 255
@@ -137,7 +138,7 @@ object UnrealReader {
         }
         // unknown
         buffer.skip(numExports * 100)
-        /*val exports = Array(numExports){
+        /*val exports = createArrayList(numExports){
 
         }*/
         buffer.skip(4) // padding

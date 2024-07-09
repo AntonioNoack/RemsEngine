@@ -12,6 +12,7 @@ import me.anno.utils.structures.lists.Lists.wrap
 // and only if needed...
 // todo make physics into systems
 // todo show settings for physics somehow...
+// todo when something is enabled/disabled/added/removed, notify the system
 class Systems : PrefabSaveable() {
 
     companion object {
@@ -43,7 +44,9 @@ class Systems : PrefabSaveable() {
                 for (i in systems.indices) {
                     systems[i].clear()
                 }
-                addOrRemoveRecursively(value, true)
+                if (value != null) {
+                    addOrRemoveRecursively(value, true)
+                }
                 field = value
             }
         }
@@ -69,30 +72,24 @@ class Systems : PrefabSaveable() {
         else system.onDisable(element)
     }
 
-    fun addOrRemoveRecursively(element: PrefabSaveable?, add: Boolean) {
+    fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean) {
         val systems = systems
-        when (element) {
-            is Component -> {
-                for (i in systems.indices) {
+        val stack = ArrayList<PrefabSaveable>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val element = stack.removeLast()
+            if (!element.isEnabled) continue
+            for (type in element.listChildTypes()) {
+                stack.addAll(element.getChildListByType(type))
+            }
+            when (element) {
+                is Entity -> for (i in systems.indices) {
                     val system = systems[i]
                     addOrRemove(system, element, add)
                 }
-            }
-            is Entity -> {
-                val stack = ArrayList<Entity>()
-                stack.add(element)
-                while (stack.isNotEmpty()) {
-                    val elementI = stack.removeLast()
-                    if (!elementI.isEnabled) continue
-                    stack.addAll(elementI.children)
-                    val components = elementI.components
-                    for (i in systems.indices) {
-                        val system = systems[i]
-                        addOrRemove(system, element, add)
-                        for (j in components.indices) {
-                            addOrRemove(system, components[j], add)
-                        }
-                    }
+                is Component -> for (i in systems.indices) {
+                    val system = systems[i]
+                    addOrRemove(system, element, add)
                 }
             }
         }

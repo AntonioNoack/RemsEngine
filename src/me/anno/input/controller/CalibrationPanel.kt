@@ -3,7 +3,6 @@ package me.anno.input.controller
 import me.anno.Time
 import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.input.Controller
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel

@@ -19,6 +19,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.Stack
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.AABBd
 import org.joml.Quaternionf
@@ -48,10 +49,10 @@ class BoidV3(val n: Int) : MeshSpawner(), OnUpdate, OnDrawGUI {
     val min = Vector3f()
     val max = Vector3f()
 
-    val positions = Array(n) { Vector3f() }
-    val directions = Array(n) { Vector3f() }
-    val rotations = Array(n) { Quaternionf() }
-    val velocities = Array(n) { Vector3f() }
+    val positions = createArrayList(n) { Vector3f() }
+    val directions = createArrayList(n) { Vector3f() }
+    val rotations = createArrayList(n) { Quaternionf() }
+    val velocities = createArrayList(n) { Vector3f() }
 
     val accPool = Stack { Accelerator(this) }
     val accelerator = Accelerator(this)

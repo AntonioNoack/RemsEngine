@@ -2,6 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.Time
 import me.anno.utils.Done
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.junit.jupiter.api.Assertions.assertEquals
 
 // this is 2s faster (15%), just by removing the surrounding class :/
@@ -42,7 +43,7 @@ fun main() {
         field[cell.index] = value
     }
 
-    val cells = Array(n * n) {
+    val cells = createArrayList(n * n) {
         val xi = it % n
         val yi = it / n
         Cell(xi, yi, (xi / 3) + (yi / 3) * 3, it)

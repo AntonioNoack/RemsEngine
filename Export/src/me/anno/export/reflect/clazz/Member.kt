@@ -1,5 +1,6 @@
 package me.anno.export.reflect.clazz
 
+import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
@@ -7,7 +8,7 @@ open class Member(clazz: Clazz, input: DataInputStream) {
     val accessFlags = input.readUnsignedShort()
     val name = clazz.constantPool[input.readUnsignedShort()] as String
     val descriptor = clazz.constantPool[input.readUnsignedShort()] as String
-    val attributes = Array(input.readUnsignedShort()) {
+    val attributes = createArrayList(input.readUnsignedShort()) {
         Attribute(clazz, input)
     }
 

@@ -473,9 +473,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         // must be called before we define our render settings
         // so lights don't override our settings, or we'd have to repeat our definition
-        if (update) {
-            updateWorld(world)
-        }
+        validateTransform(world)
 
         val near = camera.near
         val far = camera.far
@@ -589,7 +587,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         )
     }
 
-    fun updateWorld(world: PrefabSaveable?) {
+    fun validateTransform(world: PrefabSaveable?) {
         if (world is Entity) {
             world.validateTransform()
         }

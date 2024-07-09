@@ -1,5 +1,6 @@
 package me.anno.maths.noise
 
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -23,7 +24,7 @@ class PerlinNoise(
     val scale: Vector4f = Vector4f(1f)
 ) {
 
-    private var levels: Array<FullNoise>? = null
+    private var levels: ArrayList<FullNoise>? = null
     private var factors = FloatArray(octaves)
 
     private var offset = min
@@ -79,7 +80,7 @@ class PerlinNoise(
         val octaves = octaves
         var generators = levels
         if (generators == null || generators.size != octaves) {
-            generators = Array(octaves) { FullNoise(random.nextLong()) }
+            generators = createArrayList(octaves) { FullNoise(random.nextLong()) }
         } else {
             for (i in 0 until octaves) {
                 generators[i] = FullNoise(random.nextLong())

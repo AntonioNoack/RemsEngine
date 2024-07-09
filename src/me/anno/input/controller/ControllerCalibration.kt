@@ -1,8 +1,11 @@
 package me.anno.input.controller
 
-import me.anno.input.Controller.Companion.MAX_NUM_AXES
+import me.anno.engine.EngineBase
 import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.config.ConfigBasics
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -57,9 +60,47 @@ class ControllerCalibration() : Saveable() {
     }
 
     companion object {
+
+        private val MAX_NUM_AXES = 32 // idk
+
         // this probably is never called, right?
         init {
             registerCustomClass(ControllerCalibration())
         }
+
+        fun formatGuid(guid: String): String {
+            var str = guid.trim()
+            if (str.startsWith('0')) {
+                val index = str.indexOfFirst { it != '0' }
+                if (index < 0) return "0"
+                str = "${index}x${str.substring(index)}"
+            }
+            if (str.endsWith('0')) {
+                var index = str.indexOfLast { it != '0' }
+                if (index < 0) index = 0
+                str = "${str.substring(0, index + 1)}x${str.length - index - 1}"
+            }
+            return str
+        }
+
+        private fun getCalibrationFile(guid: String) =
+            ConfigBasics.configFolder.getChild("controller/${formatGuid(guid)}.json")
+
+        fun loadCalibration(guid: String): ControllerCalibration? {
+            val file = getCalibrationFile(guid)
+            if (!file.exists || file.isDirectory) return null
+            return JsonStringReader.readFirstOrNull(file, EngineBase.workspace, ControllerCalibration::class)
+        }
+
+        fun saveCalibration(guid: String, calibration: ControllerCalibration) {
+            if (!calibration.isCalibrated) throw IllegalArgumentException(
+                "You should not save a controller calibration, " +
+                        "that has not actually been calibrated"
+            )
+            val file = getCalibrationFile(guid)
+            file.getParent().tryMkdirs()
+            JsonStringWriter.save(calibration, file, EngineBase.workspace)
+        }
+
     }
 }

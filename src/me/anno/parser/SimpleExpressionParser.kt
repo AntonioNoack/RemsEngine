@@ -13,6 +13,7 @@ import me.anno.parser.Functions.functions2
 import me.anno.parser.Functions.functions3
 import me.anno.parser.Functions.functions4
 import me.anno.parser.Functions.functions5
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.pow
@@ -434,7 +435,7 @@ object SimpleExpressionParser {
     class Operation(val priority: Int, val condition: List<Any>, val action: (list: List<Any>, i0: Int) -> Any)
 
     // val isName = { x: Any -> x is String && x.isNotEmpty() }
-    val isFunctionName = Array(6) {
+    val isFunctionName = createArrayList(6) {
         val functionsI = when (it) {
             1 -> functions1
             2 -> functions2

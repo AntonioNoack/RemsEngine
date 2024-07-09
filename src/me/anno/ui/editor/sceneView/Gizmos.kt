@@ -18,6 +18,7 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -162,7 +163,7 @@ object Gizmos {
     }
 
     // avoid unnecessary allocations ;)
-    private val tmp3fs = Array(3) { Vector3f() }
+    private val tmp3fs = createArrayList(3) { Vector3f() }
     private val xAxis = Vector3f(1f, 0f, 0f)
     private val yAxis = Vector3f(0f, 1f, 0f)
     private val zAxis = Vector3f(0f, 0f, 1f)

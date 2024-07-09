@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Strings.addPrefix
 
 class Attribute(val name: String, val type: AttributeType, val components: Int, val isNativeInt: Boolean = false) {
@@ -34,7 +35,7 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
 
     companion object {
 
-        val types = Array(8) {
+        val types = createArrayList(8) {
             val isInt = it >= 4
             val sub = it and 3
             addPrefix(if (isInt) "i" else null, if (sub == 1) "float" else "vec$sub")

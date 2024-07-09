@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
 import org.apache.logging.log4j.LogManager
@@ -53,7 +54,7 @@ object NormalCalculator {
         // b-c: Shape.tetrahedron.front, mesh from nav mesh
     }
 
-    private fun computeNormalsIndexed(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray) {
+    private fun computeNormalsIndexed(mesh: Mesh, positions: FloatArray, normals: FloatArray) {
         val a = JomlPools.vec3f.create()
         val b = JomlPools.vec3f.create()
         val c = JomlPools.vec3f.create()
@@ -137,7 +138,7 @@ object NormalCalculator {
                     if (indices == null) {
                         computeNormalsNonIndexed(positions, normals)
                     } else {
-                        computeNormalsIndexed(mesh, positions, normals, indices)
+                        computeNormalsIndexed(mesh, positions, normals)
                     }
                 }
             }
@@ -146,7 +147,7 @@ object NormalCalculator {
                     if (indices == null) {
                         computeNormalsNonIndexedStrip(positions, normals)
                     } else {
-                        computeNormalsIndexed(mesh, positions, normals, indices)
+                        computeNormalsIndexed(mesh, positions, normals)
                     }
                 }
             }
@@ -226,7 +227,7 @@ object NormalCalculator {
         }
 
         // generate all points
-        val points = Array(positions.size / 3) {
+        val points = createArrayList(positions.size / 3) {
             val i3 = it * 3
             Point(positions[i3], positions[i3 + 1], positions[i3 + 2])
         }

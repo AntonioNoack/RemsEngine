@@ -8,6 +8,7 @@ import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.engine.ECSRegistry
 import me.anno.utils.OS.documents
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.f2x
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -46,7 +47,7 @@ fun main() {
 
     val printer = TablePrinter()
     val pred = Vector3f()
-    val predictedTranslations = Array(bones.size) { Vector3f() }
+    val predictedTranslations = createArrayList(bones.size) { Vector3f() }
     for ((fi, frameIndex) in (0 until animation.numFrames step 5).withIndex()) {
 
         for (boneId in bones.indices) {

@@ -236,6 +236,19 @@ abstract class GPUShader(val name: String) : ICacheData {
         } else false
     }
 
+    fun checkIsUsed() {
+        if (program == 0 || session != GFXState.session) {
+            LOGGER.error("Program $name isn't even created")
+            use()
+            return
+        }
+        if (program != lastProgram) {
+            LOGGER.error("Program $name isn't used")
+            use()
+            return
+        }
+    }
+
     val uniformLocations = HashMap<String, Int>()
     private val uniformCache = FloatArray(UniformCacheSizeX4)
     var textureNames: List<String> = emptyList()
@@ -817,8 +830,6 @@ abstract class GPUShader(val name: String) : ICacheData {
             glUniform4fv(loc, value)
         }
     }
-
-    fun check() = GFX.check()
 
     operator fun get(name: String) = getUniformLocation(name)
     fun hasUniform(name: String) = getUniformLocation(name, false) >= 0

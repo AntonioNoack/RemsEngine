@@ -8,6 +8,7 @@ import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -18,8 +19,8 @@ import kotlin.math.sin
 
 object LineShapes {
 
-    private val tmpVec3f = Array(16) { Vector3f() }
-    val tmpVec3d = Array(16) { Vector3d() }
+    private val tmpVec3f = createArrayList(16) { Vector3f() }
+    val tmpVec3d = createArrayList(16) { Vector3d() }
 
     fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
         return entity?.transform?.getDrawMatrix(time)

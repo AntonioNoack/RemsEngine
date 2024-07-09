@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.mesh.Shapes
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 
 /**
  * tests a mode, where a lot more meshes are supported by limiting their transform, and therefore reducing bandwidth
@@ -19,7 +20,7 @@ fun main() {
     // - size was missing, so the pipeline wasn't drawn
     // - order of operations was incorrect
     ECSRegistry.init()
-    val transforms = Array(25) {
+    val transforms = createArrayList(25) {
         val x = it % 5
         val y = it / 5
         Transform().apply {

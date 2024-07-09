@@ -15,6 +15,7 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.arrays.DoubleArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.video.formats.cpu.YUVFrames
 import kotlin.math.abs
@@ -23,8 +24,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-val matrix = Array(4) { DoubleArrayList(100) }
-val vector = Array(4) { DoubleArrayList(100) }
+val matrix = createArrayList(4) { DoubleArrayList(100) }
+val vector = createArrayList(4) { DoubleArrayList(100) }
 
 var polyBetter = 0
 var avgBetter = 0
@@ -247,7 +248,7 @@ fun main() {
 
     val numClusters = clustersX * clustersY + 1
 
-    val clusters = Array(numClusters) { Cluster(it) }
+    val clusters = createArrayList(numClusters) { Cluster(it) }
     val clusterIdMapping = IntArray(numClusters - 1) { it }
     clusterIdMapping.shuffle()
 

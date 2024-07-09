@@ -97,11 +97,9 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         if (lastUpdate != Time.gameTimeN) {
             lastUpdate = Time.gameTimeN
             val dt = Time.deltaTime.toFloat()
-            var anyIsRunning = false
             for (index in animations.indices) {
                 val anim = animations[index]
                 anim.update(this, dt, true)
-                if (anim.speed != 0f) anyIsRunning = true
             }
             updateAnimState()
         }

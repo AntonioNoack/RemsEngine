@@ -334,15 +334,10 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
     }
 
     override fun onUpdate() {
-        ensureValidShader()
-        ensureValidBounds()
-        // todo I don't like this... Systems should have these components registered and do their work
-        val components = internalComponents
-        for (index in components.indices) {
-            val child = components[index]
-            if (child.isEnabled && child is OnUpdate) {
-                child.update(listOf(child))
-            }
+        if (parent !is SDFGroup) {
+            // todo these should only be executed when we actually need them, not on every frame
+            ensureValidShader()
+            ensureValidBounds()
         }
     }
 

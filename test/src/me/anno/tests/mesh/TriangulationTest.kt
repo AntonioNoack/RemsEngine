@@ -5,6 +5,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
+import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import org.the3deers.util.EarCut
 import kotlin.math.cos
@@ -20,7 +21,7 @@ fun main() {
     val outer = 50
 
     val random = Random(1234L)
-    val points = Array(outer) {
+    val points = createArrayList(outer) {
         val angle = Maths.TAUf * it / outer
         Vector2f(cos(angle), sin(angle))
             .mul(mix(0.5f, 1f, random.nextFloat()))

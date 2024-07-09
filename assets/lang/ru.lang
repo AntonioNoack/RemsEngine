@@ -1,4 +1,5 @@
 lang.name: русский
+lang.enName: Russian
 lang.spellcheck: ru-RU
 obj.particles.spawnRate: Новые объекты / с
 obj.particles.spawnRate.desc: Сколько новых объектов появляется в секунду

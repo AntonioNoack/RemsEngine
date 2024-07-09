@@ -186,7 +186,7 @@ object RaycastMesh {
     fun raycastLocalMeshClosestHit(
         mesh: Mesh, globalTransform: Matrix4x3d?, inverse: Matrix4x3d?,
         localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
-        extraDistance: Double, tmp0: Array<Vector3f>, query: RayQuery,
+        extraDistance: Double, tmp0: List<Vector3f>, query: RayQuery,
     ) {
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
@@ -281,7 +281,7 @@ object RaycastMesh {
     fun raycastLocalMeshAnyHit(
         mesh: Mesh, globalTransform: Matrix4x3d?, inverse: Matrix4x3d,
         localSrt: Vector3f, localDir: Vector3f, localEnd: Vector3f,
-        extraDistance: Float, tmp0: Array<Vector3f>, // todo respect extra distance...
+        extraDistance: Float, tmp0: List<Vector3f>, // todo respect extra distance...
         query: RayQuery,
     ): Boolean {
 

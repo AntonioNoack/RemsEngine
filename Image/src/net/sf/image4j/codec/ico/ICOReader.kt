@@ -5,6 +5,7 @@ import me.anno.jvm.images.BIImage.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.utils.structures.CountingInputStream
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.IntPair
 import net.sf.image4j.Utils
 import net.sf.image4j.codec.bmp.BMPDecoder
@@ -159,7 +160,7 @@ object ICOReader {
 
         // Entries Count * 16 list of icons
         // images list of bitmap structures in BMP/PNG format
-        val entries = Array(sCount) { IconEntry(input1) }
+        val entries = createArrayList(sCount) { IconEntry(input1) }
         entries.sortBy { it.fileOffset }
 
         val ret = ArrayList<Image>(sCount)

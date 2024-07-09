@@ -1,4 +1,5 @@
 lang.name: 中国
+lang.enName: Chinese
 lang.spellcheck: zh-CN
 obj.piles.spawnRate: 新物体/秒
 obj.pants.spawnRate.desc: 每秒出现多少个新对象

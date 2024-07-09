@@ -19,6 +19,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Booleans.toInt
@@ -237,7 +238,7 @@ fun main() {
 
     clock.stop("Reading structure")
 
-    val chunkData = Array(1024) {
+    val chunkData = createArrayList(1024) {
         ArrayList<Pair<VoxelModel?, VoxelModel?>?>()
     }
 

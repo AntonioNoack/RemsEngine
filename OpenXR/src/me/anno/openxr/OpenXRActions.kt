@@ -5,6 +5,9 @@ import me.anno.gpu.GFX
 import me.anno.input.ButtonLogic
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.openxr.OpenXRController.Companion.xrControllers
+import me.anno.openxr.OpenXRRendering.Companion.additionalOffset
+import me.anno.openxr.OpenXRRendering.Companion.additionalRotationY
 import me.anno.openxr.OpenXRUtils.checkXR
 import me.anno.openxr.OpenXRUtils.longPtr
 import me.anno.openxr.OpenXRUtils.ptr
@@ -12,9 +15,11 @@ import me.anno.openxr.OpenXRUtils.ptr1
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_BOOLEAN_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_FLOAT_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_POSE_INPUT
+import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_VECTOR2F_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_VIBRATION_OUTPUT
 import org.lwjgl.openxr.XR10.XR_FREQUENCY_UNSPECIFIED
 import org.lwjgl.openxr.XR10.XR_MIN_HAPTIC_DURATION
@@ -28,6 +33,7 @@ import org.lwjgl.openxr.XR10.XR_TYPE_ACTION_STATE_BOOLEAN
 import org.lwjgl.openxr.XR10.XR_TYPE_ACTION_STATE_FLOAT
 import org.lwjgl.openxr.XR10.XR_TYPE_ACTION_STATE_GET_INFO
 import org.lwjgl.openxr.XR10.XR_TYPE_ACTION_STATE_POSE
+import org.lwjgl.openxr.XR10.XR_TYPE_ACTION_STATE_VECTOR2F
 import org.lwjgl.openxr.XR10.XR_TYPE_HAPTIC_ACTION_INFO
 import org.lwjgl.openxr.XR10.XR_TYPE_HAPTIC_VIBRATION
 import org.lwjgl.openxr.XR10.XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING
@@ -39,6 +45,7 @@ import org.lwjgl.openxr.XR10.xrCreateActionSpace
 import org.lwjgl.openxr.XR10.xrGetActionStateBoolean
 import org.lwjgl.openxr.XR10.xrGetActionStateFloat
 import org.lwjgl.openxr.XR10.xrGetActionStatePose
+import org.lwjgl.openxr.XR10.xrGetActionStateVector2f
 import org.lwjgl.openxr.XR10.xrLocateSpace
 import org.lwjgl.openxr.XR10.xrStringToPath
 import org.lwjgl.openxr.XR10.xrSuggestInteractionProfileBindings
@@ -52,6 +59,7 @@ import org.lwjgl.openxr.XrActionStateBoolean
 import org.lwjgl.openxr.XrActionStateFloat
 import org.lwjgl.openxr.XrActionStateGetInfo
 import org.lwjgl.openxr.XrActionStatePose
+import org.lwjgl.openxr.XrActionStateVector2f
 import org.lwjgl.openxr.XrActionSuggestedBinding
 import org.lwjgl.openxr.XrActionsSyncInfo
 import org.lwjgl.openxr.XrActiveActionSet
@@ -84,12 +92,14 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
 
     val handPaths = createPathPair("/user/hand/left")
 
-    // val thumbStickYPath = createPathPair("/user/hand/left/input/thumbstick/y") // todo how do we query this?
+    val joystickPath = createPathPair("/user/hand/left/input/thumbstick")
     val gripPosePath = createPathPair("/user/hand/left/input/grip/pose")
+    val squeezePath = createPathPair("/user/hand/left/input/squeeze/value")
     val hapticPath = createPathPair("/user/hand/left/output/haptic")
 
     val tmpActionInfo: XrActionCreateInfo = XrActionCreateInfo.calloc()
-    val tmpActionSpaceCreateInfo = XrActionSpaceCreateInfo.calloc()
+    val tmpActionSpaceCreateInfo: XrActionSpaceCreateInfo = XrActionSpaceCreateInfo.calloc()
+    val tmpSuggestedBindings: XrInteractionProfileSuggestedBinding = XrInteractionProfileSuggestedBinding.calloc()
 
     init {
         val actionSetCreateInfo = XrActionSetCreateInfo.calloc()
@@ -128,11 +138,17 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         XrSpace(ptr[0], session)
     }
 
-    val grabActionFloat = createAction(handPaths, "grab_object", "Grab Object", XR_ACTION_TYPE_FLOAT_INPUT)
+    // todo thumbstick clicks/touches
+    // todo button touches
+    // todo trigger/squeeze touches
+
+    val thumbstickAction = createAction(handPaths, "thumbsticks", "Thumbsticks", XR_ACTION_TYPE_VECTOR2F_INPUT)
+    val grabAction = createAction(handPaths, "grab_object", "Grab Object", XR_ACTION_TYPE_FLOAT_INPUT)
     val hapticAction = createAction(handPaths, "haptic", "Haptic Vibration", XR_ACTION_TYPE_VIBRATION_OUTPUT)
     val buttonAction0 = createAction(handPaths, "primary_buttons", "X/A-Buttons", XR_ACTION_TYPE_BOOLEAN_INPUT)
     val buttonAction1 = createAction(handPaths, "secondary_buttons", "Y/B-Buttons", XR_ACTION_TYPE_BOOLEAN_INPUT)
     val buttonAction2 = createAction(handPaths, "menu_buttons", "Menu-Buttons", XR_ACTION_TYPE_BOOLEAN_INPUT)
+    val squeezeAction = createAction(handPaths, "squeeze", "Squeeze", XR_ACTION_TYPE_FLOAT_INPUT)
 
     // suggest actions for simple controller
     fun createProfile(
@@ -141,7 +157,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     ) {
 
         val interactionProfilePath = stringToPath(path)
-        val bindings = XrActionSuggestedBinding.calloc(6 + buttons.length + 2)
+        val isNotSimple = !path.endsWith("simple_controller")
+        val bindings = XrActionSuggestedBinding.calloc(8 + isNotSimple.toInt(4) + buttons.length)
 
         var bi = 0
         fun bind(action: XrAction, paths: Long) {
@@ -153,19 +170,27 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             bind(action, paths[1])
         }
 
+        // six paths
         bind(handPoseAction, gripPosePath)
-        bind(grabActionFloat, grabPath)
+        bind(grabAction, grabPath)
         bind(hapticAction, hapticPath)
+        // two more
+        bind(buttonAction2, stringToPath("/user/hand/left/input/$leftMenu/click"))
+        bind(buttonAction2, stringToPath("/user/hand/right/input/$rightMenu/click"))
+        // four if not simple controller
+        if (isNotSimple) {
+            bind(thumbstickAction, joystickPath)
+            bind(squeezeAction, squeezePath)
+        }
+        // buttons for Valve index controller and Oculus touch controller
         if (buttons.length == 4) {
             bind(buttonAction0, stringToPath("/user/hand/left/input/${buttons[0]}/click"))
             bind(buttonAction1, stringToPath("/user/hand/left/input/${buttons[1]}/click"))
             bind(buttonAction0, stringToPath("/user/hand/right/input/${buttons[2]}/click"))
             bind(buttonAction1, stringToPath("/user/hand/right/input/${buttons[3]}/click"))
         }
-        bind(buttonAction2, stringToPath("/user/hand/left/input/$leftMenu/click"))
-        bind(buttonAction2, stringToPath("/user/hand/right/input/$rightMenu/click"))
 
-        val suggestedBindings = XrInteractionProfileSuggestedBinding.calloc()
+        val suggestedBindings = tmpSuggestedBindings
             .type(XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING).next(0)
             .interactionProfile(interactionProfilePath)
             .suggestedBindings(bindings)
@@ -175,8 +200,11 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     init {
         val selectClickPath = createPathPair("/user/hand/left/input/select/click")
         val triggerValuePath = createPathPair("/user/hand/left/input/trigger/value")
+        // https://docs.unity3d.com/Packages/com.unity.xr.openxr@0.1/manual/features/khrsimplecontrollerprofile.html
         createProfile("/interaction_profiles/khr/simple_controller", selectClickPath, "", "menu", "menu")
+        // https://docs.unity3d.com/Packages/com.unity.xr.openxr@0.1/manual/features/valveindexcontrollerprofile.html
         createProfile("/interaction_profiles/valve/index_controller", triggerValuePath, "abab", "system", "system")
+        // https://docs.unity3d.com/Packages/com.unity.xr.openxr@0.1/manual/features/oculustouchcontrollerprofile.html
         createProfile("/interaction_profiles/oculus/touch_controller", triggerValuePath, "xyab", "menu", "system")
     }
 
@@ -192,12 +220,12 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     val poseState: XrActionStatePose = XrActionStatePose.calloc()
     val floatState: XrActionStateFloat = XrActionStateFloat.calloc()
     val booleanState: XrActionStateBoolean = XrActionStateBoolean.calloc()
+    val vector2fState: XrActionStateVector2f = XrActionStateVector2f.calloc()
     val handLocations: XrSpaceLocation.Buffer = XrSpaceLocation.calloc(2)
 
     val actionsSyncInfo: XrActionsSyncInfo = XrActionsSyncInfo.calloc()
     val activeActionSets: XrActiveActionSet.Buffer = XrActiveActionSet.calloc(1)
 
-    val grabs = FloatArray(2)
     val engineButtons = listOf(
         Key.CONTROLLER_0_KEY_0, // x
         Key.CONTROLLER_1_KEY_0, // a
@@ -240,20 +268,48 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 playSpace, displayTime
             )
 
-            val controller = Input.controllers[hand]
+            // ^^, not necessarily true, but we want them to always be in the correct order
+            val controller = xrControllers[hand]
+            controller.isConnected = true
+
             val pose = handLocations[hand].pose()
             val pos = pose.`position$`()
             val rot = pose.orientation()
-            controller.position.set(pos.x(), pos.y(), pos.z())
-            controller.rotation.set(rot.x(), rot.y(), rot.z(), rot.w())
+            controller.position.set(pos.x(), pos.y(), pos.z()) // play space
+                .rotateY(additionalRotationY) // -> scene space
+                .add(additionalOffset)
+            controller.rotation
+                .identity().rotateY(additionalRotationY)
+                .mul(rot.x(), rot.y(), rot.z(), rot.w())
+
+            vector2fState.type(XR_TYPE_ACTION_STATE_VECTOR2F).next(0)
+            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
+                .action(thumbstickAction).subactionPath(handPath)
+            checkXR(xrGetActionStateVector2f(session, getInfo, vector2fState))
+            if (vector2fState.isActive) {
+                // todo it would be good to disable controllers for GLFW, add extra ones, or generalize them
+                val value = vector2fState.currentState()
+                controller.axisValues[0] = value.x()
+                controller.axisValues[1] = value.y()
+            }
 
             floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
             getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
-                .action(grabActionFloat).subactionPath(handPath)
+                .action(grabAction).subactionPath(handPath)
             checkXR(xrGetActionStateFloat(session, getInfo, floatState))
 
-            grabs[hand] = if (floatState.isActive) floatState.currentState() else Float.NaN
-            if (grabs[hand] > 0.75f) {
+            val grab = if (floatState.isActive) floatState.currentState() else Float.NaN
+            controller.axisValues[2] = grab
+
+            floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
+            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
+                .action(squeezeAction).subactionPath(handPath)
+            checkXR(xrGetActionStateFloat(session, getInfo, floatState))
+
+            val squeeze = if (floatState.isActive) floatState.currentState() else Float.NaN
+            controller.axisValues[3] = squeeze
+
+            if (grab > 0.75f || squeeze > 0.75f) {
                 vibration.type(XR_TYPE_HAPTIC_VIBRATION).next(0)
                     .amplitude(0.5f).duration(XR_MIN_HAPTIC_DURATION)
                     .frequency(XR_FREQUENCY_UNSPECIFIED)

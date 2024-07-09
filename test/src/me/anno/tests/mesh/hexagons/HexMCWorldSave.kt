@@ -1,15 +1,16 @@
 package me.anno.tests.mesh.hexagons
 
-import me.anno.maths.chunks.spherical.Hexagon
-import me.anno.maths.chunks.spherical.HexagonSphere
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readBE32
 import me.anno.io.Streams.readBE64
+import me.anno.io.Streams.readNBytes2
 import me.anno.io.Streams.write0String
 import me.anno.io.Streams.writeBE32
 import me.anno.io.Streams.writeBE64
 import me.anno.io.files.FileReference
-import me.anno.io.Streams.readNBytes2
+import me.anno.maths.chunks.spherical.Hexagon
+import me.anno.maths.chunks.spherical.HexagonSphere
+import me.anno.utils.structures.lists.Lists.createArrayList
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -23,7 +24,7 @@ class HexMCWorldSave {
 
     val magic = "HexSphere!!" // 12 bytes with \0
     val version = 0
-    val triangles = Array(20) { TriangleS() }
+    val triangles = createArrayList(20) { TriangleS() }
     var sy = 64
 
     operator fun get(sphere: HexagonSphere, key: Hexagon): ByteArray? {

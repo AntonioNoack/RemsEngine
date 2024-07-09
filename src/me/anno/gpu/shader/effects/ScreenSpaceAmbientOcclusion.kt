@@ -21,6 +21,7 @@ import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.iff
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
@@ -108,7 +109,7 @@ object ScreenSpaceAmbientOcclusion {
 
     private val random4x4 = generateRandomTexture(Random(1234L))
 
-    private val occlusionShaders = Array(4) {
+    private val occlusionShaders = createArrayList(4) {
         val multisampling = it.hasFlag(1)
         val ssgi = it.hasFlag(2)
         val srcType = if (multisampling) GLSLType.S2DMS else GLSLType.S2D
@@ -119,7 +120,7 @@ object ScreenSpaceAmbientOcclusion {
                 Variable(GLSLType.V1F, "radiusScale"),
                 Variable(GLSLType.V1I, "numSamples"),
                 Variable(GLSLType.V1I, "mask"),
-                Variable(GLSLType.M4x4, "transform"),
+                Variable(GLSLType.M4x4, "cameraMatrix"),
                 Variable(srcType, "finalDepth"),
                 Variable(GLSLType.V4F, "depthMask"),
                 Variable(srcType, "finalNormal"),
@@ -169,12 +170,11 @@ object ScreenSpaceAmbientOcclusion {
                     }) +
                     "       // [loop]\n" + // hlsl instruction
                     "       for(int i=0;i<numSamples;i++){\n" +
-                    // "sample" seems to be a reserved keyword for the emulator
                     "           vec3 dir0 = texelFetch(sampleKernel, ivec2(i,0), 0).xyz;\n" +
                     "           vec3 dir1 = matMul(tbn, dir0);\n" +
                     "           vec3 position = dir1 * radius + origin;\n" +
-                    // project sample position... mmmh...
-                    "           vec4 offset = matMul(transform, vec4(position, 1.0));\n" +
+                    // project sample position
+                    "           vec4 offset = matMul(cameraMatrix, vec4(position, 0.0));\n" +
                     "           offset.xy /= offset.w;\n" +
                     "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
                     "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
@@ -212,7 +212,7 @@ object ScreenSpaceAmbientOcclusion {
         }
     }
 
-    private val blurShaders = Array(3) {
+    private val blurShaders = createArrayList(3) {
         val blur = (it + 1).hasFlag(1)
         val ssgi = (it + 1).hasFlag(2)
         Shader(
@@ -281,7 +281,7 @@ object ScreenSpaceAmbientOcclusion {
         depthMask: String,
         normal: ITexture2D,
         normalZW: Boolean,
-        transform: Matrix4f,
+        cameraMatrix: Matrix4f,
         strength: Float,
         radiusScale: Float,
         samples: Int,
@@ -312,7 +312,7 @@ object ScreenSpaceAmbientOcclusion {
             normal.bindTrulyNearest(shader, "finalNormal")
             depth.bindTrulyNearest(shader, "finalDepth")
             // define all uniforms
-            shader.m4x4("transform", transform)
+            shader.m4x4("cameraMatrix", cameraMatrix)
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength / samples)
             shader.v1i("mask", if (enableBlur) 3 else 0)
@@ -365,7 +365,7 @@ object ScreenSpaceAmbientOcclusion {
         depthMask: String,
         normal: ITexture2D,
         normalZW: Boolean,
-        transform: Matrix4f,
+        cameraMatrix: Matrix4f,
         strength: Float,
         radiusScale: Float,
         samples: Int,
@@ -375,7 +375,7 @@ object ScreenSpaceAmbientOcclusion {
         return GFXState.renderPurely {
             val ssao = calculate(
                 ssgi, depth, depthMask, normal, normalZW,
-                transform, strength, radiusScale,
+                cameraMatrix, strength, radiusScale,
                 Maths.min(samples, MAX_SAMPLES), enableBlur,
             )
             if (enableBlur || ssgi != null) {

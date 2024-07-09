@@ -13,6 +13,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
@@ -32,7 +33,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         val layerRemaining = IntArray(maxTextures)
         layerRemaining.fill(4)
 
-        val layerQualities = Array(maxTextures) { BufferQuality.UINT_8 }
+        val layerQualities = createArrayList(maxTextures) { BufferQuality.UINT_8 }
         var usedTextures0 = -1
 
         fun addType(layerType: DeferredLayerType) {
@@ -138,10 +139,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         }
     }
 
-    fun appendLayerWriters(
-        output: StringBuilder, disabledLayers: BooleanArrayList?,
-        useRandomness: Boolean, defined: Set<Variable>
-    ) {
+    fun appendLayerWriters(output: StringBuilder, disabledLayers: BooleanArrayList?, useRandomness: Boolean) {
         for (index in semanticLayers.indices) {
             val defRR = if (useRandomness) "defRR$index" else null
             if (useRandomness) {

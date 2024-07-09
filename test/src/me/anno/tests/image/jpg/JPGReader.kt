@@ -194,12 +194,12 @@ class JPGReader {
     val idct0 = ShortArray(64)
     val idct1 = IntArray(64)
 
-    val imgComp = Array(4) { ImgComp() }
+    val imgComp = createArrayList(4) { ImgComp() }
 
-    val deq = Array(4) { IntArray(64) }
-    val huffDc = Array(4) { Huffman() }
-    val huffAc = Array(4) { Huffman() }
-    val fastAc = Array(4) { ShortArray(FAST_SIZE) }
+    val deq = createArrayList(4) { IntArray(64) }
+    val huffDc = createArrayList(4) { Huffman() }
+    val huffAc = createArrayList(4) { Huffman() }
+    val fastAc = createArrayList(4) { ShortArray(FAST_SIZE) }
 
     var progressive = false
 
@@ -236,7 +236,7 @@ class JPGReader {
         val n = imgN // 3 or 1
         val isRGB = n == 3 && (rgb == 3 || app14ColorTransform == 0 && !jfif)
         // resample and color-convert
-        val resComp = Array(4) { Resample() }
+        val resComp = createArrayList(4) { Resample() }
         for (k in 0 until n) {
             val r = resComp[k]
             val comp = imgComp[k]

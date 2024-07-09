@@ -28,23 +28,27 @@ class OpenXRRendering(
     val fb: Framebuffer, val ct0: Texture2D, val ct1: Texture2D, val dt: Texture2D,
 ) : OpenXR(window0.pointer) {
 
+    companion object {
+        private val lastPosition = Vector3d()
+        var additionalRotationY = 0.0
+        val additionalOffset = Vector3d()
+        private var additionalRotationYTarget = 0.0
+        private var lastAngleY = 0.0
+        private val tmp = Vector3d()
+    }
+
     override fun copyToDesktopWindow(w: Int, h: Int) {
         GFX.callOnGameLoop(EngineBase.instance!!, window0)
     }
 
-    private val lastPosition = Vector3d()
-    private var additionalRotationY = 0.0
-    private var additionalRotationYTarget = 0.0
-    private var lastAngleY = 0.0
-    private val tmp = Vector3d()
-
     override fun beginRenderViews() {
         super.beginRenderViews()
+
         val session = session ?: return
         val view0 = session.viewConfigViews[0]
         val w = view0.recommendedImageRectWidth()
         val h = view0.recommendedImageRectHeight()
-        val pos = position
+        val pos = position // play space
         val rot = rotation
         rv.enableOrbiting = false
 
@@ -55,9 +59,13 @@ class OpenXRRendering(
         }
 
         tmp.set(pos).sub(lastPosition).rotateY(additionalRotationY)
-        rv.orbitCenter.add(tmp)
+        rv.orbitCenter.add(tmp) // scene space
         rv.radius = 5.0 // to define the general speed
         lastPosition.set(pos)
+
+        additionalOffset
+            .set(position).rotateY(additionalRotationY).mul(-1.0)
+            .add(rv.orbitCenter)
 
         // prevent 360° jumps
         var da = additionalRotationYTarget - additionalRotationY
@@ -74,6 +82,8 @@ class OpenXRRendering(
             lastAngleY = rt.y
         }
 
+        // todo define camera fov for frustum based on actually used angles
+        rv.editorCamera.fovY = 110f // just a guess, should be good enough
         rv.updateEditorCameraTransform()
         rv.prepareDrawScene(w, h, 1f, rv.editorCamera, true)
     }
@@ -147,10 +157,9 @@ class OpenXRRendering(
         val pos = pose.`position$`()
         val rot = pose.orientation()
 
-        rv.cameraRotation.identity()
-            .rotateY(additionalRotationY)
-            .mul(rot.x().toDouble(), rot.y().toDouble(), rot.z().toDouble(), rot.w().toDouble())
-            .invert()
+        rv.cameraRotation
+            .identity().rotateY(additionalRotationY)
+            .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
         createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f)
         // offset camera matrix by (pos - centerPos) * worldScale
@@ -160,14 +169,23 @@ class OpenXRRendering(
             (pos.y() - position.y) * scale,
             (pos.z() - position.z) * scale
         )
-        rv.cameraMatrix.rotate(rv.cameraRotation)
+        rv.cameraMatrix.rotateInv(rv.cameraRotation)
+
+        // to do what's the correct eye position? xD
+        // todo SSAO looks weird with Meta Quest Link:
+        //  as if eyes, which are tilted to the sides, aren't tilted for that
+        if (false) rv.cameraPosition.set(rv.orbitCenter).sub(
+            (pos.x() - position.x) * scale,
+            (pos.y() - position.y) * scale,
+            (pos.z() - position.z) * scale
+        )
+
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
 
-        // todo all controller inputs (2x thumbsticks, 4x trigger, ABXY, HOME)
         // todo somehow define controller positions, and show objects there
-        // todo finger tracking: display user-controlled hand
+        // todo finger tracking: render user-controlled hand
     }
 }
