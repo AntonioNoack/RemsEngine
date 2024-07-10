@@ -441,7 +441,11 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
 
         fs.waitFrame(session)
         updateViews(space, session, views, fs)
-        actions.updateActions(space, fs.frameState)
+        if (events.sessionFocussed) {
+            actions.updateActions(space, fs.frameState)
+        } else {
+            actions.clearActions(fs.frameState)
+        }
         fs.beginFrame(session)
 
         val rendered = fs.frameState.shouldRender()

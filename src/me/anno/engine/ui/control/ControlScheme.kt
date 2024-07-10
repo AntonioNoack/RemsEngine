@@ -276,6 +276,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
                 when (controllerIndex++) {
                     0 -> {
                         // left hand
+                        // todo should go in steps, this is kind of nauseating 😅
                         val dx = controller.axisValues[0]
                         rotateCamera(0f, -dx * dt.toFloat() * 100f, 0f)
                         controller.rumble = 0.5f * abs(dx)

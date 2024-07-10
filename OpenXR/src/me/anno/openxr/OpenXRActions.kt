@@ -102,7 +102,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     val tmpActionSpaceCreateInfo: XrActionSpaceCreateInfo = XrActionSpaceCreateInfo.calloc()
     val tmpSuggestedBindings: XrInteractionProfileSuggestedBinding = XrInteractionProfileSuggestedBinding.calloc()
 
-    init {
+    private fun createActionSet(): XrActionSet {
         val actionSetCreateInfo = XrActionSetCreateInfo.calloc()
             .type(XR_TYPE_ACTION_SET_CREATE_INFO).next(0)
             .priority(0)
@@ -110,6 +110,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             .localizedActionSetName("Gameplay Actions".ptr1())
         checkXR(xrCreateActionSet(instance, actionSetCreateInfo, ptr))
         actionSetCreateInfo.free()
+        return XrActionSet(ptr[0], instance)
     }
 
     private fun createAction(
@@ -127,7 +128,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         return XrAction(ptr[0], actionSet)
     }
 
-    val actionSet = XrActionSet(ptr[0], instance)
+    val actionSet = createActionSet()
     val handPoseAction = createAction(handPaths, "hand_pose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT)
     val handPoseSpaces = createArrayList(2) { hand ->
         val actionSpaceInfo = tmpActionSpaceCreateInfo
@@ -237,7 +238,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         Key.CONTROLLER_1_KEY_2, // system
     )
 
-    val buttonsTimers = LongArray(4)
+    val buttonsTimers = LongArray(6)
     val buttonActions = listOf(buttonAction0, buttonAction1, buttonAction2)
 
     private fun updatePose(
@@ -253,6 +254,22 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         checkXR(xrLocateSpace(poseSpace, playSpace, displayTime, location))
     }
 
+    fun clearActions(frameState: XrFrameState) {
+        val window = GFX.activeWindow!!
+        val dt = frameState.predictedDisplayPeriod() * 1e-9f
+        for (hand in xrControllers.indices) {
+            val controller = xrControllers[hand]
+            for (i in 0 until 4) {
+                controller.setAxisValue(window, i, Float.NaN, dt)
+            }
+        }
+        for (i in engineButtons.indices) {
+            val eventFlags = ButtonLogic.process(Time.gameTimeN, false, buttonsTimers, i)
+            val engineButton = engineButtons[i]
+            if (eventFlags.hasFlag(ButtonLogic.UP)) Input.onKeyReleased(window, engineButton)
+        }
+    }
+
     fun updateActions(playSpace: XrSpace, frameState: XrFrameState) {
         activeActionSets[0].actionSet(actionSet).subactionPath(XR_NULL_PATH)
         actionsSyncInfo.type(XR_TYPE_ACTIONS_SYNC_INFO).next(0)
@@ -260,7 +277,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         val ret0 = xrSyncActions(session, actionsSyncInfo)
         if (ret0 != XR_SESSION_NOT_FOCUSED) checkXR(ret0)
 
-        val window1 = GFX.someWindow
+        val window = GFX.activeWindow!!
         val dt = frameState.predictedDisplayPeriod() * 1e-9f
         val displayTime = frameState.predictedDisplayTime()
         for (hand in 0 until 2) {
@@ -291,8 +308,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             checkXR(xrGetActionStateVector2f(session, getInfo, vector2fState))
             if (vector2fState.isActive) {
                 val value = vector2fState.currentState()
-                controller.setAxisValue(window1, 0, value.x(), dt)
-                controller.setAxisValue(window1, 1, value.y(), dt)
+                controller.setAxisValue(window, 0, value.x(), dt)
+                controller.setAxisValue(window, 1, value.y(), dt)
             }
 
             floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
@@ -301,7 +318,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             checkXR(xrGetActionStateFloat(session, getInfo, floatState))
 
             val grab = if (floatState.isActive) floatState.currentState() else Float.NaN
-            controller.setAxisValue(window1, 2, grab, dt)
+            controller.setAxisValue(window, 2, grab, dt)
 
             floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
             getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
@@ -309,7 +326,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             checkXR(xrGetActionStateFloat(session, getInfo, floatState))
 
             val squeeze = if (floatState.isActive) floatState.currentState() else Float.NaN
-            controller.setAxisValue(window1, 3, squeeze, dt)
+            controller.setAxisValue(window, 3, squeeze, dt)
 
             val rumble = clamp(controller.rumble)
             if (rumble > 0f) {
@@ -322,8 +339,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             }
         }
 
-        val window = GFX.activeWindow!!
         // todo booleanState.lastChangedTime contains the correct time, but idk what time-system it is
+        //  same as predicated display time, so todo: override time with predicatedDisplayTime-system
         val time = Time.nanoTime
         for (i in 0 until 4) {
             booleanState.type(XR_TYPE_ACTION_STATE_BOOLEAN).next(0)

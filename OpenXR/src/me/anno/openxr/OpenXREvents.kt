@@ -39,6 +39,7 @@ class OpenXREvents(val instance: XrInstance, val session: XrSession, val window:
     var canSkipRendering = true
     var sessionRunning = false
     var instanceAlive = true
+    var sessionFocussed = false
 
     // event structs
     val eventBuffer =
@@ -79,6 +80,7 @@ class OpenXREvents(val instance: XrInstance, val session: XrSession, val window:
                 val newState = stateEvent.state()
                 LOGGER.info("State changed: ${getStateName(newState)}")
                 xr.state = newState
+                sessionFocussed = newState == XR_SESSION_STATE_FOCUSED
                 when (newState) {
                     XR_SESSION_STATE_IDLE, XR_SESSION_STATE_UNKNOWN -> {
                         canSkipRendering = true
