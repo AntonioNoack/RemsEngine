@@ -13,9 +13,6 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
     lateinit var renderView: RenderView
     lateinit var pipeline: Pipeline
 
-    // todo this is suboptimal:
-    //  if we have two RenderViews using the same node, different sizes,
-    //  we'd constantly destroy this
     var framebuffer: IFramebuffer? = null
 
     open fun invalidate() {
@@ -24,7 +21,6 @@ abstract class RenderViewNode(name: String, inputs: List<String>, outputs: List<
     override fun destroy() {
         super.destroy()
         invalidate()
-        framebuffer?.destroy()
     }
 
     companion object {

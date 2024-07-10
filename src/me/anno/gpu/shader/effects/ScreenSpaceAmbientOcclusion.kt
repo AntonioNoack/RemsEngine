@@ -272,7 +272,7 @@ object ScreenSpaceAmbientOcclusion {
                         "glFragColor = vec4(valueSum / weightSum);\n" +
                                 "if(inverse) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
                     "}"
-        )
+        ).apply { ignoreNameWarnings("inverse") }
     }
 
     private fun calculate(

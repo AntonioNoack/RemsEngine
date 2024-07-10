@@ -21,7 +21,7 @@ class RenderDecalsNode : RenderDeferredNode() {
 
     override fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
         super.createNewFramebuffer(settings, samples)
-        srcBufferI = settings.createBaseBuffer("srcBuffer", 1)
+        srcBufferI = settings.getBaseBufferFBStack("srcBuffer", width, height, 1)
     }
 
     private var srcBufferI: IFramebuffer? = null
@@ -40,10 +40,5 @@ class RenderDecalsNode : RenderDeferredNode() {
     override fun executeAction() {
         super.executeAction()
         srcBuffer = null // clear it for GC
-    }
-
-    override fun destroy() {
-        super.destroy()
-        srcBufferI?.destroy()
     }
 }

@@ -6,6 +6,8 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.serialization.SerializedProperty
@@ -86,14 +88,11 @@ open class MeshCollider() : Collider() {
         val tmpPos = JomlPools.vec3f.create()
         val tmpNor = JomlPools.vec3f.create()
 
-        val ai = JomlPools.vec3f.create()
-        val bi = JomlPools.vec3f.create()
-        val ci = JomlPools.vec3f.create()
         val mid = JomlPools.vec3f.create()
         val scaleUp = -0.001f // against small inaccuracies
         var neg = false
         val meshTransform = meshTransform
-        mesh.forEachTriangle(ai, bi, ci) { a, b, c ->
+        mesh.forEachTriangle { a, b, c ->
             // make the triangle slightly larger than it is
             meshTransform.transformPosition(a)
             meshTransform.transformPosition(b)
@@ -115,7 +114,7 @@ open class MeshCollider() : Collider() {
             }
         }
 
-        JomlPools.vec3f.sub(6)
+        JomlPools.vec3f.sub(3)
 
         return if (neg) -bestDistance else bestDistance
     }

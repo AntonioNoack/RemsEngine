@@ -1,6 +1,9 @@
 package me.anno.tests.mesh.raycast
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachLine
+import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
+import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.mesh.Shapes.flatCube
@@ -61,12 +64,7 @@ object RaycastMeshTest {
 
     @Test
     fun testEdgeCasesInside() {
-        val positions = mesh.positions!!
-        val a = Vector3f()
-        val b = Vector3f()
-        mesh.forEachLineIndex { ai, bi ->
-            a.set(positions, ai * 3)
-            b.set(positions, bi * 3)
+        mesh.forEachLine { a, b ->
             val dir = a.lerp(b, 0.5f)
             val pos = b.set(0f)
             checkLocalHit(mesh, pos, dir, 2f, -1, 1f, null)
@@ -75,12 +73,7 @@ object RaycastMeshTest {
 
     @Test
     fun testEdgeCasesOutside() {
-        val positions = mesh.positions!!
-        val a = Vector3f()
-        val b = Vector3f()
-        mesh.forEachLineIndex { ai, bi ->
-            a.set(positions, ai * 3)
-            b.set(positions, bi * 3)
+        mesh.forEachLine { a, b ->
             val dir = a.lerp(b, 0.5f)
             val pos = a.mul(-3f, b)
             checkLocalHit(mesh, pos, dir, 3f, -1, 2f, null)

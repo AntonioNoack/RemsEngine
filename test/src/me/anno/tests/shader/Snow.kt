@@ -200,6 +200,8 @@ class SnowNode : ActionNode(
 }
 
 fun main() {
+    // todo synthetic motion blur in 3d
+    // todo make close snow flakes out of focus
     testUI("Snow") {
         val list = CustomList(false, style)
 

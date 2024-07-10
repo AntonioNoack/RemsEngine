@@ -1,10 +1,13 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.white
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import kotlin.math.min
@@ -14,8 +17,9 @@ import kotlin.math.min
  * */
 class PathProfile() : Saveable() {
 
-    constructor(pos: List<Vector2f>, colors: List<Int>, isClosed: Boolean) : this() {
+    constructor(pos: List<Vector2f>, uvs: FloatArrayList?, colors: IntArrayList?, isClosed: Boolean) : this() {
         positions = pos
+        this.uvs = uvs
         this.colors = colors
         this.isClosed = isClosed
     }
@@ -29,7 +33,8 @@ class PathProfile() : Saveable() {
     var width = 1f
 
     var positions: List<Vector2f> = emptyList()
-    var colors: List<Int> = emptyList()
+    var uvs: FloatArrayList? = null
+    var colors: IntArrayList? = null
 
     var flatShading = true
 
@@ -48,6 +53,7 @@ class PathProfile() : Saveable() {
     }
 
     fun getSize(): Int {
+        val colors = colors ?: return positions.size
         return min(positions.size, colors.size)
     }
 
@@ -85,13 +91,13 @@ class PathProfile() : Saveable() {
         val colors = colors
         val cap = positions.size
         val left = ArrayList<Vector2f>(cap)
-        val leftColors = ArrayList<Int>(cap)
+        val leftColors = IntArrayList(cap)
         val right = ArrayList<Vector2f>(cap)
-        val rightColors = ArrayList<Int>(cap)
+        val rightColors = IntArrayList(cap)
         val isClosed = isClosed
         val i0 = if (isClosed) cap - 1 else 0
         var p0 = positions[i0]
-        var c0 = colors[i0]
+        var c0 = colors?.getOrNull(i0) ?: white
         // add first point
         val sx = p0.x < 0f
         if (sx) {
@@ -104,7 +110,7 @@ class PathProfile() : Saveable() {
         // add all segments to their respective side
         for (i in (if (isClosed) 0 else 1) until cap) {
             val p1 = positions[i]
-            val c1 = colors[i]
+            val c1 = colors?.getOrNull(i) ?: white
             val s0 = p0.x <= 0f
             val s1 = p1.x <= 0f
             if (s0 == s1) {
@@ -144,8 +150,8 @@ class PathProfile() : Saveable() {
             p0 = p1
             c0 = c1
         }
-        val left1 = PathProfile(left, leftColors, false)
-        val right1 = PathProfile(right, rightColors, false)
+        val left1 = PathProfile(left, null, leftColors, false)
+        val right1 = PathProfile(right, null, rightColors, false)
         left1.flatShading = flatShading
         right1.flatShading = flatShading
         println("split $positions/$isClosed into $left + $right")
@@ -153,11 +159,13 @@ class PathProfile() : Saveable() {
     }
 
     fun getColor(i: Int, first: Boolean): Int {
-        return if (mixColors) {
-            colors[(i + 1 - first.toInt()) % colors.size]
+        val colors = colors ?: return -1
+        val index = if (mixColors) {
+            (i + 1 - first.toInt()) % colors.size
         } else {
-            colors[i % colors.size]
+            i % colors.size
         }
+        return colors[index]
     }
 
     override fun save(writer: BaseWriter) {
@@ -166,7 +174,10 @@ class PathProfile() : Saveable() {
         writer.writeBoolean("flatShading", flatShading)
         writer.writeBoolean("isClosed", isClosed)
         writer.writeVector2fList("positions", positions)
-        writer.writeIntArray("colors", colors.toIntArray())
+        val colors = colors
+        if (colors != null) {
+            writer.writeIntArray("colors", colors.toIntArray())
+        }
     }
 
     override fun setProperty(name: String, value: Any?) {
@@ -180,7 +191,7 @@ class PathProfile() : Saveable() {
             }
             "colors" -> {
                 val values = value as? IntArray ?: return
-                colors = values.toList()
+                colors = IntArrayList(values)
             }
             else -> super.setProperty(name, value)
         }

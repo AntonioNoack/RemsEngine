@@ -91,6 +91,6 @@ class AnimeOutlineNode : RenderViewNode(
                     "   vec3 color = texture(colorTex,uv).xyz;\n" +
                     "   result = vec4(color * notLine, 1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_camRot") }
     }
 }

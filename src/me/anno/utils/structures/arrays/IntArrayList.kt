@@ -7,6 +7,10 @@ import me.anno.utils.types.Strings.joinChars0
 
 open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : NativeArrayList, ICacheData {
 
+    constructor(values: IntArray) : this(values.size) {
+        add(values)
+    }
+
     override var size = 0
         set(value) {
             field = value

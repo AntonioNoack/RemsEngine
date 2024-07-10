@@ -53,13 +53,7 @@ class HierarchicalDatabaseTest {
             100_000, timeout, timeout, "txt"
         )
 
-        if (folder.exists && folder.listChildren().isNotEmpty()) {
-            verifyContents(instance)
-            instance.clear()
-        } else {
-            verifyContentsEmpty(instance)
-        }
-
+        instance.clear()
         verifyContentsEmpty(instance)
         testPut(instance)
         verifyContents(instance)
@@ -73,7 +67,7 @@ class HierarchicalDatabaseTest {
     }
 
     private fun testPut(instance: HierarchicalDatabase) {
-        samples.indices.map { i->
+        samples.indices.map { i ->
             thread {
                 val data = sampleData[i]
                 instance.put(sampleKeys[i], data)

@@ -11,6 +11,7 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
+import me.anno.ecs.components.mesh.HelperMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -708,7 +709,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
 
     private fun writeMeshHelper(
         mode: DrawMode,
-        helper: Mesh.HelperMesh,
+        helper: HelperMesh,
         material: Material?,
         cullMode: CullMode,
         writeMeshAttributes: () -> Unit
@@ -722,9 +723,8 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
                 write(materials.nextId(MaterialData(material, cullMode)))
             }
 
-            val indices = helper.indices
             attr("indices")
-            write(createIndicesView(indices, mode, cullMode))
+            write(createIndicesView(helper.indices, mode, cullMode))
 
             writeMeshAttributes()
         }

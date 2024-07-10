@@ -15,7 +15,7 @@ object YAMLReader {
             var i = i0
             while (true) {
                 if (i >= 0 && i + 1 < str.length && str[i + 1] != ' ') {
-                    i = str.indexOf(':', i) // find the next place
+                    i = str.indexOf(':', i + 1) // find the next place
                 } else return max(i, i0) // i will be -1 or a good position, i0 is the first colon
             }
         } else return i0

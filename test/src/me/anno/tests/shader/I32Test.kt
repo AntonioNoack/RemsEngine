@@ -4,10 +4,10 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.Pipeline
@@ -19,6 +19,7 @@ import me.anno.mesh.Shapes.flatCube
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 class TestI32Stack(val space: Float) : InstancedI32Stack(
@@ -58,12 +59,14 @@ fun main() {
 
     val spawner = object : MeshSpawner() {
 
-        val count get() = ((sin(Time.gameTime) + 1.0) * 30).toInt()
+        val maxCount = 30
+        val count get() = ((sin(Time.gameTime) * 0.5 + 0.5) * maxCount).roundToInt()
 
         override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
             // the size is changing constantly, so it would be best to calculate the maximum size
-            // for this sample, we just set it to always render
-            aabb.all()
+            // if you're too lazy, use aabb.all()
+            aabb.setMin(-width.toDouble(), -height.toDouble(), -thickness.toDouble())
+            aabb.setMax(+width.toDouble(), +height.toDouble(), (maxCount - 1) * space + thickness.toDouble())
             return true
         }
 

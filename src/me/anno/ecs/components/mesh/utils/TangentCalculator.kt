@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.gpu.buffer.DrawMode
 import org.joml.Vector3f
 import kotlin.math.abs

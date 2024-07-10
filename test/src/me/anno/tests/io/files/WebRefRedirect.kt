@@ -1,5 +1,6 @@
 package me.anno.tests.io.files
 
+import me.anno.Engine
 import me.anno.io.files.Reference.getReference
 import me.anno.network.Server
 import me.anno.network.TCPClient
@@ -13,6 +14,7 @@ object WebRefRedirect {
 
     @Test
     fun testAutomaticRedirect() {
+        Engine.cancelShutdown()
         val port = 8081
         val server = Server()
         val content = "Hello World!"

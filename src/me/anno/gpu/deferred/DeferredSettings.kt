@@ -3,6 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
@@ -95,6 +96,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
     fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
         val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
         return IFramebuffer.createFramebuffer(name, 1, 1, samples, targetTypes, depthBufferType)
+    }
+
+    fun getBaseBufferFBStack(name: String, width: Int, height: Int, samples: Int): IFramebuffer {
+        val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
+        return FBStack[name, width, height, targetTypes, samples, depthBufferType]
     }
 
     fun createShader(

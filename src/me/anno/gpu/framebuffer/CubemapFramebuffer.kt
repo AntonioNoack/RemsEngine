@@ -266,17 +266,22 @@ class CubemapFramebuffer(
     }
 
     private fun renderSides(render: (side: Int) -> Unit) {
+        GFX.check()
         ensure()
         Frame.bind()
+        GFX.check()
         for (side in 0 until 6) {
             // update all attachments, updating the framebuffer texture targets
             updateAttachments(side)
+            GFX.check()
             val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
             if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("${GFX.getName(status)}, $this")
+            GFX.check()
             render(side)
         }
         depthTexture?.needsMipmaps = true
         for (i in textures.indices) textures[i].needsMipmaps = true
+        GFX.check()
     }
 
     override fun attachFramebufferToDepth(name: String, targets: List<TargetType>): IFramebuffer {

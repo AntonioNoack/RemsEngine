@@ -187,7 +187,7 @@ open class Texture3D(
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
-                    byteBuffer.put(getValue.run(x, y, z))
+                    byteBuffer.put(getValue.call(x, y, z))
                 }
             }
         }
@@ -205,7 +205,7 @@ open class Texture3D(
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
-                    byteBuffer.putInt(getValue.run(x, y, z))
+                    byteBuffer.putInt(getValue.call(x, y, z))
                 }
             }
         }

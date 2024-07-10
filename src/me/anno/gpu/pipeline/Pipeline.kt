@@ -205,12 +205,15 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             CubemapTexture.rotateForCubemap(skyRot.identity(), side)
             val shader = (sky.shader ?: pbrModelShader).value
             shader.use()
+            GFX.check()
             Perspective.setPerspective(
                 cameraMatrix, Maths.PIf * 0.5f, 1f,
                 0.1f, 10f, 0f, 0f
             )
             cameraMatrix.rotate(skyRot)
+            GFX.check()
             shader.m4x4("transform", cameraMatrix)
+            GFX.check() // todo why is this failing in the compile test???
             if (side == 0) {
                 shader.v1i("hasVertexColors", 0)
                 sky.material.bind(shader)

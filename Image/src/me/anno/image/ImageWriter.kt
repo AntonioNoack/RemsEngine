@@ -158,7 +158,7 @@ object ImageWriter {
             for (y in y0 until y1) {
                 var i = x0 + y * w
                 for (x in x0 until x1) {
-                    values[i] = getRGB.run(x, y, i)
+                    values[i] = getRGB.call(x, y, i)
                     i++
                 }
             }
@@ -208,7 +208,7 @@ object ImageWriter {
                     val k = i * samples
                     for (j in 0 until samples) {
                         val j2 = j shl 1
-                        values[k + j] = getValue.calculate(
+                        values[k + j] = getValue.call(
                             xf + MSAAx8[j2],
                             yf + MSAAx8[j2 + 1]
                         )
@@ -256,7 +256,7 @@ object ImageWriter {
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {
-                    buffer[i] = getRGB.run(x, y, i)
+                    buffer[i] = getRGB.call(x, y, i)
                     i++
                 }
             }

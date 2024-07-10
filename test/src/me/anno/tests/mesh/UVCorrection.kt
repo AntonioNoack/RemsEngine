@@ -2,6 +2,7 @@ package me.anno.tests.mesh
 
 import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.engine.OfficialExtensions
 import me.anno.image.Image
 import me.anno.image.ImageCache
@@ -72,15 +73,15 @@ object UVCorrection {
                 val w = image.width
                 val h = image.height
                 val hm1 = h - 1
-                mesh.forEachTriangleIndex { a, b, c ->
-                    val a3 = a * 3
-                    val b3 = b * 3
-                    val c3 = c * 3
+                mesh.forEachTriangleIndex { ai, bi, ci ->
+                    val a3 = ai * 3
+                    val b3 = bi * 3
+                    val c3 = ci * 3
                     val area = Vectors.crossLength(pos, a3, b3, c3)
                     if (area > 0f) {
-                        val a2 = a * 2
-                        val b2 = b * 2
-                        val c2 = c * 2
+                        val a2 = ai * 2
+                        val b2 = bi * 2
+                        val c2 = ci * 2
                         val ua = (uvs[a2] * w).toInt()
                         val ub = (uvs[b2] * w).toInt()
                         val uc = (uvs[c2] * w).toInt()

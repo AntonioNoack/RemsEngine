@@ -22,7 +22,8 @@ open class Vector2f(
     constructor(v: Vector2f) : this(v.x, v.y)
     constructor(v: Vector2i) : this(v.x, v.y)
     constructor(x: Int, y: Int) : this(x.toFloat(), y.toFloat())
-    constructor(xy: FloatArray) : this(xy[0], xy[1])
+    constructor(xy: FloatArray, offset: Int) : this(xy[offset], xy[offset + 1])
+    constructor(xy: FloatArray) : this(xy, 0)
     constructor(v: Vector2d) : this(v.x.toFloat(), v.y.toFloat())
 
     override val numComponents: Int get() = 2

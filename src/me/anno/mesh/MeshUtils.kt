@@ -5,6 +5,7 @@ import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4f

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.maths.Packing.pack64
 import me.anno.utils.structures.arrays.BooleanArrayList
 import kotlin.math.max
@@ -16,9 +17,9 @@ object OnEdgeCalculator {
         // if there is few vertices, we could use an IntArray for counting
         val sides = HashMap<Long, Int>()
         var index = 0
-        mesh.forEachLineIndex { a, b ->
-            val min = min(a, b)
-            val max = max(a, b)
+        mesh.forEachLineIndex { ai, bi ->
+            val min = min(ai, bi)
+            val max = max(ai, bi)
             val hash = pack64(min, max)
             val previousIndex = sides.put(hash, index)
             if (previousIndex != null) {

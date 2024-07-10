@@ -32,15 +32,8 @@ fun main() {
     val upscaled = FBStack["", ow, oh, 4, false, 1, DepthBufferType.NONE] as Framebuffer
     GFXState.useFrame(upscaled) {
         FSR.upscale(
-            texture,
-            0,
-            0,
-            ow,
-            oh,
-            0,
-            flipY = true,
-            applyToneMapping = false,
-            withAlpha = false
+            texture, 0, 0, ow, oh, 0,
+            flipY = true, applyToneMapping = false, withAlpha = false
         )
     }
     upscaled.createImage(false, withAlpha = false)

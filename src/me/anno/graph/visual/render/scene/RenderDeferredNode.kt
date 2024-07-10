@@ -140,13 +140,12 @@ open class RenderDeferredNode : RenderViewNode(
                     )
                 )
             )
-            createNewFramebuffer(settings, samples)
         }
+        createNewFramebuffer(settings, samples)
     }
 
     open fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
-        framebuffer?.destroy()
-        framebuffer = settings.createBaseBuffer(name, samples)
+        framebuffer = settings.getBaseBufferFBStack(name, width, height, samples)
     }
 
     override fun executeAction() {

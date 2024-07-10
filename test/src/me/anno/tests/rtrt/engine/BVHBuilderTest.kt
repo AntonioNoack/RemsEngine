@@ -1,5 +1,6 @@
 package me.anno.tests.rtrt.engine
 
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.maths.bvh.BLASBranch
 import me.anno.maths.bvh.BLASLeaf
@@ -21,7 +22,7 @@ class BVHBuilderTest {
     @Test
     fun testAllTrianglesAppearExactlyOnce() {
         val triangles = HashSet<Triangle>()
-        mesh.forEachTriangle { a: Vector3f, b: Vector3f, c: Vector3f ->
+        mesh.forEachTriangle { a, b, c ->
             triangles.add(Triangle(Vector3f(a), Vector3f(b), Vector3f(c)))
         }
         assertEquals(mesh.numPrimitives.toInt(), triangles.size)

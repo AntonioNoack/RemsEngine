@@ -1,6 +1,7 @@
 package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
@@ -38,9 +39,9 @@ object FindLines {
         if (lineCount == 0) return null
         val lines = old.resize(lineCount * 2)
         var j = 0
-        mesh.forEachLineIndex { a, b ->
-            lines[j++] = a
-            lines[j++] = b
+        mesh.forEachLineIndex { ai, bi ->
+            lines[j++] = ai
+            lines[j++] = bi
         }
         return lines
     }

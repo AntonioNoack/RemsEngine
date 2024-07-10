@@ -7,8 +7,10 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.callbacks.LineIndexCallback
-import me.anno.ecs.components.mesh.callbacks.TriangleIndexCallback
+import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
+import me.anno.ecs.components.mesh.MeshIterators.countLines
+import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
+import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
 import me.anno.ecs.components.mesh.utils.MorphTarget
 import me.anno.ecs.components.mesh.utils.NormalCalculator
 import me.anno.ecs.components.mesh.utils.TangentCalculator
@@ -22,7 +24,6 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
@@ -32,20 +33,18 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
-import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
@@ -53,43 +52,6 @@ import kotlin.math.roundToInt
 
 // open, so you can define your own attributes
 open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
-
-    // a single helper mesh could be used to represent the default indices...
-    class HelperMesh(val indices: IntArray) : ICacheData {
-
-        var triBuffer: IndexBuffer? = null
-        var lineBuffer: IndexBuffer? = null
-        var debugLineBuffer: IndexBuffer? = null
-        var debugLineIndices: IntArray? = null
-        var invalidDebugLines = true
-        var lineIndices: IntArray? = null
-
-        fun init(mesh: Mesh) {
-            val buffer = mesh.buffer!!
-            triBuffer = IndexBuffer("helper", buffer, indices)
-            triBuffer?.drawMode = mesh.drawMode
-
-            lineIndices = lineIndices ?: FindLines.findLines(mesh, indices, mesh.positions)
-            lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-            lineBuffer?.drawMode = DrawMode.LINES
-        }
-
-        fun ensureDebugLines(mesh: Mesh) {
-            val buffer = mesh.buffer
-            if (invalidDebugLines && buffer != null) {
-                invalidDebugLines = false
-                debugLineIndices = FindLines.getAllLines(mesh, indices)
-                debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
-                debugLineBuffer?.drawMode = DrawMode.LINES
-            }
-        }
-
-        override fun destroy() {
-            triBuffer?.destroy()
-            lineBuffer?.destroy()
-            debugLineBuffer?.destroy()
-        }
-    }
 
     @NotSerializedProperty
     var raycaster: BLASNode? = null
@@ -208,8 +170,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @HideInInspector
     @NotSerializedProperty
-    var material: FileReference?
-        get() = materials.firstOrNull()
+    var material: FileReference
+        get() = materials.firstOrNull() ?: InvalidRef
         set(value) {
             materials = value.wrap()
         }
@@ -406,287 +368,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     @NotSerializedProperty
     private var invalidDebugLines = true
-
-    fun forEachPoint(onlyFaces: Boolean, callback: (x: Float, y: Float, z: Float) -> Unit) {
-        val positions = positions ?: return
-        val indices = indices
-        if (onlyFaces && indices != null) {
-            for (i in indices.indices) {
-                val ai = indices[i] * 3
-                callback(positions[ai], positions[ai + 1], positions[ai + 2])
-            }
-        } else {
-            var i = 0
-            val size = positions.size - 2
-            while (i < size) {
-                callback(positions[i++], positions[i++], positions[i++])
-            }
-        }
-    }
-
-    fun forEachTriangle(callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit) {
-        val a = JomlPools.vec3f.create()
-        val b = JomlPools.vec3f.create()
-        val c = JomlPools.vec3f.create()
-        forEachTriangle(a, b, c, callback)
-        JomlPools.vec3f.sub(3)
-    }
-
-    fun forEachTriangleIndex(callback: TriangleIndexCallback) {
-        val positions = positions ?: return
-        val indices = indices
-        if (indices == null) {
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    for (i in 0 until positions.size / 9) {
-                        val i3 = i * 3
-                        callback.run(i3, i3 + 1, i3 + 2)
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    for (i in 2 until positions.size / 3) {
-                        val i3 = i * 3
-                        callback.run(i3, i3 + 1, i3 + 2)
-                    }
-                }
-                else -> {
-                    // no triangles are present
-                }
-            }
-        } else {
-            if (indices.size < 3) return
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    for (i in indices.indices step 3) {
-                        callback.run(indices[i], indices[i + 1], indices[i + 2])
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    var a = indices[0]
-                    var b = indices[1]
-                    for (i in 2 until indices.size) {
-                        val c = indices[i]
-                        if (a != b && b != c && c != a) {
-                            if (i.hasFlag(1)) {
-                                callback.run(a, c, b)
-                            } else {
-                                callback.run(a, b, c)
-                            }
-                        }
-                        a = b
-                        b = c
-                    }
-                }
-                else -> {
-                    // no triangles are present
-                }
-            }
-        }
-    }
-
-    fun countLines(): Int {
-        val positions = positions
-        val indices = indices
-        return max(
-            if (indices == null) {
-                positions ?: return 0
-                val numPoints = positions.size / 3
-                when (drawMode) {
-                    DrawMode.TRIANGLES -> numPoints
-                    DrawMode.TRIANGLE_STRIP -> (numPoints - 2) * 2
-                    DrawMode.LINES -> numPoints / 2
-                    DrawMode.LINE_STRIP -> numPoints - 1
-                    else -> 0
-                }
-            } else {
-                when (drawMode) {
-                    DrawMode.TRIANGLES -> indices.size
-                    DrawMode.TRIANGLE_STRIP -> (indices.size - 2) * 2
-                    DrawMode.LINES -> indices.size / 2
-                    DrawMode.LINE_STRIP -> indices.size - 1
-                    else -> 0
-                }
-            }, 0
-        )
-    }
-
-    fun forEachLineIndex(callback: LineIndexCallback) {
-        val positions = positions ?: return
-        val indices = indices
-        if (indices == null) {
-            val numPoints = positions.size / 3
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    for (i3 in 0 until numPoints - 2 step 3) {
-                        callback.run(i3, i3 + 1)
-                        callback.run(i3 + 1, i3 + 2)
-                        callback.run(i3 + 2, i3)
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    for (c in 2 until numPoints) {
-                        callback.run(c - 2, c)
-                        callback.run(c - 1, c)
-                    }
-                }
-                DrawMode.LINES -> {
-                    for (i in 0 until numPoints step 2) {
-                        callback.run(i, i + 1)
-                    }
-                }
-                DrawMode.LINE_STRIP -> {
-                    for (i in 1 until numPoints) {
-                        callback.run(i - 1, i)
-                    }
-                }
-                else -> {
-                    // no lines present
-                }
-            }
-        } else {
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    for (i in 0 until indices.size - 2 step 3) {
-                        val a = indices[i]
-                        val b = indices[i + 1]
-                        val c = indices[i + 2]
-                        callback.run(a, b)
-                        callback.run(b, c)
-                        callback.run(c, a)
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    var a = indices[0]
-                    var b = indices[1]
-                    for (i in 2 until indices.size) {
-                        val c = indices[i]
-                        if (a != b && a != c && b != c) {
-                            callback.run(a, c)
-                            callback.run(b, c)
-                        }
-                        a = b
-                        b = c
-                    }
-                }
-                DrawMode.LINES -> {
-                    for (i in 0 until indices.size - 1 step 2) {
-                        callback.run(indices[i], indices[i + 1])
-                    }
-                }
-                DrawMode.LINE_STRIP -> {
-                    var a = indices[0]
-                    for (i in 1 until indices.size) {
-                        val b = indices[i]
-                        if (a != b) callback.run(a, b)
-                        a = b
-                    }
-                }
-                else -> {}
-            }
-        }
-    }
-
-    fun forEachTriangle(
-        a: Vector3f, b: Vector3f, c: Vector3f,
-        callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit
-    ) {
-        val positions = positions ?: return
-        val indices = indices
-        if (indices != null) {
-            if (indices.size < 3) return
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    for (i in 0 until indices.size - 2 step 3) {
-                        a.set(positions, indices[i] * 3)
-                        b.set(positions, indices[i + 1] * 3)
-                        c.set(positions, indices[i + 2] * 3)
-                        callback(a, b, c)
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    var ai = indices[0] * 3
-                    var bi = indices[1] * 3
-                    for (i in 2 until indices.size) {
-                        val ci = indices[i] * 3
-                        a.set(positions, ai)
-                        // can we remove this?
-                        if (i.hasFlag(1)) {
-                            b.set(positions, ci)
-                            c.set(positions, bi)
-                        } else {
-                            b.set(positions, bi)
-                            c.set(positions, ci)
-                        }
-                        callback(a, b, c)
-                        ai = bi
-                        bi = ci
-                    }
-                }
-                else -> {}
-            }
-        } else {
-            when (drawMode) {
-                DrawMode.TRIANGLES -> {
-                    var i = 0
-                    val s = positions.size - 8
-                    while (i < s) {
-                        a.set(positions, i)
-                        b.set(positions, i + 3)
-                        c.set(positions, i + 6)
-                        callback(a, b, c)
-                        i += 9
-                    }
-                }
-                DrawMode.TRIANGLE_STRIP -> {
-                    var ai = 0
-                    var bi = 3
-                    for (i in 2 until positions.size / 3) {
-                        val ci = i * 3
-                        a.set(positions, ai)
-                        // can we remove this?
-                        if (i.hasFlag(1)) {
-                            b.set(positions, ci)
-                            c.set(positions, bi)
-                        } else {
-                            b.set(positions, bi)
-                            c.set(positions, ci)
-                        }
-                        callback(a, b, c)
-                        ai = bi
-                        bi = ci
-                    }
-                }
-                else -> {}
-            }
-        }
-    }
-
-    fun forEachTriangle(
-        a: Vector3d, b: Vector3d, c: Vector3d,
-        callback: (a: Vector3d, b: Vector3d, c: Vector3d) -> Unit
-    ) {
-        // todo this only supports DrawMode.TRIANGLES
-        val positions = positions ?: return
-        val indices = indices
-        if (indices != null) {
-            for (i in 0 until indices.size - 2 step 3) {
-                a.set(positions, indices[i] * 3)
-                b.set(positions, indices[i + 1] * 3)
-                c.set(positions, indices[i + 2] * 3)
-                callback(a, b, c)
-            }
-        } else {
-            var i = 0
-            val s = positions.size - 8
-            while (i < s) {
-                a.set(positions, i)
-                b.set(positions, i + 3)
-                c.set(positions, i + 6)
-                callback(a, b, c)
-                i += 9
-            }
-        }
-    }
 
     var hasUVs = false
     override var hasVertexColors = 0
@@ -1028,7 +709,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         // todo only if we were not cloned...
         destroyHelperMeshes()
         clearGPUData()
-        clearCPUData()
+        // clearCPUData()
     }
 
     fun clearGPUData() {
@@ -1237,7 +918,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction
     fun move(dx: Float, dy: Float, dz: Float) {
         if (prefab?.isWritable == false) {
-            LOGGER.warn("Mesh is immutable")
+            warnIsImmutable()
         } else {
             val positions = positions ?: return
             for (i in 0 until positions.size - 2 step 3) {
@@ -1272,12 +953,16 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugAction
     fun removeVertexColors() {
         if (prefab?.isWritable == false) {
-            LOGGER.warn("Mesh is immutable")
+            warnIsImmutable()
         } else {
             color0 = null
             prefab?.set("color0", null)
             invalidateGeometry()
         }
+    }
+
+    private fun warnIsImmutable() {
+        LOGGER.warn("Mesh is immutable")
     }
 
     companion object {
@@ -1294,40 +979,5 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         // custom attributes for shaders? idk...
         // will always be 4, so bone indices can be aligned
         const val MAX_WEIGHTS = 4
-
-        private fun replaceBuffer(
-            name: String,
-            attributes: List<Attribute>,
-            vertexCount: Int,
-            oldValue: StaticBuffer?,
-        ): StaticBuffer {
-            if (oldValue != null) {
-                // offsets are compared, so they need to be consistent
-                computeOffsets(attributes)
-                computeOffsets(oldValue.attributes)
-                if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
-                    oldValue.clear()
-                    return oldValue
-                } else {
-                    oldValue.destroy()
-                }
-            }
-            return StaticBuffer(name, attributes, vertexCount)
-        }
-
-        private fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
-            return if (indices != null) {
-                if (oldValue != null) {
-                    if (base === oldValue.base) {
-                        oldValue.indices = indices
-                        return oldValue
-                    } else oldValue.destroy()
-                }
-                IndexBuffer(base.name, base, indices)
-            } else {
-                oldValue?.destroy()
-                null
-            }
-        }
     }
 }

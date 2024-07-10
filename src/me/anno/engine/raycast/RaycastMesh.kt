@@ -3,6 +3,7 @@ package me.anno.engine.raycast
 import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS

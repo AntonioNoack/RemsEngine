@@ -2,6 +2,7 @@ package me.anno.maths.chunks.spherical
 
 import me.anno.maths.chunks.PlayerLocation
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector3d
 

@@ -10,8 +10,9 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 
 /**
- * todo thanks to RenderGraphs, not having the same size of renderviews is probably costly... (because Framebuffers need to be resized constantly)
+ * thanks to RenderGraphs, not having the same size of renderviews is probably costly... (because Framebuffers need to be resized constantly)
  *  -> yes, 150 fps -> 46 fps
+ *  -> fixed that by using FBStack[] :), now it's constantly 170 fps (20 fps higher thanks to Ryzen 2600 -> Ryzen 7950x3D)
  * */
 fun main() {
     testUI3("Multi-RenderView") {

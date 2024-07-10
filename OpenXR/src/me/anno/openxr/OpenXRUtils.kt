@@ -143,12 +143,12 @@ object OpenXRUtils {
         val openGLRequirements = XrGraphicsRequirementsOpenGLKHR.calloc()
             .type(XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR).next(0)
         checkXR(xrGetOpenGLGraphicsRequirementsKHR(instance, systemId, openGLRequirements))
+        val min = openGLRequirements.minApiVersionSupported()
+        val max = openGLRequirements.maxApiVersionSupported()
         LOGGER.info( // 4.3 to 4.6 for Meta Quest 3 in SteamVR, 4.0 to 4.6 in Meta Quest Link
             "Graphics Requirements: " +
-                    "${XR_VERSION_MAJOR(openGLRequirements.minApiVersionSupported())}." +
-                    "${XR_VERSION_MINOR(openGLRequirements.minApiVersionSupported())} to " +
-                    "${XR_VERSION_MAJOR(openGLRequirements.maxApiVersionSupported())}." +
-                    "${XR_VERSION_MINOR(openGLRequirements.maxApiVersionSupported())}"
+                    "${XR_VERSION_MAJOR(min)}.${XR_VERSION_MINOR(min)} to " +
+                    "${XR_VERSION_MAJOR(max)}.${XR_VERSION_MINOR(max)}"
         )
     }
 

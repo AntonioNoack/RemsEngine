@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
@@ -182,10 +183,16 @@ class OpenXRRendering(
             (pos.z() - position.z) * scale
         )
 
+        // reduce used VRAM, if both eyes have the same resolution
+        FBStack.reset()
+
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
         rv.pipeline.superMaterial = rv.renderMode.superMaterial
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
+
+        // not really needed
+        FBStack.reset()
 
         // todo somehow define controller positions, and show objects there
         // todo finger tracking: render user-controlled hand

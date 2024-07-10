@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh.utils
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangle
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools

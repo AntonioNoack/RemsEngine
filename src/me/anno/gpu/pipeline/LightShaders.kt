@@ -224,7 +224,7 @@ object LightShaders {
             // first the ones for the deferred data
             // then the ones for the shadows
             shader.ignoreNameWarnings(
-                "tint,invLocalTransform,d_camRot,d_fovFactor," +
+                "tint,invLocalTransform,d_camRot,d_fovFactor,reverseDepth," +
                         "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,defLayer5,defLayer6,defLayer7"
             )
             shader
@@ -383,7 +383,7 @@ object LightShaders {
     ).apply {
         ignoreNameWarnings(
             "cameraPosition,cameraRotation,invScreenSize,receiveShadows,d_camRot,d_fovFactor," +
-                    "data0,data1,data2,cutoff,camSpaceToLightSpace,worldScale,isDirectional"
+                    "data0,data1,data2,cutoff,camSpaceToLightSpace,worldScale,isDirectional,reverseDepth"
         )
     }
 
@@ -422,7 +422,7 @@ object LightShaders {
         ignoreNameWarnings(
             "normals,uvs,tangents,colors,receiveShadows,invScreenSize,cameraPosition,cameraRotation," +
                     "d_camRot,d_fovFactor,worldScale,data0,data1,data2,cutoff," +
-                    "camSpaceToLightSpace,receiveShadows,isDirectional"
+                    "camSpaceToLightSpace,receiveShadows,isDirectional,reverseDepth"
         )
     }
 

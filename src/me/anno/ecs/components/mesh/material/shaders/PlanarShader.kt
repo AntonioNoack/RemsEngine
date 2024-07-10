@@ -8,6 +8,10 @@ import me.anno.gpu.shader.builder.Variable
 
 object PlanarShader : ECSMeshShader("planar") {
 
+    init {
+        ignoreNameWarnings("reverseDepth")
+    }
+
     override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
         val list = super.createFragmentVariables(key)
         list.add(Variable(GLSLType.V3F, "tilingU"))

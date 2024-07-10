@@ -1,6 +1,7 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.utils.Done
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Triangles

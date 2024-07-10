@@ -84,13 +84,13 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         for (i in pos.indices step 3) {
             val px = bounds.minX + sx * pos[i]
             val pz = bounds.minZ + sy * pos[i + 2]
-            val py = getHeight.calculate(px, pz)
+            val py = getHeight.call(px, pz)
             pos[i] = px
             pos[i + 1] = py
             pos[i + 2] = pz
             // calculate normal
-            val dx = (getHeight.calculate(px - sx, pz) - py) / sx
-            val dz = (getHeight.calculate(px, pz - sy) - py) / sy
+            val dx = (getHeight.call(px - sx, pz) - py) / sx
+            val dz = (getHeight.call(px, pz - sy) - py) / sy
             val rn = 1f / sqrt(dx * dx + 1f + dz * dz)
             nor[i] = dx * rn
             nor[i + 1] = rn
