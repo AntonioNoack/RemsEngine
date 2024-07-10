@@ -270,12 +270,44 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         }
     }
 
-    fun updateActions(playSpace: XrSpace, frameState: XrFrameState) {
+    private fun syncActions() {
         activeActionSets[0].actionSet(actionSet).subactionPath(XR_NULL_PATH)
         actionsSyncInfo.type(XR_TYPE_ACTIONS_SYNC_INFO).next(0)
             .activeActionSets(activeActionSets)
         val ret0 = xrSyncActions(session, actionsSyncInfo)
         if (ret0 != XR_SESSION_NOT_FOCUSED) checkXR(ret0)
+    }
+
+    private fun setupGetInfo(action: XrAction, subactionPath: Long) {
+        getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
+            .action(action).subactionPath(subactionPath)
+    }
+
+    private fun updateVector2fState(action: XrAction, subactionPath: Long) {
+        vector2fState.type(XR_TYPE_ACTION_STATE_VECTOR2F).next(0)
+        setupGetInfo(action, subactionPath)
+        checkXR(xrGetActionStateVector2f(session, getInfo, vector2fState))
+    }
+
+    private fun updateFloatState(action: XrAction, subactionPath: Long) {
+        floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
+        setupGetInfo(action, subactionPath)
+        checkXR(xrGetActionStateFloat(session, getInfo, floatState))
+    }
+
+    private fun updateBooleanState(action: XrAction, subactionPath: Long) {
+        booleanState.type(XR_TYPE_ACTION_STATE_BOOLEAN).next(0)
+        setupGetInfo(action, subactionPath)
+        checkXR(xrGetActionStateBoolean(session, getInfo, booleanState))
+    }
+
+    private fun getFloatStateOrNaN(action: XrAction, subactionPath: Long): Float {
+        updateFloatState(action, subactionPath)
+        return if (floatState.isActive) floatState.currentState() else Float.NaN
+    }
+
+    fun updateActions(playSpace: XrSpace, frameState: XrFrameState) {
+        syncActions()
 
         val window = GFX.activeWindow!!
         val dt = frameState.predictedDisplayPeriod() * 1e-9f
@@ -302,30 +334,17 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 .identity().rotateY(additionalRotationY)
                 .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
-            vector2fState.type(XR_TYPE_ACTION_STATE_VECTOR2F).next(0)
-            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
-                .action(thumbstickAction).subactionPath(handPath)
-            checkXR(xrGetActionStateVector2f(session, getInfo, vector2fState))
+            updateVector2fState(thumbstickAction, handPath)
             if (vector2fState.isActive) {
                 val value = vector2fState.currentState()
                 controller.setAxisValue(window, 0, value.x(), dt)
                 controller.setAxisValue(window, 1, value.y(), dt)
             }
 
-            floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
-            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
-                .action(grabAction).subactionPath(handPath)
-            checkXR(xrGetActionStateFloat(session, getInfo, floatState))
-
-            val grab = if (floatState.isActive) floatState.currentState() else Float.NaN
+            val grab = getFloatStateOrNaN(grabAction, handPath)
             controller.setAxisValue(window, 2, grab, dt)
 
-            floatState.type(XR_TYPE_ACTION_STATE_FLOAT).next(0)
-            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
-                .action(squeezeAction).subactionPath(handPath)
-            checkXR(xrGetActionStateFloat(session, getInfo, floatState))
-
-            val squeeze = if (floatState.isActive) floatState.currentState() else Float.NaN
+            val squeeze = getFloatStateOrNaN(squeezeAction, handPath)
             controller.setAxisValue(window, 3, squeeze, dt)
 
             val rumble = clamp(controller.rumble)
@@ -343,11 +362,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         //  same as predicated display time, so todo: override time with predicatedDisplayTime-system
         val time = Time.nanoTime
         for (i in 0 until 4) {
-            booleanState.type(XR_TYPE_ACTION_STATE_BOOLEAN).next(0)
-            getInfo.type(XR_TYPE_ACTION_STATE_GET_INFO).next(0)
-                .action(buttonActions[i.shr(1)])
-                .subactionPath(handPaths[i.and(1)])
-            checkXR(xrGetActionStateBoolean(session, getInfo, booleanState))
+            updateBooleanState(buttonActions[i.shr(1)], handPaths[i.and(1)])
             val currState = if (booleanState.isActive) booleanState.currentState() else null
             val eventFlags = ButtonLogic.process(time, currState == true, buttonsTimers, i)
             val engineButton = engineButtons[i]
