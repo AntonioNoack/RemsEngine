@@ -14,6 +14,8 @@ interface LanguageTokenizer {
     val blockCommentStart: String
     val blockCommentEnd: String
 
+    val brackets: List<Pair<String, String>>
+
     companion object {
         @JvmStatic
         fun fullMatch(pattern: String): Collection<String> {

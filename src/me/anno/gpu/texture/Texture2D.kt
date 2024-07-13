@@ -11,7 +11,6 @@ import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -79,14 +78,12 @@ import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 import org.lwjgl.opengl.GL46C.glActiveTexture
 import org.lwjgl.opengl.GL46C.glBindTexture
 import org.lwjgl.opengl.GL46C.glDeleteTextures
-import org.lwjgl.opengl.GL46C.glFinish
-import org.lwjgl.opengl.GL46C.glFlush
 import org.lwjgl.opengl.GL46C.glGenTextures
 import org.lwjgl.opengl.GL46C.glGenerateMipmap
+import org.lwjgl.opengl.GL46C.glGetTexImage
 import org.lwjgl.opengl.GL46C.glMemoryBarrier
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.opengl.GL46C.glPixelStorei
-import org.lwjgl.opengl.GL46C.glReadPixels
 import org.lwjgl.opengl.GL46C.glTexImage2D
 import org.lwjgl.opengl.GL46C.glTexImage2DMultisample
 import org.lwjgl.opengl.GL46C.glTexParameterf
@@ -99,7 +96,6 @@ import java.nio.DoubleBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.ShortBuffer
-import kotlin.concurrent.thread
 
 @Suppress("unused")
 open class Texture2D(
@@ -394,15 +390,7 @@ open class Texture2D(
     }
 
     fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: Callback<ITexture2D>) {
-        if (sync && isGFXThread()) {
-            image.createTexture(this, true, checkRedundancy, callback)
-        } else if (isGFXThread() && (width * height > 10_000)) {// large -> avoid the load and create it async
-            thread(name = name) {
-                image.createTexture(this, false, checkRedundancy, callback)
-            }
-        } else {
-            image.createTexture(this, false, checkRedundancy, callback)
-        }
+        image.createTexture(this, sync, checkRedundancy, callback)
     }
 
     fun overridePartially(data: Any, level: Int, x: Int, y: Int, w: Int, h: Int, type: TargetType) {
@@ -1121,17 +1109,9 @@ open class Texture2D(
     }
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
+        bindBeforeUpload()
         val buffer = IntArray(width * height)
-        check()
-        useFrame(this, 0) {
-            check()
-            glFlush()
-            glFinish()
-            check()
-            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-            check()
-        }
-        check()
+        glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         convertARGB2ABGR(buffer)
         val image = IntImage(width, height, buffer, channels > 3)
         if (flipY) image.flipY()

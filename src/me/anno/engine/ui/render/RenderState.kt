@@ -42,8 +42,12 @@ object RenderState {
 
     var isPerspective = true
         private set
+
     var fovXRadians = 1.57f
     var fovYRadians = 1.57f
+    var fovXCenter = 0.5f
+    var fovYCenter = 0.5f
+
     var near = 0f
     var far = 0f
 

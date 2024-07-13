@@ -67,6 +67,7 @@ fun runOpenXRRenderLoop() {
         ) {
             val session = session ?: return
             val view = session.views[viewIndex]
+            createProjectionFov(projectionMatrix, view.fov(), nearZ, farZ, null)
             createViewMatrix(viewMatrix, view.pose().`position$`(), view.pose().orientation())
             renderFrame1(
                 w, h, predictedDisplayTime, handLocations,
@@ -138,7 +139,7 @@ val printer = FPSPrinter()
 
 fun renderGLOnly() {
     glfwGetWindowSize(window, ws, hs)
-    createProjectionFov(projectionMatrix, fov, nearZ, farZ)
+    createProjectionFov(projectionMatrix, fov, nearZ, farZ, null)
     rot0.rotateY(0.1f)
     rot.set(rot0.x, rot0.y, rot0.z, rot0.w)
     createViewMatrix(viewMatrix, pos, rot)

@@ -26,6 +26,11 @@ object DefaultAssets {
 
     val assets = HashMap<String, HashSet<FileReference>>()
 
+    val cylinderY11 = CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())
+    val uvSphere = UVSphereModel.createUVSphere(40, 20)
+    val icoSphere = IcosahedronModel.createIcosphere(3)
+    val plane = PlaneModel.createPlane()
+
     fun init() {}
 
     init {
@@ -37,13 +42,9 @@ object DefaultAssets {
     private fun registerMeshes() {
         register("meshes/Cube.json", "Mesh", flatCube.front.ref)
         register("meshes/SmoothCube.json", "Mesh", smoothCube.front.ref)
-        val cylinderY11 = CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())
         register("meshes/CylinderY.json", "Mesh", cylinderY11.ref)
-        val uvSphere = UVSphereModel.createUVSphere(40, 20)
         register("meshes/UVSphere.json", "Mesh", uvSphere.ref)
-        val icoSphere = IcosahedronModel.createIcosphere(3)
         register("meshes/IcoSphere.json", "Mesh", icoSphere.ref)
-        val plane = PlaneModel.createPlane()
         register("meshes/PlaneY.json", "Mesh", plane.ref)
     }
 

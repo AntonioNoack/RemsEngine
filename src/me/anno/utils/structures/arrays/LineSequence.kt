@@ -26,7 +26,11 @@ class LineSequence : IntSequence {
         val lineIndex = getLineIndexAt(index)
         val line = lines[lineIndex]
         val indexInLine = index - indexTable[lineIndex]
-        if (indexInLine < 0) throw IllegalStateException("$indexInLine by $index -> $lineIndex | ${indexTable.toList().joinToString()}")
+        if (indexInLine < 0) throw IllegalStateException(
+            "$indexInLine by $index -> $lineIndex | ${
+                indexTable.toList().joinToString()
+            }"
+        )
         return if (indexInLine < line.size) line[indexInLine] else '\n'.code
     }
 
@@ -35,6 +39,18 @@ class LineSequence : IntSequence {
         val line = lines.getOrNull(lineIndex) ?: return null
         val indexInLine = index - indexTable[lineIndex]
         return if (indexInLine < line.size) line.getOrNull(indexInLine) else '\n'.code
+    }
+
+    fun equals(target: CharSequence, startIndex: Int): Boolean {
+        return equals(target.codepoints(), startIndex)
+    }
+
+    fun equals(target: IntArray, startIndex: Int): Boolean {
+        val lineIndex = getLineIndexAt(startIndex)
+        val line = lines.getOrNull(lineIndex) ?: return false
+        val indexInLine = startIndex - indexTable[lineIndex]
+        return getLineLength(lineIndex) >= target.size + indexInLine &&
+                target.indices.all { ti -> target[ti] == line[indexInLine + ti] }
     }
 
     val lineCount get() = lines.size
@@ -93,13 +109,13 @@ class LineSequence : IntSequence {
 
     fun forEachChar(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        run: (index: Int, lineIndex: Int, indexInLine: Int, char: Int) -> Unit
+        callback: LineSequenceCallback
     ) {
         for (lineIndex in max(y0, 0) until min(y1, lineCount)) {
             val line = lines[lineIndex]
             var index = indexTable[lineIndex] + max(x0, 0)
             for (indexInLine in max(x0, 0) until min(x1, line.size)) {
-                run(index, lineIndex, indexInLine, line[indexInLine])
+                callback.call(index, lineIndex, indexInLine, line[indexInLine])
                 index++
             }
         }

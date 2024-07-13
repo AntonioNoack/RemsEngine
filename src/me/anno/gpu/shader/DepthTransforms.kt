@@ -34,7 +34,7 @@ object DepthTransforms {
             "float rawToDepth(float);\n" +
             "vec3 rawCameraDirection(vec2 uv){\n" +
             "   if(d_fovFactor.z < 0.0) return d_camRot.xyz;\n" + // orthographic
-            "   return quatRot(vec3((uv-0.5)*d_fovFactor.xy, -1.0), d_camRot);\n" +
+            "   return quatRot(vec3((uv-d_uvCenter)*d_fovFactor.xy, -1.0), d_camRot);\n" +
             "}\n" +
             "vec3 depthToPosition(vec2 uv, float depth){\n" + // position is in camera space, so camera is at zero
             "   if(d_fovFactor.z < 0.0) return matMul(d_orthoMat, vec4(uv*2.0-1.0,depth,1.0));\n" + // orthographic
@@ -50,6 +50,7 @@ object DepthTransforms {
     val depthVars = listOf(
         Variable(GLSLType.V4F, "d_camRot"),
         Variable(GLSLType.V3F, "d_fovFactor"),
+        Variable(GLSLType.V2F, "d_uvCenter"),
         Variable(GLSLType.M4x3, "d_orthoMat"),
         Variable(GLSLType.V1B, "reverseDepth"),
     )
@@ -64,10 +65,12 @@ object DepthTransforms {
             // a matrix that transforms uv[-1,+1] x depth[0,1] into [left,right] x [top,bottom] x [near,far]
             shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrixInv))
             shader.v1b("reverseDepth", GFX.supportsClipControl)
+            shader.v2f("d_uvCenter", 0f, 0f) // idk yet
         } else {
             // perspective
             shader.v1b("reverseDepth", GFX.supportsClipControl)
             shader.v4f("d_camRot", RenderState.cameraRotation)
+            shader.v2f("d_uvCenter", RenderState.fovXCenter, RenderState.fovYCenter)
             shader.v3f(
                 "d_fovFactor",
                 2f * tan(RenderState.fovXRadians * 0.5f),

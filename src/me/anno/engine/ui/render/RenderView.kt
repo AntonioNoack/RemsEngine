@@ -520,8 +520,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         // camera matrix and mouse position to ray direction
         if (update) {
-            val window = window!!
-            getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
+            val window = window
+            if (window != null) {
+                getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
+            } else mouseDirection.set(cameraDirection)
         }
 
         storePrevTransform()
@@ -547,6 +549,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val fovYRadians = fov.toRadians()
         this.fovXRadians = 2f * atan(tan(fovYRadians * 0.5f) * aspectRatio)
         this.fovYRadians = fovYRadians
+        fovXCenter = 0.5f + centerX // correct???
+        fovYCenter = 0.5f + centerY // correct???
         Perspective.setPerspective(
             cameraMatrix, fovYRadians, aspectRatio,
             scaledNear.toFloat(), scaledFar.toFloat(), centerX, centerY
@@ -558,6 +562,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val scaledFar = min(scaledFar, worldScale * 1000.0)
         fovXRadians = fov * aspectRatio
         fovYRadians = fov // not really defined
+        fovXCenter = 0.5f
+        fovYCenter = 0.5f
         val sceneScaleXY = 1f / (worldScale * fov).toFloat()
         val n: Float
         val f: Float
@@ -822,6 +828,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     var fovXRadians = 1f
     var fovYRadians = 1f
+    var fovXCenter = 0.5f
+    var fovYCenter = 0.5f
 
     var near = 1e-3
     var scaledNear = 1e-3
@@ -870,6 +878,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         RenderState.fovXRadians = fovXRadians
         RenderState.fovYRadians = fovYRadians
+        RenderState.fovXCenter = fovXCenter
+        RenderState.fovYCenter = fovYCenter
         RenderState.near = scaledNear.toFloat()
         RenderState.far = scaledFar.toFloat()
     }

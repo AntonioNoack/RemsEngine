@@ -599,4 +599,9 @@ object Lists {
         else if (!insertIfEquals && this[index] == instance) return
         add(index, instance)
     }
+
+    @JvmStatic
+    fun <V : Comparable<V>> MutableList<V>.sortedAdd(instance: V, insertIfEquals: Boolean) {
+        sortedAdd(instance, { a, b -> a.compareTo(b) }, insertIfEquals)
+    }
 }

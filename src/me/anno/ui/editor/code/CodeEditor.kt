@@ -6,7 +6,6 @@ import me.anno.fonts.Font
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -18,6 +17,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
@@ -29,15 +29,16 @@ import me.anno.ui.input.components.PureTextInputML.Companion.blinkVisible
 import me.anno.ui.input.components.PureTextInputML.Companion.notifyCursorTyped
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.arrays.IntSequence
 import me.anno.utils.structures.arrays.LineSequence
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.binarySearch
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.log10
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 // todo feedback, what the result of the code is / what compiler errors happened
 // todo also add execution button
@@ -95,6 +96,9 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     val cursor0 = CursorPosition()
     val cursor1 = CursorPosition()
+
+    val codeBlockCollapser = CodeBlockCollapser()
+    val codeBlocks = ArrayList<CodeBlock>()
 
     fun setOnChangeListener(listener: (CodeEditor, IntSequence) -> Unit) {
         changeListener = listener
@@ -159,7 +163,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                 }
                 else -> {}
             }
-            stream.startIndex = stream.index
+            stream.resetToken()
         }
         while (variableNamesIndex > spellcheckedSections.size) {
             spellcheckedSections.removeAt(spellcheckedSections.lastIndex)
@@ -167,8 +171,47 @@ open class CodeEditor(style: Style) : Panel(style) {
         invalidateDrawing()
     }
 
-    private fun getCharsNeededForLineCount(lineCount: Int = content.lineCount): Int {
-        return max(log10(lineCount.toFloat()).toInt(), 1) + 2
+    fun recalculateBrackets() {
+        val brackets = language.brackets.map { pair ->
+            pair.first to (pair.first.codepoints() to pair.second.codepoints())
+        }
+        codeBlocks.clear()
+        if (brackets.isEmpty()) return
+        val state = language.getStartState()
+        val content = content
+        val stream = Stream(content)
+        val bracketStack = ArrayList<String>()
+        val bracketLineStack = IntArrayList(16)
+        while (stream.index < content.length) {
+            language.getToken(stream, state)
+            if (stream.startIndex == stream.index) break // done
+            val i0 = stream.startIndex
+            val i1 = stream.index
+            for ((openingName, pair) in brackets) {
+                val (opening, closing) = pair
+                if (i1 - i0 == opening.size && content.equals(opening, i0)) {
+                    bracketStack.add(openingName)
+                    bracketLineStack.add(content.getLineIndexAt(i0))
+                    break
+                } else if (i1 - i0 == closing.size &&
+                    bracketStack.lastOrNull() == openingName &&
+                    content.equals(closing, i0)
+                ) {
+                    bracketStack.removeLast()
+                    val startLineIndex = bracketLineStack.removeLast()
+                    val lineIndex = content.getLineIndexAt(i0)
+                    codeBlocks.add(CodeBlock(startLineIndex, lineIndex - startLineIndex - 1))
+                    break
+                }
+            }
+            stream.resetToken()
+        }
+    }
+
+    private fun getCharsNeededForLineCount(): Int {
+        val firstLineNumber = (!firstLineZero).toInt()
+        val maxLineNumber = firstLineNumber + content.lineCount - 1
+        return max(log10(maxLineNumber.toDouble()).toInt(), 1) + 2
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -180,17 +223,17 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     override val canDrawOverBorders get() = true
 
-    fun drawLineNumber(yi: Int, i: Int, cn: Int) {
+    fun drawLineNumber(yi: Int, lineNumber: Int, cn: Int) {
         var xi = cn - 2
         val textColor = theme.numbersColor
         val background = theme.numbersBGColor
-        var ii = i
+        var remainingNumber = lineNumber
         do {
-            val char = '0' + (ii % 10)
+            val char = '0' + (remainingNumber % 10)
             drawChar(xi, yi, char, textColor, background)
             xi--
-            ii /= 10
-        } while (ii > 0)
+            remainingNumber /= 10
+        } while (remainingNumber > 0)
     }
 
     var firstLineZero = false
@@ -203,30 +246,32 @@ open class CodeEditor(style: Style) : Panel(style) {
         if (!isInFocus) cursor0.set(cursor1)
     }
 
+    private fun getCharX(xi: Int): Int = this.x + padding.left + xi * charWidth
+    private fun getCharY(yi: Int): Int = this.y + padding.top + yi * lineHeight
+
+    private fun getCharXiFloor(x: Int): Int = (x - getCharX(0)) / charWidth
+    private fun getCharYiFloor(y: Int): Int = (y - getCharY(0)) / lineHeight
+
+    private fun getCharXiRound(x: Int): Int = getCharXiFloor(x - charWidth.shr(1))
+
     fun drawChar(
         xi: Int, yi: Int, char: Char,
         textColor: Int, backgroundColor: Int,
         bold: Boolean = false, italic: Boolean = false
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
-        val text = char.toString()
-        val key = TextCacheKey(text, font)
-        val background = backgroundColor
-        val x = this.x + padding.left + xi * charWidth
-        val y = this.y + padding.top + yi * lineHeight
-        val tw = DrawTexts.getTextSizeX(font, text, -1, -1, false)
-        drawRect(x, y, charWidth, lineHeight, background or black)
-        drawText(x - (charWidth - tw) / 2, y, font, key, textColor, background and 0xffffff)
+        val x = getCharX(xi)
+        val y = getCharY(yi)
+        drawRect(x, y, charWidth, lineHeight, backgroundColor or black)
+        drawText(
+            x + charWidth.shr(1), y, font, TextCacheKey(char.toString(), font),
+            textColor, backgroundColor and 0xffffff,
+            AxisAlignment.CENTER, AxisAlignment.MIN
+        )
     }
 
-    fun drawCharBackground(
-        xi: Int, yi: Int, backgroundColor: Int
-    ) {
-        val background = backgroundColor
-        val x = this.x + padding.left + xi * charWidth
-        val y = this.y + padding.top + yi * lineHeight
-        drawRect(x, y, charWidth, lineHeight, background or black)
-    }
+    fun drawCharBackground(xi: Int, yi: Int, backgroundColor: Int): Unit =
+        drawRect(getCharX(xi), getCharY(yi), charWidth, lineHeight, backgroundColor or black)
 
     fun drawCharText(
         xi: Int, yi: Int, char: Int,
@@ -235,21 +280,39 @@ open class CodeEditor(style: Style) : Panel(style) {
     ) {
         val font = fonts[bold.toInt(1) + italic.toInt(2)]
         val text = char.joinChars().toString()
-        val key = TextCacheKey(text, font)
-        val background = backgroundColor
-        val x = this.x + padding.left + xi * charWidth
-        val y = this.y + padding.top + yi * lineHeight
-        val tw = DrawTexts.getTextSizeX(font, text, -1, -1, false)
-        drawText(x + (charWidth - tw) / 2, y, font, key, textColor, background and 0xffffff)
+        drawText(
+            getCharX(xi) + charWidth.shr(1), getCharY(yi),
+            font, TextCacheKey(text, font),
+            textColor, backgroundColor and 0xffffff,
+            AxisAlignment.CENTER, AxisAlignment.MIN
+        )
     }
 
     val minCursor get() = if (cursor0 < cursor1) cursor0 else cursor1
     val maxCursor get() = if (cursor0 > cursor1) cursor0 else cursor1
 
+    private fun drawLineNumberBackground(cn: Int, y0: Int, y1: Int, lineNumberBGColor: Int) {
+        val nlb = this.x
+        val nlb2 = cn * charWidth + padding.left - charWidth.shr(1)
+        drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
+        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor.withAlpha(1f))
+    }
+
+    private fun drawSelectionBackground(cn: Int, x0: Int, x1: Int, selectedBGColor: Int) {
+        drawRect(getCharX(cn + minCursor.x), getCharY(minCursor.y), width, lineHeight, selectedBGColor)
+        if (minCursor.y + 1 < maxCursor.y) {
+            drawRect(
+                x0, getCharY(minCursor.y + 1), x1 - x0,
+                (maxCursor.y - minCursor.y - 1) * lineHeight,
+                selectedBGColor
+            )
+        }
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        var x = this.x + padding.left
-        val y = this.y + padding.top
+        var x = getCharX(0)
+        val y = getCharY(0)
 
         val charWidth = charWidth
         val lineHeight = lineHeight
@@ -269,10 +332,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val lineNumberBGColor = theme.numbersBGColor or black
 
         // draw number line background color
-        val nlb = this.x
-        val nlb2 = cn * charWidth + padding.left - charWidth / 2
-        drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
-        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor.withAlpha(1f))
+        drawLineNumberBackground(cn, y0, y1, lineNumberBGColor)
 
         val selectedLineBGColor = theme.selectedLineBGColor.withAlpha(1f)
         val bg0 = max(x0, this.x + cn * charWidth + padding.left)
@@ -294,27 +354,23 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         // draw selection background, which is wider than the text
         if (isInFocus && minCursor.y < maxCursor.y) {
-            drawRect(x + (cn + minCursor.x), y + minCursor.y * lineHeight, width, lineHeight, selectedBGColor)
-            if (minCursor.y + 1 < maxCursor.y) {
-                drawRect(
-                    bg0, y + (minCursor.y + 1) * lineHeight, bg1 - bg0,
-                    (maxCursor.y - minCursor.y - 1) * lineHeight,
-                    selectedBGColor
-                )
-            }
+            drawSelectionBackground(cn, bg0, bg1, selectedBGColor)
         }
 
-        val vx0 = (x0 - x) / charWidth
-        val vy0 = (y0 - y) / lineHeight
-        val vx1 = ceilDiv(x1 - x, charWidth)
-        val vy1 = min(ceilDiv(y1 - y, lineHeight), content.lineCount)
+        val visibleX0 = getCharXiFloor(x0)
+        val visibleY0 = getCharYiFloor(y0)
+        val visibleX1 = ceilDiv(x1 - x, charWidth)
+        val visibleY1 = min(ceilDiv(y1 - y, lineHeight), codeBlockCollapser.countLines(content))
 
-        for (yi in vy0 until vy1) {
-            drawLineNumber(yi, yi + firstLineNumber, cn)
+        for (yi in visibleY0 until visibleY1) {
+            val lineNumber0 = codeBlockCollapser.mapLine(yi)
+            drawLineNumber(yi, firstLineNumber + lineNumber0, cn)
         }
 
         var varIndex = 0
-        content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, _ ->
+        codeBlockCollapser.forEachChar(
+            visibleX0, visibleY0, visibleX1, visibleY1, content
+        ) { charIndex, lineIndex, indexInLine, _ ->
             // draw character background
             val style = theme.styles[styles[charIndex].toInt()]
             val textColor = style.color
@@ -330,9 +386,10 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
             val variable = spellcheckedSections.getOrNull(varIndex)
             val isIncorrectlySpelled = variable != null && charIndex in variable
-                    && variable.check()?.any { suggestion -> (charIndex - variable.startIndex) in suggestion } == true
-            val xi = x + indexInLine * charWidth
-            val yi = y + lineIndex * lineHeight
+                    && variable.spellcheck()
+                ?.any { suggestion -> (charIndex - variable.startIndex) in suggestion } == true
+            val xi = getCharX(indexInLine)
+            val yi = getCharY(lineIndex)
             if (style.squiggles) {
                 drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, squigglesHeight, textColor)
             }
@@ -347,7 +404,9 @@ open class CodeEditor(style: Style) : Panel(style) {
         // line after 80 chars
         drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, height - padding.height, selectedLineBGColor)
 
-        content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, char ->
+        codeBlockCollapser.forEachChar(
+            visibleX0, visibleY0, visibleX1, visibleY1, content
+        ) { charIndex, lineIndex, indexInLine, char ->
             // draw character
             val style = theme.styles[styles[charIndex].toInt()]
             val textColor = style.color
@@ -358,12 +417,20 @@ open class CodeEditor(style: Style) : Panel(style) {
             drawCharText(cn + indexInLine, drawnYi + lineIndex, char, textColor, background, style.bold, style.italic)
         }
 
+        for (yi in visibleY0 until visibleY1) {
+            val lineNumber0 = codeBlockCollapser.mapLine(yi)
+            if (codeBlockCollapser.isClosed(lineNumber0)) {
+                drawChar(cn - 1, yi, '+', theme.numbersColor, theme.numbersBGColor)
+            } else if (codeBlocks.any2 { lineNumber0 == it.start && it.count > 0 }) {
+                drawChar(cn - 1, yi, '-', theme.numbersColor, theme.numbersBGColor)
+            }
+        }
+
         if (showCursor) {
             val cy = clamp(cursor1.y, 0, content.lineCount - 1)
             val cx = clamp(cursor1.x, 0, content.getLineLength(cy))
             drawRect(// draw selected line background color
-                this.x + padding.left + (cx + cn) * charWidth - 1,
-                this.y + padding.top + cy * lineHeight,
+                getCharX(cx + cn) - 1, getCharY(cy),
                 1, lineHeight, theme.cursorColor
             )
         }
@@ -475,8 +542,8 @@ open class CodeEditor(style: Style) : Panel(style) {
         clampCursors()
         val minCursor = minCursor
         val maxCursor = maxCursor
-        val minIndex = content.getIndexAt(minCursor.y, minCursor.x)
-        val maxIndex = content.getIndexAt(maxCursor.y, maxCursor.x)
+        val minIndex = content.getIndexAt(codeBlockCollapser.mapLine(minCursor.y), minCursor.x)
+        val maxIndex = content.getIndexAt(codeBlockCollapser.mapLine(maxCursor.y), maxCursor.x)
         for (i in maxIndex - 1 downTo minIndex) {
             content.remove(i)
         }
@@ -486,7 +553,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         deleteSelectionInternal()
-        content.insert(cursor1.y, cursor1.x, data.codepoints())
+        content.insert(codeBlockCollapser.mapLine(cursor1.y), cursor1.x, data.codepoints())
         for (i in data.indices) right(cursor1)
         cursor0.set(cursor1)
         onChangeText()
@@ -518,7 +585,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                 lastSuggestion = null
             } else {
                 deleteSelectionInternal()
-                content.insert(cursor1.y, cursor1.x, codepoint)
+                content.insert(codeBlockCollapser.mapLine(cursor1.y), cursor1.x, codepoint)
                 right(cursor1)
                 cursor0.set(cursor1)
                 onChangeText()
@@ -532,8 +599,8 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     fun clampCursor(cursor: CursorPosition) {
-        val y = clamp(cursor.y, 0, content.lineCount - 1)
-        cursor.set(clamp(cursor.x, 0, content.getLineLength(y)), y)
+        val y = clamp(cursor.y, 0, codeBlockCollapser.countLines(content) - 1)
+        cursor.set(clamp(cursor.x, 0, content.getLineLength(codeBlockCollapser.mapLine(y))), y)
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) {
@@ -541,7 +608,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         if (cursor0 == cursor1) {
             if (cursor0.x > 0 || cursor0.y > 0) {
                 left(cursor1)
-                content.remove(cursor1.y, cursor1.x)
+                content.remove(codeBlockCollapser.mapLine(cursor1.y), cursor1.x)
                 cursor0.set(cursor1)
             } else return // cursor is at start
         } else {
@@ -553,6 +620,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     private fun onChangeText(updateHistory: Boolean = true, notify: Boolean = true) {
         recalculateColors()
+        recalculateBrackets()
         invalidateLayout()
         notifyCursorTyped()
         if (updateHistory) history.put(content.toString())
@@ -562,9 +630,10 @@ open class CodeEditor(style: Style) : Panel(style) {
     override fun onDeleteKey(x: Float, y: Float) {
         clampCursors()
         if (cursor0 == cursor1) {
-            if (cursor0.y < content.lineCount - 1 ||
-                cursor0.x < content.getLineLength(content.lineCount - 1)
-            ) content.remove(cursor1.y, cursor1.x)
+            val numVisLines = codeBlockCollapser.countLines(content)
+            if (cursor0.y < numVisLines - 1 ||
+                cursor0.x < content.getLineLength(codeBlockCollapser.mapLine(numVisLines - 1))
+            ) content.remove(codeBlockCollapser.mapLine(cursor1.y), cursor1.x)
             else return // cursor is at the end
         } else {
             deleteSelectionInternal()
@@ -591,12 +660,35 @@ open class CodeEditor(style: Style) : Panel(style) {
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        if (button == Key.BUTTON_LEFT) {
+            val xi = getCharXiFloor(x.toInt()) - getCharsNeededForLineCount()
+            val yi = codeBlockCollapser.mapLine(getCharYiFloor(y.toInt()))
+            if (xi == -1) {
+                if (codeBlockCollapser.isClosed(yi)) {
+                    codeBlockCollapser.open(yi)
+                    invalidateDrawing()
+                    return
+                } else {
+                    val bracket = codeBlocks
+                        .filter { it.start == yi && it.count > 0 }
+                        .maxByOrNull { it.count }
+                    if (bracket != null) {
+                        codeBlockCollapser.close(bracket)
+                        invalidateDrawing()
+                        return
+                    }
+                }
+            }
+        }
+        super.onMouseClicked(x, y, button, long)
+    }
+
     fun moveCursor(cursor: CursorPosition, x: Float, y: Float) {
-        val cn = getCharsNeededForLineCount()
         val ox = cursor.x
         val oy = cursor.y
-        cursor.x = ((x - (this.x + padding.left)) / charWidth).roundToInt() - cn
-        cursor.y = ((y - (this.y + padding.top)) / lineHeight).toInt()
+        cursor.x = getCharXiRound(x.toInt()) - getCharsNeededForLineCount()
+        cursor.y = getCharYiFloor(y.toInt())
         clampCursor(cursor)
         if (cursor.x != ox || cursor.y != oy) {
             notifyCursorTyped()
@@ -646,8 +738,8 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     override fun getTooltipText(x: Float, y: Float): String? {
-        val xi = ((x - (this.x + padding.left)) / charWidth).toInt() - getCharsNeededForLineCount()
-        val yi = ((y - (this.y + padding.top)) / lineHeight).toInt()
+        val xi = getCharXiRound(x.toInt()) - getCharsNeededForLineCount()
+        val yi = getCharYiFloor(y.toInt())
         // find if there is a variable
         if (yi in 0 until content.lineCount && xi in 0 until content.getLineLength(yi)) {
             // find which char is here
@@ -659,7 +751,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                 val variable = spellcheckedSections[variableIndex]
                 if (charIndex in variable) {
                     // check if there is a correction for it
-                    val suggestions = variable.check()
+                    val suggestions = variable.spellcheck()
                     if (suggestions != null) {
                         val localIndex = charIndex - variable.startIndex
                         val s = suggestions.firstOrNull { s -> localIndex in s }

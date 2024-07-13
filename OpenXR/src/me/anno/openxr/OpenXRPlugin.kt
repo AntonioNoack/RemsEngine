@@ -34,11 +34,9 @@ class OpenXRPlugin : Plugin(), VRRenderingRoutine {
 
     override fun startSession(window: OSWindow, rv: RenderView): Boolean {
         try {
-            window.vsyncOverride = false
             instance = OpenXRRendering(window, rv, fb, ct0, ct1, dt)
             return true
         } catch (e: Exception) {
-            window.vsyncOverride = null
             e.printStackTrace()
             return false
         }

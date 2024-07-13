@@ -14,6 +14,7 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.Callback
+import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -107,7 +108,8 @@ open class IntImage(
         } else {
             val data1 = Texture2D.bufferPool[data.size * 4, false, false]
             val dataI = data1.asIntBuffer()
-            dataI.put(this.data).position(0)
+            putInto(dataI)
+            dataI.position(0)
             if (checkRedundancy) texture.checkRedundancy(dataI)
             convertARGB2ABGR(dataI)
             // for testing, convert the data into a byte buffer
@@ -118,6 +120,16 @@ open class IntImage(
                 dataI, data1, numChannels,
                 callback
             )
+        }
+    }
+
+    fun putInto(dst: IntBuffer) {
+        if (stride == width) {
+            dst.put(data)
+        } else {
+            for (y in 0 until height) {
+                dst.put(data, getIndex(0, y), width)
+            }
         }
     }
 

@@ -124,7 +124,7 @@ class DepthOfFieldNode : ActionNode(
 
         const val getBlurSize = "" +
                 "float getBlurSize(float depth, vec2 uv) {\n" +
-                "   float len = length(vec3((uv-0.5)*fovFactorUV.xy, 1.0));\n" +
+                "   float len = length(vec3((uv-d_uvCenter)*fovFactorUV.xy, 1.0));\n" +
                 "   float coc = (focusPointInv - 1.0 / (depth * len)) * focusScale;\n" +
                 "   return min(abs(coc), 1.0);\n" +
                 "}"

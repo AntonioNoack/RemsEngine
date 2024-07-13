@@ -79,7 +79,7 @@ object FlatShaders {
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")
-            ignoreNameWarnings("targetSamples,d_camRot,d_fovFactor,reverseDepth")
+            ignoreNameWarnings("targetSamples,d_camRot,d_fovFactor,d_uvCenter,reverseDepth")
         }
     }
 

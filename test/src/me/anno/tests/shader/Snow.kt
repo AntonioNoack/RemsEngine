@@ -9,6 +9,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderMode.Companion.postProcessGraph
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXState.useFrame
@@ -31,19 +32,12 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.effects.BloomNode
-import me.anno.graph.visual.render.effects.FXAANode
-import me.anno.graph.visual.render.effects.GizmoNode
-import me.anno.graph.visual.render.effects.SSAONode
-import me.anno.graph.visual.render.effects.SSRNode
-import me.anno.graph.visual.render.scene.CombineLightsNode
-import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
+import me.anno.tests.shader.Snow.snowControl0
+import me.anno.tests.shader.Snow.snowRenderMode
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
@@ -53,7 +47,7 @@ import org.joml.Vector3f
 
 // get snow effect working like in https://www.glslsandbox.com/e#36547.0
 // done get this and rain working in 3d
-// todo why is the sky black???
+// done: why is the sky black??? was using SSR instead of color
 // todo render snow as SDF instead (?), so we can apply lighting to it without extra cost.
 // our snow is transparent though... so that's a little more complicated...
 
@@ -127,7 +121,7 @@ val snowShader = Shader(
             "       }\n" +
             "       dist = nextDist;\n" +
             "   }\n" +
-            "   if(depth < 1e16) color.rgb = mix(snowColor, color.rgb, exp(-depth * 0.01));\n" +
+            "   if(depth < 1e16) color.rgb = mix(snowColor, color.rgb, exp(-depth * 0.001));\n" +
             "   result = color;\n" +
             "}\n"
 )
@@ -199,6 +193,17 @@ class SnowNode : ActionNode(
     }
 }
 
+object Snow {
+    val snowControl0 = SnowControl().apply {
+        velocity.set(-0.3f, -1.5f, 0f)
+    }
+    val snowNode = SnowNode().apply {
+        snowControl = snowControl0
+    }
+    val snowGraph = createSnowGraph(snowNode)
+    val snowRenderMode = RenderMode("Snow", snowGraph)
+}
+
 fun main() {
     // todo synthetic motion blur in 3d
     // todo make close snow flakes out of focus
@@ -241,34 +246,17 @@ fun main() {
         }, 1f)
 
         // 3d
-        val snowControl = SnowControl()
-        val snowNode = SnowNode()
-        snowNode.snowControl = snowControl
-        snowControl.velocity.set(-0.3f, -1.5f, 0f)
-        val graph = createSnowGraph(snowNode)
-        val mode = RenderMode("Snow", graph)
         val scene = Entity("Scene")
         scene.add(MeshComponent(flatCube.front))
-        scene.add(snowControl)
+        scene.add(snowControl0)
         registerCustomClass(SnowControl())
         list.add(SceneView.testScene(scene) {
-            it.renderer.renderMode = mode
+            it.renderer.renderMode = snowRenderMode
         }, 2f)
         list
     }
 }
 
 fun createSnowGraph(snowNode: SnowNode): FlowGraph {
-    return QuickPipeline()
-        .then(RenderDeferredNode())
-        .then(RenderLightsNode())
-        .then(SSAONode())
-        .then(CombineLightsNode())
-        .then(SSRNode())
-        .then(snowNode)
-        // .then(ChromaticAberrationNode())
-        .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-        .then(FXAANode())
-        .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
-        .finish()
+    return postProcessGraph(snowNode)
 }

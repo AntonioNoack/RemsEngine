@@ -317,6 +317,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             shader.v1i("hasVertexColors", 0)
             shader.v2i("randomIdData", 6, 123456)
             shader.v1f("meshScale", scale)
+            shader.v4f("finalId", -1)
             material.bind(shader)
             mesh.draw(this, shader, i)
         }

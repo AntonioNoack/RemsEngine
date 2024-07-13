@@ -87,8 +87,8 @@ object Perspective {
         viewTransform.identity()
         val tanAngleWidth = tanAngleRight - tanAngleLeft
         val tanAngleHeight = tanAngleUp - tanAngleDown
-        val x = 2f / tanAngleWidth // 1f / tan(fovYRadians * 0.5f)
-        val y = 2f / tanAngleHeight // y / aspectRatio
+        val x = 2f / tanAngleWidth
+        val y = 2f / tanAngleHeight
         val m20 = (tanAngleRight + tanAngleLeft) / tanAngleWidth
         val m21 = (tanAngleUp + tanAngleDown) / tanAngleHeight
         viewTransform.identity()

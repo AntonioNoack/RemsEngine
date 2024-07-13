@@ -377,7 +377,6 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
 
     fun renderView(xr: OpenXR, viewIndex: Int) {
         val view = views[viewIndex]
-        createProjectionFov(xr.projectionMatrix, view.fov(), nearZ, farZ)
 
         val colorSwapchain = swapchains[viewIndex]
         val depthSwapchain = if (xr.system.hasDepth) swapchains[viewCount + viewIndex] else null

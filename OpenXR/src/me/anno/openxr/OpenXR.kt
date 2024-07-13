@@ -2,6 +2,7 @@ package me.anno.openxr
 
 import me.anno.Engine
 import me.anno.Time
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.drawing.Perspective
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.openxr.OpenXRUtils.xrInstance
@@ -16,6 +17,7 @@ import org.lwjgl.openxr.XR10.xrDestroySession
 import org.lwjgl.openxr.XrFovf
 import org.lwjgl.openxr.XrSpaceLocation
 import kotlin.math.abs
+import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.tan
 
@@ -27,15 +29,22 @@ abstract class OpenXR(val window: Long) {
         const val VIEW_CONFIG_TYPE = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
         val sessionTestTimeout = 2 * SECONDS_TO_NANOS
 
-        fun createProjectionFov(projectionMatrix: Matrix4f, fov: XrFovf, nearZ: Float, farZ: Float) {
+        fun createProjectionFov(projectionMatrix: Matrix4f, fov: XrFovf, nearZ: Float, farZ: Float, rv: RenderView?) {
+            val tanLeft = tan(fov.angleLeft())
+            val tanRight = tan(fov.angleRight())
+            val tanUp = tan(fov.angleUp())
+            val tanDown = tan(fov.angleDown())
             Perspective.setPerspectiveVR(
-                projectionMatrix,
-                tan(fov.angleLeft()),
-                tan(fov.angleRight()),
-                tan(fov.angleUp()),
-                tan(fov.angleDown()),
+                projectionMatrix, tanLeft, tanRight, tanUp, tanDown,
                 nearZ, farZ, farZ <= nearZ
             )
+            if (rv != null) {
+                rv.fovXCenter = tanLeft / (tanRight - tanLeft) + 1f
+                rv.fovYCenter = tanDown / (tanUp - tanDown) + 1f // todo does this have the correct "sign"???
+                rv.fovXRadians = 2f * atan((tanRight - tanLeft) * 0.5f)
+                rv.fovYRadians = 2f * atan((tanUp - tanDown) * 0.5f)
+                println("[FOV] $tanLeft,$tanRight,$tanUp,$tanDown -> ${rv.fovXCenter},${rv.fovYCenter},${rv.fovXRadians},${rv.fovYRadians}")
+            }
         }
 
         val nearZ = 0.01f

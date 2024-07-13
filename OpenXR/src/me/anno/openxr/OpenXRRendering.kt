@@ -145,6 +145,7 @@ class OpenXRRendering(
         rv.height = oh
     }
 
+    private var printedFOV = 0
     override fun renderFrame(
         viewIndex: Int, w: Int, h: Int,
         predictedDisplayTime: Long,
@@ -162,7 +163,21 @@ class OpenXRRendering(
             .identity().rotateY(additionalRotationY)
             .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
-        createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f)
+        if (printedFOV < 2) {
+            val f = view.fov()
+            // to do what's the correct eye position? xD
+            // todo SSAO looks weird with Meta Quest Link:
+            //  as if eyes, which are tilted to the sides, aren't tilted for that
+            // todo SSR has the same issue (gold-material-override is unbearable)
+            // todo lights and shadows are currently weirdly offset, too
+            println("FOV[$printedFOV], LRTB: ${f.angleLeft()}, ${f.angleRight()}, ${f.angleUp()}, ${f.angleDown()}")
+            // left eye: -0.94247776, 0.6981317, 0.7679449, -0.9599311
+            // right eye: -0.6981317, 0.94247776, 0.7679449, -0.9599311
+            printedFOV++
+        }
+
+        createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f, rv)
+
         // offset camera matrix by (pos - centerPos) * worldScale
         val scale = -rv.worldScale.toFloat() // negative for inverse
         rv.cameraMatrix.translate(
@@ -172,11 +187,6 @@ class OpenXRRendering(
         )
         rv.cameraMatrix.rotateInv(rv.cameraRotation)
 
-        // to do what's the correct eye position? xD
-        // todo SSAO looks weird with Meta Quest Link:
-        //  as if eyes, which are tilted to the sides, aren't tilted for that
-        // todo SSR has the same issue (gold-material-override is unbearable)
-        // todo lights and shadows are currently weirdly offset, too
         if (false) rv.cameraPosition.set(rv.orbitCenter).sub(
             (pos.x() - position.x) * scale,
             (pos.y() - position.y) * scale,
@@ -194,7 +204,6 @@ class OpenXRRendering(
         // not really needed
         FBStack.reset()
 
-        // todo somehow define controller positions, and show objects there
         // todo finger tracking: render user-controlled hand
     }
 }

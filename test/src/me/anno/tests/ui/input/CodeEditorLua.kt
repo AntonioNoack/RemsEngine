@@ -46,6 +46,10 @@ fun main() {
                 "if cnt == 1 and state == 0 then\n" +
                 "  print('this is cool')\n" +
                 "end\n" +
+                "while 1 == 1\n" +
+                "do\n" +
+                "   print('infinity')\n" +
+                "end\n" +
                 " 4\n 5\n 6\n 7\n 8\n 9\n10\n"
     )
     testCodeEditor("Code Editor Lua", editor)

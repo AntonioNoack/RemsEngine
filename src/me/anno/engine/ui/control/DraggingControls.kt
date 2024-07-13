@@ -33,7 +33,6 @@ import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton
@@ -49,6 +48,7 @@ import me.anno.utils.structures.lists.Lists.castToList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
@@ -90,7 +90,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     // todo we could snap rotations, and maybe scale, as well
 
     val drawModeInput = EnumInput(
-        "Draw Mode", "", renderView.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
+        "Draw Mode", "", renderView.renderMode.name,
+        RenderMode.values.map { NameDesc(it.name) }, style
     ).setChangeListener { _, index, _ ->
         renderView.renderMode = RenderMode.values[index]
     }

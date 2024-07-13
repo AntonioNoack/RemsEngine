@@ -16,6 +16,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.saveable.Saveable
 import me.anno.mesh.Shapes
+import me.anno.tests.shader.SnowLikeRain.rainControl
+import me.anno.tests.shader.SnowLikeRain.rainRenderMode
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI
@@ -23,6 +25,23 @@ import me.anno.utils.types.Floats.toRadians
 
 // get rain effect working like snow in https://www.glslsandbox.com/e#36547.0
 // get effect working in 3d like snow
+
+object SnowLikeRain {
+    val rainControl = SnowControl().apply {
+        color.set(3f)
+        density = 1.3f
+        velocity.set(0f, -8f, 0f)
+        flakeSize = 0.005f
+        elongation = 30f
+        // tilt rain a bit
+        worldRotation.rotateX((15f).toRadians())
+    }
+    val rainNode = SnowNode().apply {
+        snowControl = rainControl
+    }
+    val rainRenderGraph = createSnowGraph(rainNode)
+    val rainRenderMode = RenderMode("Rain", rainRenderGraph)
+}
 
 fun main() {
     testUI("Snow-Like Rain") {
@@ -64,24 +83,12 @@ fun main() {
         }, 1f)
 
         // 3d
-        val snowControl = SnowControl()
-        snowControl.color.set(3f)
-        snowControl.density = 1.3f
-        snowControl.velocity.set(0f, -8f, 0f)
-        snowControl.flakeSize = 0.005f
-        snowControl.elongation = 30f
-        // tilt rain a bit
-        snowControl.worldRotation.rotateX((15f).toRadians())
-        val snowNode = SnowNode()
-        snowNode.snowControl = snowControl
-        val graph = createSnowGraph(snowNode)
-        val mode = RenderMode("Rain", graph)
         val scene = Entity("Scene")
         scene.add(MeshComponent(Shapes.flatCube.front))
-        scene.add(snowControl)
+        scene.add(rainControl)
         Saveable.registerCustomClass(SnowControl())
         list.add(SceneView.testScene(scene) {
-            it.renderer.renderMode = mode
+            it.renderer.renderMode = rainRenderMode
         }, 2f)
         list
     }

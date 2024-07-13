@@ -56,7 +56,6 @@ import org.joml.Matrix4f
 //  - go into/out of/step
 
 // todo bug: some thumbnails still are upside-down
-// todo: create a list of all visual effects, including images, so we can show them off a bit :)
 
 // todo: translate everything (again xD)
 

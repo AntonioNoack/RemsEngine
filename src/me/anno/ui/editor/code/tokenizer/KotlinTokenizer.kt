@@ -149,4 +149,12 @@ object KotlinTokenizer : LanguageTokenizer {
     override val lineComment: String = "//"
     override val blockCommentStart: String = "/*"
     override val blockCommentEnd: String = "*/"
+
+    override val brackets: List<Pair<String, String>>
+        get() = listOf(
+            "(" to ")",
+            "[" to "]",
+            "{" to "}",
+            "\"\"\"" to "\"\"\""
+        )
 }
