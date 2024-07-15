@@ -13,17 +13,14 @@ import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL46C.GL_COLOR
 import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.GL_STENCIL_BUFFER_BIT
 import org.lwjgl.opengl.GL46C.glClear
-import org.lwjgl.opengl.GL46C.glClearBufferfv
 import org.lwjgl.opengl.GL46C.glClearColor
 import org.lwjgl.opengl.GL46C.glClearDepth
 import org.lwjgl.opengl.GL46C.glClearStencil
@@ -126,49 +123,6 @@ interface IFramebuffer {
         }
     }
 
-    fun clearColor(colors: List<Vector4f>, depth: Boolean = false) {
-        if (isBound()) {
-            Frame.bind()
-            val tmp = tmp4f
-            for (i in colors.indices) {
-                tmp.put(0, colors[i].x)
-                tmp.put(1, colors[i].y)
-                tmp.put(2, colors[i].z)
-                tmp.put(3, colors[i].w)
-                glClearBufferfv(GL_COLOR, i, tmp)
-            }
-            if (depth) {
-                clearDepth()
-            }
-        } else {
-            useFrame(this) {
-                assertTrue(isBound())
-                clearColor(colors, depth)
-            }
-        }
-    }
-
-    fun clearColor(colors: IntArray, depth: Boolean = false) {
-        if (isBound()) {
-            Frame.bind()
-            val tmp = tmp4f
-            for (i in colors.indices) {
-                tmp.put(0, colors[i].r01())
-                tmp.put(1, colors[i].g01())
-                tmp.put(2, colors[i].b01())
-                tmp.put(3, colors[i].a01())
-                glClearBufferfv(GL_COLOR, i, tmp)
-            }
-            if (depth) {
-                clearDepth()
-            }
-        } else {
-            useFrame(this) {
-                clearColor(colors, depth)
-            }
-        }
-    }
-
     fun clearColor(color: Int, stencil: Int, depth: Boolean) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), stencil, depth)
 
@@ -213,10 +167,7 @@ interface IFramebuffer {
         glClearDepth(GFXState.depthMode.currentValue.skyDepth)
     }
 
-    fun isBound(): Boolean {
-        val curr = GFXState.currentBuffer
-        return curr == this
-    }
+    fun isBound(): Boolean = GFXState.currentBuffer == this
 
     fun use(index: Int, renderer: Renderer, render: () -> Unit) {
         GFXState.renderers[index] = renderer
@@ -224,7 +175,6 @@ interface IFramebuffer {
     }
 
     companion object {
-        private val tmp4f = ByteBufferPool.allocateDirect(16).asFloatBuffer()
         fun createTargets(targetCount: Int, fpTargets: Boolean): List<TargetType> {
             val target = if (fpTargets) TargetType.Float32x4 else TargetType.UInt8x4
             return createList(targetCount, target)

@@ -160,9 +160,10 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                     MenuOption(NameDesc("Edit Keymap")) {
                         RemsEngine.openConfigWindow(it.windowStack, ActionManager, false)
                     },
-                    MenuOption(NameDesc("Run GC")) {
-                        runGC()
-                    }
+                    MenuOption(NameDesc("Toggle VSync")) {
+                        EngineBase.enableVSync = !EngineBase.enableVSync
+                    },
+                    MenuOption(NameDesc("Run GC"), ::runGC)
                 ))
             }
 

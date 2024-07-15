@@ -62,7 +62,7 @@ object TextureMapper {
         if (GFX.isGFXThread()) {
             if (src.isCreated()) {
                 dst.create(type)
-                useFrame(dst, 0) {
+                useFrame(dst) {
                     renderPurely {
                         val shader = shaders[mapping]
                         shader.use()

@@ -157,7 +157,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
             } else {
                 val newTex = Texture2D(srcFile.name, w, h, 1)
                 newTex.createRGBA()
-                useFrame(newTex, 0) {
+                useFrame(newTex) {
                     GFX.copy(tex)
                 }
                 callback.ok(newTex)

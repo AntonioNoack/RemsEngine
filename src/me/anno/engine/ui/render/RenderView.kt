@@ -91,6 +91,8 @@ import kotlin.math.tan
 
 // todo define custom render modes using files within the project, editable in a GraphEditor
 
+// todo read Nanite paper and find out how we can calculate meshlet hierarchies
+
 /**
  * a panel that renders the scene;
  * no controls are provided by this class, it just draws
@@ -203,7 +205,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         FrameTimings.add(t2 - t1, UIColors.midOrange)
 
         setRenderState()
-        pipeline.superMaterial = renderMode.superMaterial
         updatePipelineStage0(renderMode)
 
         render(x0, y0, x1, y1)
@@ -403,7 +404,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 )
                 drawGizmos(buffer, true)
                 drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
-                return
             }
         }
     }
@@ -632,11 +632,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     val depthMode: DepthMode
         get() = if (GFX.supportsClipControl) {
-            if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
-            else if (inverseDepth) DepthMode.FAR else DepthMode.CLOSE
+            when (renderMode) {
+                RenderMode.NO_DEPTH -> DepthMode.ALWAYS
+                RenderMode.INVERSE_DEPTH -> DepthMode.FAR
+                else -> DepthMode.CLOSE
+            }
         } else {
-            if (renderMode == RenderMode.NO_DEPTH) DepthMode.FORWARD_ALWAYS
-            else if (inverseDepth) DepthMode.FORWARD_FAR else DepthMode.FORWARD_CLOSE
+            when (renderMode) {
+                RenderMode.NO_DEPTH -> DepthMode.FORWARD_ALWAYS
+                RenderMode.INVERSE_DEPTH -> DepthMode.FORWARD_FAR
+                else -> DepthMode.FORWARD_CLOSE
+            }
         }
 
     fun drawScene(
@@ -652,8 +658,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         useFrame(w, h, changeSize, dst, renderer) {
 
             Frame.bind()
-            val depthMode = depthMode
+            var depthMode = depthMode
             val stage0 = pipeline.stages.firstOrNull()
+            if (renderMode == RenderMode.INVERSE_DEPTH) {
+                depthMode = depthMode.reversedMethodMode
+            }
             GFXState.depthMode.use(depthMode) {
                 stage0?.depthMode = depthMode
                 dst.clearDepth()
@@ -882,6 +891,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         RenderState.fovYCenter = fovYCenter
         RenderState.near = scaledNear.toFloat()
         RenderState.far = scaledFar.toFloat()
+
+        pipeline.superMaterial = renderMode.superMaterial
     }
 
     companion object {

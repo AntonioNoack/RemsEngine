@@ -1,5 +1,6 @@
 package me.anno
 
+import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.FrameTimings
 import kotlin.math.min
 
@@ -16,7 +17,14 @@ object Time {
         private set
 
     /**
-     * game time since last frame in seconds;
+     * time since last frame in seconds;
+     * clamped, but not influenced by timeSpeed; should be used by UI
+     * */
+    var uiDeltaTime = 0.0
+        private set
+
+    /**
+     * time since last frame in seconds;
      * not clamped
      * */
     var rawDeltaTime = 0.0
@@ -103,15 +111,16 @@ object Time {
     fun updateTime(dt: Double, thisTime: Long) {
 
         rawDeltaTime = dt
-        deltaTime = min(rawDeltaTime, 0.1)
-        FrameTimings.putTime(rawDeltaTime.toFloat())
+        uiDeltaTime = min(dt, 0.1)
+        deltaTime = clamp(dt * timeSpeed, -0.1, 0.1) // clamping before or after timeSpeed???
+        FrameTimings.putTime(dt.toFloat())
 
-        val newFPS = 1.0 / rawDeltaTime
+        val newFPS = 1.0 / dt
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05, newFPS)
         lastTimeNanos = thisTime
 
         lastGameTime = gameTimeN
-        gameTimeN += (dt * timeSpeed * 1e9).toLong()
+        gameTimeN += deltaTime.toLong()
         gameTime = gameTimeN * 1e-9
 
         frameIndex++

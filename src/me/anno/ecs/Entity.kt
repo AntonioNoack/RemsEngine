@@ -600,12 +600,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         JomlPools.aabbd.sub(1)
     }
 
-    fun addEntity(child: Entity) {
+    fun addEntity(child: Entity): Entity {
         child.setParent(this, children.size, false)
+        return this
     }
 
-    fun addEntity(index: Int, child: Entity) {
+    fun addEntity(index: Int, child: Entity): Entity {
         child.setParent(this, index, false)
+        return this
     }
 
     fun remove(component: Component) {

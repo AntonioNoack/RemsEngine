@@ -219,7 +219,7 @@ object ScreenSpaceAmbientOcclusion {
             if (ssgi) if (blur) "ssgi-blur" else "ssgi-apply"
             else "ssao-blur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
-                Variable(GLSLType.V1B, "inverse"),
+                Variable(GLSLType.V1B, "inverseResult"),
                 Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
                 Variable(GLSLType.S2D, "ssaoTex"),
             ) + listOf(
@@ -270,9 +270,9 @@ object ScreenSpaceAmbientOcclusion {
                                 "glFragColor = base;\n"
                     } else
                         "glFragColor = vec4(valueSum / weightSum);\n" +
-                                "if(inverse) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
+                                "if(inverseResult) { glFragColor.r = 1.0 - glFragColor.r; }\n") +
                     "}"
-        ).apply { ignoreNameWarnings("inverse") }
+        ).apply { ignoreNameWarnings("inverseResult") }
     }
 
     private fun calculate(
@@ -351,7 +351,7 @@ object ScreenSpaceAmbientOcclusion {
             }
             normals.bindTrulyNearest(shader, "normalTex")
             depth.bindTrulyNearest(shader, "depthTex")
-            shader.v1b("inverse", inverse)
+            shader.v1b("inverseResult", inverse)
             shader.v2f("duv", 1f / w, 1f / h)
             flat01.draw(shader)
             GFX.check()

@@ -443,7 +443,7 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
             pathPanel.file = folder
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults(this)
-        } else isValid -= Time.deltaTime.toFloat()
+        } else isValid -= Time.uiDeltaTime.toFloat()
         if (loading != 0L) invalidateDrawing()
         val pts = panelToScrollTo
         if (pts != null) {

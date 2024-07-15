@@ -1,9 +1,9 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.Time.deltaTime
+import me.anno.Time.uiDeltaTime
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
@@ -28,7 +28,7 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
         val oldAlpha = alpha
         alpha = mix(
             oldAlpha, if (isHovered) if (Input.isLeftDown) 1f else 0.8f else 0f,
-            dtTo01(10f * deltaTime.toFloat())
+            dtTo01(10f * uiDeltaTime.toFloat())
         )
         return abs(alpha - oldAlpha) > 0.001f
     }

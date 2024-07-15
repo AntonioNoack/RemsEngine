@@ -122,7 +122,7 @@ class OpenXRRendering(
         fb.bind()
         attachTexture(GL_COLOR_ATTACHMENT0, colorTexture)
         attachTexture(GL_DEPTH_ATTACHMENT, depthTextureI)
-        Framebuffer.drawBuffers1(0)
+        Framebuffer.drawBuffersN(1)
         fb.checkIsComplete()
     }
 

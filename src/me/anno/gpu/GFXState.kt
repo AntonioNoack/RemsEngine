@@ -12,13 +12,13 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.framebuffer.NullFramebuffer
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
-import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
@@ -28,12 +28,15 @@ import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_CULL_FACE
+import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRONT
 import org.lwjgl.opengl.GL46C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL46C.GL_NEGATIVE_ONE_TO_ONE
+import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
 import org.lwjgl.opengl.GL46C.GL_SCISSOR_TEST
 import org.lwjgl.opengl.GL46C.GL_STENCIL_TEST
+import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.GL_ZERO_TO_ONE
 import org.lwjgl.opengl.GL46C.glClipControl
 import org.lwjgl.opengl.GL46C.glCullFace
@@ -41,6 +44,7 @@ import org.lwjgl.opengl.GL46C.glDepthFunc
 import org.lwjgl.opengl.GL46C.glDepthMask
 import org.lwjgl.opengl.GL46C.glDisable
 import org.lwjgl.opengl.GL46C.glEnable
+import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
 
@@ -331,39 +335,47 @@ object GFXState {
     /**
      * render onto that texture
      * */
-    fun useFrame(texture: Texture2D, level: Int, render: (IFramebuffer) -> Unit) {
-        assertNotEquals(0, texture.pointer)
-        tmp.width = texture.width
-        tmp.height = texture.height
-        if (tmp.pointer == 0 || tmp.session != session) {
-            tmp.pointer = glGenFramebuffers()
-            tmp.session = session
-        }
-        useFrame(tmp) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.target, texture.pointer, level)
-            Framebuffer.drawBuffers1(0)
-            tmp.checkIsComplete()
-            render(tmp)
-        }
+    fun useFrame(colorDst: Texture2D, render: (IFramebuffer) -> Unit) {
+        useFrameColorNDepth(colorDst.width, colorDst.height, colorDst.pointer, 0, render)
+    }
+
+    /**
+     * render onto that texture, and the depth texture/renderbuffer of depthDst
+     * */
+    fun useFrame(colorDst: Texture2D?, depthDst: IFramebuffer?, render: (IFramebuffer) -> Unit) {
+        if (colorDst == null && (depthDst !is Framebuffer && depthDst !is MultiFramebuffer)) return
+        val depthDstI = depthDst as? Framebuffer ?: (depthDst as? MultiFramebuffer)?.targetsI?.get(0)
+        val dt = depthDstI?.depthTexture
+        val dr = depthDstI?.depthRenderbuffer?.pointer ?: 0
+        val dri = if (dr > 0) dr.inv() else 0
+        val width = colorDst?.width ?: depthDstI!!.width
+        val height = colorDst?.height ?: depthDstI!!.height
+        useFrameColorNDepth(width, height, colorDst?.pointer ?: 0, dt?.pointer ?: dri, render)
     }
 
     /**
      * render onto that texture
      * */
-    fun useFrame(
-        x: Int, y: Int, w: Int, h: Int,
-        texture: Texture2D, level: Int, render: (IFramebuffer) -> Unit
+    private fun useFrameColorNDepth(
+        width: Int, height: Int,
+        colorDstPointer: Int, depthDstPointer: Int,
+        render: (IFramebuffer) -> Unit
     ) {
-        assertNotEquals(0, texture.pointer)
-        tmp.width = texture.width
-        tmp.height = texture.height
+        tmp.width = width
+        tmp.height = height
         if (tmp.pointer == 0 || tmp.session != session) {
             tmp.pointer = glGenFramebuffers()
             tmp.session = session
         }
-        useFrame(x, y, w, h, tmp) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.target, texture.pointer, level)
-            Framebuffer.drawBuffers1(0)
+        useFrame(tmp) {
+            val target = GL_FRAMEBUFFER
+            val attach = GL_DEPTH_ATTACHMENT
+            // bind color, 0 = unbinding
+            glFramebufferTexture2D(target, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorDstPointer, 0)
+            // bind depth, 0 = unbinding
+            if (depthDstPointer >= 0) glFramebufferTexture2D(target, attach, GL_TEXTURE_2D, depthDstPointer, 0)
+            else glFramebufferRenderbuffer(target, attach, GL_RENDERBUFFER, depthDstPointer.inv())
+            Framebuffer.drawBuffersN(1)
             tmp.checkIsComplete()
             render(tmp)
         }

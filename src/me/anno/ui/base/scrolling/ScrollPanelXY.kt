@@ -1,6 +1,7 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.Time.deltaTime
+
+import me.anno.Time.uiDeltaTime
 import me.anno.config.ConfigRef
 import me.anno.engine.EngineBase
 import me.anno.engine.serialization.NotSerializedProperty
@@ -49,8 +50,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         val my = window.mouseYi
         scrollbarX.isHovered = drawsOverX(mx, my)
         scrollbarY.isHovered = drawsOverY(mx, my)
-        scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(deltaTime * scrollHardnessX))
-        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
+        scrollPositionX = mix(scrollPositionX, targetScrollPositionX, dtTo01(uiDeltaTime * scrollHardnessX))
+        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(uiDeltaTime * scrollHardnessY))
         if (scrollbarX.updateAlpha()) invalidateDrawing()
         if (scrollbarY.updateAlpha()) invalidateDrawing()
         if (

@@ -8,8 +8,6 @@ import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache.transformMesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.components.mesh.utils.SimpleMeshJoiner
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.OfficialExtensions
@@ -46,7 +44,6 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d

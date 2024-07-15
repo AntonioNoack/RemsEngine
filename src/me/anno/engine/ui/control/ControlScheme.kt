@@ -1,6 +1,6 @@
 package me.anno.engine.ui.control
 
-import me.anno.Time.deltaTime
+import me.anno.Time.uiDeltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -154,7 +154,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             .rotateY(rotationTarget.y.toRadians())
             .rotateX(rotationTarget.x.toRadians())
             .rotateZ(rotationTarget.z.toRadians())
-        renderView.orbitRotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
+        renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0))
         invalidateDrawing()
     }
 
@@ -249,7 +249,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     open fun checkMovement() {
         val view = renderView
-        val dt = deltaTime
+        val dt = uiDeltaTime
         val factor = clamp(20.0 * dt, 0.0, 1.0)
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius

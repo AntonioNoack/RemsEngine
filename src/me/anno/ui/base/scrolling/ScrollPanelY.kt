@@ -1,6 +1,6 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.Time.deltaTime
+import me.anno.Time.uiDeltaTime
 import me.anno.engine.EngineBase
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles
@@ -87,7 +87,7 @@ open class ScrollPanelY(
             val my = window.mouseYi
             scrollbar.isHovered = capturesChildEvents(mx, my)
         }
-        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
+        scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(uiDeltaTime * scrollHardnessY))
         if (scrollbar.updateAlpha()) invalidateDrawing()
         if (round(scrollPositionY) != lastScrollPosY || maxScrollPositionY != lastMaxScrollPosY) {
             lastScrollPosY = round(scrollPositionY)

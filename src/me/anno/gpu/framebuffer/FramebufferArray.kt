@@ -12,21 +12,13 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
-import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
-import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
-import org.lwjgl.opengl.GL46C.glBindRenderbuffer
 import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
 import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
-import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
-import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTextureLayer
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
-import org.lwjgl.opengl.GL46C.glGenRenderbuffers
-import org.lwjgl.opengl.GL46C.glRenderbufferStorage
-import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 
 class FramebufferArray(
     override var name: String,
@@ -58,7 +50,7 @@ class FramebufferArray(
 
     override var pointer = 0
     var session = 0
-    var depthRenderBuffer = 0
+    var depthRenderBuffer: Renderbuffer? = null
     override var depthTexture: Texture2DArray? = null
     var depthAttachment: FramebufferArray? = null
 
@@ -195,13 +187,11 @@ class FramebufferArray(
 
     // todo we would need multiple of them, right?
     private fun createDepthBuffer() {
-        val renderBuffer = glGenRenderbuffers()
-        depthRenderBuffer = renderBuffer
-        if (renderBuffer < 0) throw RuntimeException()
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, width, height)
-        else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
+        depthRenderBuffer?.destroy()
+        val buffer = Renderbuffer()
+        buffer.createDepthBuffer(width, height, samples)
+        buffer.attachToFramebuffer(false)
+        depthRenderBuffer = buffer
     }
 
     private fun check() {
@@ -234,10 +224,8 @@ class FramebufferArray(
             }
             depthTexture?.destroy()
         }
-        if (depthRenderBuffer != 0) {
-            glDeleteRenderbuffers(depthRenderBuffer)
-            depthRenderBuffer = 0
-        }
+        depthRenderBuffer?.destroy()
+        depthRenderBuffer = null
     }
 
     fun updateAttachments(layer: Int) {

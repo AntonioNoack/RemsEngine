@@ -130,7 +130,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             if (value1 != null) warnNotCreated("Texture", value.absolutePath)
                         }
                     }
-                    else -> LOGGER.warn("Unsupported type for S2D: ${value::class}")
+                    else -> LOGGER.warn("Unsupported type for S2DMS: ${value::class}")
                 }
             }
             GLSLType.S2DA -> {

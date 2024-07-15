@@ -3,11 +3,11 @@ package me.anno.tests.gfx
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
@@ -29,7 +29,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
@@ -47,6 +46,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.io.files.Reference.getReference
@@ -54,10 +54,10 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
-import me.anno.utils.types.Strings.titlecase
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Strings.titlecase
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector2i
@@ -588,9 +588,9 @@ fun computeRasterizer() {
         private fun writeDepth(target: IFramebuffer, depthAsColor: ITexture2D) {
             // copy depth from writable depth
             // disable all colors being written
-            drawBuffersN(0)
-            GFX.copyColorAndDepth(whiteTexture, depthAsColor)
-            drawBuffersN(target.numTextures)
+            useFrame(null, target) {
+                GFX.copyColorAndDepth(blackTexture, depthAsColor)
+            }
         }
 
         private fun bindBuffers(rasterizer: ComputeShader, instanceBuffer: Buffer?, indexBuffer: IndexBuffer?) {

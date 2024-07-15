@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.Time.deltaTime
+import me.anno.Time.uiDeltaTime
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
@@ -108,7 +108,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     }
 
     override fun onUpdate() {
-        val dtx = dtTo01(5.0 * deltaTime)
+        val dtx = dtTo01(5.0 * uiDeltaTime)
         if (abs(1.0 - targetScale.y / scale.y) > 0.01) {
             scale.x = exp(mix(ln(scale.x), ln(targetScale.x), dtx))
             scale.y = exp(mix(ln(scale.y), ln(targetScale.y), dtx))

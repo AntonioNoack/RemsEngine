@@ -91,7 +91,7 @@ object TextThumbnails {
         transform.identity().scale(1f, -1f, 1f)
         val tex = Texture2D("textThumbs", w, h, 1)
         tex.create(TargetType.UInt8x3)
-        GFXState.useFrame(tex, 0) {
+        GFXState.useFrame(tex) {
             val tc = Color.black
             val bg = -1
             it.clearColor(bg)

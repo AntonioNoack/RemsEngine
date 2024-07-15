@@ -1,7 +1,6 @@
 package me.anno.ui.base
 
 import me.anno.Time
-import me.anno.Time.deltaTime
 import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -72,7 +71,7 @@ object Tooltips {
 
         val time = Time.nanoTime
 
-        if (length(dx, dy) > deltaTime) {// 1px / s
+        if (length(dx, dy) > Time.uiDeltaTime) {// 1px / s
             lastMovementTime = time
             return false
         }

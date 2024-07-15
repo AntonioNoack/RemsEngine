@@ -67,7 +67,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     fun updatePosition() {
         val oldPosition = position
-        val dt = Time.deltaTime.toFloat()
+        val dt = Time.uiDeltaTime.toFloat()
         position = constantLerpTo(position, targetPosition, dt * smoothingPerSeconds)
         if (abs(position - oldPosition) > 1e-4) {
             invalidateDrawing()

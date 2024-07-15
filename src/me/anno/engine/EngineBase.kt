@@ -7,10 +7,10 @@ import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.ConfigRef
 import me.anno.config.DefaultConfig
+import me.anno.ecs.Entity
 import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.EditorState
 import me.anno.extensions.ExtensionLoader
-import me.anno.extensions.events.EventBroadcasting
 import me.anno.extensions.events.EventBroadcasting.callEvent
 import me.anno.extensions.events.GameLoopStartEvent
 import me.anno.gpu.Cursor
@@ -82,6 +82,7 @@ abstract class EngineBase(
 
     open fun onGameLoopStart() {
         systems.world = EditorState.prefab?.getSampleInstance()
+        (systems.world as? Entity)?.create() // really do that here???
         systems.onUpdate()
     }
 

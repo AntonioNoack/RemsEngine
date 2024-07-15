@@ -1,18 +1,18 @@
 package me.anno.ui.anim
 
-import me.anno.Time.deltaTime
+import me.anno.Time.uiDeltaTime
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.Input
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
+import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
-import me.anno.ui.Style
 import kotlin.math.abs
 
 /**
@@ -22,7 +22,7 @@ import kotlin.math.abs
  * */
 class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(base, space, style) {
 
-    constructor(style: Style): this(Panel(style), Padding.Zero, style)
+    constructor(style: Style) : this(Panel(style), Padding.Zero, style)
 
     @NotSerializedProperty
     var hover = 0f
@@ -50,7 +50,7 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
     override fun onUpdate() {
         super.onUpdate()
         var needsUpdate = false
-        val dtx = min(deltaTime.toFloat() * speed, 0.5f)
+        val dtx = min(uiDeltaTime.toFloat() * speed, 0.5f)
         val minDelta = 0.1f / max(1, max(padding.width, padding.height))
         hover = move(hover, isHovered, dtx)
         if (abs(hover - lastHover) > minDelta) {

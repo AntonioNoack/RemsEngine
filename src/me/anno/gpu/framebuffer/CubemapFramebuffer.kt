@@ -13,22 +13,14 @@ import me.anno.utils.assertions.assertNotEquals
 import me.anno.utils.structures.lists.Lists.createList
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
-import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
 import org.lwjgl.opengl.GL46C.GL_DRAW_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
-import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_CUBE_MAP_POSITIVE_X
-import org.lwjgl.opengl.GL46C.glBindRenderbuffer
 import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
 import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
-import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
-import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
-import org.lwjgl.opengl.GL46C.glGenRenderbuffers
-import org.lwjgl.opengl.GL46C.glRenderbufferStorage
-import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -52,7 +44,7 @@ class CubemapFramebuffer(
 
     override var pointer = 0
     var session = 0
-    var depthRenderBuffer = 0
+    var depthRenderBuffer: Renderbuffer? = null
     override var depthTexture: CubemapTexture? = null
     var depthAttachment: CubemapFramebuffer? = null
 
@@ -184,13 +176,10 @@ class CubemapFramebuffer(
     }
 
     private fun createDepthBuffer() {
-        val renderBuffer = glGenRenderbuffers()
-        depthRenderBuffer = renderBuffer
-        if (renderBuffer < 0) throw RuntimeException()
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, size, size)
-        else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size, size)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
+        val renderbuffer = Renderbuffer()
+        renderbuffer.createDepthBuffer(size, size, samples)
+        renderbuffer.attachToFramebuffer(false)
+        depthRenderBuffer = renderbuffer
     }
 
     private fun check() {
@@ -223,10 +212,8 @@ class CubemapFramebuffer(
             }
             depthTexture?.destroy()
         }
-        if (depthRenderBuffer != 0) {
-            glDeleteRenderbuffers(depthRenderBuffer)
-            depthRenderBuffer = 0
-        }
+        depthRenderBuffer?.destroy()
+        depthRenderBuffer = null
     }
 
     fun updateAttachments(face: Int) {

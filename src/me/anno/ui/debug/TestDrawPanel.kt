@@ -94,7 +94,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
                 if (Input.isKeyDown(Key.KEY_D)) velocity.x += 1f
                 if (Input.isKeyDown(Key.KEY_Q)) velocity.y -= 1f
                 if (Input.isKeyDown(Key.KEY_E)) velocity.y += 1f
-                cameraPosition.add(velocity.mul(3f * Time.deltaTime.toFloat()).rotate(cameraRotation))
+                cameraPosition.add(velocity.mul(3f * Time.uiDeltaTime.toFloat()).rotate(cameraRotation))
                 draw(it, cameraPosition, cameraRotation)
             }
         }

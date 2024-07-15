@@ -24,28 +24,20 @@ import me.anno.utils.types.Booleans.withoutFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
-import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT24
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER_COMPLETE
 import org.lwjgl.opengl.GL46C.GL_NONE
 import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
-import org.lwjgl.opengl.GL46C.GL_RGBA8
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL46C.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL46C.glBindFramebuffer
-import org.lwjgl.opengl.GL46C.glBindRenderbuffer
 import org.lwjgl.opengl.GL46C.glCheckFramebufferStatus
 import org.lwjgl.opengl.GL46C.glDeleteFramebuffers
-import org.lwjgl.opengl.GL46C.glDeleteRenderbuffers
-import org.lwjgl.opengl.GL46C.glDrawBuffer
 import org.lwjgl.opengl.GL46C.glDrawBuffers
 import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
-import org.lwjgl.opengl.GL46C.glGenRenderbuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
-import org.lwjgl.opengl.GL46C.glRenderbufferStorage
-import org.lwjgl.opengl.GL46C.glRenderbufferStorageMultisample
 import org.lwjgl.opengl.GL46C.glUseProgram
 
 class Framebuffer(
@@ -122,7 +114,8 @@ class Framebuffer(
 
     var session = 0
 
-    var internalDepthRenderbuffer = 0
+    var renderBufferAllocated = 0L
+    var depthRenderbuffer: Renderbuffer? = null
     override var depthTexture: Texture2D? = null
 
     var textures: List<Texture2D>? = null
@@ -137,8 +130,7 @@ class Framebuffer(
             depthTexture?.checkSession()
             depthAttachment?.checkSession()
             renderBufferAllocated = 0L
-            internalDepthRenderbuffer = 0
-            colorRenderBuffers = null
+            depthRenderbuffer = null
             val textures = textures
             if (textures != null) {
                 for (i in textures.indices) {
@@ -170,7 +162,7 @@ class Framebuffer(
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
         var wasDestroyed = false
         if (da != null) {
-            val dtp = da.depthTexture?.pointer ?: da.internalDepthRenderbuffer
+            val dtp = da.depthTexture?.pointer ?: da.depthRenderbuffer
             if (dtp != depthAttachedPtr) {
                 destroy()
                 wasDestroyed = true
@@ -184,7 +176,7 @@ class Framebuffer(
 
         if (da != null) {
             val dtp =
-                (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.internalDepthRenderbuffer
+                (if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null) ?: da.depthRenderbuffer?.pointer
             if (dtp != depthAttachedPtr) {
                 throw IllegalStateException(
                     "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
@@ -254,6 +246,7 @@ class Framebuffer(
                 texture.owner = this
                 texture.create(target)
                 GFX.check()
+                // println("Attaching $target (${texture.pointer}) onto $pointer.$index")
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
                 texture
             }
@@ -274,13 +267,13 @@ class Framebuffer(
             }
             DepthBufferType.ATTACHMENT -> {
                 val da = depthAttachment ?: throw IllegalStateException("Depth Attachment was not found in $name, null")
-                if (da.session != GFXState.session || (da.depthTexture == null && da.internalDepthRenderbuffer == 0)) {
+                if (da.session != GFXState.session || (da.depthTexture == null && da.depthRenderbuffer == null)) {
                     da.ensure()
                     bindFramebuffer(GL_FRAMEBUFFER, pointer)
                 }
                 var texPointer = if (GFX.supportsDepthTextures) da.depthTexture?.pointer else null
                 if (texPointer == null) {
-                    texPointer = da.internalDepthRenderbuffer
+                    texPointer = da.depthRenderbuffer?.pointer ?: 0
                     if (texPointer == 0) throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
                     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texPointer)
                 } else {
@@ -288,12 +281,7 @@ class Framebuffer(
                 }
                 depthAttachedPtr = texPointer
             }
-            DepthBufferType.INTERNAL -> {
-                if (internalDepthRenderbuffer == 0) {
-                    internalDepthRenderbuffer =
-                        createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
-                }
-            }
+            DepthBufferType.INTERNAL -> ensureRenderbuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 if (GFX.supportsDepthTextures) {
                     val depthTexture = this.depthTexture ?: Texture2D("$name-depth", w, h, samples).apply {
@@ -308,11 +296,7 @@ class Framebuffer(
                         0
                     )
                     this.depthTexture = depthTexture
-                } else if (internalDepthRenderbuffer == 0) {
-                    // 4 is worst-case assumed
-                    internalDepthRenderbuffer =
-                        createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
-                }
+                } else ensureRenderbuffer()
             }
         }
         GFX.check()
@@ -323,25 +307,23 @@ class Framebuffer(
         this.pointer = pointer
     }
 
-    // could be used in the future :)
-    // we don't read multisampled textures currently anyway
-    var colorRenderBuffers: IntArray? = null
-    fun createAndAttachRenderbuffer(
-        attachment: Int = GL_COLOR_ATTACHMENT0,
-        format: Int = GL_RGBA8,
-        bytesPerPixel: Int,
-    ): Int {
-        val renderBuffer = glGenRenderbuffers()
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (withMultisampling) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, width, height)
-        else glRenderbufferStorage(GL_RENDERBUFFER, format, width, height)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderBuffer)
+    private fun ensureRenderbuffer() {
+        if (depthRenderbuffer == null) {
+            depthRenderbuffer = createAndAttachRenderbuffer()
+        }
+    }
+
+    private fun createAndAttachRenderbuffer(): Renderbuffer {
+        val renderbuffer = Renderbuffer()
+        renderbuffer.createDepthBuffer(width, height, samples)
+        renderbuffer.attachToFramebuffer(false)
         GFX.check()
+        val bytesPerPixel = 24
         renderBufferAllocated = Texture2D.allocate(
             renderBufferAllocated,
             renderBufferAllocated + width * height * bytesPerPixel.toLong() * samples
         )
-        return renderBuffer
+        return renderbuffer
     }
 
     fun copyIfNeeded(dst: IFramebuffer, layerMask: Int) {
@@ -364,14 +346,16 @@ class Framebuffer(
     fun copyTo(dst: IFramebuffer, layerMask: Int) {
         // save previous shader
         val prevShader = GPUShader.lastProgram
+        dst.ensure()
         val depthMask = 1 shl targets.size
-        val depth = depthTexture
+        val depthTexture = depthTexture
         var needsToCopyDepth = layerMask.hasFlag(depthMask)
         val tex0 = Texture2D.getBindState(0)
         val tex1 = Texture2D.getBindState(1)
         useFrame(dst, Renderer.copyRenderer) {
             renderPurely {
-                GFX.check()
+                val textures = textures ?: emptyList()
+                val dstFramebuffer = dst as? Framebuffer ?: (dst as MultiFramebuffer).targetsI[0]
                 var remainingMask = layerMask and (depthMask - 1)
                 while (remainingMask != 0) {
                     // find next to-process index
@@ -379,26 +363,28 @@ class Framebuffer(
                     remainingMask = remainingMask.withoutFlag(1 shl i)
 
                     // execute blit
-                    glDrawBuffer(GL_COLOR_ATTACHMENT0 + i)
-                    if (needsToCopyDepth && depth != null) {
+                    val dstColor = dst.getTextureIMS(i) as Texture2D
+                    val srcColor = textures[i]
+                    if (needsToCopyDepth && depthTexture != null) {
                         needsToCopyDepth = false
-                        GFX.copyColorAndDepth(textures!![i], depth)
-                        GFX.check()
-                    } else {
-                        GFXState.depthMask.use(false) { // don't copy depth
-                            GFX.copy(textures!![i])
+                        useFrame(dstColor, dstFramebuffer) {
+                            GFX.copyColorAndDepth(srcColor, depthTexture)
+                            GFX.check()
                         }
-                        GFX.check()
+                    } else {
+                        useFrame(dstColor) {
+                            GFX.copy(srcColor)
+                            GFX.check()
+                        }
                     }
                 }
                 // execute depth blit
-                if (needsToCopyDepth && depth != null) {
-                    drawBuffersN(0)
-                    GFX.copyColorAndDepth(TextureLib.blackTexture, depth)
+                if (needsToCopyDepth && depthTexture != null) {
+                    useFrame(null, dstFramebuffer) {
+                        GFX.copyColorAndDepth(TextureLib.blackTexture, depthTexture)
+                        GFX.check()
+                    }
                 }
-                // reset state, just in case
-                drawBuffersN(textures!!.size)
-                GFX.check()
             }
         }
         Texture2D.restoreBindState(1, tex1)
@@ -475,23 +461,14 @@ class Framebuffer(
             Frame.invalidate()
             if (Build.isDebug) DebugGPUStorage.fbs.remove(this)
             pointer = 0
-            val buffers = colorRenderBuffers
-            if (buffers != null) {
-                glDeleteRenderbuffers(buffers)
-                colorRenderBuffers = null
-            }
         }
     }
 
     fun destroyInternalDepth() {
-        if (internalDepthRenderbuffer > 0) {
-            glDeleteRenderbuffers(internalDepthRenderbuffer)
-            renderBufferAllocated = Texture2D.allocate(renderBufferAllocated, 0L)
-            internalDepthRenderbuffer = 0
-        }
+        depthRenderbuffer?.destroy()
+        depthRenderbuffer = null
+        renderBufferAllocated = Texture2D.allocate(renderBufferAllocated, 0L)
     }
-
-    var renderBufferAllocated = 0L
 
     fun destroyTextures(deleteDepth: Boolean) {
         val textures = textures
@@ -557,13 +534,10 @@ class Framebuffer(
             Frame.lastPtr = pointer
         }
 
-        fun drawBuffers1(slot: Int) {
-            glDrawBuffer(if (slot < 0) GL_NONE else GL_COLOR_ATTACHMENT0 + slot)
-        }
-
         fun drawBuffersN(size: Int) {
             when (size) {
-                0, 1 -> drawBuffers1(size - 1)
+                0 -> glDrawBuffers(GL_NONE)
+                1 -> glDrawBuffers(GL_COLOR_ATTACHMENT0)
                 else -> glDrawBuffers(attachments[size - 2])
             }
         }

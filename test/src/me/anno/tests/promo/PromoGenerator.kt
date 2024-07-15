@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.Events.addEvent
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.EditorState
@@ -28,7 +29,7 @@ import me.anno.utils.types.Floats.toRadians
 
 // todo: create a list of all visual effects, including images, so we can show them off a bit :)
 
-// todo: create list of most games with images
+// todo: create list of most samples with images
 //  - start a sample,
 //  - set camera angle / parameters right
 //  - take a screenshot
@@ -45,18 +46,29 @@ val sceneView by lazy {
 val framebuffer = Framebuffer("promo", width, height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
 val dst = desktop.getChild("Promo")
 
+// todo implement VR for the editor start menu???
+
 fun main() {
+    // todo select helmet for post-outline
+    // todo why is the animation no longer playing?
     OfficialExtensions.initForTests()
     // ensure they're registered
     snowRenderMode.renderer
     rainRenderMode.renderer
-    val scene = Entity()
+    val scene = Entity().setPosition(-0.6, 0.0, 0.0)
     scene.add(MeshComponent(downloads.getChild("3d/DamagedHelmet.glb")))
+    scene.add(
+        Entity()
+            .setPosition(1.2, -0.2, 0.0)
+            .setScale(0.5)
+            .add(PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")]!!.createInstance() as Entity)
+    )
     scene.add(
         Entity()
             .setPosition(1.2, 0.0, 0.0)
             .setScale(0.3)
             .add(SDFHyperBBox().apply {
+                thickness = 0.2f
                 rotation4d = rotation4d
                     .rotateY((-35f).toRadians())
                     .rotateX((47f).toRadians())
@@ -67,11 +79,15 @@ fun main() {
     dst.tryMkdirs()
     sceneView.renderer.radius = 3.0
     sceneView.editControls.rotationTarget.set(-17.9, 58.3, 0.0)
-    if (false) addEvent(5_000) {
+
+    val renderModes = ArrayList(RenderMode.values.filter {
+        it != RenderMode.GHOSTING_DEBUG && it != RenderMode.RAY_TEST
+    })
+
+    addEvent(3_000) {
         val renderView = sceneView.renderer
         renderView.setPosSize(0, 0, width, height)
-        for (mode in RenderMode.values) {
-            if (mode == RenderMode.GHOSTING_DEBUG) continue
+        for (mode in renderModes) {
             renderScene(mode)
         }
         Engine.requestShutdown()

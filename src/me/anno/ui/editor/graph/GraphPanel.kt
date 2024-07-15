@@ -246,7 +246,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 Maths.max((this.y + border) - y, y - (this.y + this.height - border))
             ) / border, 1f
         )
-        val multiplier = speed * Time.deltaTime.toFloat() / Maths.length(dx2, dy2)
+        val multiplier = speed * Time.uiDeltaTime.toFloat() / Maths.length(dx2, dy2)
         if (multiplier > 0f) {
             dx2 *= multiplier
             dy2 *= multiplier
