@@ -10,6 +10,7 @@ import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.Color.black
 import me.anno.utils.structures.Callback
+import kotlin.math.ceil
 import kotlin.math.max
 
 class FloatImage(
@@ -47,8 +48,8 @@ class FloatImage(
             Color.rgba(
                 getColor(data[idx]),
                 getColor(data[idx + 1]),
-                if (nc >= 2) getColor(data[idx + 2]) else 0,
-                if (nc >= 3) getColor(data[idx + 3]) else 255
+                if (nc > 2) getColor(data[idx + 2]) else 0,
+                if (nc > 3) getColor(data[idx + 3]) else 255
             )
         }
     }
@@ -57,13 +58,15 @@ class FloatImage(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
         callback: Callback<ITexture2D>
     ) {
-        if (sync) {
+        if (sync && GFX.isGFXThread()) {
+            texture.width = width
+            texture.height = height
+            // todo this is only correct, if stride == width
             texture.create(TargetType.Float32xI[numChannels - 1], data)
             callback.ok(texture)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
-                texture.create(TargetType.Float32xI[numChannels - 1], data)
-                callback.ok(texture)
+                createTexture(texture, true, checkRedundancy, callback)
             }
         }
     }

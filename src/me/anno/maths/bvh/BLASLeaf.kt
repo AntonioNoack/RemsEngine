@@ -51,6 +51,7 @@ class BLASLeaf(
 
             var i3 = start * 3
             val j3 = i3 + length * 3
+            var triangleIndexX3 = -1
             while (i3 < j3) {
 
                 val ai = indices[i3] * 3
@@ -79,6 +80,7 @@ class BLASLeaf(
                         barycentrics.x * normals[ai + 1] + barycentrics.y * normals[bi + 1] + barycentrics.z * normals[ci + 1],
                         barycentrics.x * normals[ai + 2] + barycentrics.y * normals[bi + 2] + barycentrics.z * normals[ci + 2],
                     )
+                    triangleIndexX3 = i3
                 }
             }
 
@@ -88,6 +90,7 @@ class BLASLeaf(
                 hit.geometryNormalWS.set(localNormal)
                 hit.shadingNormalWS.set(localNormal2)
                 hit.barycentric.set(barycentrics)
+                hit.triangleIndex = triangleIndexX3 / 3
                 true
             } else false
         } else false
@@ -150,6 +153,7 @@ class BLASLeaf(
                     hit.geometryNormalWS.set(localNormal)
                     hit.shadingNormalWS.set(localNormal2)
                     hit.barycentric.set(barycentrics)
+                    hit.triangleIndex = i3 / 3
                     return true
                 }
             }

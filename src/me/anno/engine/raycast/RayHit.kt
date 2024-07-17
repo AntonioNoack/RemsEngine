@@ -31,6 +31,7 @@ class RayHit(maxDistance: Double) {
      * */
     var mesh: Mesh? = null
     var component: Component? = null
+    var triangleIndex = 0
 
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require

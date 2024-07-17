@@ -51,7 +51,6 @@ object IcosahedronModel {
      * */
     fun createIcosphere(subDivisions: Int, scale: Float = 1f, mesh: Mesh = Mesh()): Mesh {
 
-        // todo create smooth tangent
         // create base shape, and then subdivide the triangles
         val numVertices = indices.size shl (subDivisions * 2)
         val numCoords = numVertices * 3
@@ -182,15 +181,14 @@ object IcosahedronModel {
         }
         mesh.positions = positions
         if (scale != 1f) {
-            val normals = FloatArray(positions.size)
-            positions.copyInto(normals)
-            for (i in positions.indices) positions[i] *= scale
-            mesh.normals = normals
+            mesh.normals = positions.copyOf()
+            for (i in positions.indices) {
+                positions[i] *= scale
+            }
         } else mesh.normals = positions
-        // mesh.tangents = tangent
+        mesh.tangents = tangent
         mesh.uvs = uvs
         mesh.indices = null
-        mesh.ensureNorTanUVs()
         return mesh
     }
 }

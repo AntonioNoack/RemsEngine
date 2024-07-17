@@ -3,6 +3,7 @@ package me.anno.utils.types
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.crossLength
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -441,24 +442,15 @@ object Triangles {
 
     @JvmStatic
     fun Vector2f.isInsideTriangle(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
-        val asX = x - a.x
-        val asY = y - a.y
-        val sAb = (b.x - a.x) * asY - (b.y - a.y) * asX > 0
-        if ((c.x - a.x) * asY - (c.y - a.y) * asX > 0 == sAb) return false
-        return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
-    }
-
-    @JvmStatic
-    fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
         var sum = 0
 
-        if (getSideSign(a, b) > 0f) sum++
-        if (getSideSign(b, c) > 0f) sum++
-        if (getSideSign(c, a) > 0f) sum++
+        if (getSideSign(a, b) >= 0f) sum++
+        if (getSideSign(b, c) >= 0f) sum++
+        if (getSideSign(c, a) >= 0f) sum++
 
         // left or right of all lines
-        return sum == 0
+        return sum == 0 || sum == 3
     }
 
     @JvmStatic
@@ -497,6 +489,63 @@ object Triangles {
         else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, t0, t1)
         JomlPools.vec3d.sub(2)
         return dist.isFinite()
+    }
+
+    fun getBarycentrics(a: Vector2f, b: Vector2f, c: Vector2f, pt: Vector2f, dstUVW: Vector3f) {
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v2x = pt.x - a.x
+        val v2y = pt.y - a.y
+        val d00 = sq(v0x, v0y)
+        val d01 = v0x * v1x + v0y * v1y
+        val d11 = sq(v1x, v1y)
+        val d20 = v0x * v2x + v0y * v2y
+        val d21 = v1x * v2x + v1y * v2y
+        val div = d00 * d11 - d01 * d01
+        if (abs(div) < 1e-38f) {
+            dstUVW.set(1f, 0f, 0f)
+        } else {
+            val d = 1f / div
+            val v = (d11 * d20 - d01 * d21) * d
+            val w = (d00 * d21 - d01 * d20) * d
+            val u = 1f - v - w
+            dstUVW.set(u, v, w)
+        }
+    }
+
+    fun getBarycentrics(a: Vector3f, b: Vector3f, c: Vector3f, pt: Vector3f, dstUVW: Vector3f) {
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = pt.x - a.x
+        val v2y = pt.y - a.y
+        val v2z = pt.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1f / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1f - v - w
+        dstUVW.set(u, v, w)
+    }
+
+    fun getParallelogramArea(a: Vector3f, b: Vector3f, c: Vector3f): Float {
+        return crossLength(
+            b.x - a.x, b.y - a.y, b.z - a.z,
+            c.x - a.x, c.y - a.y, c.z - a.z
+        )
+    }
+
+    fun getTriangleArea(a: Vector3f, b: Vector3f, c: Vector3f): Float {
+        return getParallelogramArea(a, b, c) * 0.5f
     }
 
     const val thirdD = 1.0 / 3.0

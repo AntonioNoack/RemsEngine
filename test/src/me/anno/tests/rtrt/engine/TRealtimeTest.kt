@@ -105,7 +105,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
         BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
     clock.stop("Building BLAS")
 
-    return SampleTLAS(tlas, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
+    return SampleTLAS(tlas!!, Vector3f(cameraPosition), Quaternionf(cameraRotation), 0.2f)
 }
 
 fun run(

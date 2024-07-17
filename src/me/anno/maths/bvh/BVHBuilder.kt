@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.ecs.Component
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.M4x3Delta.set4x3delta
@@ -25,29 +26,34 @@ object BVHBuilder {
 
     private val LOGGER = LogManager.getLogger(BVHBuilder::class)
 
+    fun createTLASLeaf(
+        mesh: Mesh, blas: BLASNode, transform: Transform, component: Component?,
+        cameraPosition: Vector3d, worldScale: Double
+    ): TLASLeaf {
+        val drawMatrix = transform.getDrawMatrix()
+        val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition, worldScale)
+        val worldToLocal = Matrix4x3f()
+        localToWorld.invert(worldToLocal)
+        val centroid = Vector3f()
+        val localBounds = mesh.getBounds()
+        centroid.set(localBounds.centerX, localBounds.centerY, localBounds.centerZ)
+        localToWorld.transformPosition(centroid)
+        val globalBounds = AABBf()
+        localBounds.transform(localToWorld, globalBounds)
+        return TLASLeaf(centroid, localToWorld, worldToLocal, blas, globalBounds, component)
+    }
+
     fun buildTLAS(
         scene: PipelineStageImpl, // filled with meshes
         cameraPosition: Vector3d, worldScale: Double,
         splitMethod: SplitMethod, maxNodeSize: Int
-    ): TLASNode {
+    ): TLASNode? {
         val clock = Clock(LOGGER)
         val sizeGuess = scene.nextInsertIndex + scene.instanced.data.sumOf { it.size }
         val objects = ArrayList<TLASLeaf>(max(sizeGuess, 16))
         // add non-instanced objects
         val dr = scene.drawRequests
-        fun add(mesh: Mesh, blas: BLASNode, transform: Transform) {
-            val drawMatrix = transform.getDrawMatrix()
-            val localToWorld = Matrix4x3f().set4x3delta(drawMatrix, cameraPosition, worldScale)
-            val worldToLocal = Matrix4x3f()
-            localToWorld.invert(worldToLocal)
-            val centroid = Vector3f()
-            val localBounds = mesh.getBounds()
-            centroid.set(localBounds.centerX, localBounds.centerY, localBounds.centerZ)
-            localToWorld.transformPosition(centroid)
-            val globalBounds = AABBf()
-            localBounds.transform(localToWorld, globalBounds)
-            objects.add(TLASLeaf(centroid, localToWorld, worldToLocal, blas, globalBounds))
-        }
+
         for (index in 0 until scene.nextInsertIndex) {
             val dri = dr[index]
             // to do theoretically, we'd need to respect the material override as well,
@@ -57,7 +63,7 @@ object BVHBuilder {
             mesh.raycaster = blas
             val entity = dri.entity
             val transform = entity.transform
-            add(mesh, blas, transform)
+            objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition, worldScale)
         }
         // add all instanced objects
         scene.instanced.data.forEach { mesh, _, _, stack ->
@@ -67,12 +73,14 @@ object BVHBuilder {
                     mesh.raycaster = blas
                     for (i in 0 until stack.size) {
                         val transform = stack.transforms[i]!!
-                        add(mesh, blas, transform)
+                        objects += createTLASLeaf(mesh, blas, transform, null, cameraPosition, worldScale)
                     }
                 }
             }
         }
         clock.stop("Creating BLASes")
+        LOGGER.info("Building TLAS from ${objects.size} objects")
+        if (objects.isEmpty()) return null
         val tlas = buildTLAS(objects, splitMethod)
         clock.stop("Creating TLAS")
         return tlas
@@ -83,7 +91,8 @@ object BVHBuilder {
         mesh.ensureNorTanUVs()
         val srcNor = mesh.normals!!
         val indices = mesh.indices ?: IntArray(srcPos.size / 3) { it }
-        val geometryData = GeometryData(srcPos, srcNor, indices, mesh.color0)
+        val srcUVs = mesh.uvs
+        val geometryData = GeometryData(srcPos, srcNor, srcUVs, indices, mesh.color0)
         return recursiveBuildBLAS(srcPos, indices, 0, indices.size / 3, maxNodeSize, splitMethod, geometryData)
     }
 
@@ -492,9 +501,9 @@ object BVHBuilder {
         a.set(positions, indices[i3] * 3)
         b.set(positions, indices[i3 + 1] * 3)
         c.set(positions, indices[i3 + 2] * 3)
-        val r = condition(a, b, c)
+        val result = condition(a, b, c)
         JomlPools.vec3f.sub(3)
-        return r
+        return result
     }
 
     fun createTexture(name: String, numElements: Int, pixelsPerElement: Int): Texture2D {

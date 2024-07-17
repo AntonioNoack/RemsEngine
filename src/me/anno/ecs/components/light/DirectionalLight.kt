@@ -140,9 +140,9 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             // do the shadow map function and compare
                             "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), depthFromShader);\n" +
                             // todo this will become proportional to the distance to the shadow throwing surface
-                            // "           float coc = 1.0 / texture_array_size_shadowMapPlanar(shadowMapIdx0, 0).x;\n" +
-                            // "           float val = texture_array_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +
-                            // "           diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
+                            // "           float coc = 1.0 / texture_array_size_2d_shadowMapPlanar(shadowMapIdx0, 0).x;\n" +
+                            // "           float val = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +
+                            // "           lightColor = vec3(val,val,dir.z);\n" + // nice for debugging
                             "       lightColor *= 1.0 - edgeFactor * (1.0 - depthFromTex * depthFromTex);\n" +
                             "   }\n" +
                             "}\n"

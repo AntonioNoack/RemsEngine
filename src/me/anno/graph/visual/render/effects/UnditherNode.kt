@@ -93,7 +93,7 @@ class UnditherNode : RenderViewNode(
                     "}\n"
         )
         init {
-            shader.ignoreNameWarnings("d_camRot")
+            shader.ignoreNameWarnings("d_camRot,d_uvCenter")
         }
     }
 }

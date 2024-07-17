@@ -10,7 +10,6 @@ import me.anno.ecs.components.mesh.MeshIterators.forEachTriangleIndex
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.EngineBase
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
@@ -60,12 +59,9 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.titlecase
 import org.joml.AABBd
 import org.joml.AABBf
-import org.joml.Vector2i
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3i
-import kotlin.math.max
-import kotlin.math.min
 
 data class ShaderKey(
     val shader: Shader,
@@ -119,40 +115,19 @@ fun testCopyColorToDepth() {
 }
 
 fun testRasterizerAlgorithm() {
+    val bounds = AABBf()
     drawMovablePoints("CPU Rasterizer", 3) { panel, points ->
-        val points1 = points.map { Vector2i(it.x.toInt(), it.y.toInt()) }
-        val ua = points1[0]
-        val ub = points1[1]
-        val uc = points1[2]
-        val minX = max(min(ua.x, min(ub.x, uc.x)), panel.x)
-        val maxX = min(max(ua.x, max(ub.x, uc.x)), panel.x + panel.width - 1)
-        val minY = max(min(ua.y, min(ub.y, uc.y)), panel.y)
-        val maxY = min(max(ua.y, max(ub.y, uc.y)), panel.y + panel.height - 1)
-        for (y in minY..maxY) {
-            var minX1 = maxX
-            var maxX1 = minX
-            fun union(a: Vector2i, b: Vector2i) {
-                if (y <= max(a.y, b.y) && y >= min(a.y, b.y)) {
-                    if (a.y == b.y) {
-                        minX1 = min(minX1, min(a.x, b.x))
-                        maxX1 = max(maxX1, max(a.x, b.x))
-                    } else {
-                        val x = a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y)
-                        minX1 = min(minX1, x)
-                        maxX1 = max(maxX1, x)
-                    }
-                }
-            }
-            union(ua, ub)
-            union(ub, uc)
-            union(uc, ua)
+        bounds
+            .setMin(panel.x.toFloat(), panel.y.toFloat(), 0f)
+            .setMax(panel.x + panel.width - 1f, panel.y + panel.height - 1f, 0f)
+        Rasterizer.rasterize(points[0], points[1], points[2], bounds) { minX1, maxX1, y ->
             drawRect(minX1, y, maxX1 - minX1 + 1, 1, -1)
         }
         for (i in 0 until 3) {
             val c3 = 0x00ff00 or Color.black
             val scale = panel.scale.y
             val r = (3f * scale.toFloat()).toInt()
-            drawRect(points1[i].x, points1[i].y, r, r, c3)
+            drawRect(points[i].x.toInt(), points[i].y.toInt(), r, r, c3)
         }
     }
 }
@@ -518,7 +493,7 @@ fun computeRasterizer() {
             if (Input.isShiftDown) {
                 mesh.draw(pipeline, shader, materialIndex, drawLines)
             } else {
-                drawInstanced0(shader, materialIndex, null, drawLines)
+                drawInstanced0(pipeline!!, shader, materialIndex, null, drawLines)
             }
         }
 
@@ -529,19 +504,31 @@ fun computeRasterizer() {
             if (Input.isShiftDown) {
                 mesh.drawInstanced(pipeline, shader, materialIndex, instanceData, drawLines)
             } else {
-                drawInstanced0(shader, materialIndex, instanceData, drawLines)
+                drawInstanced0(pipeline, shader, materialIndex, instanceData, drawLines)
             }
         }
 
-        fun drawInstanced0(shader: Shader, materialIndex: Int, instanceData: Buffer?, drawLines: Boolean) {
+        fun drawInstanced0(
+            pipeline: Pipeline,
+            shader: Shader,
+            materialIndex: Int,
+            instanceData: Buffer?,
+            drawLines: Boolean
+        ) {
             GFXState.cullMode.use(CullMode.BOTH) {
                 renderPurely {
-                    drawInstanced1(shader, materialIndex, instanceData, drawLines)
+                    drawInstanced1(pipeline, shader, materialIndex, instanceData, drawLines)
                 }
             }
         }
 
-        fun drawInstanced1(shader: Shader, materialIndex: Int, instanceData: Buffer?, drawLines: Boolean) {
+        fun drawInstanced1(
+            pipeline: Pipeline,
+            shader: Shader,
+            materialIndex: Int,
+            instanceData: Buffer?,
+            drawLines: Boolean
+        ) {
 
             mesh.ensureBuffer()
             if (drawLines) mesh.ensureDebugLines()
@@ -566,7 +553,7 @@ fun computeRasterizer() {
             else mesh.numPrimitives.toInt()
 
             bindBuffers(rasterizer, instanceData, triBuffer)
-            bindUniforms(rasterizer, materialIndex, instanceData, target, numPrimitives)
+            bindUniforms(pipeline, rasterizer, materialIndex, instanceData, target, numPrimitives)
             bindTargets(rasterizer, depthAsColor, outputs, target)
 
             rasterizer.runBySize(numPrimitives * (instanceData?.drawLength ?: 1))
@@ -605,11 +592,10 @@ fun computeRasterizer() {
         }
 
         private fun bindUniforms(
-            shader: ComputeShader, materialIndex: Int,
+            pipeline: Pipeline, shader: ComputeShader, materialIndex: Int,
             instanceData: Buffer?, target: IFramebuffer,
             numPrimitives: Int,
         ) {
-            val pipeline = RenderView.currentInstance!!.pipeline // meh; todo is there a better way to get the pipeline?
             val material = Pipeline.getMaterial(null, mesh.materials, materialIndex)
             material.bind(shader)
             initShader(shader, false)

@@ -36,6 +36,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "}\n" +
                 "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"
     }
+
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
 
         // todo the red clouds in the night sky are a bit awkward
@@ -60,7 +61,6 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 Variable(GLSLType.V1B, "sphericalSky"),
                 Variable(GLSLType.V3F, "sunColor"),
             ), concatDefines(key).toString() +
-                    // sky no longer properly defined for y > 0
                     "finalNormal = normalize(-normal);\n" +
                     "#ifdef COLORS\n" +
                     "   finalColor = vec3(0.0);\n" +
@@ -127,6 +127,6 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "   }\n" +
                 "}\n" +
                 "return max(color, vec3(0.0));\n" +
-                "}"
+                "}\n"
     }
 }

@@ -5,6 +5,7 @@ import me.anno.utils.callbacks.F3U
 import me.anno.utils.callbacks.I1U
 import me.anno.utils.callbacks.I2U
 import me.anno.utils.callbacks.I3U
+import me.anno.utils.callbacks.I4U
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
@@ -56,6 +57,15 @@ object MeshIterators {
     // for each triangle
 
     fun Mesh.forEachTriangleIndex(callback: I3U) {
+        forEachTriangleIndexV2 { x, y, z, _ ->
+            callback.call(x, y, z)
+        }
+    }
+
+    /**
+     * ai,bi,ci, faceIndex
+     * */
+    fun Mesh.forEachTriangleIndexV2(callback: I4U) {
         val positions = positions ?: return
         val indices = indices
         if (indices == null) {
@@ -63,13 +73,18 @@ object MeshIterators {
                 DrawMode.TRIANGLES -> {
                     for (i in 0 until positions.size / 9) {
                         val i3 = i * 3
-                        callback.call(i3, i3 + 1, i3 + 2)
+                        callback.call(i3, i3 + 1, i3 + 2, i)
                     }
                 }
                 DrawMode.TRIANGLE_STRIP -> {
-                    for (i in 2 until positions.size / 3) {
-                        val i3 = i * 3
-                        callback.call(i3, i3 + 1, i3 + 2)
+                    val size = positions.size / 3
+                    for (i in 2 until size - 1 step 2) {
+                        callback.call(i - 2, i - 1, i, i)
+                        callback.call(i - 1, i + 1, i, i + 1)
+                    }
+                    if (size.hasFlag(1)) {
+                        val i = size - 2 // correct??, I think so :)
+                        callback.call(i - 1, i + 1, i, i + 1)
                     }
                 }
                 else -> {
@@ -80,8 +95,9 @@ object MeshIterators {
             if (indices.size < 3) return
             when (drawMode) {
                 DrawMode.TRIANGLES -> {
-                    for (i in indices.indices step 3) {
-                        callback.call(indices[i], indices[i + 1], indices[i + 2])
+                    for (i in 0 until indices.size / 3) {
+                        val i3 = i * 3
+                        callback.call(indices[i3], indices[i3 + 1], indices[i3 + 2], i)
                     }
                 }
                 DrawMode.TRIANGLE_STRIP -> {
@@ -91,9 +107,9 @@ object MeshIterators {
                         val c = indices[i]
                         if (a != b && b != c && c != a) {
                             if (i.hasFlag(1)) {
-                                callback.call(a, c, b)
+                                callback.call(a, c, b, i)
                             } else {
-                                callback.call(a, b, c)
+                                callback.call(a, b, c, i)
                             }
                         }
                         a = b

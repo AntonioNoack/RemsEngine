@@ -190,7 +190,7 @@ object Lists {
 
     /**
      * splits the list such that the elements fulfilling the condition come first, and the rest second;
-     * returns the index of the first element failing the condition; or length if none
+     * returns the index of the first element failing the condition; or end if none
      * */
     @JvmStatic
     fun <V> MutableList<V>.partition1(start: Int, end: Int, condition: (V) -> Boolean): Int {

@@ -16,17 +16,15 @@ import me.anno.maths.bvh.BLASNode
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.RayTracing.coloring
-import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslComputeDefines
 import me.anno.maths.bvh.RayTracing.glslGraphicsDefines
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.glslRandomGen
-import me.anno.maths.bvh.RayTracing.glslTLASIntersection
-import me.anno.maths.bvh.RayTracing2.bufferLayouts
-import me.anno.maths.bvh.RayTracing2.bufferStructs
-import me.anno.maths.bvh.RayTracing2.glslBLASIntersection2
-import me.anno.maths.bvh.RayTracing2.glslTLASIntersection2
 import me.anno.maths.bvh.TLASNode
+import me.anno.maths.bvh.shader.BufferRTShaderLib
+import me.anno.maths.bvh.shader.BufferRayTracing.bufferLayouts
+import me.anno.maths.bvh.shader.BufferRayTracing.bufferStructs
+import me.anno.maths.bvh.shader.TextureRTShaderLib
 import me.anno.sdf.shapes.SDFBoundingBox
 import me.anno.tests.LOGGER
 import org.joml.Vector3i
@@ -146,7 +144,7 @@ fun createBLASTextureComputeShader(maxDepth: Int): ComputeShader {
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 glslComputeDefines +
-                glslBLASIntersection +
+                TextureRTShaderLib().glslBLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                 "   if(all(lessThan(uv,size))){\n" +
@@ -165,7 +163,7 @@ fun createBLASBufferComputeShader(maxDepth: Int): ComputeShader {
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 glslComputeDefines +
-                glslBLASIntersection2 +
+                BufferRTShaderLib().glslBLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                 "   if(all(lessThan(uv,size))){\n" +
@@ -192,7 +190,7 @@ fun createBLASTextureGraphicsShader(bvh: BLASNode): Shader {
                 "#define nodes blasNodes\n" +
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
                 glslGraphicsDefines +
-                glslBLASIntersection +
+                TextureRTShaderLib().glslBLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
                 core +
@@ -212,21 +210,22 @@ fun createTLASTextureGraphicsShader(bvh: TLASNode): Pair<Shader, List<BLASNode>>
     val maxTLASDepth = bvh.maxDepth()
     val maxBLASDepth = meshes.maxOf { it.maxDepth() }
 
+    val lib = TextureRTShaderLib()
     return Shader(
         "bvh-traversal", coordsList, coordsUVVertexShader, uvList, commonUniforms + listOf(
             Variable(GLSLType.S2D, "triangles"),
             Variable(GLSLType.S2D, "blasNodes"),
             Variable(GLSLType.S2D, "tlasNodes"),
+            Variable(GLSLType.V4F, "dst", VariableMode.OUT)
         ), "" +
-                "out vec4 dst;\n" +
                 "#define Infinity 1e15\n" +
                 commonFunctions +
                 "#define nodes blasNodes\n" +
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
                 "#define TLAS_DEPTH $maxTLASDepth\n" +
                 glslGraphicsDefines +
-                glslBLASIntersection +
-                glslTLASIntersection +
+                lib.glslBLASIntersection(true) +
+                lib.glslTLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
                 core +
@@ -267,6 +266,7 @@ fun createTLASTextureComputeShader(bvh: TLASNode): TLASTexShader {
 
     LOGGER.debug("Max TLAS depth: $maxTLASDepth, max BLAS depth: $maxBLASDepth")
 
+    val lib = TextureRTShaderLib()
     val shader = ComputeShader(
         "bvh-traversal", Vector3i(16, 16, 1), commonUniforms, "" +
                 "layout(rgba32f, binding = 0) readonly  uniform image2D triangles;\n" +
@@ -279,8 +279,8 @@ fun createTLASTextureComputeShader(bvh: TLASNode): TLASTexShader {
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
                 "#define TLAS_DEPTH $maxTLASDepth\n" +
                 glslComputeDefines +
-                glslBLASIntersection +
-                glslTLASIntersection +
+                lib.glslBLASIntersection(true) +
+                lib.glslTLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                 "   if(all(lessThan(uv,size))){\n" +
@@ -309,6 +309,7 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, List<Comp
 
     LOGGER.debug("Max TLAS depth: $maxTLASDepth, max BLAS depth: $maxBLASDepth")
 
+    val lib = BufferRTShaderLib()
     val shader = ComputeShader(
         "bvh-traversal", Vector3i(16, 16, 1), commonUniforms, "" +
                 bufferStructs +
@@ -318,8 +319,8 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, List<Comp
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
                 "#define TLAS_DEPTH $maxTLASDepth\n" +
                 // glslComputeDefines +
-                glslBLASIntersection2 +
-                glslTLASIntersection2 +
+                lib.glslBLASIntersection(true) +
+                lib.glslTLASIntersection(true) +
                 "void main(){\n" +
                 "   ivec2 uv = ivec2(gl_GlobalInvocationID.xy);\n" +
                 "   if(all(lessThan(uv,size))){\n" +

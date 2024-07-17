@@ -22,6 +22,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         private val LOGGER = LogManager.getLogger(BLASNode::class)
 
+        // positionF32, pad0U32, normalF32, colorU32
         val PIXELS_PER_VERTEX = 2
         val PIXELS_PER_TRIANGLE = 3 * PIXELS_PER_VERTEX
 
@@ -43,11 +44,11 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
-            val bytesPerPixel = 16
+            val bytesPerPixel = 16 // 4 channels * 4 bytes / float
             val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
             val data = buffer.asFloatBuffer()
-            val pixelIndex = fillTris(blasList, buffers, data, pixelsPerVertex) * PIXELS_PER_TRIANGLE
-            LOGGER.info("Filled triangles ${(pixelIndex * 4f / data.capacity()).formatPercent()}%, $texture")
+            fillTris(blasList, buffers, data, pixelsPerVertex)
+            LOGGER.info("Filled triangles ${(data.position().toFloat() / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
             Texture2D.bufferPool.returnBuffer(buffer)
             return texture
@@ -60,17 +61,13 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             return fillTris(roots, buffers) { geometry, vertexIndex ->
                 val positions = geometry.positions
                 val k = vertexIndex * 3
-                data.put(positions[k])
-                data.put(positions[k + 1])
-                data.put(positions[k + 2])
+                data.put(positions, k, 3)
                 data.put(0f) // unused padding
                 if (pixelsPerVertex > 1) {
                     val normals = geometry.normals
                     val colors = geometry.vertexColors
                     val color = if (colors != null) colors[vertexIndex] else -1
-                    data.put(normals[k])
-                    data.put(normals[k + 1])
-                    data.put(normals[k + 2])
+                    data.put(normals, k, 3)
                     data.put(Float.fromBits(color))
                 }
             }

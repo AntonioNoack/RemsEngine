@@ -19,6 +19,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
+import me.anno.image.raw.FloatImage
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -27,6 +28,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.convertARGB2ABGR
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
@@ -97,7 +99,6 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.ShortBuffer
 
-@Suppress("unused")
 open class Texture2D(
     override val name: String,
     final override var width: Int,
@@ -397,17 +398,6 @@ open class Texture2D(
         uploadPartially(level, x, y, w, h, type.uploadFormat, type.fillType, data)
         check()
     }
-
-    /*fun createRGBA(buffer: ByteBuffer) {
-        beforeUpload(4, buffer.remaining())
-        val t0 = Time.nanoTime
-        texImage2D(TargetType.UByteTarget4, buffer)
-        bufferPool.returnBuffer(buffer)
-        val t1 = Time.nanoTime // 0.02s for a single 4k texture
-        afterUpload(false, 4)
-        val t2 = Time.nanoTime // 1e-6
-        if (w * h > 1e4 && (t2 - t0) * 1e-9f > 0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h) / 1e6f} MPixel image to GPU")
-    }*/
 
     fun beforeUpload(channels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
@@ -1113,9 +1103,22 @@ open class Texture2D(
         val buffer = IntArray(width * height)
         glGetTexImage(target, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         convertARGB2ABGR(buffer)
-        val image = IntImage(width, height, buffer, channels > 3)
+        val image = IntImage(width, height, buffer, withAlpha && channels > 3)
         if (flipY) image.flipY()
         return image
+    }
+
+    fun getFloatPixels(dst: FloatImage) {
+        bindBeforeUpload()
+        assertTrue(dst.data.size >= width * height * dst.numChannels)
+        val nc1 = when (dst.numChannels) {
+            1 -> GL_RED
+            2 -> GL_RG
+            3 -> GL_RGB
+            4 -> GL_RGBA
+            else -> throw IllegalArgumentException()
+        }
+        glGetTexImage(target, 0, nc1, GL_FLOAT, dst.data)
     }
 
     companion object {
@@ -1246,8 +1249,6 @@ open class Texture2D(
         fun resetBudget() {
             textureBudgetUsed = 0L
         }
-
-        // val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
 
         @JvmStatic
         private var creationSession = -1

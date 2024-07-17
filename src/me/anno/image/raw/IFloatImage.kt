@@ -164,8 +164,8 @@ abstract class IFloatImage(
             Color.rgba(
                 getColor(getValue(index, 0)),
                 getColor(getValue(index, 1)),
-                if (nc >= 2) getColor(getValue(index, 2)) else 0,
-                if (nc >= 3) getColor(getValue(index, 3)) else 255
+                if (nc > 2) getColor(getValue(index, 2)) else 0,
+                if (nc > 3) getColor(getValue(index, 3)) else 255
             )
         }
     }

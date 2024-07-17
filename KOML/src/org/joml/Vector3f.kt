@@ -24,6 +24,7 @@ open class Vector3f(
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
     constructor(v: Vector3f) : this(v.x, v.y, v.z)
+    constructor(v: Vector4f) : this(v.x, v.y, v.z)
     constructor(v: Vector3d) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     constructor(v: Vector3i) : this(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     constructor(v: Vector2f, z: Float) : this(v.x, v.y, z)
@@ -39,6 +40,7 @@ open class Vector3f(
     }
 
     fun set(v: Vector3f): Vector3f = set(v.x, v.y, v.z)
+    fun set(v: Vector4f): Vector3f = set(v.x, v.y, v.z)
     fun set(v: Vector3d): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     fun set(v: Vector3i): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     fun set(v: Vector2f, z: Float): Vector3f = set(v.x, v.y, z)

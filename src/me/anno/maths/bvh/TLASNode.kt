@@ -9,6 +9,7 @@ import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
+import java.nio.FloatBuffer
 
 abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
@@ -18,7 +19,10 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
     // we can create one wasteful texture, or two efficient ones...
     // since we have a binding limit, I'd go with a single one for now
-    fun createTLASTexture(): Texture2D {
+    fun createTLASTexture(
+        pixelsPerNode: Int = PIXELS_PER_TLAS_NODE,
+        addExtraData: ((TLASNode, FloatBuffer) -> Unit)? = null
+    ): Texture2D {
 
         GFX.checkIsGFXThread()
         var nodeId = 0
@@ -29,29 +33,27 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         // branch:
         //   aabb + next -> 7 floats
         // leaf:
-        //   aabb + 2x 4x3 matrix + child id -> 32 floats
-        val pixelsPerNode = PIXELS_PER_TLAS_NODE
+        //   aabb + 2x 4x3 matrix + child id -> 32 floats = 8 pixels
         val texture = createTexture("tlas", numNodes, pixelsPerNode)
         val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
         val data = buffer.asFloatBuffer()
-        var i = 0
 
-        forEach {
+        forEach { node ->
 
             val v0: Int
             val v1: Int
 
-            if (it is TLASBranch) {
-                v0 = it.n1.nodeId - it.nodeId
-                v1 = it.axis
+            if (node is TLASBranch) {
+                v0 = node.n1.nodeId - node.nodeId
+                v1 = node.axis
             } else {
-                it as TLASLeaf
+                node as TLASLeaf
                 // offset is like an id
-                v0 = it.blas.nodeId
+                v0 = node.blas.nodeId
                 v1 = 3 // = max axis + 1
             }
 
-            val b = it.bounds
+            val b = node.bounds
             data.put(b.minX)
             data.put(b.minY)
             data.put(b.minZ)
@@ -68,23 +70,22 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
                 m.putInto(data)
             }
 
-            if (it is TLASLeaf) {
-                writeMatrix(it.worldToLocal)
-                writeMatrix(it.localToWorld)
+            if (node is TLASLeaf) {
+                writeMatrix(node.worldToLocal)
+                writeMatrix(node.localToWorld)
             } else {
                 // skip 24 elements
                 data.position(data.position() + 24)
             }
 
-            i += 32
+            addExtraData?.invoke(node, data)
 
         }
 
-        LOGGER.info("Filled TLAS ${(i.toFloat() / data.capacity()).formatPercent()}%")
+        LOGGER.info("Filled TLAS ${(data.position().toFloat() / data.capacity()).formatPercent()}%")
         texture.createRGBA(data, buffer, false)
         Texture2D.bufferPool.returnBuffer(buffer)
         return texture
-
     }
 
     fun createTLASBuffer(): Pair<ComputeBuffer, ComputeBuffer> {
@@ -124,7 +125,6 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
             f1.put(m.m30)
             f1.put(m.m31)
             f1.put(m.m32)
-
         }
 
         numLeafs = 3
@@ -181,7 +181,5 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         val PIXELS_PER_TLAS_NODE = 8
         private val LOGGER = LogManager.getLogger(TLASNode::class)
-
     }
-
 }

@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.ecs.Component
 import me.anno.engine.raycast.RayHit
 import me.anno.input.Input
 import me.anno.maths.Maths.min
@@ -15,6 +16,7 @@ class TLASLeaf(
     val worldToLocal: Matrix4x3f,   //           12 floats
     val blas: BLASNode,             //          1-2 floats/ints
     bounds: AABBf,                  //            6 floats
+    val component: Component?
     //                              // total: 31/32 floats = 124/128 bytes
 ) : TLASLeaf0(centroid, bounds) {
 
@@ -174,8 +176,6 @@ class TLASLeaf(
             }
 
             JomlPools.vec3f.sub(2)
-
         }
     }
-
 }

@@ -6,7 +6,6 @@ import me.anno.utils.assertions.assertTrue
 import org.lwjgl.opengl.GL14C.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL46C.GL_DEPTH_ATTACHMENT
 import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT
-import org.lwjgl.opengl.GL46C.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.GL46C.GL_FRAMEBUFFER
 import org.lwjgl.opengl.GL46C.GL_RENDERBUFFER
 import org.lwjgl.opengl.GL46C.glBindRenderbuffer

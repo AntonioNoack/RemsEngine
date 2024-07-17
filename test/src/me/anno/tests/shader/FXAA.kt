@@ -43,7 +43,7 @@ private fun testShader() {
         if (Input.isRightDown) angle -= delta
         transform.rotateZ(angle)
         val depth = FBStack["depth", w, h, 4, false, 1, DepthBufferType.NONE]
-        val mesh = CubemapModel
+        val mesh = CubemapModel.model.front
         GFXState.useFrame(depth) {
             depth.clearColor(1f, 0.7f, 0f, 1f)
             val shader = ShaderLib.shader3DSimple.value

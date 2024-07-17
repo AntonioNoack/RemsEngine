@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.shapes
 
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.mesh.Shapes
 import org.joml.Vector3f
 
 /**
@@ -9,9 +9,11 @@ import org.joml.Vector3f
  * -x -z +x +z
  *    -y
  * */
-object CubemapModel : Mesh() {
-    init {
+object CubemapModel {
 
+    val model = createMesh()
+
+    fun createMesh(): Shapes.FBBMesh {
         val numVertices = 36
         val positions = FloatArray(numVertices * 3)
         val uvs = FloatArray(numVertices * 2)
@@ -36,12 +38,12 @@ object CubemapModel : Mesh() {
             val v1 = (v + 1) / 3f
 
             put(p, dx, dy, -1f, -1f, u1, v0)
-            put(p, dx, dy, -1f, +1f, u1, v1)
             put(p, dx, dy, +1f, +1f, u0, v1)
+            put(p, dx, dy, -1f, +1f, u1, v1)
 
             put(p, dx, dy, -1f, -1f, u1, v0)
-            put(p, dx, dy, +1f, +1f, u0, v1)
             put(p, dx, dy, +1f, -1f, u0, v0)
+            put(p, dx, dy, +1f, +1f, u0, v1)
         }
 
         val pxAxis = Vector3f(1f, 0f, 0f)
@@ -59,7 +61,10 @@ object CubemapModel : Mesh() {
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
         addFace(1, 2, pyAxis, mxAxis, pzAxis) // bottom
 
-        this.positions = positions
-        this.uvs = uvs
+        val mesh = Shapes.FBBMesh("Cubemap", positions, null)
+        mesh.front.uvs = uvs
+        mesh.back.uvs = uvs
+        mesh.both.uvs = uvs
+        return mesh
     }
 }

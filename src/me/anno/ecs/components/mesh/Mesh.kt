@@ -549,8 +549,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             if (hasUVs) {
 
                 if (uvs != null && i2 + 1 < uvs.size) {
+                    // in the future, flip the textures instead?
                     buffer.put(uvs[i2])
-                    buffer.put(1f - uvs[i2 + 1]) // todo in the future flip the textures instead
+                    buffer.put(1f - uvs[i2 + 1])
                 } else buffer.put(0f, 0f)
 
                 if (tangents != null && i4 + 3 < tangents.size) {

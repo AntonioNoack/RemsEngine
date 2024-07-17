@@ -18,5 +18,5 @@ class CubemapSkybox : TextureSkybox() {
         material.cullMode = CullMode.BOTH
     }
 
-    override fun getMesh(): Mesh = CubemapModel
+    override fun getMesh(): Mesh = CubemapModel.model.back
 }
