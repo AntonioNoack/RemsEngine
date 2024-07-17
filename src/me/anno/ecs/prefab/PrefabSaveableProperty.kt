@@ -40,6 +40,7 @@ class PrefabSaveableProperty(
 
     override fun set(panel: Panel?, value: Any?, mask: Int) {
         if (pi.prefab.isWritable) {
+            LOGGER.info("Setting $name to $value, styleable? ${panel is TextStyleable}, instances: ${instances.size}")
             (panel as? TextStyleable)?.isBold = true
             for (instance in instances) {
                 PropertySetter.setPropertyRespectingMask(value, mask, property, instance)

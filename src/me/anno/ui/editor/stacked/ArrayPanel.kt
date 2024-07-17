@@ -8,18 +8,19 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Clipboard.getClipboardContent
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.Style
+import me.anno.ui.input.InputPanel
 import kotlin.math.max
 import kotlin.math.min
 
@@ -27,7 +28,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     title: String,
     visibilityKey: String,
     val newValue: () -> EntryType, style: Style
-) : TitledListY(title, visibilityKey, style) {
+) : TitledListY(title, visibilityKey, style), InputPanel<List<EntryType>> {
 
     // todo when there is a lot of values, unfold them like in Chrome Dev Console:
     //  100 at a time, every power of 10 is grouped
@@ -47,6 +48,10 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     }
 
     override val canDrawOverBorders get() = true
+    override val value: List<EntryType>
+        get() = values
+
+    override var isInputAllowed = true
 
     val buttonX get() = x + (padding.left - buttonWidth) / 2 + buttonPadding
     val buttonW get() = buttonWidth - 2 * buttonPadding
@@ -112,6 +117,12 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         this.values.addAll(values)
     }
 
+    override fun setValue(newValue: List<EntryType>, mask: Int, notify: Boolean): ArrayPanel<EntryType, PanelType> {
+        setValues(newValue)
+        if (notify) onChange()
+        return this
+    }
+
     fun set(panel: Panel, value: Any?) {
         val index = children.indexOf(panel) - 1
         @Suppress("unchecked_cast")
@@ -160,10 +171,10 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                 windowStack, listOf(
                     MenuOption(NameDesc("Insert Before")) {
                         insert(index, newValue())
-                    },
+                    }.setEnabled(isInputAllowed, "Readonly"),
                     MenuOption(NameDesc("Insert After")) {
                         insert(index + 1, newValue())
-                    },
+                    }.setEnabled(isInputAllowed, "Readonly"),
                     /*MenuOption(NameDesc("Paste Before")) {
                         paste(index)
                     },
@@ -176,10 +187,10 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                     MenuOption(NameDesc("Cut")) {
                         copy(index)
                         remove(index)
-                    },
+                    }.setEnabled(isInputAllowed, "Readonly"),
                     MenuOption(NameDesc("Remove")) {
                         remove(index)
-                    },
+                    }.setEnabled(isInputAllowed, "Readonly"),
                     MenuOption(NameDesc("Duplicate")) {
                         val clone: Any? = when (val value = values[index - 1]) {
                             is String, is Prefab, is FileReference -> value
@@ -193,26 +204,28 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                         }
                         @Suppress("unchecked_cast")
                         insert(index + 1, clone as EntryType)
-                    },
+                    }.setEnabled(isInputAllowed, "Readonly"),
                 )
             )
         } else if (button == Key.BUTTON_RIGHT) {
             // todo when everything is working, use actions instead
-            openMenu(windowStack, listOf(
-                MenuOption(NameDesc("Add Entry")) {
-                    val value = newValue()
-                    addChild(createPanel(value))
-                    values.add(value)
-                    onChange()
-                    invalidateLayout()
-                },
-                MenuOption(NameDesc("Clear")) {
-                    values.clear()
-                    clear()
-                    onChange()
-                    invalidateLayout()
-                }
-            ))
+            openMenu(
+                windowStack, listOf(
+                    MenuOption(NameDesc("Add Entry")) {
+                        val value = newValue()
+                        addChild(createPanel(value))
+                        values.add(value)
+                        onChange()
+                        invalidateLayout()
+                    }.setEnabled(isInputAllowed, "Readonly"),
+                    MenuOption(NameDesc("Clear")) {
+                        values.clear()
+                        clear()
+                        onChange()
+                        invalidateLayout()
+                    }.setEnabled(isInputAllowed, "Readonly")
+                )
+            )
         } else super.onMouseClicked(x, y, button, long)
     }
 }

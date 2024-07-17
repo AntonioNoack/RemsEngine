@@ -123,6 +123,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
             val childX = x + padding.left
             var currentY = y + padding.top
+            val currentY0 = currentY
 
             val children = children
             if (allChildrenHaveSameSize && children.isNotEmpty()) {
@@ -152,10 +153,10 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         } else {
                             (minWFactor * child.minH)
                         }.roundToInt()
-                        val currentH = currentY - y
+                        val currentH = currentY - currentY0
                         val remainingH = availableH - currentH
                         childH = min(childH, remainingH)
-                        if (child.width != availableW || child.height != childH) {
+                        if (child.minW != availableW || child.minH != childH) {
                             // update the children, if they need to be updated
                             child.calculateSize(availableW, childH)
                         }

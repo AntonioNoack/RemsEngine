@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
@@ -43,11 +44,8 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private val textureWidth = max(skeleton.bones.size * 3, 1)
     private var internalTexture = Texture2D("anim", textureWidth, 64, 1)
 
-    val texture: Texture2D?
-        get() {
-            return if (internalTexture.wasCreated) internalTexture
-            else null
-        }
+    val texture: ITexture2D?
+        get() = internalTexture.createdOrNull()
 
     private fun addAnimation1(animation: Animation): AnimTexIndex {
         val index = animationMap.getOrPut(animation) {

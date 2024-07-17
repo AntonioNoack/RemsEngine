@@ -132,7 +132,7 @@ object DebugRendering {
                         if (Input.isShiftDown && light is PlanarReflection) {
                             DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
                         } else if (isDepth) {
-                            DrawTextures.drawDepthTextureArray(x, y + h, s, -s, texture, layer)
+                            DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
                         } else {
                             DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                         }

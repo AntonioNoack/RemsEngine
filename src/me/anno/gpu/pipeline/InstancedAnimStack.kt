@@ -1,6 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.Transform
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import org.joml.Vector4f
 
@@ -15,7 +16,7 @@ class InstancedAnimStack : InstancedStack() {
     }
 
     var animData = FloatArray(transforms.size * 16)
-    var animTexture: Texture2D? = null
+    var animTexture: ITexture2D? = null
 
     override fun add(transform: Transform, gfxId: Int) {
         add(transform, gfxId, null, defaultWeights, defaultIndices, defaultWeights, defaultIndices)
@@ -27,7 +28,7 @@ class InstancedAnimStack : InstancedStack() {
     }
 
     fun add(
-        transform: Transform, clickId: Int, texture: Texture2D?,
+        transform: Transform, clickId: Int, texture: ITexture2D?,
         prevWeights: Vector4f, prevIndices: Vector4f,
         currWeights: Vector4f, currIndices: Vector4f
     ) {

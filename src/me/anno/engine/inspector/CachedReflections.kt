@@ -16,8 +16,6 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
@@ -170,24 +168,25 @@ class CachedReflections private constructor(
             // the earlier something is found, the better
             val doneNames = HashSet<String>()
             val result = ArrayList<Pair<KClass<*>, List<String>>>(classes.size)
-            val targetSize = allProperties.size
-            for (ci in classes.indices) {
+            for (ci in classes.indices.reversed()) {
                 val clazz2 = classes[ci]
+                val clazz2i = clazz2.java
+                val methods = allMethods(clazz2i, ArrayList())
+                val fields = allFields(clazz2i, ArrayList())
                 val partialResult = ArrayList<String>()
-                val reflections = clazz2.declaredMemberProperties
-                    .filterIsInstance<KMutableProperty1<*, *>>()
-                for (pi in reflections.indices) {
-                    val property = reflections[pi]
-                    val name = property.name
-                    if (name !in allProperties) continue // not serialized
+                for ((name, _) in findProperties(fields, methods)) {
+                    if (allProperties[name]?.serialize != true) {
+                        LOGGER.warn("Skipping $name, not serialized")
+                        continue
+                    } // not serialized
                     if (doneNames.add(name)) {
                         partialResult.add(name)
                     }
                 }
                 partialResult.sort()
                 result.add(clazz2 to partialResult)
-                if (doneNames.size >= targetSize) break // done :)
             }
+            result.reverse()
             return result
         }
 

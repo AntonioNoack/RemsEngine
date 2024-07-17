@@ -168,7 +168,7 @@ object Hierarchy {
                         }
                         if (!foundMatch) {
                             LOGGER.warn(
-                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${pathI.getNameIds()}, ${pathI.getTypes()}, ${pathI.getIndices()}) in instance, " +
+                                "Missing path $path[$pathIndex] (${pathI.getNameIds()}, ${pathI.getTypes()}, ${pathI.getIndices()}) in instance, " +
                                         "only ${children.size} $childType available ${children.joinToString { "'${it.name}':${it.prefabPath}" }}"
                             )
                             throw Path.EXIT

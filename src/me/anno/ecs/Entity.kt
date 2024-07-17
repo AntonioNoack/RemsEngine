@@ -32,6 +32,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AnyToBool
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import org.apache.logging.log4j.LogManager
@@ -742,7 +743,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             "rotation" -> transform.localRotation = value as? Quaterniond ?: return
             "children" -> addMembers(value, internalChildren) { if (it is Entity) addChild(it) }
             "components" -> addMembers(value, internalComponents) { if (it is Component) addComponent(it) }
-            "isCollapsed" -> isCollapsed = value == true
+            "isCollapsed" -> isCollapsed = AnyToBool.anyToBool(value)
+            "isEnabled" -> isEnabled = AnyToBool.anyToBool(value)
             else -> super.setProperty(name, value)
         }
     }

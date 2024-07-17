@@ -25,7 +25,7 @@ import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
 import me.anno.image.thumbs.AssetThumbnails
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -252,7 +252,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         return matrices
     }
 
-    open fun getAnimTexture(): Texture2D? {
+    open fun getAnimTexture(): ITexture2D? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         if (skeleton.bones.isEmpty()) return null
         return AnimationCache[skeleton].texture
@@ -284,7 +284,6 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
             lastWarning = "No animation is set"
             return false
         }
-
 
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())

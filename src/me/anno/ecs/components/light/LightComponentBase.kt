@@ -9,6 +9,7 @@ import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.DitherMode
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.maths.Maths.posMod
 
 // a light component, of which there can be multiple per object
 abstract class LightComponentBase : Component(), Renderable, OnUpdate {
@@ -17,7 +18,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     var ditherMode = DitherMode.DITHER2X2
 
     var needsUpdate1 = true
-    var autoUpdate = true
+    var autoUpdate = 30
 
     override fun fill(
         pipeline: Pipeline,
@@ -26,6 +27,11 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     ): Int {
         lastDrawn = Time.gameTimeN
         return clickId // not itself clickable
+    }
+
+    fun needsAutoUpdate(): Boolean {
+        val autoUpdate = autoUpdate
+        return autoUpdate > 0 && posMod(Time.frameIndex + clickId, autoUpdate) == 0
     }
 
     override fun onUpdate() {

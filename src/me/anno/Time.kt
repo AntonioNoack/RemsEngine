@@ -120,7 +120,7 @@ object Time {
         lastTimeNanos = thisTime
 
         lastGameTime = gameTimeN
-        gameTimeN += deltaTime.toLong()
+        gameTimeN += (deltaTime * 1e9).toLong()
         gameTime = gameTimeN * 1e-9
 
         frameIndex++

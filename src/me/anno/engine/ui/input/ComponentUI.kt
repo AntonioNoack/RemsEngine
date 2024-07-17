@@ -286,14 +286,6 @@ object ComponentUI {
             is FileReference -> "FileReference"
 
             // collections and maps
-            is Array<*> -> {
-                val arrayType = getArrayType(value.iterator(), name) ?: return null
-                return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
-                    override fun onChange() {
-                        property.set(this, values.writeTo(value))
-                    }
-                }.apply { setValues(value.toList()) }
-            }
             is List<*> -> {
                 val arrayType = getArrayType(value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {

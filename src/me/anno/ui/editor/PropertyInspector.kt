@@ -73,7 +73,6 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     override fun onUpdate() {
         super.onUpdate()
         val selected = getInspectables()
-
         if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
@@ -193,7 +192,8 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     val window = window
                     val parent = uiParent
                     val win = GFX.activeWindow
-                    sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
+                    val paddingForScrolling = 10
+                    sizeY = paddingForScrolling + if (win != null && window != null && win.windowStack.contains(window)) {
                         if (parent != null && x + width >= window.width - FrameTimings.width) {
                             if (EngineBase.showFPS) {
                                 max(

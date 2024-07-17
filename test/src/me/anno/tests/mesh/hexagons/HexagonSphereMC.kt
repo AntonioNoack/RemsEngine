@@ -293,7 +293,7 @@ fun main() {
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
     sun.shadowMapResolution = 4096
-    sun.autoUpdate = true
+    sun.autoUpdate = 10
     sun.color.set(5f)
     val sunEntity = Entity("Sun")
     sunEntity.add(sun)

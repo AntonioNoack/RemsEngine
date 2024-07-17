@@ -128,6 +128,7 @@ class PrefabInspector(var reference: FileReference) {
     fun change(path: Path?, instance: PrefabSaveable, name: String, value: Any?) {
         instance[name] = value
         path ?: return
+        LOGGER.info("Setting ${prefab.source}.$path.$name = $value")
         prefab[path, name] = value
     }
 
@@ -306,6 +307,8 @@ class PrefabInspector(var reference: FileReference) {
                     val gb = pb.group ?: defaultGroup
                     ga.compareTo(gb).ifSame(pa.order.compareTo(pb.order))
                 }) {
+
+                LOGGER.info("Showing property $name for class ${clazz.simpleName}")
 
                 val property = allProperties[name]!!
                 if (!property.serialize) continue

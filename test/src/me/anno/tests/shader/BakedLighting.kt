@@ -334,7 +334,7 @@ fun bakeIllumination0(component: MeshComponent, dst: RaytracingInput, resolution
     mesh.ensureNorTanUVs()
     val pos = mesh.positions ?: return
     val nor = mesh.normals ?: return
-    val uvs = mesh.uvs ?: return // todo only calculate single value for it...
+    val uvs = mesh.uvs ?: return // todo if missing, calculate single pixel-value for it
     val region = MaterialCache[component.materials[0]]!!.shaderOverrides["bakedRect"]!!.value as Vector4f
 
     // we could find UV-AABB, and unproject it to remove fract() from shader, and make spheres work out of the box
@@ -599,7 +599,10 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
                 "   dst = vec4(mix(oldDst, color, resultWeight), 1.0);\n" +
                 "}\n"
     )
-    // todo implement pass to add all lights
+    // todo implement pass to add all lights:
+    //  - split into sampled and simple lights
+    //  - sampled lights - as the name says, need to be sampled : could be represented by a 3d mesh
+    //  - simple lights can be baked once (ray-traced visibility check), and just added like a constant
     rtShader.glslVersion = 330 // for floatBitsToUint
     rtShader.setTextureIndices(
         "triangles", "tlasNodes", "blasNodes",
