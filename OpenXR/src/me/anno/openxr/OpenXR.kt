@@ -43,7 +43,7 @@ abstract class OpenXR(val window: Long) {
                 rv.fovYCenter = tanDown / (tanUp - tanDown) + 1f // todo does this have the correct "sign"???
                 rv.fovXRadians = 2f * atan((tanRight - tanLeft) * 0.5f)
                 rv.fovYRadians = 2f * atan((tanUp - tanDown) * 0.5f)
-                println("[FOV] $tanLeft,$tanRight,$tanUp,$tanDown -> ${rv.fovXCenter},${rv.fovYCenter},${rv.fovXRadians},${rv.fovYRadians}")
+               // println("[FOV] $tanLeft,$tanRight,$tanUp,$tanDown -> ${rv.fovXCenter},${rv.fovYCenter},${rv.fovXRadians},${rv.fovYRadians}")
             }
         }
 

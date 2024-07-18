@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
+import me.anno.input.ButtonUpdateState
 import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Key
@@ -36,6 +37,9 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
     val axisValues = FloatArray(maxNumAxes)
     val axisSpeeds = FloatArray(maxNumAxes)
     val buttonDownTime = LongArray(maxNumButtons)
+    val axesDownTime = LongArray(maxNumAxes * 2)
+
+    abstract val type: ControllerType
 
     @InternalAPI // used for calibration
     val rawAxisValues = FloatArray(maxNumAxes)
@@ -45,7 +49,7 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
     }
 
     var calibration = ControllerCalibration()
-    val baseKey get() = BASE_KEY + 32 * id
+    open val baseKey: Int get() = Key.CONTROLLER_0_KEY_0.id + 32 * id
 
     var name = ""
     var guid = ""
@@ -104,30 +108,56 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
     val isFirst: Boolean get() = id == 0
 
     fun setAxisValue(window: OSWindow, axisId: Int, state: Float, dt: Float) {
+        val baseAxis = baseKey + numButtons
+        val negativeKey = if (numButtons + axisId * 2 < MAX_NUM_INPUTS) {
+            Key.byId(baseAxis + axisId * 2)
+        } else Key.KEY_UNKNOWN
+        val positiveKey = if (numButtons + axisId * 2 < MAX_NUM_INPUTS) {
+            Key.byId(baseAxis + axisId * 2 + 1)
+        } else Key.KEY_UNKNOWN
+        setAxisValue(window, axisId, state, dt, negativeKey, positiveKey)
+    }
+
+    fun setAxisValue(
+        window: OSWindow, axisId: Int, state: Float, dt: Float,
+        negativeKey: Key, positiveKey: Key
+    ) {
+        setAxisValue(
+            window, axisId, state, dt, negativeKey, positiveKey,
+            axesDownTime, axisId * 2
+        )
+    }
+
+    fun setAxisValue(
+        window: OSWindow, axisId: Int, state: Float, dt: Float,
+        negativeKey: Key, positiveKey: Key,
+        buttonDownTime: LongArray, buttonId01: Int
+    ) {
         val lastValue = axisValues[axisId]
         val value = calibration.getValue(state, axisId)
         axisValues[axisId] = value
         axisSpeeds[axisId] = (value - lastValue) / dt
 
         // trigger for actions
-        val wasDown = lastValue < -axisKeyTriggerPoint
-        val wasUp = lastValue > +axisKeyTriggerPoint
-        val isDown = value < -axisKeyTriggerPoint
-        val isUp = value > axisKeyTriggerPoint
-        val baseAxis = baseKey + numButtons
-        if (isDown != wasDown) {
-            if (numButtons + axisId * 2 < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
-                val key = Key.byId(baseAxis + axisId * 2)
-                if (isDown) {
-                    ActionManager.onKeyDown(window, key)
-                } else {
-                    ActionManager.onKeyUp(window, key)
-                }
-            }
-        }
-        if (isUp != wasUp) {
-            if (numButtons + axisId * 2 < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
-                val key = Key.byId(baseAxis + axisId * 2 + 1)
+        // can we find out if an axis can be down? triggers cannot do that
+        //  -> not really, we can just assume
+        val axisKeyTriggerPoint = axisKeyTriggerPoint
+        ButtonUpdateState.callButtonUpdateEvents(
+            window, Time.frameTimeNanos, value < -axisKeyTriggerPoint,
+            buttonDownTime, buttonId01, negativeKey
+        )
+        ButtonUpdateState.callButtonUpdateEvents(
+            window, Time.frameTimeNanos, value > axisKeyTriggerPoint,
+            buttonDownTime, buttonId01 + 1, positiveKey
+        )
+    }
+
+    private fun handleAxisKey(window: OSWindow, key: Key, value: Float, lastValue: Float) {
+        if (key != Key.KEY_UNKNOWN) {
+            val wasUp = lastValue > axisKeyTriggerPoint
+            val isUp = value > axisKeyTriggerPoint
+            if (isUp != wasUp) {
+                // todo toggle
                 if (isUp) {
                     ActionManager.onKeyDown(window, key)
                 } else {
@@ -224,13 +254,13 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
                 mouseButtonDown(window, mouseKey)
             }
         }
-        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+        if (key < MAX_NUM_INPUTS) {
             ActionManager.onKeyDown(window, Key.byId(baseKey + key))
         }
     }
 
     fun buttonType(window: OSWindow, key: Int) {
-        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+        if (key < MAX_NUM_INPUTS) {
             ActionManager.onKeyTyped(window, Key.byId(baseKey + key))
         }
     }
@@ -242,7 +272,7 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
                 mouseButtonUp(window, mouseKey)
             }
         }
-        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+        if (key < MAX_NUM_INPUTS) {
             ActionManager.onKeyTyped(window, Key.byId(baseKey + key))
         }
     }
@@ -273,11 +303,6 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
         fun addControllerChangeListener(listener: (Controller) -> Unit) {
             onControllerChanged.add(listener)
         }
-
-        /**
-         * value of first enum
-         * */
-        val BASE_KEY = Key.CONTROLLER_0_KEY_0.id
 
         /**
          * max supported inputs per controller for UI;

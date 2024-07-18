@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-object ActionManager: StringMap() {
+object ActionManager : StringMap() {
 
     @JvmStatic
     private val LOGGER = LogManager.getLogger(ActionManager::class)
@@ -120,26 +120,31 @@ object ActionManager: StringMap() {
 
     @JvmStatic
     fun onKeyTyped(window: OSWindow, key: Key) {
+        if (key == Key.KEY_UNKNOWN) return
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
     @JvmStatic
     fun onKeyUp(window: OSWindow, key: Key) {
+        if (key == Key.KEY_UNKNOWN) return
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
     @JvmStatic
     fun onKeyDown(window: OSWindow, key: Key) {
+        if (key == Key.KEY_UNKNOWN) return
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
     @JvmStatic
     fun onKeyDoubleClick(window: OSWindow, key: Key) {
+        if (key == Key.KEY_UNKNOWN) return
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
     @JvmStatic
     fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Key, type: KeyCombination.Type) {
+        if (key == Key.KEY_UNKNOWN) return
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 

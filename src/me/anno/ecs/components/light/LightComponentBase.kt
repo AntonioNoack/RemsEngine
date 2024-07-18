@@ -35,7 +35,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     }
 
     override fun onUpdate() {
-        if (lastDrawn >= Time.lastGameTime) {
+        if (lastDrawn >= Time.lastGameTimeN) {
             onVisibleUpdate()
         }
     }

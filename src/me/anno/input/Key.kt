@@ -163,9 +163,7 @@ enum class Key(val id: Int) {
 
     // these probably should be handled differently...
     // if you need more buttons, check Input.controllers[i].buttonDownTime/axisValues GLFW directly
-    /**
-     * Controller keys
-     * */
+    /** Controller keys: a gamepad has 6 axes (12 buttons theoretically) + 8 buttons */
     CONTROLLER_0_KEY_0(400),
     CONTROLLER_0_KEY_1(401),
     CONTROLLER_0_KEY_2(402),
@@ -297,6 +295,34 @@ enum class Key(val id: Int) {
     CONTROLLER_3_KEY_29(525),
     CONTROLLER_3_KEY_30(526),
     CONTROLLER_3_KEY_31(527),
+
+    /** VR Controller Keys: a controller usually has 4 axes (6 buttons) + 3 buttons */
+    CONTROLLER_LEFT_KEY_X(512),
+    CONTROLLER_LEFT_KEY_Y(513),
+    CONTROLLER_LEFT_KEY_MENU(514),
+    CONTROLLER_LEFT_THUMBSTICK_LEFT(515),
+    CONTROLLER_LEFT_THUMBSTICK_UP(516),
+    CONTROLLER_LEFT_THUMBSTICK_RIGHT(517),
+    CONTROLLER_LEFT_THUMBSTICK_DOWN(518),
+    CONTROLLER_LEFT_THUMBSTICK_TOUCH(519),
+    CONTROLLER_LEFT_TRIGGER_PRESS(520),
+    CONTROLLER_LEFT_TRIGGER_TOUCH(521),
+    CONTROLLER_LEFT_SQUEEZE_PRESS(522),
+    CONTROLLER_LEFT_SQUEEZE_TOUCH(523),
+
+    CONTROLLER_RIGHT_KEY_X(544),
+    CONTROLLER_RIGHT_KEY_Y(545),
+    CONTROLLER_RIGHT_KEY_MENU(546),
+    CONTROLLER_RIGHT_THUMBSTICK_LEFT(547),
+    CONTROLLER_RIGHT_THUMBSTICK_UP(548),
+    CONTROLLER_RIGHT_THUMBSTICK_RIGHT(549),
+    CONTROLLER_RIGHT_THUMBSTICK_DOWN(550),
+    CONTROLLER_RIGHT_THUMBSTICK_TOUCH(551),
+    CONTROLLER_RIGHT_TRIGGER_PRESS(552),
+    CONTROLLER_RIGHT_TRIGGER_TOUCH(553),
+    CONTROLLER_RIGHT_SQUEEZE_PRESS(554),
+    CONTROLLER_RIGHT_SQUEEZE_TOUCH(555),
+
     // this list may be extended in the future...
     ;
 
@@ -317,7 +343,7 @@ enum class Key(val id: Int) {
     }
 
     companion object {
-        private val byId = arrayListOfNulls<Key>(528)
+        private val byId = arrayListOfNulls<Key>(556)
 
         init {
             for (v in entries) {

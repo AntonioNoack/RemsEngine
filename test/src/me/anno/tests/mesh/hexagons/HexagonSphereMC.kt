@@ -362,7 +362,7 @@ open class ControllerOnSphere(
         right.normalize()
     }
 
-    override fun updateViewRotation() {
+    override fun updateViewRotation(jump: Boolean) {
         renderView.orbitRotation.identity()
             .lookAlong(forward, up)
             .invert()

@@ -26,9 +26,9 @@ import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Key
 import me.anno.input.Touch
+import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
@@ -41,7 +41,6 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.sin
@@ -95,7 +94,21 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         invalidateDrawing()
         if (control?.onKeyTyped(key) == true) return
         if (editMode?.onEditClick(key, false) == true) return
-        super.onKeyTyped(x, y, key)
+        when (key) {
+            Key.CONTROLLER_RIGHT_THUMBSTICK_LEFT -> {
+                rotateCamera(0f, +settings.vrRotateLeftRight, 0f)
+                jumpRotate()
+            }
+            Key.CONTROLLER_RIGHT_THUMBSTICK_RIGHT -> {
+                rotateCamera(0f, -settings.vrRotateLeftRight, 0f)
+                jumpRotate()
+            }
+            else -> super.onKeyTyped(x, y, key)
+        }
+    }
+
+    fun jumpRotate() {
+        updateViewRotation(jump = true)
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
@@ -140,22 +153,29 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.001
-    val rotationTarget = renderView.orbitRotation.getEulerAnglesYXZ(Vector3d())
+    val rotationTarget = Vector3d()
 
     override fun onUpdate() {
         super.onUpdate()
-        updateViewRotation()
+        updateViewRotation(false)
         renderView.editorCamera.fovY = settings.fovY
     }
 
-    open fun updateViewRotation() {
-        val tmp = Quaterniond()
-            .identity()
+    open fun updateViewRotation(jump: Boolean) {
+        if (jump) {
+            rotationTargetToQuat(renderView.orbitRotation)
+        } else {
+            val tmp = rotationTargetToQuat(Quaterniond())
+            renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0))
+        }
+        invalidateDrawing()
+    }
+
+    private fun rotationTargetToQuat(dst: Quaterniond): Quaterniond {
+        return dst.identity()
             .rotateY(rotationTarget.y.toRadians())
             .rotateX(rotationTarget.x.toRadians())
             .rotateZ(rotationTarget.z.toRadians())
-        renderView.orbitRotation.slerp(tmp, Maths.dtTo01(uiDeltaTime * 25.0))
-        invalidateDrawing()
     }
 
     fun rotateCameraTo(vx: Float, vy: Float, vz: Float) =
@@ -266,34 +286,22 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             velocity.y += (up.toInt() - down.toInt()) * acceleration
         }
 
-        var controllerIndex = 0
         for (i in Input.controllers.indices) {
             val controller = Input.controllers[i]
-            // it's a VR controller
-            if (controller.position.lengthSquared() > 0f && controller.numAxes >= 4 &&
-                controller.axisValues[0].isFinite() && controller.axisValues[1].isFinite()
+            if (controller.type == ControllerType.VIRTUAL_REALITY && controller.numAxes >= 4 &&
+                (0 until 4).all { controller.axisValues[it].isFinite() }
             ) {
-                when (controllerIndex++) {
-                    0 -> {
-                        // left hand
-                        // todo should go in steps, this is kind of nauseating 😅
-                        val dx = controller.axisValues[0]
-                        rotateCamera(0f, -dx * dt.toFloat() * 100f, 0f)
-                        controller.rumble = 0.5f * abs(dx)
-                    }
-                    1 -> {
-                        // right hand
-                        val dx = controller.axisValues[0]
-                        val dz = controller.axisValues[1]
-                        velocity.x += dx * acceleration
-                        velocity.z -= dz * acceleration
-                        // trigger and squeeze
-                        val dy = controller.axisValues[2] - controller.axisValues[3]
-                        velocity.y += dy * acceleration
-                        controller.rumble = 0.5f * clamp(length(dx, dy, dz))
-                    }
-                    else -> {}
-                }
+                // left hand for moving around; right hand left/right thumbstick is used for turning
+                val dx = controller.axisValues[0]
+                val dz = controller.axisValues[1]
+                velocity.x += dx * acceleration
+                velocity.z -= dz * acceleration
+                // trigger and squeeze
+                val dy = controller.axisValues[2] - controller.axisValues[3]
+                velocity.y += dy * acceleration
+                // todo having rumble on one hand and not the other feels weird...
+                //controller.rumble = 0.5f * clamp(length(dx, dy, dz))
+                break
             }
         }
 

@@ -5,25 +5,31 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
-import me.anno.input.ButtonLogic
+import me.anno.input.ButtonUpdateState
 import me.anno.input.controller.CalibrationProcedure
 import me.anno.input.controller.Controller
 import me.anno.input.controller.ControllerCalibration
 import me.anno.input.controller.ControllerCalibration.Companion.loadCalibration
+import me.anno.input.controller.ControllerType
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.ui.base.menu.Menu
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.flagDifference
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.glfw.GLFW.GLFW_HAT_DOWN
+import org.lwjgl.glfw.GLFW.GLFW_HAT_LEFT
+import org.lwjgl.glfw.GLFW.GLFW_HAT_RIGHT
+import org.lwjgl.glfw.GLFW.GLFW_HAT_UP
 import org.lwjgl.glfw.GLFW.GLFW_JOYSTICK_1
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.glfwGetGamepadState
 import org.lwjgl.glfw.GLFW.glfwGetJoystickAxes
 import org.lwjgl.glfw.GLFW.glfwGetJoystickButtons
 import org.lwjgl.glfw.GLFW.glfwGetJoystickGUID
+import org.lwjgl.glfw.GLFW.glfwGetJoystickHats
 import org.lwjgl.glfw.GLFW.glfwGetJoystickName
 import org.lwjgl.glfw.GLFW.glfwJoystickIsGamepad
 import org.lwjgl.glfw.GLFW.glfwJoystickPresent
@@ -45,7 +51,10 @@ class GLFWController(private val glfwId: Int) : Controller(MAX_NUM_BUTTONS, MAX_
      * when the controller is a gamepad, then we can use the standard controls with 6 axes;
      * idk what happens, when the controller has more than that... should we support that somehow?
      * */
-    var isGamepad = false
+    private var isGamepad = false
+
+    override val type: ControllerType
+        get() = if (isGamepad) ControllerType.GAMEPAD else ControllerType.OTHER
 
     private val gamepadState = GLFWGamepadState.calloc()
     private val gamepadAxes get() = gamepadState.axes()
@@ -102,41 +111,56 @@ class GLFWController(private val glfwId: Int) : Controller(MAX_NUM_BUTTONS, MAX_
             } else {
                 updateButtons(window)
                 updateAxes(window, dt)
+                updateHats(window, dt)
             }
+            updateMouse(window, dt)
         }
 
         return isPresent
     }
 
     private fun updateButtons(window: OSWindow, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
-        if (buttons != null) {
-            val time = Time.nanoTime
-            numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
-            for (buttonId in 0 until numButtons) {
-                val rawState = buttons.get(buttonId)
-                val state = rawState.toInt() // press or release, nothing else
-                val eventFlags = ButtonLogic.process(time, state == GLFW_PRESS, buttonDownTime, buttonId)
-                if (eventFlags.hasFlag(ButtonLogic.DOWN)) buttonDown(window, buttonId)
-                if (eventFlags.hasFlag(ButtonLogic.TYPE)) buttonType(window, buttonId)
-                if (eventFlags.hasFlag(ButtonLogic.UP)) buttonUp(window, buttonId)
+        buttons ?: return
+        val time = Time.nanoTime
+        numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
+        for (buttonId in 0 until numButtons) {
+            val rawState = buttons.get(buttonId)
+            when (ButtonUpdateState.updateButtonState(time, rawState.toInt() == GLFW_PRESS, buttonDownTime, buttonId)) {
+                ButtonUpdateState.DOWN -> buttonDown(window, buttonId)
+                ButtonUpdateState.TYPE -> buttonType(window, buttonId)
+                ButtonUpdateState.UP -> buttonUp(window, buttonId)
+                else -> {}
             }
         }
     }
 
     private fun updateAxes(window: OSWindow, dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
-        if (axes != null) {
+        axes ?: return
+        numAxes = min(axes.remaining(), MAX_NUM_AXES)
+        for (axisId in 0 until numAxes) {
+            val state = axes.get()
+            setAxisValue(window, axisId, state, dt)
+        }
+    }
 
-            numAxes = min(axes.remaining(), MAX_NUM_AXES)
-            for (axisId in 0 until numAxes) {
-                val state = axes.get()
-                setAxisValue(window, axisId, state, dt)
-            }
+    private fun updateHats(window: OSWindow, dt: Float, states: ByteBuffer? = glfwGetJoystickHats(glfwId)) {
+        states ?: return
+        val oldNumAxes = numAxes
+        numAxes = min(oldNumAxes + states.remaining() * 2, MAX_NUM_AXES)
+        var axisId = oldNumAxes
+        for (i in 0 until states.remaining()) {
+            val state = states.get().toInt()
+            setAxisValue(window, axisId++, state.flagDifference(GLFW_HAT_LEFT, GLFW_HAT_RIGHT).toFloat(), dt)
+            // todo is this the same signed-ness as for gamepads??
+            setAxisValue(window, axisId++, state.flagDifference(GLFW_HAT_DOWN, GLFW_HAT_UP).toFloat(), dt)
+        }
+    }
 
-            // support multiple mice (?); game specific; nice for strategy games
-            if (isFirst && enableControllerInputs) {
-                updateMouseMovement(window, dt)
-                updateMouseScroll(window, dt)
-            }
+    private fun updateMouse(window: OSWindow, dt: Float) {
+        // support multiple mice (?); game specific; nice for strategy games
+        if (isFirst && enableControllerInputs) {
+            updateMouseMovement(window, dt)
+            updateMouseScroll(window, dt)
         }
     }
 

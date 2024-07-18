@@ -6,9 +6,6 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 
-// todo sprite atlas
-// todo sprite chunk renderer, 32² chunks or so
-
 class DraggingControlSettings : ControlSettings() {
     var snapSettings = SnappingSettings()
     var gridSettings = GridSettings()

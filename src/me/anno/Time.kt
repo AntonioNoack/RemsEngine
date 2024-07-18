@@ -40,14 +40,14 @@ object Time {
      * nanoTime of when the engine was started in OS time
      * */
     @JvmField
-    val startTime = System.nanoTime()
+    val startTimeN = System.nanoTime()
 
     /**
-     * last frame time in nanoseconds;
+     * current frame time in nanoseconds;
      * use this in UI to check whether a function was already called that frame
      * */
     @JvmStatic
-    var lastTimeNanos = 0L
+    var frameTimeNanos = 0L
         private set
 
     /**
@@ -61,7 +61,7 @@ object Time {
      * should be used for UI, and animations that shouldn't be scaled in time
      * */
     @JvmStatic
-    val nanoTime get(): Long = System.nanoTime() - startTime
+    val nanoTime get(): Long = System.nanoTime() - startTimeN
 
     /**
      * time of current frame; integrated by time speed; in nanoseconds
@@ -84,7 +84,11 @@ object Time {
         private set
 
     @JvmStatic
-    var lastGameTime: Long = 0L
+    var lastGameTime: Double = 0.0
+        private set
+
+    @JvmStatic
+    var lastGameTimeN: Long = 0L
         private set
 
     @JvmStatic
@@ -103,7 +107,7 @@ object Time {
     @JvmStatic
     fun updateTime() {
         val thisTime = nanoTime
-        val rawDeltaTime = (thisTime - lastTimeNanos) * 1e-9
+        val rawDeltaTime = (thisTime - frameTimeNanos) * 1e-9
         updateTime(rawDeltaTime, thisTime)
     }
 
@@ -117,9 +121,10 @@ object Time {
 
         val newFPS = 1.0 / dt
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05, newFPS)
-        lastTimeNanos = thisTime
+        frameTimeNanos = thisTime
 
-        lastGameTime = gameTimeN
+        lastGameTime = gameTime
+        lastGameTimeN = gameTimeN
         gameTimeN += (deltaTime * 1e9).toLong()
         gameTime = gameTimeN * 1e-9
 

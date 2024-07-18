@@ -520,6 +520,7 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
             Variable(GLSLType.S2D, "difTex"),
             Variable(GLSLType.S2D, "emmTex"),
             Variable(GLSLType.S2D, "bakedIllum"),
+            Variable(GLSLType.V1I, "bakedUVHeightM1"),
             Variable(GLSLType.V1F, "resultWeight"),
             Variable(GLSLType.V1I, "randomSeed"),
             Variable(GLSLType.V4F, "dst", VariableMode.OUT)
@@ -580,7 +581,7 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
                 "               if(dot(normal,normalOut) < 0.0) {\n" +
                 "                   float weight = 0.75;\n" + // mix half-n-half with what's already there
                 "                   color += tint * (texture(emmTex,bakedUV,0).rgb + (1.0-weight) * " +
-                "                       texture(bakedIllum,ivec2(bakedUV.x,1023-bakedUV.y),0).rgb);\n" +
+                "                       texture(bakedIllum,ivec2(bakedUV.x,bakedUVHeightM1-bakedUV.y),0).rgb);\n" +
                 "                   tint *= weight * texture(difTex,bakedUV,0).rgb;\n" +
                 "                   position += dir * distance;\n" +
                 "                   normal = reflect(dir,normalOut);\n" +
@@ -716,6 +717,7 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
                     srcI.getTexture0MS().bindTrulyNearest(rtShader, "bakedIllum")
                     rtShader.v1f("resultWeight", 1f / (i + 1f))
                     rtShader.v1i("randomSeed", Maths.randomInt())
+                    rtShader.v1i("bakedUVHeightM1", srcI.height - 1)
                     // bind input textures
                     posTex.bindTrulyNearest(rtShader, "posTex")
                     norTex.bindTrulyNearest(rtShader, "norTex")

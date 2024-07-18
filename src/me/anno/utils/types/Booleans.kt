@@ -23,6 +23,16 @@ object Booleans {
     fun Long.hasFlag(flag: Long): Boolean = (this and flag) == flag
 
     @JvmStatic
+    fun Int.flagDifference(negativeFlag: Int, positiveFlag: Int): Int {
+        return hasFlag(positiveFlag).toInt() - hasFlag(negativeFlag).toInt()
+    }
+
+    @JvmStatic
+    fun Long.flagDifference(negativeFlag: Long, positiveFlag: Long): Int {
+        return hasFlag(positiveFlag).toInt() - hasFlag(negativeFlag).toInt()
+    }
+
+    @JvmStatic
     fun Int.withFlag(flag: Int): Int {
         return withoutFlag(flag) or flag
     }
@@ -51,5 +61,4 @@ object Booleans {
     fun Long.withoutFlag(flag: Long): Long {
         return and(flag.inv())
     }
-
 }

@@ -13,6 +13,9 @@ import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3d
 import kotlin.reflect.KClass
 
+// todo function call node (loading a graph from a file, cached somehow)
+// todo call-stack (loops, function calls), so we can resume at any time, and don't need actual sleeping?
+
 abstract class Node() : PrefabSaveable() {
 
     /**

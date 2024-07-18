@@ -161,7 +161,7 @@ class HSPhysicsControls(
         // update visuals & control transform
         position.set(physics.currPosition)//.mul(1.0 + len * shape.halfHeight) // eye height
         onChangePosition()
-        updateViewRotation()
+        updateViewRotation(false)
 
         if (Input.wasKeyPressed('s') && Input.isControlDown) {
             println("Saving")

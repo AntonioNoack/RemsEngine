@@ -1,4 +1,4 @@
-package me.anno.tests.bugs.todo
+package me.anno.tests.bugs.done
 
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.tests.ui.Element

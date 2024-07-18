@@ -2,8 +2,7 @@ package me.anno.openxr
 
 import me.anno.Time
 import me.anno.gpu.GFX
-import me.anno.input.ButtonLogic
-import me.anno.input.Input
+import me.anno.input.ButtonUpdateState
 import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.openxr.OpenXRController.Companion.xrControllers
@@ -15,7 +14,6 @@ import me.anno.openxr.OpenXRUtils.ptr
 import me.anno.openxr.OpenXRUtils.ptr1
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.createArrayList
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_BOOLEAN_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_FLOAT_INPUT
@@ -241,6 +239,17 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     val buttonsTimers = LongArray(6)
     val buttonActions = listOf(buttonAction0, buttonAction1, buttonAction2)
 
+    val keysByAxis = listOf(
+        Key.CONTROLLER_LEFT_THUMBSTICK_LEFT, Key.CONTROLLER_LEFT_THUMBSTICK_RIGHT,
+        Key.CONTROLLER_RIGHT_THUMBSTICK_LEFT, Key.CONTROLLER_RIGHT_THUMBSTICK_RIGHT,
+        Key.CONTROLLER_LEFT_THUMBSTICK_DOWN, Key.CONTROLLER_LEFT_THUMBSTICK_UP,
+        Key.CONTROLLER_RIGHT_THUMBSTICK_DOWN, Key.CONTROLLER_RIGHT_THUMBSTICK_UP,
+        Key.KEY_UNKNOWN, Key.CONTROLLER_LEFT_TRIGGER_PRESS,
+        Key.KEY_UNKNOWN, Key.CONTROLLER_RIGHT_TRIGGER_PRESS,
+        Key.KEY_UNKNOWN, Key.CONTROLLER_LEFT_SQUEEZE_PRESS,
+        Key.KEY_UNKNOWN, Key.CONTROLLER_RIGHT_SQUEEZE_PRESS,
+    )
+
     private fun updatePose(
         action: XrAction, subactionPath: Long,
         location: XrSpaceLocation, poseSpace: XrSpace,
@@ -260,13 +269,15 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         for (hand in xrControllers.indices) {
             val controller = xrControllers[hand]
             for (i in 0 until 4) {
-                controller.setAxisValue(window, i, Float.NaN, dt)
+                val keyOffset = hand * 2 + i * 4
+                controller.setAxisValue(
+                    window, i, Float.NaN, dt,
+                    keysByAxis[keyOffset], keysByAxis[keyOffset + 1]
+                )
             }
         }
         for (i in engineButtons.indices) {
-            val eventFlags = ButtonLogic.process(Time.gameTimeN, false, buttonsTimers, i)
-            val engineButton = engineButtons[i]
-            if (eventFlags.hasFlag(ButtonLogic.UP)) Input.onKeyReleased(window, engineButton)
+            ButtonUpdateState.callButtonUpdateEvents(window, Time.gameTimeN, false, buttonsTimers, i, engineButtons[i])
         }
     }
 
@@ -334,18 +345,31 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 .identity().rotateY(additionalRotationY)
                 .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
+            val keyOffset = hand * 2
             updateVector2fState(thumbstickAction, handPath)
             if (vector2fState.isActive) {
                 val value = vector2fState.currentState()
-                controller.setAxisValue(window, 0, value.x(), dt)
-                controller.setAxisValue(window, 1, value.y(), dt)
+                controller.setAxisValue(
+                    window, 0, value.x(), dt,
+                    keysByAxis[keyOffset + 0], keysByAxis[keyOffset + 1] // 0-3
+                )
+                controller.setAxisValue(
+                    window, 1, value.y(), dt,
+                    keysByAxis[keyOffset + 4], keysByAxis[keyOffset + 5] // 4-7
+                )
             }
 
             val grab = getFloatStateOrNaN(grabAction, handPath)
-            controller.setAxisValue(window, 2, grab, dt)
+            controller.setAxisValue(
+                window, 2, grab, dt,
+                Key.KEY_UNKNOWN, keysByAxis[keyOffset + 9] // 8-11
+            )
 
             val squeeze = getFloatStateOrNaN(squeezeAction, handPath)
-            controller.setAxisValue(window, 3, squeeze, dt)
+            controller.setAxisValue(
+                window, 3, squeeze, dt,
+                Key.KEY_UNKNOWN, keysByAxis[keyOffset + 11] // 12-15
+            )
 
             val rumble = clamp(controller.rumble)
             if (rumble > 0f) {
@@ -364,11 +388,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         for (i in 0 until 4) {
             updateBooleanState(buttonActions[i.shr(1)], handPaths[i.and(1)])
             val currState = if (booleanState.isActive) booleanState.currentState() else null
-            val eventFlags = ButtonLogic.process(time, currState == true, buttonsTimers, i)
-            val engineButton = engineButtons[i]
-            if (eventFlags.hasFlag(ButtonLogic.DOWN)) Input.onKeyPressed(window, engineButton, time)
-            if (eventFlags.hasFlag(ButtonLogic.TYPE)) Input.onKeyTyped(window, engineButton)
-            if (eventFlags.hasFlag(ButtonLogic.UP)) Input.onKeyReleased(window, engineButton)
+            ButtonUpdateState.callButtonUpdateEvents(window, time, currState == true, buttonsTimers, i, engineButtons[i])
         }
     }
 }

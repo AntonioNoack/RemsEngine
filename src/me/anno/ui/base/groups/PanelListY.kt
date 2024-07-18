@@ -114,7 +114,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
     override fun setPosition(x: Int, y: Int) {
         // todo some elements don't like this shortcut...
         if (true || needsPosUpdate(x, y)) {
-            lastPosTime = Time.lastTimeNanos
+            lastPosTime = Time.frameTimeNanos
 
             super.setPosition(x, y)
 

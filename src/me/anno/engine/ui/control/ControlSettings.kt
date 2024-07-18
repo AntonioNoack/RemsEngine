@@ -9,6 +9,9 @@ open class ControlSettings : Inspectable {
     var changeYByWASD by ConfigRef("ui.moveSettings.changeYByWASD", false)
     var enableShiftSpaceControls by ConfigRef("ui.moveSettings.enableShiftSpace", false)
 
+    @Range(-360.0, 360.0)
+    var vrRotateLeftRight by ConfigRef("ui.moveSettings.vrLeftRight", 45f)
+
     var moveSpeed by ConfigRef("ui.moveSettings.moveSpeed", 1f)
     var turnSpeed by ConfigRef("ui.moveSettings.turnSpeed", 1f)
 

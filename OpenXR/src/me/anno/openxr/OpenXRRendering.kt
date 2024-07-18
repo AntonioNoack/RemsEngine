@@ -1,6 +1,5 @@
 package me.anno.openxr
 
-import me.anno.Time
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
@@ -11,8 +10,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
-import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
@@ -22,7 +19,6 @@ import org.lwjgl.opengl.GL30C.GL_TEXTURE_2D
 import org.lwjgl.opengl.GL30C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL30C.glGenFramebuffers
 import org.lwjgl.openxr.XrSpaceLocation
-import kotlin.math.PI
 
 class OpenXRRendering(
     val window0: OSWindow, var rv: RenderView,
@@ -31,9 +27,12 @@ class OpenXRRendering(
 
     companion object {
         private val lastPosition = Vector3d()
+        // todo we might need a whole quaternion for extra rotation:
+        //  - turning up/down for more comfortable view, e.g. in bed
+        //  - turning left/right(roll) for shaking
+        //  - turning left/right(yaw) for to make playing while sitting possible
         var additionalRotationY = 0.0
         val additionalOffset = Vector3d()
-        private var additionalRotationYTarget = 0.0
         private var lastAngleY = 0.0
         private val tmp = Vector3d()
     }
@@ -54,10 +53,9 @@ class OpenXRRendering(
         rv.enableOrbiting = false
 
         val rt = rv.controlScheme?.rotationTarget
-        if (rt != null) {
-            val manualRotationY = (rt.y - lastAngleY).toRadians()
-            additionalRotationYTarget += manualRotationY
-        }
+        val newRotationY = if (rt != null) {
+            (rt.y - lastAngleY).toRadians()
+        } else 0.0
 
         tmp.set(pos).sub(lastPosition).rotateY(additionalRotationY)
         rv.orbitCenter.add(tmp) // scene space
@@ -68,11 +66,7 @@ class OpenXRRendering(
             .set(position).rotateY(additionalRotationY).mul(-1.0)
             .add(rv.orbitCenter)
 
-        // prevent 360° jumps
-        var da = additionalRotationYTarget - additionalRotationY
-        if (da < -PI) da += TAU
-        if (da > PI) da -= TAU
-        additionalRotationY += da * dtTo01(Time.deltaTime * 5.0)
+        additionalRotationY += newRotationY
 
         rv.orbitRotation
             .identity().rotateY(additionalRotationY)

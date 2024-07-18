@@ -504,8 +504,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteBefore(force: Boolean) {
-        if (lastDelete != Time.lastTimeNanos || force) {
-            lastDelete = Time.lastTimeNanos
+        if (lastDelete != Time.frameTimeNanos || force) {
+            lastDelete = Time.frameTimeNanos
             notifyCursorTyped()
             if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
                 if (cursor1.x == 0) {
@@ -528,8 +528,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteAfter(force: Boolean) {
-        if (lastDelete != Time.lastTimeNanos || force) {
-            lastDelete = Time.lastTimeNanos
+        if (lastDelete != Time.frameTimeNanos || force) {
+            lastDelete = Time.frameTimeNanos
             if (cursor1 != cursor2) {
                 deleteSelection()
                 update(true)
