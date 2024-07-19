@@ -9,7 +9,7 @@ class ConfigGetIntNode(val config: StringMap = DefaultConfig) :
 
     override fun calculate() = config[
         getInput(0).toString(),
-        getInput(1) as Long
+        getLongInput(1)
     ]
 
     companion object {

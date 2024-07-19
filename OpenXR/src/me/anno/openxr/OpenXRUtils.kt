@@ -36,8 +36,6 @@ import org.lwjgl.openxr.XrInstance
 import org.lwjgl.openxr.XrInstanceProperties
 import org.lwjgl.openxr.XrSystemHandTrackingPropertiesEXT
 import org.lwjgl.openxr.XrSystemProperties
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 
@@ -150,17 +148,6 @@ object OpenXRUtils {
                     "${XR_VERSION_MAJOR(min)}.${XR_VERSION_MINOR(min)} to " +
                     "${XR_VERSION_MAJOR(max)}.${XR_VERSION_MINOR(max)}"
         )
-    }
-
-    val stringBuffers = HashMap<String, ByteBuffer>() // keep them in memory, so we don't get any ugly segfaults
-    fun String.ptr(): Long {
-        return MemoryUtil.memAddress(ptr1())
-    }
-
-    fun String.ptr1(): ByteBuffer {
-        return stringBuffers.getOrPut(this) {
-            MemoryUtil.memUTF8(this)
-        }
     }
 
     var xrInstance: XrInstance? = null

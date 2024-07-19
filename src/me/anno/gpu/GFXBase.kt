@@ -288,11 +288,17 @@ object GFXBase {
             // GFX.check()
         }
         tick.stop("Render frame zero")
-        if (isDebug) {
-            GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, message: Long, _: Long ->
-                val message2 = if (message != 0L) MemoryUtil.memUTF8(message) else null
-                if (message2 != null && "will use VIDEO memory as the source for buffer object operations" !in message2) {
-                    val msg = message2 +
+        if (isDebug && (LOGGER.isInfoEnabled() || LOGGER.isWarnEnabled())) {
+            GL46C.glDebugMessageCallback({ source: Int, type: Int, id: Int, severity: Int, _: Int, msgPtr: Long, _: Long ->
+                var msg = if (msgPtr != 0L) MemoryUtil.memUTF8(msgPtr) else null
+                if (msg != null && "will use VIDEO memory as the source for buffer object operations" !in msg &&
+                    // this could be fixed by creating a shader for each attribute-configuration
+                    // todo we want to be able to use our own buffer formats anyway, so somehow implement it that we load/create the shader based on the actually used layout
+                    // todo after that's done, disable this check (?)
+                    "Program/shader state performance warning: Vertex shader in program" !in msg &&
+                    id != GFXState.PUSH_DEBUG_GROUP_MAGIC // spam that we can ignore
+                ) {
+                    msg += "" +
                             ", source: " + getDebugSourceName(source) +
                             ", type: " + getDebugTypeName(type) + // mmh, not correct, at least for my simple sample I got a non-mapped code
                             ", id: " + getErrorTypeName(id) +
@@ -301,7 +307,7 @@ object GFXBase {
                     else LOGGER.warn(msg)
                 }
             }, 0)
-            GL46C.glEnable(KHRDebug.GL_DEBUG_OUTPUT)
+            glEnable(KHRDebug.GL_DEBUG_OUTPUT)
         }
         init2(tick)
     }

@@ -1,31 +1,23 @@
 package me.anno.graph.visual.control
 
-import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
 
-class WhileNode : FixedControlFlowNode("While Loop", inputs, outputs),
-    GLSLFlowNode {
+class WhileNode : FixedControlFlowNode("While Loop", inputs, outputs), GLSLFlowNode {
 
-    override fun execute(): NodeOutput {
-        val graph = graph as FlowGraph
-        val running = getOutputNodes(0).others.mapNotNull { it.node }
-        val condition0 = inputs[1]
-        while (true) {
-            val condition = condition0.getValue() != false
-            if (!condition) break
-            if (running.isNotEmpty()) {
-                graph.requestId()
-                // new id, because it's a new run, and we need to invalidate all previously calculated values
-                // theoretically it would be enough to just invalidate the ones in that subgraph
-                // we'd have to calculate that list
-                for (node in running) {
-                    graph.execute(node)
-                }
-            } else Thread.sleep(1) // wait until condition does false
+    override fun execute(): NodeOutput? {
+        requestNextExection(null)
+        return null
+    }
+
+    override fun continueExecution(state: Any?): NodeOutput {
+        if (getBoolInput(1)) {
+            requestNextExection(null)
+            return getNodeOutput(0)
+        } else {
+            return getNodeOutput(1)
         }
-        return getOutputNodes(1)
     }
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {

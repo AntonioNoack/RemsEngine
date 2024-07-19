@@ -1,7 +1,7 @@
 package me.anno.graph.visual.states
 
-import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.FlowGraphNode
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 
@@ -17,7 +17,7 @@ class StateMachine : FlowGraph() {
     var prevState: StateNode? = null
     var state: StateNode? = null
 
-    fun start(startNode: Node): StateNode? {
+    fun start(startNode: FlowGraphNode): StateNode? {
         val newState = try {
             execute(startNode)
             null

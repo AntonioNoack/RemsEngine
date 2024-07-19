@@ -1423,6 +1423,15 @@ open class Matrix4f {
         return arr
     }
 
+    fun set(arr: FloatArray, offset: Int = 0): Matrix4f {
+        return set(
+            arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3],
+            arr[offset + 4], arr[offset + 5], arr[offset + 6], arr[offset + 7],
+            arr[offset + 8], arr[offset + 9], arr[offset + 10], arr[offset + 11],
+            arr[offset + 12], arr[offset + 13], arr[offset + 14], arr[offset + 15],
+        )
+    }
+
     fun zero(): Matrix4f {
         m00 = 0f
         m01 = 0f

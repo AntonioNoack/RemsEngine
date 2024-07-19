@@ -4,15 +4,15 @@ import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.input.ButtonUpdateState
 import me.anno.input.Key
+import me.anno.input.VROffset.additionalOffset
+import me.anno.input.VROffset.additionalRotation
 import me.anno.maths.Maths.clamp
 import me.anno.openxr.OpenXRController.Companion.xrControllers
-import me.anno.openxr.OpenXRRendering.Companion.additionalOffset
-import me.anno.openxr.OpenXRRendering.Companion.additionalRotationY
 import me.anno.openxr.OpenXRUtils.checkXR
 import me.anno.openxr.OpenXRUtils.longPtr
 import me.anno.openxr.OpenXRUtils.ptr
-import me.anno.openxr.OpenXRUtils.ptr1
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.NativeStringPointers.buffer
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_BOOLEAN_INPUT
@@ -104,8 +104,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         val actionSetCreateInfo = XrActionSetCreateInfo.calloc()
             .type(XR_TYPE_ACTION_SET_CREATE_INFO).next(0)
             .priority(0)
-            .actionSetName("gameplay_actionset".ptr1())
-            .localizedActionSetName("Gameplay Actions".ptr1())
+            .actionSetName("gameplay_actions".buffer())
+            .localizedActionSetName("Gameplay Actions".buffer())
         checkXR(xrCreateActionSet(instance, actionSetCreateInfo, ptr))
         actionSetCreateInfo.free()
         return XrActionSet(ptr[0], instance)
@@ -118,8 +118,8 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         val actionInfo = tmpActionInfo
             .type(XR_TYPE_ACTION_CREATE_INFO).next(0)
             .actionType(actionType)
-            .actionName(id.ptr1())
-            .localizedActionName(name.ptr1())
+            .actionName(id.buffer())
+            .localizedActionName(name.buffer())
             .countSubactionPaths(paths.remaining())
             .subactionPaths(paths)
         checkXR(xrCreateAction(actionSet, actionInfo, ptr))
@@ -227,13 +227,13 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
     val activeActionSets: XrActiveActionSet.Buffer = XrActiveActionSet.calloc(1)
 
     val engineButtons = listOf(
-        Key.CONTROLLER_0_KEY_0, // x
-        Key.CONTROLLER_1_KEY_0, // a
-        Key.CONTROLLER_0_KEY_1, // y
-        Key.CONTROLLER_1_KEY_1, // b
+        Key.CONTROLLER_LEFT_KEY_X, // x
+        Key.CONTROLLER_RIGHT_KEY_X, // a
+        Key.CONTROLLER_LEFT_KEY_Y, // y
+        Key.CONTROLLER_RIGHT_KEY_Y, // b
         // todo these ones don't work :/
-        Key.CONTROLLER_0_KEY_2, // menu
-        Key.CONTROLLER_1_KEY_2, // system
+        Key.CONTROLLER_LEFT_KEY_MENU, // menu
+        Key.CONTROLLER_RIGHT_KEY_MENU, // system
     )
 
     val buttonsTimers = LongArray(6)
@@ -339,10 +339,10 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             val pos = pose.`position$`()
             val rot = pose.orientation()
             controller.position.set(pos.x(), pos.y(), pos.z()) // play space
-                .rotateY(additionalRotationY) // -> scene space
+                .rotate(additionalRotation) // -> scene space
                 .add(additionalOffset)
             controller.rotation
-                .identity().rotateY(additionalRotationY)
+                .set(additionalRotation)
                 .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
             val keyOffset = hand * 2
@@ -388,7 +388,10 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
         for (i in 0 until 4) {
             updateBooleanState(buttonActions[i.shr(1)], handPaths[i.and(1)])
             val currState = if (booleanState.isActive) booleanState.currentState() else null
-            ButtonUpdateState.callButtonUpdateEvents(window, time, currState == true, buttonsTimers, i, engineButtons[i])
+            ButtonUpdateState.callButtonUpdateEvents(
+                window, time, currState == true,
+                buttonsTimers, i, engineButtons[i]
+            )
         }
     }
 }

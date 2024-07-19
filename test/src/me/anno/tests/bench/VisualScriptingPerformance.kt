@@ -17,7 +17,7 @@ fun main() {
     }
     val (g, start) = createFactorialGraph(n)
     // ~300ns/iteration on Ryzen 5 2600,
-    // 170ns on Ryzen 9 7950x3d
+    // 150-160ns on Ryzen 9 7950x3d
     clock.benchmark(5, 100, n, "Visual Scripting") {
         g.execute(start)
     }
@@ -30,3 +30,5 @@ fun main() {
 // todo node to call a function (be it Kotlin, Lua or graph)
 // todo define sub-functions in the same graph? group them, and then call them?
 // todo can we compile/generate efficient Kotlin from a graph? 😁
+
+// todo logic for dragging-reordering in array-panels

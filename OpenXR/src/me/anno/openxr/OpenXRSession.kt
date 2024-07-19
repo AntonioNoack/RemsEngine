@@ -296,9 +296,9 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
             val info = infos[i]
                 .type(XR_TYPE_COMPOSITION_LAYER_DEPTH_INFO_KHR)
                 .next(0)
-                .minDepth(0f)
+                .minDepth(0f) // todo set to -1 if depth-clipping isn't supported???
                 .maxDepth(1f)
-                .nearZ(nearZ)
+                .nearZ(nearZ) // todo fetch these from a RenderView???
                 .farZ(farZ)
             defineSubImage(info.subImage(), swapchains[viewCount + i], viewConfigViews[i])
             projectionViews[i].next(info)

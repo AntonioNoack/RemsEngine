@@ -1,13 +1,16 @@
 package me.anno.openxr
 
+import me.anno.Engine
+import me.anno.engine.EngineBase
 import me.anno.openxr.OpenXRUtils.checkXR
 import me.anno.openxr.OpenXRUtils.intPtr
 import me.anno.openxr.OpenXRUtils.longPtr
 import me.anno.openxr.OpenXRUtils.printInstanceProperties
 import me.anno.openxr.OpenXRUtils.ptr
-import me.anno.openxr.OpenXRUtils.ptr1
 import me.anno.openxr.OpenXRUtils.setupDebugging
 import me.anno.openxr.OpenXRUtils.xrInstance
+import me.anno.utils.pooling.NativeStringPointers.buffer
+import me.anno.utils.pooling.NativeStringPointers.ptr
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.PointerBuffer
 import org.lwjgl.openxr.EXTDebugUtils.XR_EXT_DEBUG_UTILS_EXTENSION_NAME
@@ -74,12 +77,13 @@ class OpenXRSystem(val window: Long) {
     }
 
     private fun createInstance(): XrInstance {
+        val version = EngineBase.instance?.versionNumber ?: 1
         val appInfo = XrApplicationInfo.calloc()
             .apiVersion(XR_CURRENT_API_VERSION)
-            .applicationName("Rem's Studio".ptr1())
-            .applicationVersion(1) // idk...
-            .engineName("Rem's Engine".ptr1())
-            .engineVersion(1) // idk...
+            .applicationName(Engine.projectName.buffer())
+            .applicationVersion(version) // idk...
+            .engineName("Rem's Engine".buffer())
+            .engineVersion(version) // idk... we'd need separate versions
         val instanceCreateInfo = XrInstanceCreateInfo.calloc()
             .type(XR_TYPE_INSTANCE_CREATE_INFO)
             .enabledExtensionNames(collectExtensions())

@@ -3,6 +3,7 @@ package me.anno.io.base
 import me.anno.Build
 import me.anno.io.saveable.Saveable
 import me.anno.io.saveable.ReaderImpl
+import me.anno.io.saveable.UnknownSaveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -100,20 +101,14 @@ abstract class BaseReader : ReaderImpl {
 
         fun getNewClassInstance(className: String): Saveable {
             val type = Saveable.objectTypeRegistry[className]
-            if (type == null) {
-                if (Build.isDebug) debugInfo(className)
-                throw UnknownClassException(className)
-            }
-            val instance = type.generate()
+            val instance = if (type == null) {
+                LOGGER.warn("Missing class $className, using UnknownSaveable instead")
+                val instance = UnknownSaveable()
+                instance.className = className
+                instance
+            } else type.generate()
             instance.onReadingStarted()
             return instance
-        }
-
-        fun debugInfo(className: String) {
-            LOGGER.info(
-                "Looking for $className:${className.hashCode()}, " +
-                        "available: ${Saveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
-            )
         }
     }
 }

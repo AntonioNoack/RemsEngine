@@ -17,6 +17,9 @@ enum class IntMathBinary(
     DIV(13, "a/b"),
     MOD(14, "mod(a,b)"), // correct?
 
+    // todo saturated add,sub,mul
+    // todo saturated type conversion (e.g. l2i, i2s, i2b, ...)
+
     LSL(20, "a<<b"),
     LSR(21, "a>>>b"),
     SHR(22, "a>>b"),

@@ -39,16 +39,15 @@ abstract class OpenXR(val window: Long) {
                 nearZ, farZ, farZ <= nearZ
             )
             if (rv != null) {
-                rv.fovXCenter = tanLeft / (tanRight - tanLeft) + 1f
-                rv.fovYCenter = tanDown / (tanUp - tanDown) + 1f // todo does this have the correct "sign"???
+                rv.fovXCenter = (tanRight + tanLeft) / (tanRight - tanLeft) + 0.5f
+                rv.fovYCenter = (tanUp + tanDown) / (tanUp - tanDown) + 0.5f
                 rv.fovXRadians = 2f * atan((tanRight - tanLeft) * 0.5f)
                 rv.fovYRadians = 2f * atan((tanUp - tanDown) * 0.5f)
-               // println("[FOV] $tanLeft,$tanRight,$tanUp,$tanDown -> ${rv.fovXCenter},${rv.fovYCenter},${rv.fovXRadians},${rv.fovYRadians}")
             }
         }
 
-        val nearZ = 0.01f
-        val farZ = 100f
+        val nearZ = 0.001f
+        val farZ = 1000f
     }
 
     abstract fun copyToDesktopWindow(w: Int, h: Int)

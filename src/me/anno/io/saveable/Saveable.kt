@@ -11,7 +11,6 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
-import java.lang.Error
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 

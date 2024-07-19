@@ -10,6 +10,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import me.anno.input.VROffset.additionalOffset
+import me.anno.input.VROffset.additionalRotation
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
@@ -27,12 +29,6 @@ class OpenXRRendering(
 
     companion object {
         private val lastPosition = Vector3d()
-        // todo we might need a whole quaternion for extra rotation:
-        //  - turning up/down for more comfortable view, e.g. in bed
-        //  - turning left/right(roll) for shaking
-        //  - turning left/right(yaw) for to make playing while sitting possible
-        var additionalRotationY = 0.0
-        val additionalOffset = Vector3d()
         private var lastAngleY = 0.0
         private val tmp = Vector3d()
     }
@@ -54,22 +50,22 @@ class OpenXRRendering(
 
         val rt = rv.controlScheme?.rotationTarget
         val newRotationY = if (rt != null) {
-            (rt.y - lastAngleY).toRadians()
-        } else 0.0
+            (rt.y - lastAngleY).toFloat().toRadians()
+        } else 0f
 
-        tmp.set(pos).sub(lastPosition).rotateY(additionalRotationY)
+        tmp.set(pos).sub(lastPosition).rotate(additionalRotation)
         rv.orbitCenter.add(tmp) // scene space
         rv.radius = 3.0 // define the general speed
         lastPosition.set(pos)
 
         additionalOffset
-            .set(position).rotateY(additionalRotationY).mul(-1.0)
+            .set(position).rotate(additionalRotation).negate()
             .add(rv.orbitCenter)
 
-        additionalRotationY += newRotationY
+        additionalRotation.rotateY(newRotationY)
 
         rv.orbitRotation
-            .identity().rotateY(additionalRotationY)
+            .set(additionalRotation)
             .mul(rot.x.toDouble(), rot.y.toDouble(), rot.z.toDouble(), rot.w.toDouble())
 
         if (rt != null) {
@@ -139,7 +135,6 @@ class OpenXRRendering(
         rv.height = oh
     }
 
-    private var printedFOV = 0
     override fun renderFrame(
         viewIndex: Int, w: Int, h: Int,
         predictedDisplayTime: Long,
@@ -154,38 +149,21 @@ class OpenXRRendering(
         val rot = pose.orientation()
 
         rv.cameraRotation
-            .identity().rotateY(additionalRotationY)
+            .set(additionalRotation)
             .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
-        if (printedFOV < 2) {
-            val f = view.fov()
-            // to do what's the correct eye position? xD
-            // todo SSAO looks weird with Meta Quest Link:
-            //  as if eyes, which are tilted to the sides, aren't tilted for that
-            // todo SSR has the same issue (gold-material-override is unbearable)
-            // todo lights and shadows are currently weirdly offset, too
-            println("FOV[$printedFOV], LRTB: ${f.angleLeft()}, ${f.angleRight()}, ${f.angleUp()}, ${f.angleDown()}")
-            // left eye: -0.94247776, 0.6981317, 0.7679449, -0.9599311
-            // right eye: -0.6981317, 0.94247776, 0.7679449, -0.9599311
-            printedFOV++
-        }
-
-        createProjectionFov(rv.cameraMatrix, view.fov(), nearZ, 0f, rv)
+        createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear.toFloat(), 0f, rv)
 
         // offset camera matrix by (pos - centerPos) * worldScale
-        val scale = -rv.worldScale.toFloat() // negative for inverse
-        rv.cameraMatrix.translate(
-            (pos.x() - position.x) * scale,
-            (pos.y() - position.y) * scale,
-            (pos.z() - position.z) * scale
-        )
+        val scale = rv.worldScale.toFloat()
+        val dx = pos.x() - position.x
+        val dy = pos.y() - position.y
+        val dz = pos.z() - position.z
+        rv.cameraMatrix.translate(-dx * scale, -dy * scale, -dz * scale)
         rv.cameraMatrix.rotateInv(rv.cameraRotation)
 
-        if (false) rv.cameraPosition.set(rv.orbitCenter).sub(
-            (pos.x() - position.x) * scale,
-            (pos.y() - position.y) * scale,
-            (pos.z() - position.z) * scale
-        )
+        // no scale needed, because we're using 1:1 scale between character and world
+        rv.cameraPosition.set(rv.orbitCenter).sub(dx, dy, dz)
 
         // reduce used VRAM, if both eyes have the same resolution
         FBStack.reset()

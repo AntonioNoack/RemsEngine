@@ -9,7 +9,7 @@ class ConfigGetFloatNode(val config: StringMap = DefaultConfig) :
 
     override fun calculate() = config[
         getInput(0) as String,
-        getInput(1) as Double
+        getDoubleInput(1)
     ]
 
     companion object {

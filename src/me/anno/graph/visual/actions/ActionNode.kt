@@ -17,7 +17,7 @@ abstract class ActionNode : FixedControlFlowNode {
      * */
     override fun execute(): NodeOutput {
         executeAction()
-        return getOutputNodes(0)
+        return getNodeOutput(0)
     }
 
     companion object {

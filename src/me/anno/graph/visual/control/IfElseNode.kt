@@ -12,7 +12,7 @@ class IfElseNode : FixedControlFlowNode("If-Else Branch", inputs, outputs), GLSL
 
     override fun execute(): NodeOutput {
         val condition = inputs[1].getValue() == true
-        return getOutputNodes(if (condition) 0 else 1)
+        return getNodeOutput(if (condition) 0 else 1)
     }
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {

@@ -19,7 +19,6 @@ object Perspective {
         cx: Float, cy: Float,
         reverseDepth: Boolean = defaultReverseDepth()
     ) {
-        viewTransform.identity()
         if (reverseDepth) {
             val y = 1f / tan(fovYRadians * 0.5f)
             val x = y / aspectRatio
@@ -41,7 +40,7 @@ object Perspective {
             //  0   y   0   0
             //  0   0   c   d
             //  cx  cy -1   0
-            viewTransform.perspective(
+            viewTransform.setPerspective(
                 fovYRadians,
                 aspectRatio,
                 near, far
@@ -57,7 +56,6 @@ object Perspective {
         cx: Float, cy: Float,
         reverseDepth: Boolean = defaultReverseDepth()
     ) {
-        viewTransform.identity()
         if (reverseDepth) {
             val y = 1f / aspectRatio
             //  x  0  0  0
@@ -84,14 +82,12 @@ object Perspective {
         tanAngleUp: Float, tanAngleDown: Float,
         near: Float, far: Float, reverseDepth: Boolean = defaultReverseDepth()
     ) {
-        viewTransform.identity()
         val tanAngleWidth = tanAngleRight - tanAngleLeft
         val tanAngleHeight = tanAngleUp - tanAngleDown
         val x = 2f / tanAngleWidth
         val y = 2f / tanAngleHeight
         val m20 = (tanAngleRight + tanAngleLeft) / tanAngleWidth
         val m21 = (tanAngleUp + tanAngleDown) / tanAngleHeight
-        viewTransform.identity()
         if (reverseDepth) {
             //  x  0  0  0
             //  0  y  0  0

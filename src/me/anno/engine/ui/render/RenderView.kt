@@ -82,6 +82,7 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector4d
 import org.joml.Vector4f
+import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
@@ -475,16 +476,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // so lights don't override our settings, or we'd have to repeat our definition
         validateTransform(world)
 
-        val near = camera.near
-        val far = camera.far
+        near = camera.near
+        far = camera.far
         val isPerspective = camera.isPerspective
         val fov = findFOV(camera)
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        this.scaledNear = (near * worldScale)
-        this.scaledFar = (far * worldScale)
-        this.isPerspective = isPerspective
         if (isPerspective) {
             val centerX = camera.center.x
             val centerY = camera.center.y
@@ -841,12 +839,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     var fovYCenter = 0.5f
 
     var near = 1e-3
-    var scaledNear = 1e-3
+    val scaledNear: Double get() = near * worldScale
 
     // infinity
     var far = 1e10
-    var scaledFar = 1e10
-    var isPerspective = true
+    val scaledFar: Double get() = far * worldScale
+    val isPerspective: Boolean
+        get() = abs(cameraMatrix.m33 - 1f) > 1e-5f
 
     val cameraMatrix = Matrix4f()
     val cameraPosition = Vector3d()

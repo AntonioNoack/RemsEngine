@@ -1,9 +1,9 @@
 package me.anno.graph.visual.control
 
-import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.node.NodeOutput
 import me.anno.graph.visual.render.compiler.GLSLFlowNode
 import me.anno.graph.visual.render.compiler.GraphCompiler
+import kotlin.math.sign
 
 class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode {
 
@@ -14,39 +14,31 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode 
         setInput(4, false)
     }
 
-    override fun execute(): NodeOutput {
-        val graph = graph as FlowGraph
-        val startIndex = inputs[1].getValue() as Long
-        val endIndex = inputs[2].getValue() as Long
-        val increment = inputs[3].getValue() as Long
-        val reversed = inputs[4].getValue() as Boolean
-        if (startIndex != endIndex) {
-            val running = getOutputNodes(0).others.mapNotNull { it.node }
-            if (running.isNotEmpty()) {
-                if (reversed) {
-                    for (index in (startIndex - 1) downTo endIndex step increment) {
-                        if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
-                        setOutput(1, index)
-                        graph.requestId()
-                        // new id, because it's a new run, and we need to invalidate all previously calculated values
-                        // theoretically it would be enough to just invalidate the ones in that subgraph
-                        // we'd have to calculate that list
-                        graph.executeNodes(running)
-                    }
-                } else {
-                    for (index in startIndex until endIndex step increment) {
-                        if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
-                        setOutput(1, index)
-                        graph.requestId()
-                        // new id, because it's a new run, and we need to invalidate all previously calculated values
-                        // theoretically it would be enough to just invalidate the ones in that subgraph
-                        // we'd have to calculate that list
-                        graph.executeNodes(running)
-                    }
-                }
-            }// else done
+    override fun execute(): NodeOutput? {
+        val startIndex = getLongInput(1)
+        var endIndex = getLongInput(2)
+        val increment = getLongInput(3)
+        val endInclusive = getBoolInput(4)
+        if (endInclusive) endIndex += increment.sign // not safe regarding overflow, but that would be u64, so it should be rare
+        if (increment != 0L) {
+            requestNextExection(ForLoopState(startIndex, endIndex, increment))
         }
-        return getOutputNodes(2)
+        return null
+    }
+
+    override fun continueExecution(state: Any?): NodeOutput {
+        state as ForLoopState
+        val index = state.currentIndex
+        val comparison = index.compareTo(state.endIndex)
+        val continueExecution = state.increment.sign * comparison.sign < 0
+        if (continueExecution) {
+            setOutput(1, index)
+            state.currentIndex = index + state.increment
+            requestNextExection(state)
+            return getNodeOutput(0)
+        } else {
+            return getNodeOutput(2)
+        }
     }
 
     override fun buildCode(g: GraphCompiler, depth: Int): Boolean {
@@ -85,7 +77,7 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs), GLSLFlowNode 
             "Long", "Start Index",
             "Long", "End Index",
             "Long", "Step",
-            "Boolean", "Descending"
+            "Boolean", "End Inclusive"
         )
         val outputs = listOf(
             "Flow", "Loop Body",

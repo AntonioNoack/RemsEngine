@@ -1,5 +1,6 @@
 package me.anno.engine.ui.control
 
+import me.anno.Time
 import me.anno.Time.uiDeltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
@@ -8,6 +9,7 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.EngineBase
+import me.anno.engine.Events.addEvent
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -26,10 +28,13 @@ import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Key
 import me.anno.input.Touch
+import me.anno.input.VROffset
 import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo10
 import me.anno.maths.Maths.sq
+import me.anno.maths.noise.PerlinNoise
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.Color.black
@@ -102,6 +107,26 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             Key.CONTROLLER_RIGHT_THUMBSTICK_RIGHT -> {
                 rotateCamera(0f, -settings.vrRotateLeftRight, 0f)
                 jumpRotate()
+            }
+            Key.CONTROLLER_RIGHT_KEY_X -> {
+                // try shaking the camera
+                val ry = VROffset.additionalRotation.getEulerAnglesYXZ(Vector3f()).y
+                val noise = PerlinNoise(Time.nanoTime, 5, 0.5f, -0.05f, +0.05f)
+                var amplitude = 1f
+                var time = 0f
+                fun nextFrame() {
+                    val dt = uiDeltaTime.toFloat()
+                    time += dt * 30f
+                    amplitude *= dtTo10(dt * 5f)
+                    VROffset.additionalRotation
+                        .identity().rotateY(ry + noise[time, 2f] * amplitude)
+                        .rotateX(noise[time, 0f] * amplitude)
+                        .rotateZ(noise[time, 1f] * amplitude)
+                    if (amplitude > 1e-9f) {
+                        addEvent(1, ::nextFrame)
+                    }
+                }
+                nextFrame()
             }
             else -> super.onKeyTyped(x, y, key)
         }

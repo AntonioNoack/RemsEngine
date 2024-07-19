@@ -18,10 +18,17 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
     }
 
     @Suppress("unchecked_cast")
-    fun getFirst(index: Int) = array[index * 2] as First
+    fun getFirst(index: Int): First = array[index * 2] as First
 
     @Suppress("unchecked_cast")
-    fun getSecond(index: Int) = array[index * 2 + 1] as Second
+    fun getSecond(index: Int): Second = array[index * 2 + 1] as Second
+
+    fun lastFirst() = getFirst(size - 1)
+    fun lastSecond() = getSecond(size - 1)
+
+    fun removeLast(keepOrder: Boolean) {
+        removeAt(size - 1, keepOrder)
+    }
 
     inline fun <V> mapFirstNotNull(run: (a: First, b: Second) -> V?): V? {
         for (i in 0 until size) {
@@ -75,37 +82,32 @@ class PairArrayList<First, Second>(capacity: Int = 16) : Iterable<MutablePair<Fi
         return if (i >= 0) getFirst(i) else null
     }
 
-    fun removeAt(elementIndex: Int): Boolean {
-        if (elementIndex < 0) {
+    fun removeAt(index: Int, keepOrder: Boolean): Boolean {
+        if (index !in 0 until size) {
             return false
         }
         val array = array
-        val size = elementSize
-        if (size > elementIndex + 1) {
-            // we can use the last one
-            array[elementIndex + 1] = array[size - 1]
-            array[elementIndex] = array[size - 2]
-            elementSize -= 2
-        } else {
-            // we can just remove the two last
-            elementSize -= 2
-            // for the garbage collector
-            array[elementIndex + 1] = null
-            array[elementIndex] = null
-        }
+        val elementIndex = index.shl(1)
+        if (keepOrder) { // O(n)
+            array.copyInto(array, elementIndex, elementIndex + 2, elementSize)
+        } else if (index + 1 < size) { // O(1)
+            array[elementIndex] = array[elementSize - 2]
+            array[elementIndex + 1] = array[elementSize - 1]
+        } // else done
+        elementSize -= 2
         return true
     }
 
-    fun removeByFirst(first: First): Boolean {
-        return removeAt(indexOfFirst(first))
+    fun removeByFirst(first: First, keepOrder: Boolean): Boolean {
+        return removeAt(indexOfFirst(first), keepOrder)
     }
 
-    fun removeBySecond(second: Second): Boolean {
-        return removeAt(indexOfSecond(second))
+    fun removeBySecond(second: Second, keepOrder: Boolean): Boolean {
+        return removeAt(indexOfSecond(second), keepOrder)
     }
 
-    fun remove(first: First, second: Second): Boolean {
-        return removeAt(indexOf(first, second))
+    fun remove(first: First, second: Second, keepOrder: Boolean): Boolean {
+        return removeAt(indexOf(first, second), keepOrder)
     }
 
     /**

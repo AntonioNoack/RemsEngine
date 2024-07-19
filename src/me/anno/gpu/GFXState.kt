@@ -384,7 +384,7 @@ object GFXState {
     fun pushDrawCallName(name: String) {
         if (Build.isDebug) {
             GFX.checkIsGFXThread()
-            GL46C.glPushDebugGroup(GL46C.GL_DEBUG_SOURCE_APPLICATION, 0, name)
+            GL46C.glPushDebugGroup(GL46C.GL_DEBUG_SOURCE_APPLICATION, PUSH_DEBUG_GROUP_MAGIC, name)
         }
     }
 
@@ -394,4 +394,6 @@ object GFXState {
             GL46C.glPopDebugGroup()
         }
     }
+
+    const val PUSH_DEBUG_GROUP_MAGIC = -93 // just some random number, that's unlikely to appear otherwise
 }

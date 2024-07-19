@@ -1,8 +1,8 @@
 package me.anno.graph.visual.states
 
-import me.anno.graph.visual.node.NodeConnector
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.node.NodeConnector
 
 open class StateNode(
     name: String = "State",
@@ -11,23 +11,23 @@ open class StateNode(
 ) : ActionNode(name, inputs, outputs) {
 
     open fun update(): StateNode {
-        return try {
-            val outputs = outputs
-            val graph = graph as? FlowGraph
-            if (graph != null) {
-                for (output in outputs) {
-                    for (input in output.others) {
-                        val node = input.node
-                        if (node != null) {
-                            graph.execute(node)
-                        }
-                    }
+
+        val outputs = outputs
+        val graph = graph as? FlowGraph
+        if (graph != null) {
+            val depth = graph.nodeStack.size
+            try {
+                for (i in outputs.indices) {
+                    graph.executeNodes(outputs[i].others)
                 }
+            } catch (e: NewState) {
+                while (graph.nodeStack.size > depth) { // could be more elegant...
+                    graph.nodeStack.removeLast(true)
+                }
+                return e.state
             }
-            this
-        } catch (e: NewState) {
-            e.state
         }
+        return this
     }
 
     open fun onEnterState(oldState: StateNode?) {}
