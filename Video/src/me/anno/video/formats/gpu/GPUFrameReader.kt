@@ -15,10 +15,10 @@ class GPUFrameReader(
     finishedCallback: (List<GPUFrame>) -> Unit
 ) : FrameReader<GPUFrame>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
-    override fun readFrame(w: Int, h: Int, input: InputStream): GPUFrame? {
+    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): GPUFrame? {
         var frame: GPUFrame? = null
         try {
-            frame = createGPUFrame(w, h, codec, file)
+            frame = createGPUFrame(w, h, frameIndex, codec, file)
             frame.load(input)
             return frame
         } catch (e: EOFException) {
@@ -48,8 +48,8 @@ class GPUFrameReader(
     }
 
     companion object {
-        fun createGPUFrame(w: Int, h: Int, codec: String, file: FileReference?): GPUFrame {
-            return when (codec) {
+        fun createGPUFrame(w: Int, h: Int, frameIndex: Int, codec: String, file: FileReference?): GPUFrame {
+            val frame = when (codec) {
                 // yuv
                 "I420" -> I420Frame(w, h)
                 "444P" -> I444Frame(w, h)
@@ -64,6 +64,8 @@ class GPUFrameReader(
                 // to do PAL: to do decode somehow (if still needed; ico is no longer being loaded with ffmpeg); sample: pictures/fav128.ico
                 else -> throw RuntimeException("Unsupported Codec $codec for $file")
             }
+            frame.frameIndex = frameIndex
+            return frame
         }
     }
 }

@@ -60,7 +60,7 @@ object VideoStreamWorker {
                     val w = width
                     val h = height
                     val frame = oldFrames.removeLastOrNull() ?: run {
-                        GPUFrameReader.createGPUFrame(w, h, codec, file)
+                        GPUFrameReader.createGPUFrame(w, h, currentIndex, codec, file)
                     }
                     frameSize = frame.getByteSize()
                     try {
@@ -69,6 +69,7 @@ object VideoStreamWorker {
                         oldFrames.add(frame)
                         throw e
                     }
+                    frame.frameIndex = currentIndex
                     val sortedFrames = self.sortedFrames
                     synchronized(sortedFrames) {
                         if (id == self.workerId.get()) {

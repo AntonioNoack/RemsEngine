@@ -9,6 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.video.formats.gpu.GPUFrame
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 
 // todo configurable number of kept frames for Rem's Studio, so we can do blank-frame filtering and frame-interpolation
@@ -16,9 +17,11 @@ open class VideoStream(
     val file: FileReference, val meta: MediaMetadata,
     var playAudio: Boolean, var looping: LoopingState,
     val fps: Double, var maxSize: Int,
+    val capacity: Int = 16,
 ) : ICacheData {
 
     companion object {
+        private val LOGGER = LogManager.getLogger(VideoStream::class)
         var runVideoStreamWorker: ((self: VideoStream, id: Int, frameIndex0: Int, maxNumFrames: Int, fps: Double, maxSize: Int) -> Unit)? =
             null
     }
@@ -31,7 +34,6 @@ open class VideoStream(
     private var startTime = 0L
     private var standTime = 0L
 
-    val capacity = 16
     val sortedFrames = ArrayList<Pair<Int, GPUFrame>>()
     var lastRequestedFrame = 0
     val workerId = AtomicInteger(0)
@@ -50,9 +52,10 @@ open class VideoStream(
 
     fun start(time: Double = getTime()) {
         if (isPlaying) return
+        val frameIndex0 = (time * fps).toInt()
+        LOGGER.info("Starting $this at #$frameIndex0/${meta.videoFrameCount}")
         isPlaying = true
         startTime = (Time.nanoTime - time * 1e9).toLong()
-        val frameIndex0 = getFrameIndex()
         lastRequestedFrame = frameIndex0
         startWorker(frameIndex0, meta.videoFrameCount - frameIndex0)
         if (playAudio) {
@@ -66,6 +69,7 @@ open class VideoStream(
     }
 
     fun stop() {
+        LOGGER.info("Stopping $this at #$lastRequestedFrame")
         workerId.incrementAndGet() // just in case execute this always
         if (!isPlaying) return
         standTime = (getTime() * 1e9).toLong()
@@ -127,19 +131,21 @@ open class VideoStream(
         return getFrame(getFrameIndex())
     }
 
-    fun getFrame(frameIndex: Int): GPUFrame? {
+    fun getFrame(frameIndex: Int, numExtraImages: Int = 0): GPUFrame? {
         if (isPlaying) {
             if (frameIndex == meta.videoFrameCount - 1 && looping == LoopingState.PLAY_ONCE) {
                 stop()
             }
             if (frameIndex < lastRequestedFrame && looping != LoopingState.PLAY_ONCE) {
+                // restart is needed
+                // todo don't discard audio?
                 stop()
-                start() // todo don't discard audio?
-                lastRequestedFrame = 0
+                val startIndex = max(frameIndex - numExtraImages, 0)
+                start(startIndex / fps)
                 return getFrame(frameIndex)
             }
         }
-        lastRequestedFrame = frameIndex
+        lastRequestedFrame = max(frameIndex - numExtraImages, 0)
         return synchronized(sortedFrames) {
             val goodFrames = sortedFrames
                 .filter { it.first <= frameIndex && it.second.isCreated }
@@ -156,5 +162,9 @@ open class VideoStream(
             }
             sortedFrames.clear()
         }
+    }
+
+    override fun toString(): String {
+        return "VideoStream { $file, $fps fps, $looping, $maxSize size, audio? $audio }"
     }
 }

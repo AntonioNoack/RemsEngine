@@ -20,7 +20,7 @@ class CPUFrameReader(
     finishedCallback: (List<Image>) -> Unit
 ) : FrameReader<Image>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
-    override fun readFrame(w: Int, h: Int, input: InputStream): Image? {
+    override fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): Image? {
         try {
             val frame = when (codec) {
                 // yuv

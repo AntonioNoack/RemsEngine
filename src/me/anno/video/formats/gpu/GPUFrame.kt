@@ -34,6 +34,8 @@ abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) :
         if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
     }
 
+    var frameIndex = -1
+
     val isCreated: Boolean get() = getTextures().all { it.wasCreated && !it.isDestroyed }
     val isDestroyed: Boolean get() = getTextures().any { it.isDestroyed }
 

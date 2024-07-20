@@ -2,7 +2,6 @@ package me.anno.video.ffmpeg
 
 import me.anno.cache.IgnoredException
 import me.anno.io.files.FileReference
-import me.anno.utils.ShutdownException
 import me.anno.utils.types.Strings.shorten
 import me.anno.video.ffmpeg.FFMPEGMetaParser.Companion.invalidCodec
 import org.apache.logging.log4j.LogManager
@@ -27,10 +26,11 @@ abstract class FrameReader<FrameType>(
             waitForMetadata(parser)
             if (codec.isNotEmpty() && codec != invalidCodec) {
                 val input = process.inputStream
+                var frameIndex = frame0
                 input.use { input1: InputStream ->
-                    readFrame(input1)
+                    readFrame(frameIndex++, input1)
                     if (!isFinished) for (i in 1 until frameCount) {
-                        readFrame(input1)
+                        readFrame(frameIndex++, input1)
                         if (isFinished) break
                     }
                 }
@@ -51,14 +51,14 @@ abstract class FrameReader<FrameType>(
     // - if we're just streaming, use a class like VideoPanel
     // - if we're out of memory anyway, we'll just be unlucky... memory is cheap today
 
-    private fun readFrame(input: InputStream) {
+    private fun readFrame(frameIndex: Int, input: InputStream) {
         synchronized(foundCodecs) {
             if (foundCodecs.add(codec)) {
                 LOGGER.info("Found codec '$codec' in $file")
             }
         }
         if (!isDestroyed && !isFinished) {
-            val frame = readFrame(width, height, input)
+            val frame = readFrame(width, height, frameIndex, input)
             if (frame != null) {
                 synchronized(frames) {
                     frames.add(frame)
@@ -69,7 +69,7 @@ abstract class FrameReader<FrameType>(
         if (isDestroyed) destroy()
     }
 
-    abstract fun readFrame(w: Int, h: Int, input: InputStream): FrameType?
+    abstract fun readFrame(w: Int, h: Int, frameIndex: Int, input: InputStream): FrameType?
 
     private fun onError() {
         frameCountByFile[file!!] = frames.size + frame0

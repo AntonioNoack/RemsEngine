@@ -36,7 +36,10 @@ object LWJGLDebugCallback : PrintStream(object : OutputStream() {
                             "severity" -> severity = value
                             "message" -> {
                                 // ignored message, because it spams my logs
-                                if ("will use VIDEO memory as the source for buffer object operations" !in value) {
+                                if ("will use VIDEO memory as the source for buffer object operations" !in value &&
+                                    // idk about this one...
+                                    "Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering." !in value
+                                ) {
                                     var printedMessage = "$value ID: $id Source: $source"
                                     if ("NOTIFICATION" != severity) printedMessage += " Severity: $severity"
                                     when (if (type == null) "" else type!!.lowercase()) {
