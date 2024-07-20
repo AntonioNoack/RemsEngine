@@ -5,13 +5,13 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -50,8 +50,8 @@ abstract class WorkSplitter(val numThreads: Int) {
         if (bestX >= threads) return IntPair(threads, 1)
         var bestY = threads / bestX
         var bestScore = bestX * bestY
-        val minX = ceil(goldenX / maxRatio).toInt()
-        val maxX = (goldenX * maxRatio).toInt()
+        val minX = ceil(goldenX / maxRatio).toIntOr(1)
+        val maxX = (goldenX * maxRatio).toIntOr(threads)
         for (x in minX until maxX) {
             val y = threads / x
             val score = x * y

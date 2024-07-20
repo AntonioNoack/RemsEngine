@@ -4,6 +4,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -11,7 +12,6 @@ import org.joml.Vector4d
 import org.joml.Vector4f
 import java.nio.IntBuffer
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 object Color {
@@ -231,19 +231,19 @@ object Color {
     @JvmStatic
     fun Vector3f.toRGB(scale: Float = 255f): Int {
         return rgb(
-            (x * scale).toInt(),
-            (y * scale).toInt(),
-            (z * scale).toInt()
+            (x * scale).toIntOr(),
+            (y * scale).toIntOr(),
+            (z * scale).toIntOr()
         )
     }
 
     @JvmStatic
     fun Vector4f.toARGB(scale: Float = 255f): Int {
         return argb(
-            (x * scale).toInt(),
-            (y * scale).toInt(),
-            (z * scale).toInt(),
-            (w * scale).toInt()
+            (x * scale).toIntOr(),
+            (y * scale).toIntOr(),
+            (z * scale).toIntOr(),
+            (w * scale).toIntOr()
         )
     }
 
