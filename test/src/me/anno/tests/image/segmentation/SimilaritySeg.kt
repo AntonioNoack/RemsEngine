@@ -17,6 +17,7 @@ import me.anno.utils.structures.arrays.DoubleArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.formatPercent
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.formats.cpu.YUVFrames
 import kotlin.math.abs
 import kotlin.math.log2
@@ -185,8 +186,8 @@ class Cluster(val id: Int) {
 
     fun moveMaybe(clusterIds: IntArray, w: Int, h: Int, ci: Int) {
         if (count > 0) {
-            val ncx = cx + (sdx.toFloat() / count).roundToInt()
-            val ncy = cy + (sdy.toFloat() / count).roundToInt()
+            val ncx = cx + (sdx.toFloat() / count).roundToIntOr()
+            val ncy = cy + (sdy.toFloat() / count).roundToIntOr()
             if (ncx in 0 until w && ncy in 0 until h &&
                 clusterIds[ncx + ncy * w] == ci
             ) {

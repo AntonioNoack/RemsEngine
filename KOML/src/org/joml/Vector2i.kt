@@ -73,7 +73,7 @@ open class Vector2i(
     fun distance(x: Int, y: Int): Double {
         val dx = this.x - x
         val dy = this.y - y
-        return sqrt((dx.toLong() * dx + dy.toLong() * dy).toFloat()).toDouble()
+        return sqrt((dx.toLong() * dx + dy.toLong() * dy).toDouble())
     }
 
     fun distanceSquared(v: Vector2i) = distanceSquared(v.x, v.y)

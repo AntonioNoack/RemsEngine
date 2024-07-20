@@ -15,6 +15,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color.white
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
 
@@ -52,7 +53,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val icon = TextureCache[crossPath, 360_000L, false] ?: whiteTexture
-        val crossSize = getCrossSize(style).roundToInt()
+        val crossSize = getCrossSize(style).roundToIntOr()
         drawTexture(x + width - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }
 

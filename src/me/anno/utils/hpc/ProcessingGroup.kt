@@ -1,5 +1,6 @@
 package me.anno.utils.hpc
 
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -7,7 +8,7 @@ class ProcessingGroup(name: String, numThreads: Int) : ProcessingQueue(name, num
 
     constructor(name: String, threadFraction: Float) : this(
         name,
-        max(1, (HeavyProcessing.numThreads * threadFraction).roundToInt())
+        max(1, (HeavyProcessing.numThreads * threadFraction).roundToIntOr())
     )
 
     private var hasBeenStarted = false

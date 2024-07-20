@@ -24,6 +24,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
@@ -105,7 +106,7 @@ class AWTFont(
             return GFXx2D.getSize(width, height)
         } else {
             val baseWidth = getStringWidth(createGroup(font, text))
-            val width = clamp(baseWidth.roundToInt() + 1, 0, GFX.maxTextureSize)
+            val width = clamp(baseWidth.roundToIntOr() + 1, 0, GFX.maxTextureSize)
             val height = min(fontMetrics.height, GFX.maxTextureSize)
             GFXx2D.getSize(width, height)
         }
@@ -134,7 +135,7 @@ class AWTFont(
         }
 
         val group = createGroup(font, text)
-        val width = min(widthLimit, getStringWidth(group).roundToInt() + 1 + 2 * extraPadding)
+        val width = min(widthLimit, getStringWidth(group).roundToIntOr() + 1 + 2 * extraPadding)
 
         val lineCount = 1
         val fontHeight = fontMetrics.height
@@ -193,7 +194,7 @@ class AWTFont(
 
         val alignment = CharacterOffsetCache.getOffsetCache(font)
         val size = alignment.getOffset('w'.code, 'w'.code)
-        val width = min(widthLimit, size.roundToInt() + 1 + 2 * extraPadding)
+        val width = min(widthLimit, size.roundToIntOr() + 1 + 2 * extraPadding)
         val height = min(heightLimit, fontMetrics.height + 2 * extraPadding)
 
         val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
@@ -266,7 +267,7 @@ class AWTFont(
         fonts += fallback
 
         val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
-        else (textBreakHeight / (fontSize + spaceBetweenLines(fontSize))).roundToInt()
+        else (textBreakHeight / (fontSize + spaceBetweenLines(fontSize))).roundToIntOr()
 
         var lines = text.split('\n')
         if (lines.size > lineCountLimit) lines = lines.subList(0, lineCountLimit)
@@ -445,7 +446,7 @@ class AWTFont(
         }
         nextLine()
 
-        val lineCount = max((currentY / actualFontSize).roundToInt(), 1)
+        val lineCount = max((currentY / actualFontSize).roundToIntOr(), 1)
         return PartResult(result, widthF, currentY, lineCount)
     }
 

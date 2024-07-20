@@ -38,6 +38,7 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Logging
 import me.anno.utils.OS
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
@@ -312,8 +313,8 @@ abstract class EngineBase(
             // todo if base below is sensitive, draw this transparent
             //  (text is blocking view when dragging a scene item into DraggingControls/RenderView)
             val (rw, rh) = dragged.getSize(w / 5, h / 5)
-            var x = lastMouseX.roundToInt() - rw / 2
-            var y = lastMouseY.roundToInt() - rh / 2
+            var x = lastMouseX.roundToIntOr() - rw / 2
+            var y = lastMouseY.roundToIntOr() - rh / 2
             x = Maths.clamp(x, 0, w - rw)
             y = Maths.clamp(y, 0, h - rh)
             GFX.clip(x, y, min(rw, w), min(rh, h)) {

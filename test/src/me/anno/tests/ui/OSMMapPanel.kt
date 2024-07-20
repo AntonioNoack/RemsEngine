@@ -26,6 +26,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Floats.toLongOr
 import org.joml.AABBd
 import org.joml.Vector2d
 import java.io.ByteArrayInputStream
@@ -138,10 +139,10 @@ object OSMMapCache : CacheSection("OSMMapData") {
         val levelI = level.toInt()
         // calculate min/max coords
         val di = 2.0.pow(level)
-        val x0 = floor(bounds.minX / di).toLong()
-        val y0 = floor(bounds.minY / di).toLong()
-        val x1 = ceil(bounds.maxX / di).toLong()
-        val y1 = ceil(bounds.maxY / di).toLong()
+        val x0 = floor(bounds.minX / di).toLongOr()
+        val y0 = floor(bounds.minY / di).toLongOr()
+        val x1 = ceil(bounds.maxX / di).toLongOr()
+        val y1 = ceil(bounds.maxY / di).toLongOr()
         val result = ArrayList<Pair<AABBd, OSMap>>(((x1 - x0) * (y1 - y0)).toInt())
         for (yi in y0 until y1) {
             for (xi in x0 until x1) {

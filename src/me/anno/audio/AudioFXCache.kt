@@ -15,6 +15,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.types.Floats.roundToLongOr
 import java.lang.Math.floorDiv
 import java.util.concurrent.Semaphore
 import kotlin.math.max
@@ -143,8 +144,8 @@ object AudioFXCache : CacheSection("AudioFX0") {
         identifier: String,
         async: Boolean = true
     ): ShortArray? {
-        val index0 = (t0 * playbackSampleRate).roundToLong()// and (bufferSize-1).inv().toLong()
-        var index1 = (t1 * playbackSampleRate).roundToLong()
+        val index0 = (t0 * playbackSampleRate).roundToLongOr()// and (bufferSize-1).inv().toLong()
+        var index1 = (t1 * playbackSampleRate).roundToLongOr()
         index1 = max(index1, index0 + SPLITS)
         // what if dt is too large, because we are viewing it from a distance -> approximate
         return getRange(file, bufferSize, index0, index1, repeat, identifier, async)

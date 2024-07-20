@@ -24,6 +24,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -293,7 +294,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
                     val targetUPS = targetUpdatesPerSecond
                     val targetStep = 1.0 / targetUPS
-                    val targetStepNanos = (targetStep * 1e9).toLong()
+                    val targetStepNanos = (targetStep * 1e9).toLongOr()
 
                     // stop if received updates for no more than 1-3s
                     val targetTime = Time.nanoTime
@@ -350,7 +351,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         val shallExecute = updateInEditMode || RenderView.currentInstance?.playMode != PlayMode.EDITING
         if (shallExecute) {
             if (synchronousPhysics) {
-                step((Time.deltaTime * 1e9).toLong(), false)
+                step((Time.deltaTime * 1e9).toLongOr(), false)
             } else {
                 if (isEnabled) {
                     if (workerThread == null) {

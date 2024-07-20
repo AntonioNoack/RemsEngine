@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -87,9 +88,6 @@ object Maths {
 
     @JvmStatic
     fun clamp(x: Long, min: Long, max: Long) = if (x < min) min else if (x < max) x else max
-
-    @JvmStatic
-    fun clamp(x: ULong, min: ULong, max: ULong) = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
     fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max
@@ -314,7 +312,7 @@ object Maths {
 
     @JvmStatic
     fun mix(a: Int, b: Int, f: Float): Int {
-        return (a + (b - a) * f).roundToInt()
+        return (a + (b - a) * f).roundToIntOr()
     }
 
     @JvmStatic
@@ -331,7 +329,7 @@ object Maths {
     fun mix2(a: Int, b: Int, f: Float): Int {
         val a2 = a * a
         val b2 = b * b
-        return sqrt(mix(a2.toFloat(), b2.toFloat(), f)).roundToInt()
+        return sqrt(mix(a2.toFloat(), b2.toFloat(), f)).roundToIntOr()
     }
 
     @JvmStatic

@@ -11,6 +11,7 @@ import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdfwriter.COSWriter
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -111,7 +112,7 @@ object PDFCache : CacheSection("PDFCache") {
 
     @Suppress("unused")
     fun getTexture(src: FileReference, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {
-        val qualityInt = max(1, (quality * 2f).roundToInt())
+        val qualityInt = max(1, (quality * 2f).roundToIntOr())
         val qualityFloat = qualityInt * 0.5f
         val tex = TextureCache.getLateinitTexture(
             Triple(src, qualityInt, pageNumber),

@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Sleep
 import me.anno.utils.structures.Callback
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
@@ -118,7 +119,7 @@ object ImageThumbnails {
 
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
-        val index = max(min((time * fps).roundToInt(), meta.videoFrameCount - 1), 0)
+        val index = max(min((time * fps).roundToIntOr(), meta.videoFrameCount - 1), 0)
 
         Sleep.waitUntilDefined(true, {
             val frame = VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)

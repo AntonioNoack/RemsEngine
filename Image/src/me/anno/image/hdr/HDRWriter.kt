@@ -1,6 +1,8 @@
 package me.anno.image.hdr
 
 import me.anno.maths.Maths
+import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.toIntOr
 import java.io.DataOutputStream
 import java.io.OutputStream
 import kotlin.math.ceil
@@ -43,13 +45,13 @@ object HDRWriter {
                     // probably could be optimized massively by extracting the exponent from the binary representation
                     val exp0 = Maths.clamp(ceil(log2(max * 256f / 255f)), -128f, 127f) // +128
                     val invPow = 2f.pow(-exp0 + 8)
-                    val r = (r0 * invPow).roundToInt()
-                    val g = (g0 * invPow).roundToInt()
-                    val b = (b0 * invPow).roundToInt()
+                    val r = (r0 * invPow).roundToIntOr()
+                    val g = (g0 * invPow).roundToIntOr()
+                    val b = (b0 * invPow).roundToIntOr()
                     rowBytes[i++] = Maths.clamp(r, 0, 255).toByte()
                     rowBytes[i++] = Maths.clamp(g, 0, 255).toByte()
                     rowBytes[i++] = Maths.clamp(b, 0, 255).toByte()
-                    rowBytes[i++] = (exp0 + 128).toInt().toByte()
+                    rowBytes[i++] = (exp0 + 128f).toIntOr().toByte()
                 } else {
                     // just zeros; exponent could be the same as the old value,
                     // but zero is rare probably anyway

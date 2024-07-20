@@ -4,6 +4,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -44,7 +45,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         if (threads <= 1) return IntPair(1, 1)
         val bestRatio = w.toFloat() / h.toFloat()
         val goldenX = sqrt(threads * bestRatio)
-        var bestX = goldenX.roundToInt()
+        var bestX = goldenX.roundToIntOr()
         if (bestX < 1) return IntPair(1, threads)
         if (bestX >= threads) return IntPair(threads, 1)
         var bestY = threads / bestX

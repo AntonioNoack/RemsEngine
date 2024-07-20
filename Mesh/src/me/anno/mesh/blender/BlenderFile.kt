@@ -143,7 +143,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     val types: List<DNAType> = createArrayList(typeNames.size) { i ->
-        val typeLength = file.readShort().toUShort().toInt()
+        val typeLength = file.readShort().toInt().and(0xffff)
         DNAType(typeNames[i], typeLength)
     }
 
@@ -158,11 +158,11 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     val structs = createArrayList(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
-        val type = types[s.type.toUShort().toInt()]
+        val type = types[s.type.toInt().and(0xffff)]
         val fields = createArrayList(s.fieldsAsTypeName.size shr 1) { j ->
             val j2 = j * 2
-            val typeIndex = s.fieldsAsTypeName[j2].toUShort().toInt()
-            val nameIndex = s.fieldsAsTypeName[j2 + 1].toUShort().toInt()
+            val typeIndex = s.fieldsAsTypeName[j2].toInt().and(0xffff)
+            val nameIndex = s.fieldsAsTypeName[j2 + 1].toInt().and(0xffff)
             DNAField(j, names[nameIndex], types[typeIndex])
         }
         DNAStruct(i, type, fields, pointerSize)

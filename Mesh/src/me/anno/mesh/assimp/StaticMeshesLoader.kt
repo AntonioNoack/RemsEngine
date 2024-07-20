@@ -757,7 +757,7 @@ object StaticMeshesLoader {
     // (NewSponza_Main_Blender_glTF.gltf from Intel contains NaNs)
     private fun f2i(v: Float): Int {
         return if (v <= 0f) 0
-        else if (v < 1f) (v * 255).roundToInt()
+        else if (v < 1f) (v * 255).roundToInt() // is NaN-safe
         else 255
     }
 

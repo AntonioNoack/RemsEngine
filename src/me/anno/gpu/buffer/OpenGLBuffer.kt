@@ -13,6 +13,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -316,7 +317,7 @@ abstract class OpenGLBuffer(
     }
 
     fun putByte(f: Float): OpenGLBuffer {
-        val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToInt()
+        val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToIntOr()
         return putByte(asInt.toByte())
     }
 

@@ -17,6 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.Color
 import me.anno.utils.structures.Callback
+import me.anno.utils.types.Floats.roundToIntOr
 import net.sf.image4j.codec.ico.ICOReader
 import org.joml.Matrix4fArrayList
 import java.io.ByteArrayInputStream
@@ -80,8 +81,8 @@ object ImageThumbnailsImpl {
                     if (buffer != null) {
                         val bounds = buffer.bounds!!
                         val maxSize = max(bounds.maxX, bounds.maxY)
-                        val w = (size * bounds.maxX / maxSize).roundToInt()
-                        val h = (size * bounds.maxY / maxSize).roundToInt()
+                        val w = (size * bounds.maxX / maxSize).roundToIntOr()
+                        val h = (size * bounds.maxY / maxSize).roundToIntOr()
                         if (!(w < 2 || h < 2)) {
                             val transform = Matrix4fArrayList()
                             transform.scale(bounds.maxY / bounds.maxX, 1f, 1f)

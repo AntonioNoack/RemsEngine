@@ -19,6 +19,7 @@ import me.anno.utils.callbacks.F2F
 import me.anno.utils.callbacks.I3F
 import me.anno.utils.callbacks.I3I
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
+import me.anno.utils.types.Floats.toIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix3x2f
@@ -223,7 +224,7 @@ object ImageWriter {
     @JvmStatic
     fun getColor(x: Float): Int {
         if (x.isNaN()) return 0x0000ff
-        val v = min((abs(x) * 255).toInt(), 255)
+        val v = min((abs(x) * 255f).toInt(), 255)
         return if (x < 0f) {
             0x10000
         } else {
@@ -312,7 +313,7 @@ object ImageWriter {
             val invSteps = 1f / steps
             val stepSize = distance * invSteps
             ctr += steps
-            for (j in 0 until steps.toInt()) {
+            for (j in 0 until steps.toIntOr()) {
                 // add point
                 val f = j * invSteps
                 val x = Maths.mix(p0.x, p1.x, f) + thickness
@@ -329,8 +330,8 @@ object ImageWriter {
                 val w1 = s0 * fy
                 val w2 = s1 * gy
                 val w3 = s1 * fy
-                val ix = xi.toInt()
-                val iy = yi.toInt()
+                val ix = xi.toIntOr()
+                val iy = yi.toIntOr()
                 addPoint(image, w, ix, iy, w0)
                 addPoint(image, w, ix, iy + 1, w1)
                 addPoint(image, w, ix + 1, iy, w2)
@@ -427,8 +428,8 @@ object ImageWriter {
         // draw all points
         for (p in points) {
             gfx.color = java.awt.Color(0x777777 or random.nextInt() or (255 shl 24))
-            val ax = ((p.x - ox) * s).toInt()
-            val ay = ((p.y - oy) * s).toInt()
+            val ax = ((p.x - ox) * s).toIntOr()
+            val ay = ((p.y - oy) * s).toIntOr()
             gfx.drawOval(ax, ay, 1, 1)
         }
         // draw all triangles
@@ -442,12 +443,12 @@ object ImageWriter {
             val b = points[indices[i + 1]]
             val c = points[indices[i + 2]]
 
-            val ax = ((a.x - ox) * s).toInt()
-            val ay = ((a.y - oy) * s).toInt()
-            val bx = ((b.x - ox) * s).toInt()
-            val by = ((b.y - oy) * s).toInt()
-            val cx = ((c.x - ox) * s).toInt()
-            val cy = ((c.y - oy) * s).toInt()
+            val ax = ((a.x - ox) * s).toIntOr()
+            val ay = ((a.y - oy) * s).toIntOr()
+            val bx = ((b.x - ox) * s).toIntOr()
+            val by = ((b.y - oy) * s).toIntOr()
+            val cx = ((c.x - ox) * s).toIntOr()
+            val cy = ((c.y - oy) * s).toIntOr()
 
             gfx.drawLine(ax, ay, bx, by)
             gfx.drawLine(bx, by, cx, cy)

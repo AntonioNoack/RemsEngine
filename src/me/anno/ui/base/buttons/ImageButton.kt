@@ -10,6 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.components.Padding
 import me.anno.ui.Style
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -49,8 +50,8 @@ class ImageButton(
         renderDefault {
             icon.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             val scale = ((width - padding.width).toFloat() / max(icon.width, icon.height))
-            val iw = (icon.width * scale).roundToInt()
-            val ih = (icon.height * scale).roundToInt()
+            val iw = (icon.width * scale).roundToIntOr()
+            val ih = (icon.height * scale).roundToIntOr()
             DrawTextures.drawTexture(x + (width - iw) / 2, y + (height - ih) / 2, iw, ih, icon, tintColor, null)
         }
     }

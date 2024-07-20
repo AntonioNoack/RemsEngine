@@ -6,6 +6,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.VideoCache.framesPerSlice
 import me.anno.video.VideoCache.minSize
 import me.anno.video.VideoCache.scale
@@ -58,8 +59,8 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
             onError(null)
             return
         }
-        val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
-        val h = (meta.videoHeight / scale.toFloat()).roundToInt() and (1.inv())
+        val w = (meta.videoWidth / scale.toFloat()).roundToIntOr() and (1.inv())
+        val h = (meta.videoHeight / scale.toFloat()).roundToIntOr() and (1.inv())
         // ffmpeg -i input.avi -filter:vf scale=720:-1 -c:a copy output.mkv
         if (w < minSize || h < minSize) {
             LOGGER.warn("Size too small: ($w, $h) < $minSize")

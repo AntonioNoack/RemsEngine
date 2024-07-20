@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.terrain
 
 import me.anno.maths.Packing.pack64
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 
@@ -17,7 +18,7 @@ class RegularTerrainInit(
 
     val generated = HashSet<Long>()
 
-    fun getCoordinates(x: Float): Int = (x / size).roundToInt()
+    fun getCoordinates(x: Float): Int = (x / size).roundToIntOr()
 
     fun generate(terrain: TriTerrain, x: Int, z: Int) {
         // todo reuse existing vertices?

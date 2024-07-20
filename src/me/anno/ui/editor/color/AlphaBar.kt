@@ -4,6 +4,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Style
 import me.anno.utils.Color.black
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 
@@ -29,7 +30,7 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
 
     override fun getVisualState() = chooser.opacity
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToInt(), x0, x1 - 1)
+        val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToIntOr(), x0, x1 - 1)
         // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
         // drawTexture(x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))

@@ -68,6 +68,7 @@ import me.anno.utils.files.OpenFileExternally.openInExplorer
 import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.structures.History
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -700,8 +701,8 @@ open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: St
         val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel
         val sampleFont = sample?.font ?: style.getFont("text")
         val textSize = sampleFont.sizeInt
-        content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
-        else esi + (textSize * 2.5f).roundToInt()
+        content2d.childHeight = if (listMode) (textSize * 1.5f).roundToIntOr()
+        else esi + (textSize * 2.5f).roundToIntOr()
         val time = Time.nanoTime
         if (lastScrollChangedPanel != null && abs(time - lastScrollChangeTime) < 700 * MILLIS_TO_NANOS) {
             panelToScrollTo = lastScrollChangedPanel

@@ -26,6 +26,7 @@ import me.anno.utils.structures.lists.Lists.iff
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
 import org.joml.Vector4f
@@ -290,8 +291,8 @@ object ScreenSpaceAmbientOcclusion {
 
         // resolution can be halved to improve performance
         val scale = DefaultConfig["gpu.ssao.scale", 1f]
-        val fw = (depth.width * scale).roundToInt()
-        val fh = (depth.height * scale).roundToInt()
+        val fw = (depth.width * scale).roundToIntOr()
+        val fh = (depth.height * scale).roundToIntOr()
 
         val isSSGI = ssgi != null
         val dst = FBStack["ssao-1st", fw, fh, if (isSSGI) 3 else 1, isSSGI, 1, DepthBufferType.NONE]

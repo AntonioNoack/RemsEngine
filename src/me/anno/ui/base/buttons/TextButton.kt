@@ -16,6 +16,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -65,7 +66,7 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
                 max(minW - padding.width, 0).toFloat() / aspectRatio,
                 max(minH - padding.height, 0).toFloat()
             )
-            minW = max((size * aspectRatio).roundToInt() + padding.width, 0)
+            minW = max((size * aspectRatio).roundToIntOr() + padding.width, 0)
             minH = max(size.toInt() + padding.height, 0)
         }
     }

@@ -14,6 +14,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -56,7 +57,7 @@ class SMMMeshRenderer(material: Material) :
             }
 
             fun putByte(f: Float) {
-                val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToInt()
+                val asInt = Maths.clamp(f * 127f, -127f, +127f).roundToIntOr()
                 buffer.put(asInt.toByte())
             }
 

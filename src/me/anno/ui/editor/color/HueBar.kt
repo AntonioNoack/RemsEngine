@@ -3,6 +3,7 @@ package me.anno.ui.editor.color
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.Style
 import me.anno.utils.Color.black
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 
@@ -15,7 +16,7 @@ class HueBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
     override fun getVisualState() = chooser.hue
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val x = x0 + ((x1 - x0) * chooser.hue).roundToInt()
+        val x = x0 + ((x1 - x0) * chooser.hue).roundToIntOr()
         drawRect(x, y0, 1, y1 - y0, black)
     }
 }

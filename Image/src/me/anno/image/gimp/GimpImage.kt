@@ -21,6 +21,8 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
+import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Ints.toIntOrDefault
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -213,7 +215,7 @@ class GimpImage {
         fileVersion = if (fileThing.startsWith("textures/fileExplorer")) {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
-            fileThing.substring(1, 4).toInt()
+            fileThing.substring(1, 4).toIntOrDefault(0)
         } else throw IOException("Expected 'file' or 'v'-version")
 
         if (fileVersion >= 11) {
@@ -596,7 +598,7 @@ class GimpImage {
                     layer.y = data.int
                 }
                 PropertyType.OPACITY -> layer.opacity = clamp(data.int, 0, 255)
-                PropertyType.FLOAT_OPACITY -> layer.opacity = clamp((data.float * 255).roundToInt(), 0, 255)
+                PropertyType.FLOAT_OPACITY -> layer.opacity = clamp((data.float * 255).roundToIntOr(255), 0, 255)
                 PropertyType.BLEND_SPACE -> {
                     var bs = data.int
                     if (bs < 0) {// auto

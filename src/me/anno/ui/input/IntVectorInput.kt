@@ -13,6 +13,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
@@ -146,10 +147,10 @@ open class IntVectorInput(
         return when (val color = ColorParsing.parseColorComplex(data)) {
             is Int -> setValue(color.r(), color.g(), color.b(), color.a(), true)
             is Vector4f -> setValue(
-                (255 * color.x).roundToInt(),
-                (255 * color.y).roundToInt(),
-                (255 * color.z).roundToInt(),
-                (255 * color.w).roundToInt(), true
+                (255 * color.x).roundToIntOr(),
+                (255 * color.y).roundToIntOr(),
+                (255 * color.z).roundToIntOr(),
+                (255 * color.w).roundToIntOr(), true
             )
             else -> null
         }

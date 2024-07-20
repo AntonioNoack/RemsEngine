@@ -10,6 +10,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -89,12 +90,12 @@ open class CustomSizeContainer(val isX: Boolean, val isY: Boolean, child: Panel,
         var ry = dy
         if (isDownIndex >= 0) {
             if (isX && abs(dx) >= 0.5f) {
-                customSizeX = max(customSizeX + dx.roundToInt(), interactionPadding)
+                customSizeX = max(customSizeX + dx.roundToIntOr(), interactionPadding)
                 invalidateLayout()
                 rx = 0f
             }
             if (isY && abs(dy) >= 0.5f) {
-                customSizeY = max(customSizeY + dy.roundToInt(), interactionPadding)
+                customSizeY = max(customSizeY + dy.roundToIntOr(), interactionPadding)
                 invalidateLayout()
                 ry = 0f
             }

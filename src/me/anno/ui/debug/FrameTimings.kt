@@ -23,6 +23,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.float32ToFloat16
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -230,9 +231,9 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 return
             }
             if (number >= 999.5f) {
-                formatNumber(chars, index, space, number.roundToInt())
+                formatNumber(chars, index, space, number.roundToInt()) // is NaN-safe
             }
-            val numberX = (number * 10).roundToInt()
+            val numberX = (number * 10).roundToInt() // is NaN-safe
             chars[index + space - 2] = '.'
             chars[index + space - 1] = getChar(numberX)
             formatNumber(chars, index, space - 2, numberX / 10)

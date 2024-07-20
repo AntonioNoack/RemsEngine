@@ -14,6 +14,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.AnyToDouble
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.round
 import kotlin.math.roundToInt
 
@@ -40,7 +41,7 @@ class SliderInput(
 
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
-            val x = clamp(x + (width * unmix(minValue, maxValue, value)).roundToInt(), x0, x1)
+            val x = clamp(x + (width * unmix(minValue, maxValue, value)).roundToIntOr(), x0, x1)
             drawRect(x0, y0, x - x0, y1 - y0, sliderColor)
         }
 

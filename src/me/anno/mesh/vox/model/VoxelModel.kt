@@ -9,6 +9,7 @@ import me.anno.mesh.vox.meshing.VoxelMeshBuilder
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -150,7 +151,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
             removed = removed * 100f / 6f
             LOGGER.info(
                 "" +
-                        "Removed ${removed.roundToInt()}% of $numberOfBlocks blocks, " +
+                        "Removed ${removed.roundToIntOr()}% of $numberOfBlocks blocks, " +
                         "created $triangleCount triangles, ${(triangleCount.toFloat() / numberOfBlocks).f2()}/block"
             )
         }

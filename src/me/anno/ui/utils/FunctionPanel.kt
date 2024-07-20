@@ -10,6 +10,7 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.types.Floats.roundToIntOr
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.math.abs
@@ -66,7 +67,7 @@ abstract class FunctionPanel(style: Style) : MapPanel(style) {
         val j0 = floor(gridY0 / gridSize).toLong()
         val j1 = ceil(gridY1 / gridSize).toLong()
         // good positioning for numbers
-        val pow = -log10(gridSize).roundToInt()
+        val pow = -log10(gridSize).roundToIntOr()
         val msl = maxStringLength(max(abs(i0), abs(i1)), pow)
         val dx = (DrawTexts.monospaceFont.sampleWidth * (2f + 0.5f * msl)).toInt()
         val dy = DrawTexts.monospaceFont.sampleHeight shr 1

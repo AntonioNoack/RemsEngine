@@ -863,9 +863,9 @@ open class Vector3d(
     val isFinite: Boolean
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z)
 
-    operator fun plus(s: Vector3d) = Vector3d(x + s.x, y + s.y, z + s.z)
-    operator fun minus(s: Vector3d) = Vector3d(x - s.x, y - s.y, z - s.z)
-    operator fun times(s: Double) = Vector3d(x * s, y * s, z * s)
+    operator fun plus(s: Vector3d): Vector3d = Vector3d(x + s.x, y + s.y, z + s.z)
+    operator fun minus(s: Vector3d): Vector3d = Vector3d(x - s.x, y - s.y, z - s.z)
+    operator fun times(s: Double): Vector3d = Vector3d(x * s, y * s, z * s)
 
     fun safeNormalize(length: Double = 1.0): Vector3d {
         normalize(length)
@@ -873,9 +873,21 @@ open class Vector3d(
         return this
     }
 
-    fun roundToInt(dst: Vector3i = Vector3i()) = dst.set(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun floorToInt(dst: Vector3i = Vector3i()) =
-        dst.set(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+    fun roundToInt(dst: Vector3i = Vector3i()): Vector3i {
+        return dst.set(
+            if (x.isNaN()) 0 else x.roundToInt(),
+            if (y.isNaN()) 0 else y.roundToInt(),
+            if (z.isNaN()) 0 else z.roundToInt()
+        )
+    }
+
+    fun floorToInt(dst: Vector3i = Vector3i()): Vector3i {
+        return dst.set(
+            if (x.isNaN()) 0 else kotlin.math.floor(x).toInt(),
+            if (y.isNaN()) 0 else kotlin.math.floor(y).toInt(),
+            if (z.isNaN()) 0 else kotlin.math.floor(z).toInt()
+        )
+    }
 
     fun findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)

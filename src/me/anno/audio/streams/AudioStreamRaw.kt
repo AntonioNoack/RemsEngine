@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.tuples.ShortPair
+import me.anno.utils.types.Floats.toLongOr
 import kotlin.math.max
 import kotlin.math.min
 
@@ -113,7 +114,7 @@ class AudioStreamRaw(
                     val file = file
                     val sliceDuration = ffmpegSliceSampleDuration
                     val key = AudioSliceKey(file, sliceIndex)
-                    val timeout = (sliceDuration * 2 * 1000).toLong()
+                    val timeout = (sliceDuration * 2 * 1000).toLongOr()
                     val sliceTime = sliceIndex * sliceDuration
                     val sequence = AudioCache.getEntry(key, timeout, false) {
                         getAudioSequence!!(file, sliceTime, sliceDuration, sampleRate)

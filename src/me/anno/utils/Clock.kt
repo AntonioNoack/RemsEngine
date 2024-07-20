@@ -5,6 +5,7 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Floats.f4
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -56,11 +57,11 @@ class Clock(
             nanos < 10.0 -> nanos.f3() + " ns/e"
             nanos < 100.0 -> nanos.f2() + " ns/e"
             nanos < 1e3 -> nanos.f1() + " ns/e"
-            nanos < 1e4 -> nanos.roundToInt().toString() + " ns/e"
+            nanos < 1e4 -> nanos.roundToIntOr().toString() + " ns/e"
             nanos < 1e7 -> (nanos * 1e-6).f3() + " ms/e"
             nanos < 1e8 -> (nanos * 1e-6).f2() + " ms/e"
             nanos < 1e9 -> (nanos * 1e-6).f1() + " ms/e"
-            nanos < 1e10 -> (nanos * 1e-6).roundToInt().toString() + " ms/e"
+            nanos < 1e10 -> (nanos * 1e-6).roundToIntOr().toString() + " ms/e"
             else -> (nanos * 1e-9).f1() + " s/e"
         }
     }

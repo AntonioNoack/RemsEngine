@@ -24,6 +24,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.levenshtein
 import kotlin.math.max
 import kotlin.math.min
@@ -303,12 +304,12 @@ object Menu {
                     if (Input.isLeftDown) {
                         // move the window
                         window.x = clamp(
-                            window.x + dx.roundToInt(),
+                            window.x + dx.roundToIntOr(),
                             0, windowStack.width - window.panel.width
                         )
                         window.y = clamp(
                             // we only can control the window at the top -> top needs to stay visible
-                            window.y + dy.roundToInt(), 0,
+                            window.y + dy.roundToIntOr(), 0,
                             windowStack.height - window.panel.height
                         )
                         window.panel.invalidateLayout()
@@ -415,7 +416,7 @@ object Menu {
         windowStack: WindowStack,
         x: Float, y: Float,
         title: NameDesc, options: List<ComplexMenuEntry>
-    ) = openComplexMenu(windowStack, x.roundToInt(), y.roundToInt(), title, options)
+    ) = openComplexMenu(windowStack, x.roundToIntOr(), y.roundToIntOr(), title, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
         openMenu(windowStack, NameDesc(), options)
@@ -431,6 +432,6 @@ object Menu {
     fun openMenu(
         windowStack: WindowStack,
         x: Float, y: Float, title: NameDesc, options: List<MenuOption>, delta: Int = 10
-    ): Window? = openComplexMenu(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
+    ): Window? = openComplexMenu(windowStack, x.roundToIntOr() - delta, y.roundToIntOr() - delta, title,
         options.map { option -> option.toComplex() })
 }

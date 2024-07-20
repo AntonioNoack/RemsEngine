@@ -7,6 +7,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.StretchModes
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.roundToInt
 
 open class ImagePanelBase(style: Style) : Panel(style) {
@@ -59,8 +60,8 @@ open class ImagePanelBase(style: Style) : Panel(style) {
         lih = (lih * zoom).toInt()
         if (flipX) liw = -liw
         if (flipY) lih = -lih
-        lix = x + (offsetX * zoom).roundToInt() + imageAlignmentX.getOffset(width, liw)
-        liy = y + (offsetY * zoom).roundToInt() + imageAlignmentY.getOffset(height, lih)
+        lix = x + (offsetX * zoom).roundToIntOr() + imageAlignmentX.getOffset(width, liw)
+        liy = y + (offsetY * zoom).roundToIntOr() + imageAlignmentY.getOffset(height, lih)
         this.liw = liw
         this.lih = lih
     }

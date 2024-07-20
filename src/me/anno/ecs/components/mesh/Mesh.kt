@@ -42,6 +42,7 @@ import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4f
@@ -587,10 +588,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
                     val w2 = boneWeights[i4 + 2]
                     val w3 = boneWeights[i4 + 3]
                     val normalisation = 255f / (w0 + w1 + w2 + w3)
-                    // var w0b = (w0 * normalisation).roundToInt()
-                    val w1b = (w1 * normalisation).roundToInt()
-                    val w2b = (w2 * normalisation).roundToInt()
-                    val w3b = (w3 * normalisation).roundToInt()
+                    val w1b = (w1 * normalisation).roundToIntOr()
+                    val w2b = (w2 * normalisation).roundToIntOr()
+                    val w3b = (w3 * normalisation).roundToIntOr()
                     val w0b = max(255 - (w1b + w2b + w3b), 0)
                     buffer.putByte(w0b.toByte())
                     buffer.putByte(w1b.toByte())

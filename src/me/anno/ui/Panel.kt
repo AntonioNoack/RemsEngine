@@ -25,6 +25,7 @@ import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
@@ -543,7 +544,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun printLayout(tabDepth: Int) {
         val tooltip = tooltip
         println(
-            "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToInt()}, " +
+            "${Strings.spaces(tabDepth * 2)}$className(${(weight * 10).roundToIntOr()}, " +
                     "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
                     "$x-${x + width}, $y-${y + height} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "

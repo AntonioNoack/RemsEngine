@@ -7,6 +7,7 @@ import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.InternalAPI
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.roundToInt
 
 @InternalAPI
@@ -97,10 +98,10 @@ object ImageResizing {
                 }
 
                 dst[di++] = argb(
-                    (a * invArea).roundToInt(),
-                    (r * invArea).roundToInt(),
-                    (g * invArea).roundToInt(),
-                    (b * invArea).roundToInt()
+                    (a * invArea).roundToIntOr(),
+                    (r * invArea).roundToIntOr(),
+                    (g * invArea).roundToIntOr(),
+                    (b * invArea).roundToIntOr()
                 )
             }
         }
@@ -173,10 +174,10 @@ object ImageResizing {
                 }
 
                 dst[di++] = argb(
-                    (a * invArea).roundToInt(),
-                    (r * invArea).roundToInt(),
-                    (g * invArea).roundToInt(),
-                    (b * invArea).roundToInt()
+                    (a * invArea).roundToIntOr(),
+                    (r * invArea).roundToIntOr(),
+                    (g * invArea).roundToIntOr(),
+                    (b * invArea).roundToIntOr()
                 )
             }
         }

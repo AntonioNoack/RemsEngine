@@ -11,6 +11,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.rgb
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -71,9 +72,9 @@ fun apply(image: Image, poly0: Polynomial, poly1: Polynomial, poly2: Polynomial)
             val corr0 = poly0.compute(len)
             val corr1 = poly1.compute(len)
             val corr2 = poly2.compute(len)
-            val c0 = image.getValueAt(x + dx * corr0, y + dy * corr0, 0).roundToInt()
-            val c1 = image.getValueAt(x + dx * corr1, y + dy * corr1, 8).roundToInt()
-            val c2 = image.getValueAt(x + dx * corr2, y + dy * corr2, 16).roundToInt()
+            val c0 = image.getValueAt(x + dx * corr0, y + dy * corr0, 0).roundToIntOr()
+            val c1 = image.getValueAt(x + dx * corr1, y + dy * corr1, 8).roundToIntOr()
+            val c2 = image.getValueAt(x + dx * corr2, y + dy * corr2, 16).roundToIntOr()
             values[idx++] = rgb(c2, c1, c0)
         }
     }
@@ -99,7 +100,7 @@ fun getError(image: Image, channel: Int, polynomial: Polynomial): Int {
                 val dl = polynomial.compute(length(dx, dy))
                 val dxi = dx * dl
                 val dyi = dy * dl
-                val corrected = image.getValueAt(x + dxi, y + dyi, shift).roundToInt() * 0x10101
+                val corrected = image.getValueAt(x + dxi, y + dyi, shift).roundToIntOr() * 0x10101
                 error += getError(correct(base, corrected, mask))
             }
         }

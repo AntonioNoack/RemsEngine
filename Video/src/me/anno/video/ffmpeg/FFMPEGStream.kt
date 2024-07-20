@@ -13,6 +13,7 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
@@ -79,7 +80,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             thread(name = "$input/${w}x${h}/$startTime") {
                 try {
                     GPUFrameReader(
-                        input, (startTime * fps).roundToInt(),
+                        input, (startTime * fps).roundToIntOr(),
                         frameCount, nextFrameCallback, finishedCallback
                     ).run(
                         getImageSequenceArguments(

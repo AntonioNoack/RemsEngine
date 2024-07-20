@@ -18,6 +18,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -98,7 +99,7 @@ object BokehBlur {
     private fun uniforms(shader: Shader, w: Int, h: Int, normRadius: Float) {
         val radius = normRadius * KERNEL_RADIUS
         shader.v2f("stepVal", radius / w, radius / h)
-        val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
+        val radiusI = clamp(radius.roundToIntOr(), KERNEL_RADIUS, 64)
         shader.v1i("radius", radiusI)
         shader.v1f("multiplier", sqrt(20f) * KERNEL_RADIUS.toFloat() / radiusI)
     }

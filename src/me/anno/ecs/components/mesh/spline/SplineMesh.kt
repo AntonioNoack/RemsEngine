@@ -15,6 +15,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -448,7 +449,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             // generate end piece: rotational
             val profile = point.profile
             val halfProfile = profile.split()[!useRightForEnd]
-            val numAngles = 1 + max(1, pointsPerRadiant.roundToInt())
+            val numAngles = 1 + max(1, pointsPerRadiant.roundToIntOr())
             val profileSize = halfProfile.positions.size
             val numQuads = (profileSize - 1) * (numAngles - 1)
             val numPoints = numQuads * 6

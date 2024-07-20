@@ -34,6 +34,7 @@ import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.OS.documents
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import kotlin.math.PI
@@ -216,7 +217,7 @@ fun createUI(): Panel {
 
     val speedometer = UpdatingTextPanel(100, style) {
         // calculate velocity along forward axis
-        "${(vehicle.localVelocityZ * 3.6).roundToInt()} km/h"
+        "${(vehicle.localVelocityZ * 3.6).roundToIntOr(-42)} km/h"
     }
     speedometer.alignmentX = AxisAlignment.CENTER
     speedometer.alignmentY = AxisAlignment.MAX

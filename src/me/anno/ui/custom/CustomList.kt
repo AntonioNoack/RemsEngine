@@ -11,6 +11,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -112,7 +113,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 val weight = max(minWeight, child.weight)
                 val betterWeight = max(weight * weightScale, minSize)
                 if (betterWeight != weight) child.weight = betterWeight
-                val childSize = (betterWeight * weightScale * available).roundToInt()
+                val childSize = (betterWeight * weightScale * available).roundToIntOr()
                 if (isY) child.calculateSize(w, childSize)
                 else child.calculateSize(childSize, h)
             }
@@ -141,7 +142,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 val weight = max(minWeight, child.weight)
                 val betterWeight = max(weight * weightScale, minSize)
                 if (betterWeight != weight) child.weight = betterWeight
-                val childSize = (betterWeight * weightScale * available).roundToInt()
+                val childSize = (betterWeight * weightScale * available).roundToIntOr()
                 childPos += min(
                     childSize, if (isY) {
                         child.calculateSize(w, childSize)

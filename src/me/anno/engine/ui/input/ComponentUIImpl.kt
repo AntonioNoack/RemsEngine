@@ -6,17 +6,11 @@ import me.anno.ecs.annotations.Range.Companion.maxDouble
 import me.anno.ecs.annotations.Range.Companion.maxFloat
 import me.anno.ecs.annotations.Range.Companion.maxInt
 import me.anno.ecs.annotations.Range.Companion.maxShort
-import me.anno.ecs.annotations.Range.Companion.maxUByte
-import me.anno.ecs.annotations.Range.Companion.maxUInt
-import me.anno.ecs.annotations.Range.Companion.maxUShort
 import me.anno.ecs.annotations.Range.Companion.minByte
 import me.anno.ecs.annotations.Range.Companion.minDouble
 import me.anno.ecs.annotations.Range.Companion.minFloat
 import me.anno.ecs.annotations.Range.Companion.minInt
 import me.anno.ecs.annotations.Range.Companion.minShort
-import me.anno.ecs.annotations.Range.Companion.minUByte
-import me.anno.ecs.annotations.Range.Companion.minUInt
-import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.input.ComponentUI.askForReset
 import me.anno.maths.Maths.clamp
@@ -71,16 +65,6 @@ object ComponentUIImpl {
         return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toByte() }
     }
 
-    fun createUByteInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
-        property: IProperty<Any?>, range: Range?, style: Style,
-    ): Panel {
-        val type = NumberType(default as UByte,
-            { clamp(AnyToLong.getLong(it, 0), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
-            { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toUByte() }
-    }
-
     fun createShortInput(
         title: String, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
@@ -91,16 +75,6 @@ object ComponentUIImpl {
         return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toShort() }
     }
 
-    fun createUShortInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
-        property: IProperty<Any?>, range: Range?, style: Style,
-    ): Panel {
-        val type = NumberType(default as UShort,
-            { clamp(AnyToLong.getLong(it, 0), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
-            { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toUShort() }
-    }
-
     fun createIntInput(
         title: String, visibilityKey: String, value: Any?, default: Any?,
         property: IProperty<Any?>, range: Range?, style: Style,
@@ -109,16 +83,6 @@ object ComponentUIImpl {
             { clamp(AnyToLong.getLong(it, 0), range.minInt().toLong(), range.maxInt().toLong()).toInt() },
             { it })
         return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toInt() }
-    }
-
-    fun createUIntInput(
-        title: String, visibilityKey: String, value: Any?, default: Any?,
-        property: IProperty<Any?>, range: Range?, style: Style,
-    ): Panel {
-        val type = NumberType(default as UInt,
-            { clamp(AnyToLong.getLong(it, 0), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() },
-            { it })
-        return createAnyIntInput(title, visibilityKey, value, property, style, type) { it.toUInt() }
     }
 
     private fun createAnyIntInput(

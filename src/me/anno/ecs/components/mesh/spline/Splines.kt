@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.maths.Maths
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -61,7 +62,7 @@ object Splines {
                     angle(p2a, p3a, p4a) + angle(p2b, p3b, p4b)
             val stopsF = (angle * ptsPerRadiant * 0.5)
             if (stopsF.isFinite() && stopsF >= 0.5f) {
-                val stops = stopsF.roundToInt()
+                val stops = stopsF.roundToIntOr(2)
                 for (j in 1 until stops) {
                     val t = j.toDouble() / stops
                     result.add(interpolate(p0a, p1a, p3a, p4a, t))

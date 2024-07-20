@@ -52,7 +52,7 @@ class Huffman {
             }
         }
         // looks completely correct
-        println("fast codes:               ${fast.joinToString { it.toUByte().toString() }}, ")
+        println("fast codes:               ${fast.joinToString { it.toInt().and(0xff).toString() }}, ")
         println("max codes:                ${maxCode.joinToString()}, -1, ")
         println("deltas:                   ${delta.joinToString()}, ")
     }

@@ -8,6 +8,7 @@ import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong
+import me.anno.utils.types.Floats.roundToLongOr
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToLong
@@ -68,7 +69,7 @@ open class IntInput(
             val parsed = if (trimmed.isEmpty()) 0L
             else (if (trimmed.startsWith("0x")) trimmed.substring(2).toLongOrNull(16)
             else if (trimmed.startsWith("0b")) trimmed.substring(2).toLongOrNull(2)
-            else trimmed.toLongOrNull()) ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
+            else trimmed.toLongOrNull()) ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLongOr()
             if (parsed == null) null else AnyToLong.getLong(type.clamp(parsed), 0L)
         } catch (ignored: Exception) {
             null
@@ -98,7 +99,7 @@ open class IntInput(
         if (type.hasExponential) value = (value * pow(
             if (value < 0) 1f / 1.03f else 1.03f,
             delta * if (type.hasLinear) 1f else 3f
-        )).roundToLong()
+        )).roundToLongOr()
         setValueClamped(value, true)
     }
 

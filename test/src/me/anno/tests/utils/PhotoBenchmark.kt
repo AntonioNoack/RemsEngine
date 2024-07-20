@@ -23,6 +23,7 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import kotlin.math.exp
 import kotlin.math.ln
@@ -78,8 +79,8 @@ fun main() {
         val difference = FBStack["diff", source.width, source.height, 3, false, 1, DepthBufferType.NONE]
         val filtering = Filtering.LINEAR
         for (scale in scales) {
-            val sw = (source.width / scale).roundToInt()
-            val sh = (source.height / scale).roundToInt()
+            val sw = (source.width / scale).roundToIntOr()
+            val sh = (source.height / scale).roundToIntOr()
             val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, DepthBufferType.NONE]
             useFrame(scaledDown) {
                 source.bind(0, filtering, Clamping.CLAMP)

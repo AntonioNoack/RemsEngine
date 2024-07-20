@@ -14,6 +14,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.exp
@@ -216,5 +217,5 @@ object FontManager {
         }
     }
 
-    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
+    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToIntOr()
 }

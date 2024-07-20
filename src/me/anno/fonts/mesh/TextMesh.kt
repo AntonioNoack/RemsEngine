@@ -9,6 +9,7 @@ import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.gpu.buffer.Attribute
 import me.anno.mesh.Triangulation
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Triangles.isInsideTriangle
 import me.anno.utils.types.Vectors.avg
 import org.joml.AABBf
@@ -34,11 +35,11 @@ class TextMesh(val font: Font, val text: String) : TextDrawable() {
                 val steps = when (s) {
                     is QuadraticSegment -> {
                         val length = s.p0.distance(s.p1) + s.p1.distance(s.p2)
-                        max(2, (quadAccuracy * length).roundToInt())
+                        max(2, (quadAccuracy * length).roundToIntOr())
                     }
                     is CubicSegment -> {
                         val length = s.p0.distance(s.p1) + s.p1.distance(s.p2) + s.p2.distance(s.p3)
-                        max(3, (cubicAccuracy * length).roundToInt())
+                        max(3, (cubicAccuracy * length).roundToIntOr())
                     }
                     is LinearSegment -> 1
                     else -> throw NotImplementedError()

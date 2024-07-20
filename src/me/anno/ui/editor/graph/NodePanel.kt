@@ -33,6 +33,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -339,7 +340,7 @@ class NodePanel(
                 gp.getTypeColor(con), bg or Color.black
             )
             if (innerRadius > 0f) {
-                val dx2 = ((1f - innerRadius) * radius2).roundToInt()
+                val dx2 = ((1f - innerRadius) * radius2).roundToIntOr()
                 val rx2 = rx - dx2
                 val ry2 = radius2 - dx2 + 1
                 GFXx2D.drawHalfArrow(

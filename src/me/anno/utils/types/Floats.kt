@@ -3,6 +3,8 @@ package me.anno.utils.types
 import me.anno.maths.Maths
 import me.anno.utils.types.NumberFormatter.formatFloat
 import kotlin.math.PI
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 object Floats {
 
@@ -122,6 +124,54 @@ object Floats {
                 return n
             }
         }
+    }
+
+    @JvmStatic
+    fun Float.roundToIntOr(ifNaN: Int = 0): Int {
+        return if (isNaN()) ifNaN
+        else roundToInt()
+    }
+
+    @JvmStatic
+    fun Float.toIntOr(ifNaN: Int = 0): Int {
+        return if (isNaN()) ifNaN
+        else toInt()
+    }
+
+    @JvmStatic
+    fun Double.roundToIntOr(ifNaN: Int = 0): Int {
+        return if (isNaN()) ifNaN
+        else roundToInt()
+    }
+
+    @JvmStatic
+    fun Double.toIntOr(ifNaN: Int = 0): Int {
+        return if (isFinite()) ifNaN
+        else toInt()
+    }
+
+    @JvmStatic
+    fun Float.roundToLongOr(ifNaN: Long = 0): Long {
+        return if (isNaN()) ifNaN
+        else roundToLong()
+    }
+
+    @JvmStatic
+    fun Float.toLongOr(ifNaN: Long = 0): Long {
+        return if (isNaN()) ifNaN
+        else toLong()
+    }
+
+    @JvmStatic
+    fun Double.roundToLongOr(ifNaN: Long = 0): Long {
+        return if (isNaN()) ifNaN
+        else roundToLong()
+    }
+
+    @JvmStatic
+    fun Double.toLongOr(ifNaN: Long = 0): Long {
+        return if (isFinite()) ifNaN
+        else toLong()
     }
 
     // by x4u on https://stackoverflow.com/a/6162687/4979303

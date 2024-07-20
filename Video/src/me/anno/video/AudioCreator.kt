@@ -10,6 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.Codecs.audioCodecByExtension
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
@@ -108,7 +109,7 @@ abstract class AudioCreator(
     open fun onStreaming(bufferIndex: Long, streamIndex: Int) {}
 
     val sliceDuration = playbackSliceDuration
-    val bufferSize = (sliceDuration * sampleRate).roundToInt() * 2
+    val bufferSize = (sliceDuration * sampleRate).roundToIntOr() * 2
     val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
     fun createAudio(audioOutput: OutputStream) {

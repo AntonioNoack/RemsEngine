@@ -32,6 +32,7 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -233,8 +234,8 @@ object DrawTexts {
             GFXx2D.getSize(textWidth, font.sizeInt)
         } else {
             val group = TextGroup(font, text, 0.0)
-            val textWidth = group.offsets.last().toFloat()
-            GFXx2D.getSize(textWidth.roundToInt(), font.sizeInt)
+            val textWidth = group.offsets.last().roundToIntOr()
+            GFXx2D.getSize(textWidth, font.sizeInt)
         }
     }
 
@@ -333,9 +334,9 @@ object DrawTexts {
 
             val group = TextGroup(font, text, 0.0)
 
-            val textWidth = group.offsets.last().toFloat()
+            val textWidth = group.offsets.last().roundToIntOr()
 
-            val dxi = getOffset(textWidth.roundToInt(), alignX)
+            val dxi = getOffset(textWidth, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
             GFX.loadTexturesSync.push(true)
@@ -364,7 +365,7 @@ object DrawTexts {
 
             GFX.loadTexturesSync.pop()
 
-            return GFXx2D.getSize(textWidth.roundToInt(), font.sizeInt)
+            return GFXx2D.getSize(textWidth, font.sizeInt)
         }
     }
 
@@ -441,9 +442,9 @@ object DrawTexts {
             val text = key.text
             val offsets = TextGroup(font, text, 0.0).offsets
 
-            val textWidth = offsets.last().toFloat()
+            val textWidth = offsets.last()
 
-            val wx = textWidth.roundToInt()
+            val wx = textWidth.roundToIntOr()
             val dxi = getOffset(wx, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
@@ -623,7 +624,7 @@ object DrawTexts {
             )
         }
 
-        val texture = tex0 ?: return GFXx2D.getSize(0, FontManager.getAvgFontSize(key.fontSizeIndex()).roundToInt())
+        val texture = tex0 ?: return GFXx2D.getSize(0, FontManager.getAvgFontSize(key.fontSizeIndex()).roundToIntOr())
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
     }
 

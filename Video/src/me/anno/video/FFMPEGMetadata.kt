@@ -11,6 +11,7 @@ import me.anno.utils.types.Strings.parseTime
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.io.MediaMetadata
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.max
@@ -118,7 +119,7 @@ object FFMPEGMetadata {
                     LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
                 } else videoFrameCount = 1
             } else {
-                val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
+                val expectedFrameCount = (videoDuration * videoFPS).roundToIntOr()
                 if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {
                     // something is wrong
                     val frameCount = max(expectedFrameCount, videoFrameCount)

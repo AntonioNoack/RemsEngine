@@ -24,6 +24,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.toDegrees
+import me.anno.utils.types.Floats.toLongOr
 import me.anno.utils.types.Triangles.subCross
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Vec2
@@ -215,7 +216,7 @@ fun test3() {
 
             override fun onUpdate() {
                 super.onUpdate()
-                physics.step((Time.deltaTime * 1e9f).toLong(), false)
+                physics.step((Time.deltaTime * 1e9f).toLongOr(), false)
                 if (Input.isKeyDown(dragButton)) {
                     val hovered = hovered
                     val entity = hovered?.entity

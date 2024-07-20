@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -69,12 +70,12 @@ object Color {
     fun Int.a01() = ushr(24) / 255f
 
     @JvmStatic
-    @Docs("Sets the alpha of the ARGB color, alpha from 0 to 1; crashes for NaN")
-    fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255f * alpha).roundToInt())
+    @Docs("Sets the alpha of the ARGB color, alpha from 0 to 1; uses 0 for NaN")
+    fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255f * alpha).roundToIntOr())
 
     @JvmStatic
-    @Docs("Multiplies the alpha of the ARGB color, alpha from 0 to 1; crashes for NaN")
-    fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
+    @Docs("Multiplies the alpha of the ARGB color, alpha from 0 to 1; uses 0 for NaN")
+    fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToIntOr())
 
     @JvmStatic
     @Docs("Sets the alpha of the ARGB color, alpha from 0 to 255")
@@ -105,9 +106,9 @@ object Color {
                 black
 
     @JvmStatic
-    @Docs("Creates an ARGB color from r,g,b floats, and sets alpha to 1; crashes for NaNs")
+    @Docs("Creates an ARGB color from r,g,b floats, and sets alpha to 1; uses 0 for NaNs")
     fun rgb(r: Float, g: Float, b: Float): Int =
-        rgb((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt())
+        rgb((r * 255f).roundToIntOr(), (g * 255f).roundToIntOr(), (b * 255f).roundToIntOr())
 
     @JvmStatic
     @Docs("Creates an ARGB color from r,g,b,a bytes")
@@ -125,9 +126,9 @@ object Color {
                 clamp(a, 0, 255).shl(24)
 
     @JvmStatic
-    @Docs("Creates an ARGB color from r,g,b,a integers; clamps values; crashes on NaNs")
+    @Docs("Creates an ARGB color from r,g,b,a integers; clamps values; uses 0 on NaNs")
     fun rgba(r: Float, g: Float, b: Float, a: Float): Int =
-        rgba((r * 255f).roundToInt(), (g * 255f).roundToInt(), (b * 255f).roundToInt(), (a * 255f).roundToInt())
+        rgba((r * 255f).roundToIntOr(), (g * 255f).roundToIntOr(), (b * 255f).roundToIntOr(), (a * 255f).roundToIntOr())
 
     @JvmStatic
     @Docs("Creates an ARGB color from a,r,g,b integers; clamps values")
@@ -200,7 +201,7 @@ object Color {
     fun hex32(i: Int) = "${hex16((i shr 16))}${hex16(i)}"
 
     @JvmStatic
-    fun hex8(f: Float) = hex8(clamp((255 * f).roundToInt(), 0, 255))
+    fun hex8(f: Float) = hex8(clamp((255 * f).roundToIntOr(), 0, 255))
 
     @JvmStatic
     fun Int.toHexColor(): String {
@@ -379,7 +380,7 @@ object Color {
         val r01 = Maths.sq((v01 shr shift) and 255).toFloat()
         val r10 = Maths.sq((v10 shr shift) and 255).toFloat()
         val r11 = Maths.sq((v11 shr shift) and 255).toFloat()
-        return sqrt(Maths.mix2d(r00, r01, r10, r11, fx, fy)).roundToInt() shl shift
+        return sqrt(Maths.mix2d(r00, r01, r10, r11, fx, fy)).roundToIntOr() shl shift
     }
 
     @JvmStatic

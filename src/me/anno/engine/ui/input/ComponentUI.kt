@@ -3,9 +3,7 @@ package me.anno.engine.ui.input
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Range.Companion.maxLong
-import me.anno.ecs.annotations.Range.Companion.maxULong
 import me.anno.ecs.annotations.Range.Companion.minLong
-import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.DefaultAssets
@@ -28,9 +26,6 @@ import me.anno.engine.ui.input.ComponentUIImpl.createIntInput
 import me.anno.engine.ui.input.ComponentUIImpl.createLongArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createShortArrayInput
 import me.anno.engine.ui.input.ComponentUIImpl.createShortInput
-import me.anno.engine.ui.input.ComponentUIImpl.createUByteInput
-import me.anno.engine.ui.input.ComponentUIImpl.createUIntInput
-import me.anno.engine.ui.input.ComponentUIImpl.createUShortInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector2dInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector2fInput
 import me.anno.engine.ui.input.ComponentUIImpl.createVector3dInput
@@ -253,7 +248,6 @@ object ComponentUI {
             is Boolean,
             is Char,
             is Byte, is Short, is Int, is Long,
-            is UByte, is UShort, is UInt, is ULong,
             is Float, is Double,
             is String,
                 // float vectors
@@ -439,9 +433,7 @@ object ComponentUI {
             // native types
             "Bool", "Boolean" -> return createBooleanInput(title, ttt, value, default, property, style)
             "Byte" -> return createByteInput(title, visibilityKey, value, default, property, range, style)
-            "UByte" -> return createUByteInput(title, visibilityKey, value, default, property, range, style)
             "Short" -> return createShortInput(title, visibilityKey, value, default, property, range, style)
-            "UShort" -> return createUShortInput(title, visibilityKey, value, default, property, range, style)
             "Int", "Integer" -> {
                 return if (title.endsWith("color", true)) {
                     ColorInput(title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true, style).apply {
@@ -455,7 +447,6 @@ object ComponentUI {
                     }
                 } else createIntInput(title, visibilityKey, value, default, property, range, style)
             }
-            "UInt" -> return createUIntInput(title, visibilityKey, value, default, property, range, style)
             "Long" -> {
                 val type = NumberType(default as? Long ?: 0L,
                     { clamp(AnyToLong.getLong(it, 0), range.minLong(), range.maxLong()) }, { it })
@@ -467,20 +458,6 @@ object ComponentUI {
                     setResetListener { property.reset(this).toString() }
                     setChangeListener {
                         property.set(this, it)
-                    }
-                }
-            }
-            "ULong" -> {// not fully supported
-                val type = NumberType(default as? ULong ?: 0uL,
-                    { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
-                return IntInput(title, visibilityKey, type, style).apply {
-                    alignmentX = AxisAlignment.FILL
-                    property.init(this)
-                    setValue((value as ULong).toLong(), false)
-                    askForReset(property) { setValue((it as ULong).toLong(), false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toULong())
                     }
                 }
             }
@@ -1046,15 +1023,6 @@ object ComponentUI {
             sampleUI.windowStack, NameDesc("Choose $type1"),
             listOf(ScrollPanelY(mainList, style), buttons)
         )
-    }
-
-    fun Any?.toULong2(): ULong {
-        return when (this) {
-            is Long -> toULong()
-            is ULong -> this
-            is String -> toULong(10)
-            else -> AnyToLong.getLong(this, 0).toULong()
-        }
     }
 
     fun instanceOf(clazz: KClass<*>, tested: KClass<*>): Boolean {

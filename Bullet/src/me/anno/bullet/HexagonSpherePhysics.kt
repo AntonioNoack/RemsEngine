@@ -11,6 +11,7 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toIntOr
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.joml.Quaternionf
@@ -50,7 +51,7 @@ class HexagonSpherePhysics(
         if (hexagon == null) teleport(currPosition, false)
 
         // if the velocity is too large, apply sub-steps
-        val steps = max(1, (2f * velocity.length() / sphere.len).toInt())
+        val steps = max(1, (2f * velocity.length() / sphere.len).toIntOr())
         val dt = dt0 / steps
         val up = JomlPools.vec3f.borrow()
         for (i in 0 until steps) {

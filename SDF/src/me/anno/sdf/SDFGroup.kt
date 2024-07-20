@@ -14,6 +14,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.last2
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -521,7 +522,7 @@ open class SDFGroup : SDFComponent() {
                         // child with the largest weight
                         pos.set(px, py, pz, 0f)
                         val enabled = children.filter { it.isEnabled }
-                        return enabled[clamp(progress.roundToInt(), 0, enabled.lastIndex)]
+                        return enabled[clamp(progress.roundToIntOr(), 0, enabled.lastIndex)]
                             .findClosestComponent(pos, seeds)
                     }
                     CombinationMode.ENGRAVE,

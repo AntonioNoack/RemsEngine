@@ -11,6 +11,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
 import kotlin.math.abs
 import kotlin.math.max
@@ -89,10 +90,10 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     private fun swipe(deltaPos: Float) {
         if (deltaPos == 0f) return
-        val oldPosition = targetPosition.roundToInt()
+        val oldPosition = targetPosition.roundToIntOr()
         invalidateDrawing()
         targetPosition = clamp(targetPosition - deltaPos * swipeSpeed, -leftBounce, (children.size - 1) + rightBounce)
-        val newPosition = targetPosition.roundToInt()
+        val newPosition = targetPosition.roundToIntOr()
         if (oldPosition != newPosition) {
             invalidateLayout()
         }
@@ -104,7 +105,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         super.setPosition(x, y)
         when (transitionType) {
             TransitionType.INSTANT -> {
-                val posIndex = position.roundToInt()
+                val posIndex = position.roundToIntOr()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
                         placeChild(child, x, y, width, height)
@@ -115,7 +116,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             }
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (width * (index - position)).roundToInt()
+                    val offset = (width * (index - position)).roundToIntOr()
                     placeChild(child, x + offset, y, width, height)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                     // todo for rotated children, set their approximate position properly
@@ -123,7 +124,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             }
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (height * (index - position)).roundToInt()
+                    val offset = (height * (index - position)).roundToIntOr()
                     placeChild(child, x, y + offset, width, height)
                     child.weight2 = (index - position) * rotationStrengthRadians // unused field abused ^^
                 }

@@ -4,9 +4,10 @@ import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.AnyToLong.getLong
+import me.anno.utils.types.Floats.toLongOr
 import org.joml.Planed
 import org.joml.Planef
-import org.joml.Quaternionf
+import org.joml.Vector
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
@@ -26,12 +27,9 @@ object Casting {
     fun castToLong(it: Any?): Long? = when (it) {
         is Int -> it.toLong()
         is Long -> it
-        is Float -> it.toLong()
-        is Double -> it.toLong()
-        is Vector2f -> it.x.toLong()
-        is Vector3f -> it.x.toLong()
-        is Vector4f -> it.x.toLong()
-        is Quaternionf -> it.x.toLong()
+        is Float -> it.toLongOr()
+        is Double -> it.toLongOr()
+        is Vector -> it.getComp(0).toLongOr()
         is String -> it.toLongOrNull()
         else -> null
     }
@@ -45,10 +43,7 @@ object Casting {
         is Long -> it.toDouble()
         is Float -> it.toDouble()
         is Double -> it
-        is Vector2f -> it.x.toDouble()
-        is Vector3f -> it.x.toDouble()
-        is Vector4f -> it.x.toDouble()
-        is Quaternionf -> it.x.toDouble()
+        is Vector -> it.getComp(0)
         is String -> it.toDoubleOrNull()
         else -> null
     }
@@ -59,10 +54,10 @@ object Casting {
         is Float -> Vector2f(it)
         is Double -> Vector2f(it.toFloat())
         is Vector2f -> it
-        is Vector3f -> Vector2f(it.x, it.y)
-        is Vector4f -> Vector2f(it.x, it.y)
-        is Vector4d -> Vector2f(it.x.toFloat(), it.y.toFloat())
-        is Quaternionf -> Vector2f(it.x, it.y)
+        is Vector -> Vector2f(
+            it.getCompOr(0).toFloat(),
+            it.getCompOr(1).toFloat()
+        )
         else -> null
     }
 
@@ -72,6 +67,10 @@ object Casting {
         is Float -> Vector2d(it.toDouble())
         is Double -> Vector2d(it)
         is Vector2d -> it
+        is Vector -> Vector2d(
+            it.getCompOr(0),
+            it.getCompOr(1)
+        )
         else -> null
     }
 
@@ -80,11 +79,12 @@ object Casting {
         is Long -> Vector3f(it.toFloat())
         is Float -> Vector3f(it)
         is Double -> Vector3f(it.toFloat())
-        is Vector2f -> Vector3f(it, 0f)
         is Vector3f -> it
-        is Vector4d -> Vector3f(it.x.toFloat(), it.y.toFloat(), it.z.toFloat())
-        is Vector4f -> Vector3f(it.x, it.y, it.z)
-        is Quaternionf -> Vector3f(it.x, it.y, it.z)
+        is Vector -> Vector3f(
+            it.getCompOr(0).toFloat(),
+            it.getCompOr(1).toFloat(),
+            it.getCompOr(2).toFloat()
+        )
         else -> null
     }
 
@@ -94,6 +94,11 @@ object Casting {
         is Float -> Vector3d(it.toDouble())
         is Double -> Vector3d(it)
         is Vector3d -> it
+        is Vector -> Vector3d(
+            it.getCompOr(0),
+            it.getCompOr(1),
+            it.getCompOr(2)
+        )
         else -> null
     }
 
@@ -102,27 +107,13 @@ object Casting {
         is Long -> Vector4f(it.toFloat())
         is Float -> Vector4f(it)
         is Double -> Vector4f(it.toFloat())
-        is Vector2f -> Vector4f(it.x, it.x, it.x, it.y)
-        is Vector3f -> Vector4f(it, 1f)
         is Vector4f -> it
-        is Vector4d -> Vector4f(it.x.toFloat(), it.y.toFloat(), it.z.toFloat(), it.w.toFloat())
-        is Quaternionf -> Vector4f(it.x, it.y, it.z, it.w)
-        else -> null
-    }
-
-    fun castToPlanef(it: Any?): Planef? = when (it) {
-        is Vector4f -> Planef(it.x, it.y, it.z, it.w)
-        is Planef -> it
-        is Vector4d -> Planef(it.x.toFloat(), it.y.toFloat(), it.z.toFloat(), it.w.toFloat())
-        is Planed -> Planef(it.dirX.toFloat(), it.dirY.toFloat(), it.dirZ.toFloat(), it.distance.toFloat())
-        else -> null
-    }
-
-    fun castToPlaned(it: Any?): Planed? = when (it) {
-        is Vector4f -> Planed(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.w.toDouble())
-        is Planef -> Planed(it.dirX.toDouble(), it.dirY.toDouble(), it.dirZ.toDouble(), it.distance.toDouble())
-        is Vector4d -> Planed(it.x, it.y, it.z, it.w)
-        is Planed -> it
+        is Vector -> Vector4f(
+            it.getCompOr(0).toFloat(),
+            it.getCompOr(1).toFloat(),
+            it.getCompOr(2).toFloat(),
+            it.getCompOr(3, 1.0).toFloat()
+        )
         else -> null
     }
 
@@ -131,11 +122,35 @@ object Casting {
         is Long -> Vector4d(it.toDouble())
         is Float -> Vector4d(it.toDouble())
         is Double -> Vector4d(it)
-        is Vector2f -> Vector4d(it.x.toDouble(), it.y.toDouble(), it.x.toDouble(), it.y.toDouble())
-        is Vector3f -> Vector4d(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), 1.0)
-        is Vector4f -> Vector4d(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.w.toDouble())
         is Vector4d -> it
-        is Quaternionf -> Vector4d(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.w.toDouble())
+        is Vector -> Vector4d(
+            it.getCompOr(0),
+            it.getCompOr(1),
+            it.getCompOr(2),
+            it.getCompOr(3, 1.0)
+        )
+        else -> null
+    }
+
+    fun castToPlanef(it: Any?): Planef? = when (it) {
+        is Planef -> it
+        is Vector -> Planef(
+            it.getCompOr(0).toFloat(),
+            it.getCompOr(1).toFloat(),
+            it.getCompOr(2).toFloat(),
+            it.getCompOr(3).toFloat()
+        )
+        else -> null
+    }
+
+    fun castToPlaned(it: Any?): Planed? = when (it) {
+        is Planed -> it
+        is Vector -> Planed(
+            it.getCompOr(0),
+            it.getCompOr(1),
+            it.getCompOr(2),
+            it.getCompOr(3)
+        )
         else -> null
     }
 

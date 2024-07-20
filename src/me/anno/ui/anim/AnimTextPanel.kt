@@ -23,6 +23,7 @@ import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.round
@@ -112,7 +113,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         } else {
             val lines = lines
             var sizeX = 0
-            val lineOffset = (font.size * (1f + lineSpacing)).roundToInt()
+            val lineOffset = (font.size * (1f + lineSpacing)).roundToIntOr()
             for (index in lines.indices) {
                 val s = lines[index]
                 val size = drawText2(dx, dy + index * lineOffset, s)
@@ -191,9 +192,9 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
 
             val group = getTextGroup(text.first)
 
-            val textWidth = group.offsets.last().toFloat()
+            val textWidth = group.offsets.last()
 
-            val dxi = DrawTexts.getOffset(textWidth.roundToInt(), alignX)
+            val dxi = DrawTexts.getOffset(textWidth.roundToIntOr(), alignX)
             val dyi = DrawTexts.getOffset(font.sampleHeight, alignY)
 
             val y2 = (y + dyi).toFloat()
@@ -226,7 +227,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                 }
             }
 
-            totalWidth = textWidth.roundToInt()
+            totalWidth = textWidth.roundToIntOr()
         }
 
         transform.set(backup)

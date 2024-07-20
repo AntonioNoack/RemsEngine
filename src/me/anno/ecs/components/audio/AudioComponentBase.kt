@@ -14,6 +14,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.render.RenderState
 import me.anno.io.MediaMetadata
+import me.anno.utils.types.Floats.toLongOr
 import org.joml.Vector3f
 import org.lwjgl.openal.AL11.AL_EXPONENT_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL11.AL_INVERSE_DISTANCE_CLAMPED
@@ -129,7 +130,7 @@ abstract class AudioComponentBase : Component(), OnUpdate {
         addAudioTask("start", 1) {
             stream0?.stop()
             stream1?.stop()
-            startTime = Time.nanoTime - (startTime0 * 1e9).toLong()
+            startTime = Time.nanoTime - (startTime0 * 1e9).toLongOr()
             this as AudioComponent
             // todo wait for meta async
             val meta = MediaMetadata.getMeta(source, false)

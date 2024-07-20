@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.structures.lists.Lists.count2
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -151,7 +152,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                             (perWeight * child.weight)
                         } else {
                             (minWFactor * child.minW)
-                        }.roundToInt()
+                        }.roundToIntOr()
                         val currentW = currentX - currentX0
                         val remainingW = availableW - currentW
                         childW = min(childW, remainingW)

@@ -33,6 +33,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning
 import me.anno.utils.structures.maps.Maps.removeIf
+import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import kotlin.math.abs
@@ -171,8 +172,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val window = window
             if (window != null) {
                 val size = max(window.height, 0)
-                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(size / 120f).roundToInt())
-                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(size / 50f).roundToInt())
+                if (lineThickness < 0) lineThickness = Maths.max(1, sqrt(size / 120f).roundToIntOr())
+                if (lineThicknessBold < 0) lineThicknessBold = Maths.max(1, sqrt(size / 50f).roundToIntOr())
             }
         }
     }

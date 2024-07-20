@@ -7,6 +7,8 @@ import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble
+import me.anno.utils.types.Floats.roundToIntOr
+import me.anno.utils.types.Floats.roundToLongOr
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -119,8 +121,8 @@ open class FloatInput(
                 is Boolean -> value >= 0.5
                 is Float -> value.toFloat()
                 is Double -> value
-                is Int -> value.roundToInt()
-                is Long -> value.roundToLong()
+                is Int -> value.roundToIntOr()
+                is Long -> value.roundToLongOr()
                 is Vector2f, is Vector3f,
                 is Vector4f, is Quaternionf -> value.toFloat()
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")

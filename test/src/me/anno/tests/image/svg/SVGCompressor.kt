@@ -9,6 +9,7 @@ import me.anno.io.xml.generic.XMLReader
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Matrix3x2f
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -40,7 +41,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
     val sc = min(dw / viewBox[2], dh / viewBox[3])
     bld.append("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 $dw $dh\">")
 
-    fun f(f: Float) = f.roundToInt()
+    fun f(f: Float) = f.roundToIntOr()
 
     fun String.shorten(): String {
         return replace(" -", "-")

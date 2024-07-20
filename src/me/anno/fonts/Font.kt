@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.roundToInt
 
 class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
@@ -56,7 +57,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
             }
         }
 
-    val sizeInt get() = size.roundToInt()
+    val sizeInt get() = size.roundToIntOr()
     val sizeIndex get() = FontManager.getFontSizeIndex(size)
 
     var sample = lazy { SampleSize(this) }

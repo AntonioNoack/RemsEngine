@@ -11,6 +11,7 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.structures.Iterators.filter
 import me.anno.utils.structures.Iterators.toList
+import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.roundToInt
 
 fun main() {
@@ -83,7 +84,7 @@ fun convert() {
                 val x = ((width - 0.01f) * (xf - minX) / (maxX - minX)).toInt()
                 val y = ((height - 0.01f) * (yf - minY) / (maxY - minY)).toInt()
                 val i = i0 + x + y * tw
-                val h = (z * 10f).roundToInt()
+                val h = (z * 10f).roundToIntOr()
                 joined[i] = rgba(h.shr(8).and(255), h.and(255), 0, 255)
             }
         }

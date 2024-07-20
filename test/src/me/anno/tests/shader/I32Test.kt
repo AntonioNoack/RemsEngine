@@ -16,6 +16,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.mesh.Shapes.flatCube
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
@@ -60,7 +61,7 @@ fun main() {
     val spawner = object : MeshSpawner() {
 
         val maxCount = 30
-        val count get() = ((sin(Time.gameTime) * 0.5 + 0.5) * maxCount).roundToInt()
+        val count get() = ((sin(Time.gameTime) * 0.5 + 0.5) * maxCount).roundToIntOr()
 
         override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
             // the size is changing constantly, so it would be best to calculate the maximum size

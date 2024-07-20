@@ -89,6 +89,7 @@ import me.anno.utils.files.OpenFileExternally.openInStandardProgram
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportTypeByExtension
@@ -475,7 +476,7 @@ open class FileExplorerEntry(
      * show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
      * */
     private fun drawVideoProgress(x0: Int, y0: Int, x1: Int, y1: Int, meta: MediaMetadata) {
-        val totalSeconds = (meta.duration).roundToInt()
+        val totalSeconds = (meta.duration).roundToIntOr()
         val needsHours = totalSeconds >= 3600
         val seconds = max((time % meta.duration).toInt(), 0)
 
@@ -557,7 +558,7 @@ open class FileExplorerEntry(
         }
         if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
             val duration = meta.duration
-            val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
+            val digits = if (duration < 60) max((1.5 - log10(duration)).roundToIntOr(), 0) else 0
             ttt.append('\n').append(meta.duration.formatTime(digits))
         }
     }

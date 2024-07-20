@@ -13,6 +13,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.AABBf
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -81,7 +82,7 @@ class SDFRotSym : PositionMapper() {
 
     override fun applyTransform(bounds: AABBf) {
         // around the axis, apply this transform x times, and union with the points...
-        val slices = clamp(slices, 1f, 8f).roundToInt()
+        val slices = clamp(slices.roundToIntOr(1), 1, 8)
         val quat = JomlPools.quat4f.create().set(rotation)
         val quatInv = JomlPools.quat4f.create().set(quat).invert()
         val pos = JomlPools.vec3f.create()

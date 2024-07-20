@@ -678,9 +678,16 @@ open class Vector3f(
         return this
     }
 
-    fun roundToInt(dst: Vector3i = Vector3i()) = dst.set(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun is000() = x == 0f && y == 0f && z == 0f
-    fun is111() = x == 1f && y == 1f && z == 1f
+    fun roundToInt(dst: Vector3i = Vector3i()): Vector3i {
+        return dst.set(
+            if (x.isNaN()) 0 else x.roundToInt(),
+            if (y.isNaN()) 0 else y.roundToInt(),
+            if (z.isNaN()) 0 else z.roundToInt()
+        )
+    }
+
+    fun is000(): Boolean = x == 0f && y == 0f && z == 0f
+    fun is111(): Boolean = x == 1f && y == 1f && z == 1f
 
     fun findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)

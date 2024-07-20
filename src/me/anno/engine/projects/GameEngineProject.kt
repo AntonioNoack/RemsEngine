@@ -20,6 +20,7 @@ import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.types.Floats.toLongOr
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 
@@ -139,7 +140,7 @@ class GameEngineProject() : NamedSaveable() {
             thread(name = "Indexing Resources") {
                 val progressBar = GFX.someWindow.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
                     override fun formatProgress(): String {
-                        return "$name: ${progress.toLong()} / ${total.toLong()} $unit"
+                        return "$name: ${progress.toLongOr()} / ${total.toLongOr()} $unit"
                     }
                 })
                 val filesToIndex = ArrayList<FileReference>()

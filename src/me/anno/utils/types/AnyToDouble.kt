@@ -36,22 +36,6 @@ object AnyToDouble {
                 0 -> if (this) 1.0 else 0.0
                 else -> defaultValue
             }
-            is UByte -> when (index) {
-                0 -> this.toDouble()
-                else -> defaultValue
-            }
-            is UShort -> when (index) {
-                0 -> this.toDouble()
-                else -> defaultValue
-            }
-            is UInt -> when (index) {
-                0 -> this.toDouble()
-                else -> defaultValue
-            }
-            is ULong -> when (index) {
-                0 -> this.toDouble()
-                else -> defaultValue
-            }
             is Vector -> getCompOr(index, defaultValue)
             is Enum<*> -> ordinal.toDouble()
             is CharSequence -> toString()

@@ -21,6 +21,7 @@ import me.anno.maths.Maths.unmix
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -624,7 +625,7 @@ class SVGMesh {
 
         val angleDegrees = deltaTheta * 180 / PI
 
-        val steps = max(3, (abs(angleDegrees) * stepsPerDegree).roundToInt())
+        val steps = max(3, (abs(angleDegrees) * stepsPerDegree).roundToIntOr())
         for (i in 1 until steps) {
             val theta = theta0 + deltaTheta * i / steps
             val localX2 = rx * cos(theta)
@@ -740,7 +741,7 @@ class SVGMesh {
     }
 
     fun addSimpleEllipse(cx: Float, cy: Float, rx: Float, ry: Float) {
-        val steps = max(7, (360 * stepsPerDegree).roundToInt())
+        val steps = max(7, (360 * stepsPerDegree).roundToIntOr())
         moveTo(cx + rx, cy)
         for (i in 1 until steps) {
             val f = TAUf * i / steps
@@ -763,7 +764,7 @@ class SVGMesh {
         val w = xml["width"]!!.toFloat()
         val h = xml["height"]!!.toFloat()
 
-        val curveSteps = max(rx, ry).roundToInt()
+        val curveSteps = max(rx, ry).roundToIntOr(2)
 
         if (rx > 0f || ry > 0f) {
 
@@ -826,7 +827,7 @@ class SVGMesh {
     }
 
     fun steps(dx1: Float, dy1: Float, dx2: Float, dy2: Float) =
-        max((angleDegrees(dx1, dy1, dx2, dy2) * stepsPerDegree).roundToInt(), 2)
+        max((angleDegrees(dx1, dy1, dx2, dy2) * stepsPerDegree).roundToIntOr(2), 2)
 
     fun cubicTo(x1: Float, y1: Float, x2: Float, y2: Float, x: Float, y: Float) {
 

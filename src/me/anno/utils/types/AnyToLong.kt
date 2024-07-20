@@ -17,10 +17,6 @@ object AnyToLong {
                 0 -> value
                 else -> defaultValue
             }
-            is ULong -> when (index) {
-                0 -> value.toLong()
-                else -> defaultValue
-            }
             is CharSequence -> value.toLongOrDefault(defaultValue)
             else -> {
                 val v = AnyToDouble.getDouble(value, index, Double.NaN)
