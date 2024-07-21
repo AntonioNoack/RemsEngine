@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.Engine
 import me.anno.cache.IgnoredException
 import me.anno.io.files.Signature
 import me.anno.maths.Maths.clamp
@@ -32,10 +33,9 @@ object VideoStreamWorker {
                     try {
                         waitForMetadata(parser)
                         if (codec.isNotEmpty() && codec != FFMPEGMetaParser.invalidCodec) {
-                            val input = process.inputStream
-                            input.use {
+                            process.inputStream.use {
                                 readFrame(it)
-                                while (id == self.workerId.get()) {
+                                while (id == self.workerId.get() && !Engine.shutdown) {
                                     loadNextFrameMaybe(it)
                                 }
                             }
