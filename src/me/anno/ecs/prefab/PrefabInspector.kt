@@ -1,20 +1,20 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.annotations.Group
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.interfaces.InputListener
-import me.anno.ecs.prefab.PropertyTracking.createTrackingButton
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.PrefabChanges
 import me.anno.engine.EngineBase.Companion.workspace
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
-import me.anno.engine.inspector.CachedProperty
-import me.anno.engine.inspector.CachedReflections
 import me.anno.engine.inspector.Inspectable
+import me.anno.engine.inspector.InspectorUtils.showDebugActions
+import me.anno.engine.inspector.InspectorUtils.showDebugProperties
+import me.anno.engine.inspector.InspectorUtils.showDebugWarnings
+import me.anno.engine.inspector.InspectorUtils.showEditorFields
+import me.anno.engine.inspector.InspectorUtils.showProperties
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
@@ -28,31 +28,24 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
-import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
-import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
-import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten2Way
 import org.apache.logging.log4j.LogManager
-import java.util.Comparator
-import kotlin.reflect.jvm.javaMethod
 
 /**
  * creates UI to inspect and edit PrefabSaveables
@@ -221,114 +214,19 @@ class PrefabInspector(var reference: FileReference) {
         showDebugWarnings(list, reflections, instances, style)
         showDebugActions(list, reflections, instances, style)
         showDebugProperties(list, reflections, instances, style)
-        showEditorProperties(list, reflections, instances, style, isWritable)
-
-        val allProperties = reflections.allProperties
+        showEditorFields(list, reflections, instances, style, isWritable) { property, relevantInstances ->
+            PrefabSaveableProperty(this, relevantInstances as List<PrefabSaveable>, property.name, property)
+        }
 
         // todo place actions into these groups
-        showProperties(list, reflections, instances, style, allProperties, isWritable)
+        showProperties(list, reflections, instances, style, isWritable) { property, relevantInstances ->
+            PrefabSaveableProperty(this, relevantInstances as List<PrefabSaveable>, property.name, property)
+        }
 
         val instance = instances.first()
         val types = instance.listChildTypes()
         for (i in types.indices) {
             showChildType(list, types[i], instance, style, isWritable)
-        }
-    }
-
-    fun applyGroupStyle(tp: TextPanel): TextPanel {
-        tp.textColor = tp.textColor and 0x7fffffff
-        tp.focusTextColor = tp.textColor
-        tp.isItalic = true
-        return tp
-    }
-
-    private fun showEditorProperties(
-        list: PanelList, reflections: CachedReflections,
-        instances: List<PrefabSaveable>, style: Style,
-        isWritable: Boolean
-    ) {
-        for (field in reflections.editorFields) {
-            val property = reflections.allProperties[field.name]
-            if (property != null) {
-                val name = property.name
-                showProperty(list, reflections, name, property, instances, style, isWritable)
-            } else {
-                LOGGER.warn("Missing property ${field.name}")
-            }
-        }
-    }
-
-    private fun showProperty(
-        list: PanelList, reflections: CachedReflections,
-        name: String, property: CachedProperty,
-        relevantInstances: List<PrefabSaveable>, style: Style,
-        isWritable: Boolean
-    ) {
-        try {
-            val property2 = PrefabSaveableProperty(this, relevantInstances, name, property)
-            val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: return
-            panel.tooltip = property.description
-            panel.forAllPanels { panel2 ->
-                if (panel2 is InputPanel<*>) {
-                    panel2.isInputAllowed = isWritable
-                }
-            }
-            list.add(panel)
-        } catch (e: Error) {
-            RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                .printStackTrace()
-        } catch (e: ClassCastException) { // why is this not covered by the catch above?
-            RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                .printStackTrace()
-        } catch (e: Exception) {
-            RuntimeException("Error from ${reflections.clazz}, property $name", e)
-                .printStackTrace()
-        }
-    }
-
-    private fun showProperties(
-        list: PanelList, reflections: CachedReflections, instances: List<PrefabSaveable>, style: Style,
-        allProperties: Map<String, CachedProperty>, isWritable: Boolean,
-    ) {
-        val properties = reflections.propertiesByClass
-        for (i in properties.size - 1 downTo 0) {
-            val (clazz, propertyNames) = properties[i]
-            val relevantInstances = instances.filter { clazz.isInstance(it) }
-
-            var hadIntro = false
-            val defaultGroup = ""
-            var lastGroup = ""
-
-            for (name in propertyNames
-                .sortedWith { a, b ->
-                    val pa = allProperties[a]!!
-                    val pb = allProperties[b]!!
-                    val ga = pa.group ?: defaultGroup
-                    val gb = pb.group ?: defaultGroup
-                    ga.compareTo(gb).ifSame(pa.order.compareTo(pb.order))
-                }) {
-
-                LOGGER.info("Showing property $name for class ${clazz.simpleName}")
-
-                val property = allProperties[name]!!
-                if (!property.serialize) continue
-                val firstInstance = relevantInstances.first()
-                if (property.hideInInspector.any { it(firstInstance) }) continue
-
-                val group = property.group ?: ""
-                if (group != lastGroup) {
-                    lastGroup = group
-                    // add title for group
-                    list.add(applyGroupStyle(TextPanel(group.camelCaseToTitle(), style)))
-                }
-
-                if (!hadIntro) {
-                    hadIntro = true
-                    val className = clazz.simpleName
-                    list.add(applyGroupStyle(TextPanel(className ?: "Anonymous", style)))
-                }
-                showProperty(list, reflections, name, property, relevantInstances, style, isWritable)
-            }
         }
     }
 
@@ -459,90 +357,6 @@ class PrefabInspector(var reference: FileReference) {
             val index = customEditModes.indexOf(editMode) + 1
             EditorState.editMode = customEditModes.getOrNull(index)
         })
-    }
-
-    private fun showDebugWarnings(
-        list: PanelList,
-        reflections: CachedReflections,
-        instances: List<PrefabSaveable>,
-        style: Style
-    ) {
-        for (warn in reflections.debugWarnings) {
-            val title = warn.name.camelCaseToTitle()
-            list.add(UpdatingTextPanel(500L, style) {
-                formatWarning(title, instances.firstNotNullOfOrNull { warn.getter(it) })
-            }.apply { textColor = black or 0xffff33 })
-        }
-    }
-
-    private fun showDebugActions(
-        list: PanelList,
-        reflections: CachedReflections,
-        instances: List<PrefabSaveable>,
-        style: Style
-    ) {
-        val debugActionWrapper = PanelListY(style)
-        for (action in reflections.debugActions) {
-            val clazz = action.javaMethod?.declaringClass ?: continue
-            // todo if there are extra arguments, we would need to create a list inputs for them
-            /* for (param in action.parameters) {
-                     param.kind
-            } */
-            val title = action.name.camelCaseToTitle()
-            val button = TextButton(title, style)
-                .addLeftClickListener {
-                    // could become a little heavy....
-                    for (instance in instances) {
-                        if (clazz.isInstance(instance)) {
-                            action.call(instance)
-                        }
-                    }
-                    invalidateUI(true) // typically sth would have changed -> show that automatically
-                }
-            debugActionWrapper.add(button)
-        }
-        debugActionWrapper.alignmentX = AxisAlignment.MIN
-        list.add(debugActionWrapper)
-    }
-
-    /**
-     * debug properties: text showing the value, constantly updating
-     * */
-    private fun showDebugProperties(
-        list: PanelList, reflections: CachedReflections,
-        instances: List<PrefabSaveable>, style: Style
-    ) {
-        // group them by their @Group-value
-        for ((group, properties) in reflections.debugProperties
-            .groupBy { it.annotations.firstInstanceOrNull<Group>()?.name ?: "" }
-            .toSortedMap()) {
-            val helper = if (group.isNotEmpty()) { // show title for group
-                val sc = SettingCategory(NameDesc(group), style)
-                list.add(sc)
-                sc.content
-            } else list
-            for (property in properties) {
-                showDebugProperty(helper, property, style, instances)
-            }
-        }
-    }
-
-    private fun showDebugProperty(
-        list: PanelList, property: CachedProperty, style: Style,
-        instances: List<PrefabSaveable>
-    ) {
-        val title = property.name.camelCaseToTitle()
-        val getter = property.getter
-        val list1 = PanelListX(style)
-        list1.add(TextPanel("$title:", style))
-        val relevantInstances = instances.filter { it::class == instances.first()::class }
-        list1.add(UpdatingTextPanel(100L, style) {
-            relevantInstances
-                .joinToString { getter(it).toString() }
-                .shorten2Way(200)
-        })
-        list.add(list1)
-        createTrackingButton(list, list1, relevantInstances, property, style)
     }
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {

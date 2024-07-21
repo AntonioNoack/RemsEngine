@@ -164,35 +164,34 @@ class CachedReflections private constructor(
 
         fun getPropertiesByDeclaringClass(
             classes: List<KClass<*>>, allProperties: Map<String, CachedProperty>
-        ): List<Pair<KClass<*>, List<String>>> {
+        ): List<Pair<KClass<*>, List<CachedProperty>>> {
             // the earlier something is found, the better
             val doneNames = HashSet<String>()
-            val result = ArrayList<Pair<KClass<*>, List<String>>>(classes.size)
+            val result = ArrayList<Pair<KClass<*>, List<CachedProperty>>>(classes.size)
             for (ci in classes.indices.reversed()) {
                 val clazz2 = classes[ci]
                 val clazz2i = clazz2.java
                 val methods = allMethods(clazz2i, ArrayList())
                 val fields = allFields(clazz2i, ArrayList())
-                val partialResult = ArrayList<String>()
-                for ((name, _) in findProperties(fields, methods)) {
+                val partialResult = ArrayList<CachedProperty>()
+                for ((name, property) in findProperties(fields, methods)) {
                     if (allProperties[name]?.serialize != true) {
                         LOGGER.warn("Skipping $name, not serialized")
                         continue
                     } // not serialized
                     if (doneNames.add(name)) {
-                        partialResult.add(name)
+                        partialResult.add(property)
                     }
                 }
-                partialResult.sort()
+                partialResult.sortBy { it.name }
                 result.add(clazz2 to partialResult)
             }
-            result.reverse()
             return result
         }
 
         fun getPropertiesByDeclaringClass(
             clazz: KClass<*>, allProperties: Map<String, CachedProperty>
-        ): List<Pair<KClass<*>, List<String>>> {
+        ): List<Pair<KClass<*>, List<CachedProperty>>> {
             val classes = listClasses(clazz)
             return getPropertiesByDeclaringClass(classes, allProperties)
         }

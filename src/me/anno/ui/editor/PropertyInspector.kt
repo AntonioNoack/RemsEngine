@@ -42,20 +42,54 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         alwaysShowShadowY = true
         oldValues.makeBackgroundTransparent()
         searchPanel.addChangeListener { searchTerms ->
-            // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
+
             val search = Search(searchTerms)
-            for ((index, child) in oldValues.children.withIndex()) {
-                if (index > 0) {
-                    // join all text (below a certain limit), and search that
-                    // could be done more efficient
-                    val joined = StringBuilder()
-                    child.forAllPanels { panel ->
-                        if (panel is TextPanel) {
-                            joined.append(panel.text)
-                            joined.append(' ')
-                        }
+
+            LOGGER.info("Applying search '$searchTerms', $search, all? ${search.matchesEverything()}")
+
+            val joined = StringBuilder()
+            fun join(child: Panel): CharSequence {
+                joined.clear()
+                child.forAllPanels { panel ->
+                    if (panel is TextPanel) {
+                        joined.append(panel.text)
+                        joined.append(' ')
                     }
-                    child.isVisible = search.matches(joined.toString())
+                }
+                return joined
+            }
+
+            fun handleVisibility(child: Panel): Boolean {
+                // join all text (below a certain limit), and search that
+                // could be done more efficient
+                val matches = search.matches(join(child))
+                child.isVisible = matches
+                return matches
+            }
+
+            val list0 = oldValues.children
+            for (i in 1 until list0.size) {
+                val child = list0[i]
+                if (child is SettingCategory) {
+                    if (search.matchesEverything()) {
+                        val list1 = child.content.children
+                        for (j in list1.indices) {
+                            list1[j].isVisible = true
+                        }
+                        child.isVisible = true
+                        child.visibilityByKey = defaultState.getOrPut(child.visibilityKey) { child.visibilityByKey }
+                    } else {
+                        val list1 = child.content.children
+                        var anyChildMatches = false
+                        for (j in list1.indices) { // all children need to be handled!
+                            anyChildMatches = handleVisibility(list1[j]) || anyChildMatches
+                        }
+                        child.isVisible = anyChildMatches
+                        defaultState.getOrPut(child.visibilityKey) { child.visibilityByKey }
+                        child.visibilityByKey = anyChildMatches
+                    }
+                } else {
+                    handleVisibility(child)
                 }
             }
         }
@@ -162,6 +196,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     companion object {
 
         private val LOGGER = LogManager.getLogger(PropertyInspector::class)
+        private val defaultState = HashMap<String, Boolean>()
 
         private fun createGroup(
             nameDesc: NameDesc, list: PanelListY,
@@ -170,7 +205,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             return groups.getOrPut(nameDesc.key) {
                 val group = SettingCategory(nameDesc, style)
                 list += group
-                group
+                group.showContent()
             }
         }
 
@@ -193,19 +228,20 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     val parent = uiParent
                     val win = GFX.activeWindow
                     val paddingForScrolling = 10
-                    sizeY = paddingForScrolling + if (win != null && window != null && win.windowStack.contains(window)) {
-                        if (parent != null && x + width >= window.width - FrameTimings.width) {
-                            if (EngineBase.showFPS) {
-                                max(
-                                    1,
-                                    window.y + min(
-                                        parent.y + parent.height,
-                                        window.height
-                                    ) + FrameTimings.height - win.height
-                                )
+                    sizeY =
+                        paddingForScrolling + if (win != null && window != null && win.windowStack.contains(window)) {
+                            if (parent != null && x + width >= window.width - FrameTimings.width) {
+                                if (EngineBase.showFPS) {
+                                    max(
+                                        1,
+                                        window.y + min(
+                                            parent.y + parent.height,
+                                            window.height
+                                        ) + FrameTimings.height - win.height
+                                    )
+                                } else 1
                             } else 1
                         } else 1
-                    } else 1
                 }
             }
             panel.name = "Spacing For FrameTimings"

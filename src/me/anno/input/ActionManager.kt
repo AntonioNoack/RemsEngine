@@ -5,7 +5,6 @@ import me.anno.config.ConfigRef
 import me.anno.gpu.OSWindow
 import me.anno.io.config.ConfigBasics.loadConfig
 import me.anno.io.files.InvalidRef
-import me.anno.io.saveable.Saveable
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap
@@ -119,27 +118,29 @@ object ActionManager : StringMap() {
     }
 
     @JvmStatic
-    fun onKeyTyped(window: OSWindow, key: Key) {
+    private fun onKeyXXX(window: OSWindow, key: Key, type: KeyCombination.Type) {
         if (key == Key.KEY_UNKNOWN) return
-        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
+        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, type), false)
+    }
+
+    @JvmStatic
+    fun onKeyTyped(window: OSWindow, key: Key) {
+        onKeyXXX(window, key, KeyCombination.Type.TYPED)
     }
 
     @JvmStatic
     fun onKeyUp(window: OSWindow, key: Key) {
-        if (key == Key.KEY_UNKNOWN) return
-        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
+        onKeyXXX(window, key, KeyCombination.Type.UP)
     }
 
     @JvmStatic
     fun onKeyDown(window: OSWindow, key: Key) {
-        if (key == Key.KEY_UNKNOWN) return
-        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
+        onKeyXXX(window, key, KeyCombination.Type.DOWN)
     }
 
     @JvmStatic
     fun onKeyDoubleClick(window: OSWindow, key: Key) {
-        if (key == Key.KEY_UNKNOWN) return
-        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
+        onKeyXXX(window, key, KeyCombination.Type.DOUBLE)
     }
 
     @JvmStatic
@@ -178,8 +179,12 @@ object ActionManager : StringMap() {
         var panel = stack.inFocus0
         if (stack.isEmpty() || stack.peek() != panel?.window) panel = null
         // filter action keys, if they are typing keys, and a typing field is in focus
-        val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
-        // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
+        val isWriting = panel != null && panel.isKeyInput() && when {
+            combination.isControl || combination.isAlt || combination.isSuper -> false
+            combination.key == Key.KEY_SPACE -> !Input.isShiftDown && panel.acceptsChar('\t'.code)
+            else -> true
+        }
+        // LOGGER.info("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
         if (!isWriting) {
             executeGlobally(window, 0f, 0f, false, globalKeyCombinations[combination])
         }
@@ -190,15 +195,16 @@ object ActionManager : StringMap() {
         val print = lastComb != combination
         // if (print) LOGGER.info("-- processing $universally, $combination")
         lastComb = combination
+        val lastParentClass = getParentClass(Panel::class)
         targetSearch@ while (panel != null) {
             val actions = localActions[panel.className, combination]
             if (processActions(panel, x, y, dx, dy, isContinuous, actions, print)) {
                 return true
             }
             // also check parent classes
-            var clazz: KClass<*> = panel::class
-            while (true) {
-                val entry = Saveable.getByClass(clazz)
+            var clazz: KClass<*>? = getParentClass(panel::class)
+            while (clazz != null && clazz != lastParentClass) {
+                val entry = getByClass(clazz)
                 val className = entry?.sampleInstance?.className ?: clazz.simpleName
                 if (className != null) {
                     val actions1 = localActions[className, combination]
@@ -206,8 +212,7 @@ object ActionManager : StringMap() {
                         return true
                     }
                 }
-                if (clazz == Panel::class) break
-                clazz = clazz.superclasses.firstOrNull() ?: break
+                clazz = getParentClass(clazz)
             }
             // and if nothing is found at all, check the universal list
             if (processActions(panel, x, y, dx, dy, isContinuous, globalActions, print)) {
@@ -216,6 +221,10 @@ object ActionManager : StringMap() {
             panel = panel.uiParent
         }
         return false
+    }
+
+    private fun getParentClass(clazz: KClass<*>): KClass<*>? {
+        return clazz.superclasses.firstOrNull()
     }
 
     @JvmField

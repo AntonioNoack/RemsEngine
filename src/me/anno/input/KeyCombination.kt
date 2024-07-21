@@ -2,6 +2,7 @@ package me.anno.input
 
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.structures.maps.BiMap
+import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 
@@ -9,11 +10,10 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
 
     val hash = key.ordinal.shl(8) + modifiers * 6 + type.id
 
-    val isControl = (modifiers and GLFW.GLFW_MOD_CONTROL) != 0
-    val isShift = (modifiers and GLFW.GLFW_MOD_SHIFT) != 0
-    val isAlt = (modifiers and GLFW.GLFW_MOD_ALT) != 0
-
-    val isWritingKey = !isControl && !isAlt && !(key == Key.KEY_SPACE && isShift)
+    val isControl: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_CONTROL)
+    val isShift: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_SHIFT)
+    val isAlt: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_ALT)
+    val isSuper: Boolean get() = modifiers.hasFlag(GLFW.GLFW_MOD_SUPER)
 
     enum class Type(val id: Int) {
         /** once when down; "down", "d" */

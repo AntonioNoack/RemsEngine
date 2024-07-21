@@ -140,8 +140,8 @@ class DataSetPanel(
             filters.clear()
         }
         for (x in x0 until sizeX) {
-            val name = reflectionsI.propertiesByClassList[x - x0]
-            val property = reflectionsI.allProperties[name]!!
+            val property = reflectionsI.propertiesByClassList[x - x0]
+            val name = property.name
             if (headers) {
                 fillInHeader(x, name, property)
             }

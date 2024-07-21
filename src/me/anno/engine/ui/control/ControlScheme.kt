@@ -99,37 +99,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         invalidateDrawing()
         if (control?.onKeyTyped(key) == true) return
         if (editMode?.onEditClick(key, false) == true) return
-        when (key) {
-            Key.CONTROLLER_RIGHT_THUMBSTICK_LEFT -> {
-                rotateCamera(0f, +settings.vrRotateLeftRight, 0f)
-                jumpRotate()
-            }
-            Key.CONTROLLER_RIGHT_THUMBSTICK_RIGHT -> {
-                rotateCamera(0f, -settings.vrRotateLeftRight, 0f)
-                jumpRotate()
-            }
-            Key.CONTROLLER_RIGHT_KEY_X -> {
-                // try shaking the camera
-                val ry = VROffset.additionalRotation.getEulerAnglesYXZ(Vector3f()).y
-                val noise = PerlinNoise(Time.nanoTime, 5, 0.5f, -0.05f, +0.05f)
-                var amplitude = 1f
-                var time = 0f
-                fun nextFrame() {
-                    val dt = uiDeltaTime.toFloat()
-                    time += dt * 30f
-                    amplitude *= dtTo10(dt * 5f)
-                    VROffset.additionalRotation
-                        .identity().rotateY(ry + noise[time, 2f] * amplitude)
-                        .rotateX(noise[time, 0f] * amplitude)
-                        .rotateZ(noise[time, 1f] * amplitude)
-                    if (amplitude > 1e-9f) {
-                        addEvent(1, ::nextFrame)
-                    }
-                }
-                nextFrame()
-            }
-            else -> super.onKeyTyped(x, y, key)
-        }
+        super.onKeyTyped(x, y, key)
     }
 
     fun jumpRotate() {
@@ -309,6 +279,35 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             velocity.x += (isKeyDown(Key.KEY_D).toInt() - isKeyDown(Key.KEY_A).toInt()) * acceleration
             velocity.z += (isKeyDown(Key.KEY_S).toInt() - isKeyDown(Key.KEY_W).toInt()) * acceleration
             velocity.y += (up.toInt() - down.toInt()) * acceleration
+        }
+
+        if (Input.wasKeyPressed(Key.CONTROLLER_RIGHT_THUMBSTICK_LEFT)) {
+            rotateCamera(0f, +settings.vrRotateLeftRight, 0f)
+            jumpRotate()
+        } else if (Input.wasKeyPressed(Key.CONTROLLER_RIGHT_THUMBSTICK_RIGHT)) {
+            rotateCamera(0f, -settings.vrRotateLeftRight, 0f)
+            jumpRotate()
+        }
+
+        if (Input.wasKeyPressed(Key.CONTROLLER_RIGHT_KEY_X)) {
+            // try shaking the camera
+            val ry = VROffset.additionalRotation.getEulerAnglesYXZ(JomlPools.vec3f.borrow()).y
+            val noise = PerlinNoise(Time.nanoTime, 5, 0.5f, -0.05f, +0.05f)
+            var amplitude = 1f
+            var time = 0f
+            fun updateShake() {
+                val dtI = uiDeltaTime.toFloat()
+                time += dtI * 30f
+                amplitude *= dtTo10(dtI * 5f)
+                VROffset.additionalRotation
+                    .identity().rotateY(ry + noise[time, 2f] * amplitude)
+                    .rotateX(noise[time, 0f] * amplitude)
+                    .rotateZ(noise[time, 1f] * amplitude)
+                if (amplitude > 1e-9f) {
+                    addEvent(1, ::updateShake)
+                }
+            }
+            updateShake()
         }
 
         for (i in Input.controllers.indices) {

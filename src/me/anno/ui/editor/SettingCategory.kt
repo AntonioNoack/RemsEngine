@@ -21,7 +21,9 @@ open class SettingCategory private constructor(
 
     constructor(nameDesc: NameDesc, style: Style) : this(nameDesc, false, style)
     constructor(nameDesc: NameDesc, withScrollbar: Boolean, style: Style) :
-            this(nameDesc, nameDesc.key, withScrollbar, style) { tooltip = nameDesc.desc }
+            this(nameDesc, nameDesc.key, withScrollbar, style) {
+        tooltip = nameDesc.desc
+    }
 
     val titlePanel = TextPanel(title, style.getChild("group"))
     val content = PanelListY(style)
@@ -38,14 +40,20 @@ open class SettingCategory private constructor(
         child.parent = this
     }
 
-    fun show2() {
-        InputVisibility.show(visibilityKey, null)
+    fun showContent(): SettingCategory {
+        InputVisibility.show(visibilityKey, child)
+        return this
     }
+
+    var visibilityByKey: Boolean
+        get() = InputVisibility[visibilityKey]
+        set(value) {
+            InputVisibility[visibilityKey] = value
+        }
 
     override fun onUpdate() {
         val visible = InputVisibility[visibilityKey]
         child.isVisible = visible
-        content.isVisible = visible
         super.onUpdate()
     }
 

@@ -87,7 +87,7 @@ interface WelcomeUI {
                 "ui.welcome.quickSettings.title"
             ), style
         )
-        quickSettings.show2()
+        quickSettings.showContent()
         welcome += quickSettings
 
         quickSettings += Dict.selectLanguage(style) {
@@ -157,7 +157,7 @@ interface WelcomeUI {
                 "ui.recentProjects.title"
             ), true, style
         )
-        recentProjects.show2()
+        recentProjects.showContent()
 
         registerCustomClass(GameEngineProject::class)
         for (project in recent) {
@@ -278,7 +278,7 @@ interface WelcomeUI {
     fun createNewProjectUI(studio: EngineBase, style: Style): Panel {
 
         val newProject = SettingCategory(NameDesc("New Project", "New Workplace", "ui.project.new"), style)
-        newProject.show2()
+        newProject.showContent()
 
         // cannot be moved down
         lateinit var fileInput: FileInput

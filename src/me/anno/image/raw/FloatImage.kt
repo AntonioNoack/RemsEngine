@@ -8,9 +8,7 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.Color
-import me.anno.utils.Color.black
 import me.anno.utils.structures.Callback
-import kotlin.math.ceil
 import kotlin.math.max
 
 class FloatImage(
@@ -61,8 +59,16 @@ class FloatImage(
         if (sync && GFX.isGFXThread()) {
             texture.width = width
             texture.height = height
-            // todo this is only correct, if stride == width
-            texture.create(TargetType.Float32xI[numChannels - 1], data)
+            val creationData = if (stride != width) {
+                val tmp = FloatArray(width * height)
+                for (y in 0 until height) {
+                    val src0 = getIndex(0, y)
+                    val src1 = src0 + width
+                    data.copyInto(tmp, y * width, src0, src1)
+                }
+                tmp
+            } else data
+            texture.create(TargetType.Float32xI[numChannels - 1], creationData)
             callback.ok(texture)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
