@@ -7,6 +7,7 @@ import me.anno.io.config.ConfigBasics.loadConfig
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
+import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass

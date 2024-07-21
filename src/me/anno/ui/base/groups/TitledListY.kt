@@ -1,12 +1,10 @@
 package me.anno.ui.base.groups
 
-import me.anno.input.Key
 import me.anno.ui.Panel
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.Style
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility
-import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.types.Strings.isBlank2
 
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
@@ -16,7 +14,7 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
 
     constructor(title: String, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
 
-    val titleView = if (title.isBlank2()) null else TextPanel(title, style)
+    val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
 
     init {
         if (titleView != null) {

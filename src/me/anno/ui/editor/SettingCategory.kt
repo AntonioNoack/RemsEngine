@@ -9,8 +9,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
+import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
@@ -25,7 +25,9 @@ open class SettingCategory private constructor(
         tooltip = nameDesc.desc
     }
 
-    val titlePanel = TextPanel(title, style.getChild("group"))
+    @Suppress("LeakingThis")
+    val titlePanel = TitlePanel(title, this, style.getChild("group"))
+
     val content = PanelListY(style)
     val child = if (withScrollbar) ScrollPanelY(content, Padding.Zero, style) else content
     val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
