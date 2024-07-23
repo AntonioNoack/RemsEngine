@@ -52,10 +52,11 @@ object FontListMenu {
         // todo -> Consolas' width is incorrect...
 
         return object : EnumInput(
-            "Font Name",
-            "The style of the text",
-            "obj.font.name",
-            oldValue, fontList,
+            NameDesc(
+                "Font Name",
+                "The style of the text",
+                "obj.font.name"
+            ), oldValue, fontList,
             style
         ) {
             /**
@@ -107,5 +108,4 @@ object FontListMenu {
             sortFavourites()
         }
     }
-
 }

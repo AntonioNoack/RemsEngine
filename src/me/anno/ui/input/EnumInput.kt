@@ -2,16 +2,15 @@ package me.anno.ui.input
 
 import me.anno.gpu.Cursor
 import me.anno.input.Key
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.EnumValuePanel
-import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -26,40 +25,16 @@ open class EnumInput(
     val options: List<NameDesc>, style: Style
 ) : PanelListX(style), InputPanel<NameDesc>, TextStyleable {
 
-    constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
-            this(title, true, startValue, options, style) {
-        tooltip = ttt
-    }
-
-    constructor(
-        title: String,
-        ttt: String,
-        dictPath: String,
-        startValue: String,
-        options: List<NameDesc>,
-        style: Style
-    ) : this(Dict[title, dictPath], true, startValue, options, style) {
-        tooltip = Dict[ttt, "$dictPath.desc"]
-    }
-
-    constructor(
-        title: String,
-        ttt: String,
-        dictPath: String,
-        startValue: NameDesc,
-        options: List<NameDesc>,
-        style: Style
-    ) : this(Dict[title, dictPath], true, startValue.name, options, style) {
-        tooltip = Dict[ttt, "$dictPath.desc"]
+    constructor(nameDesc: NameDesc, startValue: String, options: List<NameDesc>, style: Style) :
+            this(nameDesc.name, true, startValue, options, style) {
+        tooltip = nameDesc.desc
     }
 
     constructor(startValue: NameDesc, options: List<NameDesc>, style: Style) :
             this("", false, startValue.name, options, style)
 
     constructor(name: NameDesc, startValue: NameDesc, options: List<NameDesc>, style: Style) :
-            this(name.name, true, startValue.name, options, style) {
-        tooltip = name.desc
-    }
+            this(name, startValue.name, options, style)
 
     var lastIndex = options.indexOfFirst { it.name == startValue }
 
@@ -225,7 +200,7 @@ open class EnumInput(
             val values = getEnumConstants(value.javaClass)
             val ttt = value::class.simpleName?.camelCaseToTitle() ?: "?"
             val valueName = enumToNameDesc(value).name
-            return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
+            return EnumInput(NameDesc(title, ttt, ""), valueName, values.map { enumToNameDesc(it) }, style)
         }
 
         fun getEnumConstants(clazz: Class<*>): List<Enum<*>> {

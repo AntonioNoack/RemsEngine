@@ -204,7 +204,7 @@ class ExportSettings : NamedSaveable() {
         opt.add(BooleanInput("Minimal UI", minimalUI, false, style)
             .setChangeListener { minimalUI = it })
         opt.add(BooleanInput(
-            "Kotlyn Reflect", "Minimized Kotlin reflections to reduce export size",
+            NameDesc("Kotlyn Reflect", "Minimized Kotlin reflections to reduce export size",""),
             useKotlynReflect, false, style
         ).setChangeListener { useKotlynReflect = it })
 

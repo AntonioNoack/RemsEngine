@@ -90,7 +90,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     // todo we could snap rotations, and maybe scale, as well
 
     val drawModeInput = EnumInput(
-        "Draw Mode", "", renderView.renderMode.name,
+        NameDesc("Draw Mode"), renderView.renderMode.name,
         RenderMode.values.map { NameDesc(it.name) }, style
     ).setChangeListener { _, index, _ ->
         renderView.renderMode = RenderMode.values[index]

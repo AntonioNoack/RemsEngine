@@ -1,12 +1,12 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.Checkbox
-import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 
 /**
@@ -21,15 +21,8 @@ class BooleanInput(
 
     constructor(style: Style) : this("", false, false, style)
 
-    constructor(
-        title: String, description: String, dictPath: String,
-        startValue: Boolean, defaultValue: Boolean, style: Style
-    ) : this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, defaultValue, style)
-
-    constructor(
-        title: String, description: String,
-        startValue: Boolean, defaultValue: Boolean, style: Style
-    ) : this(title, startValue, defaultValue, style) {
+    constructor(nameDesc: NameDesc, startValue: Boolean, defaultValue: Boolean, style: Style) :
+            this(nameDesc.name, startValue, defaultValue, style) {
         tooltip = description
     }
 

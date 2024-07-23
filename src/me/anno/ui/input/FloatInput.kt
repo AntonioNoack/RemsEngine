@@ -1,9 +1,10 @@
 package me.anno.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase.Companion.shiftSlowdown
+import me.anno.language.translation.NameDesc
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
-import me.anno.engine.EngineBase.Companion.shiftSlowdown
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble
@@ -16,8 +17,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.pow
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 // must be open for Rem's Studio
 open class FloatInput(
@@ -27,6 +26,11 @@ open class FloatInput(
     style: Style,
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
+
+    constructor(nameDesc: NameDesc, type: NumberType, style: Style) :
+            this(nameDesc.name, nameDesc.key, type, style) {
+        tooltip = nameDesc.desc
+    }
 
     constructor(style: Style) : this("", "", NumberType.FLOAT, style)
 

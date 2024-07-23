@@ -10,10 +10,10 @@ import me.anno.engine.projects.ProjectHeader
 import me.anno.engine.projects.Projects
 import me.anno.gpu.GFX
 import me.anno.input.Key
-import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate
@@ -97,8 +97,11 @@ interface WelcomeUI {
         val gfxNames = GFXSettings.entries.map { it.nameDesc }
 
         quickSettings += EnumInput(
-            "GFX Quality",
-            "Low disables UI MSAA", "ui.settings.gfxQuality",
+            NameDesc(
+                "GFX Quality",
+                "Low disables UI MSAA",
+                "ui.settings.gfxQuality"
+            ),
             studio.gfxSettings.nameDesc, gfxNames, style
         ).setChangeListener { _, index, _ ->
             val value = GFXSettings.entries[index]
@@ -107,8 +110,11 @@ interface WelcomeUI {
 
         if (!OS.isWeb && !OS.isAndroid) {
             quickSettings += BooleanInput(
-                "Enable Vsync",
-                "Recommended; false for debugging", "ui.settings.vSync",
+                NameDesc(
+                    "Enable Vsync",
+                    "Recommended; false for debugging",
+                    "ui.settings.vSync"
+                ),
                 EngineBase.enableVSync, true, style
             ).setChangeListener {
                 EngineBase.enableVSync = it
@@ -117,8 +123,11 @@ interface WelcomeUI {
         } // else we cannot set vsync
 
         quickSettings += BooleanInput(
-            "Show FPS",
-            "Shows how many frames were rendered per second, for monitoring stutters", "ui.settings.showFPS",
+            NameDesc(
+                "Show FPS",
+                "Shows how many frames were rendered per second, for monitoring stutters",
+                "ui.settings.showFPS"
+            ),
             showFPS, false, style
         ).setChangeListener { showFPS = it }
 

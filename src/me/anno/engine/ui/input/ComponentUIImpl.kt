@@ -13,6 +13,7 @@ import me.anno.ecs.annotations.Range.Companion.minInt
 import me.anno.ecs.annotations.Range.Companion.minShort
 import me.anno.engine.inspector.IProperty
 import me.anno.engine.ui.input.ComponentUI.askForReset
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -42,7 +43,7 @@ object ComponentUIImpl {
         property: IProperty<Any?>, style: Style,
     ): Panel {
         return BooleanInput(
-            title, ttt, value as Boolean,
+            NameDesc(title, ttt, ""), value as Boolean,
             default as? Boolean ?: false, style
         ).apply {
             alignmentX = AxisAlignment.FILL

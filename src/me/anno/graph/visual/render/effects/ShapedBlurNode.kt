@@ -5,15 +5,15 @@ import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.filters
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.actions.ActionNode
-import me.anno.ui.editor.graph.GraphEditor
-import me.anno.ui.editor.graph.GraphPanel
+import me.anno.graph.visual.render.Texture
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.graph.GraphEditor
+import me.anno.ui.editor.graph.GraphPanel
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Sleep.waitUntil
 
@@ -40,7 +40,7 @@ class ShapedBlurNode() : ActionNode(
             waitUntil(true) { filters.isNotEmpty() }
             list.add(
                 EnumInput(
-                    "Type", "", type,
+                    NameDesc("Type"), type,
                     filters.keys.sorted().map { NameDesc(it) }, style
                 ).setChangeListener { value, _, _ ->
                     type = value
