@@ -3,6 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
@@ -125,7 +126,7 @@ open class AnimMeshComponent : MeshComponent(), OnUpdate, OnDrawGUI {
         }
     }
 
-    override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: IMesh): Boolean {
+    override fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
 
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {

@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
@@ -163,11 +164,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     @DebugProperty
     private var previewData: PreviewData? = null
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         val skeleton = SkeletonCache[skeleton] ?: return clickId
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
@@ -175,7 +172,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
                 state.update(renderer, Time.deltaTime.toFloat(), false)
                 renderer.updateAnimState()
             }
-            renderer.fill(pipeline, entity, clickId)
+            renderer.fill(pipeline, transform, clickId)
         }
     }
 

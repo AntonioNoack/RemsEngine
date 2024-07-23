@@ -2,6 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -617,10 +618,10 @@ fun computeRasterizer() {
             }
         }
 
-        override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+        override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
             val material = Material.defaultMaterial
             pipeline.findStage(material)
-                .add(component, this, entity, material, 0)
+                .add(component, this, transform, material, 0)
             return clickId + 1
         }
     }

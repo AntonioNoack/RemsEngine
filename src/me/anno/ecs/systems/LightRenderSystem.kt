@@ -3,6 +3,7 @@ package me.anno.ecs.systems
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.System
+import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.Renderable
@@ -24,7 +25,7 @@ class LightRenderSystem() : System(), Renderable {
         }
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         for (c in lights) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.aabb)) {

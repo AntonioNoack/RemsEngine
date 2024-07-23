@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PlanarReflection.Companion.clearSky
 import me.anno.ecs.systems.OnDrawGUI
@@ -63,11 +64,7 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
         return true
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         lastDrawn = Time.gameTimeN
         pipeline.lightStage.add(this)
         this.clickId = clickId

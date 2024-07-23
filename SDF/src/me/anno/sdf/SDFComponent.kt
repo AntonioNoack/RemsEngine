@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -280,15 +281,11 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         Menu.msg(NameDesc("Pasted code to clipboard"))
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         this.clickId = clickId
         ensureValidShader()
         ensureValidBounds()
-        pipeline.addMesh(getMeshOrNull(), this, entity)
+        pipeline.addMesh(getMeshOrNull(), this, transform)
         lastDrawn = Time.gameTimeN
         return clickId + 1
     }

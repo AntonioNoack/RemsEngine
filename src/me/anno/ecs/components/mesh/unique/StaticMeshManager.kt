@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.unique
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -28,10 +29,10 @@ class StaticMeshManager : Component(), Renderable, OnUpdate {
     val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
     val meshes = HashSet<MeshComponent>(1024)
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         this.clickId = clickId
         for ((_, manager) in managers) {
-            manager.fill(pipeline, entity, clickId)
+            manager.fill(pipeline, transform, clickId)
         }
         return clickId + 1
     }

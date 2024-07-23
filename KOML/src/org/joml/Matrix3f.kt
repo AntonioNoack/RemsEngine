@@ -1210,40 +1210,36 @@ open class Matrix3f {
 
     @JvmOverloads
     fun lookAlong(
-        dirX: Float,
-        dirY: Float,
-        dirZ: Float,
-        upX: Float,
-        upY: Float,
-        upZ: Float,
+        dirX: Float, dirY: Float, dirZ: Float,
+        upX: Float, upY: Float, upZ: Float,
         dst: Matrix3f = this
     ): Matrix3f {
-        var dirX = dirX
-        var dirY = dirY
-        var dirZ = dirZ
-        val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-        dirX *= -invDirLength
-        dirY *= -invDirLength
-        dirZ *= -invDirLength
-        var leftX = upY * dirZ - upZ * dirY
-        var leftY = upZ * dirX - upX * dirZ
-        var leftZ = upX * dirY - upY * dirX
+        var dirXi = dirX
+        var dirYi = dirY
+        var dirZi = dirZ
+        val invDirLength = JomlMath.invsqrt(dirXi * dirXi + dirYi * dirYi + dirZi * dirZi)
+        dirXi *= -invDirLength
+        dirYi *= -invDirLength
+        dirZi *= -invDirLength
+        var leftX = upY * dirZi - upZ * dirYi
+        var leftY = upZ * dirXi - upX * dirZi
+        var leftZ = upX * dirYi - upY * dirXi
         val invLeftLength = JomlMath.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
         leftX *= invLeftLength
         leftY *= invLeftLength
         leftZ *= invLeftLength
-        val upnX = dirY * leftZ - dirZ * leftY
-        val upnY = dirZ * leftX - dirX * leftZ
-        val upnZ = dirX * leftY - dirY * leftX
-        val nm00 = m00 * leftX + m10 * upnX + m20 * dirX
-        val nm01 = m01 * leftX + m11 * upnX + m21 * dirX
-        val nm02 = m02 * leftX + m12 * upnX + m22 * dirX
-        val nm10 = m00 * leftY + m10 * upnY + m20 * dirY
-        val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
-        val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
-        dst.m20 = m00 * leftZ + m10 * upnZ + m20 * dirZ
-        dst.m21 = m01 * leftZ + m11 * upnZ + m21 * dirZ
-        dst.m22 = m02 * leftZ + m12 * upnZ + m22 * dirZ
+        val upnX = dirYi * leftZ - dirZi * leftY
+        val upnY = dirZi * leftX - dirXi * leftZ
+        val upnZ = dirXi * leftY - dirYi * leftX
+        val nm00 = m00 * leftX + m10 * upnX + m20 * dirXi
+        val nm01 = m01 * leftX + m11 * upnX + m21 * dirXi
+        val nm02 = m02 * leftX + m12 * upnX + m22 * dirXi
+        val nm10 = m00 * leftY + m10 * upnY + m20 * dirYi
+        val nm11 = m01 * leftY + m11 * upnY + m21 * dirYi
+        val nm12 = m02 * leftY + m12 * upnY + m22 * dirYi
+        dst.m20 = m00 * leftZ + m10 * upnZ + m20 * dirZi
+        dst.m21 = m01 * leftZ + m11 * upnZ + m21 * dirZi
+        dst.m22 = m02 * leftZ + m12 * upnZ + m22 * dirZi
         dst.m00 = nm00
         dst.m01 = nm01
         dst.m02 = nm02
@@ -1258,32 +1254,32 @@ open class Matrix3f {
     }
 
     fun setLookAlong(dirX: Float, dirY: Float, dirZ: Float, upX: Float, upY: Float, upZ: Float): Matrix3f {
-        var dirX = dirX
-        var dirY = dirY
-        var dirZ = dirZ
-        val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-        dirX *= -invDirLength
-        dirY *= -invDirLength
-        dirZ *= -invDirLength
-        var leftX = upY * dirZ - upZ * dirY
-        var leftY = upZ * dirX - upX * dirZ
-        var leftZ = upX * dirY - upY * dirX
+        var dirXi = dirX
+        var dirYi = dirY
+        var dirZi = dirZ
+        val invDirLength = JomlMath.invsqrt(dirXi * dirXi + dirYi * dirYi + dirZi * dirZi)
+        dirXi *= -invDirLength
+        dirYi *= -invDirLength
+        dirZi *= -invDirLength
+        var leftX = upY * dirZi - upZ * dirYi
+        var leftY = upZ * dirXi - upX * dirZi
+        var leftZ = upX * dirYi - upY * dirXi
         val invLeftLength = JomlMath.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
         leftX *= invLeftLength
         leftY *= invLeftLength
         leftZ *= invLeftLength
-        val upnX = dirY * leftZ - dirZ * leftY
-        val upnY = dirZ * leftX - dirX * leftZ
-        val upnZ = dirX * leftY - dirY * leftX
+        val upnX = dirYi * leftZ - dirZi * leftY
+        val upnY = dirZi * leftX - dirXi * leftZ
+        val upnZ = dirXi * leftY - dirYi * leftX
         m00 = leftX
         m01 = upnX
-        m02 = dirX
+        m02 = dirXi
         m10 = leftY
         m11 = upnY
-        m12 = dirY
+        m12 = dirYi
         m20 = leftZ
         m21 = upnZ
-        m22 = dirZ
+        m22 = dirZi
         return this
     }
 

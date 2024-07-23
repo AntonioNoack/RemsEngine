@@ -2,6 +2,7 @@ package me.anno.ecs.components.light.sky
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.material.utils.TypeValue
@@ -76,7 +77,7 @@ open class SkyboxBase : CollidingComponent(), Renderable {
 
     override fun fill(
         pipeline: Pipeline,
-        entity: Entity,
+        transform: Transform,
         clickId: Int
     ): Int {
         lastDrawn = Time.gameTimeN

@@ -2,6 +2,7 @@ package me.anno.tests.engine.light
 
 import me.anno.Build
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
@@ -85,7 +86,7 @@ fun main() {
         val positionY = elementSize * 0.5
 
         var firstTurn = true
-        override fun fill(pipeline: Pipeline, instancedLights: LightData, entity: Entity) {
+        override fun fill(pipeline: Pipeline, instancedLights: LightData, transform: Transform) {
             // to do acceleration structure for frustum tests?
             var k = 0
             val dst = instancedLights[colors[0]]

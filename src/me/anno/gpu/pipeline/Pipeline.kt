@@ -129,35 +129,35 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         return stages[stage0]
     }
 
-    fun addMesh(mesh: IMesh, renderer: Component, entity: Entity) {
+    fun addMesh(mesh: IMesh, renderer: Component, transform: Transform) {
         val materialOverrides = (renderer as? MeshComponentBase)?.materials
-        addMesh(mesh, renderer, materialOverrides, entity)
+        addMesh(mesh, renderer, materialOverrides, transform)
     }
 
-    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
+    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
             val material = getMaterial(superMaterial, materialOverrides, materials, index)
             val stage = findStage(material)
-            stage.add(renderer, mesh, entity, material, index)
+            stage.add(renderer, mesh, transform, material, index)
         }
     }
 
-    fun addMeshInstanced(mesh: IMesh, renderer: Component, entity: Entity) {
+    fun addMeshInstanced(mesh: IMesh, renderer: Component, transform: Transform) {
         val materialOverrides = (renderer as? MeshComponentBase)?.materials
-        addMeshInstanced(mesh, renderer, materialOverrides, entity)
+        addMeshInstanced(mesh, renderer, materialOverrides, transform)
     }
 
-    fun addMeshInstanced(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
+    fun addMeshInstanced(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val superMaterial = superMaterial
         for (index in 0 until mesh.numMaterials) {
             val material = getMaterial(superMaterial, materialOverrides, materials, index)
             val stage = findStage(material)
-            stage.addInstanced(mesh, renderer, entity, material, index)
+            stage.addInstanced(mesh, renderer, transform, material, index)
         }
     }
 
@@ -352,7 +352,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     fun fill(root: PrefabSaveable) {
         val clickId = lastClickId
         if (root is Renderable) {
-            root.fill(this, sampleEntity, clickId)
+            root.fill(this, sampleEntity.transform, clickId)
         } else {
             LOGGER.warn(
                 "Don't know how to render ${root.className}, " +
@@ -436,7 +436,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                 val component = components[i]
                 if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
                     if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
-                        clickId = component.fill(this, entity, clickId)
+                        clickId = component.fill(this, entity.transform, clickId)
                     }
                 }
             }
@@ -505,6 +505,9 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = SimpleMesh.sphereMesh
+
+        val leftControllerEntity = Entity()
+        val rightControllerEntity = Entity()
 
         fun getMaterial(
             materialOverrides: List<FileReference>?,

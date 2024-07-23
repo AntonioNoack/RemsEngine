@@ -3,6 +3,7 @@ package me.anno.ecs.systems
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.System
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
@@ -31,20 +32,20 @@ class MeshRenderSystem : System(), Renderable {
         }
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         var clickIdI = 0
         for (c in meshes) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.aabb)) {
                 val mesh = c.getMesh() ?: continue
                 c.clickId = clickIdI++
-                pipeline.addMesh(mesh, c, e)
+                pipeline.addMesh(mesh, c, e.transform)
             }
         }
         for (c in others) {
             val e = c.entity ?: continue
             if (pipeline.frustum.isVisible(e.aabb)) {
-                clickIdI = c.fill(pipeline, entity, clickIdI)
+                clickIdI = c.fill(pipeline, transform, clickIdI)
             }
         }
         return clickIdI

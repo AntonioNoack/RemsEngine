@@ -229,7 +229,7 @@ fun main() {
                     color.set(mat2.emissiveBase).mul(0.2f)
                 }
 
-                override fun fill(pipeline: Pipeline, instancedLights: LightData, entity: Entity) {
+                override fun fill(pipeline: Pipeline, instancedLights: LightData, transform: Transform) {
                     val dst = instancedLights[light]
                     val scale = 10.0
                     for (index in count1 until count2) {

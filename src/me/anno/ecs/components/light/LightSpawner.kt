@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.LightData
 import me.anno.gpu.pipeline.Pipeline
@@ -17,12 +18,12 @@ abstract class LightSpawner : Component(), Renderable {
         return true
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
-        fill(pipeline, pipeline.lightStage.instanced, entity)
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+        fill(pipeline, pipeline.lightStage.instanced, transform)
         return clickId
     }
 
-    abstract fun fill(pipeline: Pipeline, instancedLights: LightData, entity: Entity)
+    abstract fun fill(pipeline: Pipeline, instancedLights: LightData, transform: Transform)
 
     @NotSerializedProperty
     val transforms = ArrayList<Pair<Matrix4x3d, Matrix4x3f>>(32)

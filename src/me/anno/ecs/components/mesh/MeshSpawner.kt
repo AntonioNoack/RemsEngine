@@ -2,7 +2,6 @@ package me.anno.ecs.components.mesh
 
 import me.anno.Build
 import me.anno.Time
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -41,17 +40,17 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * until the first one of them returns true;
      * if you need different behaviour, just override this method :)
      * */
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         lastDrawn = Time.gameTimeN
         this.clickId = clickId
         instancedGroupFill(pipeline) ||
                 instancedTRSFill(pipeline) ||
                 instancedMeshGroupFill(pipeline) ||
-                instancedFill(pipeline, entity)
+                instancedFill(pipeline)
         return clickId + 1
     }
 
-    fun instancedFill(pipeline: Pipeline, entity: Entity): Boolean {
+    fun instancedFill(pipeline: Pipeline): Boolean {
         forEachMesh { mesh, materialOverride, transform ->
 
             transform.validate()
@@ -72,7 +71,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                         if (Build.isDebug && mesh.numMaterials > 1) {
                             LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
                         }
-                        stage.add(this, mesh, entity, material, matIndex)
+                        stage.add(this, mesh, transform, material, matIndex)
                     }
                 }
             }

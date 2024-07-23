@@ -98,7 +98,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     private var xOffsets = i0
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
-    var textAlignmentX = AxisAlignment.MIN // make this center??
+    // make this center??, no, center is sth for titles
+    var textAlignmentX = AxisAlignment.MIN
         set(value) {
             if (field != value) {
                 field = value
@@ -106,7 +107,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    var textAlignmentY = AxisAlignment.MIN
+    var textAlignmentY = AxisAlignment.CENTER
         set(value) {
             if (field != value) {
                 field = value

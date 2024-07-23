@@ -502,24 +502,24 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mul(right: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix4d, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(right)
+            dst.set(right)
         } else if (right.properties() and 4 != 0) {
-            dest.set(this)
+            dst.set(this)
         } else if (flags and 8 != 0 && right.properties() and 2 != 0) {
-            mulTranslationAffine(right, dest)
+            mulTranslationAffine(right, dst)
         } else if (flags and 2 != 0 && right.properties() and 2 != 0) {
-            this.mulAffine(right, dest)
+            this.mulAffine(right, dst)
         } else if (flags and 1 != 0 && right.properties() and 2 != 0) {
-            this.mulPerspectiveAffine(right, dest)
+            this.mulPerspectiveAffine(right, dst)
         } else {
-            if (right.properties() and 2 != 0) mulAffineR(right, dest) else mul0(right, dest)
+            if (right.properties() and 2 != 0) mulAffineR(right, dst) else mul0(right, dst)
         }
     }
 
     @JvmOverloads
-    fun mul0(right: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mul0(right: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02 + m30 * right.m03
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02 + m31 * right.m03
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02 + m32 * right.m03
@@ -536,7 +536,7 @@ open class Matrix4d {
         val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31 * right.m33
         val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32 * right.m33
         val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33 * right.m33
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(0)
     }
@@ -547,17 +547,17 @@ open class Matrix4d {
         r10: Double, r11: Double, r12: Double, r13: Double,
         r20: Double, r21: Double, r22: Double, r23: Double,
         r30: Double, r31: Double, r32: Double, r33: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33)
+            dst.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33)
         } else {
             if (flags and 2 != 0) mulAffineL(
                 r00, r01, r02, r03,
                 r10, r11, r12, r13,
                 r20, r21, r22, r23,
-                r30, r31, r32, r33, dest
-            ) else this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dest)
+                r30, r31, r32, r33, dst
+            ) else this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dst)
         }
     }
 
@@ -566,7 +566,7 @@ open class Matrix4d {
         r10: Double, r11: Double, r12: Double, r13: Double,
         r20: Double, r21: Double, r22: Double, r23: Double,
         r30: Double, r31: Double, r32: Double, r33: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val nm00 = m00 * r00 * m10 * r01 * m20 * r02 * m30 * r03
         val nm01 = m01 * r00 * m11 * r01 * m21 * r02 * m31 * r03
@@ -580,7 +580,7 @@ open class Matrix4d {
         val nm30 = m00 * r30 * m10 * r31 * m20 * r32 * m30 * r33
         val nm31 = m01 * r30 * m11 * r31 * m21 * r32 * m31 * r33
         val nm32 = m02 * r30 * m12 * r31 * m22 * r32 * m32 * r33
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(r03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(r13)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(r03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(r13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(r23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(r33)
             ._properties(2)
     }
@@ -590,7 +590,7 @@ open class Matrix4d {
         r10: Double, r11: Double, r12: Double, r13: Double,
         r20: Double, r21: Double, r22: Double, r23: Double,
         r30: Double, r31: Double, r32: Double, r33: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val nm00 = m00 * r00 + m10 * r01 + m20 * r02 + m30 * r03
         val nm01 = m01 * r00 + m11 * r01 + m21 * r02 + m31 * r03
@@ -608,7 +608,7 @@ open class Matrix4d {
         val nm31 = m01 * r30 + m11 * r31 + m21 * r32 + m31 * r33
         val nm32 = m02 * r30 + m12 * r31 + m22 * r32 + m32 * r33
         val nm33 = m03 * r30 + m13 * r31 + m23 * r32 + m33 * r33
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
@@ -617,16 +617,16 @@ open class Matrix4d {
         r00: Double, r01: Double, r02: Double,
         r10: Double, r11: Double, r12: Double,
         r20: Double, r21: Double, r22: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0)
-            dest.set(r00, r01, r02, 0.0, r10, r11, r12, 0.0, r20, r21, r22, 0.0, 0.0, 0.0, 0.0, 1.0)
-        else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dest)
+            dst.set(r00, r01, r02, 0.0, r10, r11, r12, 0.0, r20, r21, r22, 0.0, 0.0, 0.0, 0.0, 1.0)
+        else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dst)
     }
 
     private fun mulGeneric3x3(
         r00: Double, r01: Double, r02: Double, r10: Double, r11: Double, r12: Double,
-        r20: Double, r21: Double, r22: Double, dest: Matrix4d
+        r20: Double, r21: Double, r22: Double, dst: Matrix4d
     ): Matrix4d {
         val nm00 = m00 * r00 + m10 * r01 + m20 * r02
         val nm01 = m01 * r00 + m11 * r01 + m21 * r02
@@ -640,27 +640,27 @@ open class Matrix4d {
         val nm21 = m01 * r20 + m11 * r21 + m21 * r22
         val nm22 = m02 * r20 + m12 * r21 + m22 * r22
         val nm23 = m03 * r20 + m13 * r21 + m23 * r22
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
             ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 2)
     }
 
     @JvmOverloads
-    fun mulLocal(left: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulLocal(left: Matrix4d, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(left)
+            dst.set(left)
         } else if (left.properties() and 4 != 0) {
-            dest.set(this)
+            dst.set(this)
         } else {
             if (flags and 2 != 0 && left.properties() and 2 != 0) mulLocalAffine(
                 left,
-                dest
-            ) else mulLocalGeneric(left, dest)
+                dst
+            ) else mulLocalGeneric(left, dst)
         }
     }
 
-    private fun mulLocalGeneric(left: Matrix4d, dest: Matrix4d): Matrix4d {
+    private fun mulLocalGeneric(left: Matrix4d, dst: Matrix4d): Matrix4d {
         val nm00 = left.m00 * m00 + left.m10 * m01 + left.m20 * m02 + left.m30 * m03
         val nm01 = left.m01 * m00 + left.m11 * m01 + left.m21 * m02 + left.m31 * m03
         val nm02 = left.m02 * m00 + left.m12 * m01 + left.m22 * m02 + left.m32 * m03
@@ -677,12 +677,12 @@ open class Matrix4d {
         val nm31 = left.m01 * m30 + left.m11 * m31 + left.m21 * m32 + left.m31 * m33
         val nm32 = left.m02 * m30 + left.m12 * m31 + left.m22 * m32 + left.m32 * m33
         val nm33 = left.m03 * m30 + left.m13 * m31 + left.m23 * m32 + left.m33 * m33
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
     @JvmOverloads
-    fun mulLocalAffine(left: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulLocalAffine(left: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val nm00 = left.m00 * m00 + left.m10 * m01 + left.m20 * m02
         val nm01 = left.m01 * m00 + left.m11 * m01 + left.m21 * m02
         val nm02 = left.m02 * m00 + left.m12 * m01 + left.m22 * m02
@@ -699,35 +699,35 @@ open class Matrix4d {
         val nm31 = left.m01 * m30 + left.m11 * m31 + left.m21 * m32 + left.m31
         val nm32 = left.m02 * m30 + left.m12 * m31 + left.m22 * m32 + left.m32
         val nm33 = left.m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(2)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mul(right: Matrix4x3d, dest: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix4x3d, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(right)
+            dst.set(right)
         } else if (right.properties() and 4 != 0) {
-            dest.set(this)
+            dst.set(this)
         } else if (flags and 8 != 0) {
-            mulTranslation(right, dest)
+            mulTranslation(right, dst)
         } else if (flags and 2 != 0) {
-            this.mulAffine(right, dest)
+            this.mulAffine(right, dst)
         } else {
-            if (flags and 1 != 0) this.mulPerspectiveAffine(right, dest) else this.mulGeneric(right, dest)
+            if (flags and 1 != 0) this.mulPerspectiveAffine(right, dst) else this.mulGeneric(right, dst)
         }
     }
 
-    private fun mulTranslation(right: Matrix4x3d, dest: Matrix4d): Matrix4d {
-        return dest._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)
+    private fun mulTranslation(right: Matrix4x3d, dst: Matrix4d): Matrix4d {
+        return dst._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)
             ._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(m13)
             ._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)
             ._m30(right.m30 + m30)._m31(right.m31 + m31)._m32(right.m32 + m32)._m33(m33)
             ._properties(2 or (right.properties() and 16))
     }
 
-    private fun mulAffine(right: Matrix4x3d, dest: Matrix4d): Matrix4d {
+    private fun mulAffine(right: Matrix4x3d, dst: Matrix4d): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
@@ -749,7 +749,7 @@ open class Matrix4d {
         val rm30 = right.m30
         val rm31 = right.m31
         val rm32 = right.m32
-        return dest
+        return dst
             ._m00(m00 * rm00 + m10 * rm01 + m20 * rm02)
             ._m01(m01 * rm00 + m11 * rm01 + m21 * rm02)
             ._m02(m02 * rm00 + m12 * rm01 + m22 * rm02)._m03(m03)
@@ -765,7 +765,7 @@ open class Matrix4d {
             ._properties(2 or (flags and right.properties() and 16))
     }
 
-    private fun mulGeneric(right: Matrix4x3d, dest: Matrix4d): Matrix4d {
+    private fun mulGeneric(right: Matrix4x3d, dst: Matrix4d): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
@@ -782,35 +782,35 @@ open class Matrix4d {
         val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31
         val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32
         val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(
                 flags and -30
             )
-        return dest
+        return dst
     }
 
-    fun mulPerspectiveAffine(view: Matrix4x3d, dest: Matrix4d): Matrix4d {
+    fun mulPerspectiveAffine(view: Matrix4x3d, dst: Matrix4d): Matrix4d {
         val lm00 = m00
         val lm11 = m11
         val lm22 = m22
         val lm23 = m23
-        dest._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)
+        dst._m00(lm00 * view.m00)._m01(lm11 * view.m01)._m02(lm22 * view.m02)._m03(lm23 * view.m02)
             ._m10(lm00 * view.m10)._m11(lm11 * view.m11)._m12(lm22 * view.m12)._m13(lm23 * view.m12)
             ._m20(lm00 * view.m20)._m21(lm11 * view.m21)._m22(lm22 * view.m22)._m23(lm23 * view.m22)
             ._m30(lm00 * view.m30)._m31(lm11 * view.m31)._m32(lm22 * view.m32 + m32)._m33(lm23 * view.m32)
             ._properties(0)
-        return dest
+        return dst
     }
 
-    fun mul(right: Matrix4x3f, dest: Matrix4d): Matrix4d {
+    fun mul(right: Matrix4x3f, dst: Matrix4d): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(right)
+            dst.set(right)
         } else {
-            if (right.properties() and 4 != 0) dest.set(this) else this.mulGeneric(right, dest)
+            if (right.properties() and 4 != 0) dst.set(this) else this.mulGeneric(right, dst)
         }
     }
 
-    private fun mulGeneric(right: Matrix4x3f, dest: Matrix4d): Matrix4d {
+    private fun mulGeneric(right: Matrix4x3f, dst: Matrix4d): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
@@ -827,14 +827,14 @@ open class Matrix4d {
         val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31
         val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32
         val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(flags and -30)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mul(right: Matrix3x2d, dest: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix3x2d, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01
         val nm01 = m01 * right.m00 + m11 * right.m01
         val nm02 = m02 * right.m00 + m12 * right.m01
@@ -847,14 +847,14 @@ open class Matrix4d {
         val nm31 = m01 * right.m20 + m11 * right.m21 + m31
         val nm32 = m02 * right.m20 + m12 * right.m21 + m32
         val nm33 = m03 * right.m20 + m13 * right.m21 + m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(flags and -30)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mul(right: Matrix3x2f, dest: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix3x2f, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01
         val nm01 = m01 * right.m00 + m11 * right.m01
         val nm02 = m02 * right.m00 + m12 * right.m01
@@ -867,22 +867,22 @@ open class Matrix4d {
         val nm31 = m01 * right.m20 + m11 * right.m21 + m31
         val nm32 = m02 * right.m20 + m12 * right.m21 + m32
         val nm33 = m03 * right.m20 + m13 * right.m21 + m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(flags and -30)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mul(right: Matrix4f, dest: Matrix4d = this): Matrix4d {
+    fun mul(right: Matrix4f, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.set(right)
+            dst.set(right)
         } else {
-            if (right.properties() and 4 != 0) dest.set(this) else this.mulGeneric(right, dest)
+            if (right.properties() and 4 != 0) dst.set(this) else this.mulGeneric(right, dst)
         }
     }
 
-    private fun mulGeneric(right: Matrix4f, dest: Matrix4d): Matrix4d {
+    private fun mulGeneric(right: Matrix4f, dst: Matrix4d): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02 + m30 * right.m03
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02 + m31 * right.m03
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02 + m32 * right.m03
@@ -899,14 +899,14 @@ open class Matrix4d {
         val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31 * right.m33
         val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32 * right.m33
         val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33 * right.m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mulPerspectiveAffine(view: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulPerspectiveAffine(view: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * view.m00
         val nm01 = m11 * view.m01
         val nm02 = m22 * view.m02
@@ -923,13 +923,13 @@ open class Matrix4d {
         val nm31 = m11 * view.m31
         val nm32 = m22 * view.m32 + m32
         val nm33 = m23 * view.m32
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(0)
     }
 
     @JvmOverloads
-    fun mulAffineR(right: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulAffineR(right: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
         val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
         val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
@@ -946,14 +946,14 @@ open class Matrix4d {
         val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31
         val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32
         val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)
             ._properties(flags and -30)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mulAffine(right: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulAffine(right: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
@@ -975,7 +975,7 @@ open class Matrix4d {
         val rm30 = right.m30
         val rm31 = right.m31
         val rm32 = right.m32
-        return dest
+        return dst
             ._m00(m00 * rm00 + m10 * rm01 + m20 * rm02)._m01(m01 * rm00 + m11 * rm01 + m21 * rm02)
             ._m02(m02 * rm00 + m12 * rm01 + m22 * rm02)._m03(m03)
             ._m10(m00 * rm10 + m10 * rm11 + m20 * rm12)._m11(m01 * rm10 + (m11 * rm11 + m21 * rm12))
@@ -988,8 +988,8 @@ open class Matrix4d {
             ._properties(2 or (flags and right.properties() and 16))
     }
 
-    fun mulTranslationAffine(right: Matrix4d, dest: Matrix4d): Matrix4d {
-        return dest
+    fun mulTranslationAffine(right: Matrix4d, dst: Matrix4d): Matrix4d {
+        return dst
             ._m00(right.m00)._m01(right.m01)._m02(right.m02)._m03(m03)
             ._m10(right.m10)._m11(right.m11)._m12(right.m12)._m13(m13)
             ._m20(right.m20)._m21(right.m21)._m22(right.m22)._m23(m23)
@@ -998,7 +998,7 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mulOrthoAffine(view: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun mulOrthoAffine(view: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val nm00 = m00 * view.m00
         val nm01 = m11 * view.m01
         val nm02 = m22 * view.m02
@@ -1015,14 +1015,14 @@ open class Matrix4d {
         val nm31 = m11 * view.m31 + m31
         val nm32 = m22 * view.m32 + m32
         val nm33 = 1.0
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(2)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun fma4x3(other: Matrix4d, otherFactor: Double, dest: Matrix4d = this): Matrix4d {
-        dest._m00(other.m00 * otherFactor + m00)
+    fun fma4x3(other: Matrix4d, otherFactor: Double, dst: Matrix4d = this): Matrix4d {
+        dst._m00(other.m00 * otherFactor + m00)
             ._m01(other.m01 * otherFactor + m01)
             ._m02(other.m02 * otherFactor + m02)._m03(m03)
             ._m10(other.m10 * otherFactor + m10)
@@ -1034,41 +1034,41 @@ open class Matrix4d {
             ._m30(other.m30 * otherFactor + m30)
             ._m31(other.m31 * otherFactor + m31)
             ._m32(other.m32 * otherFactor + m32)._m33(m33)._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun add(other: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        dest._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03 + other.m03)
+    fun add(other: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        dst._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03 + other.m03)
             ._m10(m10 + other.m10)._m11(m11 + other.m11)._m12(m12 + other.m12)._m13(m13 + other.m13)
             ._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(m22 + other.m22)._m23(m23 + other.m23)
             ._m30(m30 + other.m30)._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(m33 + other.m33)
             ._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun sub(s: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        dest._m00(m00 - s.m00)._m01(m01 - s.m01)._m02(m02 - s.m02)._m03(m03 - s.m03)
+    fun sub(s: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        dst._m00(m00 - s.m00)._m01(m01 - s.m01)._m02(m02 - s.m02)._m03(m03 - s.m03)
             ._m10(m10 - s.m10)._m11(m11 - s.m11)._m12(m12 - s.m12)._m13(m13 - s.m13)
             ._m20(m20 - s.m20)._m21(m21 - s.m21)._m22(m22 - s.m22)._m23(m23 - s.m23)
             ._m30(m30 - s.m30)._m31(m31 - s.m31)._m32(m32 - s.m32)._m33(m33 - s.m33)._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mulComponentWise(o: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        dest._m00(m00 * o.m00)._m01(m01 * o.m01)._m02(m02 * o.m02)._m03(m03 * o.m03)
+    fun mulComponentWise(o: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        dst._m00(m00 * o.m00)._m01(m01 * o.m01)._m02(m02 * o.m02)._m03(m03 * o.m03)
             ._m10(m10 * o.m10)._m11(m11 * o.m11)._m12(m12 * o.m12)._m13(m13 * o.m13)
             ._m20(m20 * o.m20)._m21(m21 * o.m21)._m22(m22 * o.m22)._m23(m23 * o.m23)
             ._m30(m30 * o.m30)._m31(m31 * o.m31)._m32(m32 * o.m32)._m33(m33 * o.m33)
             ._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun add4x3(other: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        return dest._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03)
+    fun add4x3(other: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        return dst._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03)
             ._m10(m10 + other.m10)._m11(m11 + other.m11)._m12(m12 + other.m12)._m13(m13)
             ._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(m22 + other.m22)._m23(m23)
             ._m30(m30 + other.m30)._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(m33)
@@ -1076,8 +1076,8 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun add4x3(o: Matrix4f, dest: Matrix4d = this): Matrix4d {
-        return dest._m00(m00 + o.m00)._m01(m01 + o.m01)._m02(m02 + o.m02)._m03(m03)
+    fun add4x3(o: Matrix4f, dst: Matrix4d = this): Matrix4d {
+        return dst._m00(m00 + o.m00)._m01(m01 + o.m01)._m02(m02 + o.m02)._m03(m03)
             ._m10(m10 + o.m10)._m11(m11 + o.m11)._m12(m12 + o.m12)._m13(m13)
             ._m20(m20 + o.m20)._m21(m21 + o.m21)._m22(m22 + o.m22)._m23(m23)
             ._m30(m30 + o.m30)._m31(m31 + o.m31)._m32(m32 + o.m32)._m33(m33)
@@ -1085,8 +1085,8 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun sub4x3(subtrahend: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        dest._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03)
+    fun sub4x3(subtrahend: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        dst._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03)
             ._m10(m10 - subtrahend.m10)._m11(
                 m11 - subtrahend.m11
             )._m12(m12 - subtrahend.m12)._m13(m13)._m20(m20 - subtrahend.m20)._m21(m21 - subtrahend.m21)._m22(
@@ -1094,18 +1094,18 @@ open class Matrix4d {
             )._m23(m23)._m30(m30 - subtrahend.m30)._m31(m31 - subtrahend.m31)._m32(m32 - subtrahend.m32)._m33(
                 m33
             )._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun mul4x3ComponentWise(other: Matrix4d, dest: Matrix4d = this): Matrix4d {
-        dest._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03)._m10(m10 * other.m10)
+    fun mul4x3ComponentWise(other: Matrix4d, dst: Matrix4d = this): Matrix4d {
+        dst._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03)._m10(m10 * other.m10)
             ._m11(m11 * other.m11)._m12(
                 m12 * other.m12
             )._m13(m13)._m20(m20 * other.m20)._m21(m21 * other.m21)._m22(m22 * other.m22)._m23(m23)._m30(
                 m30 * other.m30
             )._m31(m31 * other.m31)._m32(m32 * other.m32)._m33(m33)._properties(0)
-        return dest
+        return dst
     }
 
     operator fun set(
@@ -1174,46 +1174,46 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun invert(dest: Matrix4d = this): Matrix4d {
+    fun invert(dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.identity()
+            dst.identity()
         } else if (flags and 8 != 0) {
-            invertTranslation(dest)
+            invertTranslation(dst)
         } else if (flags and 16 != 0) {
-            invertOrthonormal(dest)
+            invertOrthonormal(dst)
         } else if (flags and 2 != 0) {
-            invertAffine(dest)
+            invertAffine(dst)
         } else {
-            if (flags and 1 != 0) invertPerspective(dest) else invertGeneric(dest)
+            if (flags and 1 != 0) invertPerspective(dst) else invertGeneric(dst)
         }
     }
 
-    private fun invertTranslation(dest: Matrix4d): Matrix4d {
-        if (dest !== this) {
-            dest.set(this)
+    private fun invertTranslation(dst: Matrix4d): Matrix4d {
+        if (dst !== this) {
+            dst.set(this)
         }
-        dest._m30(-m30)._m31(-m31)._m32(-m32)._properties(26)
-        return dest
+        dst._m30(-m30)._m31(-m31)._m32(-m32)._properties(26)
+        return dst
     }
 
-    private fun invertOrthonormal(dest: Matrix4d): Matrix4d {
+    private fun invertOrthonormal(dst: Matrix4d): Matrix4d {
         val nm30 = -(m00 * m30 + m01 * m31 + m02 * m32)
         val nm31 = -(m10 * m30 + m11 * m31 + m12 * m32)
         val nm32 = -(m20 * m30 + m21 * m31 + m22 * m32)
         val m01 = m01
         val m02 = m02
         val m12 = m12
-        dest._m00(m00)._m01(m10)._m02(m20)._m03(0.0)._m10(m01)._m11(m11)._m12(m21)._m13(0.0)._m20(m02)._m21(m12)._m22(
+        dst._m00(m00)._m01(m10)._m02(m20)._m03(0.0)._m10(m01)._m11(m11)._m12(m21)._m13(0.0)._m20(m02)._m21(m12)._m22(
             m22
         )._m23(0.0)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)._properties(18)
-        return dest
+        return dst
     }
 
-    private fun invertGeneric(dest: Matrix4d): Matrix4d {
-        return if (this !== dest) invertGenericNonThis(dest) else invertGenericThis(dest)
+    private fun invertGeneric(dst: Matrix4d): Matrix4d {
+        return if (this !== dst) invertGenericNonThis(dst) else invertGenericThis(dst)
     }
 
-    private fun invertGenericNonThis(dest: Matrix4d): Matrix4d {
+    private fun invertGenericNonThis(dst: Matrix4d): Matrix4d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val c = m00 * m13 - m03 * m10
@@ -1228,7 +1228,7 @@ open class Matrix4d {
         val l = m22 * m33 - m23 * m32
         var det = a * l - b * k + c * j + d * i - e * h + f * g
         det = 1.0 / det
-        return dest._m00((m11 * l - m12 * k + m13 * j) * det)
+        return dst._m00((m11 * l - m12 * k + m13 * j) * det)
             ._m01((-m01 * l + m02 * k + -m03 * j) * det)
             ._m02((m31 * f - m32 * e + m33 * d) * det)
             ._m03((-m21 * f + m22 * e + -m23 * d) * det)
@@ -1247,7 +1247,7 @@ open class Matrix4d {
             ._properties(0)
     }
 
-    private fun invertGenericThis(dest: Matrix4d): Matrix4d {
+    private fun invertGenericThis(dst: Matrix4d): Matrix4d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val c = m00 * m13 - m03 * m10
@@ -1277,37 +1277,37 @@ open class Matrix4d {
         val nm31 = (m00 * j - m01 * h + m02 * g) * det
         val nm32 = (-m30 * d + m31 * b + -m32 * a) * det
         val nm33 = (m20 * d - m21 * b + m22 * a) * det
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
             ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
             ._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
 
     @JvmOverloads
-    fun invertPerspective(dest: Matrix4d = this): Matrix4d {
+    fun invertPerspective(dst: Matrix4d = this): Matrix4d {
         val a = 1.0 / (m00 * m11)
         val l = -1.0 / (m23 * m32)
-        dest[m11 * a, 0.0, 0.0, 0.0, 0.0, m00 * a, 0.0, 0.0, 0.0, 0.0, 0.0, -m23 * l, 0.0, 0.0, -m32 * l] = m22 * l
-        return dest
+        dst[m11 * a, 0.0, 0.0, 0.0, 0.0, m00 * a, 0.0, 0.0, 0.0, 0.0, 0.0, -m23 * l, 0.0, 0.0, -m32 * l] = m22 * l
+        return dst
     }
 
     @JvmOverloads
-    fun invertFrustum(dest: Matrix4d = this): Matrix4d {
+    fun invertFrustum(dst: Matrix4d = this): Matrix4d {
         val invM00 = 1.0 / m00
         val invM11 = 1.0 / m11
         val invM23 = 1.0 / m23
         val invM32 = 1.0 / m32
-        dest[invM00, 0.0, 0.0, 0.0, 0.0, invM11, 0.0, 0.0, 0.0, 0.0, 0.0, invM32, -m20 * invM00 * invM23, -m21 * invM11 * invM23, invM23] =
+        dst[invM00, 0.0, 0.0, 0.0, 0.0, invM11, 0.0, 0.0, 0.0, 0.0, 0.0, invM32, -m20 * invM00 * invM23, -m21 * invM11 * invM23, invM23] =
             -m22 * invM23 * invM32
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun invertOrtho(dest: Matrix4d = this): Matrix4d {
+    fun invertOrtho(dst: Matrix4d = this): Matrix4d {
         val invM00 = 1.0 / m00
         val invM11 = 1.0 / m11
         val invM22 = 1.0 / m22
-        dest.set(
+        dst.set(
             invM00,
             0.0,
             0.0,
@@ -1325,10 +1325,10 @@ open class Matrix4d {
             -m32 * invM22,
             1.0
         )._properties(2 or (flags and 16))
-        return dest
+        return dst
     }
 
-    fun invertPerspectiveView(view: Matrix4d, dest: Matrix4d): Matrix4d {
+    fun invertPerspectiveView(view: Matrix4d, dst: Matrix4d): Matrix4d {
         val a = 1.0 / (m00 * m11)
         val l = -1.0 / (m23 * m32)
         val pm00 = m11 * a
@@ -1343,12 +1343,12 @@ open class Matrix4d {
         val nm30 = view.m02 * pm32 + vm30 * pm33
         val nm31 = view.m12 * pm32 + vm31 * pm33
         val nm32 = view.m22 * pm32 + vm32 * pm33
-        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(nm10)
+        return dst._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(nm10)
             ._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)
             ._m23(pm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(pm33)._properties(0)
     }
 
-    fun invertPerspectiveView(view: Matrix4x3d, dest: Matrix4d): Matrix4d {
+    fun invertPerspectiveView(view: Matrix4x3d, dst: Matrix4d): Matrix4d {
         val a = 1.0 / (m00 * m11)
         val l = -1.0 / (m23 * m32)
         val pm00 = m11 * a
@@ -1359,14 +1359,14 @@ open class Matrix4d {
         val vm30 = -view.m00 * view.m30 - view.m01 * view.m31 - view.m02 * view.m32
         val vm31 = -view.m10 * view.m30 - view.m11 * view.m31 - view.m12 * view.m32
         val vm32 = -view.m20 * view.m30 - view.m21 * view.m31 - view.m22 * view.m32
-        return dest._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(view.m01 * pm11)
+        return dst._m00(view.m00 * pm00)._m01(view.m10 * pm00)._m02(view.m20 * pm00)._m03(0.0)._m10(view.m01 * pm11)
             ._m11(view.m11 * pm11)._m12(view.m21 * pm11)._m13(0.0)._m20(vm30 * pm23)._m21(vm31 * pm23)._m22(vm32 * pm23)
             ._m23(pm23)._m30(view.m02 * pm32 + vm30 * pm33)._m31(view.m12 * pm32 + vm31 * pm33)
             ._m32(view.m22 * pm32 + vm32 * pm33)._m33(pm33)._properties(0)
     }
 
     @JvmOverloads
-    fun invertAffine(dest: Matrix4d = this): Matrix4d {
+    fun invertAffine(dst: Matrix4d = this): Matrix4d {
         val m11m00 = m00 * m11
         val m10m01 = m01 * m10
         val m10m02 = m02 * m10
@@ -1398,39 +1398,39 @@ open class Matrix4d {
         val nm30 = (m10m22 * m31 - m10m21 * m32 + m11m20 * m32 - m11m22 * m30 + m12m21 * m30 - m12m20 * m31) * s
         val nm31 = (m20m02 * m31 - m20m01 * m32 + m21m00 * m32 - m21m02 * m30 + m22m01 * m30 - m22m00 * m31) * s
         val nm32 = (m11m02 * m30 - m12m01 * m30 + m12m00 * m31 - m10m02 * m31 + m10m01 * m32 - m11m00 * m32) * s
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
             ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)
             ._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)
             ._m30(nm30)._m31(nm31)._m32(nm32)._m33(1.0)
             ._properties(2)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun transpose(dest: Matrix4d = this): Matrix4d {
+    fun transpose(dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.identity()
+            dst.identity()
         } else {
-            if (this !== dest) transposeNonThisGeneric(dest) else transposeThisGeneric(dest)
+            if (this !== dst) transposeNonThisGeneric(dst) else transposeThisGeneric(dst)
         }
     }
 
-    private fun transposeNonThisGeneric(dest: Matrix4d): Matrix4d {
-        return dest._m00(m00)._m01(m10)._m02(m20)._m03(m30)
+    private fun transposeNonThisGeneric(dst: Matrix4d): Matrix4d {
+        return dst._m00(m00)._m01(m10)._m02(m20)._m03(m30)
             ._m10(m01)._m11(m11)._m12(m21)._m13(m31)
             ._m20(m02)._m21(m12)._m22(m22)._m23(m32)
             ._m30(m03)._m31(m13)._m32(m23)._m33(m33)
             ._properties(0)
     }
 
-    private fun transposeThisGeneric(dest: Matrix4d): Matrix4d {
+    private fun transposeThisGeneric(dst: Matrix4d): Matrix4d {
         val nm10 = m01
         val nm20 = m02
         val nm21 = m12
         val nm30 = m03
         val nm31 = m13
         val nm32 = m23
-        return dest._m01(m10)._m02(m20)._m03(m30)
+        return dst._m01(m10)._m02(m20)._m03(m30)
             ._m10(nm10)._m12(m21)._m13(m31)
             ._m20(nm20)._m21(nm21)._m23(m32)
             ._m30(nm30)._m31(nm31)._m32(nm32)
@@ -1438,18 +1438,18 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun transpose3x3(dest: Matrix4d = this): Matrix4d {
+    fun transpose3x3(dst: Matrix4d = this): Matrix4d {
         val nm10 = m01
         val nm20 = m02
         val nm21 = m12
-        return dest._m00(m00)._m01(m10)._m02(m20)
+        return dst._m00(m00)._m01(m10)._m02(m20)
             ._m10(nm10)._m11(m11)._m12(m21)
             ._m20(nm20)._m21(nm21)._m22(m22)
             ._properties(flags and 30)
     }
 
-    fun transpose3x3(dest: Matrix3d): Matrix3d {
-        return dest._m00(m00)._m01(m10)._m02(m20)._m10(m01)._m11(m11)._m12(m21)._m20(m02)._m21(m12)._m22(m22)
+    fun transpose3x3(dst: Matrix3d): Matrix3d {
+        return dst._m00(m00)._m01(m10)._m02(m20)._m10(m01)._m11(m11)._m12(m21)._m20(m02)._m21(m12)._m22(m22)
     }
 
     fun translation(x: Double, y: Double, z: Double): Matrix4d {
@@ -1477,18 +1477,18 @@ open class Matrix4d {
         return this.setTranslation(xyz.x, xyz.y, xyz.z)
     }
 
-    fun getTranslation(dest: Vector3d): Vector3d {
-        dest.x = m30
-        dest.y = m31
-        dest.z = m32
-        return dest
+    fun getTranslation(dst: Vector3d): Vector3d {
+        dst.x = m30
+        dst.y = m31
+        dst.z = m32
+        return dst
     }
 
-    fun getScale(dest: Vector3d): Vector3d {
-        dest.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
-        dest.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
-        dest.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        return dest
+    fun getScale(dst: Vector3d): Vector3d {
+        dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dst
     }
 
     override fun toString() =
@@ -1497,74 +1497,74 @@ open class Matrix4d {
                 "[${f(m02)} ${f(m12)} ${f(m22)} ${f(m32)}] " +
                 "[${f(m03)} ${f(m13)} ${f(m23)} ${f(m33)}]]").addSigns()
 
-    fun get(dest: Matrix4d): Matrix4d {
-        return dest.set(this)
+    fun get(dst: Matrix4d): Matrix4d {
+        return dst.set(this)
     }
 
-    fun get4x3(dest: Matrix4x3d): Matrix4x3d {
-        return dest.set(this)
+    fun get4x3(dst: Matrix4x3d): Matrix4x3d {
+        return dst.set(this)
     }
 
-    fun get3x3(dest: Matrix3d): Matrix3d {
-        return dest.set(this)
+    fun get3x3(dst: Matrix3d): Matrix3d {
+        return dst.set(this)
     }
 
-    fun getUnnormalizedRotation(dest: Quaternionf): Quaternionf {
-        return dest.setFromUnnormalized(this)
+    fun getUnnormalizedRotation(dst: Quaternionf): Quaternionf {
+        return dst.setFromUnnormalized(this)
     }
 
-    fun getNormalizedRotation(dest: Quaternionf): Quaternionf {
-        return dest.setFromNormalized(this)
+    fun getNormalizedRotation(dst: Quaternionf): Quaternionf {
+        return dst.setFromNormalized(this)
     }
 
-    fun getUnnormalizedRotation(dest: Quaterniond): Quaterniond {
-        return dest.setFromUnnormalized(this)
+    fun getUnnormalizedRotation(dst: Quaterniond): Quaterniond {
+        return dst.setFromUnnormalized(this)
     }
 
-    fun getNormalizedRotation(dest: Quaterniond): Quaterniond {
-        return dest.setFromNormalized(this)
-    }
-
-    @JvmOverloads
-    fun get(dest: DoubleArray, offset: Int = 0): DoubleArray {
-        dest[offset] = m00
-        dest[offset + 1] = m01
-        dest[offset + 2] = m02
-        dest[offset + 3] = m03
-        dest[offset + 4] = m10
-        dest[offset + 5] = m11
-        dest[offset + 6] = m12
-        dest[offset + 7] = m13
-        dest[offset + 8] = m20
-        dest[offset + 9] = m21
-        dest[offset + 10] = m22
-        dest[offset + 11] = m23
-        dest[offset + 12] = m30
-        dest[offset + 13] = m31
-        dest[offset + 14] = m32
-        dest[offset + 15] = m33
-        return dest
+    fun getNormalizedRotation(dst: Quaterniond): Quaterniond {
+        return dst.setFromNormalized(this)
     }
 
     @JvmOverloads
-    fun get(dest: FloatArray, offset: Int = 0): FloatArray {
-        dest[offset] = m00.toFloat()
-        dest[offset + 1] = m01.toFloat()
-        dest[offset + 2] = m02.toFloat()
-        dest[offset + 3] = m03.toFloat()
-        dest[offset + 4] = m10.toFloat()
-        dest[offset + 5] = m11.toFloat()
-        dest[offset + 6] = m12.toFloat()
-        dest[offset + 7] = m13.toFloat()
-        dest[offset + 8] = m20.toFloat()
-        dest[offset + 9] = m21.toFloat()
-        dest[offset + 10] = m22.toFloat()
-        dest[offset + 11] = m23.toFloat()
-        dest[offset + 12] = m30.toFloat()
-        dest[offset + 13] = m31.toFloat()
-        dest[offset + 14] = m32.toFloat()
-        dest[offset + 15] = m33.toFloat()
-        return dest
+    fun get(dst: DoubleArray, offset: Int = 0): DoubleArray {
+        dst[offset] = m00
+        dst[offset + 1] = m01
+        dst[offset + 2] = m02
+        dst[offset + 3] = m03
+        dst[offset + 4] = m10
+        dst[offset + 5] = m11
+        dst[offset + 6] = m12
+        dst[offset + 7] = m13
+        dst[offset + 8] = m20
+        dst[offset + 9] = m21
+        dst[offset + 10] = m22
+        dst[offset + 11] = m23
+        dst[offset + 12] = m30
+        dst[offset + 13] = m31
+        dst[offset + 14] = m32
+        dst[offset + 15] = m33
+        return dst
+    }
+
+    @JvmOverloads
+    fun get(dst: FloatArray, offset: Int = 0): FloatArray {
+        dst[offset] = m00.toFloat()
+        dst[offset + 1] = m01.toFloat()
+        dst[offset + 2] = m02.toFloat()
+        dst[offset + 3] = m03.toFloat()
+        dst[offset + 4] = m10.toFloat()
+        dst[offset + 5] = m11.toFloat()
+        dst[offset + 6] = m12.toFloat()
+        dst[offset + 7] = m13.toFloat()
+        dst[offset + 8] = m20.toFloat()
+        dst[offset + 9] = m21.toFloat()
+        dst[offset + 10] = m22.toFloat()
+        dst[offset + 11] = m23.toFloat()
+        dst[offset + 12] = m30.toFloat()
+        dst[offset + 13] = m31.toFloat()
+        dst[offset + 14] = m32.toFloat()
+        dst[offset + 15] = m33.toFloat()
+        return dst
     }
 
     fun zero(): Matrix4d {
@@ -1792,12 +1792,12 @@ open class Matrix4d {
         return v.mul(this)
     }
 
-    fun transform(v: Vector4d, dest: Vector4d?): Vector4d {
-        return v.mul(this, dest!!)
+    fun transform(v: Vector4d, dst: Vector4d?): Vector4d {
+        return v.mul(this, dst!!)
     }
 
-    fun transform(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
-        return dest.set(
+    fun transform(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+        return dst.set(
             m00 * x + m10 * y + m20 * z + m30 * w,
             m01 * x + m11 * y + m21 * z + m31 * w,
             m02 * x + m12 * y + m22 * z + m32 * w,
@@ -1809,25 +1809,25 @@ open class Matrix4d {
         return v.mulTranspose(this)
     }
 
-    fun transformTranspose(v: Vector4d, dest: Vector4d?): Vector4d {
-        return v.mulTranspose(this, dest!!)
+    fun transformTranspose(v: Vector4d, dst: Vector4d?): Vector4d {
+        return v.mulTranspose(this, dst!!)
     }
 
-    fun transformTranspose(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
-        return dest.set(x, y, z, w).mulTranspose(this)
+    fun transformTranspose(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
+        return dst.set(x, y, z, w).mulTranspose(this)
     }
 
     fun transformProject(v: Vector4d): Vector4d {
         return v.mulProject(this)
     }
 
-    fun transformProject(v: Vector4d, dest: Vector4d?): Vector4d {
-        return v.mulProject(this, dest!!)
+    fun transformProject(v: Vector4d, dst: Vector4d?): Vector4d {
+        return v.mulProject(this, dst!!)
     }
 
-    fun transformProject(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
+    fun transformProject(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
         val invW = 1.0 / (m03 * x + m13 * y + m23 * z + m33 * w)
-        return dest.set(
+        return dst.set(
             m00 * x + m10 * y + m20 * z + m30 * w * invW,
             m01 * x + m11 * y + m21 * z + m31 * w * invW,
             m02 * x + m12 * y + m22 * z + m32 * w * invW,
@@ -1839,105 +1839,105 @@ open class Matrix4d {
         return v.mulProject(this)
     }
 
-    fun transformProject(v: Vector3d, dest: Vector3d?): Vector3d {
-        return v.mulProject(this, dest!!)
+    fun transformProject(v: Vector3d, dst: Vector3d?): Vector3d {
+        return v.mulProject(this, dst!!)
     }
 
-    fun transformProject(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
+    fun transformProject(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
         val invW = 1.0 / (m03 * x + m13 * y + m23 * z + m33)
-        return dest.set(
+        return dst.set(
             (m00 * x + m10 * y + m20 * z + m30) * invW,
             (m01 * x + m11 * y + m21 * z + m31) * invW,
             (m02 * x + m12 * y + m22 * z + m32) * invW
         )
     }
 
-    fun transformProject(v: Vector4d, dest: Vector3d?): Vector3d {
-        return v.mulProject(this, dest!!)
+    fun transformProject(v: Vector4d, dst: Vector3d?): Vector3d {
+        return v.mulProject(this, dst!!)
     }
 
-    fun transformProject(x: Double, y: Double, z: Double, w: Double, dest: Vector3d): Vector3d {
-        dest.x = x
-        dest.y = y
-        dest.z = z
-        return dest.mulProject(this, w, dest)
+    fun transformProject(x: Double, y: Double, z: Double, w: Double, dst: Vector3d): Vector3d {
+        dst.x = x
+        dst.y = y
+        dst.z = z
+        return dst.mulProject(this, w, dst)
     }
 
-    fun transformPosition(dest: Vector3d): Vector3d {
-        return dest.set(
-            m00 * dest.x + m10 * dest.y + m20 * dest.z + m30,
-            m01 * dest.x + m11 * dest.y + m21 * dest.z + m31,
-            m02 * dest.x + m12 * dest.y + m22 * dest.z + m32
+    fun transformPosition(dst: Vector3d): Vector3d {
+        return dst.set(
+            m00 * dst.x + m10 * dst.y + m20 * dst.z + m30,
+            m01 * dst.x + m11 * dst.y + m21 * dst.z + m31,
+            m02 * dst.x + m12 * dst.y + m22 * dst.z + m32
         )
     }
 
-    fun transformPosition(v: Vector3d, dest: Vector3d): Vector3d {
-        return this.transformPosition(v.x, v.y, v.z, dest)
+    fun transformPosition(v: Vector3d, dst: Vector3d): Vector3d {
+        return this.transformPosition(v.x, v.y, v.z, dst)
     }
 
-    fun transformPosition(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
-        return dest.set(
+    fun transformPosition(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
+        return dst.set(
             m00 * x + m10 * y + m20 * z + m30,
             m01 * x + m11 * y + m21 * z + m31,
             m02 * x + m12 * y + m22 * z + m32
         )
     }
 
-    fun transformDirection(dest: Vector3d): Vector3d {
-        return dest.set(
-            m00 * dest.x + m10 * dest.y + m20 * dest.z,
-            m01 * dest.x + m11 * dest.y + m21 * dest.z,
-            m02 * dest.x + m12 * dest.y + m22 * dest.z
+    fun transformDirection(dst: Vector3d): Vector3d {
+        return dst.set(
+            m00 * dst.x + m10 * dst.y + m20 * dst.z,
+            m01 * dst.x + m11 * dst.y + m21 * dst.z,
+            m02 * dst.x + m12 * dst.y + m22 * dst.z
         )
     }
 
-    fun transformDirection(v: Vector3d, dest: Vector3d): Vector3d {
-        return dest.set(
+    fun transformDirection(v: Vector3d, dst: Vector3d): Vector3d {
+        return dst.set(
             m00 * v.x + m10 * v.y + m20 * v.z,
             m01 * v.x + m11 * v.y + m21 * v.z,
             m02 * v.x + m12 * v.y + m22 * v.z
         )
     }
 
-    fun transformDirection(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
-        return dest.set(m00 * x + m10 * y + m20 * z, m01 * x + m11 * y + m21 * z, m02 * x + m12 * y + m22 * z)
+    fun transformDirection(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
+        return dst.set(m00 * x + m10 * y + m20 * z, m01 * x + m11 * y + m21 * z, m02 * x + m12 * y + m22 * z)
     }
 
-    fun transformDirection(dest: Vector3f): Vector3f {
-        return dest.mulDirection(this)
+    fun transformDirection(dst: Vector3f): Vector3f {
+        return dst.mulDirection(this)
     }
 
-    fun transformDirection(v: Vector3f, dest: Vector3f?): Vector3f {
-        return v.mulDirection(this, dest!!)
+    fun transformDirection(v: Vector3f, dst: Vector3f?): Vector3f {
+        return v.mulDirection(this, dst!!)
     }
 
-    fun transformDirection(x: Double, y: Double, z: Double, dest: Vector3f): Vector3f {
+    fun transformDirection(x: Double, y: Double, z: Double, dst: Vector3f): Vector3f {
         val rx = (m00 * x + m10 * y + m20 * z).toFloat()
         val ry = (m01 * x + m11 * y + m21 * z).toFloat()
         val rz = (m02 * x + m12 * y + m22 * z).toFloat()
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        return dst
     }
 
-    fun transformAffine(dest: Vector4d): Vector4d {
-        return dest.mulAffine(this, dest)
+    fun transformAffine(dst: Vector4d): Vector4d {
+        return dst.mulAffine(this, dst)
     }
 
-    fun transformAffine(v: Vector4d, dest: Vector4d): Vector4d {
-        return this.transformAffine(v.x, v.y, v.z, v.w, dest)
+    fun transformAffine(v: Vector4d, dst: Vector4d): Vector4d {
+        return this.transformAffine(v.x, v.y, v.z, v.w, dst)
     }
 
-    fun transformAffine(x: Double, y: Double, z: Double, w: Double, dest: Vector4d): Vector4d {
+    fun transformAffine(x: Double, y: Double, z: Double, w: Double, dst: Vector4d): Vector4d {
         val rx = m00 * x + m10 * y + m20 * z + m30 * w
         val ry = m01 * x + m11 * y + m21 * z + m31 * w
         val rz = m02 * x + m12 * y + m22 * z + m32 * w
-        dest.x = rx
-        dest.y = ry
-        dest.z = rz
-        dest.w = w
-        return dest
+        dst.x = rx
+        dst.y = ry
+        dst.z = rz
+        dst.w = w
+        return dst
     }
 
     fun set3x3(mat: Matrix3d): Matrix4d {
@@ -1947,8 +1947,8 @@ open class Matrix4d {
             )
     }
 
-    fun scale(xyz: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.scale(xyz.x, xyz.y, xyz.z, dest)
+    fun scale(xyz: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.scale(xyz.x, xyz.y, xyz.z, dst)
     }
 
     fun scale(xyz: Vector3d): Matrix4d {
@@ -1956,31 +1956,31 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun scale(x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.scaling(x, y, z) else scaleGeneric(x, y, z, dest)
+    fun scale(x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.scaling(x, y, z) else scaleGeneric(x, y, z, dst)
     }
 
-    private fun scaleGeneric(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun scaleGeneric(x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val one = JomlMath.absEqualsOne(x) && JomlMath.absEqualsOne(y) && JomlMath.absEqualsOne(z)
-        dest._m00(m00 * x)._m01(m01 * x)._m02(m02 * x)._m03(m03 * x)._m10(m10 * y)._m11(m11 * y)._m12(m12 * y)
+        dst._m00(m00 * x)._m01(m01 * x)._m02(m02 * x)._m03(m03 * x)._m10(m10 * y)._m11(m11 * y)._m12(m12 * y)
             ._m13(m13 * y)._m20(
                 m20 * z
             )._m21(m21 * z)._m22(m22 * z)._m23(m23 * z)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(
                 flags and (13 or if (one) 0 else 16).inv()
             )
-        return dest
+        return dst
     }
 
-    fun scale(xyz: Double, dest: Matrix4d): Matrix4d {
-        return this.scale(xyz, xyz, xyz, dest)
+    fun scale(xyz: Double, dst: Matrix4d): Matrix4d {
+        return this.scale(xyz, xyz, xyz, dst)
     }
 
     fun scale(xyz: Double): Matrix4d {
         return this.scale(xyz, xyz, xyz)
     }
 
-    fun scaleXY(x: Double, y: Double, dest: Matrix4d): Matrix4d {
-        return this.scale(x, y, 1.0, dest)
+    fun scaleXY(x: Double, y: Double, dst: Matrix4d): Matrix4d {
+        return this.scale(x, y, 1.0, dst)
     }
 
     fun scaleXY(x: Double, y: Double): Matrix4d {
@@ -1995,21 +1995,21 @@ open class Matrix4d {
         ox: Double,
         oy: Double,
         oz: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val nm30 = m00 * ox + m10 * oy + m20 * oz + m30
         val nm31 = m01 * ox + m11 * oy + m21 * oz + m31
         val nm32 = m02 * ox + m12 * oy + m22 * oz + m32
         val nm33 = m03 * ox + m13 * oy + m23 * oz + m33
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
-        return dest._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)
+        return dst._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)
             ._m12(m12 * sy)._m13(
                 m13 * sy
             )._m20(m20 * sz)._m21(m21 * sz)._m22(m22 * sz)._m23(m23 * sz)._m30(
-                -dest.m00 * ox - dest.m10 * oy - dest.m20 * oz + nm30
-            )._m31(-dest.m01 * ox - dest.m11 * oy - dest.m21 * oz + nm31)._m32(
-                -dest.m02 * ox - dest.m12 * oy - dest.m22 * oz + nm32
-            )._m33(-dest.m03 * ox - dest.m13 * oy - dest.m23 * oz + nm33)._properties(
+                -dst.m00 * ox - dst.m10 * oy - dst.m20 * oz + nm30
+            )._m31(-dst.m01 * ox - dst.m11 * oy - dst.m21 * oz + nm31)._m32(
+                -dst.m02 * ox - dst.m12 * oy - dst.m22 * oz + nm32
+            )._m33(-dst.m03 * ox - dst.m13 * oy - dst.m23 * oz + nm33)._properties(
                 flags and (13 or if (one) 0 else 16).inv()
             )
     }
@@ -2018,16 +2018,16 @@ open class Matrix4d {
         return this.scaleAround(factor, factor, factor, ox, oy, oz, this)
     }
 
-    fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double, dest: Matrix4d): Matrix4d {
-        return this.scaleAround(factor, factor, factor, ox, oy, oz, dest)
+    fun scaleAround(factor: Double, ox: Double, oy: Double, oz: Double, dst: Matrix4d): Matrix4d {
+        return this.scaleAround(factor, factor, factor, ox, oy, oz, dst)
     }
 
     @JvmOverloads
-    fun scaleLocal(x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.scaling(x, y, z) else scaleLocalGeneric(x, y, z, dest)
+    fun scaleLocal(x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.scaling(x, y, z) else scaleLocalGeneric(x, y, z, dst)
     }
 
-    private fun scaleLocalGeneric(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun scaleLocalGeneric(x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val nm00 = x * m00
         val nm01 = y * m01
         val nm02 = z * m02
@@ -2041,16 +2041,16 @@ open class Matrix4d {
         val nm31 = y * m31
         val nm32 = z * m32
         val one = JomlMath.absEqualsOne(x) && JomlMath.absEqualsOne(y) && JomlMath.absEqualsOne(z)
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)._m21(nm21)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)._m21(nm21)
             ._m22(nm22)._m23(
                 m23
             )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(flags and (13 or if (one) 0 else 16).inv())
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun scaleLocal(xyz: Double, dest: Matrix4d = this): Matrix4d {
-        return this.scaleLocal(xyz, xyz, xyz, dest)
+    fun scaleLocal(xyz: Double, dst: Matrix4d = this): Matrix4d {
+        return this.scaleLocal(xyz, xyz, xyz, dst)
     }
 
     @JvmOverloads
@@ -2061,10 +2061,10 @@ open class Matrix4d {
         ox: Double,
         oy: Double,
         oz: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val one = JomlMath.absEqualsOne(sx) && JomlMath.absEqualsOne(sy) && JomlMath.absEqualsOne(sz)
-        dest._m00(sx * (m00 - ox * m03) + ox * m03)._m01(sy * (m01 - oy * m03) + oy * m03)
+        dst._m00(sx * (m00 - ox * m03) + ox * m03)._m01(sy * (m01 - oy * m03) + oy * m03)
             ._m02(sz * (m02 - oz * m03) + oz * m03)._m03(
                 m03
             )._m10(sx * (m10 - ox * m13) + ox * m13)._m11(sy * (m11 - oy * m13) + oy * m13)
@@ -2077,48 +2077,48 @@ open class Matrix4d {
             ._m32(sz * (m32 - oz * m33) + oz * m33)._m33(
                 m33
             )._properties(flags and (13 or if (one) 0 else 16).inv())
-        return dest
+        return dst
     }
 
     fun scaleAroundLocal(factor: Double, ox: Double, oy: Double, oz: Double): Matrix4d {
         return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, this)
     }
 
-    fun scaleAroundLocal(factor: Double, ox: Double, oy: Double, oz: Double, dest: Matrix4d): Matrix4d {
-        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, dest)
+    fun scaleAroundLocal(factor: Double, ox: Double, oy: Double, oz: Double, dst: Matrix4d): Matrix4d {
+        return this.scaleAroundLocal(factor, factor, factor, ox, oy, oz, dst)
     }
 
     @JvmOverloads
-    fun rotate(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotate(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotation(ang, x, y, z)
+            dst.rotation(ang, x, y, z)
         } else if (flags and 8 != 0) {
-            this.rotateTranslation(ang, x, y, z, dest)
+            this.rotateTranslation(ang, x, y, z, dst)
         } else {
-            if (flags and 2 != 0) this.rotateAffine(ang, x, y, z, dest) else this.rotateGeneric(
+            if (flags and 2 != 0) this.rotateAffine(ang, x, y, z, dst) else this.rotateGeneric(
                 ang,
                 x,
                 y,
                 z,
-                dest
+                dst
             )
         }
     }
 
-    private fun rotateGeneric(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateGeneric(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            rotateX(x * ang, dest)
+            rotateX(x * ang, dst)
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            rotateY(y * ang, dest)
+            rotateY(y * ang, dst)
         } else {
             if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(
                 z * ang,
-                dest
-            ) else rotateGenericInternal(ang, x, y, z, dest)
+                dst
+            ) else rotateGenericInternal(ang, x, y, z, dst)
         }
     }
 
-    private fun rotateGenericInternal(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateGenericInternal(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val s = sin(ang)
         val c = cos(ang)
         val C = 1.0 - c
@@ -2145,30 +2145,30 @@ open class Matrix4d {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
             ._m12(nm12)._m13(nm13)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
-    fun rotateTranslation(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    fun rotateTranslation(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val tx = m30
         val ty = m31
         val tz = m32
         return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            dest.rotationX(x * ang).setTranslation(tx, ty, tz)
+            dst.rotationX(x * ang).setTranslation(tx, ty, tz)
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            dest.rotationY(y * ang).setTranslation(tx, ty, tz)
+            dst.rotationY(y * ang).setTranslation(tx, ty, tz)
         } else {
-            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) dest.rotationZ(z * ang)
-                .setTranslation(tx, ty, tz) else rotateTranslationInternal(ang, x, y, z, dest)
+            if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) dst.rotationZ(z * ang)
+                .setTranslation(tx, ty, tz) else rotateTranslationInternal(ang, x, y, z, dst)
         }
     }
 
-    private fun rotateTranslationInternal(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateTranslationInternal(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val s = sin(ang)
         val c = cos(ang)
         val C = 1.0 - c
@@ -2187,27 +2187,27 @@ open class Matrix4d {
         val rm20 = xz * C + y * s
         val rm21 = yz * C - x * s
         val rm22 = zz * C + c
-        return dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)
+        return dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)
             ._m11(rm11)._m12(rm12)._m13(0.0)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(1.0)._properties(flags and -14)
     }
 
     @JvmOverloads
-    fun rotateAffine(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffine(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
         return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            rotateX(x * ang, dest)
+            rotateX(x * ang, dst)
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            rotateY(y * ang, dest)
+            rotateY(y * ang, dst)
         } else {
             if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateZ(
                 z * ang,
-                dest
-            ) else rotateAffineInternal(ang, x, y, z, dest)
+                dst
+            ) else rotateAffineInternal(ang, x, y, z, dst)
         }
     }
 
-    private fun rotateAffineInternal(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateAffineInternal(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val s = sin(ang)
         val c = cos(ang)
         val C = 1.0 - c
@@ -2232,16 +2232,16 @@ open class Matrix4d {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m30(m30)
             ._m31(
                 m31
             )._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
-    fun rotateAroundAffine(quat: Quaterniond, ox: Double, oy: Double, oz: Double, dest: Matrix4d): Matrix4d {
+    fun rotateAroundAffine(quat: Quaterniond, ox: Double, oy: Double, oz: Double, dst: Matrix4d): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -2276,7 +2276,7 @@ open class Matrix4d {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)
             ._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)
             ._m22(m02 * rm20 + m12 * rm21 + m22 * rm22)._m23(0.0)
             ._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)
@@ -2285,7 +2285,7 @@ open class Matrix4d {
             ._m31(-nm01 * ox - nm11 * oy - m21 * oz + tm31)
             ._m32(-nm02 * ox - nm12 * oy - m22 * oz + tm32)._m33(1.0)
             ._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
@@ -2384,24 +2384,24 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun rotateLocal(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.rotation(ang, x, y, z) else rotateLocalGeneric(ang, x, y, z, dest)
+    fun rotateLocal(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.rotation(ang, x, y, z) else rotateLocalGeneric(ang, x, y, z, dst)
     }
 
-    private fun rotateLocalGeneric(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateLocalGeneric(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         return if (y == 0.0 && z == 0.0 && JomlMath.absEqualsOne(x)) {
-            rotateLocalX(x * ang, dest)
+            rotateLocalX(x * ang, dst)
         } else if (x == 0.0 && z == 0.0 && JomlMath.absEqualsOne(y)) {
-            rotateLocalY(y * ang, dest)
+            rotateLocalY(y * ang, dst)
         } else {
             if (x == 0.0 && y == 0.0 && JomlMath.absEqualsOne(z)) rotateLocalZ(
                 z * ang,
-                dest
-            ) else rotateLocalGenericInternal(ang, x, y, z, dest)
+                dst
+            ) else rotateLocalGenericInternal(ang, x, y, z, dst)
         }
     }
 
-    private fun rotateLocalGenericInternal(ang: Double, x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateLocalGenericInternal(ang: Double, x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val s = sin(ang)
         val c = cos(ang)
         val C = 1.0 - c
@@ -2432,15 +2432,15 @@ open class Matrix4d {
         val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
         val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
         val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)._m21(nm21)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)._m21(nm21)
             ._m22(nm22)._m23(
                 m23
             )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAroundLocal(quat: Quaterniond, ox: Double, oy: Double, oz: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateAroundLocal(quat: Quaterniond, ox: Double, oy: Double, oz: Double, dst: Matrix4d = this): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -2472,7 +2472,7 @@ open class Matrix4d {
         val tm30 = m30 - ox * m33
         val tm31 = m31 - oy * m33
         val tm32 = m32 - oz * m33
-        dest._m00(lm00 * tm00 + lm10 * tm01 + lm20 * tm02 + ox * m03)
+        dst._m00(lm00 * tm00 + lm10 * tm01 + lm20 * tm02 + ox * m03)
             ._m01(lm01 * tm00 + lm11 * tm01 + lm21 * tm02 + oy * m03)._m02(
                 lm02 * tm00 + lm12 * tm01 + lm22 * tm02 + oz * m03
             )._m03(m03)._m10(lm00 * tm10 + lm10 * tm11 + lm20 * tm12 + ox * m13)
@@ -2485,31 +2485,31 @@ open class Matrix4d {
             ._m31(lm01 * tm30 + lm11 * tm31 + lm21 * tm32 + oy * m33)._m32(
                 lm02 * tm30 + lm12 * tm31 + lm22 * tm32 + oz * m33
             )._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun translate(offset: Vector3d): Matrix4d {
         return this.translate(offset.x, offset.y, offset.z)
     }
 
-    fun translate(offset: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.translate(offset.x, offset.y, offset.z, dest)
+    fun translate(offset: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.translate(offset.x, offset.y, offset.z, dst)
     }
 
     fun translate(offset: Vector3f): Matrix4d {
         return this.translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
     }
 
-    fun translate(offset: Vector3f, dest: Matrix4d): Matrix4d {
-        return this.translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dest)
+    fun translate(offset: Vector3f, dst: Matrix4d): Matrix4d {
+        return this.translate(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
     }
 
-    fun translate(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
-        return if (flags and 4 != 0) dest.translation(x, y, z) else translateGeneric(x, y, z, dest)
+    fun translate(x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
+        return if (flags and 4 != 0) dst.translation(x, y, z) else translateGeneric(x, y, z, dst)
     }
 
-    private fun translateGeneric(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
-        dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)
+    private fun translateGeneric(x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
+        dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(m10)._m11(m11)._m12(m12)._m13(m13)
             ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
             ._m30(m00 * x + m10 * y + m20 * z + m30)
@@ -2517,7 +2517,7 @@ open class Matrix4d {
             ._m32(m02 * x + m12 * y + m22 * z + m32)
             ._m33(m03 * x + m13 * y + m23 * z + m33)
             ._properties(flags and -6)
-        return dest
+        return dst
     }
 
     fun translate(x: Double, y: Double, z: Double): Matrix4d {
@@ -2537,24 +2537,24 @@ open class Matrix4d {
         return this.translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
     }
 
-    fun translateLocal(offset: Vector3f, dest: Matrix4d): Matrix4d {
-        return this.translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dest)
+    fun translateLocal(offset: Vector3f, dst: Matrix4d): Matrix4d {
+        return this.translateLocal(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble(), dst)
     }
 
     fun translateLocal(offset: Vector3d): Matrix4d {
         return this.translateLocal(offset.x, offset.y, offset.z)
     }
 
-    fun translateLocal(offset: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.translateLocal(offset.x, offset.y, offset.z, dest)
+    fun translateLocal(offset: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.translateLocal(offset.x, offset.y, offset.z, dst)
     }
 
     @JvmOverloads
-    fun translateLocal(x: Double, y: Double, z: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.translation(x, y, z) else translateLocalGeneric(x, y, z, dest)
+    fun translateLocal(x: Double, y: Double, z: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.translation(x, y, z) else translateLocalGeneric(x, y, z, dst)
     }
 
-    private fun translateLocalGeneric(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun translateLocalGeneric(x: Double, y: Double, z: Double, dst: Matrix4d): Matrix4d {
         val nm00 = m00 + x * m03
         val nm01 = m01 + y * m03
         val nm02 = m02 + z * m03
@@ -2567,81 +2567,81 @@ open class Matrix4d {
         val nm30 = m30 + x * m33
         val nm31 = m31 + y * m33
         val nm32 = m32 + z * m33
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(m03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(m13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(
                 m23
             )._m30(nm30)._m31(nm31)._m32(nm32)._m33(m33)._properties(flags and -6)
     }
 
     @JvmOverloads
-    fun rotateLocalX(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateLocalX(ang: Double, dst: Matrix4d = this): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
         val nm02 = sin * m01 + cos * m02
         val nm12 = sin * m11 + cos * m12
         val nm22 = sin * m21 + cos * m22
         val nm32 = sin * m31 + cos * m32
-        dest._m00(m00)._m01(cos * m01 - sin * m02)._m02(nm02)._m03(m03)._m10(m10)._m11(cos * m11 - sin * m12)._m12(nm12)
+        dst._m00(m00)._m01(cos * m01 - sin * m02)._m02(nm02)._m03(m03)._m10(m10)._m11(cos * m11 - sin * m12)._m12(nm12)
             ._m13(
                 m13
             )._m20(m20)._m21(cos * m21 - sin * m22)._m22(nm22)._m23(m23)._m30(m30)._m31(cos * m31 - sin * m32)
             ._m32(nm32)._m33(
                 m33
             )._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocalY(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateLocalY(ang: Double, dst: Matrix4d = this): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
         val nm02 = -sin * m00 + cos * m02
         val nm12 = -sin * m10 + cos * m12
         val nm22 = -sin * m20 + cos * m22
         val nm32 = -sin * m30 + cos * m32
-        dest._m00(cos * m00 + sin * m02)._m01(m01)._m02(nm02)._m03(m03)._m10(cos * m10 + sin * m12)._m11(m11)._m12(nm12)
+        dst._m00(cos * m00 + sin * m02)._m01(m01)._m02(nm02)._m03(m03)._m10(cos * m10 + sin * m12)._m11(m11)._m12(nm12)
             ._m13(
                 m13
             )._m20(cos * m20 + sin * m22)._m21(m21)._m22(nm22)._m23(m23)._m30(cos * m30 + sin * m32)._m31(m31)
             ._m32(nm32)._m33(
                 m33
             )._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocalZ(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateLocalZ(ang: Double, dst: Matrix4d = this): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
         val nm01 = sin * m00 + cos * m01
         val nm11 = sin * m10 + cos * m11
         val nm21 = sin * m20 + cos * m21
         val nm31 = sin * m30 + cos * m31
-        dest._m00(cos * m00 - sin * m01)._m01(nm01)._m02(m02)._m03(m03)._m10(cos * m10 - sin * m11)._m11(nm11)._m12(m12)
+        dst._m00(cos * m00 - sin * m01)._m01(nm01)._m02(m02)._m03(m03)._m10(cos * m10 - sin * m11)._m11(nm11)._m12(m12)
             ._m13(
                 m13
             )._m20(cos * m20 - sin * m21)._m21(nm21)._m22(m22)._m23(m23)._m30(cos * m30 - sin * m31)._m31(nm31)
             ._m32(m32)._m33(
                 m33
             )._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateX(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateX(ang: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationX(ang)
+            dst.rotationX(ang)
         } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
-            dest.rotationX(ang).setTranslation(x, y, z)
+            dst.rotationX(ang).setTranslation(x, y, z)
         } else {
-            rotateXInternal(ang, dest)
+            rotateXInternal(ang, dst)
         }
     }
 
-    private fun rotateXInternal(ang: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateXInternal(ang: Double, dst: Matrix4d): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
         val rm21 = -sin
@@ -2649,28 +2649,28 @@ open class Matrix4d {
         val nm11 = m11 * cos + m21 * sin
         val nm12 = m12 * cos + m22 * sin
         val nm13 = m13 * cos + m23 * sin
-        dest._m20(m10 * rm21 + m20 * cos)._m21(m11 * rm21 + m21 * cos)._m22(m12 * rm21 + m22 * cos)
+        dst._m20(m10 * rm21 + m20 * cos)._m21(m11 * rm21 + m21 * cos)._m22(m12 * rm21 + m22 * cos)
             ._m23(m13 * rm21 + m23 * cos)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m00(
                 m00
             )._m01(m01)._m02(m02)._m03(m03)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateY(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateY(ang: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationY(ang)
+            dst.rotationY(ang)
         } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
-            dest.rotationY(ang).setTranslation(x, y, z)
+            dst.rotationY(ang).setTranslation(x, y, z)
         } else {
-            rotateYInternal(ang, dest)
+            rotateYInternal(ang, dst)
         }
     }
 
-    private fun rotateYInternal(ang: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateYInternal(ang: Double, dst: Matrix4d): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
         val rm02 = -sin
@@ -2678,48 +2678,48 @@ open class Matrix4d {
         val nm01 = m01 * cos + m21 * rm02
         val nm02 = m02 * cos + m22 * rm02
         val nm03 = m03 * cos + m23 * rm02
-        dest._m20(m00 * sin + m20 * cos)._m21(m01 * sin + m21 * cos)._m22(m02 * sin + m22 * cos)
+        dst._m20(m00 * sin + m20 * cos)._m21(m01 * sin + m21 * cos)._m22(m02 * sin + m22 * cos)
             ._m23(m03 * sin + m23 * cos)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(
                 m10
             )._m11(m11)._m12(m12)._m13(m13)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateZ(ang: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateZ(ang: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationZ(ang)
+            dst.rotationZ(ang)
         } else if (flags and 8 != 0) {
             val x = m30
             val y = m31
             val z = m32
-            dest.rotationZ(ang).setTranslation(x, y, z)
+            dst.rotationZ(ang).setTranslation(x, y, z)
         } else {
-            rotateZInternal(ang, dest)
+            rotateZInternal(ang, dst)
         }
     }
 
-    private fun rotateZInternal(ang: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateZInternal(ang: Double, dst: Matrix4d): Matrix4d {
         val sin = sin(ang)
         val cos = cos(ang)
-        return rotateTowardsXY(sin, cos, dest)
+        return rotateTowardsXY(sin, cos, dst)
     }
 
     @JvmOverloads
-    fun rotateTowardsXY(dirX: Double, dirY: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateTowardsXY(dirX: Double, dirY: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationTowardsXY(dirX, dirY)
+            dst.rotationTowardsXY(dirX, dirY)
         } else {
             val rm10 = -dirX
             val nm00 = m00 * dirY + m10 * dirX
             val nm01 = m01 * dirY + m11 * dirX
             val nm02 = m02 * dirY + m12 * dirX
             val nm03 = m03 * dirY + m13 * dirX
-            dest._m10(m00 * rm10 + m10 * dirY)._m11(m01 * rm10 + m11 * dirY)
+            dst._m10(m00 * rm10 + m10 * dirY)._m11(m01 * rm10 + m11 * dirY)
                 ._m12(m02 * rm10 + m12 * dirY)._m13(m03 * rm10 + m13 * dirY)._m00(nm00)._m01(nm01)
                 ._m02(nm02)._m03(nm03)._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(m30)
                 ._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-            dest
+            dst
         }
     }
 
@@ -2728,25 +2728,25 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateXYZ(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationXYZ(angleX, angleY, angleZ)
+            dst.rotationXYZ(angleX, angleY, angleZ)
         } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
-            dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
+            dst.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dest.rotateAffineXYZ(angleX, angleY, angleZ) else rotateXYZInternal(
+            if (flags and 2 != 0) dst.rotateAffineXYZ(angleX, angleY, angleZ) else rotateXYZInternal(
                 angleX,
                 angleY,
                 angleZ,
-                dest
+                dst
             )
         }
     }
 
-    private fun rotateXYZInternal(angleX: Double, angleY: Double, angleZ: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateXYZInternal(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix4d): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2768,31 +2768,31 @@ open class Matrix4d {
         val nm01 = m01 * cosY + nm21 * m_sinY
         val nm02 = m02 * cosY + nm22 * m_sinY
         val nm03 = m03 * cosY + nm23 * m_sinY
-        dest._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)
+        dst._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)
             ._m22(m02 * sinY + nm22 * cosY)._m23(m03 * sinY + nm23 * cosY)
             ._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
             ._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)
             ._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
             ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAffineXYZ(angleX: Double, angleY: Double, angleZ: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffineXYZ(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationXYZ(angleX, angleY, angleZ)
+            dst.rotationXYZ(angleX, angleY, angleZ)
         } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
-            dest.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
+            dst.rotationXYZ(angleX, angleY, angleZ).setTranslation(tx, ty, tz)
         } else {
-            rotateAffineXYZInternal(angleX, angleY, angleZ, dest)
+            rotateAffineXYZInternal(angleX, angleY, angleZ, dst)
         }
     }
 
-    private fun rotateAffineXYZInternal(angleX: Double, angleY: Double, angleZ: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateAffineXYZInternal(angleX: Double, angleY: Double, angleZ: Double, dst: Matrix4d): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2811,11 +2811,11 @@ open class Matrix4d {
         val nm00 = m00 * cosY + nm20 * m_sinY
         val nm01 = m01 * cosY + nm21 * m_sinY
         val nm02 = m02 * cosY + nm22 * m_sinY
-        dest._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)._m22(m02 * sinY + nm22 * cosY)._m23(0.0)
+        dst._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)._m22(m02 * sinY + nm22 * cosY)._m23(0.0)
             ._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)._m02(nm02 * cosZ + nm12 * sinZ)._m03(0.0)
             ._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)._m12(nm02 * m_sinZ + nm12 * cosZ)
             ._m13(0.0)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun rotateZYX(angles: Vector3d): Matrix4d {
@@ -2823,21 +2823,21 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun rotateZYX(angleZ: Double, angleY: Double, angleX: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateZYX(angleZ: Double, angleY: Double, angleX: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationZYX(angleZ, angleY, angleX)
+            dst.rotationZYX(angleZ, angleY, angleX)
         } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
-            dest.rotationZYX(angleZ, angleY, angleX).setTranslation(tx, ty, tz)
+            dst.rotationZYX(angleZ, angleY, angleX).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dest.rotateAffineZYX(angleZ, angleY, angleX)
-            else rotateZYXInternal(angleZ, angleY, angleX, dest)
+            if (flags and 2 != 0) dst.rotateAffineZYX(angleZ, angleY, angleX)
+            else rotateZYXInternal(angleZ, angleY, angleX, dst)
         }
     }
 
-    private fun rotateZYXInternal(angleZ: Double, angleY: Double, angleX: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateZYXInternal(angleZ: Double, angleY: Double, angleX: Double, dst: Matrix4d): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2859,17 +2859,17 @@ open class Matrix4d {
         val nm21 = nm01 * sinY + m21 * cosY
         val nm22 = nm02 * sinY + m22 * cosY
         val nm23 = nm03 * sinY + m23 * cosY
-        dest._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
+        dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)._m02(nm02 * cosY + m22 * m_sinY)
             ._m03(nm03 * cosY + m23 * m_sinY)._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)
             ._m12(nm12 * cosX + nm22 * sinX)._m13(nm13 * cosX + nm23 * sinX)._m20(nm10 * m_sinX + nm20 * cosX)
             ._m21(nm11 * m_sinX + nm21 * cosX)._m22(nm12 * m_sinX + nm22 * cosX)._m23(nm13 * m_sinX + nm23 * cosX)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAffineZYX(angleZ: Double, angleY: Double, angleX: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffineZYX(angleZ: Double, angleY: Double, angleX: Double, dst: Matrix4d = this): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2888,14 +2888,14 @@ open class Matrix4d {
         val nm20 = nm00 * sinY + m20 * cosY
         val nm21 = nm01 * sinY + m21 * cosY
         val nm22 = nm02 * sinY + m22 * cosY
-        dest._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)
+        dst._m00(nm00 * cosY + m20 * m_sinY)._m01(nm01 * cosY + m21 * m_sinY)
             ._m02(nm02 * cosY + m22 * m_sinY)._m03(0.0)
             ._m10(nm10 * cosX + nm20 * sinX)._m11(nm11 * cosX + nm21 * sinX)
             ._m12(nm12 * cosX + nm22 * sinX)._m13(0.0)
             ._m20(nm10 * m_sinX + nm20 * cosX)._m21(nm11 * m_sinX + nm21 * cosX)
             ._m22(nm12 * m_sinX + nm22 * cosX)._m23(0.0)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun rotateYXZ(angles: Vector3d): Matrix4d {
@@ -2903,21 +2903,21 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun rotateYXZ(angleY: Double, angleX: Double, angleZ: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateYXZ(angleY: Double, angleX: Double, angleZ: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotationYXZ(angleY, angleX, angleZ)
+            dst.rotationYXZ(angleY, angleX, angleZ)
         } else if (flags and 8 != 0) {
             val tx = m30
             val ty = m31
             val tz = m32
-            dest.rotationYXZ(angleY, angleX, angleZ).setTranslation(tx, ty, tz)
+            dst.rotationYXZ(angleY, angleX, angleZ).setTranslation(tx, ty, tz)
         } else {
-            if (flags and 2 != 0) dest.rotateAffineYXZ(angleY, angleX, angleZ)
-            else rotateYXZInternal(angleY, angleX, angleZ, dest)
+            if (flags and 2 != 0) dst.rotateAffineYXZ(angleY, angleX, angleZ)
+            else rotateYXZInternal(angleY, angleX, angleZ, dst)
         }
     }
 
-    private fun rotateYXZInternal(angleY: Double, angleX: Double, angleZ: Double, dest: Matrix4d): Matrix4d {
+    private fun rotateYXZInternal(angleY: Double, angleX: Double, angleZ: Double, dst: Matrix4d): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2939,18 +2939,18 @@ open class Matrix4d {
         val nm11 = m11 * cosX + nm21 * sinX
         val nm12 = m12 * cosX + nm22 * sinX
         val nm13 = m13 * cosX + nm23 * sinX
-        dest._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)
+        dst._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)
             ._m22(m12 * m_sinX + nm22 * cosX)._m23(m13 * m_sinX + nm23 * cosX)
             ._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
             ._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)
             ._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
             ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAffineYXZ(angleY: Double, angleX: Double, angleZ: Double, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffineYXZ(angleY: Double, angleX: Double, angleZ: Double, dst: Matrix4d = this): Matrix4d {
         val sinX = sin(angleX)
         val cosX = cos(angleX)
         val sinY = sin(angleY)
@@ -2969,14 +2969,14 @@ open class Matrix4d {
         val nm10 = m10 * cosX + nm20 * sinX
         val nm11 = m11 * cosX + nm21 * sinX
         val nm12 = m12 * cosX + nm22 * sinX
-        dest._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)
+        dst._m20(m10 * m_sinX + nm20 * cosX)._m21(m11 * m_sinX + nm21 * cosX)
             ._m22(m12 * m_sinX + nm22 * cosX)._m23(0.0)
             ._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
             ._m02(nm02 * cosZ + nm12 * sinZ)._m03(0.0)
             ._m10(nm00 * m_sinZ + nm10 * cosZ)._m11(nm01 * m_sinZ + nm11 * cosZ)
             ._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(0.0)
             ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun rotation(angleAxis: AxisAngle4f): Matrix4d {
@@ -3419,17 +3419,17 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun rotate(quat: Quaterniond, dest: Matrix4d = this): Matrix4d {
+    fun rotate(quat: Quaterniond, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotation(quat)
+            dst.rotation(quat)
         } else if (flags and 8 != 0) {
-            this.rotateTranslation(quat, dest)
+            this.rotateTranslation(quat, dst)
         } else {
-            if (flags and 2 != 0) this.rotateAffine(quat, dest) else this.rotateGeneric(quat, dest)
+            if (flags and 2 != 0) this.rotateAffine(quat, dst) else this.rotateGeneric(quat, dst)
         }
     }
 
-    private fun rotateGeneric(quat: Quaterniond, dest: Matrix4d): Matrix4d {
+    private fun rotateGeneric(quat: Quaterniond, dst: Matrix4d): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -3463,27 +3463,27 @@ open class Matrix4d {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
             ._m12(nm12)._m13(nm13)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotate(quat: Quaternionf, dest: Matrix4d = this): Matrix4d {
+    fun rotate(quat: Quaternionf, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.rotation(quat)
+            dst.rotation(quat)
         } else if (flags and 8 != 0) {
-            this.rotateTranslation(quat, dest)
+            this.rotateTranslation(quat, dst)
         } else {
-            if (flags and 2 != 0) this.rotateAffine(quat, dest) else this.rotateGeneric(quat, dest)
+            if (flags and 2 != 0) this.rotateAffine(quat, dst) else this.rotateGeneric(quat, dst)
         }
     }
 
-    private fun rotateGeneric(quat: Quaternionf, dest: Matrix4d): Matrix4d {
+    private fun rotateGeneric(quat: Quaternionf, dst: Matrix4d): Matrix4d {
         val w2 = (quat.w * quat.w).toDouble()
         val x2 = (quat.x * quat.x).toDouble()
         val y2 = (quat.y * quat.y).toDouble()
@@ -3511,17 +3511,17 @@ open class Matrix4d {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(m03 * rm20 + m13 * rm21 + m23 * rm22)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
             ._m12(nm12)._m13(nm13)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAffine(quat: Quaterniond, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffine(quat: Quaterniond, dst: Matrix4d = this): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -3553,16 +3553,16 @@ open class Matrix4d {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m30(m30)
             ._m31(
                 m31
             )._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
-    fun rotateTranslation(quat: Quaterniond, dest: Matrix4d): Matrix4d {
+    fun rotateTranslation(quat: Quaterniond, dst: Matrix4d): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -3588,14 +3588,14 @@ open class Matrix4d {
         val rm20 = dyw + dxz
         val rm21 = dyz - dxw
         val rm22 = z2 - y2 - x2 + w2
-        dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)._m11(rm11)
+        dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)._m11(rm11)
             ._m12(rm12)._m13(0.0)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(1.0)._properties(flags and -14)
-        return dest
+        return dst
     }
 
-    fun rotateTranslation(quat: Quaternionf, dest: Matrix4d): Matrix4d {
+    fun rotateTranslation(quat: Quaternionf, dst: Matrix4d): Matrix4d {
         val w2 = (quat.w * quat.w).toDouble()
         val x2 = (quat.x * quat.x).toDouble()
         val y2 = (quat.y * quat.y).toDouble()
@@ -3615,15 +3615,15 @@ open class Matrix4d {
         val rm20 = yw + xz + xz + yw
         val rm21 = yz + yz - xw - xw
         val rm22 = z2 - y2 - x2 + w2
-        dest._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)._m11(rm11)
+        dst._m20(rm20)._m21(rm21)._m22(rm22)._m23(0.0)._m00(rm00)._m01(rm01)._m02(rm02)._m03(0.0)._m10(rm10)._m11(rm11)
             ._m12(rm12)._m13(0.0)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(1.0)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocal(quat: Quaterniond, dest: Matrix4d = this): Matrix4d {
+    fun rotateLocal(quat: Quaterniond, dst: Matrix4d = this): Matrix4d {
         val w2 = quat.w * quat.w
         val x2 = quat.x * quat.x
         val y2 = quat.y * quat.y
@@ -3664,15 +3664,15 @@ open class Matrix4d {
         val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
         val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
         val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(
                 m33
             )._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateAffine(quat: Quaternionf, dest: Matrix4d = this): Matrix4d {
+    fun rotateAffine(quat: Quaternionf, dst: Matrix4d = this): Matrix4d {
         val w2 = (quat.w * quat.w).toDouble()
         val x2 = (quat.x * quat.x).toDouble()
         val y2 = (quat.y * quat.y).toDouble()
@@ -3698,17 +3698,17 @@ open class Matrix4d {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dest._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
+        dst._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(m01 * rm20 + m11 * rm21 + m21 * rm22)._m22(
             m02 * rm20 + m12 * rm21 + m22 * rm22
         )._m23(0.0)._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m30(m30)
             ._m31(
                 m31
             )._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun rotateLocal(quat: Quaternionf, dest: Matrix4d = this): Matrix4d {
+    fun rotateLocal(quat: Quaternionf, dst: Matrix4d = this): Matrix4d {
         val w2 = (quat.w * quat.w).toDouble()
         val x2 = (quat.x * quat.x).toDouble()
         val y2 = (quat.y * quat.y).toDouble()
@@ -3743,11 +3743,11 @@ open class Matrix4d {
         val nm30 = lm00 * m30 + lm10 * m31 + lm20 * m32
         val nm31 = lm01 * m30 + lm11 * m31 + lm21 * m32
         val nm32 = lm02 * m30 + lm12 * m31 + lm22 * m32
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(
                 m33
             )._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun rotate(axisAngle: AxisAngle4f): Matrix4d {
@@ -3759,13 +3759,13 @@ open class Matrix4d {
         )
     }
 
-    fun rotate(axisAngle: AxisAngle4f, dest: Matrix4d): Matrix4d {
+    fun rotate(axisAngle: AxisAngle4f, dst: Matrix4d): Matrix4d {
         return this.rotate(
             axisAngle.angle.toDouble(),
             axisAngle.x.toDouble(),
             axisAngle.y.toDouble(),
             axisAngle.z.toDouble(),
-            dest
+            dst
         )
     }
 
@@ -3773,80 +3773,80 @@ open class Matrix4d {
         return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z)
     }
 
-    fun rotate(axisAngle: AxisAngle4d, dest: Matrix4d): Matrix4d {
-        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dest)
+    fun rotate(axisAngle: AxisAngle4d, dst: Matrix4d): Matrix4d {
+        return this.rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dst)
     }
 
     fun rotate(angle: Double, axis: Vector3d): Matrix4d {
         return this.rotate(angle, axis.x, axis.y, axis.z)
     }
 
-    fun rotate(angle: Double, axis: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.rotate(angle, axis.x, axis.y, axis.z, dest)
+    fun rotate(angle: Double, axis: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.rotate(angle, axis.x, axis.y, axis.z, dst)
     }
 
     fun rotate(angle: Double, axis: Vector3f): Matrix4d {
         return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble())
     }
 
-    fun rotate(angle: Double, axis: Vector3f, dest: Matrix4d): Matrix4d {
-        return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dest)
+    fun rotate(angle: Double, axis: Vector3f, dst: Matrix4d): Matrix4d {
+        return this.rotate(angle, axis.x.toDouble(), axis.y.toDouble(), axis.z.toDouble(), dst)
     }
 
-    fun getRow(row: Int, dest: Vector4d): Vector4d {
+    fun getRow(row: Int, dst: Vector4d): Vector4d {
         when (row) {
             0 -> {
-                dest.x = m00
-                dest.y = m10
-                dest.z = m20
-                dest.w = m30
+                dst.x = m00
+                dst.y = m10
+                dst.z = m20
+                dst.w = m30
             }
             1 -> {
-                dest.x = m01
-                dest.y = m11
-                dest.z = m21
-                dest.w = m31
+                dst.x = m01
+                dst.y = m11
+                dst.z = m21
+                dst.w = m31
             }
             2 -> {
-                dest.x = m02
-                dest.y = m12
-                dest.z = m22
-                dest.w = m32
+                dst.x = m02
+                dst.y = m12
+                dst.z = m22
+                dst.w = m32
             }
             else -> {
-                dest.x = m03
-                dest.y = m13
-                dest.z = m23
-                dest.w = m33
+                dst.x = m03
+                dst.y = m13
+                dst.z = m23
+                dst.w = m33
             }
         }
-        return dest
+        return dst
     }
 
-    fun getRow(row: Int, dest: Vector3d): Vector3d {
+    fun getRow(row: Int, dst: Vector3d): Vector3d {
         when (row) {
             0 -> {
-                dest.x = m00
-                dest.y = m10
-                dest.z = m20
+                dst.x = m00
+                dst.y = m10
+                dst.z = m20
             }
             1 -> {
-                dest.x = m01
-                dest.y = m11
-                dest.z = m21
+                dst.x = m01
+                dst.y = m11
+                dst.z = m21
             }
             2 -> {
-                dest.x = m02
-                dest.y = m12
-                dest.z = m22
+                dst.x = m02
+                dst.y = m12
+                dst.z = m22
             }
             else -> {
-                dest.x = m03
-                dest.y = m13
-                dest.z = m23
+                dst.x = m03
+                dst.y = m13
+                dst.z = m23
             }
         }
-        return dest
+        return dst
     }
 
     fun setRow(row: Int, src: Vector4d): Matrix4d {
@@ -3858,62 +3858,62 @@ open class Matrix4d {
         }
     }
 
-    fun getColumn(column: Int, dest: Vector4d): Vector4d {
+    fun getColumn(column: Int, dst: Vector4d): Vector4d {
         when (column) {
             0 -> {
-                dest.x = m00
-                dest.y = m01
-                dest.z = m02
-                dest.w = m03
+                dst.x = m00
+                dst.y = m01
+                dst.z = m02
+                dst.w = m03
             }
             1 -> {
-                dest.x = m10
-                dest.y = m11
-                dest.z = m12
-                dest.w = m13
+                dst.x = m10
+                dst.y = m11
+                dst.z = m12
+                dst.w = m13
             }
             2 -> {
-                dest.x = m20
-                dest.y = m21
-                dest.z = m22
-                dest.w = m23
+                dst.x = m20
+                dst.y = m21
+                dst.z = m22
+                dst.w = m23
             }
             3 -> {
-                dest.x = m30
-                dest.y = m31
-                dest.z = m32
-                dest.w = m33
+                dst.x = m30
+                dst.y = m31
+                dst.z = m32
+                dst.w = m33
             }
             else -> throw IndexOutOfBoundsException()
         }
-        return dest
+        return dst
     }
 
-    fun getColumn(column: Int, dest: Vector3d): Vector3d {
+    fun getColumn(column: Int, dst: Vector3d): Vector3d {
         when (column) {
             0 -> {
-                dest.x = m00
-                dest.y = m01
-                dest.z = m02
+                dst.x = m00
+                dst.y = m01
+                dst.z = m02
             }
             1 -> {
-                dest.x = m10
-                dest.y = m11
-                dest.z = m12
+                dst.x = m10
+                dst.y = m11
+                dst.z = m12
             }
             2 -> {
-                dest.x = m20
-                dest.y = m21
-                dest.z = m22
+                dst.x = m20
+                dst.y = m21
+                dst.z = m22
             }
             3 -> {
-                dest.x = m30
-                dest.y = m31
-                dest.z = m32
+                dst.x = m30
+                dst.y = m31
+                dst.z = m32
             }
             else -> throw IndexOutOfBoundsException()
         }
-        return dest
+        return dst
     }
 
     fun setColumn(column: Int, src: Vector4d): Matrix4d {
@@ -3943,22 +3943,22 @@ open class Matrix4d {
     }*/
 
     @JvmOverloads
-    fun normal(dest: Matrix4d = this): Matrix4d {
+    fun normal(dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.identity()
+            dst.identity()
         } else {
-            if (flags and 16 != 0) this.normalOrthonormal(dest) else this.normalGeneric(dest)
+            if (flags and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
         }
     }
 
-    private fun normalOrthonormal(dest: Matrix4d): Matrix4d {
-        if (dest !== this) {
-            dest.set(this)
+    private fun normalOrthonormal(dst: Matrix4d): Matrix4d {
+        if (dst !== this) {
+            dst.set(this)
         }
-        return dest._properties(18)
+        return dst._properties(18)
     }
 
-    private fun normalGeneric(dest: Matrix4d): Matrix4d {
+    private fun normalGeneric(dst: Matrix4d): Matrix4d {
         val m00m11 = m00 * m11
         val m01m10 = m01 * m10
         val m02m10 = m02 * m10
@@ -3976,22 +3976,22 @@ open class Matrix4d {
         val nm20 = (m01m12 - m02m11) * s
         val nm21 = (m02m10 - m00m12) * s
         val nm22 = (m00m11 - m01m10) * s
-        return dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)
+        return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(0.0)._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0)._properties(
                 flags or 2 and -10
             )
     }
 
-    fun normal(dest: Matrix3d): Matrix3d {
-        return if (flags and 16 != 0) this.normalOrthonormal(dest) else this.normalGeneric(dest)
+    fun normal(dst: Matrix3d): Matrix3d {
+        return if (flags and 16 != 0) this.normalOrthonormal(dst) else this.normalGeneric(dst)
     }
 
-    private fun normalOrthonormal(dest: Matrix3d): Matrix3d {
-        dest.set(this)
-        return dest
+    private fun normalOrthonormal(dst: Matrix3d): Matrix3d {
+        dst.set(this)
+        return dst
     }
 
-    private fun normalGeneric(dest: Matrix3d): Matrix3d {
+    private fun normalGeneric(dst: Matrix3d): Matrix3d {
         val m00m11 = m00 * m11
         val m01m10 = m01 * m10
         val m02m10 = m02 * m10
@@ -4000,14 +4000,14 @@ open class Matrix4d {
         val m02m11 = m02 * m11
         val det = (m00m11 - m01m10) * m22 + (m02m10 - m00m12) * m21 + (m01m12 - m02m11) * m20
         val s = 1.0 / det
-        return dest._m00((m11 * m22 - m21 * m12) * s)._m01((m20 * m12 - m10 * m22) * s)
+        return dst._m00((m11 * m22 - m21 * m12) * s)._m01((m20 * m12 - m10 * m22) * s)
             ._m02((m10 * m21 - m20 * m11) * s)._m10((m21 * m02 - m01 * m22) * s)._m11((m00 * m22 - m20 * m02) * s)
             ._m12((m20 * m01 - m00 * m21) * s)._m20((m01m12 - m02m11) * s)._m21((m02m10 - m00m12) * s)
             ._m22((m00m11 - m01m10) * s)
     }
 
-    fun cofactor3x3(dest: Matrix3d): Matrix3d {
-        return dest._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)
+    fun cofactor3x3(dst: Matrix3d): Matrix3d {
+        return dst._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)
             ._m10(m21 * m02 - m01 * m22)._m11(
                 m00 * m22 - m20 * m02
             )._m12(m20 * m01 - m00 * m21)._m20(m01 * m12 - m02 * m11)._m21(m02 * m10 - m00 * m12)
@@ -4015,14 +4015,14 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun cofactor3x3(dest: Matrix4d = this): Matrix4d {
+    fun cofactor3x3(dst: Matrix4d = this): Matrix4d {
         val nm10 = m21 * m02 - m01 * m22
         val nm11 = m00 * m22 - m20 * m02
         val nm12 = m20 * m01 - m00 * m21
         val nm20 = m01 * m12 - m11 * m02
         val nm21 = m02 * m10 - m12 * m00
         val nm22 = m00 * m11 - m10 * m01
-        return dest._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)._m03(0.0)
+        return dst._m00(m11 * m22 - m21 * m12)._m01(m20 * m12 - m10 * m22)._m02(m10 * m21 - m20 * m11)._m03(0.0)
             ._m10(nm10)._m11(nm11)._m12(nm12)._m13(0.0)._m20(nm20)._m21(nm21)._m22(nm22)._m23(0.0)._m30(0.0)._m31(0.0)
             ._m32(0.0)._m33(1.0)._properties(
                 flags or 2 and -10
@@ -4030,35 +4030,35 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun normalize3x3(dest: Matrix4d = this): Matrix4d {
+    fun normalize3x3(dst: Matrix4d = this): Matrix4d {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dest._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)._m10(m10 * invYlen)._m11(m11 * invYlen)._m12(
+        dst._m00(m00 * invXlen)._m01(m01 * invXlen)._m02(m02 * invXlen)._m10(m10 * invYlen)._m11(m11 * invYlen)._m12(
             m12 * invYlen
         )._m20(m20 * invZlen)._m21(m21 * invZlen)._m22(m22 * invZlen)._m30(m30)._m31(m31)._m32(m32)._m33(
             m33
         )._properties(flags)
-        return dest
+        return dst
     }
 
-    fun normalize3x3(dest: Matrix3d): Matrix3d {
+    fun normalize3x3(dst: Matrix3d): Matrix3d {
         val invXlen = JomlMath.invsqrt(m00 * m00 + m01 * m01 + m02 * m02)
         val invYlen = JomlMath.invsqrt(m10 * m10 + m11 * m11 + m12 * m12)
         val invZlen = JomlMath.invsqrt(m20 * m20 + m21 * m21 + m22 * m22)
-        dest.m00(m00 * invXlen)
-        dest.m01(m01 * invXlen)
-        dest.m02(m02 * invXlen)
-        dest.m10(m10 * invYlen)
-        dest.m11(m11 * invYlen)
-        dest.m12(m12 * invYlen)
-        dest.m20(m20 * invZlen)
-        dest.m21(m21 * invZlen)
-        dest.m22(m22 * invZlen)
-        return dest
+        dst.m00(m00 * invXlen)
+        dst.m01(m01 * invXlen)
+        dst.m02(m02 * invXlen)
+        dst.m10(m10 * invYlen)
+        dst.m11(m11 * invYlen)
+        dst.m12(m12 * invYlen)
+        dst.m20(m20 * invZlen)
+        dst.m21(m21 * invZlen)
+        dst.m22(m22 * invZlen)
+        return dst
     }
 
-    fun unproject(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dest: Vector4d): Vector4d {
+    fun unproject(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector4d): Vector4d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val c = m00 * m13 - m03 * m10
@@ -4093,14 +4093,14 @@ open class Matrix4d {
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
         val ndcZ = winZ + winZ - 1.0
         val invW = 1.0 / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33)
-        dest.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW
-        dest.y = (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW
-        dest.z = (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW
-        dest.w = 1.0
-        return dest
+        dst.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW
+        dst.y = (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW
+        dst.z = (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW
+        dst.w = 1.0
+        return dst
     }
 
-    fun unproject(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dest: Vector3d): Vector3d {
+    fun unproject(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector3d): Vector3d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val c = m00 * m13 - m03 * m10
@@ -4135,26 +4135,26 @@ open class Matrix4d {
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
         val ndcZ = winZ + winZ - 1.0
         val invW = 1.0 / (im03 * ndcX + im13 * ndcY + im23 * ndcZ + im33)
-        dest.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW
-        dest.y = (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW
-        dest.z = (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW
-        return dest
+        dst.x = (im00 * ndcX + im10 * ndcY + im20 * ndcZ + im30) * invW
+        dst.y = (im01 * ndcX + im11 * ndcY + im21 * ndcZ + im31) * invW
+        dst.z = (im02 * ndcX + im12 * ndcY + im22 * ndcZ + im32) * invW
+        return dst
     }
 
-    fun unproject(winCoords: Vector3d, viewport: IntArray, dest: Vector4d): Vector4d {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
+    fun unproject(winCoords: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
+        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
-    fun unproject(winCoords: Vector3d, viewport: IntArray, dest: Vector3d): Vector3d {
-        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
+    fun unproject(winCoords: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
+        return this.unproject(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
     fun unprojectRay(
         winX: Double,
         winY: Double,
         viewport: IntArray,
-        originDest: Vector3d,
-        dirDest: Vector3d
+        origindst: Vector3d,
+        dirdst: Vector3d
     ): Matrix4d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
@@ -4199,60 +4199,60 @@ open class Matrix4d {
         val x0 = px * invW0
         val y0 = py * invW0
         val z0 = pz * invW0
-        originDest.x = nearX
-        originDest.y = nearY
-        originDest.z = nearZ
-        dirDest.x = x0 - nearX
-        dirDest.y = y0 - nearY
-        dirDest.z = z0 - nearZ
+        origindst.x = nearX
+        origindst.y = nearY
+        origindst.z = nearZ
+        dirdst.x = x0 - nearX
+        dirdst.y = y0 - nearY
+        dirdst.z = z0 - nearZ
         return this
     }
 
-    fun unprojectRay(winCoords: Vector2d, viewport: IntArray, originDest: Vector3d, dirDest: Vector3d): Matrix4d {
-        return this.unprojectRay(winCoords.x, winCoords.y, viewport, originDest, dirDest)
+    fun unprojectRay(winCoords: Vector2d, viewport: IntArray, origindst: Vector3d, dirdst: Vector3d): Matrix4d {
+        return this.unprojectRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
     }
 
-    fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dest: Vector4d): Vector4d {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
+    fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
+        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
-    fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dest: Vector4d): Vector4d {
+    fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector4d): Vector4d {
         val ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
         val ndcZ = winZ + winZ - 1.0
         val invW = 1.0 / (m03 * ndcX + m13 * ndcY + m23 * ndcZ + m33)
-        dest.x = (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW
-        dest.y = (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW
-        dest.z = (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW
-        dest.w = 1.0
-        return dest
+        dst.x = (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW
+        dst.y = (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW
+        dst.z = (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW
+        dst.w = 1.0
+        return dst
     }
 
-    fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dest: Vector3d): Vector3d {
-        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dest)
+    fun unprojectInv(winCoords: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
+        return this.unprojectInv(winCoords.x, winCoords.y, winCoords.z, viewport, dst)
     }
 
-    fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dest: Vector3d): Vector3d {
+    fun unprojectInv(winX: Double, winY: Double, winZ: Double, viewport: IntArray, dst: Vector3d): Vector3d {
         val ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
         val ndcZ = winZ + winZ - 1.0
         val invW = 1.0 / (m03 * ndcX + m13 * ndcY + m23 * ndcZ + m33)
-        dest.x = (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW
-        dest.y = (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW
-        dest.z = (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW
-        return dest
+        dst.x = (m00 * ndcX + m10 * ndcY + m20 * ndcZ + m30) * invW
+        dst.y = (m01 * ndcX + m11 * ndcY + m21 * ndcZ + m31) * invW
+        dst.z = (m02 * ndcX + m12 * ndcY + m22 * ndcZ + m32) * invW
+        return dst
     }
 
-    fun unprojectInvRay(winCoords: Vector2d, viewport: IntArray, originDest: Vector3d, dirDest: Vector3d): Matrix4d {
-        return this.unprojectInvRay(winCoords.x, winCoords.y, viewport, originDest, dirDest)
+    fun unprojectInvRay(winCoords: Vector2d, viewport: IntArray, origindst: Vector3d, dirdst: Vector3d): Matrix4d {
+        return this.unprojectInvRay(winCoords.x, winCoords.y, viewport, origindst, dirdst)
     }
 
     fun unprojectInvRay(
         winX: Double,
         winY: Double,
         viewport: IntArray,
-        originDest: Vector3d,
-        dirDest: Vector3d
+        origindst: Vector3d,
+        dirdst: Vector3d
     ): Matrix4d {
         val ndcX = (winX - viewport[0]) / viewport[2] * 2.0 - 1.0
         val ndcY = (winY - viewport[1]) / viewport[3] * 2.0 - 1.0
@@ -4267,58 +4267,58 @@ open class Matrix4d {
         val x0 = px * invW0
         val y0 = py * invW0
         val z0 = pz * invW0
-        originDest.x = nearX
-        originDest.y = nearY
-        originDest.z = nearZ
-        dirDest.x = x0 - nearX
-        dirDest.y = y0 - nearY
-        dirDest.z = z0 - nearZ
+        origindst.x = nearX
+        origindst.y = nearY
+        origindst.z = nearZ
+        dirdst.x = x0 - nearX
+        dirdst.y = y0 - nearY
+        dirdst.z = z0 - nearZ
         return this
     }
 
-    fun project(x: Double, y: Double, z: Double, viewport: IntArray, winCoordsDest: Vector4d): Vector4d {
+    fun project(x: Double, y: Double, z: Double, viewport: IntArray, winCoordsdst: Vector4d): Vector4d {
         val invW = 1.0 / (m03 * x + m13 * y + m23 * z + m33)
         val nx = (m00 * x + m10 * y + m20 * z + m30) * invW
         val ny = (m01 * x + m11 * y + m21 * z + m31) * invW
         val nz = (m02 * x + m12 * y + m22 * z + m32) * invW
-        return winCoordsDest.set(
+        return winCoordsdst.set(
             (nx * 0.5 + 0.5) * viewport[2] + viewport[0],
             (ny * 0.5 + 0.5) * viewport[3] + viewport[1],
             0.5 * nz + 0.5, 1.0
         )
     }
 
-    fun project(x: Double, y: Double, z: Double, viewport: IntArray, winCoordsDest: Vector3d): Vector3d {
+    fun project(x: Double, y: Double, z: Double, viewport: IntArray, winCoordsdst: Vector3d): Vector3d {
         val invW = 1.0 / (m03 * x + m13 * y + m23 * z + m33)
         val nx = (m00 * x + m10 * y + m20 * z + m30) * invW
         val ny = (m01 * x + m11 * y + m21 * z + m31) * invW
         val nz = (m02 * x + m12 * y + m22 * z + m32) * invW
-        return winCoordsDest.set(
+        return winCoordsdst.set(
             (nx * 0.5 + 0.5) * viewport[2] + viewport[0],
             (ny * 0.5 + 0.5) * viewport[3] + viewport[1],
             0.5 * nz + 0.5
         )
     }
 
-    fun project(position: Vector3d, viewport: IntArray, dest: Vector4d): Vector4d {
-        return this.project(position.x, position.y, position.z, viewport, dest)
+    fun project(position: Vector3d, viewport: IntArray, dst: Vector4d): Vector4d {
+        return this.project(position.x, position.y, position.z, viewport, dst)
     }
 
-    fun project(position: Vector3d, viewport: IntArray, dest: Vector3d): Vector3d {
-        return this.project(position.x, position.y, position.z, viewport, dest)
+    fun project(position: Vector3d, viewport: IntArray, dst: Vector3d): Vector3d {
+        return this.project(position.x, position.y, position.z, viewport, dst)
     }
 
     @JvmOverloads
-    fun reflect(a: Double, b: Double, c: Double, d: Double, dest: Matrix4d = this): Matrix4d {
+    fun reflect(a: Double, b: Double, c: Double, d: Double, dst: Matrix4d = this): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.reflection(a, b, c, d)
+            dst.reflection(a, b, c, d)
         } else {
-            if (flags and 2 != 0) reflectAffine(a, b, c, d, dest)
-            else reflectGeneric(a, b, c, d, dest)
+            if (flags and 2 != 0) reflectAffine(a, b, c, d, dst)
+            else reflectGeneric(a, b, c, d, dst)
         }
     }
 
-    private fun reflectAffine(a: Double, b: Double, c: Double, d: Double, dest: Matrix4d): Matrix4d {
+    private fun reflectAffine(a: Double, b: Double, c: Double, d: Double, dst: Matrix4d): Matrix4d {
         val da = a + a
         val db = b + b
         val dc = c + c
@@ -4341,7 +4341,7 @@ open class Matrix4d {
         val nm10 = m00 * rm10 + m10 * rm11 + m20 * rm12
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m33)._m20(m00 * rm20 + m10 * rm21 + m20 * rm22)._m21(
             m01 * rm20 + m11 * rm21 + m21 * rm22
@@ -4349,10 +4349,10 @@ open class Matrix4d {
             ._m11(nm11)._m12(nm12)._m13(0.0)._properties(
                 flags and -14
             )
-        return dest
+        return dst
     }
 
-    private fun reflectGeneric(a: Double, b: Double, c: Double, d: Double, dest: Matrix4d): Matrix4d {
+    private fun reflectGeneric(a: Double, b: Double, c: Double, d: Double, dst: Matrix4d): Matrix4d {
         val da = a + a
         val db = b + b
         val dc = c + c
@@ -4377,7 +4377,7 @@ open class Matrix4d {
         val nm11 = m01 * rm10 + m11 * rm11 + m21 * rm12
         val nm12 = m02 * rm10 + m12 * rm11 + m22 * rm12
         val nm13 = m03 * rm10 + m13 * rm11 + m23 * rm12
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
             m00 * rm20 + m10 * rm21 + m20 * rm22
@@ -4385,20 +4385,20 @@ open class Matrix4d {
             m03 * rm20 + m13 * rm21 + m23 * rm22
         )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._properties(flags and -14)
-        return dest
+        return dst
     }
 
     @JvmOverloads
     fun reflect(
         nx: Double, ny: Double, nz: Double,
         px: Double, py: Double, pz: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val invLength = JomlMath.invsqrt(nx * nx + ny * ny + nz * nz)
         val nnx = nx * invLength
         val nny = ny * invLength
         val nnz = nz * invLength
-        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dest)
+        return this.reflect(nnx, nny, nnz, -nnx * px - nny * py - nnz * pz, dst)
     }
 
     fun reflect(normal: Vector3d, point: Vector3d): Matrix4d {
@@ -4406,18 +4406,18 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun reflect(orientation: Quaterniond, point: Vector3d, dest: Matrix4d = this): Matrix4d {
+    fun reflect(orientation: Quaterniond, point: Vector3d, dst: Matrix4d = this): Matrix4d {
         val num1 = orientation.x + orientation.x
         val num2 = orientation.y + orientation.y
         val num3 = orientation.z + orientation.z
         val normalX = orientation.x * num3 + orientation.w * num2
         val normalY = orientation.y * num3 - orientation.w * num1
         val normalZ = 1.0 - (orientation.x * num1 + orientation.y * num2)
-        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dest)
+        return this.reflect(normalX, normalY, normalZ, point.x, point.y, point.z, dst)
     }
 
-    fun reflect(normal: Vector3d, point: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dest)
+    fun reflect(normal: Vector3d, point: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.reflect(normal.x, normal.y, normal.z, point.x, point.y, point.z, dst)
     }
 
     fun reflection(a: Double, b: Double, c: Double, d: Double): Matrix4d {
@@ -4462,9 +4462,9 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean = false,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrtho(
+        return if (flags and 4 != 0) dst.setOrtho(
             left,
             right,
             bottom,
@@ -4472,7 +4472,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne
-        ) else orthoGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
+        ) else orthoGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoGeneric(
@@ -4483,7 +4483,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
@@ -4491,7 +4491,7 @@ open class Matrix4d {
         val rm30 = (left + right) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)
             ._m03(m03 * rm00)._m10(
@@ -4500,7 +4500,7 @@ open class Matrix4d {
             ._m23(
                 m23 * rm22
             )._properties(flags and -30)
-        return dest
+        return dst
     }
 
     fun ortho(
@@ -4510,9 +4510,9 @@ open class Matrix4d {
         top: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
-        return this.ortho(left, right, bottom, top, zNear, zFar, false, dest)
+        return this.ortho(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -4524,9 +4524,9 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean = false,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrthoLH(
+        return if (flags and 4 != 0) dst.setOrthoLH(
             left,
             right,
             bottom,
@@ -4534,7 +4534,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne
-        ) else orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
+        ) else orthoLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoLHGeneric(
@@ -4545,7 +4545,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
@@ -4553,7 +4553,7 @@ open class Matrix4d {
         val rm30 = (left + right) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)
             ._m03(m03 * rm00)._m10(
@@ -4562,7 +4562,7 @@ open class Matrix4d {
             ._m23(
                 m23 * rm22
             )._properties(flags and -30)
-        return dest
+        return dst
     }
 
     fun orthoLH(
@@ -4572,9 +4572,9 @@ open class Matrix4d {
         top: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
-        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dest)
+        return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setOrtho(
@@ -4628,15 +4628,15 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean = false,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrthoSymmetric(
+        return if (flags and 4 != 0) dst.setOrthoSymmetric(
             width,
             height,
             zNear,
             zFar,
             zZeroToOne
-        ) else orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dest)
+        ) else orthoSymmetricGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoSymmetricGeneric(
@@ -4645,24 +4645,24 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / width
         val rm11 = 2.0 / height
         val rm22 = (if (zZeroToOne) 1.0 else 2.0) / (zNear - zFar)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dest._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
+        dst._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
             ._m00(m00 * rm00)._m01(
                 m01 * rm00
             )._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
             ._m20(
                 m20 * rm22
             )._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)._properties(flags and -30)
-        return dest
+        return dst
     }
 
-    fun orthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, dest: Matrix4d): Matrix4d {
-        return this.orthoSymmetric(width, height, zNear, zFar, false, dest)
+    fun orthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4d): Matrix4d {
+        return this.orthoSymmetric(width, height, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -4672,15 +4672,15 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean = false,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrthoSymmetricLH(
+        return if (flags and 4 != 0) dst.setOrthoSymmetricLH(
             width,
             height,
             zNear,
             zFar,
             zZeroToOne
-        ) else orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dest)
+        ) else orthoSymmetricLHGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun orthoSymmetricLHGeneric(
@@ -4689,24 +4689,24 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = 2.0 / width
         val rm11 = 2.0 / height
         val rm22 = (if (zZeroToOne) 1.0 else 2.0) / (zFar - zNear)
         val rm32 = (if (zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
-        dest._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
+        dst._m30(m20 * rm32 + m30)._m31(m21 * rm32 + m31)._m32(m22 * rm32 + m32)._m33(m23 * rm32 + m33)
             ._m00(m00 * rm00)._m01(
                 m01 * rm00
             )._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)
             ._m20(
                 m20 * rm22
             )._m21(m21 * rm22)._m22(m22 * rm22)._m23(m23 * rm22)._properties(flags and -30)
-        return dest
+        return dst
     }
 
-    fun orthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double, dest: Matrix4d): Matrix4d {
-        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dest)
+    fun orthoSymmetricLH(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4d): Matrix4d {
+        return this.orthoSymmetricLH(width, height, zNear, zFar, false, dst)
     }
 
     fun setOrthoSymmetric(width: Double, height: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4d {
@@ -4736,55 +4736,55 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun ortho2D(left: Double, right: Double, bottom: Double, top: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrtho2D(left, right, bottom, top) else ortho2DGeneric(
+    fun ortho2D(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.setOrtho2D(left, right, bottom, top) else ortho2DGeneric(
             left,
             right,
             bottom,
             top,
-            dest
+            dst
         )
     }
 
-    private fun ortho2DGeneric(left: Double, right: Double, bottom: Double, top: Double, dest: Matrix4d): Matrix4d {
+    private fun ortho2DGeneric(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
         val rm30 = (right + left) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
-        dest._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
             m10 * rm11
         )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(-m20)._m21(-m21)._m22(-m22)._m23(-m23)._properties(
             flags and -30
         )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun ortho2DLH(left: Double, right: Double, bottom: Double, top: Double, dest: Matrix4d = this): Matrix4d {
-        return if (flags and 4 != 0) dest.setOrtho2DLH(left, right, bottom, top) else ortho2DLHGeneric(
+    fun ortho2DLH(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d = this): Matrix4d {
+        return if (flags and 4 != 0) dst.setOrtho2DLH(left, right, bottom, top) else ortho2DLHGeneric(
             left,
             right,
             bottom,
             top,
-            dest
+            dst
         )
     }
 
-    private fun ortho2DLHGeneric(left: Double, right: Double, bottom: Double, top: Double, dest: Matrix4d): Matrix4d {
+    private fun ortho2DLHGeneric(left: Double, right: Double, bottom: Double, top: Double, dst: Matrix4d): Matrix4d {
         val rm00 = 2.0 / (right - left)
         val rm11 = 2.0 / (top - bottom)
         val rm30 = (right + left) / (left - right)
         val rm31 = (top + bottom) / (bottom - top)
-        dest._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m30)._m31(m01 * rm30 + m11 * rm31 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m33)._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(
             m10 * rm11
         )._m11(m11 * rm11)._m12(m12 * rm11)._m13(m13 * rm11)._m20(m20)._m21(m21)._m22(m22)._m23(m23)._properties(
             flags and -30
         )
-        return dest
+        return dst
     }
 
     fun setOrtho2D(left: Double, right: Double, bottom: Double, top: Double): Matrix4d {
@@ -4809,8 +4809,8 @@ open class Matrix4d {
         return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this)
     }
 
-    fun lookAlong(dir: Vector3d, up: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest)
+    fun lookAlong(dir: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -4821,60 +4821,56 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ) else lookAlongGeneric(
+        return if (flags and 4 != 0) dst.setLookAlong(dirX, dirY, dirZ, upX, upY, upZ) else lookAlongGeneric(
             dirX,
             dirY,
             dirZ,
             upX,
             upY,
             upZ,
-            dest
+            dst
         )
     }
 
     private fun lookAlongGeneric(
-        dirX: Double,
-        dirY: Double,
-        dirZ: Double,
-        upX: Double,
-        upY: Double,
-        upZ: Double,
-        dest: Matrix4d
+        dirX: Double, dirY: Double, dirZ: Double,
+        upX: Double, upY: Double, upZ: Double,
+        dst: Matrix4d
     ): Matrix4d {
-        var dirX = dirX
-        var dirY = dirY
-        var dirZ = dirZ
-        val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-        dirX *= -invDirLength
-        dirY *= -invDirLength
-        dirZ *= -invDirLength
-        var leftX = upY * dirZ - upZ * dirY
-        var leftY = upZ * dirX - upX * dirZ
-        var leftZ = upX * dirY - upY * dirX
+        var dirXi = dirX
+        var dirYi = dirY
+        var dirZi = dirZ
+        val invDirLength = JomlMath.invsqrt(dirXi * dirXi + dirYi * dirYi + dirZi * dirZi)
+        dirXi *= -invDirLength
+        dirYi *= -invDirLength
+        dirZi *= -invDirLength
+        var leftX = upY * dirZi - upZ * dirYi
+        var leftY = upZ * dirXi - upX * dirZi
+        var leftZ = upX * dirYi - upY * dirXi
         val invLeftLength = JomlMath.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
         leftX *= invLeftLength
         leftY *= invLeftLength
         leftZ *= invLeftLength
-        val upnX = dirY * leftZ - dirZ * leftY
-        val upnY = dirZ * leftX - dirX * leftZ
-        val upnZ = dirX * leftY - dirY * leftX
-        val nm00 = m00 * leftX + m10 * upnX + m20 * dirX
-        val nm01 = m01 * leftX + m11 * upnX + m21 * dirX
-        val nm02 = m02 * leftX + m12 * upnX + m22 * dirX
-        val nm03 = m03 * leftX + m13 * upnX + m23 * dirX
-        val nm10 = m00 * leftY + m10 * upnY + m20 * dirY
-        val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
-        val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
-        val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
-        dest._m20(m00 * leftZ + m10 * upnZ + m20 * dirZ)._m21(m01 * leftZ + m11 * upnZ + m21 * dirZ)._m22(
-            m02 * leftZ + m12 * upnZ + m22 * dirZ
-        )._m23(m03 * leftZ + m13 * upnZ + m23 * dirZ)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
+        val upnX = dirYi * leftZ - dirZi * leftY
+        val upnY = dirZi * leftX - dirXi * leftZ
+        val upnZ = dirXi * leftY - dirYi * leftX
+        val nm00 = m00 * leftX + m10 * upnX + m20 * dirXi
+        val nm01 = m01 * leftX + m11 * upnX + m21 * dirXi
+        val nm02 = m02 * leftX + m12 * upnX + m22 * dirXi
+        val nm03 = m03 * leftX + m13 * upnX + m23 * dirXi
+        val nm10 = m00 * leftY + m10 * upnY + m20 * dirYi
+        val nm11 = m01 * leftY + m11 * upnY + m21 * dirYi
+        val nm12 = m02 * leftY + m12 * upnY + m22 * dirYi
+        val nm13 = m03 * leftY + m13 * upnY + m23 * dirYi
+        dst._m20(m00 * leftZ + m10 * upnZ + m20 * dirZi)._m21(m01 * leftZ + m11 * upnZ + m21 * dirZi)._m22(
+            m02 * leftZ + m12 * upnZ + m22 * dirZi
+        )._m23(m03 * leftZ + m13 * upnZ + m23 * dirZi)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)
             ._m12(nm12)._m13(nm13)._m30(
                 m30
             )._m31(m31)._m32(m32)._m33(m33)._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun setLookAlong(dir: Vector3d, up: Vector3d): Matrix4d {
@@ -4882,25 +4878,25 @@ open class Matrix4d {
     }
 
     fun setLookAlong(dirX: Double, dirY: Double, dirZ: Double, upX: Double, upY: Double, upZ: Double): Matrix4d {
-        var dirX = dirX
-        var dirY = dirY
-        var dirZ = dirZ
-        val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-        dirX *= -invDirLength
-        dirY *= -invDirLength
-        dirZ *= -invDirLength
-        var leftX = upY * dirZ - upZ * dirY
-        var leftY = upZ * dirX - upX * dirZ
-        var leftZ = upX * dirY - upY * dirX
+        var dirXi = dirX
+        var dirYi = dirY
+        var dirZi = dirZ
+        val invDirLength = JomlMath.invsqrt(dirXi * dirXi + dirYi * dirYi + dirZi * dirZi)
+        dirXi *= -invDirLength
+        dirYi *= -invDirLength
+        dirZi *= -invDirLength
+        var leftX = upY * dirZi - upZ * dirYi
+        var leftY = upZ * dirXi - upX * dirZi
+        var leftZ = upX * dirYi - upY * dirXi
         val invLeftLength = JomlMath.invsqrt(leftX * leftX + leftY * leftY + leftZ * leftZ)
         leftX *= invLeftLength
         leftY *= invLeftLength
         leftZ *= invLeftLength
-        val upnX = dirY * leftZ - dirZ * leftY
-        val upnY = dirZ * leftX - dirX * leftZ
-        val upnZ = dirX * leftY - dirY * leftX
-        _m00(leftX)._m01(upnX)._m02(dirX)._m03(0.0)._m10(leftY)._m11(upnY)._m12(dirY)._m13(0.0)._m20(leftZ)._m21(upnZ)
-            ._m22(dirZ)._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0).flags = 18
+        val upnX = dirYi * leftZ - dirZi * leftY
+        val upnY = dirZi * leftX - dirXi * leftZ
+        val upnZ = dirXi * leftY - dirYi * leftX
+        _m00(leftX)._m01(upnX)._m02(dirXi)._m03(0.0)._m10(leftY)._m11(upnY)._m12(dirYi)._m13(0.0)._m20(leftZ)._m21(upnZ)
+            ._m22(dirZi)._m23(0.0)._m30(0.0)._m31(0.0)._m32(0.0)._m33(1.0).flags = 18
         return this
     }
 
@@ -4942,8 +4938,8 @@ open class Matrix4d {
             ._properties(18)
     }
 
-    fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest)
+    fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.lookAt(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
     }
 
     fun lookAt(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4d {
@@ -4961,10 +4957,10 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+            dst.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
             if (flags and 1 != 0) lookAtPerspective(
                 eyeX,
@@ -4976,8 +4972,8 @@ open class Matrix4d {
                 upX,
                 upY,
                 upZ,
-                dest
-            ) else lookAtGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest)
+                dst
+            ) else lookAtGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
         }
     }
 
@@ -4991,7 +4987,7 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY
@@ -5021,7 +5017,7 @@ open class Matrix4d {
         val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
         val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
         val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
             m00 * leftZ + m10 * upnZ + m20 * dirZ
@@ -5029,7 +5025,7 @@ open class Matrix4d {
             m03 * leftZ + m13 * upnZ + m23 * dirZ
         )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun lookAtPerspective(
@@ -5042,7 +5038,7 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         var dirX = eyeX - centerX
         var dirY = eyeY - centerY
@@ -5071,7 +5067,7 @@ open class Matrix4d {
         val nm31 = m11 * rm31
         val nm32 = m22 * rm32 + m32
         val nm33 = m23 * rm32
-        return dest._m00(m00 * leftX)._m01(m11 * upnX)._m02(m22 * dirX)._m03(m23 * dirX)._m10(nm10)._m11(m11 * upnY)
+        return dst._m00(m00 * leftX)._m01(m11 * upnX)._m02(m22 * dirX)._m03(m23 * dirX)._m10(nm10)._m11(m11 * upnY)
             ._m12(
                 m22 * dirY
             )._m13(m23 * dirY)._m20(nm20)._m21(nm21)._m22(m22 * dirZ)._m23(m23 * dirZ)._m30(nm30)._m31(nm31)._m32(nm32)
@@ -5117,8 +5113,8 @@ open class Matrix4d {
         return this
     }
 
-    fun lookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dest)
+    fun lookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.lookAtLH(eye.x, eye.y, eye.z, center.x, center.y, center.z, up.x, up.y, up.z, dst)
     }
 
     fun lookAtLH(eye: Vector3d, center: Vector3d, up: Vector3d): Matrix4d {
@@ -5136,10 +5132,10 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return if (flags and 4 != 0) {
-            dest.setLookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+            dst.setLookAtLH(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
         } else {
             if (flags and 1 != 0) lookAtPerspectiveLH(
                 eyeX,
@@ -5151,8 +5147,8 @@ open class Matrix4d {
                 upX,
                 upY,
                 upZ,
-                dest
-            ) else lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dest)
+                dst
+            ) else lookAtLHGeneric(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ, dst)
         }
     }
 
@@ -5166,7 +5162,7 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         var dirX = centerX - eyeX
         var dirY = centerY - eyeY
@@ -5196,7 +5192,7 @@ open class Matrix4d {
         val nm11 = m01 * leftY + m11 * upnY + m21 * dirY
         val nm12 = m02 * leftY + m12 * upnY + m22 * dirY
         val nm13 = m03 * leftY + m13 * upnY + m23 * dirY
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30)._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31)._m32(
             m02 * rm30 + m12 * rm31 + m22 * rm32 + m32
         )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33)._m20(
             m00 * leftZ + m10 * upnZ + m20 * dirZ
@@ -5204,7 +5200,7 @@ open class Matrix4d {
             m03 * leftZ + m13 * upnZ + m23 * dirZ
         )._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)
             ._properties(flags and -14)
-        return dest
+        return dst
     }
 
     fun lookAtPerspectiveLH(
@@ -5217,7 +5213,7 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         var dirX = centerX - eyeX
         var dirY = centerY - eyeY
@@ -5255,16 +5251,16 @@ open class Matrix4d {
         val nm31 = m11 * rm31
         val nm32 = m22 * rm32 + m32
         val nm33 = m23 * rm32
-        dest._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
+        dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun tile(x: Int, y: Int, w: Int, h: Int, dest: Matrix4d = this): Matrix4d {
+    fun tile(x: Int, y: Int, w: Int, h: Int, dst: Matrix4d = this): Matrix4d {
         val tx = (w - 1 - (x shl 1)).toFloat()
         val ty = (h - 1 - (y shl 1)).toFloat()
-        return dest
+        return dst
             ._m30(m00 * tx + m10 * ty + m30)
             ._m31(m01 * tx + m11 * ty + m31)
             ._m32(m02 * tx + m12 * ty + m32)
@@ -5282,15 +5278,15 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setPerspective(
+        return if (flags and 4 != 0) dst.setPerspective(
             fovy,
             aspect,
             zNear,
             zFar,
             zZeroToOne
-        ) else perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest)
+        ) else perspectiveGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveGeneric(
@@ -5299,7 +5295,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val h = tan(fovy * 0.5)
         val rm00 = 1.0 / (h * aspect)
@@ -5325,18 +5321,18 @@ open class Matrix4d {
         val nm21 = m21 * rm22 - m31
         val nm22 = m22 * rm22 - m32
         val nm23 = m23 * rm22 - m33
-        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
             m12 * rm11
         )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(
                 flags and -31
             )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun perspective(fovy: Double, aspect: Double, zNear: Double, zFar: Double, dest: Matrix4d = this): Matrix4d {
-        return this.perspective(fovy, aspect, zNear, zFar, false, dest)
+    fun perspective(fovy: Double, aspect: Double, zNear: Double, zFar: Double, dst: Matrix4d = this): Matrix4d {
+        return this.perspective(fovy, aspect, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -5346,15 +5342,15 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setPerspectiveRect(
+        return if (flags and 4 != 0) dst.setPerspectiveRect(
             width,
             height,
             zNear,
             zFar,
             zZeroToOne
-        ) else perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dest)
+        ) else perspectiveRectGeneric(width, height, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveRectGeneric(
@@ -5363,7 +5359,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = (zNear + zNear) / width
         val rm11 = (zNear + zNear) / height
@@ -5388,18 +5384,18 @@ open class Matrix4d {
         val nm21 = m21 * rm22 - m31
         val nm22 = m22 * rm22 - m32
         val nm23 = m23 * rm22 - m33
-        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
             m12 * rm11
         )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(
                 flags and -31
             )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun perspectiveRect(width: Double, height: Double, zNear: Double, zFar: Double, dest: Matrix4d = this): Matrix4d {
-        return this.perspectiveRect(width, height, zNear, zFar, false, dest)
+    fun perspectiveRect(width: Double, height: Double, zNear: Double, zFar: Double, dst: Matrix4d = this): Matrix4d {
+        return this.perspectiveRect(width, height, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -5411,9 +5407,9 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setPerspectiveOffCenter(
+        return if (flags and 4 != 0) dst.setPerspectiveOffCenter(
             fovy,
             offAngleX,
             offAngleY,
@@ -5421,7 +5417,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne
-        ) else perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dest)
+        ) else perspectiveOffCenterGeneric(fovy, offAngleX, offAngleY, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveOffCenterGeneric(
@@ -5432,7 +5428,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val h = tan(fovy * 0.5)
         val xScale = 1.0 / (h * aspect)
@@ -5462,14 +5458,14 @@ open class Matrix4d {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 - m31
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 - m32
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 - m33
-        dest._m00(m00 * xScale)._m01(m01 * xScale)._m02(m02 * xScale)._m03(m03 * xScale)._m10(m10 * yScale)
+        dst._m00(m00 * xScale)._m01(m01 * xScale)._m02(m02 * xScale)._m03(m03 * xScale)._m10(m10 * yScale)
             ._m11(m11 * yScale)._m12(
                 m12 * yScale
             )._m13(m13 * yScale)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(
                 flags and (30 or if (rm20 == 0.0 && rm21 == 0.0) 0 else 1).inv()
             )
-        return dest
+        return dst
     }
 
     @JvmOverloads
@@ -5480,9 +5476,9 @@ open class Matrix4d {
         aspect: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dest)
+        return this.perspectiveOffCenter(fovy, offAngleX, offAngleY, aspect, zNear, zFar, false, dst)
     }
 
     @JvmOverloads
@@ -5494,7 +5490,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return this.frustum(
             tan(angleLeft) * zNear,
@@ -5504,7 +5500,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne,
-            dest
+            dst
         )
     }
 
@@ -5516,7 +5512,7 @@ open class Matrix4d {
         angleUp: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return this.frustum(
             tan(angleLeft) * zNear,
@@ -5525,7 +5521,7 @@ open class Matrix4d {
             tan(angleUp) * zNear,
             zNear,
             zFar,
-            dest
+            dst
         )
     }
 
@@ -5538,7 +5534,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return this.frustumLH(
             tan(angleLeft) * zNear,
@@ -5548,7 +5544,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne,
-            dest
+            dst
         )
     }
 
@@ -5560,7 +5556,7 @@ open class Matrix4d {
         angleUp: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         return this.frustumLH(
             tan(angleLeft) * zNear,
@@ -5569,7 +5565,7 @@ open class Matrix4d {
             tan(angleUp) * zNear,
             zNear,
             zFar,
-            dest
+            dst
         )
     }
 
@@ -5738,15 +5734,15 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setPerspectiveLH(
+        return if (flags and 4 != 0) dst.setPerspectiveLH(
             fovy,
             aspect,
             zNear,
             zFar,
             zZeroToOne
-        ) else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dest)
+        ) else perspectiveLHGeneric(fovy, aspect, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun perspectiveLHGeneric(
@@ -5755,7 +5751,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val h = tan(fovy * 0.5)
         val rm00 = 1.0 / (h * aspect)
@@ -5781,18 +5777,18 @@ open class Matrix4d {
         val nm21 = m21 * rm22 + m31
         val nm22 = m22 * rm22 + m32
         val nm23 = m23 * rm22 + m33
-        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
             m12 * rm11
         )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(
                 flags and -31
             )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun perspectiveLH(fovy: Double, aspect: Double, zNear: Double, zFar: Double, dest: Matrix4d = this): Matrix4d {
-        return this.perspectiveLH(fovy, aspect, zNear, zFar, false, dest)
+    fun perspectiveLH(fovy: Double, aspect: Double, zNear: Double, zFar: Double, dst: Matrix4d = this): Matrix4d {
+        return this.perspectiveLH(fovy, aspect, zNear, zFar, false, dst)
     }
 
     fun setPerspectiveLH(fovy: Double, aspect: Double, zNear: Double, zFar: Double, zZeroToOne: Boolean): Matrix4d {
@@ -5828,9 +5824,9 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setFrustum(
+        return if (flags and 4 != 0) dst.setFrustum(
             left,
             right,
             bottom,
@@ -5838,7 +5834,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne
-        ) else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
+        ) else frustumGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun frustumGeneric(
@@ -5849,7 +5845,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = (zNear + zNear) / (right - left)
         val rm11 = (zNear + zNear) / (top - bottom)
@@ -5876,11 +5872,11 @@ open class Matrix4d {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 - m31
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 - m32
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 - m33
-        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
             m12 * rm11
         )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
@@ -5891,9 +5887,9 @@ open class Matrix4d {
         top: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return this.frustum(left, right, bottom, top, zNear, zFar, false, dest)
+        return this.frustum(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setFrustum(
@@ -5939,9 +5935,9 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return if (flags and 4 != 0) dest.setFrustumLH(
+        return if (flags and 4 != 0) dst.setFrustumLH(
             left,
             right,
             bottom,
@@ -5949,7 +5945,7 @@ open class Matrix4d {
             zNear,
             zFar,
             zZeroToOne
-        ) else frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dest)
+        ) else frustumLHGeneric(left, right, bottom, top, zNear, zFar, zZeroToOne, dst)
     }
 
     private fun frustumLHGeneric(
@@ -5960,7 +5956,7 @@ open class Matrix4d {
         zNear: Double,
         zFar: Double,
         zZeroToOne: Boolean,
-        dest: Matrix4d
+        dst: Matrix4d
     ): Matrix4d {
         val rm00 = (zNear + zNear) / (right - left)
         val rm11 = (zNear + zNear) / (top - bottom)
@@ -5987,11 +5983,11 @@ open class Matrix4d {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 + m31
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33
-        dest._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
+        dst._m00(m00 * rm00)._m01(m01 * rm00)._m02(m02 * rm00)._m03(m03 * rm00)._m10(m10 * rm11)._m11(m11 * rm11)._m12(
             m12 * rm11
         )._m13(m13 * rm11)._m30(m20 * rm32)._m31(m21 * rm32)._m32(m22 * rm32)._m33(m23 * rm32)._m20(e)._m21(nm21)
             ._m22(nm22)._m23(nm23)._properties(0)
-        return dest
+        return dst
     }
 
     @JvmOverloads
@@ -6002,9 +5998,9 @@ open class Matrix4d {
         top: Double,
         zNear: Double,
         zFar: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
-        return this.frustumLH(left, right, bottom, top, zNear, zFar, false, dest)
+        return this.frustumLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setFrustumLH(
@@ -6075,20 +6071,20 @@ open class Matrix4d {
         return this
     }
 
-    fun frustumPlane(plane: Int, dest: Vector4d): Vector4d {
+    fun frustumPlane(plane: Int, dst: Vector4d): Vector4d {
         when (plane) {
-            0 -> dest.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30).normalize3()
-            1 -> dest.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30).normalize3()
-            2 -> dest.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
-            3 -> dest.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
-            4 -> dest.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
-            5 -> dest.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
-            else -> throw IllegalArgumentException("dest")
+            0 -> dst.set(m03 + m00, m13 + m10, m23 + m20, m33 + m30).normalize3()
+            1 -> dst.set(m03 - m00, m13 - m10, m23 - m20, m33 - m30).normalize3()
+            2 -> dst.set(m03 + m01, m13 + m11, m23 + m21, m33 + m31).normalize3()
+            3 -> dst.set(m03 - m01, m13 - m11, m23 - m21, m33 - m31).normalize3()
+            4 -> dst.set(m03 + m02, m13 + m12, m23 + m22, m33 + m32).normalize3()
+            5 -> dst.set(m03 - m02, m13 - m12, m23 - m22, m33 - m32).normalize3()
+            else -> throw IllegalArgumentException("dst")
         }
-        return dest
+        return dst
     }
 
-    fun frustumCorner(corner: Int, dest: Vector3d): Vector3d {
+    fun frustumCorner(corner: Int, dst: Vector3d): Vector3d {
         val d1: Double
         val d2: Double
         val d3: Double
@@ -6226,10 +6222,10 @@ open class Matrix4d {
         val c12y = n1z * n2x - n1x * n2z
         val c12z = n1x * n2y - n1y * n2x
         val invDot = 1.0 / (n1x * c23x + n1y * c23y + n1z * c23z)
-        dest.x = -c23x * d1 - c31x * d2 - c12x * d3 * invDot
-        dest.y = -c23y * d1 - c31y * d2 - c12y * d3 * invDot
-        dest.z = -c23z * d1 - c31z * d2 - c12z * d3 * invDot
-        return dest
+        dst.x = -c23x * d1 - c31x * d2 - c12x * d3 * invDot
+        dst.y = -c23y * d1 - c31y * d2 - c12y * d3 * invDot
+        dst.z = -c23z * d1 - c31z * d2 - c12z * d3 * invDot
+        return dst
     }
 
     fun perspectiveOrigin(dst: Vector3d): Vector3d {
@@ -6289,7 +6285,7 @@ open class Matrix4d {
         return m32 / (m22 - m23)
     }
 
-    fun frustumRayDir(x: Double, y: Double, dest: Vector3d): Vector3d {
+    fun frustumRayDir(x: Double, y: Double, dst: Vector3d): Vector3d {
         val a = m10 * m23
         val b = m13 * m21
         val c = m10 * m21
@@ -6314,10 +6310,10 @@ open class Matrix4d {
         val m2x = (b - c - d + e + f - a) * (1.0 - y) + (a + b - c - d - e + f) * y
         val m2y = (h - i - j + k + l - g) * (1.0 - y) + (g + h - i - j - k + l) * y
         val m2z = (n - o - p + q + r - m) * (1.0 - y) + (m + n - o - p - q + r) * y
-        dest.x = m1x * (1.0 - x) + m2x * x
-        dest.y = m1y * (1.0 - x) + m2y * x
-        dest.z = m1z * (1.0 - x) + m2z * x
-        return dest.normalize(dest)
+        dst.x = m1x * (1.0 - x) + m2x * x
+        dst.y = m1y * (1.0 - x) + m2y * x
+        dst.z = m1z * (1.0 - x) + m2z * x
+        return dst.normalize(dst)
     }
 
     fun positiveZ(dir: Vector3d): Vector3d {
@@ -6356,24 +6352,24 @@ open class Matrix4d {
         return dir.set(m01, m11, m21)
     }
 
-    fun originAffine(dest: Vector3d): Vector3d {
+    fun originAffine(dst: Vector3d): Vector3d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val d = m01 * m12 - m02 * m11
         val g = m20 * m31 - m21 * m30
         val h = m20 * m32 - m22 * m30
         val j = m21 * m32 - m22 * m31
-        dest.x = -m10 * j + m11 * h - m12 * g
-        dest.y = m00 * j - m01 * h + m02 * g
-        dest.z = -m30 * d + m31 * b - m32 * a
-        return dest
+        dst.x = -m10 * j + m11 * h - m12 * g
+        dst.y = m00 * j - m01 * h + m02 * g
+        dst.z = -m30 * d + m31 * b - m32 * a
+        return dst
     }
 
-    fun origin(dest: Vector3d): Vector3d {
-        return if (flags and 2 != 0) originAffine(dest) else originGeneric(dest)
+    fun origin(dst: Vector3d): Vector3d {
+        return if (flags and 2 != 0) originAffine(dst) else originGeneric(dst)
     }
 
-    private fun originGeneric(dest: Vector3d): Vector3d {
+    private fun originGeneric(dst: Vector3d): Vector3d {
         val a = m00 * m11 - m01 * m10
         val b = m00 * m12 - m02 * m10
         val c = m00 * m13 - m03 * m10
@@ -6395,15 +6391,15 @@ open class Matrix4d {
         val x = nm30 * nm33
         val y = nm31 * nm33
         val z = nm32 * nm33
-        return dest.set(x, y, z)
+        return dst.set(x, y, z)
     }
 
     fun shadow(light: Vector4d, a: Double, b: Double, c: Double, d: Double): Matrix4d {
         return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, this)
     }
 
-    fun shadow(light: Vector4d, a: Double, b: Double, c: Double, d: Double, dest: Matrix4d): Matrix4d {
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest)
+    fun shadow(light: Vector4d, a: Double, b: Double, c: Double, d: Double, dst: Matrix4d): Matrix4d {
+        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
     }
 
     @JvmOverloads
@@ -6416,7 +6412,7 @@ open class Matrix4d {
         b: Double,
         c: Double,
         d: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val invPlaneLen = JomlMath.invsqrt(a * a + b * b + c * c)
         val an = a * invPlaneLen
@@ -6452,7 +6448,7 @@ open class Matrix4d {
         val nm21 = m01 * rm20 + m11 * rm21 + m21 * rm22 + m31 * rm23
         val nm22 = m02 * rm20 + m12 * rm21 + m22 * rm22 + m32 * rm23
         val nm23 = m03 * rm20 + m13 * rm21 + m23 * rm22 + m33 * rm23
-        dest._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30 * rm33)
+        dst._m30(m00 * rm30 + m10 * rm31 + m20 * rm32 + m30 * rm33)
             ._m31(m01 * rm30 + m11 * rm31 + m21 * rm32 + m31 * rm33)._m32(
                 m02 * rm30 + m12 * rm31 + m22 * rm32 + m32 * rm33
             )._m33(m03 * rm30 + m13 * rm31 + m23 * rm32 + m33 * rm33)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
@@ -6460,16 +6456,16 @@ open class Matrix4d {
             ._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)._properties(
                 flags and -30
             )
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun shadow(light: Vector4d, planeTransform: Matrix4d, dest: Matrix4d = this): Matrix4d {
+    fun shadow(light: Vector4d, planeTransform: Matrix4d, dst: Matrix4d = this): Matrix4d {
         val a = planeTransform.m10
         val b = planeTransform.m11
         val c = planeTransform.m12
         val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
-        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dest)
+        return this.shadow(light.x, light.y, light.z, light.w, a, b, c, d, dst)
     }
 
     @JvmOverloads
@@ -6479,13 +6475,13 @@ open class Matrix4d {
         lightZ: Double,
         lightW: Double,
         planeTransform: Matrix4d,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val a = planeTransform.m10
         val b = planeTransform.m11
         val c = planeTransform.m12
         val d = -a * planeTransform.m30 - b * planeTransform.m31 - c * planeTransform.m32
-        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dest)
+        return this.shadow(lightX, lightY, lightZ, lightW, a, b, c, d, dst)
     }
 
     fun billboardCylindrical(objPos: Vector3d, targetPos: Vector3d, up: Vector3d): Matrix4d {
@@ -6592,46 +6588,16 @@ open class Matrix4d {
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj !is Matrix4d) {
+        } else if (other !is Matrix4d) {
             false
         } else {
-            val other = obj
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m02) != (other.m02)) {
-                false
-            } else if ((m03) != (other.m03)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m12) != (other.m12)) {
-                false
-            } else if ((m13) != (other.m13)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else if ((m21) != (other.m21)) {
-                false
-            } else if ((m22) != (other.m22)) {
-                false
-            } else if ((m23) != (other.m23)) {
-                false
-            } else if ((m30) != (other.m30)) {
-                false
-            } else if ((m31) != (other.m31)) {
-                false
-            } else if ((m32) != (other.m32)) {
-                false
-            } else {
-                (m33) == (other.m33)
-            }
+            return m00 == other.m00 && m01 == other.m01 && m02 == other.m02 && m03 == other.m03 &&
+                    m10 == other.m10 && m11 == other.m11 && m12 == other.m12 && m13 == other.m13 &&
+                    m20 == other.m20 && m21 == other.m21 && m22 == other.m22 && m23 == other.m23 &&
+                    m30 == other.m30 && m31 == other.m31 && m32 == other.m32 && m33 == other.m33
         }
     }
 
@@ -6676,17 +6642,17 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun pick(x: Double, y: Double, width: Double, height: Double, viewport: IntArray, dest: Matrix4d = this): Matrix4d {
+    fun pick(x: Double, y: Double, width: Double, height: Double, viewport: IntArray, dst: Matrix4d = this): Matrix4d {
         val sx = viewport[2] / width
         val sy = viewport[3] / height
         val tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width
         val ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height
-        dest._m30(m00 * tx + m10 * ty + m30)._m31(m01 * tx + m11 * ty + m31)._m32(m02 * tx + m12 * ty + m32)._m33(
+        dst._m30(m00 * tx + m10 * ty + m30)._m31(m01 * tx + m11 * ty + m31)._m32(m02 * tx + m12 * ty + m32)._m33(
             m03 * tx + m13 * ty + m33
         )._m00(m00 * sx)._m01(m01 * sx)._m02(m02 * sx)._m03(m03 * sx)._m10(m10 * sy)._m11(m11 * sy)._m12(m12 * sy)._m13(
             m13 * sy
         )._properties(0)
-        return dest
+        return dst
     }
 
     val isAffine: Boolean
@@ -6755,7 +6721,7 @@ open class Matrix4d {
         centerZ: Double,
         angleX: Double,
         angleY: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val m30 = m20 * -radius + m30
         val m31 = m21 * -radius + m31
@@ -6781,18 +6747,18 @@ open class Matrix4d {
         val nm21 = m01 * sin + m21 * cos
         val nm22 = m02 * sin + m22 * cos
         val nm23 = m03 * sin + m23 * cos
-        dest._m30(-nm00 * centerX - nm10 * centerY - nm20 * centerZ + m30)
+        dst._m30(-nm00 * centerX - nm10 * centerY - nm20 * centerZ + m30)
             ._m31(-nm01 * centerX - nm11 * centerY - nm21 * centerZ + m31)._m32(
                 -nm02 * centerX - nm12 * centerY - nm22 * centerZ + m32
             )._m33(-nm03 * centerX - nm13 * centerY - nm23 * centerZ + m33)._m20(nm20)._m21(nm21)._m22(nm22)._m23(nm23)
             ._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._properties(
                 flags and -14
             )
-        return dest
+        return dst
     }
 
-    fun arcball(radius: Double, center: Vector3d, angleX: Double, angleY: Double, dest: Matrix4d): Matrix4d {
-        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, dest)
+    fun arcball(radius: Double, center: Vector3d, angleX: Double, angleY: Double, dst: Matrix4d): Matrix4d {
+        return this.arcball(radius, center.x, center.y, center.z, angleX, angleY, dst)
     }
 
     fun arcball(radius: Double, center: Vector3d, angleX: Double, angleY: Double): Matrix4d {
@@ -6830,7 +6796,7 @@ open class Matrix4d {
         return this
     }
 
-    fun projectedGridRange(projector: Matrix4d, sLower: Double, sUpper: Double, dest: Matrix4d): Matrix4d? {
+    fun projectedGridRange(projector: Matrix4d, sLower: Double, sUpper: Double, dst: Matrix4d): Matrix4d? {
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
         var maxX = Double.NEGATIVE_INFINITY
@@ -6896,25 +6862,25 @@ open class Matrix4d {
         return if (!intersection) {
             null
         } else {
-            dest.set(maxX - minX, 0.0, 0.0, 0.0, 0.0, maxY - minY, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, minX, minY, 0.0, 1.0)
+            dst.set(maxX - minX, 0.0, 0.0, 0.0, 0.0, maxY - minY, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, minX, minY, 0.0, 1.0)
                 ._properties(2)
-            dest
+            dst
         }
     }
 
-    fun perspectiveFrustumSlice(near: Double, far: Double, dest: Matrix4d): Matrix4d {
+    fun perspectiveFrustumSlice(near: Double, far: Double, dst: Matrix4d): Matrix4d {
         val invOldNear = (m23 + m22) / m32
         val invNearFar = 1.0 / (near - far)
-        dest._m00(m00 * invOldNear * near)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11 * invOldNear * near)._m12(
+        dst._m00(m00 * invOldNear * near)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11 * invOldNear * near)._m12(
             m12
         )._m13(m13)._m20(m20)._m21(m21)._m22((far + near) * invNearFar)._m23(m23)._m30(m30)._m31(m31)
             ._m32((far + far) * near * invNearFar)._m33(
                 m33
             )._properties(flags and -29)
-        return dest
+        return dst
     }
 
-    fun orthoCrop(view: Matrix4d, dest: Matrix4d): Matrix4d {
+    fun orthoCrop(view: Matrix4d, dst: Matrix4d): Matrix4d {
         var minX = Double.POSITIVE_INFINITY
         var maxX = Double.NEGATIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
@@ -6940,7 +6906,7 @@ open class Matrix4d {
             minZ = min(minZ, vz)
             maxZ = max(maxZ, vz)
         }
-        return dest.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
+        return dst.setOrtho(minX, maxX, minY, maxY, -maxZ, -minZ)
     }
 
     fun trapezoidCrop(
@@ -7108,8 +7074,8 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun lerp(b: Matrix4d, t: Double, dest: Matrix4d = this): Matrix4d {
-        dest._m00((b.m00 - m00) * t + m00)._m01((b.m01 - m01) * t + m01)
+    fun lerp(b: Matrix4d, t: Double, dst: Matrix4d = this): Matrix4d {
+        dst._m00((b.m00 - m00) * t + m00)._m01((b.m01 - m01) * t + m01)
             ._m02((b.m02 - m02) * t + m02)._m03((b.m03 - m03) * t + m03)
             ._m10((b.m10 - m10) * t + m10)._m11((b.m11 - m11) * t + m11)
             ._m12((b.m12 - m12) * t + m12)._m13((b.m13 - m13) * t + m13)
@@ -7118,11 +7084,11 @@ open class Matrix4d {
             ._m30((b.m30 - m30) * t + m30)._m31((b.m31 - m31) * t + m31)
             ._m32((b.m32 - m32) * t + m32)._m33((b.m33 - m33) * t + m33)
             ._properties(flags and b.properties())
-        return dest
+        return dst
     }
 
-    fun rotateTowards(direction: Vector3d, up: Vector3d, dest: Matrix4d): Matrix4d {
-        return this.rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, dest)
+    fun rotateTowards(direction: Vector3d, up: Vector3d, dst: Matrix4d): Matrix4d {
+        return this.rotateTowards(direction.x, direction.y, direction.z, up.x, up.y, up.z, dst)
     }
 
     fun rotateTowards(direction: Vector3d, up: Vector3d): Matrix4d {
@@ -7137,7 +7103,7 @@ open class Matrix4d {
         upX: Double,
         upY: Double,
         upZ: Double,
-        dest: Matrix4d = this
+        dst: Matrix4d = this
     ): Matrix4d {
         val invDirLength = JomlMath.invsqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
         val ndirX = dirX * invDirLength
@@ -7161,13 +7127,13 @@ open class Matrix4d {
         val nm11 = m01 * upnX + m11 * upnY + m21 * upnZ
         val nm12 = m02 * upnX + m12 * upnY + m22 * upnZ
         val nm13 = m03 * upnX + m13 * upnY + m23 * upnZ
-        dest._m30(m30)._m31(m31)._m32(m32)._m33(m33)._m20(m00 * ndirX + m10 * ndirY + m20 * ndirZ)._m21(
+        dst._m30(m30)._m31(m31)._m32(m32)._m33(m33)._m20(m00 * ndirX + m10 * ndirY + m20 * ndirZ)._m21(
             m01 * ndirX + m11 * ndirY + m21 * ndirZ
         )._m22(m02 * ndirX + m12 * ndirY + m22 * ndirZ)._m23(m03 * ndirX + m13 * ndirY + m23 * ndirZ)._m00(nm00)
             ._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._properties(
                 flags and -14
             )
-        return dest
+        return dst
     }
 
     fun rotationTowards(dir: Vector3d, up: Vector3d): Matrix4d {
@@ -7254,18 +7220,18 @@ open class Matrix4d {
         return this
     }
 
-    fun getEulerAnglesZYX(dest: Vector3d): Vector3d {
-        dest.x = atan2(m12, m22)
-        dest.y = atan2(-m02, sqrt(1.0 - m02 * m02))
-        dest.z = atan2(m01, m00)
-        return dest
+    fun getEulerAnglesZYX(dst: Vector3d): Vector3d {
+        dst.x = atan2(m12, m22)
+        dst.y = atan2(-m02, sqrt(1.0 - m02 * m02))
+        dst.z = atan2(m01, m00)
+        return dst
     }
 
-    fun getEulerAnglesXYZ(dest: Vector3d): Vector3d {
-        dest.x = atan2(-m21, m22)
-        dest.y = atan2(m20, sqrt(1.0 - m20 * m20))
-        dest.z = atan2(-m10, m00)
-        return dest
+    fun getEulerAnglesXYZ(dst: Vector3d): Vector3d {
+        dst.x = atan2(-m21, m22)
+        dst.y = atan2(m20, sqrt(1.0 - m20 * m20))
+        dst.z = atan2(-m10, m00)
+        return dst
     }
 
     fun affineSpan(corner: Vector3d, xDir: Vector3d, yDir: Vector3d, zDir: Vector3d): Matrix4d {
@@ -7441,21 +7407,21 @@ open class Matrix4d {
         return this
     }
 
-    fun obliqueZ(a: Double, b: Double, dest: Matrix4d): Matrix4d {
-        dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)
+    fun obliqueZ(a: Double, b: Double, dst: Matrix4d): Matrix4d {
+        dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)
             ._m20(m00 * a + m10 * b + m20)._m21(m01 * a + m11 * b + m21)._m22(m02 * a + m12 * b + m22)
             ._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
             ._properties(flags and 2)
-        return dest
+        return dst
     }
 
     @JvmOverloads
-    fun withLookAtUp(up: Vector3d, dest: Matrix4d = this): Matrix4d {
-        return withLookAtUp(up.x, up.y, up.z, dest)
+    fun withLookAtUp(up: Vector3d, dst: Matrix4d = this): Matrix4d {
+        return withLookAtUp(up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
-    fun withLookAtUp(upX: Double, upY: Double, upZ: Double, dest: Matrix4d = this): Matrix4d {
+    fun withLookAtUp(upX: Double, upY: Double, upZ: Double, dst: Matrix4d = this): Matrix4d {
         val y = (upY * m21 - upZ * m11) * m02 + (upZ * m01 - upX * m21) * m12 + (upX * m11 - upY * m01) * m22
         var x = upX * m01 + upY * m11 + upZ * m21
         if (flags and 16 == 0) {
@@ -7472,20 +7438,20 @@ open class Matrix4d {
         val nm11 = s * m10 + c * m11
         val nm21 = s * m20 + c * m21
         val nm30 = c * m30 - s * m31
-        dest._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
-        if (dest !== this) {
-            dest._m02(m02)._m12(m12)._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33)
+        dst._m00(nm00)._m10(nm10)._m20(nm20)._m30(nm30)._m01(nm01)._m11(nm11)._m21(nm21)._m31(nm31)
+        if (dst !== this) {
+            dst._m02(m02)._m12(m12)._m22(m22)._m32(m32)._m03(m03)._m13(m13)._m23(m23)._m33(m33)
         }
-        dest._properties(flags and -14)
-        return dest
+        dst._properties(flags and -14)
+        return dst
     }
 
     @JvmOverloads
-    fun mapXZY(dest: Matrix4d = this): Matrix4d {
+    fun mapXZY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest
+        return dst
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
             ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
@@ -7494,11 +7460,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapXZnY(dest: Matrix4d = this): Matrix4d {
+    fun mapXZnY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest
+        return dst
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
             ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
@@ -7507,8 +7473,8 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapXnYnZ(dest: Matrix4d = this): Matrix4d {
-        return dest
+    fun mapXnYnZ(dst: Matrix4d = this): Matrix4d {
+        return dst
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)
             ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
@@ -7517,11 +7483,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapXnZY(dest: Matrix4d = this): Matrix4d {
+    fun mapXnZY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest
+        return dst
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
             ._m20(m10)._m21(m11)._m22(m12)._m23(m23)
@@ -7530,11 +7496,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapXnZnY(dest: Matrix4d = this): Matrix4d {
+    fun mapXnZnY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest
+        return dst
             ._m00(m00)._m01(m01)._m02(m02)._m03(m03)
             ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
             ._m20(-m10)._m21(-m11)._m22(-m12)._m23(m23)
@@ -7543,11 +7509,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYXZ(dest: Matrix4d = this): Matrix4d {
+    fun mapYXZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(m00)._m11(m01)._m12(m02)._m13(m13)
             ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
@@ -7556,11 +7522,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYXnZ(dest: Matrix4d = this): Matrix4d {
+    fun mapYXnZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(m23)
@@ -7569,11 +7535,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYZX(dest: Matrix4d = this): Matrix4d {
+    fun mapYZX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
             ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
@@ -7582,11 +7548,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYZnX(dest: Matrix4d = this): Matrix4d {
+    fun mapYZnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(m20)._m11(m21)._m12(m22)._m13(m13)
             ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
@@ -7595,11 +7561,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYnXZ(dest: Matrix4d = this): Matrix4d {
+    fun mapYnXZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
             ._m20(m20)._m21(m21)._m22(m22)._m23(m23)
@@ -7608,11 +7574,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYnXnZ(dest: Matrix4d = this): Matrix4d {
+    fun mapYnXnZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)
             ._m20(-m20)._m21(-m21)._m22(-m22)._m23(m23)
@@ -7621,11 +7587,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYnZX(dest: Matrix4d = this): Matrix4d {
+    fun mapYnZX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
             ._m20(m00)._m21(m01)._m22(m02)._m23(m23)
@@ -7634,11 +7600,11 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapYnZnX(dest: Matrix4d = this): Matrix4d {
+    fun mapYnZnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest
+        return dst
             ._m00(m10)._m01(m11)._m02(m12)._m03(m03)
             ._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)
             ._m20(-m00)._m21(-m01)._m22(-m02)._m23(m23)
@@ -7647,355 +7613,355 @@ open class Matrix4d {
     }
 
     @JvmOverloads
-    fun mapZXY(dest: Matrix4d = this): Matrix4d {
+    fun mapZXY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)._m21(m11)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)._m21(m11)
             ._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZXnY(dest: Matrix4d = this): Matrix4d {
+    fun mapZXnY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZYX(dest: Matrix4d = this): Matrix4d {
+    fun mapZYX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)._m21(m01)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)._m21(m01)
             ._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZYnX(dest: Matrix4d = this): Matrix4d {
+    fun mapZYnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZnXY(dest: Matrix4d = this): Matrix4d {
+    fun mapZnXY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
             ._m21(m11)._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZnXnY(dest: Matrix4d = this): Matrix4d {
+    fun mapZnXnY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZnYX(dest: Matrix4d = this): Matrix4d {
+    fun mapZnYX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
             ._m21(m01)._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapZnYnX(dest: Matrix4d = this): Matrix4d {
+    fun mapZnYnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
+        return dst._m00(m20)._m01(m21)._m02(m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXYnZ(dest: Matrix4d = this): Matrix4d {
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
+    fun mapnXYnZ(dst: Matrix4d = this): Matrix4d {
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXZY(dest: Matrix4d = this): Matrix4d {
+    fun mapnXZY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m10)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m10)
             ._m21(m11)._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXZnY(dest: Matrix4d = this): Matrix4d {
+    fun mapnXZnY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m10)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXnYZ(dest: Matrix4d = this): Matrix4d {
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)
+    fun mapnXnYZ(dst: Matrix4d = this): Matrix4d {
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)
             ._m21(
                 m21
             )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXnYnZ(dest: Matrix4d = this): Matrix4d {
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m20)
+    fun mapnXnYnZ(dst: Matrix4d = this): Matrix4d {
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXnZY(dest: Matrix4d = this): Matrix4d {
+    fun mapnXnZY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m10)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m10)
             ._m21(m11)._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnXnZnY(dest: Matrix4d = this): Matrix4d {
+    fun mapnXnZnY(dst: Matrix4d = this): Matrix4d {
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m10)
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYXZ(dest: Matrix4d = this): Matrix4d {
+    fun mapnYXZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m20)._m21(
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m20)._m21(
             m21
         )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYXnZ(dest: Matrix4d = this): Matrix4d {
+    fun mapnYXnZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYZX(dest: Matrix4d = this): Matrix4d {
+    fun mapnYZX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m00)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(m00)
             ._m21(m01)._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYZnX(dest: Matrix4d = this): Matrix4d {
+    fun mapnYZnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m00)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(m20)._m11(m21)._m12(m22)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYnXZ(dest: Matrix4d = this): Matrix4d {
+    fun mapnYnXZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m20)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m20)
             ._m21(
                 m21
             )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYnXnZ(dest: Matrix4d = this): Matrix4d {
+    fun mapnYnXnZ(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m20)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYnZX(dest: Matrix4d = this): Matrix4d {
+    fun mapnYnZX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m00)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(m00)
             ._m21(m01)._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnYnZnX(dest: Matrix4d = this): Matrix4d {
+    fun mapnYnZnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m00)
+        return dst._m00(-m10)._m01(-m11)._m02(-m12)._m03(m03)._m10(-m20)._m11(-m21)._m12(-m22)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZXY(dest: Matrix4d = this): Matrix4d {
+    fun mapnZXY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(m10)
             ._m21(m11)._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZXnY(dest: Matrix4d = this): Matrix4d {
+    fun mapnZXnY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m00)._m11(m01)._m12(m02)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZYX(dest: Matrix4d = this): Matrix4d {
+    fun mapnZYX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m00)
             ._m21(m01)._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZYnX(dest: Matrix4d = this): Matrix4d {
+    fun mapnZYnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZnXY(dest: Matrix4d = this): Matrix4d {
+    fun mapnZnXY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(m10)
             ._m21(m11)._m22(m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZnXnY(dest: Matrix4d = this): Matrix4d {
+    fun mapnZnXnY(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
         val m10 = m10
         val m11 = m11
         val m12 = m12
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m00)._m11(-m01)._m12(-m02)._m13(m13)._m20(-m10)
             ._m21(-m11)._m22(-m12)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZnYX(dest: Matrix4d = this): Matrix4d {
+    fun mapnZnYX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m00)
             ._m21(m01)._m22(m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
 
     @JvmOverloads
-    fun mapnZnYnX(dest: Matrix4d = this): Matrix4d {
+    fun mapnZnYnX(dst: Matrix4d = this): Matrix4d {
         val m00 = m00
         val m01 = m01
         val m02 = m02
-        return dest._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
+        return dst._m00(-m20)._m01(-m21)._m02(-m22)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(-m00)
             ._m21(-m01)._m22(-m02)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
@@ -8005,8 +7971,8 @@ open class Matrix4d {
         return _m00(-m00)._m01(-m01)._m02(-m02)._properties(flags and 18)
     }
 
-    fun negateX(dest: Matrix4d): Matrix4d {
-        return dest._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(
+    fun negateX(dst: Matrix4d): Matrix4d {
+        return dst._m00(-m00)._m01(-m01)._m02(-m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(m20)._m21(
             m21
         )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
@@ -8015,8 +7981,8 @@ open class Matrix4d {
         return _m10(-m10)._m11(-m11)._m12(-m12)._properties(flags and 18)
     }
 
-    fun negateY(dest: Matrix4d): Matrix4d {
-        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)._m21(
+    fun negateY(dst: Matrix4d): Matrix4d {
+        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(-m10)._m11(-m11)._m12(-m12)._m13(m13)._m20(m20)._m21(
             m21
         )._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
     }
@@ -8025,8 +7991,8 @@ open class Matrix4d {
         return _m20(-m20)._m21(-m21)._m22(-m22)._properties(flags and 18)
     }
 
-    fun negateZ(dest: Matrix4d): Matrix4d {
-        return dest._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
+    fun negateZ(dst: Matrix4d): Matrix4d {
+        return dst._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m20(-m20)
             ._m21(-m21)._m22(-m22)._m23(
                 m23
             )._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(flags and 18)
@@ -8060,8 +8026,8 @@ open class Matrix4d {
             y: Vector3d,
             nearFarDist: Double,
             zeroToOne: Boolean,
-            projDest: Matrix4d,
-            viewDest: Matrix4d
+            projdst: Matrix4d,
+            viewdst: Matrix4d
         ) {
             var zx = y.y * x.z - y.z * x.y
             var zy = y.z * x.x - y.x * x.z
@@ -8072,11 +8038,11 @@ open class Matrix4d {
             zy *= zs
             zz *= zs
             zd *= zs
-            viewDest.setLookAt(eye.x, eye.y, eye.z, eye.x + zx, eye.y + zy, eye.z + zz, y.x, y.y, y.z)
-            val px = viewDest.m00 * p.x + viewDest.m10 * p.y + viewDest.m20 * p.z + viewDest.m30
-            val py = viewDest.m01 * p.x + viewDest.m11 * p.y + viewDest.m21 * p.z + viewDest.m31
-            val tx = viewDest.m00 * x.x + viewDest.m10 * x.y + viewDest.m20 * x.z
-            val ty = viewDest.m01 * y.x + viewDest.m11 * y.y + viewDest.m21 * y.z
+            viewdst.setLookAt(eye.x, eye.y, eye.z, eye.x + zx, eye.y + zy, eye.z + zz, y.x, y.y, y.z)
+            val px = viewdst.m00 * p.x + viewdst.m10 * p.y + viewdst.m20 * p.z + viewdst.m30
+            val py = viewdst.m01 * p.x + viewdst.m11 * p.y + viewdst.m21 * p.z + viewdst.m31
+            val tx = viewdst.m00 * x.x + viewdst.m10 * x.y + viewdst.m20 * x.z
+            val ty = viewdst.m01 * y.x + viewdst.m11 * y.y + viewdst.m21 * y.z
             val len = sqrt(zx * zx + zy * zy + zz * zz)
             var near = zd / len
             val far: Double
@@ -8091,7 +8057,7 @@ open class Matrix4d {
             } else {
                 far = near + nearFarDist
             }
-            projDest.setFrustum(px, px + tx, py, py + ty, near, far, zeroToOne)
+            projdst.setFrustum(px, px + tx, py, py + ty, near, far, zeroToOne)
         }
     }
 }

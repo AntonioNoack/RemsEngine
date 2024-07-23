@@ -42,5 +42,7 @@
     <orderEntry type="library" name="Apache Imaging" level="project" />
     <orderEntry type="module" module-name="OpenXR" />
     <orderEntry type="module" module-name="Network" />
+    <orderEntry type="library" name="KotlinReflect" level="project" />
+    <orderEntry type="library" name="KotlinTest" level="project" />
   </component>
 </module>

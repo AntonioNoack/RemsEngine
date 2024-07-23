@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.material
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
@@ -239,16 +240,12 @@ open class Material : PrefabSaveable(), Renderable {
         GFX.check()
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         val mesh = Pipeline.sampleMesh
         val stage = pipeline.findStage(this)
         val materialSource = root.ref
         mesh.material = materialSource
-        stage.add(Pipeline.sampleMeshComponent, mesh, entity, this, 0)
+        stage.add(Pipeline.sampleMeshComponent, mesh, transform, this, 0)
         return clickId + 1
     }
 

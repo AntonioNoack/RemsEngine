@@ -1,6 +1,7 @@
 package me.anno.sdf
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
@@ -71,12 +72,8 @@ open class SDFGroup : SDFComponent() {
         super.removeChild(child)
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
-        val clickId1 = super.fill(pipeline, entity, clickId)
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+        val clickId1 = super.fill(pipeline, transform, clickId)
         return assignClickIds(this, clickId1)
     }
 

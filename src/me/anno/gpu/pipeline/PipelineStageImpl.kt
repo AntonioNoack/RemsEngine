@@ -539,11 +539,11 @@ class PipelineStageImpl(
     }
 
     fun DrawRequest.getZDistance(dir: Vector3d): Double {
-        val w = entity.transform.globalTransform
+        val w = transform.globalTransform
         return dir.dot(w.m30, w.m31, w.m32)
     }
 
-    var lastEntity: Entity? = null
+    var lastTransform: Transform? = null
     var lastMesh: IMesh? = null
     var lastShader: Shader? = null
     var lastComp: Component? = null
@@ -604,7 +604,7 @@ class PipelineStageImpl(
             val request = drawRequests[index]
             draw(
                 pipeline,
-                request.entity,
+                request.transform,
                 request.component,
                 request.material,
                 request.materialIndex,
@@ -631,7 +631,7 @@ class PipelineStageImpl(
 
     private fun clearLastElements() {
         // clear this to not prevent potential GC
-        lastEntity = null
+        lastTransform = null
         lastMesh = null
         lastShader = null
         lastComp = null
@@ -642,7 +642,7 @@ class PipelineStageImpl(
 
     fun draw(
         pipeline: Pipeline,
-        entity: Entity,
+        transform: Transform,
         renderer: Component,
         material: Material,
         materialIndex: Int,
@@ -657,8 +657,6 @@ class PipelineStageImpl(
         val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation ?: false
         GFXState.animated.use(hasAnimation) {
             GFXState.vertexData.use(mesh.vertexData) {
-
-                val transform = entity.transform
 
                 oc?.start()
 
@@ -700,17 +698,17 @@ class PipelineStageImpl(
                 // only if the entity or mesh changed
                 // not if the material has changed
                 // this updates the skeleton and such
-                if (entity !== lastEntity ||
+                if (lastTransform !== transform ||
                     lastMesh !== mesh ||
                     lastShader !== shader ||
                     lastComp == null ||
                     lastComp!!::class != renderer::class
                 ) {
                     val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
-                        renderer.defineVertexTransform(shader, entity, mesh)
+                        renderer.defineVertexTransform(shader, transform, mesh)
                     else false
                     shader.v1b("hasAnimation", hasAnim)
-                    lastEntity = entity
+                    lastTransform = transform
                     lastMesh = mesh
                     lastShader = shader
                     lastComp = renderer
@@ -757,34 +755,23 @@ class PipelineStageImpl(
         }
     }
 
-    fun add(component: Component, mesh: IMesh, entity: Entity, material: Material, materialIndex: Int) {
+    fun add(component: Component, mesh: IMesh, transform: Transform, material: Material, materialIndex: Int) {
         val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
-            drawRequests.add(DrawRequest(mesh, component, entity, material, materialIndex))
+            drawRequests.add(DrawRequest(mesh, component, transform, material, materialIndex))
         } else {
             val request = drawRequests[nextInsertIndex]
             request.mesh = mesh
             request.component = component
-            request.entity = entity
+            request.transform = transform
             request.material = material
             request.materialIndex = materialIndex
         }
     }
 
     fun addInstanced(
-        mesh: IMesh,
-        component: Component,
-        entity: Entity,
-        material: Material,
-        materialIndex: Int
-    ) = addInstanced(mesh, component, entity.transform, material, materialIndex)
-
-    fun addInstanced(
-        mesh: IMesh,
-        component: Component,
-        transform: Transform,
-        material: Material,
-        materialIndex: Int
+        mesh: IMesh, component: Component, transform: Transform,
+        material: Material, materialIndex: Int
     ) {
         val stack = instanced.data.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
             if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()

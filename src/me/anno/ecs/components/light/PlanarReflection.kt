@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
@@ -228,7 +229,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     override fun fill(
         pipeline: Pipeline,
-        entity: Entity,
+        transform: Transform,
         clickId: Int
     ): Int {
         pipeline.planarReflections.add(this)

@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -121,15 +122,15 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     var occlusionQuery: OcclusionQuery? = null
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         if (manager != null) return clickId
         val mesh = getMeshOrNull() ?: return clickId
         if (isInstanced && mesh.proceduralLength <= 0) {
-            pipeline.addMeshInstanced(mesh, this, entity)
+            pipeline.addMeshInstanced(mesh, this, transform)
         } else {
             val oc = occlusionQuery
             if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
-                pipeline.addMesh(mesh, this, entity)
+                pipeline.addMesh(mesh, this, transform)
             }
         }
         lastDrawn = Time.gameTimeN
@@ -168,7 +169,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     open val hasAnimation: Boolean = false
 
-    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: IMesh): Boolean {
+    open fun defineVertexTransform(shader: Shader, transform: Transform, mesh: IMesh): Boolean {
         return false
     }
 

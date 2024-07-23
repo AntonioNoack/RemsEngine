@@ -121,7 +121,7 @@ object Outlines {
                         shader.v1f("prevWorldScale", RenderState.prevWorldScale)
                         shader.v4f("tint", 1f)
 
-                        val hasAnim = animated && comp.defineVertexTransform(shader, entity, mesh)
+                        val hasAnim = animated && comp.defineVertexTransform(shader, entity.transform, mesh)
                         shader.v1b("hasAnimation", hasAnim)
 
                         mesh.draw(pipeline, shader, 0, Mesh.drawDebugLines)

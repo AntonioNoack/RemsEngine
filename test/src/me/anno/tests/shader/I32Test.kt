@@ -79,7 +79,7 @@ fun main() {
             }
         }
 
-        override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+        override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
             lastDrawn = Time.gameTimeN
             this.clickId = clickId
             val stack = getOrPutI32Stack(pipeline, mesh, material, TestI32Stack::class) {

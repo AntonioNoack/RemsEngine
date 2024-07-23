@@ -2,7 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping0
@@ -46,7 +46,6 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.min
-import kotlin.math.sqrt
 
 /**
  * defines how an animation with its own skeleton is mapped onto another skeleton
@@ -90,7 +89,7 @@ class Retargeting : PrefabSaveable(), Renderable {
     var showSampleMesh = false
     var showSampleAnimation = true
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         // different colors
         // todo show mapping clearer, maybe connecting lines
         // todo apply transform onto one of them, so we can check their matches better
@@ -98,28 +97,28 @@ class Retargeting : PrefabSaveable(), Renderable {
         val sa = AnimationCache[sampleAnimation]
         val srcSkeleton1 = SkeletonCache[srcSkeleton]
         val dstSkeleton1 = SkeletonCache[dstSkeleton]
-        val transform = entity.transform.getDrawMatrix()
+        val transformI = transform.getDrawMatrix()
         if (showSampleAnimation && sa != null && sm != null && srcSkeleton1 != null && dstSkeleton1 != null) {
             if (showSampleMesh) {
                 // show retargeted mesh
                 // todo why is this one not animated???
-                sm.fill(pipeline, entity, clickId)
+                sm.fill(pipeline, transform, clickId)
             }
             val srcPreviewData = srcPreviewData ?: Animation.PreviewData(srcSkeleton1, sa)
             this.srcPreviewData = srcPreviewData
-            fillSkeletonAnimated(pipeline, entity, clickId, srcPreviewData)
+            fillSkeletonAnimated(pipeline, transform, clickId, srcPreviewData)
             val mappedAnimation = mappedAnimations.firstOrNull { it.first == sa }?.second
                 ?: getMappedAnimation(sa, dstSkeleton1)
             if (mappedAnimation != null) {
                 if (dstPreviewData == null) dstPreviewData = Animation.PreviewData(
                     dstSkeleton1, mappedAnimation
                 )
-                fillSkeletonAnimated(pipeline, entity, clickId, dstPreviewData!!)
+                fillSkeletonAnimated(pipeline, transform, clickId, dstPreviewData!!)
             } else println("Missing mapped animation!!")
             val loop = LoopingState.PLAY_LOOP
             val frame = loop[Time.gameTime.toFloat(), sa.duration] * sa.numFrames / sa.duration
-            drawBoneNames(srcSkeleton1, sa.getMappedMatrices(frame, tmpMapping0, srcSkeleton), transform, srcColor)
-            drawBoneNames(dstSkeleton1, sa.getMappedMatrices(frame, tmpMapping1, dstSkeleton), transform, dstColor)
+            drawBoneNames(srcSkeleton1, sa.getMappedMatrices(frame, tmpMapping0, srcSkeleton), transformI, srcColor)
+            drawBoneNames(dstSkeleton1, sa.getMappedMatrices(frame, tmpMapping1, dstSkeleton), transformI, dstColor)
         } else {
             srcSkeleton1?.fill(pipeline, clickId, srcMat)
             dstSkeleton1?.fill(pipeline, clickId, dstMat)
@@ -130,12 +129,12 @@ class Retargeting : PrefabSaveable(), Renderable {
     private var srcPreviewData: Animation.PreviewData? = null
     private var dstPreviewData: Animation.PreviewData? = null
     private fun fillSkeletonAnimated(
-        pipeline: Pipeline, entity: Entity, clickId: Int,
+        pipeline: Pipeline, transform: Transform, clickId: Int,
         previewData: Animation.PreviewData,
     ) {
         previewData.state.set(Time.gameTime.toFloat(), false)
         previewData.renderer.updateAnimState()
-        previewData.renderer.fill(pipeline, entity, clickId)
+        previewData.renderer.fill(pipeline, transform, clickId)
     }
 
     private fun drawBoneNames(skeleton: Skeleton, matrices: List<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {
@@ -191,9 +190,9 @@ class Retargeting : PrefabSaveable(), Renderable {
         val tmpS = Vector3f()
         // find base skeleton scale each, and then scale all bones
         // todo small skeletons don't work yet
-        val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
-        val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
-        val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
+        // val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
+        // val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
+        // val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
         for (dstBone in 0 until min(dstSkel.size, dstToSrc.size)) {
             val srcBone = srcBones[dstToSrc[dstBone]]
             if (srcBone == null) {

@@ -148,9 +148,9 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         isValid = false
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         this.clickId = clickId
-        pipeline.addMesh(this, this, entity)
+        pipeline.addMesh(this, this, transform)
         return clickId + 1
     }
 

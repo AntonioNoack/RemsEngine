@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -87,17 +88,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     @NotSerializedProperty
     var rootOverride: PrefabSaveable? = null
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         // add shape for testing, so the light is visible
         if (entity == Pipeline.sampleEntity) {
-            pipeline.addMesh(shapeForTesting, this, entity)
+            pipeline.addMesh(shapeForTesting, this, transform)
         }
-        pipeline.addLight(this, entity)
-        return super.fill(pipeline, entity, clickId)
+        pipeline.addLight(this, transform)
+        return super.fill(pipeline, transform, clickId)
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

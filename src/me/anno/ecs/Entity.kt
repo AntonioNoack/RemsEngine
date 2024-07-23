@@ -683,7 +683,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int) = pipeline.fill(this)
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int) = pipeline.fill(this)
 
     /**
      * O(|E|+|C|) clone of properties and components

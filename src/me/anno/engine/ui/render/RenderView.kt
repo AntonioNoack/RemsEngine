@@ -46,6 +46,9 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.Pipeline.Companion.leftControllerEntity
+import me.anno.gpu.pipeline.Pipeline.Companion.rightControllerEntity
+import me.anno.gpu.pipeline.Pipeline.Companion.sampleMeshComponent
 import me.anno.gpu.pipeline.PipelineStageImpl
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.effects.FSR2v2
@@ -56,8 +59,10 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.input.Input
+import me.anno.input.controller.ControllerType
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
+import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.UIColors
@@ -621,26 +626,46 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         setRenderState() // needed for light matrix calculation (camSpaceToLightSpace)
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
+        fillControllers()
         // if the scene would be dark, define lights, so we can see something
         addDefaultLightsIfRequired(pipeline, world, this)
         entityBaseClickId = pipeline.lastClickId
     }
 
+    // todo fill in controller models
+    // only when noone else is rendering them...
+    private fun fillControllers() {
+        if (!renderControllers) return
+        var left = true
+        for (i in Input.controllers.indices) {
+            val controller = Input.controllers[i]
+            if (controller.type == ControllerType.VIRTUAL_REALITY) {
+                if (controller.position.lengthSquared() > 0.0) {
+                    val entity = if (left) leftControllerEntity else rightControllerEntity
+                    entity.transform.localPosition = controller.position
+                    entity.transform.localRotation = controller.rotation
+                    entity.transform.localScale = entity.transform.localScale.set(0.05)
+                    entity.transform.smoothUpdate()
+                    entity.invalidateAABBsCompletely()
+                    pipeline.addMesh(flatCube.front, sampleMeshComponent, entity.transform)
+                    //  LOGGER.info("[$left]: ${controller.position}, ${controller.rotation}")
+                }
+                left = false
+            }
+        }
+    }
+
+    var renderControllers = true
     private val inverseDepth get() = renderMode == RenderMode.INVERSE_DEPTH
 
     val depthMode: DepthMode
-        get() = if (GFX.supportsClipControl) {
-            when (renderMode) {
+        get() {
+            val base = when (renderMode) {
                 RenderMode.NO_DEPTH -> DepthMode.ALWAYS
                 RenderMode.INVERSE_DEPTH -> DepthMode.FAR
                 else -> DepthMode.CLOSE
             }
-        } else {
-            when (renderMode) {
-                RenderMode.NO_DEPTH -> DepthMode.FORWARD_ALWAYS
-                RenderMode.INVERSE_DEPTH -> DepthMode.FORWARD_FAR
-                else -> DepthMode.FORWARD_CLOSE
-            }
+            return if (GFX.supportsClipControl) base else base.reversedMethodMode
         }
 
     fun drawScene(
@@ -950,7 +975,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         rv.setRenderState() // camera position needs to be reset
                     }
                 }
-                defaultSun.fill(pipeline, defaultSunEntity, 0)
+                defaultSun.fill(pipeline, defaultSunEntity.transform, 0)
             }
         }
     }

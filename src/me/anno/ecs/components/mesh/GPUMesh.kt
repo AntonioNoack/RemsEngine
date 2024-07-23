@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.light.sky.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
@@ -28,9 +29,9 @@ class GPUMesh : MeshComponentBase() {
         TODO("Not yet implemented")
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         // todo update index-mapping-buffer
-        return super.fill(pipeline, entity, clickId)
+        return super.fill(pipeline, transform, clickId)
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

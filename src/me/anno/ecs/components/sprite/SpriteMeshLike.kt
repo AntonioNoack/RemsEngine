@@ -1,6 +1,7 @@
 package me.anno.ecs.components.sprite
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -34,7 +35,7 @@ class SpriteMeshLike(
         throw NotImplementedError()
     }
 
-    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         throw NotImplementedError()
     }
 

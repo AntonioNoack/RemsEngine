@@ -170,7 +170,7 @@ object Floats {
 
     @JvmStatic
     fun Double.toLongOr(ifNaN: Long = 0): Long {
-        return if (isFinite()) ifNaN
+        return if (isNaN()) ifNaN
         else toLong()
     }
 

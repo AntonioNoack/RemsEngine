@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
@@ -889,12 +890,8 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         invalidateGeometry()
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
-        pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity)
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
+        pipeline.addMesh(this, Pipeline.sampleMeshComponent, transform)
         return clickId
     }
 

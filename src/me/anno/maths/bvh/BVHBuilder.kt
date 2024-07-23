@@ -61,8 +61,7 @@ object BVHBuilder {
             val mesh = dri.mesh as? Mesh ?: continue
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
             mesh.raycaster = blas
-            val entity = dri.entity
-            val transform = entity.transform
+            val transform = dri.transform
             objects += createTLASLeaf(mesh, blas, transform, dri.component, cameraPosition, worldScale)
         }
         // add all instanced objects

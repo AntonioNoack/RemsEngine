@@ -1,6 +1,7 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.material.Material
@@ -91,11 +92,8 @@ class Skeleton : PrefabSaveable(), Renderable {
     }
 
     var previewData: Mesh? = null
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int = fill(pipeline, clickId, defaultMaterial)
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int =
+        fill(pipeline, clickId, defaultMaterial)
 
     fun fill(pipeline: Pipeline, clickId: Int, material: Material): Int {
         val bones = bones

@@ -2,7 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.Time
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
@@ -20,11 +20,7 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
     var needsUpdate1 = true
     var autoUpdate = 30
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         lastDrawn = Time.gameTimeN
         return clickId // not itself clickable
     }

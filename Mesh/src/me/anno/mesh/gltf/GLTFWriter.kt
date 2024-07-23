@@ -21,7 +21,6 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.Filtering
-import me.anno.utils.types.size
 import me.anno.io.Streams.writeLE32
 import me.anno.io.Streams.writeString
 import me.anno.io.files.FileReference
@@ -51,6 +50,7 @@ import me.anno.utils.structures.maps.Maps.nextId
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Vectors.toLinear
+import me.anno.utils.types.size
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -127,6 +127,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
     private fun addChild(comp: Component, childIndices: IntArrayList) {
         val idx2 = nodes.size
         nodes.add(comp)
+        children.add(IntArrayList(0))
         childIndices.add(idx2)
     }
 
@@ -176,6 +177,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
     }
 
     private fun defineBoneHierarchy(bones: List<Bone>, roots: IntArrayList) {
+        assertEquals(nodes.size, children.size)
         val baseId = nodes.size
         for (boneId in bones.indices) {
             val bone = bones[boneId]
@@ -945,6 +947,7 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
             }
             is Mesh -> {
                 nodes.add(MeshComponent(scene))
+                children.add(IntArrayList(0))
                 meshes[MeshData(scene, emptyList(), emptyList())] = 0
                 callback(null)
             }
@@ -952,18 +955,21 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
                 val mesh = scene.getMesh()
                 if (mesh is Mesh) {
                     nodes.add(scene)
+                    children.add(IntArrayList(0))
                     meshes[getMeshData(scene, mesh)] = 0
                     callback(null)
                 } else callback(IllegalArgumentException("Missing mesh"))
             }
             is Camera -> {
                 nodes.add(scene)
+                children.add(IntArrayList(0))
                 cameras[scene] = 0
                 callback(null)
             }
             is LightComponent -> {
                 if (supportsLight(scene)) {
                     nodes.add(scene)
+                    children.add(IntArrayList(0))
                     lights[scene] = 0
                     callback(null)
                 } else callback(warnUnsupportedType(scene))
