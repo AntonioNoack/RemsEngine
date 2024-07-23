@@ -10,6 +10,7 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.io.files.Reference.getReference
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.Dict
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.ui.editor.code.CodeEditor
 import org.apache.logging.log4j.LogManager
@@ -28,6 +29,7 @@ object EngineActions {
         val actions = listOf(
             "ToggleFullscreen" to { GFX.focusedWindow?.toggleFullscreen(); true },
             "PrintLayout" to { printLayout();true },
+            "PrintDictDefaults" to { Dict.printDefaults();true },
             "DragEnd" to {
 
                 val dragged = EngineBase.dragged
@@ -184,6 +186,7 @@ object EngineActions {
         register["global.space.down.cs", "PlayReversedSlow|Pause"]
         register["global.f11.down", "ToggleFullscreen"]
         register["global.print.down", "PrintLayout"]
+        register["global.print.down.s", "PrintDictDefaults"]
         register["global.left.up", "DragEnd"]
         register["global.arrowLeft.t", "PreviousStep"]
         register["global.arrowRight.t", "NextStep"]

@@ -239,11 +239,11 @@ object Color {
 
     @JvmStatic
     fun Vector4f.toARGB(scale: Float = 255f): Int {
-        return argb(
+        return rgba(
             (x * scale).toIntOr(),
             (y * scale).toIntOr(),
             (z * scale).toIntOr(),
-            (w * scale).toIntOr()
+            (w * scale).toIntOr(),
         )
     }
 
@@ -258,11 +258,11 @@ object Color {
 
     @JvmStatic
     fun Vector4d.toARGB(scale: Double = 255.0): Int {
-        return argb(
+        return rgba(
             (x * scale).toInt(),
             (y * scale).toInt(),
             (z * scale).toInt(),
-            (w * scale).toInt()
+            (w * scale).toInt(),
         )
     }
 

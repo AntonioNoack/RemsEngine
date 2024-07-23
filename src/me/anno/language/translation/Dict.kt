@@ -1,5 +1,6 @@
 package me.anno.language.translation
 
+import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
@@ -9,6 +10,7 @@ import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
 import me.anno.ui.input.EnumInput
 import me.anno.utils.types.Strings.indexOf2
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.util.Locale
@@ -21,6 +23,8 @@ object Dict {
 
     private val values = HashMap<String, String>()
     private const val EXTENSION = "lang"
+    var collectDefaults: HashMap<String, String>? =
+        if (Build.isDebug) HashMap() else null
 
     fun load(text: String, clear: Boolean) {
         if (clear) values.clear()
@@ -99,6 +103,7 @@ object Dict {
         load(getDefaultOption().data, true)
     }
 
+    @JvmStatic
     fun selectLanguage(style: Style, changeListener: (LanguageOption) -> Unit = {}): EnumInput {
         // two folders, one in the config (lang), and one internally (assets/lang)
         // data, path, name
@@ -122,7 +127,33 @@ object Dict {
     }
 
     operator fun get(key: String) = values[key]
-    operator fun get(default: String, key: String) = values[key] ?: default
+    operator fun get(default: String, key: String): String {
+        collectDefaults?.put(key, default)
+        return values[key] ?: default
+    }
+
+    /**
+     * prints all used translation key-pairs:
+     *  - fill in collectDefaults
+     *  - execute/play your program/game with all texts
+     *  - execute this function
+     *  - put it into some auto-translation tool like Google Translate or DeepL,
+     *  - clean it up, so all keys are proper, and all colons are correct ASCII
+     *  - put it into assets/lang/xy.lang
+     *  - enjoy
+     * */
+    fun printDefaults() {
+        val values = collectDefaults
+        if (values != null) {
+            LOGGER.info("DictDefaults:")
+            for ((k, v) in values.toSortedMap()) {
+                if (v.isBlank2()) continue // ignore these
+                println("$k: ${v.replace("\n", "\\n")}")
+            }
+        } else {
+            LOGGER.warn("DictDefault needs to be initialized first")
+        }
+    }
 
     private val LOGGER = LogManager.getLogger(Dict::class)
 }
