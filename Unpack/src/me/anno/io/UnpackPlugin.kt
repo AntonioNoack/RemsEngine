@@ -18,6 +18,7 @@ import me.anno.io.zip.Inner7zFile
 import me.anno.io.zip.InnerRarFile
 import me.anno.io.zip.InnerTarFile
 import me.anno.io.zip.InnerZipFile
+import java.io.FileNotFoundException
 import java.io.IOException
 
 /**
@@ -75,6 +76,12 @@ class UnpackPlugin : Plugin() {
         }
         // try as an asset
         Thumbs.registerFileExtensions(AssetThumbHelper.unityExtensions, AssetThumbnails::generateAssetFrame)
+        Thumbs.registerFileExtensions("ods") { srcFile, dstFile, size, callback ->
+            val srcFile1 = srcFile.getChild("Thumbnails/thumbnail.png")
+            if (srcFile1.exists) {
+                Thumbs.generate(srcFile1, dstFile, size, callback)
+            } else callback.err(FileNotFoundException("Missing Thumbnails/thumbnail.png"))
+        }
     }
 
     override fun onDisable() {

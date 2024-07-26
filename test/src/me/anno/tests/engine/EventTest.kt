@@ -7,26 +7,26 @@ import kotlin.test.assertEquals
 
 class EventTest {
     @Test
-    fun testImmediateEvents() {
-        var value = 0
-        // must be executed in order
-        addEvent { value++ }
-        addEvent { value *= 5 }
+    fun testImmediateEventsOrder() {
+        val expected = (0 until 20).toList()
+        val tested = ArrayList<Int>()
+        for (i in expected) {
+            addEvent { tested.add(i) }
+        }
         workEventTasks()
-        assertEquals(5, value)
+        assertEquals(expected, tested)
     }
 
     @Test
-    fun testScheduledEvents() {
-        var value = 0
-        // must be executed in order by time
-        addEvent(4) { value *= 5 }
-        addEvent(0) { value++ }
+    fun testScheduledEventsOrder() {
+        val expected = (0 until 20).toList()
+        val events = expected.shuffled()
+        val tested = ArrayList<Int>()
+        for (i in events) {
+            addEvent(i.toLong()) { tested.add(i) }
+        }
+        Thread.sleep(expected.max() + 1L)
         workEventTasks()
-        assertEquals(1, value)
-
-        Thread.sleep(5)
-        workEventTasks()
-        assertEquals(5, value)
+        assertEquals(expected, tested)
     }
 }

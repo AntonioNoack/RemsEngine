@@ -96,7 +96,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     override fun readAllInList() {
-        assertEquals(skipSpace(), '[')
+        assertEquals(skipSpace(), '[', "Expected JSON to start with an array")
         while (true) {
             when (val next = skipSpace()) {
                 ',' -> Unit // nothing to do
@@ -779,15 +779,15 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
         return when {
             isColor -> when (numDigits) {
                 0 -> 0
-                1 -> number * 0x111111 + black
+                1 -> number * 0x111111 + BLACK
                 3 -> number.and(0xf) * 0x11 +
                         number.and(0xf0) * 0x110 +
-                        number.and(0xf00) * 0x1100 + black
+                        number.and(0xf00) * 0x1100 + BLACK
                 4 -> number.and(0xf) * 0x11 +
                         number.and(0xf0) * 0x110 +
                         number.and(0xf00) * 0x1100 +
                         number.and(0xf000) * 0x11000
-                6 -> number or black
+                6 -> number or BLACK
                 else -> number
             }.toInt().toLong()
             isNegative -> -number
@@ -1022,7 +1022,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             register1(SimpleType.MATRIX4X4D, Matrix4d(), JsonReaderBase::readMatrix4x4d)
         }
 
-        private const val black = 255.shl(24).toLong()
+        private const val BLACK = 0xff000000L
         private val LOGGER = LogManager.getLogger(JsonReaderBase::class)
     }
 }

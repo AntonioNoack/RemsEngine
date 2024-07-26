@@ -51,8 +51,7 @@ object Tooltips {
         } else {
             min(mouseY.toInt() - fontSize, h - panel.minH)
         }
-        panel.setPosition(x, y)
-        panel.setSize(panel.minW, panel.minH)
+        panel.setPosSize(x, y, panel.minW, panel.minH)
         panel.draw(panel.x, panel.y, panel.x + panel.width, panel.y + panel.height)
     }
 

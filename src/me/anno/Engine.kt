@@ -23,13 +23,11 @@ object Engine {
     @JvmStatic
     fun requestShutdown() {
         shutdown = true
-        synchronized(onShutdown) {
-            for (runnable in onShutdown) {
-                try {
-                    runnable()
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
+        for (i in onShutdown.indices) {
+            try {
+                onShutdown[i]()
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
     }

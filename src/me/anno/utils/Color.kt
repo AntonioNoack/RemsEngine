@@ -34,9 +34,6 @@ object Color {
     @JvmField
     val white3 = Vector3f(1f)
 
-    @JvmField
-    val white2 = Vector2f(1f)
-
     @JvmStatic
     @Docs("Returns the red value between 0 and 255")
     fun Int.r() = shr(16) and 255

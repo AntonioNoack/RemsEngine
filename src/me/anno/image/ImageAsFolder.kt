@@ -165,14 +165,11 @@ object ImageAsFolder {
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }
 
+    private val shouldIgnoreExt = ("rar,bz2,zip,tar,gzip,xz,lz4,7z,xar,oar,java,text,wasm,ttf,woff1,woff2,shell," +
+            "xml,svg,exe,vox,fbx,gltf,obj,blend,mesh-draco,md2,md5mesh,dae,yaml").split(',').toHashSet()
+
     private fun shouldIgnore(signature: String?): Boolean {
-        return when (signature) {
-            "rar", "bz2", "zip", "tar", "gzip", "xz", "lz4", "7z", "xar", "oar", "java", "text",
-            "wasm", "ttf", "woff1", "woff2", "shell", "xml", "svg", "exe",
-            "vox", "fbx", "gltf", "obj", "blend", "mesh-draco", "md2", "md5mesh", "dae",
-            "yaml" -> true
-            else -> false
-        }
+        return signature in shouldIgnoreExt
     }
 
     fun readImage(file: FileReference, forGPU: Boolean): AsyncCacheData<Image> {

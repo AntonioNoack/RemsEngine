@@ -12,6 +12,7 @@ import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.withFlag
 import me.anno.utils.types.Booleans.withoutFlag
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.glGetError
@@ -161,6 +162,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     companion object {
 
         private var enabledAttributes = 0
+        private val LOGGER = LogManager.getLogger(Buffer::class)
 
         @JvmStatic
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
@@ -195,8 +197,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
             val err = glGetError()
             if (err != 0) { // todo why is this triggered???
                 // is the shader not bound??? no, the shader is apparently fine
-                Engine.requestShutdown()
-                throw RuntimeException("Error: $err, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, $attr, offset/stride: ${attr.offset}, ${attr.stride}")
+                // Engine.requestShutdown()
+                LOGGER.warn("Error: $err, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, $attr, offset/stride: ${attr.offset}, ${attr.stride}")
             }
         }
 

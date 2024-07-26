@@ -345,7 +345,7 @@ abstract class EngineBase(
         var maxFPS by ConfigRef("ui.window.maxFPS", 0)
 
         /**
-         * prevents tearing, but also increase input-latency
+         * prevents tearing, but also increases input-latency
          * */
         var enableVSync by ConfigRef("debug.ui.enableVsync", !Build.isDebug)
 

@@ -482,14 +482,28 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         srcFile: FileReference, dstFile: HDBKey, size: Int,
         signature: Signature?, callback: Callback<ITexture2D>
     ) {
+        val readers = getReaders(signature, srcFile.lcExtension)
+        generate(srcFile, dstFile, size, callback, readers, 0)
+    }
+
+    @JvmStatic
+    private fun generate(
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
+        callback: Callback<ITexture2D>,
+        generators: List<ThumbGenerator>, gi: Int
+    ) {
         try {
-            val reader = getReader(signature, srcFile.lcExtension)
-            if (reader != null) {
-                reader.generate(srcFile, dstFile, size, callback)
-            } else {
-                // png, jpg, jpeg, ico, webp, mp4, ...
-                ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
-            }
+            if (gi < generators.size) {
+                val generator = generators[gi]
+                generator.generate(srcFile, dstFile, size) { res, err ->
+                    if (res != null) {
+                        callback.call(res, err)
+                    } else {
+                        err?.printStackTrace()
+                        generate(srcFile, dstFile, size, callback, generators, gi + 1)
+                    }
+                }
+            } else ImageThumbnails.generateImage(srcFile, dstFile, size, callback)
         } catch (_: IgnoredException) {
         } catch (e: Exception) {
             LOGGER.warn("Could not load image from $srcFile: ${e.message}", e)

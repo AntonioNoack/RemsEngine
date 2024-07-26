@@ -9,13 +9,15 @@ import me.anno.io.files.Signature
  * Signature has a higher weight than extension, because it's harder to tamper with without invalidating the file.
  * */
 interface FileReaderRegistry<Value> {
-    val readerBySignature : Map<String, Value>
-    val readerByFileExtension : Map<String, Value>
+    val readerBySignature: Map<String, List<Value>>
+    val readerByFileExtension: Map<String, List<Value>>
     fun registerFileExtensions(fileExtensions: String, reader: Value)
     fun registerSignatures(signatures: String, reader: Value)
     fun unregisterSignatures(signatures: String)
     fun unregisterFileExtensions(fileExtensions: String)
-    fun getReader(signature: Signature?, fileExtension: String): Value? {
-        return readerBySignature[signature?.name] ?: readerByFileExtension[fileExtension]
+    fun getReaders(signature: Signature?, fileExtension: String): List<Value> {
+        val bySig = readerBySignature[signature?.name] ?: emptyList()
+        val byFE = readerByFileExtension[fileExtension] ?: emptyList()
+        return bySig + byFE
     }
 }

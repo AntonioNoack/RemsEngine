@@ -41,7 +41,17 @@ object Events {
         }
     }
 
-    fun workEventTasks() {
+    private fun workImmediateTasks() {
+        while (eventTasks.isNotEmpty()) {
+            try {
+                eventTasks.poll()!!.invoke()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun workScheduledTasks() {
         val time = Time.nanoTime
         while (scheduledTasks.isNotEmpty()) {
             try {
@@ -53,13 +63,11 @@ object Events {
                 e.printStackTrace()
             }
         }
-        while (eventTasks.isNotEmpty()) {
-            try {
-                eventTasks.poll()!!.invoke()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
-        }
+    }
+
+    fun workEventTasks() {
+        workImmediateTasks()
+        workScheduledTasks()
     }
 
     init {

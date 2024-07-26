@@ -38,8 +38,8 @@ import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL46C.glGetError
 import org.lwjgl.opengl.GL46C
+import org.lwjgl.opengl.GL46C.glGetError
 import java.util.Queue
 import java.util.Stack
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -590,20 +590,6 @@ object GFX {
             if (error != 0) {
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
-            }
-        }
-    }
-
-    @JvmStatic
-    fun skipErrors() {
-        // assumes that the first access is indeed from the OpenGL thread
-        if (isDebug) {
-            checkIsGFXThread()
-            while (true) {
-                val error = glGetError()
-                if (error != 0) {
-                    LOGGER.warn("GLException: ${getErrorTypeName(error)}")
-                } else break
             }
         }
     }

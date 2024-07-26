@@ -20,7 +20,8 @@ import kotlin.math.sqrt
 enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
 
     SPLINE(0, "Spline", "Smooth curve") {
-
+        // if only two points are known, a spline is a linear interpolator
+        override fun getIn(x: Double): Double = x
         override fun getWeights(
             t0: Double,
             t1: Double,
@@ -30,8 +31,8 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
             dst: Vector4d
         ): Vector4d {
 
-            if (x <= 0.0) return left
-            if (x >= 1.0) return right
+            if (x <= 0.0) return dst.set(0.0, 1.0, 0.0, 0.0)
+            if (x >= 1.0) return dst.set(0.0, 0.0, 1.0, 0.0)
 
             val g0 = 1.0 - x
             val fg = x * g0
@@ -52,9 +53,6 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
 
             return dst.set(w0, w1, w2, w3)
         }
-
-        // if only two points are known, a spline is a linear interpolator
-        override fun getIn(x: Double): Double = x
     },
     LINEAR_BOUNDED(1, "Linear", "Straight curve segments, mix(a,b,clamp(t,0.0,1.0))") {
         override fun getIn(x: Double): Double = clamp(x, 0.0, 1.0)
@@ -353,13 +351,6 @@ enum class Interpolation(val id: Int, val nameDesc: NameDesc) {
     }
 
     companion object {
-
-        @JvmField
-        val left = Vector4d(0.0, 1.0, 0.0, 0.0)
-
-        @JvmField
-        val right = Vector4d(0.0, 0.0, 1.0, 0.0)
-
         @JvmStatic
         fun getType(code: Int): Interpolation = entries.firstOrNull { it.id == code } ?: SPLINE
     }

@@ -161,7 +161,10 @@ object GFXState {
      * */
     fun newSession() {
         session++
-        GFX.gpuTasks.clear() // they all have become invalid
+        if (session != 1 && GFX.gpuTasks.isNotEmpty()) {
+            LOGGER.warn("Discarding ${GFX.gpuTasks.size} GPUTasks")
+            GFX.gpuTasks.clear() // they all have become invalid
+        }
         GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()

@@ -30,14 +30,16 @@ object VideoCacheImpl {
                 }"
             )
         // what about video webp? I think it's pretty rare...
-        FFMPEGStream.getImageSequence(
+        FFMPEGStream.getImageSequenceGPU(
             file, signature, data.w, data.h, key.bufferIndex * key.bufferLength,
-            if (file.name.endsWith(".webp", true)) 1 else key.bufferLength, key.fps,
-            data.originalWidth, data.originalFPS,
+            if (file.lcExtension == "webp" || file.lcExtension == "wav") 1 else key.bufferLength,
+            key.fps, data.originalWidth, data.originalFPS,
             data.numTotalFramesInSrc, {
                 if (data.isDestroyed) it.destroy()
                 else data.frames.add(it)
-            }, {}
+            }, {
+                data.finished = true
+            }
         )
         return data
     }

@@ -16,10 +16,10 @@ import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.getImportTypeByExtension
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 @InternalAPI
 object ImageThumbnails {
@@ -73,15 +73,17 @@ object ImageThumbnails {
         }, {
             if (image == null) {
                 val ext = srcFile.lcExtension
-                when (val importType = getImportTypeByExtension(ext)) {
-                    "Video" -> {
+                when (getImportTypeByExtension(ext)) {
+                    "Video", "Audio" -> { // audio can have thumbnail, too
                         LOGGER.info("Generating frame for $srcFile")
                         generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
                     }
                     // else nothing to do
                     else -> {
-                        LOGGER.info("ImageCache failed, importType '$importType' != getImportType for $srcFile")
-                        TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
+                        when (srcFile.lcExtension) {
+                            "txt", "md" -> TextThumbnails.generateTextImage(srcFile, dstFile, size, callback)
+                            else -> callback.err(IOException("No thumbnail generator found for $srcFile"))
+                        }
                     }
                 }
             } else Thumbs.transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)
@@ -121,17 +123,15 @@ object ImageThumbnails {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = max(min((time * fps).roundToIntOr(), meta.videoFrameCount - 1), 0)
 
-        Sleep.waitUntilDefined(true, {
-            val frame = VideoCache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
-            if (frame != null && (frame.isCreated || frame.isDestroyed)) frame
-            else null
-        }, { frame ->
-            val texture = frame.toTexture()
-            if (Thumbs.useCacheFolder) {
-                val dst = texture.createImage(flipY = false, withAlpha = true)
-                Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
-            } else callback.ok(texture)
-        })
+        VideoCache.getVideoFrameAsync(srcFile, scale, index, 1, fps, 1000L) { frame, err ->
+            if (frame != null) {
+                val texture = frame.toTexture()
+                if (Thumbs.useCacheFolder) {
+                    val dst = texture.createImage(flipY = false, withAlpha = true)
+                    Thumbs.saveNUpload(srcFile, false, dstFile, dst, callback)
+                } else callback.ok(texture)
+            } else callback.err(err)
+        }
     }
 
     @JvmStatic

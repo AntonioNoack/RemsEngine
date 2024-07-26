@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
-import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.image.thumbs.Thumbs
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerFolder
@@ -332,7 +331,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
         val signature = Signature.findSync(this)
-        return InnerFolderCache.getReader(signature, lcExtension) != null
+        return InnerFolderCache.getReaders(signature, lcExtension).isNotEmpty()
     }
 
     abstract val exists: Boolean

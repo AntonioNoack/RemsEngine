@@ -1,26 +1,25 @@
 package me.anno.video
 
-import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.MediaMetadata
 import me.anno.io.Streams.readText
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonReader
+import me.anno.jvm.utils.BetterProcessBuilder
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.AnyToInt
+import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.parseTime
 import me.anno.video.ffmpeg.FFMPEG
 import me.anno.video.ffmpeg.FFMPEGStream
-import me.anno.io.MediaMetadata
-import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 object FFMPEGMetadata {
 
     private val LOGGER = LogManager.getLogger(VideoPlugin::class)
-    
+
     fun MediaMetadata.loadFFMPEG() {
 
         val args = listOf(
@@ -40,6 +39,7 @@ object FFMPEGMetadata {
         // get and parse the data :)
         FFMPEGStream.logOutput(null, file.absolutePath, process.errorStream, true)
         val data = JsonReader(process.inputStream.useBuffered()).readObject()
+
         val streams = data["streams"] as? ArrayList<*> ?: ArrayList<Any?>()
         val format = data["format"] as? HashMap<*, *> ?: HashMap<String, Any?>()
 
@@ -114,10 +114,14 @@ object FFMPEGMetadata {
             videoFPS = video["r_frame_rate"]?.toString()?.parseFraction() ?: 30.0
 
             if (videoFrameCount == 0) {
-                if (videoDuration > 0.0) {
+                if (videoDuration > 0.0 && videoFPS != 90000.0) {
                     videoFrameCount = max(ceil(videoDuration * videoFPS).toInt(), 1)
                     LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
-                } else videoFrameCount = 1
+                } else {
+                    videoFrameCount = 1
+                    videoDuration = 1.0
+                    videoFPS = 1.0 / duration
+                }
             } else {
                 val expectedFrameCount = (videoDuration * videoFPS).roundToIntOr()
                 if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {

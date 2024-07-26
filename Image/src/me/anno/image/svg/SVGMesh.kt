@@ -97,7 +97,6 @@ class SVGMesh {
                 }
             }
             val style = SVGStyle(this, child)
-            println("style[${child.attributes.keys}]: $style")
             when (child.type.lowercase()) {
                 "circle" -> {
                     if (style.isFill) addCircle(child, style, true)

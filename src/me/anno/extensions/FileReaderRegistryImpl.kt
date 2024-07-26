@@ -4,8 +4,8 @@ package me.anno.extensions
  * Default implementation for FileReaderRegistry
  * */
 open class FileReaderRegistryImpl<Value> : FileReaderRegistry<Value> {
-    override val readerBySignature = HashMap<String, Value>(64)
-    override val readerByFileExtension = HashMap<String, Value>(64)
+    override val readerBySignature = HashMap<String, ArrayList<Value>>(64)
+    override val readerByFileExtension = HashMap<String, ArrayList<Value>>(64)
 
     override fun registerFileExtensions(fileExtensions: String, reader: Value) {
         register(fileExtensions, reader, readerByFileExtension)
@@ -15,9 +15,9 @@ open class FileReaderRegistryImpl<Value> : FileReaderRegistry<Value> {
         register(signatures, reader, readerBySignature)
     }
 
-    private fun register(keys: String, reader: Value, readerByKey: HashMap<String, Value>) {
+    private fun register(keys: String, reader: Value, readerByKey: HashMap<String, ArrayList<Value>>) {
         for (key in keys.split(',')) {
-            readerByKey[key] = reader
+            readerByKey.getOrPut(key, ::ArrayList).add(reader)
         }
     }
 
@@ -29,7 +29,7 @@ open class FileReaderRegistryImpl<Value> : FileReaderRegistry<Value> {
         unregister(fileExtensions, readerByFileExtension)
     }
 
-    private fun unregister(keys: String, readerByKey: HashMap<String, Value>) {
+    private fun unregister(keys: String, readerByKey: HashMap<String, *>) {
         for (key in keys.split(',')) {
             readerByKey.remove(key)
         }

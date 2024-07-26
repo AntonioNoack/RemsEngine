@@ -35,7 +35,6 @@ class SVGStyle(mesh: SVGMesh?, data: XMLNode) {
             }
             else -> {
                 val color = parseColor(name)
-                println("parsed color($name): ${color?.toHexColor()}")
                 if (color != null) Gradient1D(color) else null
             }
         }

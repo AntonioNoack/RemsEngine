@@ -174,6 +174,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(UnityProject::class)
         val invalidProject = UnityProject(InvalidRef)
 
         fun isValidUUID(name: String): Boolean {
@@ -182,7 +183,5 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             }
             return name.isNotEmpty()
         }
-
-        private val LOGGER = LogManager.getLogger(UnityProject::class)
     }
 }

@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 // ffmpeg requires 100 MB RAM per instance -> do we really need multiple instances, or does one work fine
 // done keep only a certain amount of ffmpeg instances running
@@ -49,54 +48,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         val waitingQueue = ProcessingQueue("WaitingQueue")
 
         @JvmStatic
-        fun getImageSequence(
-            input: FileReference, signature: String?,
-            w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
-            originalWidth: Int, // meta?.videoWidth
-            originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int,
-            nextFrameCallback: (GPUFrame) -> Unit,
-            finishedCallback: (List<GPUFrame>) -> Unit
-        ) {
-            getImageSequence(
-                input, signature, w, h, startFrame / fps, frameCount, fps,
-                originalWidth, originalFPS, totalFrameCount,
-                nextFrameCallback, finishedCallback
-            )
-        }
-
-        // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
-        // if we use hardware decoding, we need to use it on the gpu...
-        @JvmStatic
-        fun getImageSequence(
-            input: FileReference, signature: String?,
-            w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
-            originalWidth: Int, // meta?.videoWidth
-            originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int,
-            nextFrameCallback: (GPUFrame) -> Unit,
-            finishedCallback: (List<GPUFrame>) -> Unit
-        ) {
-            thread(name = "$input/${w}x${h}/$startTime") {
-                try {
-                    GPUFrameReader(
-                        input, (startTime * fps).roundToIntOr(),
-                        frameCount, nextFrameCallback, finishedCallback
-                    ).run(
-                        getImageSequenceArguments(
-                            input, signature, w, h, startTime, frameCount, fps,
-                            originalWidth, originalFPS, totalFrameCount
-                        )
-                    )
-                } catch (_: ShutdownException) {
-                } catch (e: IOException) {
-                    finishedCallback(emptyList())
-                    e.printStackTrace()
-                }
-            }
-        }
-
-        @JvmStatic
         fun getImageSequenceCPU(
             input: FileReference, signature: String?,
             w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
@@ -106,6 +57,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (Image) -> Unit,
             finishedCallback: (List<Image>) -> Unit
         ) {
+            RuntimeException("Requesting frames CPU").printStackTrace()
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
@@ -134,6 +86,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (GPUFrame) -> Unit,
             finishedCallback: (List<GPUFrame>) -> Unit
         ) {
+            RuntimeException("Requesting frames GPU").printStackTrace()
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
@@ -265,9 +218,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             }
         }
     }
-
-    var srcFPS = -1.0
-    var srcDuration = 0.0
 
     var codec = ""
 

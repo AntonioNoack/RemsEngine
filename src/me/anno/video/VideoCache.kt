@@ -5,6 +5,7 @@ import me.anno.io.MediaMetadata
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Callback
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -54,6 +55,27 @@ object VideoCache : CacheSection("Videos") {
                 videoData.getFrame(localIndex, needsToBeCreated)
             }
         } else videoData.getFrame(localIndex, needsToBeCreated)
+    }
+
+    fun getVideoFrameAsync(
+        file: FileReference, scale: Int,
+        frameIndex: Int, bufferIndex: Int, bufferLength: Int,
+        fps: Double, timeout: Long,
+        needsToBeCreated: Boolean,
+        callback: Callback<GPUFrame>,
+    ) {
+        val localIndex = frameIndex % bufferLength
+        val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, false)
+        if (videoData != null && frameIndex < videoData.numTotalFramesInSrc) {
+            Sleep.waitForGFXThreadUntilDefined(true, {
+                val frame = videoData.getFrame(localIndex, needsToBeCreated)
+                if (frame != null && (!needsToBeCreated || frame.isCreated || frame.isDestroyed)) frame
+                else null
+            }) { frame ->
+                if (needsToBeCreated && frame.isDestroyed) callback.err(RuntimeException("Frame has been destroyed"))
+                else callback.ok(frame)
+            }
+        } else callback.err(null)
     }
 
     fun getVideoFrameWithoutGenerator(
@@ -152,5 +174,35 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         return getVideoFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout, async)
+    }
+
+    /**
+     * returned frames are guaranteed to be created
+     * */
+    fun getVideoFrameAsync(
+        file: FileReference, scale: Int, index: Int,
+        bufferLength0: Int, fps: Double,
+        timeout: Long, callback: Callback<GPUFrame>
+    ) {
+        if (index < 0 || scale < 1) {
+            val msg = if (index < 0) "Index must be >= 0"
+            else "Scale must not be < 1"
+            callback.err(IllegalArgumentException(msg))
+            return
+        }
+        // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
+        val getProxyFile = getProxyFile
+        if (getProxyFile != null && useProxy(scale, bufferLength0, MediaMetadata.getMeta(file, false))) {
+            val slice0 = index / framesPerSlice
+            val file2 = getProxyFile(file, slice0, true)
+            if (file2 != null) {
+                val sliceI = index % framesPerSlice
+                getVideoFrameAsync(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout, callback)
+                return
+            }
+        }
+        val bufferLength = max(1, bufferLength0)
+        val bufferIndex = index / bufferLength
+        getVideoFrameAsync(file, scale, index, bufferIndex, bufferLength, fps, timeout, true, callback)
     }
 }

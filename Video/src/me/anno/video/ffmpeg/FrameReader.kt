@@ -29,9 +29,12 @@ abstract class FrameReader<FrameType>(
                 var frameIndex = frame0
                 input.use { input1: InputStream ->
                     readFrame(frameIndex++, input1)
-                    if (!isFinished) for (i in 1 until frameCount) {
-                        readFrame(frameIndex++, input1)
-                        if (isFinished) break
+                    if (!isFinished) {
+                        for (i in 1 until frameCount) {
+                            readFrame(frameIndex++, input1)
+                            if (isFinished) break
+                        }
+                        isFinished = true
                     }
                 }
             } else LOGGER.debug("${file?.absolutePath?.shorten(200)} cannot be read as image(s) by FFMPEG")

@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.Engine.shutdown
 import me.anno.Time
+import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import org.apache.logging.log4j.LogManager
@@ -97,7 +98,7 @@ object Sleep {
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
         if (GFX.isGFXThread()) {
             waitUntil(canBeKilled) {
-                GFX.workGPUTasks(canBeKilled)
+                work(canBeKilled)
                 isFinished()
             }
         } else {
@@ -122,11 +123,25 @@ object Sleep {
         // if we are the gfx thread ourselves, we have to fulfil our processing duties
         return if (GFX.isGFXThread()) {
             waitUntilDefined(canBeKilled) {
-                GFX.workGPUTasks(canBeKilled)
+                work(canBeKilled)
                 getValueOrNull()
             }
         } else {
             waitUntilDefined(canBeKilled, getValueOrNull)
+        }
+    }
+
+    @JvmStatic
+    fun <V> waitForGFXThreadUntilDefined(canBeKilled: Boolean, getValueOrNull: () -> V?, callback: (V) -> Unit) {
+        warnIfGFXMissing()
+        // if we are the gfx thread ourselves, we have to fulfil our processing duties
+        if (GFX.isGFXThread()) {
+            waitUntilDefined(canBeKilled, {
+                work(canBeKilled)
+                getValueOrNull()
+            }, callback)
+        } else {
+            waitUntilDefined(canBeKilled, getValueOrNull, callback)
         }
     }
 
@@ -150,5 +165,10 @@ object Sleep {
                 waitUntilDefined(canBeKilled, getValueOrNull, callback)
             }
         } // else process cancelled
+    }
+
+    private fun work(canBeKilled: Boolean) {
+        Events.workEventTasks() // needs to be executed for asynchronous waitUntil()-tasks
+        GFX.workGPUTasks(canBeKilled)
     }
 }

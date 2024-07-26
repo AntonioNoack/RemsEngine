@@ -196,7 +196,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     open fun drawText(color: Int = effectiveTextColor) {
-        val textSize = getTextSize(font, text, -1, -1, false)
+        val textSize = getTextSize(font, text, widthLimit, heightLimit, false)
         val dx = textAlignmentX.getOffset(width, getSizeX(textSize) + padding.width)
         val dy = textAlignmentY.getOffset(height, getSizeY(textSize) + padding.height)
         drawText(dx, dy, color)

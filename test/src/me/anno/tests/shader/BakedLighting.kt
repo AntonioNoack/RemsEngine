@@ -274,11 +274,8 @@ fun main() {
 
     val bvh = buildTLAS(scene, Vector3d(), 1.0, SplitMethod.MEDIAN_APPROX, 16)!!
     val skybox = scene.getComponentInChildren(SkyboxBase::class) ?: Skybox.defaultSky
-    addEvent {
-        // todo fix: why can't we just addGPUTask, and get it executing??
-        addGPUTask("illum", 1000) {
-            bakeIllumination1(bvh, raytracingInput, skybox)
-        }
+    addGPUTask("illum", 1000) {
+        bakeIllumination1(bvh, raytracingInput, skybox)
     }
     testSceneWithUI("Baked Lighting", scene)
 }

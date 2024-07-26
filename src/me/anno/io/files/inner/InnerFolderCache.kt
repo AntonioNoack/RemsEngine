@@ -3,8 +3,8 @@ package me.anno.io.files.inner
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.extensions.FileReaderRegistry
+import me.anno.extensions.FileReaderRegistryImpl
 import me.anno.image.ImageAsFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
@@ -51,26 +51,37 @@ object InnerFolderCache : CacheSection("InnerFolderCache"),
         if (signature?.name == "json" && ext == "json") {
             data.value = null
         } else {
-            val reader = getReader(signature, ext)
-            if (reader != null) {
-                reader(file1) { folder, err ->
-                    if (file1 is InnerFile) file1.folder = folder
-                    data.value = folder
-                    err?.printStackTrace()
-                    if (folder != null) { // todo remove watch dog when unloading it?
-                        FileWatch.addWatchDog(file1)
-                    }
-                }
-            } else data.value = null
+            val readers = getReaders(signature, ext)
+            generate(file1, data, readers, 0)
         }
         return data
+    }
+
+    private fun generate(
+        file1: FileReference, data: AsyncCacheData<InnerFolder?>,
+        generators: List<InnerFolderReader>, gi: Int
+    ) {
+        if (gi < generators.size) {
+            val reader = generators[gi]
+            reader(file1) { folder, err ->
+                err?.printStackTrace()
+                if (folder != null) {
+                    if (file1 is InnerFile) {
+                        file1.folder = folder
+                    }
+                    data.value = folder
+                    // todo remove watch dog when unloading it?
+                    FileWatch.addWatchDog(file1)
+                } else generate(file1, data, generators, gi + 1)
+            }
+        } else data.value = null
     }
 
     fun splitParent(name: String): Pair<String, String> {
         var path = name.replace('\\', '/')
         while (path.endsWith('/')) path = path.substring(0, path.length - 1)
         val nameIndex = path.indexOfLast { it == '/' }
-        val parent = path.substring(0, max(nameIndex,0))
+        val parent = path.substring(0, max(nameIndex, 0))
         return parent to path
     }
 

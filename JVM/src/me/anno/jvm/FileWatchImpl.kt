@@ -111,7 +111,7 @@ object FileWatchImpl {
                     }
                 }
             }
-            synchronized(watched) {
+            synchronized(this) {
                 for ((key, _) in watched.values) {
                     key.cancel()
                 }

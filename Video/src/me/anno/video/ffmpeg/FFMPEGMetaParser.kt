@@ -78,8 +78,7 @@ class FFMPEGMetaParser : StringMap() {
         return list
     }
 
-    var level0Type = ""
-    var level1Type = ""
+    private var level0Type = ""
 
     fun parseLine(line: String, stream: FFMPEGStream) {
 
@@ -141,54 +140,12 @@ class FFMPEGMetaParser : StringMap() {
             if (level0Type == "Output" && data[0] == "Stream") {
                 parseOutput()
             }
-            if (level0Type == "Input" && data[0] == "Stream") {
-                try {
-                    val fpsIndex = data.indexOf("fps") - 1
-                    if (fpsIndex > -1) {
-                        stream.srcFPS = data[fpsIndex].toDouble()
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
         }
 
-        when (depth) {
-            0 -> {
-                level0Type = data[0]
-            }
-            1 -> {
-                // to do parse dar for correct ratio? ... can be corrected manually...
-                level1Type = data[0]
-                when (level1Type) {
-                    "Duration" -> {
-                        if (level0Type == "Input") {
-                            // [Duration, :, 00, :, 00, :, 31.95, ,, start, :, 0.000000, ,, bitrate, :, 10296, kb/s]
-                            val durParts = data.subList(2, data.indexOf(","))
-                            try {
-                                if (!durParts.withIndex()
-                                        .all { (index, value) -> ((index % 2) == 0) || value == ":" }
-                                ) {
-                                    throw RuntimeException("Invalid ffmpeg-duration? $data")
-                                }
-                                val duration = when (durParts.size) {
-                                    1 -> durParts[0].toDoubleOrNull() ?: 0.01
-                                    3 -> durParts[0].toDouble() * 60 + durParts[2].toDouble()
-                                    5 -> durParts[0].toDouble() * 3600 + durParts[2].toDouble() * 60 + durParts[4].toDouble()
-                                    7 -> durParts[0].toDouble() * 3600 * 24 + durParts[2].toDouble() * 3600 + durParts[4].toDouble() * 60 + durParts[6].toDouble()
-                                    else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
-                                }
-                                stream.srcDuration = duration
-                                // ("duration: $duration")
-                            } catch (e: Exception) {
-                                LOGGER.warn(e)
-                            }
-                        }
-                    }
-                }
-                analyzeIO()
-            }
-            else -> analyzeIO()
+        if (depth == 0) {
+            level0Type = data[0]
+        } else {
+            analyzeIO()
         }
     }
 }
