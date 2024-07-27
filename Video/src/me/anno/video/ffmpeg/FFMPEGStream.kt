@@ -57,7 +57,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (Image) -> Unit,
             finishedCallback: (List<Image>) -> Unit
         ) {
-            RuntimeException("Requesting frames CPU").printStackTrace()
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
@@ -86,7 +85,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (GPUFrame) -> Unit,
             finishedCallback: (List<GPUFrame>) -> Unit
         ) {
-            RuntimeException("Requesting frames GPU").printStackTrace()
             thread(name = "$input/${w}x${h}/$frameIndex") {
                 try {
                     GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
