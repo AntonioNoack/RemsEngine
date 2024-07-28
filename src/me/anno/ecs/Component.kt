@@ -8,7 +8,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.base.BaseWriter
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -34,16 +33,12 @@ abstract class Component : PrefabSaveable() {
         }
 
     @NotSerializedProperty
-    val transform
+    val transform: Transform?
         get() = entity?.transform
 
-    val isSelectedIndirectly
+    val isSelectedIndirectly: Boolean
         get() = this in EditorState.selection ||
                 entity?.anyInHierarchy { it == EditorState.lastSelection } == true
-
-    // @DebugProperty
-    @NotSerializedProperty
-    var lastDrawn = 0L
 
     @HideInInspector
     @NotSerializedProperty

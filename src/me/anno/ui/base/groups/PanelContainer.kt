@@ -73,6 +73,7 @@ open class PanelContainer(
     }
 
     companion object {
+        fun Panel.withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
         const val maxLength = 2_000_000_000 // max value, but also enough for any padding addition/subtraction
     }
 }

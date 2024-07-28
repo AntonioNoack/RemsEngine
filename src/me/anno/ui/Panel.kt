@@ -1,6 +1,7 @@
 package me.anno.ui
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -146,9 +147,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         isVisible = true
     }
 
-    fun withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
-
-    // layout
+    @DebugAction
     open fun invalidateLayout() {
         val parent = uiParent
         if (parent == null) {
@@ -156,6 +155,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         } else parent.invalidateLayout()
     }
 
+    @DebugAction
     open fun invalidateDrawing() {
         window?.addNeedsRedraw(this)
     }

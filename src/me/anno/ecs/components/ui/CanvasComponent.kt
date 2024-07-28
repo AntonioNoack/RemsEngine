@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.InputListener
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.serialization.NotSerializedProperty
@@ -33,19 +32,12 @@ import me.anno.image.raw.GPUImage
 import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.inner.temporary.InnerTmpImageFile
-import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
-
-// done make ui elements Entities?
-// done make them something special?
-// done just make it so you can add components to panels? that would be a nice solution :),
-// done then the parent will be a UI element, not an Entity
-
 
 // todo focus / unfocus
 // todo interactions with that UI
@@ -54,8 +46,6 @@ import org.joml.Matrix4d
 // todo just set inFocus, then input works magically
 
 class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
-
-    // todo this element always need glCullFace, or you see the back when it's transparent
 
     // this is a trick to continue the hierarchy using panels
     override fun listChildTypes(): String = "p"
@@ -86,9 +76,9 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
     /**
      * different spaces like in Unity: world space, camera space
      * */
-    enum class Space {
-        WORLD_SPACE,
-        CAMERA_SPACE
+    enum class Space(val id: Int) {
+        WORLD_SPACE(0),
+        CAMERA_SPACE(1)
     }
 
     var space = Space.CAMERA_SPACE
@@ -177,7 +167,8 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         windowStack[0].panel.requestFocus()
     }
 
-    var material: Material? = null
+    // todo this material always need glCullFace, or you see the back when it's transparent
+    val material = Material()
 
     fun render() {
         GFX.checkIsGFXThread()
@@ -188,20 +179,16 @@ class CanvasComponent : MeshComponentBase(), InputListener, OnUpdate {
         if (width < 1 || height < 1) return
         if (fb == null || fb.pointer != lastPointer) {
             fb = Framebuffer("canvas", width, height, 1, TargetType.UInt8x4, DepthBufferType.NONE)
-            useFrame(fb) {} // create textures
+            fb.ensure()
             (fb.getTexture0() as Texture2D).clamping = Clamping.CLAMP
             lastPointer = fb.pointer
-            val prefab = Prefab("Material")
             val texture = fb.getTexture0()
             val image = GPUImage(texture, 4, true)
             val texturePath = InnerTmpImageFile(image)
-            val materialPath = InnerTmpPrefabFile(prefab)
-            prefab["diffuseMap"] = texturePath
-            prefab["emissiveMap"] = texturePath
-            val materialInstance = prefab.getSampleInstance() as Material
-            this.material = materialInstance
+            material.diffuseMap = texturePath
+            material.emissiveMap = texturePath
             framebuffer = fb
-            internalMesh.material = materialPath
+            internalMesh.material = this.material.ref
         }
         val dsr = disableSubpixelRendering
         disableSubpixelRendering = true

@@ -18,7 +18,6 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     TextPanel(title, style.getChild("button")), InputPanel<Unit> {
@@ -49,8 +48,8 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
 
     val borderSize = style.getPadding("borderSize", 2)
 
-    val normalBackground = backgroundColor
-    val hoveredBackground = mixARGB(bottomColor, normalBackground, 0.7f)
+    val normalBackgroundColor = backgroundColor
+    val hoveredBackgroundColor = mixARGB(bottomColor, normalBackgroundColor, 0.7f)
 
     init {
         padding += borderSize
@@ -81,7 +80,12 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
 
     override fun onUpdate() {
         super.onUpdate()
-        backgroundColor = if (isHovered && !isPressed && isInputAllowed) hoveredBackground else normalBackground
+        backgroundColor = getCurrentBackgroundColor()
+    }
+
+    private fun getCurrentBackgroundColor(): Int {
+        return if (isHovered && !isPressed && isInputAllowed) hoveredBackgroundColor
+        else normalBackgroundColor
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

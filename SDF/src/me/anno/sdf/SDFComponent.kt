@@ -286,7 +286,6 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
         ensureValidShader()
         ensureValidBounds()
         pipeline.addMesh(getMeshOrNull(), this, transform)
-        lastDrawn = Time.gameTimeN
         return clickId + 1
     }
 

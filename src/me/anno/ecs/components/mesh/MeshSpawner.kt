@@ -41,7 +41,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * if you need different behaviour, just override this method :)
      * */
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
-        lastDrawn = Time.gameTimeN
         this.clickId = clickId
         instancedGroupFill(pipeline) ||
                 instancedTRSFill(pipeline) ||

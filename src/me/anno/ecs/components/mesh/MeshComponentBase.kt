@@ -1,9 +1,7 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
@@ -14,20 +12,15 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
+import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
-import me.anno.engine.serialization.NotSerializedProperty
-import me.anno.engine.serialization.SerializedProperty
-import me.anno.input.Clipboard.setClipboardContent
-import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
-import me.anno.ui.base.menu.Menu
-import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3f
 
 abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
@@ -133,7 +126,6 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
                 pipeline.addMesh(mesh, this, transform)
             }
         }
-        lastDrawn = Time.gameTimeN
         this.clickId = clickId
         return clickId + 1
     }
@@ -177,30 +169,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         getMeshOrNull()?.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
     }
 
-    @DebugAction
-    fun printMesh() {
-        val mesh = getMesh() as? Mesh
-        val pos = mesh?.positions
-        if (mesh != null && pos != null) {
-            val vertices = (0 until pos.size / 3).map {
-                Vector3f(pos, it * 3)
-            }
-            val data = "Positions: $vertices\n" +
-                    "Indices: ${mesh.indices?.toList()}"
-            LOGGER.info(data)
-            setClipboardContent(data)
-            Menu.msg(NameDesc("Pasted mesh to console and clipboard"))
-        } else if (mesh != null) {
-            Menu.msg(NameDesc("Missing positions"))
-        } else {
-            Menu.msg(NameDesc("Mesh is null"))
-        }
-    }
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as MeshComponentBase
-        dst.materials = materials // clone list?
+        dst.materials = materials
         dst.castShadows = castShadows
         dst.receiveShadows = receiveShadows
         dst.isInstanced = isInstanced
@@ -209,9 +181,5 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun destroy() {
         super.destroy()
         manager?.unregister(this)
-    }
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(MeshComponentBase::class)
     }
 }

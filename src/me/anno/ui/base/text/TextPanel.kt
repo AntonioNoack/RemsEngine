@@ -17,7 +17,6 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.input.Key
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -87,7 +86,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    var focusBackground = style.getColor("textBackgroundFocused", deepDark)
+    var focusBackgroundColor = style.getColor("textBackgroundFocused", deepDark)
         set(value) {
             if (field != value) {
                 if (isInFocus) invalidateDrawing()
@@ -294,7 +293,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         val bg = backgroundColor
-        backgroundColor = if (isInFocus && enableFocusColor) focusBackground else backgroundColor
+        backgroundColor = if (isInFocus && enableFocusColor) focusBackgroundColor else backgroundColor
         drawBackground(x0, y0, x1, y1)
         drawText(effectiveTextColor)
         backgroundColor = bg
@@ -341,7 +340,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         dst.font = font
         dst.textColor = textColor
         dst.focusTextColor = focusTextColor
-        dst.focusBackground = focusBackground
+        dst.focusBackgroundColor = focusBackgroundColor
         dst.textAlignmentX = textAlignmentX
         dst.textAlignmentY = textAlignmentY
         // clone.textCacheKey = textCacheKey
@@ -358,7 +357,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         writer.writeEnum("textAlignmentY", textAlignmentY)
         writer.writeColor("textColor", textColor)
         writer.writeColor("focusTextColor", focusTextColor)
-        writer.writeColor("focusBackground", focusBackground)
+        writer.writeColor("focusBackground", focusBackgroundColor)
         writer.writeObject(null, "padding", padding)
         writer.writeBoolean("breaksIntoMultiline", breaksIntoMultiline)
         writer.writeBoolean("instantTextLoading", instantTextLoading)
@@ -373,7 +372,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             "textAlignmentY" -> textAlignmentY = AxisAlignment.find(value as? Int ?: return) ?: return
             "textColor" -> textColor = value as? Int ?: return
             "focusTextColor" -> focusTextColor = value as? Int ?: return
-            "focusBackground" -> focusBackground = value as? Int ?: return
+            "focusBackground" -> focusBackgroundColor = value as? Int ?: return
             "padding" -> padding = value as? Padding ?: return
             "breaksIntoMultiline" -> breaksIntoMultiline = value == true
             "instantTextLoading" -> instantTextLoading = value == true

@@ -6,6 +6,7 @@ import me.anno.io.utils.StringMap
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.groups.PanelContainer.Companion.withPadding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel

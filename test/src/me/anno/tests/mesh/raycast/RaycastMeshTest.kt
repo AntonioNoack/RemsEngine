@@ -1,34 +1,37 @@
 package me.anno.tests.mesh.raycast
 
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshIterators.forEachLine
-import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.mesh.Shapes.flatCube
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 object RaycastMeshTest {
 
-    // todo tests for global raycasting
+    // todo tests for global raycasting with transform
     // todo tests (and implementation) for animated meshes
+    // todo tests using acceleration structures, with more complicated mesh???
 
     private val mesh = flatCube.front
 
     @Test
     fun testSpecialCases() {
-        checkLocalHit(
+        checkHit(
             mesh, Vector3f(), Vector3f(0f, 0f, 1f), 1e9f,
             0, Float.POSITIVE_INFINITY, Vector3f()
         ) // type 0 -> no hit
-        checkLocalHit(
+        checkHit(
             mesh, Vector3f(), Vector3f(0f, 0f, 1f), 0f,
             -1, Float.POSITIVE_INFINITY, Vector3f()
         ) // zero distance -> no hit
-        checkLocalHit(
+        checkHit(
             mesh, Vector3f(), Vector3f(0f, 0f, 1f), -1f,
             -1, Float.POSITIVE_INFINITY, Vector3f()
         ) // negative distance -> no hit
@@ -48,15 +51,15 @@ object RaycastMeshTest {
         val norm1 = Vector3f(0f, 0f, +1f)
         val pos = Vector3f(0f, 0f, -3f)
         val dir = Vector3f(0f, 0f, 1f)
-        checkLocalHit(
+        checkHit(
             mesh, pos, dir, 6f,
             Raycast.TRIANGLE_FRONT, if (expectedFrontHit) dist0 else dist1, if (expectedFrontHit) norm0 else norm1
         ) // from front
-        checkLocalHit(
+        checkHit(
             mesh, pos, dir, 6f,
             Raycast.TRIANGLE_BACK, if (expectedBackHit) dist0 else dist1, if (expectedBackHit) norm0 else norm1
         ) // from back
-        checkLocalHit(
+        checkHit(
             mesh, pos, dir, 6f,
             -1, dist0, norm0
         ) // all sides -> expect a hit
@@ -67,7 +70,7 @@ object RaycastMeshTest {
         mesh.forEachLine { a, b ->
             val dir = a.lerp(b, 0.5f)
             val pos = b.set(0f)
-            checkLocalHit(mesh, pos, dir, 2f, -1, 1f, null)
+            checkHit(mesh, pos, dir, 2f, -1, 1f, null)
         }
     }
 
@@ -76,7 +79,7 @@ object RaycastMeshTest {
         mesh.forEachLine { a, b ->
             val dir = a.lerp(b, 0.5f)
             val pos = a.mul(-3f, b)
-            checkLocalHit(mesh, pos, dir, 3f, -1, 2f, null)
+            checkHit(mesh, pos, dir, 3f, -1, 2f, null)
         }
     }
 
@@ -86,7 +89,7 @@ object RaycastMeshTest {
         val dir = Vector3f()
         mesh.forEachPoint(false) { x, y, z ->
             dir.set(x, y, z)
-            checkLocalHit(mesh, pos, dir, 2f, -1, 1f, null)
+            checkHit(mesh, pos, dir, 2f, -1, 1f, null)
         }
     }
 
@@ -97,14 +100,21 @@ object RaycastMeshTest {
         mesh.forEachPoint(false) { x, y, z ->
             pos.set(x, y, z).mul(-3f)
             dir.set(x, y, z)
-            checkLocalHit(mesh, pos, dir, 3f, -1, 2f, null)
+            checkHit(mesh, pos, dir, 3f, -1, 2f, null)
         }
+    }
+
+    fun checkHit(
+        mesh: Mesh, pos: Vector3f, dir: Vector3f, maxDistance: Float, typeMask: Int,
+        expectedDistance: Float, expectedNormal: Vector3f?
+    ) {
+        checkLocalHit(mesh, pos, dir, maxDistance, typeMask, expectedDistance, expectedNormal)
+        checkGlobalHit(mesh, pos, dir, maxDistance, typeMask, expectedDistance, expectedNormal)
     }
 
     fun checkLocalHit(
         mesh: Mesh, pos: Vector3f, dir: Vector3f, maxDistance: Float, typeMask: Int,
-        expectedDistance: Float,
-        expectedNormal: Vector3f?
+        expectedDistance: Float, expectedNormal: Vector3f?
     ) {
 
         val normal = Vector3f()
@@ -114,5 +124,26 @@ object RaycastMeshTest {
 
         val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, pos, dir, maxDistance, typeMask)
         assertEquals(distance.isFinite(), hit)
+    }
+
+    fun checkGlobalHit(
+        mesh: Mesh, pos: Vector3f, dir: Vector3f, maxDistance: Float, typeMask: Int,
+        expectedDistance: Float, expectedNormal: Vector3f?
+    ) {
+
+        val normal = Vector3f()
+        val query = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
+        query.typeMask = typeMask
+        val transform = Transform()
+        val hit = RaycastMesh.raycastGlobalMeshClosestHit(query, transform, mesh)
+        val distance = if (hit) query.result.distance else Double.POSITIVE_INFINITY
+        normal.set(query.result.geometryNormalWS).safeNormalize()
+        if (expectedNormal != null) assertEquals(expectedNormal, normal)
+        assertEquals(expectedDistance.toDouble(), distance, 1e-3)
+
+        val query1 = RayQuery(Vector3d(pos), Vector3d(dir), maxDistance.toDouble())
+        query1.typeMask = typeMask
+        val hit1 = RaycastMesh.raycastGlobalMeshAnyHit(query1, transform, mesh)
+        assertEquals(distance.isFinite(), hit1)
     }
 }

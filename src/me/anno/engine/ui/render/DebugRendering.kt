@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.Time
+import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.getComponents
@@ -23,6 +24,7 @@ import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -33,6 +35,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -64,7 +67,7 @@ import kotlin.math.min
 object DebugRendering {
 
     // https://en.wikipedia.org/wiki/Anaglyph_3D
-    val redCyanShader = BaseShader(
+    val redCyanShader = Shader(
         "redCyanShader",
         ShaderLib.uiVertexShaderList,
         ShaderLib.uiVertexShader, uvList,
@@ -76,18 +79,38 @@ object DebugRendering {
                 tonemapGLSL +
                 "void main(){\n" +
                 "   vec3 col = mix(texture(tex0, uv).rgb, texture(tex1, uv).rgb, vec3(0.0, 1.0, 1.0));\n" +
+                "   col = sqrt(max(col,vec3(0.0)));\n" +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
-                "   else if(applyToneMapping) { col = tonemap(col); }\n" +
+                "   else col = tonemap(col);\n" +
                 "   gl_FragColor = vec4(col,1.0);\n" +
                 "}"
     )
 
-    fun showStereoView(x: Int, y: Int, w: Int, h: Int, fb: Framebuffer, applyToneMapping: Boolean) {
+    val simpleShader = Shader(
+        "redCyanShader",
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, uvList,
+        listOf(
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.S2D, "tex0"),
+            // Variable(GLSLType.S2D, "tex1"),
+        ), "" +
+                tonemapGLSL +
+                "void main(){\n" +
+                // "   vec3 col = mix(texture(tex0, uv).rgb,texture(tex1, uv).rgb,vec3(0.5));\n" +
+                "   vec3 col = texture(tex0, uv).rgb;\n" +
+                "   col = sqrt(max(col,vec3(0.0)));\n" +
+                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec3(1.0,0.0,1.0); }\n" +
+                "   else col = tonemap(col);\n" +
+                "   gl_FragColor = vec4(col,1.0);\n" +
+                "}"
+    )
+
+    fun showStereoView(x: Int, y: Int, w: Int, h: Int, fb: Framebuffer) {
         GFX.check()
-        val shader = redCyanShader.value
+        val shader = if (DefaultConfig["debug.showStereoInRedCyan", false]) redCyanShader else simpleShader
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, null)
         fb.getTextureI(0).bindTrulyLinear(shader, "tex0")
         fb.getTextureI(1).bindTrulyLinear(shader, "tex1")

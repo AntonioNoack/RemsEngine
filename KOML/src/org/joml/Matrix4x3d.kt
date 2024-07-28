@@ -2568,13 +2568,8 @@ open class Matrix4x3d {
     }
 
     fun translationRotate(
-        tx: Double,
-        ty: Double,
-        tz: Double,
-        qx: Double,
-        qy: Double,
-        qz: Double,
-        qw: Double
+        tx: Double, ty: Double, tz: Double,
+        qx: Double, qy: Double, qz: Double, qw: Double
     ): Matrix4x3d {
         val w2 = qw * qw
         val x2 = qx * qx
@@ -2608,26 +2603,13 @@ open class Matrix4x3d {
 
     fun translationRotateMul(tx: Double, ty: Double, tz: Double, quat: Quaternionf, mat: Matrix4x3d): Matrix4x3d {
         return this.translationRotateMul(
-            tx,
-            ty,
-            tz,
-            quat.x.toDouble(),
-            quat.y.toDouble(),
-            quat.z.toDouble(),
-            quat.w.toDouble(),
-            mat
+            tx, ty, tz, quat.x.toDouble(), quat.y.toDouble(), quat.z.toDouble(), quat.w.toDouble(), mat
         )
     }
 
     fun translationRotateMul(
-        tx: Double,
-        ty: Double,
-        tz: Double,
-        qx: Double,
-        qy: Double,
-        qz: Double,
-        qw: Double,
-        mat: Matrix4x3d
+        tx: Double, ty: Double, tz: Double,
+        qx: Double, qy: Double, qz: Double, qw: Double, mat: Matrix4x3d
     ): Matrix4x3d {
         val w2 = qw * qw
         val x2 = qx * qx
@@ -2665,13 +2647,8 @@ open class Matrix4x3d {
     }
 
     fun translationRotateInvert(
-        tx: Double,
-        ty: Double,
-        tz: Double,
-        qx: Double,
-        qy: Double,
-        qz: Double,
-        qw: Double
+        tx: Double, ty: Double, tz: Double,
+        qx: Double, qy: Double, qz: Double, qw: Double
     ): Matrix4x3d {
         val nqx = -qx
         val nqy = -qy

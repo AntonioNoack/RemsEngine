@@ -78,8 +78,8 @@ object Frame {
             if (x2 + w > availableWidth || y2 + h > availableHeight || x2 < 0 || y2 < 0) {
                 x2 = max(x2, 0)
                 y2 = max(y2, 0)
-                w = min(w, availableWidth - x2)
-                h = min(h, availableHeight - y2)
+                w = max(min(w, availableWidth - x2), 0)
+                h = max(min(h, availableHeight - y2), 0)
             }
 
             GFX.viewportWidth = w

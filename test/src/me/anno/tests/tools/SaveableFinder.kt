@@ -94,6 +94,13 @@ class SaveableFinder {
                 "Lua/src",
                 "Mesh/src",
                 "SDF/src",
+                "Video/src",
+                "Unpack/src",
+                "Network/src",
+                "OpenXR/src",
+                "PDF/src",
+                "Recast/src",
+                "Export/src",
             )
             for (source in sources) {
                 instance.index(project.getChild(source))

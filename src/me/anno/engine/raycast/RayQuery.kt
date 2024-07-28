@@ -13,10 +13,10 @@ class RayQuery(
     val end: Vector3d,
     val radiusAtOrigin: Double,
     val radiusPerUnit: Double,
-    val typeMask: Int,
+    var typeMask: Int,
     val collisionMask: Int,
     val includeDisabled: Boolean,
-    val ignored: Set<PrefabSaveable>,
+    var ignored: Set<PrefabSaveable>,
     val result: RayHit,
 ) {
 

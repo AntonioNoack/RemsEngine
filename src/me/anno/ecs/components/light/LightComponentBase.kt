@@ -6,6 +6,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.gpu.DitherMode
 import me.anno.gpu.pipeline.Pipeline
@@ -19,6 +20,10 @@ abstract class LightComponentBase : Component(), Renderable, OnUpdate {
 
     var needsUpdate1 = true
     var autoUpdate = 30
+
+    // @DebugProperty
+    @NotSerializedProperty
+    var lastDrawn = 0L
 
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         lastDrawn = Time.gameTimeN

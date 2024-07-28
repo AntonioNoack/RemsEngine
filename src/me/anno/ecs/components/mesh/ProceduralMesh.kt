@@ -18,10 +18,10 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     val data = Mesh()
 
-    override fun getMeshOrNull() = data
+    override fun getMeshOrNull(): Mesh = data
 
     @NotSerializedProperty
-    var needsUpdate1 = true
+    var needsMeshUpdate = true
 
     @DebugProperty
     val numberOfPoints
@@ -38,8 +38,8 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     @DebugAction
     fun invalidateMesh() {
-        if(!needsUpdate1) {
-            needsUpdate1 = true
+        if(!needsMeshUpdate) {
+            needsMeshUpdate = true
             addEvent(1) {
                 getMesh()
             }
@@ -47,8 +47,8 @@ abstract class ProceduralMesh : MeshComponentBase() {
     }
 
     override fun getMesh(): Mesh {
-        if (needsUpdate1) {
-            needsUpdate1 = false
+        if (needsMeshUpdate) {
+            needsMeshUpdate = false
             generateMesh(data)
             data.invalidateGeometry()
             invalidateAABB()
@@ -64,13 +64,13 @@ abstract class ProceduralMesh : MeshComponentBase() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as ProceduralMesh
-        dst.needsUpdate1 = dst.needsUpdate1 || needsUpdate1
+        dst.needsMeshUpdate = dst.needsMeshUpdate || needsMeshUpdate
         dst.materials = materials
     }
 
     override fun destroy() {
         super.destroy()
         data.destroy()
-        needsUpdate1 = false
+        needsMeshUpdate = false
     }
 }

@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.engine.ui.render.RenderMode.Companion.postProcessGraph
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -10,11 +11,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.render.scene.CombineLightsNode
-import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.graph.visual.render.scene.RenderDeferredNode
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) :
     ActionNode(
@@ -93,16 +90,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
         )
 
         fun createRenderGraph(mode: ColorBlindnessMode): FlowGraph {
-            return QuickPipeline()
-                .then(RenderDeferredNode())
-                .then(RenderLightsNode())
-                .then(SSAONode())
-                .then(CombineLightsNode())
-                .then(SSRNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(ColorBlindnessNode(mode))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
-                .finish()
+            return postProcessGraph(ColorBlindnessNode(mode))
         }
     }
 }

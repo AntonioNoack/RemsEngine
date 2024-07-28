@@ -59,7 +59,6 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
@@ -829,17 +828,19 @@ object ComponentUI {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
                         // todo find the class somehow...
-                        val clazz = Saveable.getClass(type1) ?: throw IllegalStateException("Missing class $type1")
-                        return SameSceneRefInput(title, visibilityKey, clazz, value, style)
-                            .apply {
-                                property.init(this)
-                                setResetListener {
-                                    property.reset(this) as? PrefabSaveable
+                        val clazz = Saveable.getClass(type1)
+                        if (clazz != null) {
+                            return SameSceneRefInput(title, visibilityKey, clazz, value, style)
+                                .apply {
+                                    property.init(this)
+                                    setResetListener {
+                                        property.reset(this) as? PrefabSaveable
+                                    }
+                                    setChangeListener {
+                                        property.set(this, it)
+                                    }
                                 }
-                                setChangeListener {
-                                    property.set(this, it)
-                                }
-                            }
+                        }
                     }
                     type0.endsWith("/Code", true) -> {
                         // todo debugging info & such

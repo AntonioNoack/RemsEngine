@@ -80,7 +80,6 @@ open class SkyboxBase : CollidingComponent(), Renderable {
         transform: Transform,
         clickId: Int
     ): Int {
-        lastDrawn = Time.gameTimeN
         pipeline.skybox = this
         this.clickId = clickId
         return clickId + 1

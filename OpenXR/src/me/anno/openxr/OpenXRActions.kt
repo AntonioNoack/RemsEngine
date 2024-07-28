@@ -380,6 +380,10 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                     .action(hapticAction).subactionPath(handPath)
                 checkXR(xrApplyHapticFeedback(session, hapticActionInfo, vibration0))
             }
+
+            // rumble needs to be set each frame,
+            // to it can be set from multiple sources independently
+            controller.rumble = 0f
         }
 
         // todo booleanState.lastChangedTime contains the correct time, but idk what time-system it is
