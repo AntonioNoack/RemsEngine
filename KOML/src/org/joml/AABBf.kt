@@ -625,18 +625,13 @@ class AABBf(
     }
 
     fun testLine(
-        start: Vector3f,
-        dir: Vector3f,
-        radiusAtOrigin: Float,
-        radiusPerUnit: Float,
+        start: Vector3f, dir: Vector3f,
+        radiusAtOrigin: Float, radiusPerUnit: Float,
         maxDistance: Float,
     ): Boolean {
         if (isEmpty()) return false
-        val dx = dir.x
-        val dy = dir.x
-        val dz = dir.z
-        val th = radiusAtPoint(start, radiusAtOrigin, radiusPerUnit, dx, dy, dz)
-        return testRay(start.x, start.y, start.z, dx, dy, dz, th) &&
+        val th = radiusAtPoint(start, radiusAtOrigin, radiusPerUnit, dir.x, dir.y, dir.z)
+        return testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z, th) &&
                 distanceSquared(start) <= maxDistance * maxDistance
     }
 
@@ -720,25 +715,16 @@ class AABBf(
     )
 
     fun isRayIntersecting(
-        rx: Float, ry: Float, rz: Float,
-        rdx: Float, rdy: Float, rdz: Float,
+        px: Float, py: Float, pz: Float,
+        invDx: Float, invDy: Float, invDz: Float,
         maxDistance: Float
-    ): Boolean {
-        return isRayIntersecting(
-            rx, ry, rz,
-            rdx, rdy, rdz,
-            0f, maxDistance
-        )
-    }
+    ): Boolean = isRayIntersecting(px, py, pz, invDx, invDy, invDz, 0f, maxDistance)
 
     fun isRayIntersecting(
-        rx: Float, ry: Float, rz: Float,
-        rdx: Float, rdy: Float, rdz: Float,
+        px: Float, py: Float, pz: Float,
+        invDx: Float, invDy: Float, invDz: Float,
         margin: Float, maxDistance: Float
-    ): Boolean {
-        val dist = whereIsRayIntersecting(rx, ry, rz, rdx, rdy, rdz, margin)
-        return dist < maxDistance
-    }
+    ): Boolean = whereIsRayIntersecting(px, py, pz, invDx, invDy, invDz, margin) < maxDistance
 
     fun whereIsRayIntersecting(rayOrigin: Vector3f, invRayDirection: Vector3f, margin: Float): Float {
         return whereIsRayIntersecting(
@@ -749,16 +735,16 @@ class AABBf(
     }
 
     fun whereIsRayIntersecting(
-        rx: Float, ry: Float, rz: Float,
-        rdx: Float, rdy: Float, rdz: Float,
+        px: Float, py: Float, pz: Float,
+        invDx: Float, invDy: Float, invDz: Float,
         margin: Float,
     ): Float {
-        val sx0 = (minX - margin - rx) * rdx
-        val sy0 = (minY - margin - ry) * rdy
-        val sz0 = (minZ - margin - rz) * rdz
-        val sx1 = (maxX + margin - rx) * rdx
-        val sy1 = (maxY + margin - ry) * rdy
-        val sz1 = (maxZ + margin - rz) * rdz
+        val sx0 = (minX - margin - px) * invDx
+        val sy0 = (minY - margin - py) * invDy
+        val sz0 = (minZ - margin - pz) * invDz
+        val sx1 = (maxX + margin - px) * invDx
+        val sy1 = (maxY + margin - py) * invDy
+        val sz1 = (maxZ + margin - pz) * invDz
         val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
         val nearY = min(sy0, sy1)

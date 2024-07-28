@@ -440,16 +440,16 @@ class AABBd(
     }
 
     fun whereIsRayIntersecting(
-        rx: Double, ry: Double, rz: Double,
-        rdx: Double, rdy: Double, rdz: Double,
+        px: Double, py: Double, pz: Double,
+        invDx: Double, invDy: Double, invDz: Double,
         margin: Double,
     ): Double {
-        val sx0 = (minX - margin - rx) * rdx
-        val sy0 = (minY - margin - ry) * rdy
-        val sz0 = (minZ - margin - rz) * rdz
-        val sx1 = (maxX + margin - rx) * rdx
-        val sy1 = (maxY + margin - ry) * rdy
-        val sz1 = (maxZ + margin - rz) * rdz
+        val sx0 = (minX - margin - px) * invDx
+        val sy0 = (minY - margin - py) * invDy
+        val sz0 = (minZ - margin - pz) * invDz
+        val sx1 = (maxX + margin - px) * invDx
+        val sy1 = (maxY + margin - py) * invDy
+        val sz1 = (maxZ + margin - pz) * invDz
         val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
         val nearY = min(sy0, sy1)
