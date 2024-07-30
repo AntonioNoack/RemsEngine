@@ -7,7 +7,7 @@ import me.anno.maths.Maths
 import org.lwjgl.opengl.GL46C
 import kotlin.math.max
 
-open class GPUQuery(
+open class SimpleGPUQuery(
     val target: Int,
     var everyNthFrame: Int = 4 // for frame counter, which is used by OcclusionQuery
 ) : QueryBase(), ICacheData {

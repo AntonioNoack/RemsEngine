@@ -29,6 +29,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
@@ -399,12 +400,18 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 )
             }
             else -> {
-                drawScene(
-                    w, h, renderer, buffer,
-                    changeSize = true, hdr = false, sky = true
-                )
-                drawGizmos(buffer, true)
-                drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
+                timeRendering("Scene", DebugRendering.drawSceneTimer) {
+                    drawScene(
+                        w, h, renderer, buffer,
+                        changeSize = true, hdr = false, sky = true
+                    )
+                }
+                timeRendering("Gizmos", DebugRendering.drawGizmoTimer) {
+                    drawGizmos(buffer, true)
+                }
+                timeRendering("Final", DebugRendering.drawFinalTimer) {
+                    drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
+                }
             }
         }
     }

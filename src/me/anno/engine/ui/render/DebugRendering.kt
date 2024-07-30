@@ -182,6 +182,7 @@ object DebugRendering {
     val drawSceneTimer = GPUClockNanos()
     val drawGizmoTimer = GPUClockNanos()
     val drawLightsTimer = GPUClockNanos()
+    val drawFinalTimer = GPUClockNanos()
 
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection

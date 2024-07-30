@@ -2,13 +2,19 @@ package me.anno.gpu.query
 
 import org.lwjgl.opengl.GL46C.GL_SAMPLES_PASSED
 
-class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 4) : GPUQuery(Companion.target, everyNthFrame) {
+class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 16) :
+    StackableGPUQuery(data, everyNthFrame) {
 
     companion object {
         // to do mode, where depth-prepass is used for occlusion queries instead of color pass,
         //  and color is only drawn, where the query is positive
         // is changed to GL_ANY_SAMPLES_PASSED_CONSERVATIVE, where it is available
-        var target = GL_SAMPLES_PASSED
+        val data = StackableQueryData(GL_SAMPLES_PASSED)
+        var target: Int
+            get() = data.target
+            set(value) {
+                data.target = value
+            }
     }
 
     val drawnSamples get() = result

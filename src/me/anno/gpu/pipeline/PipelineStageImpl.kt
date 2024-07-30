@@ -657,7 +657,7 @@ class PipelineStageImpl(
         GFXState.animated.use(hasAnimation) {
             GFXState.vertexData.use(mesh.vertexData) {
 
-                val ocq = oc?.start()
+                oc?.start()
 
                 val shader = getShader(material)
                 shader.use()
@@ -728,7 +728,7 @@ class PipelineStageImpl(
                     mesh.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
                 }
 
-                oc?.stop(ocq!!)
+                oc?.stop()
 
                 drawnPrimitives += mesh.numPrimitives
                 drawnInstances++
