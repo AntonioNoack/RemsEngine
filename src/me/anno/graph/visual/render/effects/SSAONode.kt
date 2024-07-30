@@ -1,17 +1,15 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import org.apache.logging.log4j.LogManager
 
-class SSAONode : ActionNode(
+class SSAONode : TimedRenderingNode(
     "SSAO",
     listOf(
         "Int", "SSAO Samples",
@@ -47,14 +45,14 @@ class SSAONode : ActionNode(
         val depthT = (getInput(7) as? Texture) ?: return fail()
         val depthTT = depthT.texOrNull ?: return fail()
 
-        pushDrawCallName(name)
-        val transform = RenderState.cameraMatrix
-        val result = ScreenSpaceAmbientOcclusion.compute(
-            null, depthTT, depthT.mapping, normalT, normalZW,
-            transform, strength, radiusScale, ssaoSamples, blur, inverse
-        )
-        setOutput(1, Texture.texture(result, 0, "r", null))
-        popDrawCallName()
+        timeRendering(name, timer) {
+            val transform = RenderState.cameraMatrix
+            val result = ScreenSpaceAmbientOcclusion.compute(
+                null, depthTT, depthT.mapping, normalT, normalZW,
+                transform, strength, radiusScale, ssaoSamples, blur, inverse
+            )
+            setOutput(1, Texture.texture(result, 0, "r", null))
+        }
     }
 
     companion object {

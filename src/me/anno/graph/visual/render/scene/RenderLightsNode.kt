@@ -4,8 +4,7 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -176,18 +175,18 @@ class RenderLightsNode : RenderViewNode(
             if (useDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
         ]
 
-        pushDrawCallName(name)
-        useFrame(width, height, true, framebuffer, copyRenderer) {
-            val stage = pipeline.lightStage
-            GFX.copyColorAndDepth(blackTexture, depthTexture)
-            stage.bind {
-                stage.draw(
-                    pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
-                    ::getShader, depthTexture, depthTexture0.mask!!
-                )
+        timeRendering(name, timer) {
+            useFrame(width, height, true, framebuffer, copyRenderer) {
+                val stage = pipeline.lightStage
+                GFX.copyColorAndDepth(blackTexture, depthTexture)
+                stage.bind {
+                    stage.draw(
+                        pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
+                        ::getShader, depthTexture, depthTexture0.mask!!
+                    )
+                }
             }
+            setOutput(1, Texture.texture(framebuffer, 0, "rgb", DeferredLayerType.LIGHT_SUM))
         }
-        setOutput(1, Texture.texture(framebuffer, 0, "rgb", DeferredLayerType.LIGHT_SUM))
-        popDrawCallName()
     }
 }

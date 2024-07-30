@@ -3,8 +3,7 @@ package me.anno.graph.visual.render.effects
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
@@ -14,11 +13,10 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
 import me.anno.utils.Color.black4
 
-class SSRNode : ActionNode(
+class SSRNode : TimedRenderingNode(
     "Screen Space Reflections",
     listOf(
         "Int", "Width",
@@ -71,29 +69,29 @@ class SSRNode : ActionNode(
         val depthT = getInput(12) as? Texture ?: return
         val depthTT = depthT.texOrNull ?: return
 
-        pushDrawCallName(name)
-        val transform = RenderState.cameraMatrix
-        val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
+        timeRendering(name, timer) {
+            val transform = RenderState.cameraMatrix
+            val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
 
-        val metallicT = metallic?.texOrNull ?: whiteTexture
-        val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
-        else singleToVectorR
+            val metallicT = metallic?.texOrNull ?: whiteTexture
+            val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
+            else singleToVectorR
 
-        val roughnessT = roughness?.texOrNull ?: whiteTexture
-        val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
-        else black4
+            val roughnessT = roughness?.texOrNull ?: whiteTexture
+            val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
+            else black4
 
-        val originalSamples = (illumMT ?: illumTT).samples
-        val inPlace = illumMT == null || originalSamples <= 1
-        ScreenSpaceReflections.compute(
-            depthTT, depthT.mask!!, normalT, normalZW, colorTT,
-            metallicT, metallicM, roughnessT, roughnessM, illumTT,
-            transform, strength, maskSharpness, wallThickness, fineSteps,
-            inPlace, result0
-        )
-        val result = if (inPlace) result0 else mixResult(width, height, illumMT!!, result0)
-        setOutput(1, Texture.texture(result, 0))
-        popDrawCallName()
+            val originalSamples = (illumMT ?: illumTT).samples
+            val inPlace = illumMT == null || originalSamples <= 1
+            ScreenSpaceReflections.compute(
+                depthTT, depthT.mask!!, normalT, normalZW, colorTT,
+                metallicT, metallicM, roughnessT, roughnessM, illumTT,
+                transform, strength, maskSharpness, wallThickness, fineSteps,
+                inPlace, result0
+            )
+            val result = if (inPlace) result0 else mixResult(width, height, illumMT!!, result0)
+            setOutput(1, Texture.texture(result, 0))
+        }
     }
 
     private fun mixResult(width: Int, height: Int, illumMT: ITexture2D, result0: IFramebuffer): IFramebuffer {

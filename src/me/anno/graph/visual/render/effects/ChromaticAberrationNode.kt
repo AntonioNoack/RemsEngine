@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -14,10 +13,9 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.actions.ActionNode
 import org.joml.Vector2f
 
-class ChromaticAberrationNode : ActionNode(
+class ChromaticAberrationNode : TimedRenderingNode(
     "Chromatic Aberration",
     listOf(
         "Float", "Strength",
@@ -41,23 +39,23 @@ class ChromaticAberrationNode : ActionNode(
         if (color == null) {
             setOutput(1, Texture(missingTexture))
         } else {
-            pushDrawCallName(name)
-            val power = getFloatInput(2)
-            val rOffset = getInput(3) as Vector2f
-            val bOffset = getInput(4) as Vector2f
-            val fp = color.isHDR
-            val result = FBStack[name, color.width, color.height, 3, fp, 1, DepthBufferType.NONE]
-            useFrame(result, copyRenderer) {
-                val shader = shader
-                shader.use()
-                shader.v2f("rOffset", rOffset)
-                shader.v2f("bOffset", bOffset)
-                shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, power)
-                color.bindTrulyLinear(shader, "colorTex")
-                flat01.draw(shader)
+            timeRendering(name, timer) {
+                val power = getFloatInput(2)
+                val rOffset = getInput(3) as Vector2f
+                val bOffset = getInput(4) as Vector2f
+                val fp = color.isHDR
+                val result = FBStack[name, color.width, color.height, 3, fp, 1, DepthBufferType.NONE]
+                useFrame(result, copyRenderer) {
+                    val shader = shader
+                    shader.use()
+                    shader.v2f("rOffset", rOffset)
+                    shader.v2f("bOffset", bOffset)
+                    shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, power)
+                    color.bindTrulyLinear(shader, "colorTex")
+                    flat01.draw(shader)
+                }
+                setOutput(1, Texture(result.getTexture0()))
             }
-            setOutput(1, Texture(result.getTexture0()))
-            popDrawCallName()
         }
     }
 

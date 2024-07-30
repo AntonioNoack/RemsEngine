@@ -3,8 +3,7 @@ package me.anno.graph.visual.render.effects
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -18,7 +17,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
@@ -28,7 +26,7 @@ import kotlin.math.tan
  * Depth of Field effect from https://blog.voxagon.se/2018/05/04/bokeh-depth-of-field-in-single-pass.html,
  * can become very GPU hungry, but also looks very nice for cutscenes.
  * */
-class DepthOfFieldNode : ActionNode(
+class DepthOfFieldNode : TimedRenderingNode(
     "Depth of Field",
     listOf(
         "Float", "Focus Point",
@@ -63,14 +61,14 @@ class DepthOfFieldNode : ActionNode(
         val color = (getInput(7) as? Texture)?.texOrNull ?: return // this is incorrect for tinted color!
         val depth = (getInput(8) as? Texture)?.texOrNull ?: return
 
-        pushDrawCallName(name)
-        val result = render(
-            color, depth, spherical, focusPoint, focusScale,
-            clamp(maxBlurSize, 1f, 20f),
-            clamp(radScale, 0.25f, 2f), applyToneMapping
-        ).getTexture0()
-        setOutput(1, Texture(result))
-        popDrawCallName()
+        timeRendering(name, timer) {
+            val result = render(
+                color, depth, spherical, focusPoint, focusScale,
+                clamp(maxBlurSize, 1f, 20f),
+                clamp(radScale, 0.25f, 2f), applyToneMapping
+            ).getTexture0()
+            setOutput(1, Texture(result))
+        }
     }
 
     companion object {

@@ -1,8 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -67,17 +66,17 @@ class OutlineEffectNode : RenderViewNode(
         val lineColors1 = lineColors.filterIsInstance<Vector4f>()
         val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
         if (radius >= 0 && numGroupsI > 0) {
-            pushDrawCallName(name)
-            val dst = FBStack[name, w, h, 4, true, 1, DepthBufferType.NONE]
-            GFXState.useFrame(dst) {
-                render(
-                    colorTex, idsTex,
-                    min(groupIds.size, min(fillColors1.size, lineColors1.size)),
-                    radius, groupIds, fillColors1, lineColors1
-                )
+            timeRendering(name, timer) {
+                val dst = FBStack[name, w, h, 4, true, 1, DepthBufferType.NONE]
+                GFXState.useFrame(dst) {
+                    render(
+                        colorTex, idsTex,
+                        min(groupIds.size, min(fillColors1.size, lineColors1.size)),
+                        radius, groupIds, fillColors1, lineColors1
+                    )
+                }
+                setOutput(1, Texture.texture(dst, 0))
             }
-            setOutput(1, Texture.texture(dst, 0))
-            popDrawCallName()
         } else setOutput(1, colorTex)
     }
 

@@ -1,20 +1,18 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.effects.SSAONode.Companion.fail
 
 /**
  * Node for Screen-Space Global Illumination
  * */
-class SSGINode : ActionNode(
+class SSGINode : TimedRenderingNode(
     "SSGI", listOf(
         "Int", "SSGI Samples",
         "Float", "Strength",
@@ -63,13 +61,13 @@ class SSGINode : ActionNode(
 
         val data = ScreenSpaceAmbientOcclusion.SSGIData(illumTT, colorTT, roughTT, roughTM)
 
-        pushDrawCallName(name)
-        val transform = RenderState.cameraMatrix
-        val result = ScreenSpaceAmbientOcclusion.compute(
-            data, depthTT, depthT.mapping, normalT, normalZW,
-            transform, strength, radiusScale, ssaoSamples, blur, false
-        )
-        setOutput(1, Texture.texture(result, 0, "rgb", null))
-        popDrawCallName()
+        timeRendering(name, timer) {
+            val transform = RenderState.cameraMatrix
+            val result = ScreenSpaceAmbientOcclusion.compute(
+                data, depthTT, depthT.mapping, normalT, normalZW,
+                transform, strength, radiusScale, ssaoSamples, blur, false
+            )
+            setOutput(1, Texture.texture(result, 0, "rgb", null))
+        }
     }
 }

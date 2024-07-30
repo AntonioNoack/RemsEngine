@@ -2,6 +2,7 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderMode.Companion.postProcessGraph
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -10,14 +11,13 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
 
-class ColorBlindnessNode(var mode: ColorBlindnessMode) :
-    ActionNode(
-        "ColorBlindness", listOf("Texture", "Illuminated", "Float", "Strength"),
-        listOf("Texture", "Illuminated")
-    ) {
+class ColorBlindnessNode(var mode: ColorBlindnessMode) : TimedRenderingNode(
+    "ColorBlindness",
+    listOf("Texture", "Illuminated", "Float", "Strength"),
+    listOf("Texture", "Illuminated")
+) {
 
     init {
         setInput(2, 1f) // default strength
@@ -29,13 +29,15 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) :
         val result = if (strength != 0f) {
             val source = color?.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, true, 1, DepthBufferType.NONE]
-            GFXState.useFrame(result) {
-                val shader = shader
-                shader.use()
-                shader.v1i("mode", mode.id)
-                shader.v1f("strength", strength)
-                source.bindTrulyNearest(0)
-                SimpleBuffer.flat01.draw(shader)
+            timeRendering(name, timer) {
+                GFXState.useFrame(result) {
+                    val shader = shader
+                    shader.use()
+                    shader.v1i("mode", mode.id)
+                    shader.v1f("strength", strength)
+                    source.bindTrulyNearest(0)
+                    SimpleBuffer.flat01.draw(shader)
+                }
             }
             Texture(result.getTexture0())
         } else color

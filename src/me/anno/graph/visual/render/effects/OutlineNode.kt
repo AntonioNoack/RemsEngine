@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -17,12 +16,11 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.actions.ActionNode
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 
-class OutlineNode : ActionNode(
+class OutlineNode : TimedRenderingNode(
     "Outline",
     listOf(
         "Float", "Strength",
@@ -69,31 +67,31 @@ class OutlineNode : ActionNode(
             return
         }
 
-        pushDrawCallName(name)
-        val w = max(max(illuminated.width, color.width), max(normal.width, depth.width))
-        val h = max(max(illuminated.height, color.height), max(normal.height, depth.height))
-        useFrame(w, h, true, framebuffer, copyRenderer) {
-            val shader = shader
-            shader.use()
-            color.bindTrulyNearest(shader, "colorTex")
-            normal.bindTrulyNearest(shader, "normalTex")
-            depth.bindTrulyNearest(shader, "depthTex")
-            illuminated.bindTrulyNearest(shader, "illuminatedTex")
-            shader.v2f("strength", strength, offset)
-            shader.v2f("duv", 1f / w, 1f / h)
-            shader.v1b("normalZW", normalZW)
-            shader.v4f("outlineColor", outlineColor)
-            val w0 = 1f / 16f // 4x weight by sobel filter, x² because of dot/x*x
-            shader.v3f(
-                "weights",
-                if (color == whiteTexture || color == blackTexture) 0f else weights.x * w0,
-                if (normal == whiteTexture || normal == blackTexture) 0f else weights.y * w0,
-                if (depth == whiteTexture || depth == blackTexture) 0f else weights.z * w0
-            )
-            SimpleBuffer.flat01.draw(shader)
+        timeRendering(name, timer) {
+            val w = max(max(illuminated.width, color.width), max(normal.width, depth.width))
+            val h = max(max(illuminated.height, color.height), max(normal.height, depth.height))
+            useFrame(w, h, true, framebuffer, copyRenderer) {
+                val shader = shader
+                shader.use()
+                color.bindTrulyNearest(shader, "colorTex")
+                normal.bindTrulyNearest(shader, "normalTex")
+                depth.bindTrulyNearest(shader, "depthTex")
+                illuminated.bindTrulyNearest(shader, "illuminatedTex")
+                shader.v2f("strength", strength, offset)
+                shader.v2f("duv", 1f / w, 1f / h)
+                shader.v1b("normalZW", normalZW)
+                shader.v4f("outlineColor", outlineColor)
+                val w0 = 1f / 16f // 4x weight by sobel filter, x² because of dot/x*x
+                shader.v3f(
+                    "weights",
+                    if (color == whiteTexture || color == blackTexture) 0f else weights.x * w0,
+                    if (normal == whiteTexture || normal == blackTexture) 0f else weights.y * w0,
+                    if (depth == whiteTexture || depth == blackTexture) 0f else weights.z * w0
+                )
+                SimpleBuffer.flat01.draw(shader)
+            }
+            setOutput(1, Texture(framebuffer.getTexture0()))
         }
-        setOutput(1, Texture(framebuffer.getTexture0()))
-        popDrawCallName()
     }
 
     companion object {

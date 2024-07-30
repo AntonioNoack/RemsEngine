@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -50,22 +49,22 @@ class AnimeOutlineNode : RenderViewNode(
         if (color == null || depth == null || sensitivity <= 0f || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
-            pushDrawCallName(name)
-            val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
-            useFrame(result, copyRenderer) {
-                val shader = shader
-                shader.use()
-                shader.v1f("sensitivity", sensitivity)
-                shader.v1f("maxDarkness", 1f - strength)
-                color.bindTrulyNearest(shader, "colorTex")
-                depth.bindTrulyNearest(shader, "depthTex")
-                (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
-                    .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
-                bindDepthUniforms(shader)
-                flat01.draw(shader)
+            timeRendering(name, timer) {
+                val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
+                useFrame(result, copyRenderer) {
+                    val shader = shader
+                    shader.use()
+                    shader.v1f("sensitivity", sensitivity)
+                    shader.v1f("maxDarkness", 1f - strength)
+                    color.bindTrulyNearest(shader, "colorTex")
+                    depth.bindTrulyNearest(shader, "depthTex")
+                    (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
+                        .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
+                    bindDepthUniforms(shader)
+                    flat01.draw(shader)
+                }
+                setOutput(1, Texture(result.getTexture0()))
             }
-            setOutput(1, Texture(result.getTexture0()))
-            popDrawCallName()
         }
     }
 

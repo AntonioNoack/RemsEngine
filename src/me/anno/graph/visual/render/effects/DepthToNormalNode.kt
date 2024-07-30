@@ -1,6 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -20,14 +21,10 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.actions.ActionNode
 
-class DepthToNormalNode : ActionNode(
+class DepthToNormalNode : TimedRenderingNode(
     "Depth To Normal",
-    listOf(
-        "Texture", "Depth",
-        "Int", "Precision"
-    ),
+    listOf("Texture", "Depth", "Int", "Precision"),
     listOf("Texture", "Normal")
 ) {
 
@@ -40,16 +37,18 @@ class DepthToNormalNode : ActionNode(
         }
         val depthTex = depth.texOrNull
         if (depthTex != null) {
-            val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]
-            GFXState.useFrame(result) {
-                val shader = shader
-                shader.use()
-                shader.v4f("depthMask", depth.mask!!)
-                depthTex.bindTrulyNearest(0)
-                bindDepthUniforms(shader)
-                flat01.draw(shader)
+            timeRendering(name, timer) {
+                val result = FBStack[name, depthTex.width, depthTex.height, target, 1, DepthBufferType.NONE]
+                GFXState.useFrame(result) {
+                    val shader = shader
+                    shader.use()
+                    shader.v4f("depthMask", depth.mask!!)
+                    depthTex.bindTrulyNearest(0)
+                    bindDepthUniforms(shader)
+                    flat01.draw(shader)
+                }
+                setOutput(1, Texture.texture(result, 0, "rg", DeferredLayerType.NORMAL))
             }
-            setOutput(1, Texture.texture(result, 0, "rg", DeferredLayerType.NORMAL))
         } else {
             setOutput(1, null)
         }

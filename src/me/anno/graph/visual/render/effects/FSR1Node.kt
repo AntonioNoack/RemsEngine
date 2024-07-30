@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -9,20 +8,19 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
-import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderForwardNode
-import me.anno.graph.visual.FlowGraph
-import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.scene.RenderLightsNode
 
 /**
  * AMD FSR reduces the rendering resolution to gain performance, and then upscales that image.
  * */
-class FSR1Node : ActionNode(
+class FSR1Node : TimedRenderingNode(
     "FSR1",
     listOf(
         "Int", "Target Width",
@@ -61,23 +59,23 @@ class FSR1Node : ActionNode(
         val sharpness = getFloatInput(3)
         val color = (getInput(4) as? Texture)?.texOrNull ?: whiteTexture
 
-        pushDrawCallName(name)
-        useFrame(width, height, true, f0, copyRenderer) {
-            FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)
-        }
-
-        if (sharpness > 0f) {
-            useFrame(width, height, true, f1, copyRenderer) {
-                FSR.sharpen(f0.getTexture0(), sharpness, 0, 0, width, height, flipY = true)
+        timeRendering(name, timer) {
+            useFrame(width, height, true, f0, copyRenderer) {
+                FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)
             }
-            setOutput(1, Texture.texture(f1, 0))
-        } else {
-            setOutput(1, Texture.texture(f0, 0))
-        }
 
-        setOutput(2, width)
-        setOutput(3, height)
-        popDrawCallName()
+            if (sharpness > 0f) {
+                useFrame(width, height, true, f1, copyRenderer) {
+                    FSR.sharpen(f0.getTexture0(), sharpness, 0, 0, width, height, flipY = true)
+                }
+                setOutput(1, Texture.texture(f1, 0))
+            } else {
+                setOutput(1, Texture.texture(f0, 0))
+            }
+
+            setOutput(2, width)
+            setOutput(3, height)
+        }
     }
 
     companion object {

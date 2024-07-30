@@ -3,8 +3,7 @@ package me.anno.graph.visual.render.scene
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -64,7 +63,12 @@ class RenderForwardNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         val stage = getInput(4) as PipelineStage
-        pushDrawCallName("$name-$stage")
+        timeRendering("$name-$stage", timer) {
+            renderForward(width, height, samples, stage)
+        }
+    }
+
+    private fun renderForward(width: Int, height: Int, samples: Int, stage: PipelineStage) {
 
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
@@ -103,7 +107,6 @@ class RenderForwardNode : RenderViewNode(
 
         setOutput(1, Texture.texture(framebuffer, 0))
         setOutput(2, Texture.depth(framebuffer))
-        popDrawCallName()
     }
 
     fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {

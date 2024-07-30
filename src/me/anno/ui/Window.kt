@@ -202,6 +202,7 @@ open class Window(
                 didSomething = true
             }
         }
+        GFXState.timeRecords.clear()
         return didSomething
     }
 

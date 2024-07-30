@@ -2,9 +2,8 @@ package me.anno.graph.visual.render.scene
 
 import me.anno.ecs.components.mesh.material.utils.TypeValue
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.renderPurely2
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
@@ -133,15 +132,15 @@ class CombineLightsNode : RenderViewNode(
         val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
         if (width < 1 || height < 1) return
 
-        pushDrawCallName(name)
-        val framebuffer = FBStack[name, width, height, 3, BufferQuality.FP_16, samples, DepthBufferType.NONE]
-        useFrame(width, height, false, framebuffer, Renderer.copyRenderer) {
-            renderPurely2 {
-                val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
-                combineLighting1(shader, applyToneMapping = getBoolInput(4))
+        timeRendering(name, timer) {
+            val framebuffer = FBStack[name, width, height, 3, BufferQuality.FP_16, samples, DepthBufferType.NONE]
+            useFrame(width, height, false, framebuffer, Renderer.copyRenderer) {
+                renderPurely2 {
+                    val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
+                    combineLighting1(shader, applyToneMapping = getBoolInput(4))
+                }
             }
+            setOutput(1, Texture(framebuffer.getTexture0()))
         }
-        setOutput(1, Texture(framebuffer.getTexture0()))
-        popDrawCallName()
     }
 }

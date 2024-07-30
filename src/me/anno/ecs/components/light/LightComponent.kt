@@ -18,6 +18,7 @@ import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.CubemapFramebuffer
@@ -26,6 +27,7 @@ import me.anno.gpu.framebuffer.FramebufferArray
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
@@ -81,6 +83,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
     @NotSerializedProperty
     var shadowTextures: IFramebuffer? = null
 
+    @NotSerializedProperty
+    var timer: GPUClockNanos? = null
+
     @SerializedProperty
     var depthFunc = if (GFX.supportsClipControl) DepthMode.CLOSE
     else DepthMode.FORWARD_CLOSE
@@ -123,6 +128,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
             val shadowTextures = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
+            if (timer == null) timer = GPUClockNanos()
             if (shadowTextures == null ||
                 (shadowTextures is Texture2DArray && shadowTextures.layers != targetSize) ||
                 shadowTextures.depthTexture?.depthFunc != depthFunc
@@ -161,6 +167,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         } else {
             shadowTextures?.destroy()
             shadowTextures = null
+            timer?.destroy()
         }
     }
 
@@ -209,30 +216,30 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase(), 
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val tmpPos = JomlPools.vec3d.create().set(position)
-        GFXState.pushDrawCallName(className)
-        GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
-            GFXState.ditherMode.use(ditherMode) {
-                result.draw(renderer) { i ->
-                    // reset position
-                    position.set(tmpPos)
-                    pipeline.clear()
-                    val cascadeScale = shadowMapPower.pow(-i.toDouble())
-                    updateShadowMap(
-                        cascadeScale, worldScale,
-                        RenderState.cameraMatrix,
-                        position, rotation, direction,
-                        drawTransform, pipeline, resolution
-                    )
-                    val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
-                    RenderState.calculateDirections(isPerspective)
-                    val root = rootOverride ?: entity.getRoot(Entity::class)
-                    pipeline.fill(root)
-                    result.clearColor(0, depth = true)
-                    pipeline.singlePassWithoutSky(false)
+        timeRendering(className, timer) {
+            GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
+                GFXState.ditherMode.use(ditherMode) {
+                    result.draw(renderer) { i ->
+                        // reset position
+                        position.set(tmpPos)
+                        pipeline.clear()
+                        val cascadeScale = shadowMapPower.pow(-i.toDouble())
+                        updateShadowMap(
+                            cascadeScale, worldScale,
+                            RenderState.cameraMatrix,
+                            position, rotation, direction,
+                            drawTransform, pipeline, resolution
+                        )
+                        val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
+                        RenderState.calculateDirections(isPerspective)
+                        val root = rootOverride ?: entity.getRoot(Entity::class)
+                        pipeline.fill(root)
+                        result.clearColor(0, depth = true)
+                        pipeline.singlePassWithoutSky(false)
+                    }
                 }
             }
         }
-        GFXState.popDrawCallName()
         JomlPools.vec3d.sub(1)
     }
 

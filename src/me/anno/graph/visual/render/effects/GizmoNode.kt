@@ -2,9 +2,8 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
 import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredLayerType
@@ -72,18 +71,18 @@ class GizmoNode : RenderViewNode(
             if (readsDepth) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
         ] as Framebuffer
 
-        pushDrawCallName(name)
-        useFrame(framebuffer, copyRenderer) {
-            copyColorAndDepth(colorT, depthT, framebuffer)
-            GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
-                GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    renderView.drawGizmos1(grid, debug, aabbs)
+        timeRendering(name, timer) {
+            useFrame(framebuffer, copyRenderer) {
+                copyColorAndDepth(colorT, depthT, framebuffer)
+                GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
+                    GFXState.blendMode.use(BlendMode.DEFAULT) {
+                        renderView.drawGizmos1(grid, debug, aabbs)
+                    }
                 }
             }
+            setOutput(1, Texture.texture(framebuffer, 0))
+            setOutput(2, if (readsDepth) Texture.depth(framebuffer) else null)
         }
-        setOutput(1, Texture.texture(framebuffer, 0))
-        setOutput(2, if (readsDepth) Texture.depth(framebuffer) else null)
-        popDrawCallName()
     }
 
     companion object {

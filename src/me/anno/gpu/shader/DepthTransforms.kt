@@ -65,7 +65,7 @@ object DepthTransforms {
             // orthogonal
             val dir = RenderState.cameraDirection
             shader.v4f("d_camRot", dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), 1f)
-            shader.v3f("d_near", -1f)
+            shader.v1f("d_near", -1f)
             // a matrix that transforms uv[-1,+1] x depth[0,1] into [left,right] x [top,bottom] x [near,far]
             shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrixInv))
             shader.v1b("reverseDepth", GFX.supportsClipControl)

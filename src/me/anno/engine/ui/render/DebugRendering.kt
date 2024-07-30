@@ -16,6 +16,7 @@ import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.TriangleBuffer
@@ -23,8 +24,9 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredRenderer
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -32,7 +34,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -48,6 +50,7 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.input.Input
 import me.anno.maths.Maths
+import me.anno.ui.Panel
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color
 import me.anno.utils.Color.white
@@ -56,6 +59,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.f3
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
@@ -142,7 +146,7 @@ object DebugRendering {
                     isDepth = true
                 }
                 is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
-                is PlanarReflection -> texture = light.lastBuffer?.getTexture0()
+                is PlanarReflection -> texture = light.framebuffer?.getTexture0()
             }
             // draw the texture
             if (texture != null && texture.isCreated()) {
@@ -175,6 +179,10 @@ object DebugRendering {
         }
     }
 
+    val drawSceneTimer = GPUClockNanos()
+    val drawGizmoTimer = GPUClockNanos()
+    val drawLightsTimer = GPUClockNanos()
+
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection
             .firstOrNull { it is Camera } ?: EditorState.selection
@@ -185,21 +193,32 @@ object DebugRendering {
             val h = (y1 - y0 + 1) / 3
             val buffer = view.buffers.base1Buffer
             val renderer = Renderers.pbrRenderer
-            GFXState.pushDrawCallName("DebugCamera")
-            GFXState.pushDrawCallName("DrawScene")
-            view.prepareDrawScene(w, h, w.toFloat() / h, camera, false)
-            view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
-            GFXState.popDrawCallName()
+            timeRendering("DrawScene", drawSceneTimer) {
+                view.prepareDrawScene(w, h, w.toFloat() / h, camera, false)
+                view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
+            }
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
-            // prepareDrawScene needs to be reset afterward, because we seem to have a kind-of-bug somewhere
-            val camera2 = view.editorCamera
-            view.prepareDrawScene(
-                view.width, view.height,
-                view.width.toFloat() / view.height,
-                camera2, false
-            )
-            GFXState.popDrawCallName()
         }
+    }
+
+    fun showTimeRecords(rv: Panel) {
+        val records = GFXState.timeRecords
+        var total = 0L
+        for (i in records.indices) {
+            val record = records[i]
+            drawTime(rv, i, record.name, record.deltaNanos)
+            total += record.deltaNanos
+        }
+        drawTime(rv, records.size, "Total", total)
+        records.clear()
+    }
+
+    private fun drawTime(rv: Panel, i: Int, name: String, time: Long) {
+        val y = rv.y + i * monospaceFont.sizeInt
+        drawSimpleTextCharByChar(
+            rv.x + rv.width, y, 1, "$name: ${(time / 1e6).f3()} ms",
+            AxisAlignment.MAX, AxisAlignment.MIN
+        )
     }
 
     fun drawDebugShapes(view: RenderView) {
@@ -375,18 +394,18 @@ object DebugRendering {
         val cols = colsRows.x
         val rows = colsRows.y
 
-        GFXState.pushDrawCallName("Scene")
-        view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
-        GFXState.popDrawCallName()
+        timeRendering("Scene", drawSceneTimer) {
+            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
+        }
 
-        GFXState.pushDrawCallName("Gizmos")
-        view.drawGizmos(buffer, true)
-        GFXState.popDrawCallName()
+        timeRendering("Gizmos", drawGizmoTimer) {
+            view.drawGizmos(buffer, true)
+        }
 
-        GFXState.pushDrawCallName("Light")
-        val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
-        GFXState.popDrawCallName()
+        timeRendering("Light", drawLightsTimer) {
+            val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+            view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
+        }
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
@@ -435,7 +454,7 @@ object DebugRendering {
                 x12, y12
             ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
             // draw title
-            DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
+            drawSimpleTextCharByChar(x02, y02, 2, texture.name)
             GFXState.popDrawCallName()
         }
         DrawTexts.popBetterBlending(pbb)
@@ -452,18 +471,18 @@ object DebugRendering {
         val cols = colsRows.x
         val rows = colsRows.y
 
-        GFXState.pushDrawCallName("Scene")
-        view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
-        GFXState.popDrawCallName()
+        timeRendering("Scene", drawSceneTimer) {
+            view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
+        }
 
-        GFXState.pushDrawCallName("Gizmos")
-        view.drawGizmos(buffer, true)
-        GFXState.popDrawCallName()
+        timeRendering("Gizmos", drawGizmoTimer) {
+            view.drawGizmos(buffer, true)
+        }
 
-        GFXState.pushDrawCallName("Lights")
-        val depthTex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask!!, light)
-        GFXState.popDrawCallName()
+        timeRendering("Lights", drawLightsTimer) {
+            val depthTex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+            view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask!!, light)
+        }
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
@@ -524,7 +543,7 @@ object DebugRendering {
                     null, applyTonemapping
                 )
             }
-            DrawTexts.drawSimpleTextCharByChar(
+            drawSimpleTextCharByChar(
                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                 name, AxisAlignment.CENTER, AxisAlignment.CENTER
             )

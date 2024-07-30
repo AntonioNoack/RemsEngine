@@ -1,8 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -16,12 +15,11 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.maths.Maths.clamp
 import org.joml.Vector2f
 import org.joml.Vector3f
 
-class GodRaysNode : ActionNode(
+class GodRaysNode : TimedRenderingNode(
     "God Rays",
     listOf(
         "Int", "Samples",
@@ -56,27 +54,26 @@ class GodRaysNode : ActionNode(
         val color = (getInput(5) as? Texture)?.texOrNull ?: return
         val depth = (getInput(6) as? Texture)?.texOrNull ?: return
 
-        pushDrawCallName(name)
-        useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
-            val shader = shader
-            shader.use()
-            GFX.check()
-            color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-            depth.bindTrulyNearest(1)
-            GFX.check()
-            shader.v3f("intensity", sunColor)
-            shader.v3f("falloff", falloff)
-            shader.v1i("samples", samples)
-            shader.v2f("lightPos", sunPosition)
-            shader.v1f("maxDensity", 1f) // >= 1f // todo what is this?
-            GFX.check()
-            SimpleBuffer.flat01.draw(shader)
-            GFX.check()
+        timeRendering(name, timer) {
+            useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
+                val shader = shader
+                shader.use()
+                GFX.check()
+                color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                depth.bindTrulyNearest(1)
+                GFX.check()
+                shader.v3f("intensity", sunColor)
+                shader.v3f("falloff", falloff)
+                shader.v1i("samples", samples)
+                shader.v2f("lightPos", sunPosition)
+                shader.v1f("maxDensity", 1f) // >= 1f // todo what is this?
+                GFX.check()
+                SimpleBuffer.flat01.draw(shader)
+                GFX.check()
+            }
+            val result = framebuffer.getTexture0()
+            setOutput(1, Texture(result))
         }
-
-        val result = framebuffer.getTexture0()
-        setOutput(1, Texture(result))
-        popDrawCallName()
     }
 
     companion object {

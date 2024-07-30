@@ -1,8 +1,7 @@
 package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -17,11 +16,10 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
 import me.anno.maths.Maths.clamp
 
-class MotionBlurNode : ActionNode(
+class MotionBlurNode : TimedRenderingNode(
     "Motion Blur",
     listOf(
         "Int", "Samples",
@@ -50,22 +48,22 @@ class MotionBlurNode : ActionNode(
         val color = (getInput(3) as? Texture)?.texOrNull ?: missingTexture
         val motion = (getInput(4) as? Texture)?.texOrNull ?: blackTexture
 
-        pushDrawCallName(name)
-        useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
-            val shader = shader
-            shader.use()
-            GFX.check()
-            color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-            motion.bindTrulyNearest(1)
-            GFX.check()
-            shader.v1i("maxSamples", samples)
-            shader.v1f("shutter", shutter)
-            GFX.check()
-            SimpleBuffer.flat01.draw(shader)
-            GFX.check()
+        timeRendering(name, timer) {
+            useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
+                val shader = shader
+                shader.use()
+                GFX.check()
+                color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                motion.bindTrulyNearest(1)
+                GFX.check()
+                shader.v1i("maxSamples", samples)
+                shader.v1f("shutter", shutter)
+                GFX.check()
+                SimpleBuffer.flat01.draw(shader)
+                GFX.check()
+            }
+            setOutput(1, Texture.texture(framebuffer, 0))
         }
-        setOutput(1, Texture.texture(framebuffer, 0))
-        popDrawCallName()
     }
 
 

@@ -14,11 +14,13 @@ import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.input.Input
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -37,7 +39,7 @@ import kotlin.math.abs
 class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     @NotSerializedProperty
-    var lastBuffer: Framebuffer? = null
+    var framebuffer: Framebuffer? = null
     var samples = 1
     var usesFP = true
 
@@ -48,6 +50,8 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     var near = 0.001
     var far = 1e3
+
+    val timer = GPUClockNanos()
 
     // todo everything lags behind 1 frame -> this needs to be calculated after the camera position has been calculated!!!
     override fun onUpdate() {
@@ -100,8 +104,8 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
-                lastBuffer?.destroy()
-                lastBuffer = null
+                framebuffer?.destroy()
+                framebuffer = null
                 return
             }
         }
@@ -157,12 +161,12 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         // is that worth it?
         // todo cut frustum into local area by bounding box
 
-        val buffer = lastBuffer ?: Framebuffer(
+        val buffer = framebuffer ?: Framebuffer(
             "planarReflection", w, h, samples,
             if (usesFP) TargetType.Float32x3
             else TargetType.UInt8x3, DepthBufferType.INTERNAL
         )
-        lastBuffer = buffer
+        framebuffer = buffer
 
         // find the correct sub-frame of work: we don't need to draw everything
         val aabb = findRegion(tmpAABB, cameraMatrix0, transform, cameraPosition)
@@ -180,20 +184,20 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
 
             if (x1 > x0 && y1 > y0) {
-                GFXState.pushDrawCallName(className)
-                useFrame(w, h, true, buffer, pbrRenderer) {
-                    GFXState.ditherMode.use(ditherMode) {
-                        GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
-                            GFXState.scissorTest.use(true) {
-                                glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
-                                // todo why is the normal way to draw the sky failing its depth test?
-                                clearSky(pipeline)
-                                pipeline.singlePassWithSky(false)
+                timeRendering(className, timer) {
+                    useFrame(w, h, true, buffer, pbrRenderer) {
+                        GFXState.ditherMode.use(ditherMode) {
+                            GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
+                                GFXState.scissorTest.use(true) {
+                                    glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
+                                    // todo why is the normal way to draw the sky failing its depth test?
+                                    clearSky(pipeline)
+                                    pipeline.singlePassWithSky(false)
+                                }
                             }
                         }
                     }
                 }
-                GFXState.popDrawCallName()
             }
         }
     }
@@ -238,8 +242,9 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     override fun destroy() {
         super.destroy()
-        lastBuffer?.destroy()
-        lastBuffer = null
+        framebuffer?.destroy()
+        framebuffer = null
+        timer?.destroy()
     }
 
     override fun copyInto(dst: PrefabSaveable) {

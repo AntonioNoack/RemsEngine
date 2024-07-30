@@ -5,11 +5,11 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -95,7 +95,6 @@ open class RenderDeferredNode : RenderViewNode(
 
     override fun invalidate() {
         settings = null
-        framebuffer?.destroy()
         for ((_, v) in shaders) v.first.destroy()
         shaders.clear()
     }
@@ -103,7 +102,10 @@ open class RenderDeferredNode : RenderViewNode(
     private var settings: DeferredSettings? = null
     lateinit var renderer: Renderer
 
-    fun defineFramebuffer() {
+    /**
+     * returns null, if there aren't any outputs
+     * */
+    fun defineFramebuffer(): IFramebuffer? {
         var settings = settings
         val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
         if (settings == null || framebuffer?.samples != samples) {
@@ -119,7 +121,7 @@ open class RenderDeferredNode : RenderViewNode(
             // this node does nothing -> just return
             if (enabledLayers.isEmpty()) {
                 LOGGER.warn("$name does nothing")
-                return
+                return null
             }
 
             if (GFX.supportsDepthTextures) {
@@ -142,6 +144,7 @@ open class RenderDeferredNode : RenderViewNode(
             )
         }
         createNewFramebuffer(settings, samples)
+        return framebuffer
     }
 
     open fun createNewFramebuffer(settings: DeferredSettings, samples: Int) {
@@ -160,20 +163,15 @@ open class RenderDeferredNode : RenderViewNode(
             return
         }
 
-        defineFramebuffer()
-        val framebuffer = framebuffer ?: return // can be null, when there aren't any outputs
-
-        pushDrawCallName("$name-$stage")
-        bakeSkybox()
-
-        copyInputsOrClear(framebuffer)
-        bind(framebuffer) {
-            render()
+        val framebuffer = defineFramebuffer() ?: return
+        timeRendering("$name-$stage", timer) {
+            bakeSkybox()
+            copyInputsOrClear(framebuffer)
+            bind(framebuffer) {
+                render()
+            }
+            setOutputs(framebuffer)
         }
-
-        setOutputs(framebuffer)
-
-        popDrawCallName()
     }
 
     fun bind(framebuffer: IFramebuffer, run: () -> Unit) {

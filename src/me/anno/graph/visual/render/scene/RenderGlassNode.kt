@@ -3,8 +3,7 @@ package me.anno.graph.visual.render.scene
 import me.anno.engine.ui.render.Renderers.pbrRendererNoDepth
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -57,30 +56,30 @@ class RenderGlassNode : RenderViewNode(
         if (width < 1 || height < 1) return
 
         val stage = getInput(4) as PipelineStage
-        pushDrawCallName("$name-$stage")
-        // val sorting = getInput(5) as Int
-        // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getBoolInput(7)
+        timeRendering("$name-$stage", timer) {
+            // val sorting = getInput(5) as Int
+            // val cameraIndex = getInput(6) as Int
+            val applyToneMapping = getBoolInput(7)
 
-        val framebuffer = FBStack["scene-glass",
-            width, height, TargetType.Float16x4,
-            samples, DepthBufferType.INTERNAL]
+            val framebuffer = FBStack["scene-glass",
+                width, height, TargetType.Float16x4,
+                samples, DepthBufferType.INTERNAL]
 
-        val prepassColor = (getInput(10) as? Texture)?.texOrNull ?: whiteTexture
-        val prepassDepth = (getInput(11) as? Texture)?.texOrNull
+            val prepassColor = (getInput(10) as? Texture)?.texOrNull ?: whiteTexture
+            val prepassDepth = (getInput(11) as? Texture)?.texOrNull
 
-        pipeline.applyToneMapping = applyToneMapping
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            defineInputs(framebuffer, prepassColor, prepassDepth)
-            val stageImpl = pipeline.stages.getOrNull(stage.id)
-            if (stageImpl != null && !stageImpl.isEmpty()) {
-                pipeline.transparentPass.blendTransparentStage(pipeline, stageImpl, prepassColor)
+            pipeline.applyToneMapping = applyToneMapping
+            GFXState.useFrame(width, height, true, framebuffer, renderer) {
+                defineInputs(framebuffer, prepassColor, prepassDepth)
+                val stageImpl = pipeline.stages.getOrNull(stage.id)
+                if (stageImpl != null && !stageImpl.isEmpty()) {
+                    pipeline.transparentPass.blendTransparentStage(pipeline, stageImpl, prepassColor)
+                }
+                GFX.check()
             }
-            GFX.check()
-        }
 
-        setOutput(1, Texture.texture(framebuffer, 0))
-        popDrawCallName()
+            setOutput(1, Texture.texture(framebuffer, 0))
+        }
     }
 
     fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {

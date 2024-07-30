@@ -2,14 +2,14 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.alwaysDepthMode
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -33,19 +33,26 @@ class SmoothNormalsNode : ActionNode(
         setInput(1, 1f) // radius
     }
 
+    val timer = GPUClockNanos()
+
     override fun executeAction() {
         val radius = getFloatInput(1)
         val normalTex = getInput(2) as? Texture ?: return
         val normal = normalTex.texOrNull ?: return
         val depth = (getInput(3) as? Texture)?.texOrNull ?: return
-        pushDrawCallName(name)
-        val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
-        val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
-        val value = if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
-            Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL)
-        } else normalTex
-        setOutput(1, value)
-        popDrawCallName()
+        timeRendering(name, timer) {
+            val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
+            val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
+            val value = if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
+                Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL)
+            } else normalTex
+            setOutput(1, value)
+        }
+    }
+
+    override fun destroy() {
+        super.destroy()
+        timer.destroy()
     }
 
     companion object {

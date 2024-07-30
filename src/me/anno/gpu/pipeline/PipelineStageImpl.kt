@@ -277,7 +277,7 @@ class PipelineStageImpl(
                 var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
                     // todo check if reflection can be visible
                     // doubleSided || it.transform!!.getDrawMatrix().transformDirection(0,0,1).dot(camDirection) > camPos.dot(camDir) (?)
-                    val buffer = it.lastBuffer
+                    val buffer = it.framebuffer
                     buffer != null && buffer.pointer != 0
                 }
                 if (minVolume > 1e-308) candidates = candidates.filter {
@@ -297,7 +297,7 @@ class PipelineStageImpl(
 
             shader.v1b("hasReflectionPlane", bestPr != null)
             if (bestPr != null) {
-                val tex = bestPr.lastBuffer!!
+                val tex = bestPr.framebuffer!!
                 tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
                 val normal = bestPr.globalNormal
                 shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
@@ -657,7 +657,7 @@ class PipelineStageImpl(
         GFXState.animated.use(hasAnimation) {
             GFXState.vertexData.use(mesh.vertexData) {
 
-                oc?.start()
+                val ocq = oc?.start()
 
                 val shader = getShader(material)
                 shader.use()
@@ -728,7 +728,7 @@ class PipelineStageImpl(
                     mesh.draw(pipeline, shader, materialIndex, Mesh.drawDebugLines)
                 }
 
-                oc?.stop()
+                oc?.stop(ocq!!)
 
                 drawnPrimitives += mesh.numPrimitives
                 drawnInstances++

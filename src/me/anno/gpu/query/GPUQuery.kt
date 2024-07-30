@@ -2,6 +2,7 @@ package me.anno.gpu.query
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.maths.Maths
 import org.lwjgl.opengl.GL46C
 import kotlin.math.max
@@ -9,11 +10,12 @@ import kotlin.math.max
 open class GPUQuery(
     val target: Int,
     var everyNthFrame: Int = 4 // for frame counter, which is used by OcclusionQuery
-) : ICacheData {
+) : QueryBase(), ICacheData {
 
     companion object {
         private const val cap = 4
         private const val capM1 = cap - 1
+        val isTimerActive = HashSet<Int>()
     }
 
     private var ids: IntArray? = null // could be inlined into four integers
@@ -21,25 +23,31 @@ open class GPUQuery(
     var readSlot = 0
     var writeSlot = 0
     var frameCounter = 0
+    var session = 0
 
-    var sum = 0L
-    var weight = 0L
-
-    fun start() {
-        var ids = ids
-        if (ids == null) {
-            ids = IntArray(cap)
-            GL46C.glGenQueries(ids)
-            frameCounter = -(Maths.random() * everyNthFrame).toInt() // randomness to spread out the load
-            this.ids = ids
+    fun start(): Boolean {
+        if (target in isTimerActive) {
+            return false
         }
-        GL46C.glBeginQuery(target, ids[writeSlot.and(capM1)])
+        var queryIds = ids
+        if (queryIds == null || session != GFXState.session) {
+            queryIds = IntArray(cap)
+            GL46C.glGenQueries(queryIds)
+            frameCounter = -(Maths.random() * everyNthFrame).toInt() // randomness to spread out the load
+            session = GFXState.session
+            ids = queryIds
+        }
+        GL46C.glBeginQuery(target, queryIds[writeSlot.and(capM1)])
+        return isTimerActive.add(target)
     }
 
-    fun stop() {
-        GL46C.glEndQuery(target)
-        update()
-        writeSlot++
+    fun stop(hasBeenActive: Boolean) {
+        if (hasBeenActive) {
+            isTimerActive.remove(target)
+            GL46C.glEndQuery(target)
+            update()
+            writeSlot++
+        }
     }
 
     fun reset() {
@@ -50,38 +58,14 @@ open class GPUQuery(
         writeSlot = 0
     }
 
-    fun scaleWeight(multiplier: Float = 0.1f) {
-        val oldWeight = weight
-        if (oldWeight > 1L || multiplier > 1f) {
-            val newWeight = max(1L, (oldWeight * multiplier).toLong())
-            sum = sum * newWeight / oldWeight
-            weight = newWeight
-        }
-    }
-
     override fun destroy() {
         GFX.checkIsGFXThread()
-        val ids = ids
-        if (ids != null) {
-            GL46C.glDeleteQueries(ids)
-            this.ids = null
+        val queryIds = ids
+        if (queryIds != null && session == GFXState.session) {
+            GL46C.glDeleteQueries(queryIds)
         }
+        this.ids = null
     }
-
-    var lastResult = -1L
-
-    val average
-        get(): Long {
-            update()
-            val w = weight
-            return if (w <= 0L) 0L else sum / w
-        }
-
-    val result
-        get(): Long {
-            update()
-            return lastResult
-        }
 
     fun update() {
         val ids = ids ?: return

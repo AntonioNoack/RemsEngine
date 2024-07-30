@@ -28,8 +28,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredLayerType
@@ -48,6 +47,7 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
@@ -99,13 +99,16 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     var transparentPass: TransparentPass = GlassPass()
 
+    val skyTimer = GPUClockNanos()
+    val skyboxTimer = GPUClockNanos()
+
     fun disableReflectionCullingPlane() {
         reflectionCullingPlane.set(0.0, 0.0, 0.0, 0.0)
     }
 
     fun findStage(material: Material): PipelineStageImpl {
         val stage0 = material.pipelineStage.id
-        for (i in stages.size .. stage0) {
+        for (i in stages.size..stage0) {
             stages.add(
                 when (stages.size) {
                     OPAQUE_PASS.id -> defaultStage
@@ -150,7 +153,12 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         addMeshInstanced(mesh, renderer, materialOverrides, transform)
     }
 
-    fun addMeshInstanced(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, transform: Transform) {
+    fun addMeshInstanced(
+        mesh: IMesh,
+        renderer: Component,
+        materialOverrides: List<FileReference>?,
+        transform: Transform
+    ) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val superMaterial = superMaterial
@@ -179,11 +187,13 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun bakeSkybox(resolution: Int) {
-        if (resolution <= 0) {
-            return
+        if (resolution <= 0) return
+        timeRendering("BakeSkybox", skyboxTimer) {
+            bakeSkybox0(resolution)
         }
+    }
 
-        pushDrawCallName("BakeSkybox")
+    private fun bakeSkybox0(resolution: Int) {
         val self = RenderView.currentInstance
         val renderMode = self?.renderMode
         if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
@@ -236,7 +246,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         if (renderMode != null) {
             self.renderMode = renderMode
         }
-        popDrawCallName()
     }
 
     fun destroyBakedSkybox() {
@@ -248,6 +257,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         bakedSkybox?.destroy()
         bakedSkybox = null
         transparentPass.destroy()
+        skyTimer.destroy()
+        skyboxTimer.destroy()
     }
 
     fun singlePassWithSky(drawSky: Boolean) {
@@ -296,7 +307,10 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun drawSky0() {
-        pushDrawCallName("DrawSky")
+        timeRendering("DrawSky", skyTimer, ::drawSky1)
+    }
+
+    private fun drawSky1() {
         val sky = skybox
         val mesh = sky.getMesh()
         val allAABB = JomlPools.aabbd.create()
@@ -322,7 +336,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
             mesh.draw(this, shader, i)
         }
         JomlPools.aabbd.sub(1)
-        popDrawCallName()
     }
 
     fun clear() {

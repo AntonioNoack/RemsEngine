@@ -7,6 +7,7 @@ import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
+import me.anno.gpu.debug.TimeRecord
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -14,11 +15,13 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.framebuffer.NullFramebuffer
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
+import me.anno.utils.InternalAPI
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
@@ -398,5 +401,24 @@ object GFXState {
         }
     }
 
+    inline fun timeRendering(name: String, timer: GPUClockNanos?, runRendering: () -> Unit) {
+        pushDrawCallName(name)
+        timer?.start()
+        runRendering()
+        stopTimer(name, timer)
+        popDrawCallName()
+    }
+
+    @InternalAPI
+    fun stopTimer(name: String, timer: GPUClockNanos?) {
+        timer ?: return
+        timer.stop()
+        if (timer.lastResult >= 0L) {
+            timeRecords.add(TimeRecord(name, timer.lastResult))
+        }
+    }
+
     const val PUSH_DEBUG_GROUP_MAGIC = -93 // just some random number, that's unlikely to appear otherwise
+
+    val timeRecords = ArrayList<TimeRecord>()
 }

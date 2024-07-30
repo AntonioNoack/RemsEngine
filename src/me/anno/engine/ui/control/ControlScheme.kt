@@ -20,6 +20,7 @@ import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
+import me.anno.engine.ui.render.DebugRendering
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -376,6 +377,9 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         parseTouchInput()
         makeBackgroundTransparent()
         super.onDraw(x0, y0, x1, y1)
+        if (settings.showRenderTimes) {
+            DebugRendering.showTimeRecords(this)
+        }
         checkMovement()
     }
 

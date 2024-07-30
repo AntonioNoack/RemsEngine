@@ -1,15 +1,14 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState
-import me.anno.gpu.shader.effects.Bloom
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.effects.Bloom
 import me.anno.graph.visual.render.Texture
-import me.anno.graph.visual.actions.ActionNode
 
-class BloomNode : ActionNode(
+class BloomNode : TimedRenderingNode(
     "Bloom",
     listOf(
         "Float", "Offset",
@@ -31,15 +30,15 @@ class BloomNode : ActionNode(
         val applyToneMapping = getBoolInput(3)
         val colorT = getInput(4) as? Texture ?: return
         val colorTT = colorT.texOrNull ?: return
-        val colorMT = if(applyToneMapping) colorT.texMSOrNull ?: colorTT else colorTT
+        val colorMT = if (applyToneMapping) colorT.texMSOrNull ?: colorTT else colorTT
 
-        GFXState.pushDrawCallName(name)
-        val target = if (applyToneMapping) TargetType.UInt8x4 else TargetType.Float16x4
-        val result = FBStack[name, colorTT.width, colorTT.height, target, 1, DepthBufferType.NONE]
-        useFrame(result) {
-            Bloom.bloom(colorTT, colorMT, offset, strength, applyToneMapping)
+        timeRendering(name, timer) {
+            val target = if (applyToneMapping) TargetType.UInt8x4 else TargetType.Float16x4
+            val result = FBStack[name, colorTT.width, colorTT.height, target, 1, DepthBufferType.NONE]
+            useFrame(result) {
+                Bloom.bloom(colorTT, colorMT, offset, strength, applyToneMapping)
+            }
+            setOutput(1, Texture(result.getTexture0()))
         }
-        setOutput(1, Texture(result.getTexture0()))
-        GFXState.popDrawCallName()
     }
 }

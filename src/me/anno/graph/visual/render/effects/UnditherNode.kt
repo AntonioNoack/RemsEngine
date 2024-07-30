@@ -1,7 +1,6 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFXState.popDrawCallName
-import me.anno.gpu.GFXState.pushDrawCallName
+import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -41,19 +40,19 @@ class UnditherNode : RenderViewNode(
         val height = depthT.height
         val samples = 1
 
-        pushDrawCallName(name)
-        val framebuffer = FBStack[name, width, height, 4, colorT.isHDR, samples, DepthBufferType.NONE]
-        useFrame(framebuffer, copyRenderer) {
-            val shader = shader
-            shader.use()
-            bindDepthUniforms(shader)
-            shader.v2f("duv", 1f / width, 1f / height)
-            colorT.bindTrulyNearest(shader, "colorTex")
-            depthT.bindTrulyNearest(shader, "depthTex")
-            flat01.draw(shader)
+        timeRendering(name, timer) {
+            val framebuffer = FBStack[name, width, height, 4, colorT.isHDR, samples, DepthBufferType.NONE]
+            useFrame(framebuffer, copyRenderer) {
+                val shader = shader
+                shader.use()
+                bindDepthUniforms(shader)
+                shader.v2f("duv", 1f / width, 1f / height)
+                colorT.bindTrulyNearest(shader, "colorTex")
+                depthT.bindTrulyNearest(shader, "depthTex")
+                flat01.draw(shader)
+            }
+            setOutput(1, Texture.texture(framebuffer, 0))
         }
-        setOutput(1, Texture.texture(framebuffer, 0))
-        popDrawCallName()
     }
 
     companion object {
@@ -92,6 +91,7 @@ class UnditherNode : RenderViewNode(
                     "   result = vec4(color,1.0);\n" +
                     "}\n"
         )
+
         init {
             shader.ignoreNameWarnings("d_camRot,d_uvCenter")
         }
