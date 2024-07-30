@@ -117,6 +117,10 @@ open class Shader(
                 VariableMode.OUT -> "out"
             }
             v.declare(builder, prefix, false)
+            if (prefix == "uniform") {
+                // todo if types are incompatible, warn
+                uniformTypes[v.name] = v
+            }
         }
         for (v in varyings) {
             builder.append(v.modifiers)
@@ -155,8 +159,8 @@ open class Shader(
             a.type.compareTo(b.type).ifSame(a.name.compareTo(b.name))
         }) {
             val prefix = when (v.inOutMode) {
-                VariableMode.IN, VariableMode.INOUT, VariableMode.INMOD -> "uniform"
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
+                VariableMode.IN, VariableMode.INOUT, VariableMode.INMOD -> "uniform"
                 VariableMode.OUT -> {
                     val slot = if (v.slot < 0) outCtr else v.slot
                     builder.append("layout(location=").append(slot).append(") ")
@@ -165,6 +169,10 @@ open class Shader(
                 }
             }
             v.declare(builder, prefix, false)
+            if (prefix == "uniform") {
+                // todo if types are incompatible, warn
+                uniformTypes[v.name] = v
+            }
         }
 
         val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion &&

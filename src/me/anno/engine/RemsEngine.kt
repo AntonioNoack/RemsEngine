@@ -249,7 +249,6 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
         getWelcomeUI().create(this)
 
         Installer.checkFFMPEGInstall()
-        ShaderLib.init()
 
         val windowStack = GFX.windows.first().windowStack
         ECSSceneTabs.window = windowStack.firstElement()

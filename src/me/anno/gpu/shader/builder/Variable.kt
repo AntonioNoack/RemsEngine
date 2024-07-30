@@ -65,7 +65,7 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
             // define normal variable
             if (prefix != null) code.append(prefix).append(' ')
             code.append(type.glslName)
-            if (arraySize >= 0) {
+            if (isArray) {
                 code.append('[').append(arraySize).append(']')
             }
             code.append(' ').append(name)
@@ -119,4 +119,5 @@ open class Variable(val type: GLSLType, var name: String, var arraySize: Int, va
     val isInput get() = inOutMode != VariableMode.OUT
     val isOutput get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT
     val isModified get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT || inOutMode == VariableMode.INMOD
+    val isArray get() = arraySize >= 0
 }

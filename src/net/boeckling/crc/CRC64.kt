@@ -50,12 +50,13 @@ object CRC64 {
      */
     @JvmStatic
     fun update(b: ByteArray, offset: Int, length: Int, value0: Long): Long {
-        var remaining = length
+        val end = offset + length
+        val endM7 = end - 7
         var value = value0.inv()
 
         /* fast middle processing, 8 bytes (aligned!) per loop */
         var i = offset
-        while (remaining >= 8) {
+        while (i < endM7) {
             value = table[0x700 + getValue(value, b[i])] xor
                     table[0x600 + getValue(value ushr 8, b[i + 1])] xor
                     table[0x500 + getValue(value ushr 16, b[i + 2])] xor
@@ -65,14 +66,11 @@ object CRC64 {
                     table[0x100 + getValue(value ushr 48, b[i + 6])] xor
                     table[0x000 + getValue(value ushr 56, b[i + 7])]
             i += 8
-            remaining -= 8
         }
 
         // process remaining bytes (can't be larger than 8)
-        while (remaining > 0) {
-            value = table[getValue(value, b[i])] xor (value ushr 8)
-            i++
-            remaining--
+        while (i < end) {
+            value = table[getValue(value, b[i++])] xor (value ushr 8)
         }
         value = value.inv()
         return value

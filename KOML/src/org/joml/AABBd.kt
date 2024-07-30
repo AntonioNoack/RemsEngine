@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 class AABBd(
     var minX: Double, var minY: Double, var minZ: Double,
     var maxX: Double, var maxY: Double, var maxZ: Double
-): Vector() {
+) : Vector() {
 
     constructor(base: AABBd) : this(base.minX, base.minY, base.minZ, base.maxX, base.maxY, base.maxZ)
     constructor(min: Double, max: Double) : this(min, min, min, max, max, max)
@@ -55,6 +55,14 @@ class AABBd(
         maxY = y
         maxZ = z
         return this
+    }
+
+    fun set(v: Vector3d): AABBd {
+        return set(v.x, v.y, v.z)
+    }
+
+    fun set(x: Double, y: Double, z: Double): AABBd {
+        return setMin(x, y, z).setMax(x, y, z)
     }
 
     fun getMin(dim: Int) =
@@ -389,13 +397,14 @@ class AABBd(
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun addMargin(r: Double) {
+    fun addMargin(r: Double): AABBd {
         minX -= r
         minY -= r
         minZ -= r
         maxX += r
         maxY += r
         maxZ += r
+        return this
     }
 
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {

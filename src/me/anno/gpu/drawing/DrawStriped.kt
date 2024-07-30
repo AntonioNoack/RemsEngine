@@ -11,7 +11,7 @@ import org.joml.Vector4f
 
 object DrawStriped {
 
-    val flatShaderStriped = BaseShader(
+    val flatShaderStriped = Shader(
         "flatShaderStriped", FlatShaders.coordsPosSize, FlatShaders.coordsPosSizeVShader,
         emptyList(), listOf(
             Variable(GLSLType.V4F, "color"),
@@ -28,22 +28,22 @@ object DrawStriped {
     @Suppress("unused")
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
-        val shader = flatShaderStriped.value
+        val shader = flatShaderStriped
         shader.use()
         shader.v4f("color", color)
-        drawRectStriped(x, y, w, h, offset, stride, shader)
+        drawRectStriped(x, y, w, h, offset, stride)
     }
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Int) {
         if (w == 0 || h == 0) return
-        val shader = flatShaderStriped.value
+        val shader = flatShaderStriped
         shader.use()
         shader.v4f("color", color)
-        drawRectStriped(x, y, w, h, offset, stride, shader)
+        drawRectStriped(x, y, w, h, offset, stride)
     }
 
-    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, shader: Shader) {
-        if (w == 0 || h == 0) return
+    private fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int) {
+        val shader = flatShaderStriped
         GFX.check()
         GFXx2D.posSize(shader, x, y, w, h)
         var o = offset % stride
@@ -53,5 +53,4 @@ object DrawStriped {
         SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
-
 }

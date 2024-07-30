@@ -2,7 +2,7 @@ package net.sf.image4j.codec.ico
 
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
-import me.anno.utils.structures.CountingInputStream
+import java.io.InputStream
 
 /**
  * Represents an IconEntry structure, which contains information about an ICO image.
@@ -13,7 +13,7 @@ import me.anno.utils.structures.CountingInputStream
  * @author Ian McDonagh
  * @param input the source input
  */
-class IconEntry(input: CountingInputStream) {
+class IconEntry(input: InputStream) {
 
     /**
      * The width of the icon image in pixels.
@@ -66,5 +66,4 @@ class IconEntry(input: CountingInputStream) {
     override fun toString(): String {
         return "width=$width,height=$height,bitCount=$bitCount,colorCount=$colorCount"
     }
-
 }

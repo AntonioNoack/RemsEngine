@@ -3,7 +3,7 @@ package net.sf.image4j.codec.bmp
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.skipN
-import me.anno.utils.structures.CountingInputStream
+import java.io.InputStream
 
 /**
  * Represents a bitmap InfoHeader structure, which provides header information.
@@ -35,7 +35,7 @@ class InfoHeader {
      */
     val numColors get() = 1 shl bitCount
 
-    constructor(input: CountingInputStream) {
+    constructor(input: InputStream) {
         width = input.readLE32()
         height = input.readLE32()
         /*planes = */input.readLE16()

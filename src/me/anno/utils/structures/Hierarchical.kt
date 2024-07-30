@@ -182,16 +182,16 @@ interface Hierarchical<V : Hierarchical<V>> {
     }
 
     @Suppress("unused")
-    fun breathFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
+    fun breadthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         if (processDisabled || isEnabled) {
-            val queue = ArrayList<V>()
+            val remaining = ArrayList<V>()
             val wasExplored = HashSet<V>()
             @Suppress("unchecked_cast")
-            queue.add(this as V)
+            remaining.add(this as V)
             wasExplored.add(this)
             var readIndex = 0
-            while (readIndex < queue.size) {
-                val v = queue[readIndex++]
+            while (readIndex < remaining.size) {
+                val v = remaining[readIndex++]
                 if (func(v)) return v
                 val children = children
                 for (i in children.indices) {
@@ -199,7 +199,7 @@ interface Hierarchical<V : Hierarchical<V>> {
                     if (processDisabled || child.isEnabled) {
                         if (child !in wasExplored) {
                             wasExplored.add(child)
-                            queue.add(child)
+                            remaining.add(child)
                         }
                     }
                 }

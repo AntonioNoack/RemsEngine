@@ -16,6 +16,8 @@ import me.anno.mesh.obj.SimpleOBJReader
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntilDefined
 import java.io.IOException
+import java.io.InputStream
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -55,19 +57,10 @@ object Logo {
 
         GFX.check()
 
-        // val logger = LogManager.getLogger("Logo")
-        // logger.info("Showing Engine Logo")
-
         // extend space left+right/top+bottom (zooming out a little)
-        val sw: Float
-        val sh: Float
-        if (width > height) {
-            sw = height.toFloat() / width
-            sh = 1f
-        } else {
-            sw = 1f
-            sh = width.toFloat() / height
-        }
+        val maxSize = max(width, height)
+        val sw = height.toFloat() / maxSize
+        val sh = width.toFloat() / maxSize
 
         val shader = shader
         shader.use()
@@ -114,15 +107,18 @@ object Logo {
             if (async) {
                 logoSrc.inputStream { i, e ->
                     e?.printStackTrace()
-                    mesh = if (i != null) SimpleOBJReader(i, logoSrc).mesh else null
-                    hasMesh = true
+                    readMesh(i)
                 }
             } else {
-                mesh = SimpleOBJReader(logoSrc.inputStreamSync(), logoSrc).mesh
-                hasMesh = true
+                readMesh(logoSrc.inputStreamSync())
             }
         }
         return mesh
+    }
+
+    private fun readMesh(i: InputStream?) {
+        mesh = if (i != null) SimpleOBJReader(i, logoSrc).mesh else null
+        hasMesh = true
     }
 
     fun drawLogo(shader: Shader): Boolean {
@@ -136,7 +132,6 @@ object Logo {
                 val async = OS.isWeb // must be async on Web; maybe Android too later
                 val mesh = getLogoMesh(async)
                 if (mesh != null) {
-                    mesh.ensureBuffer()
                     for (i in 0 until mesh.numMaterials) {
                         mesh.draw(null, shader, i)
                     }

@@ -36,7 +36,6 @@ class ExportedGame(val config: StringMap) : EngineBase(
         windowStack.add(Window(stack, false, windowStack))
 
         Installer.checkFFMPEGInstall()
-        ShaderLib.init()
 
         EngineActions.register()
         ActionManager.init()

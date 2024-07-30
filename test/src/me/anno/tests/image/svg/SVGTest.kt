@@ -9,7 +9,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
-import me.anno.gpu.drawing.SVGxGFX
+import me.anno.image.svg.DrawSVGs
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
@@ -72,7 +72,7 @@ fun main() {
                         // old method, uses specialized shader
                         val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!
                         val white = TextureLib.whiteTexture
-                        SVGxGFX.draw3DSVG(
+                        DrawSVGs.draw3DSVG(
                             transform, buffer, white,
                             white4, Filtering.NEAREST,
                             Clamping.CLAMP, null

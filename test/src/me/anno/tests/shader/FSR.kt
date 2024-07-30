@@ -22,8 +22,6 @@ fun main() {
     val src = pictures.getChild("Anime/90940211_p0_master1200.jpg")
     val texture = TextureCache[src, 10000, false]!!
 
-    ShaderLib.init()
-
     val size = 3
 
     val ow = texture.width * size

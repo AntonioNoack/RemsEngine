@@ -607,6 +607,7 @@ open class ECSTreeView(style: Style) : TreeView<Saveable>(
             val clazz = sample.className
             return when {
                 clazz.startsWith("SDF") -> "SDF"
+                clazz.startsWith("VR") -> "VR"
                 sample is LightComponentBase || sample is Skybox -> "Light"
                 clazz.startsWith("Text") -> "Text"
                 sample is MeshComponentBase -> "Mesh"

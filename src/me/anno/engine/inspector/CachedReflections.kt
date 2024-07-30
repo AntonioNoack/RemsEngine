@@ -220,10 +220,10 @@ class CachedReflections private constructor(
                                 methods.any { Modifier.isPublic(it.modifiers) && it.name == setterName })
                 val serialize = serial != null || (isPublic && notSerial == null)
                 var name = serial?.name
-                if (name.isNullOrEmpty()) name = field.name
+                if (name.isNullOrBlank()) name = field.name
                 if (name in map || name == null) continue
                 try {
-                    map[name] = saveField(field, name, serial, serialize, annotations.toList())
+                    map[name] = saveField(field, field.name, name, serial, serialize, annotations.toList())
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -249,9 +249,17 @@ class CachedReflections private constructor(
                     name.length > getterPrefix.length &&
                     name[getterPrefix.length] in 'A'..'Z'
                 ) {
-                    val betterName = if (includePrefixInName) name else {
+                    var betterName = if (includePrefixInName) name else {
                         name[getterPrefix.length].lowercaseChar() +
                                 name.substring(getterPrefix.length + 1)
+                    }
+                    val annotations = getterMethod.annotations.toMutableList()
+                    val kotlinAnnotationName = "$name\$annotations" // todo is this still correct???
+                    val m = methods.firstOrNull { it.name == kotlinAnnotationName }
+                    if (m != null) annotations += m.annotations.toList()
+                    val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
+                    if (serial != null && serial.name.isNotBlank()) {
+                        betterName = serial.name
                     }
                     if (betterName !in map) {
                         val setterName = setterPrefix + name.substring(getterPrefix.length)
@@ -259,11 +267,6 @@ class CachedReflections private constructor(
                             it.name == setterName && it.parameterCount == 1 &&
                                     it.parameters[0].type == getterMethod.returnType
                         }
-                        val annotations = getterMethod.annotations.toMutableList()
-                        val kotlinAnnotationName = "$name\$annotations" // todo is this still correct???
-                        val m = methods.firstOrNull { it.name == kotlinAnnotationName }
-                        if (m != null) annotations += m.annotations.toList()
-                        val serial = annotations.firstOrNull { it is SerializedProperty } as? SerializedProperty
                         val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)
                         val serialize = (serial != null || (isPublic && notSerial == null)) && setterMethod != null
@@ -282,7 +285,7 @@ class CachedReflections private constructor(
 
         private fun saveField(
             field: Field,
-            name: String,
+            javaName: String, savedName: String,
             serial: SerializedProperty?,
             serialize: Boolean,
             annotations: List<Annotation>
@@ -290,18 +293,18 @@ class CachedReflections private constructor(
             // save the field
             field.isAccessible = true
             val setterMethod = try {
-                field.declaringClass.getMethod("set${name.titlecase()}", field.type)
+                field.declaringClass.getMethod("set${javaName.titlecase()}", field.type)
             } catch (e: NoSuchMethodException) {
                 null
             }
             val getterMethod = try {
-                field.declaringClass.getMethod("get${name.titlecase()}")
+                field.declaringClass.getMethod("get${javaName.titlecase()}")
             } catch (e: NoSuchMethodException) {
                 null
             }
             return saveField(
                 field.declaringClass,
-                field.type, name, serial,
+                field.type, savedName, serial,
                 serialize && setterMethod != null, annotations,
                 if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
                 else field::get,

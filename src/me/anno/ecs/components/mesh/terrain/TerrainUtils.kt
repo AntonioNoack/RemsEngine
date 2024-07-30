@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
+import kotlin.math.max
 
 object TerrainUtils {
 
@@ -72,7 +73,7 @@ object TerrainUtils {
 
     fun generateQuadIndices(width: Int, height: Int, flipY: Boolean, mesh: Mesh) {
         var k = 0
-        val indexCount = (width - 1) * (height - 1) * 6
+        val indexCount = max(0, width - 1) * max(0, height - 1) * 6
         val indices = mesh.indices.resize(indexCount)
         mesh.indices = indices
         for (y in 0 until height - 1) {

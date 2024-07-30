@@ -16,7 +16,6 @@ import org.lwjgl.glfw.GLFW.glfwInit
 import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
 import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.GL
 
 /**
  * a class, which allows us to use OpenGL without visible window;
@@ -73,7 +72,7 @@ object HiddenOpenGLContext {
 
         window.makeCurrent()
         window.forceUpdateVsync()
-        GFXBase.capabilities = GL.createCapabilities()
+        GFXBase.prepareForRendering(null)
 
         GFX.check()
 

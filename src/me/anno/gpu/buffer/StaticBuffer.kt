@@ -12,15 +12,6 @@ open class StaticBuffer(
     var vertexCount: Int, usage: BufferUsage = BufferUsage.STATIC
 ) : Buffer(name, attributes, usage) {
 
-    constructor(name: String, points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) :
-            this(name, attributes, vertices.size) {
-        for (v in vertices) {
-            for (p in points[v]) {
-                put(p)
-            }
-        }
-    }
-
     constructor(name: String, points: FloatArray, vertices: IntArray, attributes: List<Attribute>) :
             this(name, attributes, vertices.size) {
         val dimPerPoint = attributes.sumOf { it.components }

@@ -17,8 +17,6 @@ fun main() {
 
     HiddenOpenGLContext.createOpenGL()
 
-    ShaderLib.init()
-
     ECSRegistry.init()
     Thumbs.useCacheFolder = true
 

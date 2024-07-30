@@ -73,8 +73,6 @@ fun smallRenderTest() {
 
     HiddenOpenGLContext.createOpenGL()
 
-    ShaderLib.init()
-
     ECSRegistry.init()
 
     Thumbs.useCacheFolder = true
@@ -129,9 +127,6 @@ m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
     val scene = projectPath.getChild("Assets/PolygonSciFiCity/Scenes/Demo_TriplanarDirt.unity/2130288114.json")
 
     HiddenOpenGLContext.createOpenGL()
-
-    ShaderLib.init()
-
     ECSRegistry.init()
 
     Thumbs.useCacheFolder = true
@@ -178,8 +173,6 @@ fun main() {
     val entityOfComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/1661159153272266.json")
 
     HiddenOpenGLContext.createOpenGL()*/
-
-    ShaderLib.init()
 
     ECSRegistry.init()
 

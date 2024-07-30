@@ -8,6 +8,7 @@ import me.anno.io.base.BaseWriter
  * these values don't need to be saved in text form,
  * because they can be set automatically
  * */
+@Suppress("unused") // is used lots in Rem's Studio
 class ValueWithDefaultFunc<V>(
     private var state: V?, private var default: () -> V
 ) {

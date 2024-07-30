@@ -350,24 +350,24 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
             if (vector2fState.isActive) {
                 val value = vector2fState.currentState()
                 controller.setAxisValue(
-                    window, 0, value.x(), dt,
+                    window, AXIS_THUMBSTICK_X, value.x(), dt,
                     keysByAxis[keyOffset + 0], keysByAxis[keyOffset + 1] // 0-3
                 )
                 controller.setAxisValue(
-                    window, 1, value.y(), dt,
+                    window, AXIS_THUMBSTICK_Y, value.y(), dt,
                     keysByAxis[keyOffset + 4], keysByAxis[keyOffset + 5] // 4-7
                 )
             }
 
             val grab = getFloatStateOrNaN(grabAction, handPath)
             controller.setAxisValue(
-                window, 2, grab, dt,
+                window, AXIS_TRIGGER, grab, dt,
                 Key.KEY_UNKNOWN, keysByAxis[keyOffset + 9] // 8-11
             )
 
             val squeeze = getFloatStateOrNaN(squeezeAction, handPath)
             controller.setAxisValue(
-                window, 3, squeeze, dt,
+                window, AXIS_SQUEEZE, squeeze, dt,
                 Key.KEY_UNKNOWN, keysByAxis[keyOffset + 11] // 12-15
             )
 
@@ -397,5 +397,12 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
                 buttonsTimers, i, engineButtons[i]
             )
         }
+    }
+
+    companion object {
+        const val AXIS_THUMBSTICK_X = 0
+        const val AXIS_THUMBSTICK_Y = 1
+        const val AXIS_TRIGGER = 2
+        const val AXIS_SQUEEZE = 3
     }
 }

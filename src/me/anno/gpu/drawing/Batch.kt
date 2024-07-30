@@ -3,7 +3,6 @@ package me.anno.gpu.drawing
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 
 /**
@@ -54,8 +53,8 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
         batchCount = 0
     }
 
-    fun finish(v: Int) {
-        if (v != 0) return
+    fun finish(batch: Int) {
+        if (batch != 0) return
         if (batchCount > 0) {
             draw()
         }

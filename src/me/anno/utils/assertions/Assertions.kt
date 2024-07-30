@@ -4,6 +4,14 @@ fun assertTrue(condition: Boolean, message: String = "condition failed") {
     if (!condition) throw IllegalStateException(message)
 }
 
+fun assertContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
+    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+}
+
+fun assertNotContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
+    if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
+}
+
 fun assertFalse(condition: Boolean, message: String = "condition failed") {
     if (condition) throw IllegalStateException(message)
 }

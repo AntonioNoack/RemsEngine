@@ -20,7 +20,6 @@ object TextureLib {
     val whiteCube = IndestructibleCubemap("whiteCube", 1, white1)
     val depthTexture = IndestructibleTexture2DArray("depth", 1, 1, 1, "depth")
     val depthCube = IndestructibleCubemap("depth", 1, "depth")
-    val stripeTexture = IndestructibleTexture2D("stripes", 5, 1, IntArray(5) { if (it == 2) -1 else 0xffffff })
     val colorShowTexture =
         IndestructibleTexture2D("color-show", 2, 2, intArrayOf(0xccffffff.toInt(), -1, -1, 0xccffffff.toInt()))
     val normalTexture = IndestructibleTexture2D("normal", 1, 1, byteArrayOf(127, 127, -1, -1))

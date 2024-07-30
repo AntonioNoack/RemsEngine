@@ -19,8 +19,6 @@ fun main() {
 
     HiddenOpenGLContext.createOpenGL()
 
-    ShaderLib.init()
-
     val srcFile = desktop.getChild("fox100.png")
     val testImage = ImageIO.read(srcFile.inputStreamSync())
     //BufferedImage(2, 2, 2)

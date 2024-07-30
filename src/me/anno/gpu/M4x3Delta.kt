@@ -60,7 +60,7 @@ object M4x3Delta {
 
             buffer16.position(0)
 
-            m4x3Array(uniformIndex, buffer16)
+            m4x3(uniformIndex, buffer16)
 
         }
     }
@@ -133,7 +133,7 @@ object M4x3Delta {
 
         buffer16.position(0)
 
-        m4x3Array(uniformIndex, buffer16)
+        m4x3(uniformIndex, buffer16)
 
     }
 
@@ -269,7 +269,7 @@ object M4x3Delta {
 
             buffer16.position(0)
 
-            m4x3Array(uniformIndex, buffer16)
+            m4x3(uniformIndex, buffer16)
 
         }
 

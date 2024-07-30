@@ -382,7 +382,6 @@ object GFX {
     @JvmStatic
     fun setup(tick: Clock?) {
         setupBasics(tick)
-        ShaderLib.init()
     }
 
     /**

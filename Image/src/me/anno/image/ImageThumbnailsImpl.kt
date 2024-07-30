@@ -1,6 +1,6 @@
 package me.anno.image
 
-import me.anno.gpu.drawing.SVGxGFX
+import me.anno.image.svg.DrawSVGs
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -23,7 +23,6 @@ import org.joml.Matrix4fArrayList
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 object ImageThumbnailsImpl {
 
@@ -90,7 +89,7 @@ object ImageThumbnailsImpl {
                                 srcFile, false, dstFile, false,
                                 Renderer.colorRenderer, false, callback, w, h
                             ) {
-                                SVGxGFX.draw3DSVG(
+                                DrawSVGs.draw3DSVG(
                                     transform, buffer,
                                     TextureLib.whiteTexture, Color.white4,
                                     Filtering.NEAREST, TextureLib.whiteTexture.clamping,

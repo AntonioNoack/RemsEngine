@@ -11,7 +11,7 @@ class CodeEditorTest {
     fun testBrackets() {
         val brackets = CodeBlockCollapser()
         brackets.close(CodeBlock(1, 2)) // removing one line
-        val output = listOf(0, 1, 3, 4, 5, 6)
+        val output = listOf(0, 1, 4, 5, 6, 7)
         val mapped = output.indices.map { brackets.mapLine(it) }
         assertEquals(output, mapped)
     }

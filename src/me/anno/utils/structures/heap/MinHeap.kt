@@ -60,10 +60,10 @@ open class MinHeap<Value>(
 
     fun remove(element: Value): Boolean {
         val i = indexOf(element)
-        if (i >= 0) {
+        return if (i >= 0) {
             removeAt(i)
-        }
-        return i >= 0
+            true
+        } else false
     }
 
     override fun contains(element: Value): Boolean {

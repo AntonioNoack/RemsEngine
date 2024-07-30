@@ -4,7 +4,6 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readLE32
 import me.anno.utils.assertions.assertEquals
-import me.anno.utils.structures.CountingInputStream
 import net.sf.image4j.Utils
 import java.io.EOFException
 import java.io.IOException
@@ -50,7 +49,7 @@ object BMPDecoder {
     }
 
     @JvmStatic
-    fun readInfoHeader(lis: CountingInputStream) = InfoHeader(lis)
+    fun readInfoHeader(lis: InputStream) = InfoHeader(lis)
 
     /**
      * Reads the BMP data from the given <tt>InputStream</tt> using the information
@@ -63,7 +62,7 @@ object BMPDecoder {
      * @throws java.io.IOException if an error occurs
      */
     @JvmStatic
-    fun read(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
+    fun read(infoHeader: InfoHeader, lis: InputStream): IntImage {
         // Color table (palette)
         var colorTable: IntArray? = null
         // color table is only present for 1, 4 or 8 bit (indexed) images
@@ -85,7 +84,7 @@ object BMPDecoder {
      * @throws java.io.IOException if any error occurs
      */
     @JvmStatic
-    fun read(infoHeader: InfoHeader, lis: CountingInputStream, colorTable: IntArray?): IntImage {
+    fun read(infoHeader: InfoHeader, lis: InputStream, colorTable: IntArray?): IntImage {
         val image = if (infoHeader.compression == BI_RGB) {
             when (infoHeader.bitCount) {
                 1 -> read1(infoHeader, lis, colorTable!!) // 1-bit (monochrome) uncompressed
@@ -101,7 +100,7 @@ object BMPDecoder {
     }
 
     @JvmStatic
-    private fun readColorTable(infoHeader: InfoHeader, lis: CountingInputStream) =
+    private fun readColorTable(infoHeader: InfoHeader, lis: InputStream) =
         IntArray(infoHeader.numColors) { lis.readLE32() }
 
     /**
@@ -109,7 +108,7 @@ object BMPDecoder {
      * palette entries in <tt>colorTable</tt>.
      */
     @JvmStatic
-    private fun read1(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
+    private fun read1(infoHeader: InfoHeader, lis: InputStream, colors: IntArray): IntImage {
         //1 bit per pixel or 8 pixels per byte
         //each pixel specifies the palette index
 
@@ -152,7 +151,7 @@ object BMPDecoder {
      * @throws IOException if an error occurs
      */
     @JvmStatic
-    private fun read4(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
+    private fun read4(infoHeader: InfoHeader, lis: InputStream, colors: IntArray): IntImage {
 
         // 2 pixels per byte or 4 bits per pixel.
         // Colour for each pixel specified by the color index in the palette.
@@ -199,7 +198,7 @@ object BMPDecoder {
      * @throws IOException if an error occurs
      */
     @JvmStatic
-    private fun read8(infoHeader: InfoHeader, lis: CountingInputStream, colors: IntArray): IntImage {
+    private fun read8(infoHeader: InfoHeader, lis: InputStream, colors: IntArray): IntImage {
 
         // 1 byte per pixel
         //  color index 1 (index of color in palette)
@@ -235,7 +234,7 @@ object BMPDecoder {
      * @throws IOException if an error occurs
      */
     @JvmStatic
-    private fun read24(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
+    private fun read24(infoHeader: InfoHeader, lis: InputStream): IntImage {
 
         // 3 bytes per pixel
         //  blue 1
@@ -276,7 +275,7 @@ object BMPDecoder {
      * @throws IOException if an error occurs
      */
     @JvmStatic
-    private fun read32(infoHeader: InfoHeader, lis: CountingInputStream): IntImage {
+    private fun read32(infoHeader: InfoHeader, lis: InputStream): IntImage {
         // 4 bytes per pixel
         // blue 1
         // green 1
@@ -303,32 +302,30 @@ object BMPDecoder {
     @JvmStatic
     fun read(input: InputStream): Image {
 
-        val lis = CountingInputStream(input)
-
         /* header [14] */
 
         // signature "BM" [2]
-        val s0 = lis.read()
-        val s1 = lis.read()
+        val s0 = input.read()
+        val s1 = input.read()
         if (s0 < 0 || s1 < 0) throw EOFException()
         if (s0 != 'B'.code || s1 != 'M'.code) {
             throw IOException("Invalid signature '${s0.toChar()}${s1.toChar()}' for BMP format")
         }
 
         // file size [4]
-        lis.readLE32()
+        input.readLE32()
 
         // reserved = 0 [4]
-        lis.readLE32()
+        input.readLE32()
 
         //DataOffset [4] file offset to raster data
-        lis.readLE32()
+        input.readLE32()
 
         /* info header [40] */
-        assertEquals(40, lis.readLE32()) // header size
-        val infoHeader = readInfoHeader(lis)
+        assertEquals(40, input.readLE32()) // header size
+        val infoHeader = readInfoHeader(input)
 
         /* Color table and Raster data */
-        return read(infoHeader, lis)
+        return read(infoHeader, input)
     }
 }

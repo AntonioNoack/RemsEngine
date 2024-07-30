@@ -190,10 +190,7 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(
-        x: Int, y: Int, w: Int, h: Int, texture: GPUFrame,
-        flipY: Boolean = false
-    ) {
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: GPUFrame, flipY: Boolean = false) {
         drawTexture(x, y, w, h, texture, Filtering.LINEAR, Clamping.CLAMP, flipY)
     }
 
@@ -209,7 +206,7 @@ object DrawTextures {
         shader.v4f("tint", white4)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        SimpleBuffer.flat01.draw(shader)
+        flat01.draw(shader)
         GFX.check()
     }
 

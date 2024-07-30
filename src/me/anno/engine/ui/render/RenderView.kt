@@ -123,7 +123,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     }
 
-    // todo move this to OrbitController
+    // todo move this to OrbitController?
     val orbitCenter = Vector3d()
     val orbitRotation = Quaterniond()
         .rotateX((-30.0).toRadians())

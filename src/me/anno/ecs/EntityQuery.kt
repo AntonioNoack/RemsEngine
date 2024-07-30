@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.utils.structures.Collections.filterIsInstance2
+import org.joml.AABBd
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -185,6 +186,16 @@ object EntityQuery {
         }
     }
 
+    fun <V : Any> Entity.forAllComponentsInChildrenAndBounds(
+        clazz: KClass<V>, bounds: AABBd, includingDisabled: Boolean,
+        callback: (V) -> Unit
+    ) {
+        anyComponentInChildrenAndBounds(clazz, bounds, includingDisabled) {
+            callback(it)
+            false
+        }
+    }
+
     fun <V : Any> Component.forAllComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         callback: (V) -> Unit
@@ -193,18 +204,26 @@ object EntityQuery {
     fun <V : Any> Entity.anyComponentInChildren(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
+    ) = anyComponentInChildrenAndBounds(clazz, null, includingDisabled, predicate)
+
+    fun <V : Any> Entity.anyComponentInChildrenAndBounds(
+        clazz: KClass<V>, bounds: AABBd?, includingDisabled: Boolean = false, predicate: (V) -> Boolean
     ): Boolean {
-        if (anyComponent(clazz, includingDisabled, predicate)) {
-            return true
-        }
-        val children = children
-        for (index in children.indices) {
-            val c = children[index]
-            if ((includingDisabled || c.isEnabled) && c.anyComponentInChildren(clazz, includingDisabled, predicate)) {
+        val remaining = ArrayList<Entity>()
+        remaining.add(this)
+        while (true) {
+            val entity = remaining.removeLastOrNull() ?: return false
+            if (entity.anyComponent(clazz, includingDisabled, predicate)) {
                 return true
             }
+            val children = entity.children
+            for (index in children.indices) {
+                val child = children[index]
+                if ((includingDisabled || child.isEnabled) &&
+                    (bounds == null || child.getBounds().testAABB(bounds))
+                ) remaining.add(child)
+            }
         }
-        return false
     }
 
     fun <V : Any> Component.anyComponentInChildren(
@@ -227,7 +246,9 @@ object EntityQuery {
     fun <V : Any> Component.forAllComponentsInChildren(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         callback: (V) -> Unit
-    ) = entity?.forAllComponentsInChildren(clazz, includingDisabled, callback)
+    ) {
+        entity?.forAllComponentsInChildren(clazz, includingDisabled, callback)
+    }
 
     fun <V : Any> Entity.sumComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
@@ -273,20 +294,9 @@ object EntityQuery {
         clazz: KClass<V>, includingDisabled: Boolean = false,
         dst: MutableList<V>
     ): List<V> {
-        val components = components
-        for (i in components.indices) {
-            val component = components[i]
-            if ((includingDisabled || component.isEnabled) && clazz.isInstance(component)) {
-                @Suppress("unchecked_cast")
-                dst.add(component as V)
-            }
-        }
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (includingDisabled || child.isEnabled) {
-                child.getComponentsInChildren(clazz, includingDisabled, dst)
-            }
+        anyComponentInChildren(clazz, includingDisabled) {
+            dst.add(it)
+            false
         }
         return dst
     }

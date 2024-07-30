@@ -6,6 +6,5 @@ import me.anno.gpu.shader.ShaderLib
 
 fun initWithGFX(w: Int = 512, h: Int = w) {
     HiddenOpenGLContext.createOpenGL(w, h)
-    ShaderLib.init()
     ECSRegistry.init()
 }

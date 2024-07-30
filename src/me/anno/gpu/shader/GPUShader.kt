@@ -4,11 +4,13 @@ import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.FileNames.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.countLines
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -249,9 +251,31 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
-    val uniformLocations = HashMap<String, Int>()
+    val uniformLocations = BiMap<String, Int>()
+    val uniformTypes = HashMap<String, Variable>()
     private val uniformCache = FloatArray(UniformCacheSizeX4)
     var textureNames: List<String> = emptyList()
+
+    fun checkUniformType(loc: Int, type: GLSLType, isArray: Boolean) {
+        if (Build.isDebug && loc >= 0) {
+            val present = uniformTypes[uniformLocations.reverse[loc]]
+            val ok = present == null ||
+                    (typeToOpenGLFuncType(present.type) == type && present.isArray == isArray)
+            if (!ok) {
+                throw IllegalArgumentException("Cannot set uniform to $type[$isArray] to $present")
+            }
+        }
+    }
+
+    private fun typeToOpenGLFuncType(presentType: GLSLType): GLSLType {
+        return when (presentType) {
+            GLSLType.V1B -> GLSLType.V1I
+            GLSLType.V2B -> GLSLType.V2I
+            GLSLType.V3B -> GLSLType.V3I
+            GLSLType.V4B -> GLSLType.V4I
+            else -> presentType
+        }
+    }
 
     abstract fun compile()
     abstract fun sourceContainsWord(word: String): Boolean
@@ -357,6 +381,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v1i(name: String, x: Int) = v1i(getUniformLocation(name), x)
     fun v1i(loc: Int, x: Int) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V1I, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform1i(loc, x)
@@ -385,6 +410,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v1f(name: String, x: Float) = v1f(getUniformLocation(name), x)
     fun v1f(loc: Int, x: Float) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V1F, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform1f(loc, x)
@@ -405,14 +431,26 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v1fs(name: String, vs: FloatArray) = v1fs(getUniformLocation(name), vs)
     fun v1fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V1F, true)
             potentiallyUse()
             glUniform1fv(loc, vs)
+        }
+    }
+
+    @Suppress("unused")
+    fun v1fs(name: String, value: FloatBuffer) = v1fs(getUniformLocation(name), value)
+    fun v1fs(loc: Int, value: FloatBuffer) {
+        if (loc > -1) {
+            checkUniformType(loc, GLSLType.V1F, true)
+            potentiallyUse()
+            glUniform1fv(loc, value)
         }
     }
 
     fun v2f(name: String, x: Float, y: Float) = v2f(getUniformLocation(name), x, y)
     fun v2f(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V2F, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform2f(loc, x, y)
@@ -438,15 +476,17 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v2fs(name: String, vs: FloatArray) = v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V2F, true)
             potentiallyUse()
             glUniform2fv(loc, vs)
         }
     }
 
     @Suppress("unused")
-    fun v2fs(name: String, vs: FloatBuffer) = v2fs(getUniformLocation(name), vs)
+    fun v2fs(name: String, vs: FloatBuffer) = this.v2fs(getUniformLocation(name), vs)
     fun v2fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V2F, true)
             potentiallyUse()
             glUniform2fv(loc, vs)
         }
@@ -455,6 +495,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v2i(name: String, x: Int, y: Int = x) = v2i(getUniformLocation(name), x, y)
     fun v2i(loc: Int, x: Int, y: Int = x) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V2I, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform2i(loc, x, y)
@@ -485,6 +526,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3f(name: String, x: Float, y: Float, z: Float) = v3f(getUniformLocation(name), x, y, z)
     fun v3f(loc: Int, x: Float, y: Float, z: Float) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V3F, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform3f(loc, x, y, z)
@@ -512,15 +554,17 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3fs(name: String, vs: FloatArray) = v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatArray) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V3F, true)
             potentiallyUse()
             glUniform3fv(loc, vs)
         }
     }
 
     @Suppress("unused")
-    fun v3fs(name: String, vs: FloatBuffer) = v3fs(getUniformLocation(name), vs)
+    fun v3fs(name: String, vs: FloatBuffer) = this.v3fs(getUniformLocation(name), vs)
     fun v3fs(loc: Int, vs: FloatBuffer) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V3F, true)
             potentiallyUse()
             glUniform3fv(loc, vs)
         }
@@ -551,6 +595,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v3i(name: String, x: Int, y: Int, z: Int) = v3i(getUniformLocation(name), x, y, z)
     fun v3i(loc: Int, x: Int, y: Int, z: Int) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V3I, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform3i(loc, x, y, z)
@@ -587,6 +632,7 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     fun v4f(loc: Int, x: Float, y: Float, z: Float, w: Float) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V4F, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform4f(loc, x, y, z, w)
@@ -626,15 +672,17 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v4fs(name: String, vs: FloatArray) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatArray) {
         if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V4F, true)
             potentiallyUse()
             glUniform4fv(loc, vs)
         }
     }
 
     @Suppress("unused")
-    fun v4fs(name: String, vs: FloatBuffer) = v4fs(getUniformLocation(name), vs)
+    fun v4fs(name: String, vs: FloatBuffer) = this.v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatBuffer) {
         if (loc >= 0) {
+            checkUniformType(loc, GLSLType.V4F, true)
             potentiallyUse()
             glUniform4fv(loc, vs)
         }
@@ -668,6 +716,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun v4i(name: String, x: Int, y: Int, z: Int, w: Int) = v4i(getUniformLocation(name), x, y, z, w)
     fun v4i(loc: Int, x: Int, y: Int, z: Int, w: Int) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.V4I, false)
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
                 glUniform4i(loc, x, y, z, w)
@@ -747,6 +796,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun m2x2(name: String, value: Matrix2f?) = m2x2(getUniformLocation(name), value)
     fun m2x2(loc: Int, value: Matrix2f? = null) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.M2x2, false)
             potentiallyUse()
             matrixBuffer.position(0).limit(4)
             (value ?: identity2).putInto(matrixBuffer)
@@ -758,6 +808,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun m3x3(name: String, value: Matrix3f?) = m3x3(getUniformLocation(name), value)
     fun m3x3(loc: Int, value: Matrix3f? = null) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.M3x3, false)
             potentiallyUse()
             matrixBuffer.position(0).limit(9)
             (value ?: identity3).putInto(matrixBuffer)
@@ -769,6 +820,7 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun m4x3(name: String, value: Matrix4x3f?) = m4x3(getUniformLocation(name), value)
     fun m4x3(loc: Int, value: Matrix4x3f? = null) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.M4x3, false)
             potentiallyUse()
             matrixBuffer.position(0).limit(12)
             (value ?: identity4x3).putInto(matrixBuffer)
@@ -777,8 +829,17 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
+    fun m4x3(loc: Int, values: FloatBuffer) {
+        if (loc > -1) {
+            checkUniformType(loc, GLSLType.M4x3, false)
+            potentiallyUse()
+            glUniformMatrix4x3fv(loc, false, values)
+        }
+    }
+
     fun m4x3Array(loc: Int, values: FloatBuffer) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.M4x3, true)
             potentiallyUse()
             glUniformMatrix4x3fv(loc, false, values)
         }
@@ -787,47 +848,12 @@ abstract class GPUShader(val name: String) : ICacheData {
     fun m4x4(name: String, value: Matrix4f? = null) = m4x4(getUniformLocation(name), value)
     fun m4x4(loc: Int, value: Matrix4f? = null) {
         if (loc > -1) {
+            checkUniformType(loc, GLSLType.M4x4, false)
             potentiallyUse()
             matrixBuffer.position(0).limit(16)
             (value ?: identity4).putInto(matrixBuffer)
             matrixBuffer.flip()
             glUniformMatrix4fv(loc, false, matrixBuffer)
-        }
-    }
-
-    @Suppress("unused")
-    fun v1Array(name: String, value: FloatBuffer) = v1Array(getUniformLocation(name), value)
-    fun v1Array(loc: Int, value: FloatBuffer) {
-        if (loc > -1) {
-            potentiallyUse()
-            glUniform1fv(loc, value)
-        }
-    }
-
-    @Suppress("unused")
-    fun v2Array(name: String, value: FloatBuffer) = v2Array(getUniformLocation(name), value)
-    fun v2Array(loc: Int, value: FloatBuffer) {
-        if (loc > -1) {
-            potentiallyUse()
-            glUniform2fv(loc, value)
-        }
-    }
-
-    @Suppress("unused")
-    fun v3Array(name: String, value: FloatBuffer) = v3Array(getUniformLocation(name), value)
-    fun v3Array(loc: Int, value: FloatBuffer) {
-        if (loc > -1) {
-            potentiallyUse()
-            glUniform3fv(loc, value)
-        }
-    }
-
-    @Suppress("unused")
-    fun v4Array(name: String, value: FloatBuffer) = v4Array(getUniformLocation(name), value)
-    fun v4Array(loc: Int, value: FloatBuffer) {
-        if (loc > -1) {
-            potentiallyUse()
-            glUniform4fv(loc, value)
         }
     }
 

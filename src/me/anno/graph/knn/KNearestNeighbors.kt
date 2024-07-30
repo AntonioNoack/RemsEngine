@@ -45,6 +45,4 @@ class KNearestNeighbors<V> : HexDecTree<KNearestNeighbors.Element<V>>(16) {
             it.posSize.distanceSquared(position.x, position.y, position.z, it.posSize.w)
         }
     }
-
-
 }

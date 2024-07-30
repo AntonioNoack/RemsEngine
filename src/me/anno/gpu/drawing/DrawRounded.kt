@@ -1,18 +1,15 @@
 package me.anno.gpu.drawing
 
-import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.uiVertexShader
 import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
-import me.anno.utils.Color.a
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -91,7 +88,6 @@ object DrawRounded {
         backgroundColor: Int,
         smoothness: Float,
     ) {
-
         val shader = roundedShader.value
         shader.use()
         posSize(shader, x, y, w, h)
@@ -104,26 +100,5 @@ object DrawRounded {
         shader.v1f("smoothness", smoothness)
         shader.v2f("size2", w.toFloat(), h.toFloat())
         SimpleBuffer.flat01.draw(shader)
-    }
-
-    fun drawCorner(x: Int, y: Int, w: Int, h: Int, corner: StaticBuffer) {
-        if (w == 0 || h == 0) return
-        GFX.check()
-        val shader = flatShader.value
-        shader.use()
-        posSize(shader, x, y, w, h)
-        corner.draw(shader)
-        GFX.check()
-    }
-
-    fun drawCorner(x: Int, y: Int, w: Int, h: Int, color: Int, corner: StaticBuffer) {
-        if (w == 0 || h == 0 || color.a() <= 0f) return
-        GFX.check()
-        val shader = flatShader.value
-        shader.use()
-        posSize(shader, x, y, w, h)
-        shader.v4f("color", color)
-        corner.draw(shader)
-        GFX.check()
     }
 }

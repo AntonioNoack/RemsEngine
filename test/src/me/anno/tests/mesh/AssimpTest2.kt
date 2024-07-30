@@ -48,7 +48,6 @@ fun main() {
 
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
-    ShaderLib.init()
     Thumbs.useCacheFolder = true
 
     val size = 512

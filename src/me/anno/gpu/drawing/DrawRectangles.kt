@@ -117,18 +117,8 @@ object DrawRectangles {
     }
 
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int) {
-        if (batch.active) {
-            color.toVecRGBA(this.color)
-            addRect(x, y, w, h, this.color)
-        } else {
-            GFX.check()
-            val shader = flatShader.value
-            shader.use()
-            GFXx2D.posSize(shader, x, y, w, h)
-            shader.v4f("color", color)
-            flat01.draw(shader)
-            GFX.check()
-        }
+        val tmp = this.color
+        drawRect(x, y, w, h, color.toVecRGBA(tmp))
     }
 
     fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thickness: Int) {

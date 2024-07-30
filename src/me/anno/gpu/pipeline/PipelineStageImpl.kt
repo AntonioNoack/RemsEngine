@@ -2,7 +2,6 @@ package me.anno.gpu.pipeline
 
 import me.anno.Time
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -381,7 +380,7 @@ class PipelineStageImpl(
                             buffer.put(light.lightType.id + 0.25f)
                         }
                         buffer.position(0)
-                        shader.v4Array(lightIntensities, buffer)
+                        shader.v4fs(lightIntensities, buffer)
                     }
                     // type, and cone angle (or other data, if required)
                     // additional, whether we have a texture, and maybe other data
@@ -393,7 +392,7 @@ class PipelineStageImpl(
                             buffer.put(light.getShaderV0())
                         }
                         buffer.flip()
-                        shader.v1Array(lightTypes, buffer)
+                        shader.v1fs(lightTypes, buffer)
                     }
                     val shadowData = shader["shadowData"]
                     if (shadowData >= 0) {
@@ -462,7 +461,7 @@ class PipelineStageImpl(
                             }
                         }
                         buffer.position(0)
-                        shader.v4Array(shadowData, buffer)
+                        shader.v4fs(shadowData, buffer)
                     }
                 }
             }

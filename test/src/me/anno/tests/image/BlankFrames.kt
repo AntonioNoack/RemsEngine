@@ -27,7 +27,6 @@ fun main() {
     val fps = meta.videoFPS
     val timeout = 1000L
     HiddenOpenGLContext.createOpenGL(meta.videoWidth, meta.videoHeight)
-    ShaderLib.init()
     val fb = Framebuffer("blank", meta.videoWidth, meta.videoHeight, 1, TargetType.UInt8x4, DepthBufferType.NONE)
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
