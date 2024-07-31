@@ -36,6 +36,7 @@ import me.anno.graph.visual.render.effects.MotionBlurNode
 import me.anno.graph.visual.render.effects.NightNode
 import me.anno.graph.visual.render.effects.OutlineEffectNode
 import me.anno.graph.visual.render.effects.OutlineEffectSelectNode
+import me.anno.graph.visual.render.effects.PixelationNode
 import me.anno.graph.visual.render.effects.SSAONode
 import me.anno.graph.visual.render.effects.SSGINode
 import me.anno.graph.visual.render.effects.SSRNode
@@ -476,6 +477,7 @@ class RenderMode private constructor(
         val NIGHT_TEST = RenderMode("Night Test", postProcessGraph(NightNode()))
         val ANIME_OUTLINES = RenderMode("Anime Outlines", postProcessGraph(AnimeOutlineNode()))
         val VIGNETTE = RenderMode("Vignette", postProcessGraph(VignetteNode()))
+        val PIXELATION = RenderMode("Pixelation", postProcessGraph(PixelationNode()))
 
         val ALL_GLASS = RenderMode("All Glass", Material().apply {
             pipelineStage = PipelineStage.TRANSPARENT

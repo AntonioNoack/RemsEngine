@@ -19,14 +19,6 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min
 
-// todo this node's input is incorrect, using color instead of ID :(
-
-// todo with Deferred MSAA, some stage before us removes multisampling; keep it, so we can make this effect look better
-// todo test MSAA (is untested -> might contain mistakes)
-
-// todo integrate all useful effects from Three.js
-//  - https://threejs.org/examples/?q=post#webgl_postprocessing_pixel, specifically their edge and depth detection
-
 class OutlineEffectNode : RenderViewNode(
     "OutlineEffect",
     listOf(
