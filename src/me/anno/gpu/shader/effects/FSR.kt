@@ -56,10 +56,10 @@ object FSR {
                     "   vec4 x01 = texture(source,p+dy);\n" +
                     "   vec4 x10 = texture(source,p+dx);\n" +
                     "   vec4 x11 = texture(source,p+dxy);\n" +
-                    "   vec3 y00 = withAlpha ? mix(background, x00.rgb, x00.aaa) : x00;\n" +
-                    "   vec3 y01 = withAlpha ? mix(background, x01.rgb, x01.aaa) : x01;\n" +
-                    "   vec3 y10 = withAlpha ? mix(background, x10.rgb, x10.aaa) : x10;\n" +
-                    "   vec3 y11 = withAlpha ? mix(background, x11.rgb, x11.aaa) : x11;\n" +
+                    "   vec3 y00 = withAlpha ? mix(background, x00.rgb, x00.aaa) : x00.rgb;\n" +
+                    "   vec3 y01 = withAlpha ? mix(background, x01.rgb, x01.aaa) : x01.rgb;\n" +
+                    "   vec3 y10 = withAlpha ? mix(background, x10.rgb, x10.aaa) : x10.rgb;\n" +
+                    "   vec3 y11 = withAlpha ? mix(background, x11.rgb, x11.aaa) : x11.rgb;\n" +
                     // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
                     "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
                     "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +

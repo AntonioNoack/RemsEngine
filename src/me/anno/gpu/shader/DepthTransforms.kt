@@ -37,7 +37,7 @@ object DepthTransforms {
             //   d_fovFactor: 2 * tan(fovX/YRadians * 0.5)
             // "   return quatRot(vec3((uv-d_uvCenter)*d_fovFactor, -1.0), d_camRot);\n" +
             //   the easy way, which works for VR, too:
-            "   vec4 pos = cameraMatrixInv * vec4(uv*2.0-1.0, d_near, 1.0);\n" +
+            "   vec4 pos = matMul(cameraMatrixInv, vec4(uv*2.0-1.0, d_near, 1.0));\n" +
             "   return pos.xyz/pos.w;\n" +
             "}\n" +
             "vec3 depthToPosition(vec2 uv, float depth){\n" + // position is in camera space, so camera is at zero

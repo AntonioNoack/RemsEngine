@@ -170,7 +170,7 @@ object Bloom {
         shader.v1i("numSamples", source.samples)
         shader.v1f("invNumSamples", 1f / source.samples)
         source.bindTrulyNearest(0)
-        bloom.bind(1, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+        bloom.bindTrulyLinear(1)
         flat01.draw(shader)
     }
 
@@ -186,14 +186,14 @@ object Bloom {
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 Variable(GLSLType.V1B, "applyToneMapping"),
                 Variable(if (msIn) GLSLType.S2DMS else GLSLType.S2D, "base"),
-                Variable(GLSLType.S2D, "bloom"),
+                Variable(GLSLType.S2D, "bloomTex"),
                 Variable(GLSLType.V1I, "numSamples"),
                 Variable(GLSLType.V1F, "invNumSamples")
             ), "" +
                     ShaderFuncLib.randomGLSL +
                     Renderers.tonemapGLSL +
                     "void main(){\n" +
-                    "   vec3 sum = vec3(0.0), bloom = texture(bloom, uv).rgb;\n" +
+                    "   vec3 sum = vec3(0.0), bloom = texture(bloomTex, uv).rgb;\n" +
                     "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n".iff(msIn) +
                     "   for(int i=0;i<numSamples;i++){\n".iff(msIn) +
                     "       vec3 color = texture(base,uv).rgb;\n".iff(!msIn) +
@@ -210,7 +210,7 @@ object Bloom {
                     "   result = vec4(sum, 1.0);\n" +
                     "}\n"
         )
-        shader.setTextureIndices("base", "bloom")
+        shader.setTextureIndices("base", "bloomTex")
         shader.ignoreNameWarnings("numSamples,invNumSamples")
         shader
     }
