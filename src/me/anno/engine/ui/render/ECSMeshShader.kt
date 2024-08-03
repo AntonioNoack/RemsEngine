@@ -523,7 +523,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     override fun createForwardShader(key: ShaderKey): Shader {
-        val shader = createBase(key).create("fwd${key.flags}-${key.renderer.name}")
+        val shader = createBase(key).create(key, "fwd${key.flags}-${key.renderer.name}")
         finish(shader)
         return shader
     }
@@ -532,7 +532,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val base = createBase(key)
         base.settings = key.renderer.deferredSettings
         // build & finish
-        val shader = base.create("def${key.flags}-${key.renderer.name}")
+        val shader = base.create(key, "def${key.flags}-${key.renderer.name}")
         finish(shader)
         return shader
     }

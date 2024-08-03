@@ -46,24 +46,9 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            logger.info("Used ${formatDt(dt)}s for ${wasUsedFor()}, ${format(nanosPerElement)}")
+            reportStopTime(dt, wasUsedFor(), nanosPerElement)
         }
         return dt
-    }
-
-    fun format(nanos: Double): String {
-        return when {
-            nanos < 1.0 -> nanos.f4() + " ns/e"
-            nanos < 10.0 -> nanos.f3() + " ns/e"
-            nanos < 100.0 -> nanos.f2() + " ns/e"
-            nanos < 1e3 -> nanos.f1() + " ns/e"
-            nanos < 1e4 -> nanos.roundToIntOr().toString() + " ns/e"
-            nanos < 1e7 -> (nanos * 1e-6).f3() + " ms/e"
-            nanos < 1e8 -> (nanos * 1e-6).f2() + " ms/e"
-            nanos < 1e9 -> (nanos * 1e-6).f1() + " ms/e"
-            nanos < 1e10 -> (nanos * 1e-6).roundToIntOr().toString() + " ms/e"
-            else -> (nanos * 1e-9).f1() + " s/e"
-        }
     }
 
     fun stop(wasUsedFor: String): Double {
@@ -81,7 +66,7 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            logger.info("Used ${formatDt(dt)}s for $wasUsedFor, ${format(nanosPerElement)}")
+            reportStopTime(dt, wasUsedFor, nanosPerElement)
         }
         return dt
     }
@@ -103,7 +88,7 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            logger.info("Used ${formatDt(dt)}s for $wasUsedFor")
+            reportStopTime(dt, wasUsedFor)
         }
         return dt
     }
@@ -113,9 +98,17 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            logger.info("Used ${formatDt(dt)}s for ${wasUsedFor()}")
+            reportStopTime(dt, wasUsedFor())
         }
         return dt
+    }
+
+    private fun reportStopTime(dt: Double, wasUsedFor: String){
+        logger.info("Used ${formatDt(dt)}s for $wasUsedFor")
+    }
+
+    private fun reportStopTime(dt: Double, wasUsedFor: String, nanosPerElement: Double){
+        logger.info("Used ${formatDt(dt)}s for $wasUsedFor, ${formatDtPerElement(nanosPerElement)}")
     }
 
     private fun formatDt(dt: Double): String {
@@ -163,6 +156,22 @@ class Clock(
             val value = func()
             c.stop(name)
             return value
+        }
+
+        @JvmStatic
+        fun formatDtPerElement(nanos: Double): String {
+            return when {
+                nanos < 1.0 -> nanos.f4() + " ns/e"
+                nanos < 10.0 -> nanos.f3() + " ns/e"
+                nanos < 100.0 -> nanos.f2() + " ns/e"
+                nanos < 1e3 -> nanos.f1() + " ns/e"
+                nanos < 1e4 -> nanos.roundToInt().toString() + " ns/e"
+                nanos < 1e7 -> (nanos * 1e-6).f3() + " ms/e"
+                nanos < 1e8 -> (nanos * 1e-6).f2() + " ms/e"
+                nanos < 1e9 -> (nanos * 1e-6).f1() + " ms/e"
+                nanos < 1e10 -> (nanos * 1e-6).roundToInt().toString() + " ms/e"
+                else -> (nanos * 1e-9).f1() + " s/e"
+            }
         }
     }
 }

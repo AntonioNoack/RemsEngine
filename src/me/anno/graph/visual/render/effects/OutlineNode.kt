@@ -56,7 +56,7 @@ class OutlineNode : TimedRenderingNode(
         val weights = getInput(4) as Vector3f
         val color = (getInput(5) as? Texture)?.texOrNull ?: blackTexture
         val normalT = getInput(6) as? Texture
-        val normalZW = normalT?.mapping == "zw"
+        val normalZW = normalT?.isZWMapping ?: false
         val normal = normalT?.texOrNull ?: normalTexture
         val depth = (getInput(7) as? Texture)?.texOrNull ?: whiteTexture
         val illT = getInput(8) as? Texture

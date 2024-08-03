@@ -7,6 +7,7 @@ import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.BakedLayout
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -47,7 +48,9 @@ open class BaseShader(
         val vertexData: MeshVertexData,
         val instanceData: MeshInstanceData,
         val ditherMode: DitherMode,
-        val flags: Int
+        val meshLayout: BakedLayout?,
+        val instLayout: BakedLayout?,
+        val flags: Int,
     )
 
     private val shaders = HashMap<ShaderKey, Shader>()
@@ -98,7 +101,7 @@ open class BaseShader(
         builder.addFragment(extraStage)
         builder.addFragment(pixelPostProcessing)
 
-        val shader = builder.create("fwd$flags-${key.renderer.name}")
+        val shader = builder.create(key, "fwd$flags-${key.renderer.name}")
         finish(shader, 330)
         return shader
     }
@@ -108,7 +111,7 @@ open class BaseShader(
         val deferred = key.renderer.deferredSettings!!
         val flags = key.flags
         val shader = deferred.createShader(
-            name,
+            name, key,
             flags.hasFlag(IS_INSTANCED),
             vertexVariables,
             vertexShader,
@@ -208,12 +211,15 @@ open class BaseShader(
             }
 
         fun getKey(): ShaderKey {
-            val renderer = GFXState.currentRenderer
-            val instanceData = GFXState.instanceData.currentValue
-            val vertexData = GFXState.vertexData.currentValue
-            val ditherMode = GFXState.ditherMode.currentValue
-            val flags = getFlags()
-            return ShaderKey(renderer, vertexData, instanceData, ditherMode, flags)
+            return ShaderKey(
+                GFXState.currentRenderer,
+                GFXState.vertexData.currentValue,
+                GFXState.instanceData.currentValue,
+                GFXState.ditherMode.currentValue,
+                GFXState.bakedMeshLayout.currentValue,
+                GFXState.bakedInstLayout.currentValue,
+                getFlags(),
+            )
         }
 
         fun getFlags(): Int {

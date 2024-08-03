@@ -9,8 +9,6 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.input.Input.isControlDown
-import me.anno.input.Input.isShiftDown
 
 /**
  * idea: use msaa on the depth in a separate pass,
@@ -109,18 +107,12 @@ object FXAA {
                 "}"
     )
 
-    init {
-        shader.ignoreNameWarnings("posSize")
-    }
-
     fun render(color: ITexture2D, threshold: Float = 1e-5f) {
         val shader = shader
         shader.use()
         shader.v1f("threshold", threshold)
-        shader.v1b("showEdges", enableDebugControls && isShiftDown)
+        shader.v1b("showEdges", false)
         color.bindTrulyNearest(0)
         SimpleBuffer.flat01.draw(shader)
     }
-
-    var enableDebugControls = false
 }

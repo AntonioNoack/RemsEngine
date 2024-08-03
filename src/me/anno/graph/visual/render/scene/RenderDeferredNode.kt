@@ -9,10 +9,10 @@ import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -294,7 +294,7 @@ open class RenderDeferredNode : RenderViewNode(
                     builder.ignored.add("d_camRot")
                     builder.ignored.add("reverseDepth")
 
-                    shader = builder.create("rsdn-${outputs.joinToString { it.value.name }}")
+                    shader = builder.create(getKey(), "rsdn-${outputs.joinToString { it.value.name }}")
                 }
 
                 override val currentShader: Shader get() = shader

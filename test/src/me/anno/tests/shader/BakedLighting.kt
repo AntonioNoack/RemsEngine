@@ -491,7 +491,9 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
     val skyKey = BaseShader.ShaderKey(
         Renderer.copyRenderer,
         MeshVertexData.DEFAULT, MeshInstanceData.DEFAULT,
-        DitherMode.DRAW_EVERYTHING, 0
+        DitherMode.DRAW_EVERYTHING,
+        null, null,
+        0
     )
     val skyFragments = skybox.shader!!.createFragmentStages(skyKey)
     assertEquals(1, skyFragments.size)

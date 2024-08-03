@@ -43,7 +43,7 @@ class SSGINode : TimedRenderingNode(
         val blur = getBoolInput(4)
 
         val normal = getInput(5) as? Texture ?: return fail()
-        val normalZW = normal.mapping == "zw"
+        val normalZW = normal.isZWMapping
         val normalT = normal.texOrNull ?: normalTexture
 
         val depthT = (getInput(6) as? Texture) ?: return fail()

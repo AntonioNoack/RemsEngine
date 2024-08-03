@@ -165,7 +165,7 @@ object ColorParsing {
                 if (parts.size == 4) {
                     val rgba = when {
                         parts.all { it.endsWith('%') } -> {
-                            parts.map { it.substring(0, it.length - 1).toFloat() / 100f }
+                            parts.map { it.substring(0, it.length - 1).toFloat() * 0.01f }
                         }
                         parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
                             parts.map { it.toFloat() }
@@ -193,14 +193,13 @@ object ColorParsing {
 
     @JvmStatic
     private val hex by lazy {
-        val base = '0'.code
-        val array = ByteArray('f'.code + 1 - base)
+        val array = ByteArray('f' - '0' + 1)
         for (i in 0 until 10) {
             array[i] = i.toByte()
         }
         for (i in 0 until 6) {
-            array['a'.code - base + i] = (i + 10).toByte()
-            array['A'.code - base + i] = (i + 10).toByte()
+            array['a' - '0' + i] = (i + 10).toByte()
+            array['A' - '0' + i] = (i + 10).toByte()
         }
         array
     }
@@ -368,5 +367,4 @@ object ColorParsing {
         map["yellowgreen"] = 0x9acd32
         map
     }
-
 }

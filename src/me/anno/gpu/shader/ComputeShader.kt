@@ -84,11 +84,6 @@ class ComputeShader(
         GL46C.glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
     }
 
-    fun bindBuffer(slot: Int, buffer: OpenGLBuffer) {
-        buffer.ensureBuffer()
-        GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
-    }
-
     /**
      * for array textures to bind a single layer
      * */

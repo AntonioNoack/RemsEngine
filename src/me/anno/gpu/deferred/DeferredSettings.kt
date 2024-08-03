@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -105,6 +106,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     fun createShader(
         shaderName: String,
+        key: BaseShader.ShaderKey,
         instanced: Boolean,
         vertexVariables: List<Variable>,
         vertexShader: String,
@@ -122,7 +124,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         builder.addVertex(vertexPostProcessing)
         builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))
         builder.addFragment(pixelPostProcessing)
-        val shader = builder.create(null)
+        val shader = builder.create(key, "def")
         shader.setTextureIndices(textures)
         return shader
     }

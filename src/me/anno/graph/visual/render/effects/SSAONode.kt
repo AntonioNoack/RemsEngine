@@ -40,7 +40,7 @@ class SSAONode : TimedRenderingNode(
         val inverse = getBoolInput(5)
 
         val normal = getInput(6) as? Texture ?: return fail()
-        val normalZW = normal.mapping == "zw"
+        val normalZW = normal.isZWMapping
         val normalT = normal.texOrNull ?: normalTexture
         val depthT = (getInput(7) as? Texture) ?: return fail()
         val depthTT = depthT.texOrNull ?: return fail()

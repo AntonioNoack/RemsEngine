@@ -31,6 +31,11 @@ class Texture private constructor(
     val texOrNull get() = if (tex.isCreated()) tex else null
     val texMSOrNull get() = if (texMS.isCreated()) texMS else null
 
+    /**
+     * Whether the value (must have two components!) is mapped onto zw instead of xy.
+     * */
+    val isZWMapping get() = mapping == "zw"
+
     override fun toString(): String {
         return when (tex) {
             whiteTexture -> "white"

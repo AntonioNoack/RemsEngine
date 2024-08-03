@@ -20,7 +20,8 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
                 other.type == type && other.components == components &&
                 other.isNativeInt == isNativeInt &&
                 other.name == name &&
-                other.offset == offset
+                other.offset == offset &&
+                other.stride == stride
     }
 
     override fun hashCode(): Int {
@@ -30,6 +31,7 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
         result = 31 * result + isNativeInt.hashCode()
         result = 31 * result + byteSize
         result = 31 * result + offset.hashCode()
+        result = 31 * result + stride.hashCode()
         return result
     }
 

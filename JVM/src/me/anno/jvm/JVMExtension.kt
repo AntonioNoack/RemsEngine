@@ -26,10 +26,11 @@ import javax.sound.sampled.AudioSystem
 
 // todo move all Java-exclusive things here as far as possible...
 //  (things that will be unavailable on Android/Web/KotlinNative)
-//  - ServerSockets (?)
 //  - OpenAL (?)
 //  - getReference()-Implementation?
-//  - Extension discovery?? -> hard to do as an extension...
+//  - java.io.File-usage
+//  - java.nio.Files-usage
+//  - Extension discovery?? -> hard to do as an extension (recursive issue)
 
 class JVMExtension : Plugin() {
     override fun onEnable() {

@@ -3,6 +3,7 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
@@ -95,7 +96,7 @@ class ShaderBuilder(val name: String) {
         }
     }
 
-    fun create(suffix: String? = null): Shader {
+    fun create(key: BaseShader.ShaderKey, suffix: String): Shader {
 
         val settings = settings
         val ditherMode = GFXState.ditherMode.currentValue
@@ -142,12 +143,11 @@ class ShaderBuilder(val name: String) {
 
         // create the code
         val vertCode = vertex.createCode(
-            false, settings, disabledLayers,
+            key, false, settings, disabledLayers,
             ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
         )
-        val attributes = vertex.attributes
         val fragCode = fragment.createCode(
-            true, settings, disabledLayers,
+            key, true, settings, disabledLayers,
             ditherMode, bridgeVariablesV2F, bridgeVariablesI2F, this
         )
         val varying = (vertex.imported + vertex.exported).toList()
@@ -156,7 +156,7 @@ class ShaderBuilder(val name: String) {
                 bridgeVariablesI2F.values
 
         val shader = Shader(
-            if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
+            "$name-$suffix", vertex.attributes + vertex.uniforms, vertCode,
             varying, fragment.uniforms.sortedBy { it.name }, fragCode
         )
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))

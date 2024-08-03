@@ -26,7 +26,10 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
     @InternalAPI
     var id = 0
 
-    // not supported by all types, currently only in VR (via OpenXR)
+    /**
+     * not supported by all types, currently only in VR (via OpenXR);
+     * in most cases, add to this value instead of setting it, so multiple effects are accumulated
+     * */
     @Range(0.0, 1.0)
     var rumble = 0f
 
@@ -150,21 +153,6 @@ abstract class Controller(maxNumButtons: Int, maxNumAxes: Int) {
             window, Time.frameTimeNanos, value > axisKeyTriggerPoint,
             buttonDownTime, buttonId01 + 1, positiveKey
         )
-    }
-
-    private fun handleAxisKey(window: OSWindow, key: Key, value: Float, lastValue: Float) {
-        if (key != Key.KEY_UNKNOWN) {
-            val wasUp = lastValue > axisKeyTriggerPoint
-            val isUp = value > axisKeyTriggerPoint
-            if (isUp != wasUp) {
-                // todo toggle
-                if (isUp) {
-                    ActionManager.onKeyDown(window, key)
-                } else {
-                    ActionManager.onKeyUp(window, key)
-                }
-            }
-        }
     }
 
     fun updateMouseScroll(window: OSWindow, dt: Float) {

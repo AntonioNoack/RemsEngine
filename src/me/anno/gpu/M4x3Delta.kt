@@ -37,31 +37,29 @@ object M4x3Delta {
     ) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
-
             // false = column major, however the labelling of these things is awkward
             // A_ji, as far, as I can see
-            buffer16.limit(12)
-            buffer16.position(0)
-            buffer16.put((Maths.mix(a.m00, b.m00, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m01, b.m01, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m02, b.m02, f) * worldScale).toFloat())
+            val buffer16 = buffer16
+            buffer16.limit(12).position(0)
+            buffer16
+                .put((Maths.mix(a.m00, b.m00, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m01, b.m01, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m02, b.m02, f) * worldScale).toFloat())
 
-            buffer16.put((Maths.mix(a.m10, b.m10, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m11, b.m11, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m12, b.m12, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m10, b.m10, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m11, b.m11, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m12, b.m12, f) * worldScale).toFloat())
 
-            buffer16.put((Maths.mix(a.m20, b.m20, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m21, b.m21, f) * worldScale).toFloat())
-            buffer16.put((Maths.mix(a.m22, b.m22, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m20, b.m20, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m21, b.m21, f) * worldScale).toFloat())
+                .put((Maths.mix(a.m22, b.m22, f) * worldScale).toFloat())
 
-            buffer16.put(((Maths.mix(a.m30, b.m30, f) - pos.x) * worldScale).toFloat())
-            buffer16.put(((Maths.mix(a.m31, b.m31, f) - pos.y) * worldScale).toFloat())
-            buffer16.put(((Maths.mix(a.m32, b.m32, f) - pos.z) * worldScale).toFloat())
+                .put(((Maths.mix(a.m30, b.m30, f) - pos.x) * worldScale).toFloat())
+                .put(((Maths.mix(a.m31, b.m31, f) - pos.y) * worldScale).toFloat())
+                .put(((Maths.mix(a.m32, b.m32, f) - pos.z) * worldScale).toFloat())
 
-            buffer16.position(0)
-
+            buffer16.flip()
             m4x3(uniformIndex, buffer16)
-
         }
     }
 
@@ -88,53 +86,40 @@ object M4x3Delta {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
 
-        buffer16.limit(12)
-        buffer16.position(0)
+        val buffer16 = buffer16
+        buffer16.limit(12).position(0)
 
         if (m != null) {
+            buffer16
+                .put((m.m00 * worldScale).toFloat())
+                .put((m.m01 * worldScale).toFloat())
+                .put((m.m02 * worldScale).toFloat())
 
-            buffer16.put((m.m00 * worldScale).toFloat())
-            buffer16.put((m.m01 * worldScale).toFloat())
-            buffer16.put((m.m02 * worldScale).toFloat())
+                .put((m.m10 * worldScale).toFloat())
+                .put((m.m11 * worldScale).toFloat())
+                .put((m.m12 * worldScale).toFloat())
 
-            buffer16.put((m.m10 * worldScale).toFloat())
-            buffer16.put((m.m11 * worldScale).toFloat())
-            buffer16.put((m.m12 * worldScale).toFloat())
+                .put((m.m20 * worldScale).toFloat())
+                .put((m.m21 * worldScale).toFloat())
+                .put((m.m22 * worldScale).toFloat())
 
-            buffer16.put((m.m20 * worldScale).toFloat())
-            buffer16.put((m.m21 * worldScale).toFloat())
-            buffer16.put((m.m22 * worldScale).toFloat())
-
-            buffer16.put(((m.m30 - pos.x) * worldScale).toFloat())
-            buffer16.put(((m.m31 - pos.y) * worldScale).toFloat())
-            buffer16.put(((m.m32 - pos.z) * worldScale).toFloat())
-
+                .put(((m.m30 - pos.x) * worldScale).toFloat())
+                .put(((m.m31 - pos.y) * worldScale).toFloat())
+                .put(((m.m32 - pos.z) * worldScale).toFloat())
         } else {
-
             val ws = worldScale.toFloat()
+            buffer16
+                .put(ws).put(0f).put(0f)
+                .put(0f).put(ws).put(0f)
+                .put(0f).put(0f).put(ws)
 
-            buffer16.put(ws)
-            buffer16.put(0f)
-            buffer16.put(0f)
-
-            buffer16.put(0f)
-            buffer16.put(ws)
-            buffer16.put(0f)
-
-            buffer16.put(0f)
-            buffer16.put(0f)
-            buffer16.put(ws)
-
-            buffer16.put((-pos.x * worldScale).toFloat())
-            buffer16.put((-pos.y * worldScale).toFloat())
-            buffer16.put((-pos.z * worldScale).toFloat())
-
+                .put((-pos.x * worldScale).toFloat())
+                .put((-pos.y * worldScale).toFloat())
+                .put((-pos.z * worldScale).toFloat())
         }
 
-        buffer16.position(0)
-
+        buffer16.flip()
         m4x3(uniformIndex, buffer16)
-
     }
 
     /**
@@ -143,23 +128,22 @@ object M4x3Delta {
      * */
     @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer) {
+        buffer16
+            .putFloat((m.m00 * worldScale).toFloat())
+            .putFloat((m.m01 * worldScale).toFloat())
+            .putFloat((m.m02 * worldScale).toFloat())
 
-        buffer16.putFloat((m.m00 * worldScale).toFloat())
-        buffer16.putFloat((m.m01 * worldScale).toFloat())
-        buffer16.putFloat((m.m02 * worldScale).toFloat())
+            .putFloat((m.m10 * worldScale).toFloat())
+            .putFloat((m.m11 * worldScale).toFloat())
+            .putFloat((m.m12 * worldScale).toFloat())
 
-        buffer16.putFloat((m.m10 * worldScale).toFloat())
-        buffer16.putFloat((m.m11 * worldScale).toFloat())
-        buffer16.putFloat((m.m12 * worldScale).toFloat())
+            .putFloat((m.m20 * worldScale).toFloat())
+            .putFloat((m.m21 * worldScale).toFloat())
+            .putFloat((m.m22 * worldScale).toFloat())
 
-        buffer16.putFloat((m.m20 * worldScale).toFloat())
-        buffer16.putFloat((m.m21 * worldScale).toFloat())
-        buffer16.putFloat((m.m22 * worldScale).toFloat())
-
-        buffer16.putFloat(((m.m30 - pos.x) * worldScale).toFloat())
-        buffer16.putFloat(((m.m31 - pos.y) * worldScale).toFloat())
-        buffer16.putFloat(((m.m32 - pos.z) * worldScale).toFloat())
-
+            .putFloat(((m.m30 - pos.x) * worldScale).toFloat())
+            .putFloat(((m.m31 - pos.y) * worldScale).toFloat())
+            .putFloat(((m.m32 - pos.z) * worldScale).toFloat())
     }
 
     /**
@@ -168,23 +152,22 @@ object M4x3Delta {
      * */
     @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: FloatBuffer) {
+        buffer16
+            .put((m.m00 * worldScale).toFloat())
+            .put((m.m01 * worldScale).toFloat())
+            .put((m.m02 * worldScale).toFloat())
 
-        buffer16.put((m.m00 * worldScale).toFloat())
-        buffer16.put((m.m01 * worldScale).toFloat())
-        buffer16.put((m.m02 * worldScale).toFloat())
+            .put((m.m10 * worldScale).toFloat())
+            .put((m.m11 * worldScale).toFloat())
+            .put((m.m12 * worldScale).toFloat())
 
-        buffer16.put((m.m10 * worldScale).toFloat())
-        buffer16.put((m.m11 * worldScale).toFloat())
-        buffer16.put((m.m12 * worldScale).toFloat())
+            .put((m.m20 * worldScale).toFloat())
+            .put((m.m21 * worldScale).toFloat())
+            .put((m.m22 * worldScale).toFloat())
 
-        buffer16.put((m.m20 * worldScale).toFloat())
-        buffer16.put((m.m21 * worldScale).toFloat())
-        buffer16.put((m.m22 * worldScale).toFloat())
-
-        buffer16.put(((m.m30 - pos.x) * worldScale).toFloat())
-        buffer16.put(((m.m31 - pos.y) * worldScale).toFloat())
-        buffer16.put(((m.m32 - pos.z) * worldScale).toFloat())
-
+            .put(((m.m30 - pos.x) * worldScale).toFloat())
+            .put(((m.m31 - pos.y) * worldScale).toFloat())
+            .put(((m.m32 - pos.z) * worldScale).toFloat())
     }
 
     /**
@@ -193,23 +176,22 @@ object M4x3Delta {
      * */
     @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, buffer16: ByteBuffer) {
+        buffer16
+            .putFloat(m.m00.toFloat())
+            .putFloat(m.m01.toFloat())
+            .putFloat(m.m02.toFloat())
 
-        buffer16.putFloat(m.m00.toFloat())
-        buffer16.putFloat(m.m01.toFloat())
-        buffer16.putFloat(m.m02.toFloat())
+            .putFloat(m.m10.toFloat())
+            .putFloat(m.m11.toFloat())
+            .putFloat(m.m12.toFloat())
 
-        buffer16.putFloat(m.m10.toFloat())
-        buffer16.putFloat(m.m11.toFloat())
-        buffer16.putFloat(m.m12.toFloat())
+            .putFloat(m.m20.toFloat())
+            .putFloat(m.m21.toFloat())
+            .putFloat(m.m22.toFloat())
 
-        buffer16.putFloat(m.m20.toFloat())
-        buffer16.putFloat(m.m21.toFloat())
-        buffer16.putFloat(m.m22.toFloat())
-
-        buffer16.putFloat(((m.m30 - pos.x)).toFloat())
-        buffer16.putFloat(((m.m31 - pos.y)).toFloat())
-        buffer16.putFloat(((m.m32 - pos.z)).toFloat())
-
+            .putFloat(((m.m30 - pos.x)).toFloat())
+            .putFloat(((m.m31 - pos.y)).toFloat())
+            .putFloat(((m.m32 - pos.z)).toFloat())
     }
 
     /**
@@ -218,23 +200,22 @@ object M4x3Delta {
      * */
     @JvmStatic
     fun m4x3x(m: Matrix4x3f, buffer16: ByteBuffer) {
+        buffer16
+            .putFloat(m.m00)
+            .putFloat(m.m01)
+            .putFloat(m.m02)
 
-        buffer16.putFloat(m.m00)
-        buffer16.putFloat(m.m01)
-        buffer16.putFloat(m.m02)
+            .putFloat(m.m10)
+            .putFloat(m.m11)
+            .putFloat(m.m12)
 
-        buffer16.putFloat(m.m10)
-        buffer16.putFloat(m.m11)
-        buffer16.putFloat(m.m12)
+            .putFloat(m.m20)
+            .putFloat(m.m21)
+            .putFloat(m.m22)
 
-        buffer16.putFloat(m.m20)
-        buffer16.putFloat(m.m21)
-        buffer16.putFloat(m.m22)
-
-        buffer16.putFloat(m.m30)
-        buffer16.putFloat(m.m31)
-        buffer16.putFloat(m.m32)
-
+            .putFloat(m.m30)
+            .putFloat(m.m31)
+            .putFloat(m.m32)
     }
 
 
@@ -249,30 +230,28 @@ object M4x3Delta {
 
             // false = column major, however the labelling of these things is awkward
             // A_ji, as far, as I can see
-            buffer16.limit(12)
-            buffer16.position(0)
+            val buffer16 = buffer16
+            buffer16.limit(12).position(0)
             buffer16.put((m.m00 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m01 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m02 * worldScale).toFloat() * localScale)
+                .put((m.m01 * worldScale).toFloat() * localScale)
+                .put((m.m02 * worldScale).toFloat() * localScale)
 
-            buffer16.put((m.m10 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m11 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m12 * worldScale).toFloat() * localScale)
+                .put((m.m10 * worldScale).toFloat() * localScale)
+                .put((m.m11 * worldScale).toFloat() * localScale)
+                .put((m.m12 * worldScale).toFloat() * localScale)
 
-            buffer16.put((m.m20 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m21 * worldScale).toFloat() * localScale)
-            buffer16.put((m.m22 * worldScale).toFloat() * localScale)
+                .put((m.m20 * worldScale).toFloat() * localScale)
+                .put((m.m21 * worldScale).toFloat() * localScale)
+                .put((m.m22 * worldScale).toFloat() * localScale)
 
-            buffer16.put(((m.m30 - b.x) * worldScale).toFloat())
-            buffer16.put(((m.m31 - b.y) * worldScale).toFloat())
-            buffer16.put(((m.m32 - b.z) * worldScale).toFloat())
+                .put(((m.m30 - b.x) * worldScale).toFloat())
+                .put(((m.m31 - b.y) * worldScale).toFloat())
+                .put(((m.m32 - b.z) * worldScale).toFloat())
 
-            buffer16.position(0)
+                .flip()
 
             m4x3(uniformIndex, buffer16)
-
         }
-
     }
 
     @JvmStatic

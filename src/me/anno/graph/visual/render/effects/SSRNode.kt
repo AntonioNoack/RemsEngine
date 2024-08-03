@@ -61,7 +61,7 @@ class SSRNode : TimedRenderingNode(
         val colorTT = (getInput(8) as? Texture)?.texOrNull ?: whiteTexture
 
         val normal = getInput(9) as? Texture
-        val normalZW = normal?.mapping == "zw"
+        val normalZW = normal?.isZWMapping ?: false
         val normalT = normal?.texOrNull ?: whiteTexture
 
         val metallic = getInput(10) as? Texture

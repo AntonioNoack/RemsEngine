@@ -14,6 +14,9 @@ import java.nio.IntBuffer
 import kotlin.math.abs
 import kotlin.math.sqrt
 
+/**
+ * Utilities for working with RGB colors
+ * */
 object Color {
 
     const val black = 0xff000000.toInt()

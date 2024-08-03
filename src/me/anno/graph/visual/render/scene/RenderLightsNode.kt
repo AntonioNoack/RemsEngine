@@ -15,6 +15,7 @@ import me.anno.gpu.pipeline.LightShaders.invStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
 import me.anno.gpu.pipeline.LightShaders.vertexI
 import me.anno.gpu.pipeline.LightShaders.vertexNI
+import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -141,7 +142,7 @@ class RenderLightsNode : RenderViewNode(
                         "worldScale", "fullscreen", "isDirectional"
                     )
                 )
-                shader = builder.create("${type.ordinal}-${isInstanced.toInt()}")
+                shader = builder.create(getKey(), "${type.ordinal}-${isInstanced.toInt()}")
             }
 
             override val currentShader: Shader get() = shader

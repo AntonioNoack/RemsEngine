@@ -6,7 +6,9 @@ import me.anno.ecs.systems.OnUpdate
 class ScriptedAI : Component(), OnUpdate {
 
     // it seems kotlin has coroutines as well...
-    // todo see whether kotlin coroutines are powerful enough, and would make scripting easy
+    // see whether kotlin coroutines are powerful enough, and would make scripting easy
+    //  -> yes, they could, but idk if I want that 2MB dependency
+    //  -> we probably should replace that with our own implementation again, like with reflections
 
     var sequence: Iterator<Behaviour>? = null
     var behaviour: Behaviour? = null

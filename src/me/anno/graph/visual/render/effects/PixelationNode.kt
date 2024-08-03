@@ -78,7 +78,7 @@ class PixelationNode : RenderViewNode(
                     color.bindTrulyNearest(shader, "colorTex")
                     normal.bindTrulyNearest(shader, "normalTex")
                     depth.bindTrulyNearest(shader, "depthTex")
-                    shader.v1b("normalZW", normal0?.mapping == "zw")
+                    shader.v1b("normalZW", normal0?.isZWMapping ?: false)
                     shader.v4f("depthMask", depth0?.mask ?: singleToVectorR)
                     shader.v2f("duv0", 1f / width0, 1f / height0)
                     shader.v2f("duv", 1f / width1, 1f / height1)

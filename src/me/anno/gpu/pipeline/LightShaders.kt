@@ -15,11 +15,11 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.PBRLibraryGLTF.angularCorrection
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
+import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
@@ -58,7 +58,7 @@ object LightShaders {
             "   vec3 lightV = normalize(matMul(camSpaceToLightSpace,vec4(V,0.0)));\n" +
             "   vec3 lightH = normalize(lightV + lightDir);\n" +
             specularBRDFv2NoColor +
-             "   specularLight += (300.0 * pow(reflectivity,2.0)) * effectiveSpecular * computeSpecularBRDF;\n" +
+            "   specularLight += (300.0 * pow(reflectivity,2.0)) * effectiveSpecular * computeSpecularBRDF;\n" +
             "}\n"
 
     val addDiffuseLight = "" + // translucency; looks good and approximately correct
@@ -219,7 +219,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create("cmb0")
+            val shader = builder.create(getKey(), "cmb0")
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
@@ -493,7 +493,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create("lht${type.ordinal}")
+            val shader = builder.create(getKey(), "lht${type.ordinal}")
             shader.ignoreNameWarnings(
                 "tint,invLocalTransform,colors,tangents,uvs,normals,isDirectional," +
                         "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,receiveShadows," +

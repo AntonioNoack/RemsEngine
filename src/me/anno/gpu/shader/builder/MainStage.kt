@@ -2,8 +2,11 @@ package me.anno.gpu.shader.builder
 
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.AttributeLoading.appendAttributeLoader
+import me.anno.gpu.buffer.AttributeLoading.appendAttributeZero
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
@@ -243,7 +246,12 @@ class MainStage {
         code.append("}\n")
     }
 
+    fun appendBuffer(code: StringBuilder, binding: Int, name: String) {
+        code.append("layout(std430, binding = $binding) buffer i$name { int $name[]; };\n")
+    }
+
     fun createCode(
+        key: BaseShader.ShaderKey,
         isFragmentStage: Boolean,
         settings: DeferredSettings?,
         disabledLayers: BooleanArrayList?,
@@ -257,6 +265,37 @@ class MainStage {
         defined += imported
 
         val code = StringBuilder()
+        val main = StringBuilder()
+
+        if (key.meshLayout != null) {
+            main.append("{ // loading baked attributes\n")
+            // define all attributes based on the given layout
+            val meshNames = key.meshLayout.associateBy { it.name }
+            val instNames = key.instLayout?.associateBy { it.name } ?: emptyMap()
+
+            // append buffers
+            // to do only when used
+            appendBuffer(code, 0, meshBufferName)
+            appendBuffer(code, 1, instBufferName)
+
+            for (i in attributes.indices) {
+                val attr = attributes[i]
+                val byMesh = meshNames[attr.name]
+                if (byMesh != null) {
+                    appendAttributeLoader(code, main, byMesh, attr, false)
+                } else {
+                    val byInst = instNames[attr.name]
+                    if (byInst != null) {
+                        appendAttributeLoader(code, main, byInst, attr, true)
+                    } else {
+                        appendAttributeZero(code, attr)
+                    }
+                }
+            }
+            // including instanced attributes
+            main.append("}\n")
+            attributes.clear()
+        }
 
         // defines
         for (stage in stages) {
@@ -328,6 +367,7 @@ class MainStage {
         }
 
         code.append("void main(){\n")
+        code.append(main)
 
         val defined = HashSet(defined)
         defined += uniforms
@@ -483,5 +523,7 @@ class MainStage {
 
     companion object {
         private val LOGGER = LogManager.getLogger(MainStage::class)
+        val meshBufferName = "iMeshBuffer"
+        val instBufferName = "iInstBuffer"
     }
 }

@@ -12,6 +12,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.LightShaders.combineFStage
 import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
+import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -108,7 +109,7 @@ class CombineLightsNode : RenderViewNode(
                         .add(extraFunctions.toString())
                 )
                 builder.addFragment(combineFStage)
-                shader = builder.create("cmb1")
+                shader = builder.create(getKey(), "cmb1")
                 shader.ignoreNameWarnings("tint,d_camRot,d_uvCenter")
             }
 

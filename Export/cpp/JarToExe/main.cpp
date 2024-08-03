@@ -26,7 +26,7 @@ void openBrowser(const std::string& url) {
 }
 
 bool isJavaInstalled() {
-	// todo check actual version
+	// todo check actual version to be >= 8
     return system("java -version") == 0;
 }
 

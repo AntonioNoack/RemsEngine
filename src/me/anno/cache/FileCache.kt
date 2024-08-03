@@ -117,7 +117,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
     }
 
     companion object {
-        private const val proxyValidityTimeout = 7 * 24 * 3600 * 1000 // delete files after one week of not-used
+        private const val proxyValidityTimeout = 7 * 24 * 3600 * 1000 // delete values after one week of not-used
         private val LOGGER = LogManager.getLogger(FileCache::class)
     }
 

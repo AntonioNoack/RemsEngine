@@ -14,6 +14,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
@@ -24,12 +25,18 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferMA
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBufferSlim
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths
+import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongTriple
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Vector3d
+import java.nio.ByteBuffer
 
 /**
  * container for instanced transforms and their click ids
@@ -108,7 +115,6 @@ open class InstancedStack {
             time: Long, instances: InstancedStack, depth: Boolean
         ): Int {
 
-            val receiveShadows = true
             val aabb = PipelineStageImpl.tmpAABBd
 
             mesh.ensureBuffer()
@@ -123,40 +129,18 @@ open class InstancedStack {
                 // val t0 = Time.nanoTime
 
                 GFX.check()
-                val shader = stage.getShader(material)
-                shader.use()
-                GFX.check()
-                bindRandomness(shader)
 
-                // update material and light properties
-                val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
-                if (previousMaterial == null) {
-                    initShader(shader, pipeline.applyToneMapping)
-                }
+                mesh.ensureBuffer()
 
-                if (!depth && previousMaterial == null && !needsLightUpdateForEveryMesh) {
-                    aabb.clear()
-                    // pipeline.frustum.union(aabb)
-                    setupLights(pipeline, shader, aabb, true)
-                }
+                // todo useBakedLayout in non-instanced meshes, too (?)
+                // todo test with lots and lots of attributes
+                //  (whether we still fail before this)
+                val useBakedLayout = false && mesh is Mesh && mesh.helperMeshes == null &&
+                        !Mesh.drawDebugLines && mesh.lineBuffer == null && mesh.buffer != null // && Input.isShiftDown
 
-                GFX.check()
-                material.bind(shader)
-                GFX.check()
-                shader.v4f("tint", 1f)
-                shader.v1b("hasAnimation", useAnimations)
-                shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-                shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
-                if (useAnimations) {
-                    (instances as InstancedAnimStack).animTexture!!
-                        .bind(shader, "animTexture", Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                }
-                GFX.check()
-
-                // draw them in batches of size <= batchSize
-                val instanceCount = instances.size
+                val tmpShader = stage.getShader(material)
                 // to enable this mode, your vertex shader needs to be adjusted; motion vectors will only work with static meshes properly
-                val highPerformanceMode = shader.getAttributeLocation("instancePosSize") >= 0
+                val highPerformanceMode = tmpShader.getAttributeLocation("instancePosSize") >= 0
                 // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
                 val buffer = if (highPerformanceMode) instancedBufferSlim else {
                     if (motionVectors) {
@@ -165,145 +149,262 @@ open class InstancedStack {
                         if (useAnimations) instancedBufferA else instancedBuffer
                     }
                 }
-                // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-                val nioBuffer = buffer.nioBuffer!!
-                // fill the data
-                val transforms = instances.transforms
-                val gfxIds = instances.gfxIds
 
-                val anim = (instances as? InstancedAnimStack)?.animData
-                val cameraPosition = RenderState.cameraPosition
-                val worldScale = RenderState.worldScale
+                fun draw(shader: Shader) {
 
-                // val t1 = Time.nanoTime
-                var st23 = 0L
-                var st34 = 0L
-                var st45 = 0L
-                var st56 = 0L
-                // var st78 = 0L
-                // var st89 = 0L
+                    shader.use()
+                    GFX.check()
+                    bindRandomness(shader)
 
-                val prevWorldScale = RenderState.prevWorldScale
-                // worth ~15%; to use it, ensure that RenderView.worldScale is 1.0
-                val noWorldScale = worldScale == 1.0 && (prevWorldScale == 1.0 || !motionVectors)
-
-                val batchSize = buffer.vertexCount
-                val overrideGfxId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
-                for (baseIndex in 0 until instanceCount step batchSize) {
-
-                    val t2 = Time.nanoTime
-
-                    buffer.clear()
-
-                    val t3 = Time.nanoTime
-                    st23 += t3 - t2
-
-                    val drawCallId = drawCallId++
-                    val endIndex = Maths.min(instanceCount, baseIndex + batchSize)
-                    if (highPerformanceMode) {
-                        val cx = cameraPosition.x
-                        val cy = cameraPosition.y
-                        val cz = cameraPosition.z
-                        if (noWorldScale) {
-                            for (index in baseIndex until endIndex) {
-                                val tr = transforms[index]!!
-                                val tri = tr.localPosition
-                                nioBuffer.putFloat((tri.x - cx).toFloat())
-                                nioBuffer.putFloat((tri.y - cy).toFloat())
-                                nioBuffer.putFloat((tri.z - cz).toFloat())
-                                val sc = tr.localScale
-                                nioBuffer.putFloat(sc.x.toFloat() * 0.33333334f)
-                                val rt = tr.localRotation
-                                nioBuffer.putFloat(rt.x.toFloat())
-                                nioBuffer.putFloat(rt.y.toFloat())
-                                nioBuffer.putFloat(rt.z.toFloat())
-                                nioBuffer.putFloat(rt.w.toFloat())
-                            }
-                        } else {
-                            for (index in baseIndex until endIndex) {
-                                val tr = transforms[index]!!
-                                val tri = tr.localPosition
-                                nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
-                                nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
-                                nioBuffer.putFloat(((tri.z - cz) * worldScale).toFloat())
-                                val sc = tr.localScale
-                                nioBuffer.putFloat((sc.x * worldScale).toFloat() * 0.33333334f)
-                                val rt = tr.localRotation
-                                nioBuffer.putFloat(rt.x.toFloat())
-                                nioBuffer.putFloat(rt.y.toFloat())
-                                nioBuffer.putFloat(rt.z.toFloat())
-                                nioBuffer.putFloat(rt.w.toFloat())
-                            }
-                        }
-                    } else {
-                        for (index in baseIndex until endIndex) {
-                            val tri = transforms[index]!!.getDrawMatrix(time)
-                            if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
-                            else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
-                            if (motionVectors) {
-                                // put previous matrix
-                                val tri2 = transforms[index]!!.getDrawnMatrix(time)
-                                if (noWorldScale) M4x3Delta.m4x3delta(tri2, cameraPosition, nioBuffer)
-                                else M4x3Delta.m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
-                                // put animation data
-                                if (useAnimations) {
-                                    // anim and previous anim data
-                                    buffer.put(anim!!, index * 16, 16)
-                                }
-                            } else {
-                                // put current animation data
-                                if (useAnimations) buffer.put(anim!!, index * 16, 8)
-                            }
-                            nioBuffer.putInt(
-                                convertABGR2ARGB(
-                                    if (overrideGfxId) drawCallId
-                                    else gfxIds[index]
-                                )
-                            )
-                        }
+                    // update material and light properties
+                    val previousMaterial = PipelineStageImpl.lastMaterial.put(shader, material)
+                    if (previousMaterial == null) {
+                        initShader(shader, pipeline.applyToneMapping)
                     }
 
-                    val t4 = Time.nanoTime
-                    st34 += t4 - t3
-
-                    if (needsLightUpdateForEveryMesh) {
-                        // calculate the lights for each group
-                        // todo cluster them cheaply?
+                    if (!depth && previousMaterial == null && !needsLightUpdateForEveryMesh) {
                         aabb.clear()
-                        for (index in baseIndex until endIndex) {
-                            localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
-                        }
-                        setupLights(pipeline, shader, aabb, receiveShadows)
-                        shader.checkIsUsed()
+                        // pipeline.frustum.union(aabb)
+                        setupLights(pipeline, shader, aabb, true)
+                    }
+
+                    GFX.check()
+                    material.bind(shader)
+                    GFX.check()
+                    shader.v4f("tint", 1f)
+                    shader.v1b("hasAnimation", useAnimations)
+                    shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
+                    shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
+
+                    if (useAnimations) {
+                        (instances as InstancedAnimStack).animTexture!!
+                            .bind(shader, "animTexture", Filtering.TRULY_LINEAR, Clamping.CLAMP)
                     }
                     GFX.check()
 
-                    val t5 = Time.nanoTime
-                    st45 += t5 - t4
-
-                    cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                        mesh.drawInstanced(pipeline, shader, materialIndex, buffer, Mesh.drawDebugLines)
-                    }
-                    drawCalls++
-
-                    val t6 = Time.nanoTime
-                    st56 += t6 - t5
-
-                    // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
+                    drawCalls += drawInstances(
+                        buffer, instances, highPerformanceMode,
+                        time, useAnimations, motionVectors, needsLightUpdateForEveryMesh,
+                        mesh, aabb, localAABB, pipeline, stage, shader, material, materialIndex,
+                    )
                 }
 
-                // has been optimized from ~150ns/e to ~64ns/e on 1M bricks test, with worldScale=1.0 (or ~75 with worldScale != 1.0)
-                // mainly optimizing transforms to stop updating with lerp(), when they were no longer being changed
-                /*val t6 = Time.nanoTime
-                val dt = t6 - t1
-                println(
-                    "base: ${(t1 - t0)} + $instanceCount meshes with [$st23, $st34, $st45, $st56] -> " +
-                            "[${st23 * 100 / dt}, ${st34 * 100 / dt}, " +
-                            "${st45 * 100 / dt}, ${st56 * 100 / dt}]"
-                )*/
-
+                if (useBakedLayout) {
+                    mesh as Mesh
+                    val bufferI = mesh.buffer!!
+                    GFXState.bakedMeshLayout.use(bufferI.attributes) {
+                        GFXState.bakedInstLayout.use(buffer.attributes) {
+                            val shader = stage.getShader(material)
+                            draw(shader)
+                        }
+                    }
+                } else {
+                    val shader = stage.getShader(material)
+                    draw(shader)
+                }
             }
             return drawCalls
+        }
+
+        private fun drawInstances(
+            buffer: StaticBuffer, instances: InstancedStack,
+            highPerformanceMode: Boolean, time: Long, useAnimations: Boolean,
+            motionVectors: Boolean, needsLightUpdateForEveryMesh: Boolean,
+            mesh: IMesh, aabb: AABBd, localAABB: AABBf,
+            pipeline: Pipeline, stage: PipelineStageImpl, shader: Shader,
+            material: Material, materialIndex: Int,
+        ): Int {
+            // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
+            val nioBuffer = buffer.nioBuffer!!
+            // fill the data
+            val transforms = instances.transforms
+            val gfxIds = instances.gfxIds
+
+            val anim = (instances as? InstancedAnimStack)?.animData
+            val cameraPosition = RenderState.cameraPosition
+            val worldScale = RenderState.worldScale
+
+            // val t1 = Time.nanoTime
+            var st23 = 0L
+            var st34 = 0L
+            var st45 = 0L
+            var st56 = 0L
+            // var st78 = 0L
+            // var st89 = 0L
+
+            val prevWorldScale = RenderState.prevWorldScale
+            // worth ~15%; to use it, ensure that RenderView.worldScale is 1.0
+            val noWorldScale = worldScale == 1.0 && (prevWorldScale == 1.0 || !motionVectors)
+
+            val batchSize = buffer.vertexCount
+            val overrideGfxId = RenderView.currentInstance?.renderMode == RenderMode.DRAW_CALL_ID
+            val drawDebugLines = Mesh.drawDebugLines
+            val instanceCount = instances.size
+            val bindBuffersDirectly = GFXState.bakedMeshLayout.currentValue != null
+            for (baseIndex in 0 until instanceCount step batchSize) {
+
+                val t2 = Time.nanoTime
+
+                buffer.clear()
+
+                val t3 = Time.nanoTime
+                st23 += t3 - t2
+
+                val drawCallId = drawCallId++
+                val endIndex = Maths.min(instanceCount, baseIndex + batchSize)
+                if (highPerformanceMode) {
+                    val cx = cameraPosition.x
+                    val cy = cameraPosition.y
+                    val cz = cameraPosition.z
+                    if (noWorldScale) {
+                        putNoWorldScale(nioBuffer, transforms, baseIndex, endIndex, cx, cy, cz)
+                    } else {
+                        putWorldScale(nioBuffer, transforms, baseIndex, endIndex, cx, cy, cz, worldScale)
+                    }
+                } else {
+                    putAdvanced(
+                        nioBuffer, buffer, transforms, baseIndex, endIndex, noWorldScale, time,
+                        cameraPosition, prevWorldScale, worldScale, motionVectors, useAnimations, anim,
+                        overrideGfxId, gfxIds, drawCallId
+                    )
+                }
+
+                val t4 = Time.nanoTime
+                st34 += t4 - t3
+
+                if (needsLightUpdateForEveryMesh) {
+                    updateLights(pipeline, shader, aabb, localAABB, transforms, baseIndex, endIndex)
+                }
+                GFX.check()
+
+                val t5 = Time.nanoTime
+                st45 += t5 - t4
+
+                buffer.ensureBufferWithoutResize()
+
+                if (bindBuffersDirectly) {
+                    shader.bindBuffer(0, (mesh as Mesh).buffer!!)
+                    shader.bindBuffer(1, buffer)
+                }
+
+                cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                    mesh.drawInstanced(pipeline, shader, materialIndex, buffer, drawDebugLines)
+                }
+
+                val t6 = Time.nanoTime
+                st56 += t6 - t5
+
+                // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
+            }
+
+            // has been optimized from ~150ns/e to ~64ns/e on 1M bricks test, with worldScale=1.0 (or ~75 with worldScale != 1.0)
+            // mainly optimizing transforms to stop updating with lerp(), when they were no longer being changed
+            /*val t6 = Time.nanoTime
+            val dt = t6 - t1
+            println(
+                "base: ${(t1 - t0)} + $instanceCount meshes with [$st23, $st34, $st45, $st56] -> " +
+                        "[${st23 * 100 / dt}, ${st34 * 100 / dt}, " +
+                        "${st45 * 100 / dt}, ${st56 * 100 / dt}]"
+            )*/
+            return ceilDiv(instanceCount, batchSize)
+        }
+
+        private fun updateLights(
+            pipeline: Pipeline, shader: Shader, aabb: AABBd, localAABB: AABBf,
+            transforms: Array<Transform?>, baseIndex: Int, endIndex: Int
+        ) {
+            // would need to be voted by MeshComponents...
+            // could be encoded into a float's lowest bit somewhere...
+            val receiveShadows = true
+            // calculate the lights for each group
+            // todo cluster them cheaply?
+            aabb.clear()
+            for (index in baseIndex until endIndex) {
+                localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
+            }
+            setupLights(pipeline, shader, aabb, receiveShadows)
+            shader.checkIsUsed()
+        }
+
+        private fun putNoWorldScale(
+            nioBuffer: ByteBuffer, transforms: Array<Transform?>,
+            baseIndex: Int, endIndex: Int,
+            cx: Double, cy: Double, cz: Double
+        ) {
+            for (index in baseIndex until endIndex) {
+                val tr = transforms[index]!!
+                val tri = tr.localPosition
+                nioBuffer.putFloat((tri.x - cx).toFloat())
+                nioBuffer.putFloat((tri.y - cy).toFloat())
+                nioBuffer.putFloat((tri.z - cz).toFloat())
+                val sc = tr.localScale
+                nioBuffer.putFloat(sc.x.toFloat() * 0.33333334f)
+                val rt = tr.localRotation
+                nioBuffer.putFloat(rt.x.toFloat())
+                nioBuffer.putFloat(rt.y.toFloat())
+                nioBuffer.putFloat(rt.z.toFloat())
+                nioBuffer.putFloat(rt.w.toFloat())
+            }
+        }
+
+        private fun putWorldScale(
+            nioBuffer: ByteBuffer, transforms: Array<Transform?>,
+            baseIndex: Int, endIndex: Int,
+            cx: Double, cy: Double, cz: Double,
+            worldScale: Double
+        ) {
+            for (index in baseIndex until endIndex) {
+                val tr = transforms[index]!!
+                val tri = tr.localPosition
+                nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
+                nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
+                nioBuffer.putFloat(((tri.z - cz) * worldScale).toFloat())
+                val sc = tr.localScale
+                nioBuffer.putFloat((sc.x * worldScale).toFloat() * 0.33333334f)
+                val rt = tr.localRotation
+                nioBuffer.putFloat(rt.x.toFloat())
+                nioBuffer.putFloat(rt.y.toFloat())
+                nioBuffer.putFloat(rt.z.toFloat())
+                nioBuffer.putFloat(rt.w.toFloat())
+            }
+        }
+
+        private fun putAdvanced(
+            nioBuffer: ByteBuffer, buffer: StaticBuffer,
+            transforms: Array<Transform?>,
+            baseIndex: Int, endIndex: Int,
+            noWorldScale: Boolean, time: Long,
+            cameraPosition: Vector3d,
+            prevWorldScale: Double, worldScale: Double,
+            motionVectors: Boolean, useAnimations: Boolean,
+            anim: FloatArray?, overrideGfxId: Boolean,
+            gfxIds: IntArray, drawCallId: Int,
+        ) {
+            for (index in baseIndex until endIndex) {
+                val tri = transforms[index]!!.getDrawMatrix(time)
+                if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
+                else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
+                if (motionVectors) {
+                    // put previous matrix
+                    val tri2 = transforms[index]!!.getDrawnMatrix(time)
+                    if (noWorldScale) M4x3Delta.m4x3delta(tri2, cameraPosition, nioBuffer)
+                    else M4x3Delta.m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
+                    // put animation data
+                    if (useAnimations) {
+                        // anim and previous anim data
+                        buffer.put(anim!!, index * 16, 16)
+                    }
+                } else {
+                    // put current animation data
+                    if (useAnimations) buffer.put(anim!!, index * 16, 8)
+                }
+                nioBuffer.putInt(
+                    convertABGR2ARGB(
+                        if (overrideGfxId) drawCallId
+                        else gfxIds[index]
+                    )
+                )
+            }
         }
 
         override fun clear() {

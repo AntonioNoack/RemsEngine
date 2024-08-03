@@ -1,5 +1,6 @@
 package me.anno.utils.structures
 
+@Suppress("unused")
 object Compare {
 
     /**

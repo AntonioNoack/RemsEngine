@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
@@ -29,6 +30,7 @@ import org.joml.Vector3i
 import org.joml.Vector4d
 import org.joml.Vector4f
 import org.joml.Vector4i
+import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_LINK_STATUS
 import org.lwjgl.opengl.GL46C.GL_PROGRAM
 import org.lwjgl.opengl.GL46C.GL_SHADER
@@ -859,6 +861,11 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     operator fun get(name: String) = getUniformLocation(name)
     fun hasUniform(name: String) = getUniformLocation(name, false) >= 0
+
+    fun bindBuffer(slot: Int, buffer: OpenGLBuffer) {
+        buffer.ensureBuffer()
+        GL46C.glBindBufferBase(GL46C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
+    }
 
     override fun destroy() {
         if (program != 0) {

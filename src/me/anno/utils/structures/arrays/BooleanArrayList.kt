@@ -127,8 +127,8 @@ class BooleanArrayList(var size: Int) : Saveable() {
         }
     }
 
-    fun last() = get(size - 1)
-    fun peek() = last()
+    fun last(): Boolean = get(size - 1)
+    fun peek(): Boolean = last()
 
     fun push(v: Boolean) {
         ensureRawCapacity((size + 64) ushr 6)

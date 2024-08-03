@@ -43,7 +43,7 @@ class SmoothNormalsNode : ActionNode(
         timeRendering(name, timer) {
             val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
             val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
-            val value = if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
+            val value = if (smoothNormals(normal, normalTex.isZWMapping, depth, result, radius)) {
                 Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL)
             } else normalTex
             setOutput(1, value)

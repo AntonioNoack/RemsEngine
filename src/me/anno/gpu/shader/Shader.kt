@@ -11,6 +11,12 @@ import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL46C
 
+// todo for debugging, it would be nice to be able to print stuff from a shader.
+//  (according to ChatGPT), we can write to SSBOs from a shader, and use atomics via atomicCounterIncrement, GL_ATOMIC_COUNTER_BUFFER
+
+// todo to get rid of the attribute limit, use SSBOs for loading data:
+//  data sources: per-instance | per-mesh
+
 open class Shader(
     shaderName: String,
     val vertexVariables: List<Variable>,
@@ -94,6 +100,10 @@ open class Shader(
 
         if (glslVersion < 400 && ("gl_SampleID" in fragmentShader || "gl_SamplePosition" in fragmentShader)) {
             glslVersion = 400
+        }
+
+        if (glslVersion < 430 && ("layout(std430, binding = 0) buffer" in vertexShader)) {
+            glslVersion = 430
         }
 
         val versionString = formatVersion(glslVersion) + "\n// $name\n"

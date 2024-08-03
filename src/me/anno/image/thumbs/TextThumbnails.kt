@@ -36,9 +36,7 @@ object TextThumbnails {
 
     @JvmStatic
     private fun generateFontPreview(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
         Warning.unused(dstFile)
@@ -58,9 +56,7 @@ object TextThumbnails {
     @JvmStatic
     @InternalAPI
     fun generateTextImage(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: Callback<ITexture2D>
     ) {
         Warning.unused(dstFile)
@@ -86,7 +82,7 @@ object TextThumbnails {
         }
     }
 
-    private fun generateImage(lines: List<String>, w: Int, h: Int, sx: Int, sy: Int, callback: Callback<ITexture2D>){
+    private fun generateImage(lines: List<String>, w: Int, h: Int, sx: Int, sy: Int, callback: Callback<ITexture2D>) {
         val transform = GFXx2D.transform
         transform.identity().scale(1f, -1f, 1f)
         val tex = Texture2D("textThumbs", w, h, 1)
