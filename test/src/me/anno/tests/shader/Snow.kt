@@ -33,6 +33,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
+import me.anno.input.Input
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
@@ -72,7 +73,10 @@ val snowShader = Shader(
             quatRot +
             rawToDepth +
             depthToPosition +
-            sdSphere +
+            "float sddSphere2(vec3 pos, vec3 dir, float radius){\n" +
+            "   vec3 closest = pos - dir * dot(pos,dir);\n" +
+            "   return length(closest) - radius;\n" +
+            "}\n" +
             randomGLSL +
             "void main(){\n" +
             "   vec4 color = texture(colorTex,uv);\n" +
@@ -96,7 +100,8 @@ val snowShader = Shader(
             "       float nextDist = min(dist3.x, dist3.y);\n" +
             "       float distGuess = (dist + nextDist) * 0.5;\n" +
             "       float cellY = floor(pos.y + dir.y * distGuess);\n" +
-            "       float flakeD = flakeSize * (1.0 + max(dist - 7.0, 0.0) * 0.25), flakeR = 0.5 * flakeD, flakeA = min(distGuess, 1.0) / (1.0 + distGuess * distGuess);\n" +
+            "       float flakeD = flakeSize * (1.0 + max(dist - 7.0, 0.0) * 0.25), flakeR = 0.5 * flakeD;" +
+            "       float flakeA = clamp(distGuess, 0.0, 1.0) / (1.0 + distGuess * distGuess);\n" +
             "       vec2 seed = blockPosition + vec2(0.03 * cellY, 0.0);\n" +
             "       float flakeY = flakeR+(1.0-flakeD)*random(seed+0.3);\n" +
             // check for colliding snowflakes
@@ -112,7 +117,12 @@ val snowShader = Shader(
             "           spherePos.y *= elongation;\n" +
             "       }\n" +
             "       if(dot(spherePos,dir1) > min(depth, maxDist)) break;\n" +
-            "       if(sddSphere(spherePos,dir1,flakeD*0.5*density) < 0.0) color.rgb = mix(color.rgb, snowColor, flakeA);\n" +
+            "       float dist1 = sddSphere2(spherePos,dir1,flakeD*0.5*density);\n" +
+            "       dist1 /= length(vec3(1e-7,dFdx(dist1),dFdy(dist1)));\n" +
+            "       if(dist1 < 0.0) {\n" +
+            "           dist1 = min(-dist1, 1.0);\n" +
+            "           color.rgb = mix(color.rgb, snowColor, flakeA * dist1);\n" +
+            "       }\n" +
             // continue tracing
             "       if(nextDist == dist3.x){\n" +
             "           blockPosition.x += dirSign.x; dist3.x += invUStep.x;\n" +
@@ -158,7 +168,9 @@ class SnowControl : Component(), OnUpdate {
             position.mul(deltaDensity)
             position.sub(center)
         }
-        velocity.mulAdd(-Time.deltaTime, position, position)
+        if (!Input.isShiftDown) {
+            velocity.mulAdd(-Time.deltaTime, position, position)
+        }
     }
 }
 

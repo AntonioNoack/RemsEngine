@@ -208,8 +208,9 @@ object SDFComposer {
                                             "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                                             discardByCullingPlane + // respect reflection plane
                                             "   currPosition = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
-                                            "#ifdef MOTION_VECTORS\n" + // todo why are motion vectors as-if the background just was rotating?
-                                            "   prevPosition = matMul(prevTransform, vec4(finalPosition, 1.0));\n" +
+                                            "#ifdef MOTION_VECTORS\n" +
+                                            "   vec3 prevFinalPosition = matMul(prevLocalTransform, vec4(localHit, 1.0));\n" +
+                                            "   prevPosition = matMul(prevTransform, vec4(prevFinalPosition, 1.0));\n" +
                                             finalMotionCalculation +
                                             "#endif\n" +
                                             "   #define CUSTOM_DEPTH\n" +
@@ -407,6 +408,7 @@ object SDFComposer {
         Variable(GLSLType.M4x4, "transform"),
         Variable(GLSLType.M4x4, "prevTransform"),
         Variable(GLSLType.M4x3, "localTransform"),
+        Variable(GLSLType.M4x3, "prevLocalTransform"),
         Variable(GLSLType.M4x3, "invLocalTransform"),
         Variable(GLSLType.V3F, "localCamPos"),
         Variable(GLSLType.V1I, "maxSteps"),

@@ -84,15 +84,20 @@ fun main() {
         it != RenderMode.GHOSTING_DEBUG && it != RenderMode.RAY_TEST
     })
 
-    addEvent(3_000) {
-        val renderView = sceneView.renderer
-        renderView.setPosSize(0, 0, width, height)
-        for (mode in renderModes) {
+    fun renderNextImage() {
+        val mode = renderModes.removeLastOrNull()
+        if (mode != null) {
+            val renderView = sceneView.renderer
+            renderView.setPosSize(0, 0, width, height)
             renderScene(mode)
-        }
-        Engine.requestShutdown()
+            addEvent(1, ::renderNextImage)
+        } else Engine.requestShutdown()
     }
-    testUI3("Test", sceneView)
+
+    addEvent(3_000) {
+        renderNextImage()
+    }
+    testUI3("PromoGenerator", sceneView)
 }
 
 fun renderScene(renderMode: RenderMode) {

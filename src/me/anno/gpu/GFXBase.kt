@@ -99,42 +99,43 @@ object GFXBase {
     @JvmStatic
     fun run(title: String) {
         try {
-
             loadRenderDoc()
-
             val clock = initLWJGL()
-
-            val window0 = createWindow(
-                if (GFX.windows.isEmpty() && !GFX.someWindow.shouldClose) {
-                    val window = GFX.someWindow // first window is being reused
-                    window.title = title
-                    window
-                } else OSWindow(title),
-                clock
-            )
-
+            val window0 = createFirstWindow(title, clock)
             runLoops(window0)
-
-            // wait for the last frame to be finished,
-            // before we actually destroy the window and its framebuffer
-            synchronized(glfwLock) {
-                synchronized(openglLock) {
-                    destroyed = true
-                    when (windows.size) {
-                        0 -> {}
-                        1 -> LOGGER.info("Closing one remaining window")
-                        else -> LOGGER.info("Closing ${windows.size} remaining windows")
-                    }
-                    for (index in 0 until windows.size) {
-                        close(windows.getOrNull(index) ?: break)
-                    }
-                    windows.clear()
-                }
-            }
+            shutdown()
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             GLFW.glfwTerminate()
+        }
+    }
+
+    private fun createFirstWindow(title: String, clock: Clock): OSWindow {
+        val window = if (GFX.windows.isEmpty() && !GFX.someWindow.shouldClose) {
+            val window = GFX.someWindow // first window is being reused
+            window.title = title
+            window
+        } else OSWindow(title)
+        return createWindow(window, clock)
+    }
+
+    private fun shutdown() {
+        // wait for the last frame to be finished,
+        // before we actually destroy the window and its framebuffer
+        synchronized(glfwLock) {
+            synchronized(openglLock) {
+                destroyed = true
+                when (windows.size) {
+                    0 -> {}
+                    1 -> LOGGER.info("Closing one remaining window")
+                    else -> LOGGER.info("Closing ${windows.size} remaining windows")
+                }
+                for (index in 0 until windows.size) {
+                    close(windows.getOrNull(index) ?: break)
+                }
+                windows.clear()
+            }
         }
     }
 

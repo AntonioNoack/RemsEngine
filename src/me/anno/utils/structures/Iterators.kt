@@ -85,7 +85,7 @@ object Iterators {
         return this
     }
 
-    fun <V> Iterator<V>.take(length: Int): List<V> {
+    fun <V> Iterator<V>.take(length: Int): ArrayList<V> {
         val list = ArrayList<V>(length)
         while (list.size < length && hasNext()) {
             list.add(next())
@@ -93,7 +93,7 @@ object Iterators {
         return list
     }
 
-    fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): List<V> {
+    fun <V> Iterator<V>.subList(startIndex: Int, endIndex: Int): ArrayList<V> {
         return skip(startIndex).take(endIndex - startIndex)
     }
 

@@ -108,11 +108,8 @@ object TextThumbnails {
 
     private fun getLines(itr: ReadLineIterator?, maxLineCount: Int): List<String> {
         if (itr == null) return emptyList()
-        var lines = itr
-            .subList(0, maxLineCount)
-            .toMutableList()
-        if (itr.hasNext()/*lines.size > maxLineCount*/) {
-            lines = lines.subList(0, maxLineCount)
+        val lines = itr.subList(0, maxLineCount)
+        if (itr.hasNext()) {
             lines[lines.lastIndex] = "..."
         }
         itr.close()

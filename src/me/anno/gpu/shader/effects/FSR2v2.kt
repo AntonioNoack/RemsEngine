@@ -36,18 +36,6 @@ import kotlin.math.ceil
 // implement the ideas of FSR2, but just in principle and much easier
 class FSR2v2 : ICacheData {
 
-    val dataTargetTypes = listOf(TargetType.Float16x4, TargetType.Float32x4)
-    var data0 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
-    var data1 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
-
-    var previousDepth = Framebuffer("depth", 1, 1, TargetType.Float32x1)
-
-    override fun destroy() {
-        data0.destroy()
-        data1.destroy()
-        previousDepth.destroy()
-    }
-
     companion object {
 
         val updateShader = Shader(
@@ -175,6 +163,18 @@ class FSR2v2 : ICacheData {
                     // "   gl_FragDepth = pow(2.0,depth.x);\n" +
                     "}\n"
         ).apply { setTextureIndices("colorNWeights", "depths") }
+    }
+
+    private val dataTargetTypes = listOf(TargetType.Float16x4, TargetType.Float32x4)
+    private var data0 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+    private var data1 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+
+    private var previousDepth = Framebuffer("depth", 1, 1, TargetType.Float32x1)
+
+    override fun destroy() {
+        data0.destroy()
+        data1.destroy()
+        previousDepth.destroy()
     }
 
     private var jx = 0f

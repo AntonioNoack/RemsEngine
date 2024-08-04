@@ -325,7 +325,7 @@ object DebugRendering {
             if (v.w > 0f && v.x in -v.w..v.w && v.y in -v.w..v.w) {
                 val vx = v.x * sx / v.w + x0
                 val vy = v.y * sy / v.w + y0
-                DrawTexts.drawSimpleTextCharByChar(
+                drawSimpleTextCharByChar(
                     vx.toInt(), vy.toInt(), 0, text.text,
                     text.color, text.color.withAlpha(0),
                     AxisAlignment.CENTER, AxisAlignment.CENTER,

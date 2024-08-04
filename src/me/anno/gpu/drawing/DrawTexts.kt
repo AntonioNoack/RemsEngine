@@ -67,7 +67,11 @@ object DrawTexts {
             Attribute("color1", AttributeType.UINT8_NORM, 4),
         ), 4096
     ) {
-        override fun bindShader() = ShaderLib.subpixelCorrectTextGraphicsShader[1].value
+        override fun bindShader() : Shader {
+            val shader = ShaderLib.subpixelCorrectTextGraphicsShader[1].value
+            shader.use()
+            return shader
+        }
     }
 
     fun drawSimpleTextCharByChar(
@@ -87,10 +91,11 @@ object DrawTexts {
         val x = pushBetterBlending(false)
         val shader = chooseShader(-1, -1, 1)
         val texture = FontManager.getASCIITexture(font)
-        texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
+        texture.bindTrulyNearest(0)
         val batch = if (shader is Shader) {
             val batch = simpleBatch.start()
             if (batch == 0) {
+                shader.use() // just in case
                 posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
             }
             batch
@@ -389,12 +394,15 @@ object DrawTexts {
             }
         } else ShaderLib.subpixelCorrectTextGraphicsShader[instanced].value
         shader.use()
+        GFX.check()
         shader.v4f("textColor", textColor)
         shader.v4f("backgroundColor", backgroundColor)
         shader.v1b("disableSubpixelRendering", disableSubpixelRendering)
+        GFX.check()
         val windowWidth = GFX.viewportWidth.toFloat()
         val windowHeight = GFX.viewportHeight.toFloat()
         shader.v2f("windowSize", windowWidth, windowHeight)
+        GFX.check()
         return shader
     }
 

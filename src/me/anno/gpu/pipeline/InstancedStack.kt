@@ -222,6 +222,7 @@ open class InstancedStack {
 
             val anim = (instances as? InstancedAnimStack)?.animData
             val cameraPosition = RenderState.cameraPosition
+            val prevCameraPosition = RenderState.prevCameraPosition
             val worldScale = RenderState.worldScale
 
             // val t1 = Time.nanoTime
@@ -264,8 +265,8 @@ open class InstancedStack {
                 } else {
                     putAdvanced(
                         nioBuffer, buffer, transforms, baseIndex, endIndex, noWorldScale, time,
-                        cameraPosition, prevWorldScale, worldScale, motionVectors, useAnimations, anim,
-                        overrideGfxId, gfxIds, drawCallId
+                        prevCameraPosition, cameraPosition, prevWorldScale, worldScale, motionVectors,
+                        useAnimations, anim, overrideGfxId, gfxIds, drawCallId
                     )
                 }
 
@@ -374,7 +375,7 @@ open class InstancedStack {
             transforms: Array<Transform?>,
             baseIndex: Int, endIndex: Int,
             noWorldScale: Boolean, time: Long,
-            cameraPosition: Vector3d,
+            prevCameraPosition: Vector3d, cameraPosition: Vector3d,
             prevWorldScale: Double, worldScale: Double,
             motionVectors: Boolean, useAnimations: Boolean,
             anim: FloatArray?, overrideGfxId: Boolean,
@@ -387,8 +388,8 @@ open class InstancedStack {
                 if (motionVectors) {
                     // put previous matrix
                     val tri2 = transforms[index]!!.getDrawnMatrix(time)
-                    if (noWorldScale) M4x3Delta.m4x3delta(tri2, cameraPosition, nioBuffer)
-                    else M4x3Delta.m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
+                    if (noWorldScale) M4x3Delta.m4x3delta(tri2, prevCameraPosition, nioBuffer)
+                    else M4x3Delta.m4x3delta(tri2, prevCameraPosition, prevWorldScale, nioBuffer)
                     // put animation data
                     if (useAnimations) {
                         // anim and previous anim data

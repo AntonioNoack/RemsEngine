@@ -174,8 +174,6 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
         return Vector3f(x, y, z)
     }
 
-    // todo extra opacity texture? how could we integrate that?
-
     companion object {
 
         fun readAsFolder(
