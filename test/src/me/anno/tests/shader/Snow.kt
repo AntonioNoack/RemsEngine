@@ -118,6 +118,7 @@ val snowShader = Shader(
             "       }\n" +
             "       if(dot(spherePos,dir1) > min(depth, maxDist)) break;\n" +
             "       float dist1 = sddSphere2(spherePos,dir1,flakeD*0.5*density);\n" +
+            // todo anti-aliasing could be skipped on weak devices
             "       dist1 /= length(vec3(1e-7,dFdx(dist1),dFdy(dist1)));\n" +
             "       if(dist1 < 0.0) {\n" +
             "           dist1 = min(-dist1, 1.0);\n" +

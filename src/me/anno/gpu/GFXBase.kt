@@ -121,21 +121,20 @@ object GFXBase {
     }
 
     private fun shutdown() {
-        // wait for the last frame to be finished,
-        // before we actually destroy the window and its framebuffer
+        val clock = Clock(LOGGER)
+        synchronized(openglLock) {
+            // wait for the last frame to be finished,
+            // before we actually destroy the window and its framebuffer
+            clock.stop("Finishing last frame")
+        }
         synchronized(glfwLock) {
-            synchronized(openglLock) {
-                destroyed = true
-                when (windows.size) {
-                    0 -> {}
-                    1 -> LOGGER.info("Closing one remaining window")
-                    else -> LOGGER.info("Closing ${windows.size} remaining windows")
-                }
-                for (index in 0 until windows.size) {
-                    close(windows.getOrNull(index) ?: break)
-                }
-                windows.clear()
+            destroyed = true
+            val size = windows.size
+            for (index in 0 until size) {
+                close(windows.getOrNull(index) ?: break)
             }
+            windows.clear()
+            clock.stop("Closing $size window(s)")
         }
     }
 
