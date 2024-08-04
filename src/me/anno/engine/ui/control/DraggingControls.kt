@@ -406,7 +406,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
                 val selection = EditorState.selection
                 if (selection.isEmpty()) return
-                val prefab = selection.firstInstanceOrNull<PrefabSaveable>()?.root?.prefab ?: return
+                val prefab = selection.firstInstanceOrNull(PrefabSaveable::class)?.root?.prefab ?: return
                 if (!prefab.isWritable) {
                     LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
                     return
@@ -704,7 +704,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // done while dragging this, show preview
                     // done place it where the preview was drawn
                     val world = renderView.getWorld() as? Entity
-                    var root = EditorState.selection.firstInstanceOrNull<Entity>() ?: world
+                    var root = EditorState.selection.firstInstanceOrNull(Entity::class) ?: world
                     while (root != null && root != world && root.prefab?.find(root.prefabPath)
                             .run { this == null || this.prefab != InvalidRef }
                     ) {

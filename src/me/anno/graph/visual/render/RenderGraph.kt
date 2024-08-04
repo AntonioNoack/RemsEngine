@@ -92,8 +92,7 @@ object RenderGraph {
     }
 
     private fun findStartNode(graph: FlowGraph): StartNode? {
-        val nodes = graph.nodes
-        return nodes.firstInstanceOrNull<StartNode>()
+        return graph.nodes.firstInstanceOrNull(StartNode::class)
     }
 
     private fun writeSceneIntoRenderNodes(graph: FlowGraph, renderView: RenderView) {

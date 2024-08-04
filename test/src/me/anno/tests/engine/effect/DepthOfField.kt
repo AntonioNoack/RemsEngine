@@ -16,7 +16,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.NumberType
 import me.anno.utils.OS.downloads
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
+import me.anno.utils.structures.lists.Lists.firstInstance2
 
 fun main() {
     OfficialExtensions.initForTests()
@@ -30,7 +30,7 @@ fun main() {
         PrefabInspector.currentInspector = PrefabInspector(scene)
         val list = PanelListY(style)
         val list2 = PanelListX(style)
-        val effect = RenderMode.DEPTH_OF_FIELD.renderGraph!!.nodes.firstInstanceOrNull2(DepthOfFieldNode::class)!!
+        val effect = RenderMode.DEPTH_OF_FIELD.renderGraph!!.nodes.firstInstance2(DepthOfFieldNode::class)
         list2.add(FloatInput("Point", effect.getFloatInput(1), NumberType.FLOAT_PLUS, style)
             .setChangeListener { effect.setInput(1, it.toFloat()) })
         list2.add(FloatInput("Scale", effect.getFloatInput(2), NumberType.FLOAT_PLUS, style)

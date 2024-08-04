@@ -41,6 +41,7 @@ import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
@@ -199,13 +200,13 @@ class PrefabInspector(var reference: FileReference) {
             list, instances, style, isWritable,
             { it.description }) { it, v -> it.description = v }
 
-        val inputListener = instances.firstInstanceOrNull<InputListener>()
+        val inputListener = instances.firstInstanceOrNull(InputListener::class)
         if (inputListener != null) {
             list.add(TextButton("Test Controls", style)
                 .addLeftClickListener { EditorState.control = inputListener })
         }
 
-        val customEditModes = instances.filterIsInstance<CustomEditMode>()
+        val customEditModes = instances.filterIsInstance2(CustomEditMode::class)
         if (customEditModes.isNotEmpty()) {
             showCustomEditModeButton(list, customEditModes, style)
         }

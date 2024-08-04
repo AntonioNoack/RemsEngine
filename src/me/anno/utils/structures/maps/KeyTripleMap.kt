@@ -10,20 +10,11 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
 
     val values = HashMap<KManifold, MutableList<MutableTriple<KFewOnly, KFewOnly2, Value>>>(capacity)
 
-    operator fun get(
-        k1: KManifold,
-        k2: KFewOnly,
-        k3: KFewOnly2
-    ): Value? {
+    operator fun get(k1: KManifold, k2: KFewOnly, k3: KFewOnly2): Value? {
         return values[k1]?.firstOrNull { it.first == k2 && it.second == k3 }?.third
     }
 
-    operator fun set(
-        k1: KManifold,
-        k2: KFewOnly,
-        k3: KFewOnly2,
-        v: Value
-    ) {
+    operator fun set(k1: KManifold, k2: KFewOnly, k3: KFewOnly2, v: Value) {
         val list = values.getOrPut(k1) { ArrayList(8) }
         for (pairIndex in list.indices) {
             val pair = list[pairIndex]
@@ -35,10 +26,8 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
         list.add(MutableTriple(k2, k3, v))
     }
 
-    inline fun getOrPut(
-        k1: KManifold,
-        k2: KFewOnly,
-        k3: KFewOnly2,
+    fun getOrPut(
+        k1: KManifold, k2: KFewOnly, k3: KFewOnly2,
         v: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2) -> Value
     ): Value {
         val list = values.getOrPut(k1) { ArrayList(8) }
@@ -64,6 +53,4 @@ open class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 1
     override fun iterator(): Iterator<List<MutableTriple<KFewOnly, KFewOnly2, Value>>> {
         return values.values.iterator()
     }
-
-
 }

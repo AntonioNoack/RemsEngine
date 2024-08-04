@@ -413,7 +413,7 @@ object Strings {
                 in '0'..'9' -> number = number * 10 + char.code - 48
                 '.' -> return readAfterDot(i0, i + 1, i1, sign, number.toDouble())
                 'e', 'E' -> return sign * number * 10.0.pow(toInt(i + 1))
-                else -> throw NumberFormatException(subSequence(i0, i1).toString())
+                else -> break // idk ^^
             }
         }
         return sign * number.toFloat()

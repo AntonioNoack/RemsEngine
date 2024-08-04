@@ -5,6 +5,7 @@ import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 @Suppress("unused")
 object Lists {
@@ -71,11 +72,19 @@ object Lists {
      * */
     @JvmStatic
     inline fun <V : Any> List<V>.first2(test: (V) -> Boolean): V {
-        return firstOrNull2(test) ?: throw NoSuchElementException()
+        return firstOrNull2(test)!!
     }
 
     /**
-     * non-inline firstInstanceOrNull()
+     * non-inline firstInstance<Class>()
+     * */
+    @JvmStatic
+    fun <V : Any> List<*>.firstInstance2(clazz: KClass<V>): V {
+        return firstInstanceOrNull2(clazz)!!
+    }
+
+    /**
+     * non-inline firstInstanceOrNull<Class>()
      * */
     @JvmStatic
     fun <V : Any> List<*>.firstInstanceOrNull2(clazz: KClass<V>): V? {
@@ -106,7 +115,7 @@ object Lists {
      * */
     @JvmStatic
     inline fun <V : Any> List<V>.last2(test: (V) -> Boolean): V {
-        return lastOrNull2(test) ?: throw NoSuchElementException()
+        return lastOrNull2(test)!!
     }
 
     @JvmStatic
@@ -361,7 +370,7 @@ object Lists {
     }
 
     @JvmStatic
-    inline fun <reified V> List<V>.extractMin(k: Int, comparator: Comparator<V>): List<V> {
+    fun <V> List<V>.extractMin(k: Int, comparator: Comparator<V>): List<V> {
         if (k >= size) return this
         val topK = ArrayList<V>(k)
         for (i in 0 until k) {
@@ -479,20 +488,19 @@ object Lists {
     }
 
     @JvmStatic
-    inline fun <reified Type> Iterable<*>.firstInstanceOrNull() =
-        firstOrNull { it is Type } as? Type
+    fun <Type : Any> Iterable<*>.firstInstanceOrNull(clazz: KClass<Type>): Type? {
+        return firstNotNullOfOrNull { clazz.safeCast(it) }
+    }
 
     @JvmStatic
-    inline fun <reified Type> Iterable<*>.firstInstance() =
-        first { it is Type } as Type
+    fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> {
+        return toMutableList().sortByTopology(getDependencies)
+    }
 
     @JvmStatic
-    fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
-        toMutableList().sortByTopology(getDependencies)
-
-    @JvmStatic
-    fun <V> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V> =
-        toMutableList().sortByParent(getParent)
+    fun <V> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V> {
+        return toMutableList().sortByParent(getParent)
+    }
 
     /**
      * returns an order such that elements without dependencies come first,

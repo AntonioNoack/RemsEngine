@@ -62,7 +62,7 @@ object Collections {
      * non-inline filterIsInstance()
      * */
     @JvmStatic
-    fun <V : Any> Collection<*>.filterIsInstance2(clazz: KClass<V>): List<V> {
+    fun <V : Any> Iterable<*>.filterIsInstance2(clazz: KClass<V>): List<V> {
         return mapNotNull { clazz.safeCast(it) }
     }
 }

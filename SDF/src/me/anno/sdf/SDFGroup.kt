@@ -1,6 +1,5 @@
 package me.anno.sdf
 
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.material.utils.TypeValue
@@ -20,7 +19,6 @@ import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 /**
  * joins multiple sdf components together, like a folder;

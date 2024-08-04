@@ -230,7 +230,7 @@ object PrefabCache : CacheSection("Prefab") {
         val folder = InnerFolderCache.readAsFolder(file, false)
         if (folder != null) {
             val scene = folder.getChild("Scene.json") as? PrefabReadable
-            val scene2 = scene ?: folder.listChildren().firstInstanceOrNull<PrefabReadable>()
+            val scene2 = scene ?: folder.listChildren().firstInstanceOrNull(PrefabReadable::class)
             if (scene2 != null) {
                 val prefab = scene2.readPrefab()
                 prefab.source = file

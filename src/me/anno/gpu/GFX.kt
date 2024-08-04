@@ -23,7 +23,6 @@ import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureHelper.getNumChannels
@@ -355,6 +354,7 @@ object GFX {
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         // todo when setting this, decals are broken
+        // todo when setting this, default rendering is broken like in Dx11
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...

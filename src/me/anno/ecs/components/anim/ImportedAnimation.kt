@@ -5,7 +5,6 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.Collections.filterIsInstance2
-import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 
 /**
@@ -80,56 +79,20 @@ class ImportedAnimation : Animation() {
         }
     }
 
-    companion object {
-
-        @JvmStatic
-        fun matrix4x3f(m: Matrix4f): Matrix4x3f {
-            return Matrix4x3f(
-                m.m00, m.m01, m.m02,
-                m.m10, m.m11, m.m12,
-                m.m20, m.m21, m.m22,
-                m.m30, m.m31, m.m32,
+    private fun splitValues(values: FloatArray): List<Matrix4x3f> {
+        val size = values.size / 12
+        val result = ArrayList<Matrix4x3f>(size)
+        for (i in 0 until size) {
+            val j = i * 12
+            result.add(
+                Matrix4x3f(
+                    values[j + 0], values[j + 1], values[j + 2],
+                    values[j + 3], values[j + 4], values[j + 5],
+                    values[j + 6], values[j + 7], values[j + 8],
+                    values[j + 9], values[j + 10], values[j + 11]
+                )
             )
         }
-
-        @JvmStatic
-        fun joinValues(list: List<Matrix4x3f>): FloatArray {
-            val result = FloatArray(list.size * 12)
-            var j = 0
-            for (i in list.indices) {
-                val m = list[i]
-                result[j++] = m.m00
-                result[j++] = m.m01
-                result[j++] = m.m02
-                result[j++] = m.m10
-                result[j++] = m.m11
-                result[j++] = m.m12
-                result[j++] = m.m20
-                result[j++] = m.m21
-                result[j++] = m.m22
-                result[j++] = m.m30
-                result[j++] = m.m31
-                result[j++] = m.m32
-            }
-            return result
-        }
-
-        @JvmStatic
-        fun splitValues(values: FloatArray): List<Matrix4x3f> {
-            val size = values.size / 12
-            val result = ArrayList<Matrix4x3f>(size)
-            for (i in 0 until size) {
-                val j = i * 12
-                result.add(
-                    Matrix4x3f(
-                        values[j + 0], values[j + 1], values[j + 2],
-                        values[j + 3], values[j + 4], values[j + 5],
-                        values[j + 6], values[j + 7], values[j + 8],
-                        values[j + 9], values[j + 10], values[j + 11]
-                    )
-                )
-            }
-            return result
-        }
+        return result
     }
 }

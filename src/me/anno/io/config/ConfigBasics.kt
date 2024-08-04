@@ -40,7 +40,7 @@ object ConfigBasics {
 
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
-    inline fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
+    fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {
                 file.readTextSync()
@@ -56,7 +56,7 @@ object ConfigBasics {
         } else value
     }
 
-    inline fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
+    fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
         load(getConfigFile(localFileName), saveIfMissing, getDefault)
 
     fun loadConfig(

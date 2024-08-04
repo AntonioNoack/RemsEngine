@@ -21,6 +21,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.LazyMap
 import org.apache.logging.log4j.LogManager
@@ -31,7 +32,8 @@ import java.util.concurrent.Semaphore
 abstract class GPUFrame(val width: Int, val height: Int, val numChannels: Int) : ICacheData {
 
     init {
-        if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
+        assertTrue(width > 0)
+        assertTrue(height > 0)
     }
 
     var frameIndex = -1

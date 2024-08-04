@@ -240,7 +240,7 @@ object ComponentUI {
 
         val title = name?.camelCaseToTitle() ?: ""
 
-        val type0 = property.annotations.firstInstanceOrNull<me.anno.ecs.annotations.Type>()?.type
+        val type0 = property.annotations.firstInstanceOrNull(me.anno.ecs.annotations.Type::class)?.type
         val type1 = type0 ?: when (val value = property.get()) {
 
             // native types

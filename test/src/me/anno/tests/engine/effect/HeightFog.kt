@@ -8,7 +8,7 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.visual.render.effects.HeightExpFogNode
 import me.anno.tests.utils.TestWorld
-import me.anno.utils.structures.lists.Lists.firstInstance
+import me.anno.utils.structures.lists.Lists.firstInstance2
 import org.joml.Vector3f
 
 @Suppress("unused")
@@ -48,7 +48,7 @@ class HeightExpFogSettings(val node: HeightExpFogNode) : Component() {
 
 fun main() {
     val mode = RenderMode.FOG_TEST
-    val node = mode.renderGraph!!.nodes.firstInstance<HeightExpFogNode>()
+    val node = mode.renderGraph!!.nodes.firstInstance2(HeightExpFogNode::class)
     val settings = HeightExpFogSettings(node)
     val scene = Entity("Scene")
     scene.add(TestWorld().createTriangleMesh(0, 0, 0, 256, 32, 512))

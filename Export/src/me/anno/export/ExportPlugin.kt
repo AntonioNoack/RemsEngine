@@ -32,7 +32,8 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Clock
 import me.anno.utils.Color.white
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -72,7 +73,7 @@ class ExportPlugin : Plugin() {
         for (window in GFX.windows) {
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
-                    .firstInstanceOrNull<OptionBar>() ?: continue
+                    .firstInstanceOrNull2(OptionBar::class) ?: continue
                 bar.removeMajor("Export")
             }
         }
@@ -84,7 +85,7 @@ class ExportPlugin : Plugin() {
         for (window in GFX.windows) {
             for (window1 in window.windowStack) {
                 val bar = window1.panel.listOfAll
-                    .firstInstanceOrNull<OptionBar>() ?: continue
+                    .firstInstanceOrNull2(OptionBar::class) ?: continue
                 bar.addMajor("Export") { openExportMenu(null) }
             }
         }
@@ -94,7 +95,7 @@ class ExportPlugin : Plugin() {
         if (configFile.exists) {
             return try {
                 JsonStringReader.read(configFile, workspace, true)
-                    .filterIsInstance<ExportSettings>()
+                    .filterIsInstance2(ExportSettings::class)
                     .sortedByDescending { it.lastUsed }
             } catch (e: IOException) {
                 e.printStackTrace()

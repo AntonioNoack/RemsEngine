@@ -965,8 +965,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, OnUpdate,
             dropPosition.sub(hovEntity.transform.globalPosition)
             self.addToParent(prefab, hovEntity, 'c', dropPosition, dropRotation, dropScale, results)
         } else {
-            val root = EditorState.selection.firstInstanceOrNull<SDFGroup>()
-                ?: EditorState.selection.firstInstanceOrNull<Entity>() ?: self.renderView.getWorld()
+            val root = EditorState.selection.firstInstanceOrNull(SDFGroup::class)
+                ?: EditorState.selection.firstInstanceOrNull(Entity::class) ?: self.renderView.getWorld()
             when (root) {
                 is Entity -> {
                     dropPosition.sub(root.transform.globalPosition)

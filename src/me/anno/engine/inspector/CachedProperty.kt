@@ -8,6 +8,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumById
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
+import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.camelCaseToTitle
@@ -25,11 +26,11 @@ class CachedProperty(
     val setter: ((instance: Any, value: Any?) -> Unit)?
 ) {
 
-    val range = annotations.firstInstanceOrNull<Range>()
+    val range = annotations.firstInstanceOrNull(Range::class)
     val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, instanceClass) else null }
-    val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
-    val order = annotations.firstInstanceOrNull<Order>()?.index ?: 0
-    val group = annotations.firstInstanceOrNull<Group>()?.name
+    val description = annotations.filterIsInstance2(Docs::class).joinToString("\n") { it.description }
+    val order = annotations.firstInstanceOrNull(Order::class)?.index ?: 0
+    val group = annotations.firstInstanceOrNull(Group::class)?.name
 
     operator fun set(instance: Any, value: Any?): Boolean {
         if (setter == null) {

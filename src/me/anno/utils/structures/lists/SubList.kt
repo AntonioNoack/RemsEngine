@@ -1,5 +1,7 @@
 package me.anno.utils.structures.lists
 
+import me.anno.utils.assertions.assertTrue
+
 /**
  * a sublist for UnsafeArrayList
  * */
@@ -16,7 +18,7 @@ class SubList<V>(
     }
 
     override fun containsAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        return elements.all { e -> contains(e) }
     }
 
     override fun get(index: Int): V {
@@ -46,11 +48,13 @@ class SubList<V>(
     }
 
     override fun add(element: V): Boolean {
-        throw NotImplementedError()
+        add(size, element)
+        return true
     }
 
     override fun add(index: Int, element: V) {
-        throw NotImplementedError()
+        assertTrue(index in 0..size)
+        backend.add(index + fromIndex, element)
     }
 
     override fun addAll(index: Int, elements: Collection<V>): Boolean {
@@ -62,7 +66,10 @@ class SubList<V>(
     }
 
     override fun clear() {
-        throw NotImplementedError()
+        // unoptimized...
+        for (i1 in toIndex - 1 downTo fromIndex) {
+            backend.removeAt(i1)
+        }
     }
 
     override fun listIterator(): MutableListIterator<V> {
@@ -77,7 +84,6 @@ class SubList<V>(
             override fun nextIndex(): Int = iterIndex
 
             override fun previous(): V = backend[--iterIndex]
-
             override fun previousIndex(): Int = iterIndex - 1
 
             override fun add(element: V) {
@@ -85,7 +91,6 @@ class SubList<V>(
             }
 
             override fun hasNext(): Boolean = iterIndex < size
-
             override fun next(): V = backend[iterIndex++]
 
             override fun remove() {
@@ -99,19 +104,22 @@ class SubList<V>(
     }
 
     override fun remove(element: V): Boolean {
-        throw NotImplementedError()
+        val index = indexOf(element)
+        if (index >= 0) removeAt(index)
+        return index >= 0
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        return removeIf { e -> e in elements }
     }
 
     override fun removeAt(index: Int): V {
-        throw NotImplementedError()
+        assertTrue(index in indices)
+        return backend.removeAt(index + fromIndex)
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        return removeIf { e -> e !in elements }
     }
 
     override fun set(index: Int, element: V): V {

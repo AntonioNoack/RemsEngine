@@ -395,7 +395,7 @@ object BlenderReader {
             BObjectType.OB_MESH -> {
                 // add mesh component
                 val armatureObject = obj.modifiers
-                    .firstInstanceOrNull<BArmatureModifierData>()
+                    .firstInstanceOrNull(BArmatureModifierData::class)
                     ?.armatureObject
                 val armatureModifier = armatureObject?.data as? BArmature
                 // todo find all animations

@@ -87,7 +87,7 @@ object InspectorUtils {
         val listI = groupPanel.content
         // group them by their @Group-value
         for ((group, properties) in reflections.debugProperties
-            .groupBy { it.annotations.firstInstanceOrNull<Group>()?.name ?: "" }
+            .groupBy { it.annotations.firstInstanceOrNull(Group::class)?.name ?: "" }
             .toSortedMap()) {
             val helper = if (group.isNotEmpty()) { // show title for group
                 val sc = SettingCategory(NameDesc(group), style)
