@@ -283,7 +283,7 @@ interface AllocationManager<Key, Data : Any> {
     }
 
     fun roundUpStorage(requiredSize: Int): Int {
-        return requiredSize * 2//+ (requiredSize ushr 2)
+        return requiredSize + (requiredSize ushr 1)
     }
 
     fun getRange(key: Key): IntRange

@@ -44,6 +44,10 @@ class AllocationManagerTest {
             key.position = to.first
             assertEquals(key.length, to.size)
         }
+
+        override fun roundUpStorage(requiredSize: Int): Int {
+            return 2 * requiredSize
+        }
     }
 
     @Test
