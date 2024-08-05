@@ -101,7 +101,7 @@ open class BaseShader(
         builder.addFragment(extraStage)
         builder.addFragment(pixelPostProcessing)
 
-        val shader = builder.create(key, "fwd$flags-${key.renderer.name}")
+        val shader = builder.create(key, "fwd$flags-${key.renderer.nameDesc.englishName}")
         finish(shader, 330)
         return shader
     }

@@ -1,8 +1,8 @@
 package me.anno.engine.history
 
 import me.anno.gpu.GFX
-import me.anno.io.saveable.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.saveable.Saveable
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.openMenu
@@ -11,13 +11,13 @@ import org.apache.logging.log4j.LogManager
 import java.util.LinkedList
 import kotlin.math.max
 
-abstract class History<V : Any> : Saveable() {
+abstract class History<V : Any>(startState: V) : Saveable() {
 
     abstract fun apply(prev: V, curr: V)
     abstract fun getTitle(v: V): String
     abstract fun filter(v: Any?): V?
 
-    var currentState: V? = null
+    var currentState: V = startState
     var nextInsertIndex = 0
         set(value) {
             field = max(value, 0)
@@ -42,18 +42,27 @@ abstract class History<V : Any> : Saveable() {
         return synchronized(states) {
             states.add(change)
             clearToSize()
-            nextInsertIndex = states.size
-            currentState = states.last()
+            nextState(states.size)
             nextInsertIndex
         }
+    }
+
+    fun nextState(nextInsertIndex: Int) {
+        this.nextInsertIndex = nextInsertIndex
+        nextState()
+    }
+
+    fun nextState() {
+        val oldState = currentState
+        val newState = states[nextInsertIndex - 1]
+        apply(oldState, newState)
+        currentState = newState
     }
 
     fun redo(): Boolean {
         return synchronized(states) {
             if (nextInsertIndex < states.size) {
-                val nextState = states[nextInsertIndex++]
-                apply(currentState!!, nextState)
-                currentState = nextState
+                nextState(nextInsertIndex + 1)
                 true
             } else {
                 LOGGER.info("Nothing left to redo!")
@@ -65,10 +74,7 @@ abstract class History<V : Any> : Saveable() {
     fun undo(): Boolean {
         return synchronized(states) {
             if (nextInsertIndex >= 2) {
-                nextInsertIndex--
-                val nextState = states[nextInsertIndex - 1]
-                apply(currentState!!, nextState)
-                currentState = nextState
+                nextState(nextInsertIndex - 1)
                 true
             } else {
                 LOGGER.info("Nothing left to undo!")
@@ -78,9 +84,8 @@ abstract class History<V : Any> : Saveable() {
     }
 
     private fun redo(index: Int) {
-        val nextState = states.getOrNull(index) ?: return
-        apply(currentState!!, nextState)
-        currentState = nextState
+        if (index !in states.indices) return
+        nextState(index + 1)
     }
 
     fun display() {

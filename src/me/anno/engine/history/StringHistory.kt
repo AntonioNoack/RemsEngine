@@ -5,7 +5,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class StringHistory : History<String>() {
+abstract class StringHistory : History<String>("") {
 
     override fun getTitle(v: String): String {
         return "X${v.length}"
@@ -65,6 +65,11 @@ abstract class StringHistory : History<String>() {
         }
         dstElements.add(dstLetters.toList().joinToString(","))
         writer.writeStringList("compressedState2", dstElements)
+    }
+
+    override fun onReadingEnded() {
+        super.onReadingEnded()
+        nextState(nextInsertIndex)
     }
 
     override fun filter(v: Any?): String? = v as? String

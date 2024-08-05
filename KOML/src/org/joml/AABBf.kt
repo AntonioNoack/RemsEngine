@@ -141,6 +141,7 @@ class AABBf(
     val deltaX: Float get() = maxX - minX
     val deltaY: Float get() = maxY - minY
     val deltaZ: Float get() = maxZ - minZ
+    val maxDelta: Float get() = max(deltaX, max(deltaY, deltaZ))
     val volume: Float get() = deltaX * deltaY * deltaZ
 
     fun print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"

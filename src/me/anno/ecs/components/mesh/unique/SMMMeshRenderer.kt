@@ -160,7 +160,7 @@ class SMMMeshRenderer(material: Material) :
         } else return null
     }
 
-    override fun forEachHelper(key: SMMKey, transform: Transform): Material? {
+    override fun getMaterialByKey(key: SMMKey, transform: Transform): Material? {
         transform.setGlobal(key.comp.transform!!.globalTransform)
         transform.teleportUpdate()
         return null

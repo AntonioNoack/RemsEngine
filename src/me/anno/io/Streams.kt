@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.graph.hdb.ByteSlice
 import me.anno.maths.Packing.pack64
 import me.anno.utils.Sleep.sleepShortly
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.size
 import java.io.BufferedReader
@@ -23,7 +23,7 @@ import kotlin.math.min
 @Suppress("unused")
 object Streams {
 
-    private val tmpBuffer = ThreadLocal2 { ByteArray(1024) }
+    private val tmpBuffer = threadLocal { ByteArray(1024) }
 
     // defined with a 2, if already present (newer Java versions)
     @JvmStatic

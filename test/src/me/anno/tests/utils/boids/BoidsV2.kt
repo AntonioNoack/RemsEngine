@@ -1,4 +1,4 @@
-package me.anno.tests.utils
+package me.anno.tests.utils.boids
 
 import me.anno.Time
 import me.anno.ecs.Component

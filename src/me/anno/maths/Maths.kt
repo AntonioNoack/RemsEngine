@@ -110,6 +110,12 @@ object Maths {
     @JvmStatic
     fun randomInt(): Int = ThreadLocalRandom.current().nextInt()
 
+    @JvmStatic
+    fun randomLong(start: Long, endExclusive: Long): Long = ThreadLocalRandom.current().nextLong(start, endExclusive)
+
+    @JvmStatic
+    fun randomLong(): Long = ThreadLocalRandom.current().nextLong()
+
     /**
      * if you want good smoothing depending on timeStep/dt, use this function
      * @param x time (seconds) times speed factor (1.0 up to 25.0 is reasonable)

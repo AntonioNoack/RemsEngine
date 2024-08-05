@@ -152,13 +152,14 @@ object DualContouring {
             val s = Optimization.simplexAlgorithm(
                 floatArrayOf(g.x + x0, g.y + y0),
                 0.25f, 0f, 32
-            ) {
-                Maths.sq(fn.calc(it[0], it[1])) +
+            ) { params ->
+                val (px, py) = params
+                Maths.sq(fn.calc(px, py)) +
                         10f * (0f +
-                        max(0f, x0 - it[0]) +
-                        max(0f, y0 - it[1]) +
-                        max(0f, it[0] - x1) +
-                        max(0f, it[1] - y1)
+                        max(0f, x0 - px) +
+                        max(0f, y0 - py) +
+                        max(0f, px - x1) +
+                        max(0f, py - y1)
                         )
             }.second
 

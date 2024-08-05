@@ -23,7 +23,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.mixARGB
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
@@ -63,7 +63,7 @@ fun main() {
     }
     val bounds = AABBi(0, 0, 0, 127, 31, 127)
 
-    val queries = ThreadLocal2 { RayQuery(Vector3d(), Vector3d(), 1e3) }
+    val queries = threadLocal { RayQuery(Vector3d(), Vector3d(), 1e3) }
     val blockGetter = BlockTracing.BlockChecker { x, y, z ->
         if (world.getElementAt(x, y, z).toInt() != 0) -0.5 else 0.5
     }

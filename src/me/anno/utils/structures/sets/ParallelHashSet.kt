@@ -41,7 +41,6 @@ class ParallelHashSet<V>(initialCapacity: Int = 16) {
         }
     }
 
-    // inline?
     fun process(callback: (V) -> Unit) {
         val removable = swapGetRemovable()
         synchronized(removable) {

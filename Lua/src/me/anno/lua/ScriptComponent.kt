@@ -20,7 +20,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.lua.utils.SafeFunction
 import me.anno.lua.utils.WhileTrueYield
 import me.anno.utils.OS
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.Globals
@@ -72,7 +72,7 @@ open class ScriptComponent : Component(), OnUpdate {
         private val LOGGER = LogManager.getLogger(ScriptComponent::class)
 
         @JvmField
-        val global = ThreadLocal2 { defineVM() }
+        val global = threadLocal { defineVM() }
 
         @JvmField
         val luaCache = CacheSection("Lua")

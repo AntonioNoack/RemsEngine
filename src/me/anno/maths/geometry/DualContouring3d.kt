@@ -218,15 +218,16 @@ object DualContouring3d {
             val s = simplexAlgorithm(
                 floatArrayOf(g.x + x0, g.y + y0, g.z + z0),
                 0.25f, 0f, 32
-            ) {
-                sq(fn.calc(it[0], it[1], it[2])) +
+            ) { params ->
+                val (px, py, pz) = params
+                sq(fn.calc(px, py, pz)) +
                         10f * (0f +
-                        max(0f, x0 - it[0]) +
-                        max(0f, y0 - it[1]) +
-                        max(0f, z0 - it[2]) +
-                        max(0f, it[0] - x1) +
-                        max(0f, it[1] - y1) +
-                        max(0f, it[2] - z1)
+                        max(0f, x0 - px) +
+                        max(0f, y0 - py) +
+                        max(0f, z0 - pz) +
+                        max(0f, px - x1) +
+                        max(0f, py - y1) +
+                        max(0f, pz - z1)
                         )
             }.second
 

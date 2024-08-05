@@ -149,13 +149,13 @@ class CompileTest {
                     useFrame(tmp) {
                         rv.draw(0, 0, rv.width, rv.height)
                     }
-                    val childName = "${mode.name.toAllowedFilename()}.png"
+                    val childName = "${mode.nameDesc.englishName.toAllowedFilename()}.png"
                     tmp.getTexture0().write(dst.getChild(childName), true)
                 } else {
                     rv.draw(0, 0, rv.width, rv.height)
                 }
             } catch (e: Exception) {
-                throw Exception(mode.name, e)
+                throw Exception(mode.nameDesc.englishName, e)
             }
         }
         Engine.requestShutdown()

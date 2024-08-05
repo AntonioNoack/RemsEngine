@@ -63,7 +63,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingGroup
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
@@ -78,7 +78,7 @@ import kotlin.math.pow
 
 var drawMode = DrawMode.NORMAL
 
-val localResult = ThreadLocal2 { RayHit() }
+val localResult = threadLocal { RayHit() }
 const val sky0 = 0x2f5293
 const val sky1 = 0x5c729b
 val sky0BGR = convertABGR2ARGB(sky0)
@@ -257,7 +257,7 @@ fun createCPUPanel(
     }
 
     val tileSize = 4
-    val groups = ThreadLocal2 { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
+    val groups = threadLocal { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
     var frameIndex = 0
     var lastDrawMode: DrawMode? = null
     val lastPos = Vector3f()

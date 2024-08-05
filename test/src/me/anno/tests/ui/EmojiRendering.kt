@@ -1,4 +1,4 @@
-package me.anno.tests.utils
+package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.RenderDoc.disableRenderDoc

@@ -132,6 +132,7 @@ class AABBi(
     val deltaX: Int get() = maxX - minX
     val deltaY: Int get() = maxY - minY
     val deltaZ: Int get() = maxZ - minZ
+    val maxDelta: Int get() = max(deltaX, max(deltaY, deltaZ))
     val volume: Int get() = deltaX * deltaY * deltaZ
 
     fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"

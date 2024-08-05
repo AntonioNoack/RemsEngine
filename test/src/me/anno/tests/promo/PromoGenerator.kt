@@ -101,7 +101,7 @@ fun main() {
 }
 
 fun renderScene(renderMode: RenderMode) {
-    LOGGER.info("Rendering ${renderMode.name}")
+    LOGGER.info("Rendering ${renderMode.nameDesc.englishName}")
     FBStack.reset()
     useFrame(framebuffer) {
         framebuffer.clearColor(UIColors.midOrange)
@@ -109,9 +109,9 @@ fun renderScene(renderMode: RenderMode) {
         renderView.renderMode = renderMode
         renderView.draw(0, 0, width, height)
     }
-    LOGGER.info("Finished rendering ${renderMode.name}")
+    LOGGER.info("Finished rendering ${renderMode.nameDesc.englishName}")
     framebuffer.getTexture0()
         .createImage(flipY = true, withAlpha = false)
-        .write(dst.getChild("${renderMode.name.toAllowedFilename()}.png"))
-    LOGGER.info("Finished saving ${renderMode.name}")
+        .write(dst.getChild("${renderMode.nameDesc.englishName.toAllowedFilename()}.png"))
+    LOGGER.info("Finished saving ${renderMode.nameDesc.englishName}")
 }

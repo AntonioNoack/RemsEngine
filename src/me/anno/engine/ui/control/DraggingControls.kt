@@ -90,8 +90,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     // todo we could snap rotations, and maybe scale, as well
 
     val drawModeInput = EnumInput(
-        NameDesc("Draw Mode"), renderView.renderMode.name,
-        RenderMode.values.map { NameDesc(it.name) }, style
+        NameDesc("Draw Mode"), renderView.renderMode.nameDesc.name,
+        RenderMode.values.map { it.nameDesc }, style
     ).setChangeListener { _, index, _ ->
         renderView.renderMode = RenderMode.values[index]
     }
@@ -118,7 +118,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     override fun onUpdate() {
         super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
-        drawModeInput.setValue(NameDesc(renderView.renderMode.name), false)
+        drawModeInput.setValue(renderView.renderMode.nameDesc, false)
         val gs = settings.gridSettings
         renderView.drawGridWhenEditing = gs.showGridXY.toInt(1) +
                 gs.showGridXZ.toInt(2) +

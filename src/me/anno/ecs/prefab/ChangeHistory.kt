@@ -26,7 +26,7 @@ class ChangeHistory : StringHistory() {
 
         val workspace = EngineBase.workspace
         val changes = JsonStringReader.readFirstOrNull(curr, workspace, PrefabChanges::class) ?: PrefabChanges()
-        val prefab = prefab!!
+        val prefab = prefab ?: return
         val prevAdds = prefab.adds
         val currAdds = changes.adds
 

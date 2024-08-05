@@ -31,7 +31,8 @@ fun main() {
     // encode a video as quickly as possible,
     //  make the GPU-CPU communication be the bottleneck,
     //  and then optimize it
-    // -> we get 1300 fps encoding speed, so good enough imo
+    // -> we get 1300 fps encoding speed, so good enough imo (Ryzen 5 2600)
+    //    we get 1800 fps on Ryzen 9 7950x3D
 
     LogManager.logAll()
 

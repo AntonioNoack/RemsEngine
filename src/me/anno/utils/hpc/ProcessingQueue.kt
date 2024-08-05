@@ -5,7 +5,6 @@ import me.anno.maths.Maths
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep
 import me.anno.utils.Sleep.sleepShortly
-import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -107,10 +106,5 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     override operator fun plusAssign(task: () -> Unit) {
         if (!hasBeenStarted) start()
         tasks.add(task)
-    }
-
-    companion object {
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(ProcessingQueue::class)
     }
 }

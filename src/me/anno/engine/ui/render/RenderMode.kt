@@ -1,5 +1,6 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
@@ -53,6 +54,7 @@ import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.vector.MathF2XNode
+import me.anno.language.translation.NameDesc
 import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
@@ -62,24 +64,36 @@ import org.joml.Vector4f
  * */
 @Suppress("unused")
 class RenderMode private constructor(
-    val name: String,
+    override val nameDesc: NameDesc,
     val renderer: Renderer? = null,
     val renderGraph: FlowGraph? = null,
     val superMaterial: Material? = null
-) {
+) : ExtendableEnum {
 
-    constructor(renderer: Renderer) : this(renderer.name, renderer, null)
-    constructor(name: String, renderer: Renderer) : this(name, renderer, null)
-    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph)
-    constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
-    constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph)
+    constructor(renderer: Renderer) : this(renderer.nameDesc, renderer, null)
+    constructor(name: NameDesc, renderer: Renderer) : this(name, renderer, null)
+    constructor(name: NameDesc, renderGraph: FlowGraph?) : this(name, null, renderGraph)
+    constructor(name: NameDesc, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
+    constructor(name: NameDesc, base: RenderMode) : this(name, base.renderer, base.renderGraph)
+    constructor(name: NameDesc, material: Material) : this(name, null, DEFAULT.renderGraph, material)
+    constructor(name: String, renderer: Renderer) : this(name, renderer, null, null)
+    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph, null)
+    constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt], null, null)
+    constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph, null)
     constructor(name: String, material: Material) : this(name, null, DEFAULT.renderGraph, material)
+    constructor(name: String) : this(NameDesc(name))
+
+    private constructor(name: String, renderer: Renderer?, renderGraph: FlowGraph?, superMaterial: Material?) :
+            this(NameDesc(name), renderer, renderGraph, superMaterial)
 
     init {
-        values.add(this)
-        renderGraph?.name = name
-        superMaterial?.name = name
+        Companion.values.add(this)
+        renderGraph?.name = nameDesc.name
+        superMaterial?.name = nameDesc.name
     }
+
+    override val values: List<ExtendableEnum>
+        get() = Companion.values
 
     companion object {
 

@@ -178,6 +178,7 @@ class AABBd(
     val deltaX: Double get() = maxX - minX
     val deltaY: Double get() = maxY - minY
     val deltaZ: Double get() = maxZ - minZ
+    val maxDelta: Double get() = max(deltaX, max(deltaY, deltaZ))
     val volume: Double get() = deltaX * deltaY * deltaZ
 
     fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"

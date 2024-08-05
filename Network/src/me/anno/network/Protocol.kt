@@ -7,7 +7,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import java.io.IOException
 import java.net.Socket
 import kotlin.concurrent.thread
@@ -43,7 +43,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
      * register a parallel packet; will create at most one instance per client
      * */
     fun register(bigEndianMagic: Int, parallelPacket: () -> Packet) {
-        packets[bigEndianMagic] = ThreadLocal2(parallelPacket)
+        packets[bigEndianMagic] = threadLocal(parallelPacket)
     }
 
     /**

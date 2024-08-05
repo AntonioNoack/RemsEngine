@@ -1,6 +1,7 @@
 package me.anno.engine.ui.input
 
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Range.Companion.maxLong
 import me.anno.ecs.annotations.Range.Companion.minLong
@@ -76,6 +77,7 @@ import me.anno.ui.input.TextInputML
 import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
+import me.anno.utils.Reflections.getParentClass
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.structures.tuples.MutablePair
@@ -113,6 +115,11 @@ import java.io.Serializable
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
 
 object ComponentUI {
@@ -316,10 +323,23 @@ object ComponentUI {
                 if (value is Saveable) {
                     return createISaveableInput(title, value, style, property)
                 }
+                if (value is ExtendableEnum) {
+                    return createExtendableEnumInput(title, property, value, style)
+                }
                 return TextPanel("?? $title, ${if (value != null) value::class else null}", style)
             }
         }
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
+    }
+
+    private fun createExtendableEnumInput(
+        title: String, property: IProperty<Any?>,
+        value: ExtendableEnum, style: Style
+    ): Panel {
+        val values = value.values
+        val input = EnumInput(NameDesc(title), value.nameDesc, values.map { it.nameDesc }, style)
+        input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
+        return input
     }
 
     fun createISaveableInput(title: String, saveable: Saveable, style: Style, property: IProperty<Any?>): Panel {
@@ -1030,7 +1050,7 @@ object ComponentUI {
         var clazzI = clazz
         while (true) {
             if (clazzI == tested) return true
-            clazzI = clazzI.superclasses.firstOrNull() ?: return false
+            clazzI = getParentClass(clazzI) ?: return false
         }
     }
 }

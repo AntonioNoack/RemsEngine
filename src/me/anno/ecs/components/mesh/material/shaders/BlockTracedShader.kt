@@ -54,7 +54,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val flags = key.flags
-        val showCost = key.renderer.name == "Num SDF Steps"
+        val showCost = key.renderer.nameDesc.englishName == "Num SDF Steps"
         val isOutOfBounds = "any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))"
         return listOf(
             ShaderStage(

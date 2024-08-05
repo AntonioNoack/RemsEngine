@@ -39,7 +39,7 @@ import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.utils.InternalAPI
 import me.anno.utils.Warning
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists
@@ -399,7 +399,7 @@ object AssetThumbnails {
         }
     }
 
-    private val threadLocalBoneMatrices = ThreadLocal2 {
+    private val threadLocalBoneMatrices = threadLocal {
         val boneCount = 256
         val skinningMatrices = Lists.createArrayList(boneCount) { Matrix4x3f() }
         val animPositions = Lists.createArrayList(boneCount) { Vector3f() }

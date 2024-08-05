@@ -41,7 +41,7 @@ import org.joml.Vector3i
 import java.lang.Math.floorDiv
 import kotlin.math.floor
 
-private val LOGGER = LogManager.getLogger("UniqueMeshRenderer")
+private val LOGGER = LogManager.getLogger("VoxelWorld")
 
 /**
  * load/unload a big voxel world without much stutter;
@@ -122,7 +122,7 @@ fun main() {
         override val materials: List<FileReference> = listOf(material.ref)
         override val numMaterials: Int get() = 1
 
-        override fun forEachHelper(key: Vector3i, transform: Transform): Material {
+        override fun getMaterialByKey(key: Vector3i, transform: Transform): Material {
             transform.setLocalPosition(
                 (key.x * csx).toDouble(),
                 (key.y * csy).toDouble(),
@@ -245,20 +245,23 @@ fun main() {
 
     val sun = DirectionalLight()
     sun.shadowMapCascades = 3
+    sun.autoUpdate = 0
     val sunEntity = Entity("Sun")
         .setScale(100.0)
     sunEntity.add(object : Component(), Updatable {
         // move shadows with player
-        // todo only update every so often
+        var ctr = 0
         override fun update(instances: Collection<Component>) {
             val rv = RenderView.currentInstance
-            if (rv != null) {
+            if (rv != null && (ctr++ % 64) == 0) {
                 sunEntity.transform.localPosition =
                     sunEntity.transform.localPosition
                         .set(rv.orbitCenter)
                         .apply { y = csy * 0.5 }
                         .round()
+                sunEntity.transform.teleportUpdate()
                 sunEntity.validateTransform()
+                sun.needsUpdate1 = true
             }
         }
     })

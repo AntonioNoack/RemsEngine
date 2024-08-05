@@ -1,8 +1,6 @@
 package me.anno.maths
 
 import me.anno.maths.LinearAlgebra.inverse
-import me.anno.maths.LinearAlgebra.printMatrix
-import me.anno.maths.LinearAlgebra.setAB
 import me.anno.maths.LinearAlgebra.setABt
 import me.anno.maths.LinearAlgebra.setAtB
 import me.anno.maths.LinearAlgebra.setAtX
@@ -11,7 +9,6 @@ import org.joml.Matrix4d
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector4d
-import kotlin.math.abs
 
 @Suppress("unused")
 object LinearRegression {
@@ -26,34 +23,14 @@ object LinearRegression {
         val degree = x.size / numPts
         // b = (XtX)^-1 * Xt * y
         // b = (XtX)^-1 * (Xt * y)
-        if (true) {
-            val xtx = setAtB(x, x, degree, numPts, degree)
-            val t = degree + 1
-            for (i in 0 until degree) {
-                xtx[i * t] += regularisation
-            }
-            val xty = setAtX(x, y, degree, numPts)
-            val xtxInv = inverse(xtx, degree) ?: return null
-            return setAx(xtxInv, xty, degree, degree)
-        } else {
-            // debug printing
-            println("A:")
-            printMatrix(x, degree, numPts)
-            val xtx = setAtB(x, x, degree, numPts, degree)
-            val t = degree + 1
-            for (i in 0 until degree) {
-                xtx[i * t] += regularisation
-            }
-            println("A*A:")
-            printMatrix(xtx, degree, degree)
-            val xty = setAtX(x, y, degree, numPts)
-            val xtxInv = inverse(xtx.copyOf(), degree) ?: return null
-            println("inv(A*A):")
-            printMatrix(xtxInv, degree, degree)
-            println("(A*A)*inv(A*A):")
-            printMatrix(setAB(xtx, xtxInv, degree, degree, degree))
-            return setAx(xtxInv, xty, degree, degree)
+        val xtx = setAtB(x, x, degree, numPts, degree)
+        val t = degree + 1
+        for (i in 0 until degree) {
+            xtx[i * t] += regularisation
         }
+        val xty = setAtX(x, y, degree, numPts)
+        val xtxInv = inverse(xtx, degree) ?: return null
+        return setAx(xtxInv, xty, degree, degree)
     }
 
     // not tested!
@@ -220,5 +197,4 @@ object LinearRegression {
         xtx.invert()
         return calcInvXt4(xtx, x)
     }
-
 }

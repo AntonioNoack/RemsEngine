@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh.unique
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.IMesh
@@ -46,7 +45,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
 
     abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
 
-    abstract fun forEachHelper(key: Key, transform: Transform): Material?
+    open fun getMaterialByKey(key: Key, transform: Transform): Material? = null
 
     /**
      * defines what the world looks like for Raycasting,
@@ -56,7 +55,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         var i = 0
         for ((key, entry) in entryLookup) {
             val transform = getTransform(i++)
-            val material = forEachHelper(key, transform)
+            val material = getMaterialByKey(key, transform)
             run(entry.mesh!!, material, transform)
         }
     }

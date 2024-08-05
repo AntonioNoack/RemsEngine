@@ -15,7 +15,7 @@ interface AllocationManager<Key, Data : Any> {
         val searchedRange = getRange(element)
         val searchedStart = searchedRange.first
         val ei = sortedElements.binarySearch {
-            getRange(element).first.compareTo(searchedStart)
+            getRange(it).first.compareTo(searchedStart)
         }
         if (ei < 0) return false
         sortedElements.removeAt(ei)
@@ -252,7 +252,7 @@ interface AllocationManager<Key, Data : Any> {
     ): Data {
         val extraSize = getRange(elementX).size
         val compactSize = getCompactSizeIfCompact(ranges)
-        if (compactSize >= 0) {
+        if (compactSize > 0) {
             val requiredSize = compactSize + extraSize
             if (available >= requiredSize) {
                 return oldData
@@ -283,7 +283,7 @@ interface AllocationManager<Key, Data : Any> {
     }
 
     fun roundUpStorage(requiredSize: Int): Int {
-        return requiredSize + (requiredSize ushr 2)
+        return requiredSize * 2//+ (requiredSize ushr 2)
     }
 
     fun getRange(key: Key): IntRange

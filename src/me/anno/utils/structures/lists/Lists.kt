@@ -612,4 +612,14 @@ object Lists {
     fun <V : Comparable<V>> MutableList<V>.sortedAdd(instance: V, insertIfEquals: Boolean) {
         sortedAdd(instance, { a, b -> a.compareTo(b) }, insertIfEquals)
     }
+
+    @JvmStatic
+    fun <V : Comparable<V>> List<V>.isSorted(): Boolean {
+        for (i in 1 until size) {
+            if (get(i - 1) > get(i)) {
+                return false
+            }
+        }
+        return true
+    }
 }

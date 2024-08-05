@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.Reference.getReference
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Packing.pack32
 import org.apache.logging.log4j.LogManager
 
@@ -22,15 +23,17 @@ import org.apache.logging.log4j.LogManager
  * defines render targets combined with post-processing
  * @param deferredSettings null if not rendering multiple targets
  * */
-open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
+open class Renderer(val nameDesc: NameDesc, val deferredSettings: DeferredSettings?) {
 
-    class SplitRenderer(name: String, settings: DeferredSettings, val base: Renderer) : Renderer(name, settings) {
+    class SplitRenderer(name: NameDesc, settings: DeferredSettings, val base: Renderer) : Renderer(name, settings) {
         override fun getVertexPostProcessing(flags: Int) = base.getVertexPostProcessing(flags)
         override fun getPixelPostProcessing(flags: Int) = base.getPixelPostProcessing(flags)
         override fun bind(shader: Shader) = base.bind(shader)
     }
 
-    constructor(name: String) : this(name, null)
+    constructor(name: String, deferredSettings: DeferredSettings?) : this(NameDesc(name), deferredSettings)
+    constructor(name: NameDesc) : this(name, null)
+    constructor(name: String) : this(NameDesc(name))
 
     open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
     open fun getPixelPostProcessing(flags: Int): List<ShaderStage> = emptyList()
@@ -39,18 +42,18 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
 
     fun split(index: Int, spliceSize: Int): Renderer {
         if (deferredSettings == null) {
-            LOGGER.warn("Splitting non-deferred renderer??? $name")
+            LOGGER.warn("Splitting non-deferred renderer??? ${nameDesc.name}")
             return this
         }
         return splitCache!!.getOrPut(pack32(index, spliceSize)) {
             val settings = deferredSettings.split(index, spliceSize)
-            SplitRenderer("$name/$index/$spliceSize", settings, this)
+            SplitRenderer(NameDesc("${nameDesc.name}/$index/$spliceSize"), settings, this)
         }
     }
 
     val splitCache = if (deferredSettings == null) null else HashMap<Int, Renderer>()
 
-    override fun toString(): String = name
+    override fun toString(): String = nameDesc.name
 
     companion object {
         private val LOGGER = LogManager.getLogger(Renderer::class)
@@ -130,7 +133,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             )
         )
 
-        val copyRenderer = Renderer("copy", null)
+        val copyRenderer = Renderer("copy")
         val triangleVisRenderer = SimpleRenderer(
             "triangleVis", ShaderStage(
                 "triangleVis", listOf(

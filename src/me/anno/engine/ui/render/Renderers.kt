@@ -31,6 +31,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
+import me.anno.language.translation.NameDesc
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
@@ -177,7 +178,7 @@ object Renderers {
 
     @JvmField
     val pbrRendererNoDepth = Renderer.SplitRenderer(
-        "pbr-nd", DeferredSettings(listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA)),
+        NameDesc("pbr-nd"), DeferredSettings(listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA)),
         pbrRenderer
     )
 

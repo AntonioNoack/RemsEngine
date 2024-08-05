@@ -8,7 +8,7 @@ import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
-import me.anno.utils.Logging.hash32
+import me.anno.utils.Clock
 import me.anno.utils.callbacks.F2F
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -80,7 +80,6 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         val sy = bounds.deltaZ / (resolution.y - 1)
         val pos = mesh.positions!!
         val nor = mesh.normals!!
-        println("Creating mesh ${hash32(mesh)}, ${hash32(pos)}")
         for (i in pos.indices step 3) {
             val px = bounds.minX + sx * pos[i]
             val pz = bounds.minZ + sy * pos[i + 2]
@@ -124,10 +123,14 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
 
     fun applyBrush(brushToPos: Matrix4x3f, brush: TerrainBrush, bounds: AABBf) {
         val posToBrush = brushToPos.invert(Matrix4x3f())
+        var ctr = 0
+        val clock = Clock("TriTerrainChunk")
         query(bounds.getMin(Vector3f()), bounds.getMax(Vector3f())) { mesh ->
             applyBrush(mesh, brush, brushToPos, posToBrush)
+            ctr++
             false
         }
+        clock.stop("Applied brush to $ctr tiles")
     }
 
     fun applyBrush(mesh: Mesh, brush: TerrainBrush, brushToPos: Matrix4x3f, posToBrush: Matrix4x3f) {
@@ -142,7 +145,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
         val dx = Vector3f()
         val dy = Vector3f()
         val dz = Vector3f()
-        val eps = 0.01f
+        val eps = mesh.getBounds().maxDelta * 0.001f
         for (i in pos.indices step 3) {
             posToBrush.transformPosition(posI.set(pos, i))
             posToBrush.transformDirection(norI.set(nor, i))
@@ -151,7 +154,7 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
             posI.add(0f, eps, 0f, dy)
             posI.add(0f, 0f, eps, dz)
 
-            // this only is really necessary for edge-points;
+            // to do this only is really necessary for edge-points;
             //  we could save which are on the edge, and calculate the rest normally
             brush.apply(dx)
             brush.apply(dy)

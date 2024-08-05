@@ -1,4 +1,4 @@
-package me.anno.tests.utils
+package me.anno.tests.tools
 
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef

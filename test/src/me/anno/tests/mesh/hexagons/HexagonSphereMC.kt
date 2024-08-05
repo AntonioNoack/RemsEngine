@@ -20,7 +20,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.noise.FullNoise
-import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.hpc.threadLocal
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
@@ -78,11 +78,9 @@ fun interface IndexMap {
     operator fun get(index: Long): Int
 }
 
-var useMeshPools = false
-
-val positions = ThreadLocal2 { FloatArrayList(8192) }
-val normals = ThreadLocal2 { FloatArrayList(8192) }
-val colors = ThreadLocal2 { IntArrayList(8192) }
+val positions = threadLocal { FloatArrayList(8192) }
+val normals = threadLocal { FloatArrayList(8192) }
+val colors = threadLocal { IntArrayList(8192) }
 
 val uv6 = listOf(
     Vector2f(1f, 0.75f),
