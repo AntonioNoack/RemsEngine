@@ -283,10 +283,11 @@ object Renderers {
                         Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +
-                            colorToLinear +
+                            colorToSRGB + // accuracy doesn't matter here
                             // must not be normalized, or be careful to not divide by zero!
-                            "finalColor = (finalColor * (0.6 - 0.4 * finalNormal.x)) + finalEmissive;\n" +
-                            colorToSRGB +
+                            "float lightFactor = pow(0.5 + 0.5 * dot(finalNormal,vec3(-0.74,0.6,0.3)), 6.0);\n" +
+                            "finalColor = 40.0 * (finalColor * mix(vec3(0.017,0.021,0.03),vec3(1.0),lightFactor)) + 2.5 * finalEmissive;\n" +
+                            "finalColor *= 1.0 / (1.0 + max(finalColor.x,max(finalColor.y,finalColor.z)));\n" +
                             "finalResult = vec4(finalColor, finalAlpha);\n"
                 ), finalResultStage
             )
