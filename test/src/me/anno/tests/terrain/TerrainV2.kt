@@ -3,17 +3,24 @@ package me.anno.tests.terrain
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.annotations.EditorField
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.AutoTileableMaterial
 import me.anno.ecs.components.mesh.terrain.v2.BrushMode
-import me.anno.ecs.components.mesh.terrain.v2.TriTerrainChunk
 import me.anno.ecs.components.mesh.terrain.v2.TriTerrainComponent
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
-import me.anno.engine.serialization.SerializedProperty
+import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
+import me.anno.input.Key
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.noise.PerlinNoise
+import me.anno.utils.OS.pictures
 import me.anno.utils.callbacks.F2F
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.apache.logging.log4j.LogManager
@@ -31,11 +38,25 @@ import org.joml.Vector4f
 
 private val LOGGER = LogManager.getLogger("TerrainV2")
 
-class TerrainEditModeV2(val terrain: TriTerrainComponent) : Component(), CustomEditMode {
+class TerrainEditModeV2 : Component(), CustomEditMode {
 
-    // todo create support for pseudo-enum values
-    @SerializedProperty
+    @EditorField
+    @NotSerializedProperty
     var brushMode = BrushMode.FLATTEN
+
+    var cursor: Entity? = null
+
+    fun hideCursor() {
+        return
+        val transform = cursor?.transform ?: return
+        transform.localPosition.set(0.0, 1e16, 0.0)
+        transform.localScale = transform.localScale.set(1e-16)
+        transform.teleportUpdate()
+    }
+
+    override fun onEditClick(button: Key, long: Boolean): Boolean {
+        return true // ignore clicks
+    }
 
     private var currTime = 0L
     override fun onEditMove(x: Float, y: Float, dx: Float, dy: Float): Boolean {
@@ -43,10 +64,11 @@ class TerrainEditModeV2(val terrain: TriTerrainComponent) : Component(), CustomE
             // only run once per frame
             if (currTime == Time.gameTimeN) return true
             currTime = Time.gameTimeN
+            val terrain = getComponent(TriTerrainComponent::class)
             // raycast, then apply brush
             val ui = RenderView.currentInstance!!
             val query = RayQuery(ui.cameraPosition, ui.mouseDirection, Double.POSITIVE_INFINITY)
-            if (Raycast.raycastClosestHit(terrain.entity!!, query)) {
+            if (terrain != null && Raycast.raycastClosestHit(terrain.entity!!, query)) {
                 val transform = Matrix4x3f()
                 transform.translate(Vector3f(query.result.positionWS))
                 if (brushMode.rotate) {
@@ -54,9 +76,19 @@ class TerrainEditModeV2(val terrain: TriTerrainComponent) : Component(), CustomE
                 }
                 transform.scale(0.3f * query.result.distance.toFloat())
                 terrain.terrain.applyBrush(transform, brushMode.createBrush())
-            } else LOGGER.warn("Missed scene")
+                val cursor = cursor?.transform
+                if (cursor != null) {
+                    cursor.localPosition = query.result.positionWS
+                    cursor.localScale = cursor.localScale.set(0.01 * query.result.distance)
+                    cursor.teleportUpdate()
+                    cursor.entity!!.invalidateAABBsCompletely()
+                }
+            } else {
+                LOGGER.warn("Missed scene")
+                hideCursor()
+            }
             return true
-        }
+        } else hideCursor()
         return false
     }
 }
@@ -65,12 +97,23 @@ class TerrainEditModeV2(val terrain: TriTerrainComponent) : Component(), CustomE
 // todo prevent losing focus by clicking in edit mode
 
 fun main() {
+
+    // todo setting additive destroys everything... why???
+
+    val material = AutoTileableMaterial()
+    material.diffuseMap = pictures.getChild("textures/grass.jpg")
+    material.roughnessMinMax
+
+    OfficialExtensions.initForTests()
     val scene = Entity("Scene")
     val terrain = TriTerrainComponent()
-    val editor = TerrainEditModeV2(terrain)
+    terrain.material = material
+    val editor = TerrainEditModeV2()
+    editor.cursor = Entity("Cursor", scene)
+        .add(MeshComponent(getReference("res://meshes/TeleportCircle.glb")))
 
     val noise = PerlinNoise(1234L, 5, 0.5f, -7f, 7f, Vector4f(1f / 20f))
-    val height = F2F { x, y -> noise.getSmooth(x, y) }
+    val height = F2F(noise::getSmooth)
     val tileSize = Vector2f(10f, 10f)
     val tileResolution = Vector2i(20, 20)
     val i0 = -10

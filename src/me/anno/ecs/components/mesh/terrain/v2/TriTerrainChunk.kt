@@ -8,7 +8,6 @@ import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
 import me.anno.graph.octtree.KdTree
 import me.anno.graph.octtree.OctTreeF
-import me.anno.utils.Clock
 import me.anno.utils.callbacks.F2F
 import org.joml.AABBf
 import org.joml.Matrix4x3f
@@ -124,13 +123,11 @@ class TriTerrainChunk(val owner: TriTerrainComponent) : OctTreeF<Mesh>(16) {
     fun applyBrush(brushToPos: Matrix4x3f, brush: TerrainBrush, bounds: AABBf) {
         val posToBrush = brushToPos.invert(Matrix4x3f())
         var ctr = 0
-        val clock = Clock("TriTerrainChunk")
         query(bounds.getMin(Vector3f()), bounds.getMax(Vector3f())) { mesh ->
             applyBrush(mesh, brush, brushToPos, posToBrush)
             ctr++
             false
         }
-        clock.stop("Applied brush to $ctr tiles")
     }
 
     fun applyBrush(mesh: Mesh, brush: TerrainBrush, brushToPos: Matrix4x3f, posToBrush: Matrix4x3f) {

@@ -16,39 +16,43 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-abstract class BrushMode(override val nameDesc: NameDesc, val rotate: Boolean) : ExtendableEnum {
+abstract class BrushMode(override val nameDesc: NameDesc, override val id: Int, val rotate: Boolean) : ExtendableEnum {
 
     abstract fun createBrush(): TerrainBrush
 
     override val values: List<ExtendableEnum>
         get() = Companion.values
 
+    override fun toString(): String {
+        return nameDesc.name
+    }
+
     companion object {
 
         val values = ArrayList<BrushMode>()
 
-        val SMOOTHEN = object : BrushMode(NameDesc("Smoothen"), true) {
-            override fun createBrush(): TerrainBrush {
-                val strength = dtTo10(2f * Time.deltaTime).toFloat()
-                return TerrainBrush { it.y = mix(it.y, it.y * strength, falloff(it)) }
-            }
-        }
-
-        val FLATTEN = object : BrushMode(NameDesc("Flatten"), false) {
-            override fun createBrush(): TerrainBrush {
-                val strength = dtTo10(2f * Time.deltaTime).toFloat()
-                return TerrainBrush { it.y = mix(it.y, it.y * strength, falloff(it)) }
-            }
-        }
-
-        val ADDITIVE = object : BrushMode(NameDesc("Additive"), true) {
+        val ADDITIVE = object : BrushMode(NameDesc("Additive"), 0, true) {
             override fun createBrush(): TerrainBrush {
                 val strength = 0.3f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
                 return TerrainBrush { it.y += strength * pow(falloff(it), 4f) } // higher falloff to make is sharper
             }
         }
 
-        val PYRAMID = object : BrushMode(NameDesc("Pyramid"), false) {
+        val SMOOTHEN = object : BrushMode(NameDesc("Smoothen"), 1, true) {
+            override fun createBrush(): TerrainBrush {
+                val strength = dtTo10(2f * Time.deltaTime).toFloat()
+                return TerrainBrush { it.y = mix(it.y, it.y * strength, falloff(it)) }
+            }
+        }
+
+        val FLATTEN = object : BrushMode(NameDesc("Flatten"), 2, false) {
+            override fun createBrush(): TerrainBrush {
+                val strength = dtTo10(2f * Time.deltaTime).toFloat()
+                return TerrainBrush { it.y = mix(it.y, it.y * strength, falloff(it)) }
+            }
+        }
+
+        val PYRAMID = object : BrushMode(NameDesc("Pyramid"), 3, false) {
             override fun createBrush(): TerrainBrush {
                 val strength = 0.3f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
                 return TerrainBrush {
@@ -58,7 +62,7 @@ abstract class BrushMode(override val nameDesc: NameDesc, val rotate: Boolean) :
             }
         }
 
-        val SPHERE = object : BrushMode(NameDesc("Sphere"), false) {
+        val SPHERE = object : BrushMode(NameDesc("Sphere"), 4, false) {
             override fun createBrush(): TerrainBrush { // edge has sharp falloff -> looks weird
                 val strength = dtTo01(Time.deltaTime.toFloat()) * (if (Input.isShiftDown) -1f else +1f)
                 return TerrainBrush {
@@ -71,14 +75,14 @@ abstract class BrushMode(override val nameDesc: NameDesc, val rotate: Boolean) :
         // sharp edge/step? -> won't work properly
 
         // swirl for testing
-        val SWIRL = object : BrushMode(NameDesc("Swirl"), false) {
+        val SWIRL = object : BrushMode(NameDesc("Swirl"), 5, false) {
             override fun createBrush(): TerrainBrush {
                 val factor = 0.5f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
                 return TerrainBrush { it.rotateY(factor * falloff(it)) }
             }
         }
 
-        val RANDOM = object : BrushMode(NameDesc("Random"), true) {
+        val RANDOM = object : BrushMode(NameDesc("Random"), 6, true) {
             override fun createBrush(): TerrainBrush {
                 val strength = 0.02f * Time.deltaTime.toFloat() * (if (Input.isShiftDown) -1f else +1f)
                 val noise = FullNoise(1024)
@@ -92,7 +96,7 @@ abstract class BrushMode(override val nameDesc: NameDesc, val rotate: Boolean) :
         init {
             values.addAll(
                 listOf(
-                    SMOOTHEN, FLATTEN, ADDITIVE,
+                    ADDITIVE, SMOOTHEN, FLATTEN,
                     PYRAMID, SPHERE, SWIRL, RANDOM
                 )
             )

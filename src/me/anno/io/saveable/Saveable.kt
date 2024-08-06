@@ -6,7 +6,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections
 import me.anno.io.base.BaseWriter
-import me.anno.io.base.UnknownClassException
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -137,14 +136,18 @@ open class Saveable {
         }
 
         fun create(type: String): Saveable {
-            return objectTypeRegistry[type]?.generate() ?: throw UnknownClassException(type)
+            return objectTypeRegistry[type]?.generate() ?: UnknownSaveable(type)
         }
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
-        fun getClass(type: String): KClass<out Saveable>? {
-            val instance = objectTypeRegistry[type]?.sampleInstance ?: return null
-            return instance::class
+        fun getClass(type: String): KClass<out Saveable> {
+            val instance = objectTypeRegistry[type]?.sampleInstance
+            return if (instance != null) instance::class else UnknownSaveable::class
+        }
+
+        fun isRegistered(type: String): Boolean {
+            return type in objectTypeRegistry
         }
 
         fun getByClass(clazz: KClass<*>): IRegistryEntry? {
@@ -177,22 +180,26 @@ open class Saveable {
         fun registerCustomClass(sample: Saveable): RegistryEntry {
             checkInstance(sample)
             val className = sample.className
-            return if (sample is PrefabSaveable) {
-                registerCustomClass(className, RegistryEntry(sample) { sample.clone() })
-            } else {
-                registerCustomClass(className, RegistryEntry(sample))
-            }
+            val entry = if (sample is PrefabSaveable) {
+                RegistryEntry(sample) { sample.clone() }
+            } else RegistryEntry(sample)
+            return registerCustomClass(className, entry)
+        }
+
+        @JvmStatic
+        fun registerCustomClass(sample: Saveable, constructor: () -> Saveable): RegistryEntry {
+            val className = sample.className
+            val entry = registerCustomClass(className, RegistryEntry(sample, constructor))
+            // dangerous to be done after
+            // but this allows us to skip the full implementation of clone() everywhere
+            checkInstance(sample)
+            return entry
         }
 
         @JvmStatic
         fun registerCustomClass(constructor: () -> Saveable): RegistryEntry {
             val instance0 = constructor()
-            val className = instance0.className
-            val entry = registerCustomClass(className, RegistryEntry(instance0, constructor))
-            // dangerous to be done after
-            // but this allows us to skip the full implementation of clone() everywhere
-            checkInstance(instance0)
-            return entry
+            return registerCustomClass(instance0, constructor)
         }
 
         @JvmStatic
@@ -212,8 +219,7 @@ open class Saveable {
         }
 
         fun <Entry : IRegistryEntry> registerCustomClass(
-            className: String,
-            entry: Entry,
+            className: String, entry: Entry,
             print: Boolean = true
         ): Entry {
             val clazz = entry.classPath

@@ -1,6 +1,7 @@
 package me.anno.engine.inspector
 
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Order
@@ -10,6 +11,7 @@ import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
 import me.anno.ui.input.EnumInput
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.AnyToInt
 import me.anno.utils.types.Strings.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
@@ -96,6 +98,16 @@ class CachedProperty(
                         oldValue
                     }
                 }
+                setter.invoke(instance, newValue)
+            } else if (oldValue is ExtendableEnum && value !is ExtendableEnum) {
+                // an enum, let's try our best to find the correct value
+                val values = oldValue.values
+                val id = AnyToInt.getInt(value, Int.MIN_VALUE)
+                val valueOrNull = values.firstOrNull2 { it.id == id }
+                if (valueOrNull == null) {
+                    LOGGER.warn("Missing ${oldValue::class} with id $id")
+                }
+                val newValue = valueOrNull ?: oldValue
                 setter.invoke(instance, newValue)
             } else setter.invoke(instance, value)
             true

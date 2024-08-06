@@ -8,6 +8,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.UnknownSaveable
 import me.anno.utils.files.LocalFile.toGlobalFile
 
 /**
@@ -90,6 +91,7 @@ class CAdd() : Change() {
         } else {
             when (val newInstance1 = create(clazzName)) {
                 is PrefabSaveable -> newInstance1
+                is UnknownSaveable -> throw InvalidClassException("Missing class \"$clazzName\"")
                 else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
             }
         }

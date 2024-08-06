@@ -72,9 +72,9 @@ class ProfileBuilder(mesh: Mesh) {
         }
     }
 
-    fun build(): PathProfile {
+    fun build(): PathProfile? {
         val starts = connectivity.filter { it.value.size == 1 }
-        val start = starts.keys.minBy { it.x }
+        val start = starts.keys.minByOrNull { it.x } ?: return null
         val pointList = ArrayList<Vector3f>()
         pointList.add(start)
         while (true) {
@@ -115,13 +115,16 @@ fun meshToPathProfile(mesh: Mesh): List<Pair<PathProfile, FileReference>> {
     if (helperMeshes != null) {
         return helperMeshes.withIndex()
             .filter { it.value != null }
-            .map { (index, helper) ->
+            .mapNotNull { (index, helper) ->
                 val builder = ProfileBuilder(mesh)
                 mesh.forEachLineIndex(helper!!) { ai, bi ->
                     builder.addLine(ai, bi)
                 }
-                val material = mesh.materials.getOrNull(index) ?: InvalidRef
-                builder.build() to material
+                val profile = builder.build()
+                if (profile != null) {
+                    val material = mesh.materials.getOrNull(index) ?: InvalidRef
+                    profile to material
+                } else null
             }
     } else {
         // there is only a single material
@@ -129,8 +132,10 @@ fun meshToPathProfile(mesh: Mesh): List<Pair<PathProfile, FileReference>> {
         mesh.forEachLineIndex { ai, bi ->
             builder.addLine(ai, bi)
         }
-        val material = mesh.material ?: InvalidRef
-        return listOf(builder.build() to material)
+        val profile = builder.build()
+        return if (profile != null) {
+            listOf(profile to mesh.material)
+        } else emptyList()
     }
 }
 

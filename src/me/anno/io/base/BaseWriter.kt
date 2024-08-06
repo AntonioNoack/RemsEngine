@@ -1,5 +1,6 @@
 package me.anno.io.base
 
+import me.anno.ecs.annotations.ExtendableEnum
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.EngineBase
 import me.anno.engine.inspector.CachedReflections.Companion.getEnumId
@@ -548,7 +549,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is LongArray -> writeLongArray2D(name, cast(value), forceSaving)
             is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
             is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
-            is PrefabSaveable -> writeNullableObjectList(self, name, filterII(value, PrefabSaveable::class), forceSaving)
+            is PrefabSaveable -> writeNullableObjectList(
+                self,
+                name,
+                filterII(value, PrefabSaveable::class),
+                forceSaving
+            )
             is Saveable -> writeNullableObjectList(self, name, filterII(value, Saveable::class), forceSaving)
             is FileReference -> writeFileList(name, cast(value), forceSaving)
             is List<*> -> {
@@ -669,6 +675,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is FileReference -> writeFile(name, value, forceSaving)
             null -> writeObject(self, name, null, forceSaving)
             is Enum<*> -> writeEnum(name, value, forceSaving)
+            is ExtendableEnum -> writeInt(name, value.id, forceSaving)
             // java-serializable
             is Serializable -> {
                 // implement it?...
@@ -685,7 +692,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         return input as V
     }
 
-    fun <V: Any> filterII(value: List<Any?>, clazz: KClass<V>): List<V> {
+    fun <V : Any> filterII(value: List<Any?>, clazz: KClass<V>): List<V> {
         return value.filterIsInstance(clazz.java)
     }
 

@@ -107,10 +107,10 @@ import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sign
 
 // todo right click to get all meta information? (properties panel in windows)
+// todo some thumbnails in E:/Camera behave weirdly, probably rotated
 
 open class FileExplorerEntry(
     private val explorer: FileExplorer?,

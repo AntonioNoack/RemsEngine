@@ -30,10 +30,13 @@ object FileRootRef : FileReference("root") {
 
     override fun mkdirs(): Boolean = true
 
-    override fun listChildren(): List<FileReference> = File.listRoots().map { getReference(it.absolutePath) }
+    override fun listChildren(): List<FileReference> {
+        return File.listRoots().map { getReference(it.absolutePath) }
+    }
 
     override fun getChild(name: String): FileReference {
-        return listChildren().firstOrNull { it.name == name } ?: InvalidRef
+        val file = File.listRoots().firstOrNull { it.name == name } ?: return InvalidRef
+        return getReference(file.absolutePath)
     }
 
     override fun getParent(): FileReference = InvalidRef

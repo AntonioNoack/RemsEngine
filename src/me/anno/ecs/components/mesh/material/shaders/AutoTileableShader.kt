@@ -106,18 +106,19 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         "finalColor = color.rgb;\n" +
                         "finalAlpha = color.a;\n" +
                         normalTanBitanCalculation +
+                        // todo the LUT depends on the texture ofc, we can't use the same lut everywhere
                         "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
-                        "if(abs(normalStrength.x) > 0.0){\n" +
+                        /*"if(abs(normalStrength.x) > 0.0){\n" +
                         "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, invLUTTex, uv).rgb * 2.0 - 1.0;\n" +
                         "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                         // normalize?
                         "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-                        "}\n" +
-                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, invLUTTex, uv).rgb * emissiveBase;\n" +
-                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, invLUTTex, uv).r) * occlusionStrength;\n" +
-                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
-                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
-                        // todo sample other properties well, too
+                        "}\n" +*/
+                        // todo the LUT depends on the texture ofc, we can't use the same lut everywhere
+                        "finalEmissive  = emissiveBase;//sampleAutoTileableTexture(emissiveMap, invLUTTex, uv).rgb * emissiveBase;\n" +
+                        "finalOcclusion = 0.0;//(1.0 - sampleAutoTileableTexture(occlusionMap, invLUTTex, uv).r) * occlusionStrength;\n" +
+                        "finalMetallic  = metallicMinMax.y;//clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
+                        "finalRoughness = roughnessMinMax.y;//clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
                         reflectionCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +

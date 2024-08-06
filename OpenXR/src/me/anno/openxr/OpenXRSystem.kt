@@ -110,7 +110,9 @@ class OpenXRSystem(val window: Long) {
         val systemGetInfo = XrSystemGetInfo.calloc()
             .type(XR_TYPE_SYSTEM_GET_INFO).next(0)
             .formFactor(XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY)
-        return when (val result = xrGetSystem(instance, systemGetInfo, longPtr)) {
+        val result = xrGetSystem(instance, systemGetInfo, longPtr)
+        systemGetInfo.free()
+        return when (result) {
             XR_ERROR_FORM_FACTOR_UNAVAILABLE -> {
                 LOGGER.warn("FORM_FACTOR_UNAVAILABLE")
                 0L
@@ -120,7 +122,6 @@ class OpenXRSystem(val window: Long) {
                 0L
             }
             else -> {
-                systemGetInfo.free()
                 checkXR(result)
                 val systemId = longPtr[0]
                 LOGGER.info("Got XrSystem with HMD id $systemId")

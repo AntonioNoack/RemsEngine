@@ -24,4 +24,8 @@ class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 16) :
             val result = drawnSamples
             return result < 0 || result >= minSamples
         }
+
+    override fun toString(): String {
+        return "OQ($drawnSamples)"
+    }
 }

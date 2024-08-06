@@ -1,4 +1,4 @@
-package me.anno.tests.utils
+package me.anno.tests.bugs.done
 
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions

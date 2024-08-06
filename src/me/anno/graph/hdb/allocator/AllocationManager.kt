@@ -19,43 +19,35 @@ interface AllocationManager<Key, Data : Any> {
         }
         if (ei < 0) return false
         sortedElements.removeAt(ei)
-        removeFromSortedRanges(searchedRange, sortedRanges, sortedElements)
+        removeFromSortedRanges(searchedRange, sortedRanges)
         return true
     }
 
-    private fun removeFromSortedRanges(
-        searchedRange: IntRange, sortedRanges: ArrayList<IntRange>,
-        sortedElements: ArrayList<Key>
-    ) {
-        if (false) {// todo why is this logic not working? it should use much fewer allocations, and move half as many elements
-            val searchedStart = searchedRange.first
-            val ri = sortedRanges.binarySearch {
-                it.first.compareTo(searchedStart)
-            }
-            assertTrue(ri != -1) // if it was -1, it would be less than sortedRanges[0]
-            if (ri < 0) {
-                // no range starts with us, so we must be in-between or at the end
-                val idx = (-ri - 1) - 1
-                val foundRange = sortedRanges[idx]
-                assertTrue(foundRange.last >= searchedRange.last) // else we're in an impossible place
-                sortedRanges[idx] = foundRange.first until searchedStart // the first part always stays
-                if (foundRange.last > searchedRange.last) {
-                    // we're in-between -> split this range -> add the end segment
-                    sortedRanges.add(idx + 1, searchedRange.last + 1..foundRange.last)
-                }
-            } else {
-                val foundRange = sortedRanges[ri]
-                // there is a range with that start -> shrink or remove it
-                if (foundRange == searchedRange) {
-                    sortedRanges.removeAt(ri)
-                } else {
-                    // shrink it
-                    sortedRanges[ri] = searchedRange.last + 1..foundRange.last
-                }
+    private fun removeFromSortedRanges(searchedRange: IntRange, sortedRanges: ArrayList<IntRange>) {
+        val searchedStart = searchedRange.first
+        val ri = sortedRanges.binarySearch {
+            it.first.compareTo(searchedStart)
+        }
+        assertTrue(ri != -1) // if it was -1, it would be less than sortedRanges[0]
+        if (ri < 0) {
+            // no range starts with us, so we must be in-between or at the end
+            val idx = (-ri - 1) - 1
+            val foundRange = sortedRanges[idx]
+            assertTrue(foundRange.last >= searchedRange.last) // else we're in an impossible place
+            sortedRanges[idx] = foundRange.first until searchedStart // the first part always stays
+            if (foundRange.last > searchedRange.last) {
+                // we're in-between -> split this range -> add the end segment
+                sortedRanges.add(idx + 1, searchedRange.last + 1..foundRange.last)
             }
         } else {
-            sortedRanges.clear()
-            calculateSortedRanges(sortedElements, sortedRanges)
+            val foundRange = sortedRanges[ri]
+            // there is a range with that start -> shrink or remove it
+            if (foundRange == searchedRange) {
+                sortedRanges.removeAt(ri)
+            } else {
+                // shrink it
+                sortedRanges[ri] = searchedRange.last + 1..foundRange.last
+            }
         }
     }
 

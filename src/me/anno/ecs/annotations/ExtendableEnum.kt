@@ -8,4 +8,5 @@ import me.anno.language.translation.NameDesc
 interface ExtendableEnum {
     val nameDesc: NameDesc
     val values: List<ExtendableEnum>
+    val id: Int
 }

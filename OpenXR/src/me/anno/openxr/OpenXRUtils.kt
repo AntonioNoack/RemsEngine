@@ -132,8 +132,8 @@ object OpenXRUtils {
                     }
                     0
                 }
-            val ptr = PointerBuffer.allocateDirect(1)
             checkXR(xrCreateDebugUtilsMessengerEXT(instance, debugInfo, ptr))
+            debugInfo.free()
         }
     }
 
@@ -148,6 +148,7 @@ object OpenXRUtils {
                     "${XR_VERSION_MAJOR(min)}.${XR_VERSION_MINOR(min)} to " +
                     "${XR_VERSION_MAJOR(max)}.${XR_VERSION_MINOR(max)}"
         )
+        openGLRequirements.free()
     }
 
     var xrInstance: XrInstance? = null

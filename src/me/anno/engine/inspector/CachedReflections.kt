@@ -270,6 +270,8 @@ class CachedReflections private constructor(
                         val notSerial = annotations.firstOrNull { it is NotSerializedProperty }
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)
                         val serialize = (serial != null || (isPublic && notSerial == null)) && setterMethod != null
+                        getterMethod.isAccessible = true
+                        setterMethod?.isAccessible = true
                         map[betterName] = saveField(
                             getterMethod.declaringClass, getterMethod.returnType,
                             betterName, serial, serialize, annotations,

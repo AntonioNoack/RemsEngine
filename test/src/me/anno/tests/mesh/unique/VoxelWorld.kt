@@ -107,7 +107,6 @@ fun main() {
             }
         }
     }
-
     world.timeoutMillis = 250
 
     val csx = world.sizeX

@@ -29,6 +29,7 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerByteSliceFile
 import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.utils.OS
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.Callback
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
@@ -46,6 +47,7 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
+    private val worker = ProcessingQueue("Thumbnails")
 
     private val hdb = HierarchicalDatabase(
         "Thumbs", folder, 5_000_000, 10_000L,
@@ -217,12 +219,17 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
 
     @JvmStatic
     fun saveNUpload(
-        srcFile: FileReference,
-        checkRotation: Boolean,
-        dstKey: HDBKey,
-        dst: Image,
-        callback: Callback<ITexture2D>
+        srcFile: FileReference, checkRotation: Boolean, dstKey: HDBKey, dst: Image,
+        callback: Callback<ITexture2D>, alreadyInWorker: Boolean = false
     ) {
+        if (!alreadyInWorker && isGFXThread()) {
+            return worker.plusAssign {
+                saveNUpload(
+                    srcFile, checkRotation, dstKey, dst,
+                    callback, true
+                )
+            }
+        }
         if (dstKey != InvalidKey) {
             // could we write webp? is most efficient
             //  -> only via ffmpeg, and that procedure is quite inefficient with creating a new process
@@ -240,27 +247,40 @@ object Thumbs : FileReaderRegistry<ThumbGenerator> by FileReaderRegistryImpl() {
         src: Image,
         dstFile: HDBKey,
         size: Int,
-        callback: Callback<ITexture2D>
+        callback: Callback<ITexture2D>,
+        alreadyInWorker: Boolean = false
     ) {
         val sw = src.width
         val sh = src.height
         if (min(sw, sh) < 1) return
 
+        if (isGFXThread()) {
+            return worker.plusAssign {
+                transformNSaveNUpload(
+                    srcFile, checkRotation, src, dstFile,
+                    size, callback, true
+                )
+            }
+        }
+
         // if it matches the size, just upload it
         // we have loaded it anyway already
         if (max(sw, sh) < size) {
-            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
-            return
+            return saveNUpload(
+                srcFile, checkRotation, dstFile, src,
+                callback, alreadyInWorker
+            )
         }
 
         val (w, h) = scaleMax(sw, sh, size)
         if (min(w, h) < 1) return
-        if (w == sw && h == sh) {
-            saveNUpload(srcFile, checkRotation, dstFile, src, callback)
-        } else {
-            val dst = src.resized(w, h, false)
-            saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
-        }
+        val image = if (!(w == sw && h == sh)) {
+            src.resized(w, h, false)
+        } else src
+        saveNUpload(
+            srcFile, checkRotation, dstFile, image,
+            callback, alreadyInWorker
+        )
     }
 
     private fun readImage(bytes: ByteSlice): AsyncCacheData<Image> {

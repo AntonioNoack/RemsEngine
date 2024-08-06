@@ -92,6 +92,8 @@ class RenderMode private constructor(
         superMaterial?.name = nameDesc.name
     }
 
+    override val id: Int = values.indexOf(this)
+
     override val values: List<ExtendableEnum>
         get() = Companion.values
 

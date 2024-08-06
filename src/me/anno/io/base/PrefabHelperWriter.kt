@@ -3,9 +3,9 @@ package me.anno.io.base
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
-import me.anno.io.saveable.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.saveable.Saveable
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector2d
@@ -125,6 +125,9 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         if (doneObjects.add(value)) {
             val lastPath = currentPath
             currentPath = value.prefabPath
+            if (!Saveable.isRegistered(value.className)) {
+                Saveable.registerCustomClass(value)
+            }
             prefab.sets.clear(currentPath)
             value.save(this)
             currentPath = lastPath

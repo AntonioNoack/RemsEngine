@@ -5,9 +5,14 @@ import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.mesh.FindLines
+import org.apache.logging.log4j.LogManager
 
 // a single helper mesh could be used to represent the default indices...
 class HelperMesh(val indices: IntArray) : ICacheData {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(HelperMesh::class)
+    }
 
     var triBuffer: IndexBuffer? = null
     var lineBuffer: IndexBuffer? = null
@@ -17,13 +22,17 @@ class HelperMesh(val indices: IntArray) : ICacheData {
     var lineIndices: IntArray? = null
 
     fun init(mesh: Mesh) {
-        val buffer = mesh.buffer!!
-        triBuffer = IndexBuffer("helper", buffer, indices)
-        triBuffer?.drawMode = mesh.drawMode
-
         lineIndices = lineIndices ?: FindLines.findLines(mesh, indices, mesh.positions)
-        lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-        lineBuffer?.drawMode = DrawMode.LINES
+        val buffer = mesh.buffer
+        if (buffer != null) {
+            val triBuffer = IndexBuffer("helper", buffer, indices)
+            triBuffer.drawMode = mesh.drawMode
+            this.triBuffer = triBuffer
+
+            val lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
+            lineBuffer?.drawMode = DrawMode.LINES
+            this.lineBuffer = lineBuffer
+        } else LOGGER.warn("HelperMesh is missing buffer?")
     }
 
     fun ensureDebugLines(mesh: Mesh) {
