@@ -57,6 +57,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
 import me.anno.graph.visual.render.effects.FSR2Node
+import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -72,6 +73,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
@@ -193,22 +195,26 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
+        val skipUpdate = renderMode.renderGraph?.nodes
+            ?.firstInstanceOrNull2(FrameGenInitNode::class)?.skipThisFrame() == true
+
         updateEditorCameraTransform()
 
         val world = getWorld()
 
         setRenderState()
 
-        val camera = localPlayer?.cameraState?.currentCamera ?: editorCamera
-        val aspectRatio = findAspectRatio()
-
         val t1 = Time.nanoTime
-        prepareDrawScene(width, height, aspectRatio, camera, true)
-        val t2 = Time.nanoTime
-        FrameTimings.add(t2 - t1, UIColors.midOrange)
+        if (!skipUpdate) {
+            val camera = localPlayer?.cameraState?.currentCamera ?: editorCamera
+            val aspectRatio = findAspectRatio()
+            prepareDrawScene(width, height, aspectRatio, camera, true)
+            val t2 = Time.nanoTime
+            FrameTimings.add(t2 - t1, UIColors.midOrange)
 
-        setRenderState()
-        updatePipelineStage0(renderMode)
+            setRenderState()
+            updatePipelineStage0(renderMode)
+        }
 
         render(x0, y0, x1, y1)
 

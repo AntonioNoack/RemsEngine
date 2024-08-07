@@ -15,7 +15,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.joml.Vector4f
 
-class Texture private constructor(
+class Texture constructor(
     val tex: ITexture2D,
     texMS: ITexture2D?,
     val mapping: String,

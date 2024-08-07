@@ -10,8 +10,7 @@ class DraggingControlSettings : ControlSettings() {
     var snapSettings = SnappingSettings()
     var gridSettings = GridSettings()
 
-    var debugX by ConfigRef("debug.test.vx", 0f)
-    var debugY by ConfigRef("debug.test.vy", 0f)
+    var interFrames by ConfigRef("gpu.frameGen.intermediateFrames", 1)
 
     @DebugAction
     fun editCurrentRenderGraph() {

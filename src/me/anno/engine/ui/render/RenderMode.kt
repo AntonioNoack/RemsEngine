@@ -31,6 +31,9 @@ import me.anno.graph.visual.render.effects.FSR1HelperNode
 import me.anno.graph.visual.render.effects.FSR1Node
 import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FXAANode
+import me.anno.graph.visual.render.effects.FrameGenInitNode
+import me.anno.graph.visual.render.effects.FrameGenMixingNode
+import me.anno.graph.visual.render.effects.FrameGenPredictiveNode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
 import me.anno.graph.visual.render.effects.MSAAHelperNode
@@ -100,7 +103,7 @@ class RenderMode private constructor(
 
     companion object {
 
-        private val opaqueNodeSettings = mapOf(
+        val opaqueNodeSettings = mapOf(
             "Stage" to PipelineStage.OPAQUE,
             "Skybox Resolution" to 256,
             "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
@@ -348,6 +351,15 @@ class RenderMode private constructor(
         val FSR2_X2 = RenderMode("FSR2x2", FSR2Node.createPipeline(1f / 2f))
         val FSR2_X4 = RenderMode("FSR2x4", FSR2Node.createPipeline(1f / 4f))
         val FSR2_X8 = RenderMode("FSR2x8", FSR2Node.createPipeline(1f / 8f))
+
+        val FSR3_MIXING = RenderMode(
+            "FrameGen-Mixing",
+            FrameGenInitNode.createPipeline(FrameGenMixingNode())
+        )
+        val FSR3_PREDICTIVE = RenderMode(
+            "FrameGen-Predictive",
+            FrameGenInitNode.createPipeline(FrameGenPredictiveNode())
+        )
 
         val NEAREST_X4 = RenderMode(
             "Nearest 4x",

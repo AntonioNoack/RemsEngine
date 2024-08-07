@@ -7,8 +7,7 @@ import me.anno.language.translation.NameDesc
  * could be good enough for most game dev projects;
  * if you need more languages to be added here, just write me :)
  * */
-@Suppress("CanBeParameter")
-enum class Language(val prettyName: String, val code: String) {
+enum class Language(prettyName: String, val code: String) {
 
     Arabic("Arabic", "ar"),
     // English("English", "en"),

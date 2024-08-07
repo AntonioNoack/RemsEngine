@@ -6,7 +6,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.effects.FSR
 import me.anno.gpu.texture.TextureCache
 import me.anno.jvm.HiddenOpenGLContext
