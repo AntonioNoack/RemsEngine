@@ -420,8 +420,10 @@ open class Texture2D(
         hasMipmap = false
         this.isHDR = isHDR
         this.channels = channels
+        check()
         filtering(filtering)
-        clamping(clamping)
+        check()
+        clamping(clamping, true)
         check()
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
         if (isDestroyed) destroy()
@@ -989,11 +991,11 @@ open class Texture2D(
     fun ensureFilterAndClamping(nearest: Filtering, clamping: Clamping) {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
-        if (clamping != this.clamping) clamping(clamping)
+        if (clamping != this.clamping) clamping(clamping, false)
     }
 
-    private fun clamping(clamping: Clamping) {
-        if (!withMultisampling && this.clamping != clamping) {
+    private fun clamping(clamping: Clamping, force: Boolean) {
+        if (!withMultisampling && (this.clamping != clamping || force)) {
             TextureHelper.clamping(target, clamping.mode, border)
             this.clamping = clamping
         }

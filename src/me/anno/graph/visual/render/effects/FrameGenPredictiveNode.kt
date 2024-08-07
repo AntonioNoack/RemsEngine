@@ -38,8 +38,6 @@ class FrameGenPredictiveNode : ActionNode(
 
     private fun fill(width: Int, height: Int, data0: Texture2D, motion: Texture2D?) {
         data0.resize(width, height, TargetType.UInt8x3)
-        data0.filtering = Filtering.TRULY_LINEAR
-        data0.clamping = Clamping.CLAMP
         useFrame(data0) {
             GFX.copyNoAlpha((getInput(3) as? Texture)?.texOrNull ?: whiteTexture)
         }
@@ -101,7 +99,7 @@ class FrameGenPredictiveNode : ActionNode(
             ), "" +
                     "void main() {\n" +
                     "   vec2 duv = texture(motionTex,uv).xy;\n" +
-                    "   vec2 uv0 = uv+duv*(0.5*(t-1.0));\n" + // todo why is clamping needed and not even working properly???
+                    "   vec2 uv0 = uv+duv*(0.5*(t-1.0));\n" +
                     "   vec3 color = texture(colorTex, uv0).xyz;\n" +
                     "   result = vec4(color, 1.0);\n" +
                     "}\n"
