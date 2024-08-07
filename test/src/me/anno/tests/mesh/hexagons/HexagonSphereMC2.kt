@@ -251,7 +251,7 @@ class HSChunkLoader(
         return buffer
     }
 
-    override fun getMaterialByKey(key: HexagonSphere.Chunk, transform: Transform): Material {
+    override fun getTransformAndMaterial(key: HexagonSphere.Chunk, transform: Transform): Material {
         // transform can stay identity
         return material
     }

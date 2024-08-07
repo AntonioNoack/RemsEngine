@@ -56,8 +56,8 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.RenderGraph
+import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.input.Input
-import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -71,6 +71,7 @@ import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
@@ -340,28 +341,15 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     // because they are expensive -> only change every 20th frame
     private val mayChangeSize get() = (Time.frameIndex % 20 == 0)
 
-    private val fsr22 by lazy { FSR2v2() }
+    val fsr22 by lazy { FSR2v2() }
 
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer
     ) {
 
-        var w = x1 - x0
-        var h = y1 - y0
-
-        val scale = when (renderMode) {
-            RenderMode.FSR2_X2 -> 2
-            RenderMode.FSR2_X8 -> 8
-            else -> 1
-        }
-        if (scale > 1) {
-            w = ceilDiv(w, scale)
-            h = ceilDiv(h, scale)
-        }
-
-        w = max(w, 1)
-        h = max(h, 1)
+        var w = max(x1 - x0, 1)
+        var h = max(y1 - y0, 1)
 
         val s0 = w * h
         val s1 = buffer.width * buffer.height
@@ -372,13 +360,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         when (renderMode) {
-            RenderMode.FSR2_X8, RenderMode.FSR2_X2 -> {
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
-                fsr22.render(
-                    this, w, h, x0, y0, x1, y1, buffer, buffers.deferred,
-                    buffers.lightNBuffer1, buffers.baseSameDepth1
-                )
-            }
             RenderMode.LIGHT_COUNT -> {
                 val lightBuffer = if (buffer == buffers.base1Buffer) buffers.light1Buffer else buffers.lightNBuffer1
                 DebugRendering.drawLightCount(
@@ -498,7 +479,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             setOrthographicCamera(fov, aspectRatio)
         }
 
-        if (renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2) {
+        if (renderMode.renderGraph?.nodes?.any2 { it is FSR2Node } == true) {
             fsr22.jitter(cameraMatrix, width, height)
         }
 

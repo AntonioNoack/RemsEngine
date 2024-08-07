@@ -12,9 +12,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.Style
 import me.anno.utils.types.Floats.roundToIntOr
 import kotlin.math.max
-import kotlin.math.roundToInt
 
-class ImageButton(
+open class ImageButton(
     var path: FileReference,
     var size: Int,
     var padding: Padding,

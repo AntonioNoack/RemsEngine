@@ -45,7 +45,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
 
     abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
 
-    open fun getMaterialByKey(key: Key, transform: Transform): Material? = null
+    open fun getTransformAndMaterial(key: Key, transform: Transform): Material? = null
 
     /**
      * defines what the world looks like for Raycasting,
@@ -55,7 +55,7 @@ abstract class UniqueMeshRenderer<Mesh : IMesh, Key>(
         var i = 0
         for ((key, entry) in entryLookup) {
             val transform = getTransform(i++)
-            val material = getMaterialByKey(key, transform)
+            val material = getTransformAndMaterial(key, transform)
             run(entry.mesh!!, material, transform)
         }
     }

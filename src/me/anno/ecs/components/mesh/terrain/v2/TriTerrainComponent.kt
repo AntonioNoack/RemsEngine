@@ -44,7 +44,7 @@ class TriTerrainComponent : UniqueMeshRenderer<Mesh, Mesh>(attributes, MeshVerte
         return buffer
     }
 
-    override fun getMaterialByKey(key: Mesh, transform: Transform): Material? {
+    override fun getTransformAndMaterial(key: Mesh, transform: Transform): Material? {
         return material
     }
 }

@@ -13,9 +13,11 @@ import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
+import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
-import me.anno.graph.visual.render.scene.RenderForwardNode
+import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import org.joml.Vector4f
 
 /**
  * AMD FSR reduces the rendering resolution to gain performance, and then upscales that image.
@@ -41,6 +43,7 @@ class FSR1Node : TimedRenderingNode(
     }
 
     // hdr? upscaling, so not really necessary
+    // todo use FBStack
     private val f0 = Framebuffer("fsr1-0", 1, 1, TargetType.UInt8x4)
     private val f1 = Framebuffer("fsr1-1", 1, 1, TargetType.UInt8x4)
 
@@ -83,22 +86,23 @@ class FSR1Node : TimedRenderingNode(
             return QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
                 .then1(
-                    RenderDeferredNode(),
-                    mapOf(
+                    RenderDeferredNode(), mapOf(
                         "Stage" to PipelineStage.OPAQUE,
                         "Skybox Resolution" to 256,
                         "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
                     )
                 )
-                .then1(RenderDeferredNode(), mapOf("Stage" to PipelineStage.DECAL))
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
-                .then1(RenderForwardNode(), mapOf("Stage" to PipelineStage.TRANSPARENT))
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                // todo scale depth if needed in gizmo node?
-                .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
+                .then(GizmoNode())
+                // .then(FXAANode())
                 .then(FSR1Node())
                 .finish()
         }

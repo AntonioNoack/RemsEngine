@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.material.Texture3DBTMaterial
 import me.anno.ecs.components.mesh.material.Texture3DBTv2Material
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture3D
+import me.anno.language.translation.NameDesc
 import me.anno.maths.chunks.cartesian.ByteArrayChunkSystem
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
@@ -31,23 +32,34 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         // raytracing currently only supports two colors with my default shader
         var log = 3.toByte()
         var leaves = 4.toByte()
+        var water = 5.toByte()
+
+        var dirtColor = 0x684530 or black
+        var grassColor = 0x2f8d59 or black
+        var leafColor = 0x067e3c or (32 shl 24)
+        var logColor = 0x463125 or black
+        var waterColor = 0x60b6ff or black
+
+        val colors = mapOf(
+            dirt to dirtColor,
+            grass to grassColor,
+            log to logColor,
+            leaves to leafColor,
+            water to waterColor,
+        )
+
+        val palette = colors
+            .mapKeys { it.key.toInt() }
+            .flatten(0)
+
+        val blockNames = mapOf(
+            dirt to NameDesc("Dirt"),
+            grass to NameDesc("Grass"),
+            log to NameDesc("Log"),
+            leaves to NameDesc("Leaves"),
+            water to NameDesc("Water")
+        )
     }
-
-    var dirtColor = 0x684530 or black
-    var grassColor = 0x2f8d59 or black
-    var leafColor = 0x067e3c or (32 shl 24)
-    var logColor = 0x463125 or black
-
-    val colors = mapOf(
-        dirt to dirtColor,
-        grass to grassColor,
-        log to logColor,
-        leaves to leafColor
-    )
-
-    var palette = colors
-        .mapKeys { it.key.toInt() }
-        .flatten(0)
 
     // this world surely could be useful in a few other instances as well 😄
     val treeRandom = FullNoise(1234L)

@@ -10,6 +10,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
@@ -21,6 +22,50 @@ import kotlin.math.max
 
 open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     TextPanel(title, style.getChild("button")), InputPanel<Unit> {
+
+    companion object {
+
+        fun getColor(isHovered: Boolean, mouseDown: Boolean, base: Int, alternative: Int): Int {
+            val alpha = if (isHovered && !mouseDown) 170 else 255
+            return (if (mouseDown) alternative else base).withAlpha(alpha)
+        }
+
+        fun Panel.drawButtonBorder(
+            leftColor: Int, topColor: Int, rightColor: Int, bottomColor: Int,
+            isInputAllowed: Boolean, borderSize: Padding, mouseDown: Boolean,
+        ) {
+            val isHovered = isHovered && isInputAllowed
+            val mouseDown = mouseDown && isInputAllowed
+            val bi = DrawRectangles.startBatch()
+            var leftColor = leftColor
+            var rightColor = rightColor
+            var topColor = topColor
+            var bottomColor = bottomColor
+            if (!isInputAllowed) {
+                val avgColor = mixARGB(
+                    mixARGB(leftColor, rightColor, 0.5f),
+                    mixARGB(topColor, bottomColor, 0.5f), 0.5f
+                )
+                val f = 0.5f
+                leftColor = mixARGB(leftColor, avgColor, f)
+                rightColor = mixARGB(rightColor, avgColor, f)
+                topColor = mixARGB(topColor, avgColor, f)
+                bottomColor = mixARGB(bottomColor, avgColor, f)
+            }
+            // draw button border
+            drawRect(
+                x + width - borderSize.right, y, borderSize.right, height,
+                getColor(isHovered, mouseDown, rightColor, leftColor)
+            ) // right
+            drawRect(
+                x, y + height - borderSize.bottom, width,
+                borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)
+            ) // bottom
+            drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
+            drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
+            DrawRectangles.finishBatch(bi)
+        }
+    }
 
     init {
         tooltip = title
@@ -89,23 +134,15 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        draw(x0, y0, x1, y1, isHovered && isInputAllowed, isPressed && isInputAllowed)
-    }
-
-    override fun onKeyDown(x: Float, y: Float, key: Key) {
-        super.onKeyDown(x, y, key)
-        isPressed = key.isClickKey(true)
-    }
-
-    override fun onKeyUp(x: Float, y: Float, key: Key) {
-        super.onKeyUp(x, y, key)
-        isPressed = false
-    }
-
-    fun draw(x0: Int, y0: Int, x1: Int, y1: Int, isHovered: Boolean, mouseDown: Boolean) {
-
         drawBackground(x0, y0, x1, y1)
+        drawButtonText()
+        drawButtonBorder(
+            leftColor, topColor, rightColor, bottomColor,
+            isInputAllowed, borderSize, isPressed
+        )
+    }
 
+    fun drawButtonText() {
         val text = text
         val widthLimit = if (breaksIntoMultiline) this.width else -1
         val alignmentX = textAlignmentX
@@ -119,40 +156,16 @@ open class TextButton(title: String, var aspectRatio: Float, style: Style) :
             font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
             alignmentX, alignmentY
         )
-
-        val bi = DrawRectangles.startBatch()
-        var leftColor = leftColor
-        var rightColor = rightColor
-        var topColor = topColor
-        var bottomColor = bottomColor
-        if (!isInputAllowed) {
-            val avgColor = mixARGB(
-                mixARGB(leftColor, rightColor, 0.5f),
-                mixARGB(topColor, bottomColor, 0.5f), 0.5f
-            )
-            val f = 0.5f
-            leftColor = mixARGB(leftColor, avgColor, f)
-            rightColor = mixARGB(rightColor, avgColor, f)
-            topColor = mixARGB(topColor, avgColor, f)
-            bottomColor = mixARGB(bottomColor, avgColor, f)
-        }
-        // draw button border
-        drawRect(
-            x + width - borderSize.right, y, borderSize.right, height,
-            getColor(isHovered, mouseDown, rightColor, leftColor)
-        ) // right
-        drawRect(
-            x, y + height - borderSize.bottom, width,
-            borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)
-        ) // bottom
-        drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
-        drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
-        DrawRectangles.finishBatch(bi)
     }
 
-    fun getColor(isHovered: Boolean, mouseDown: Boolean, base: Int, alternative: Int): Int {
-        val alpha = if (isHovered && !mouseDown) 170 else 255
-        return (if (mouseDown) alternative else base).withAlpha(alpha)
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        super.onKeyDown(x, y, key)
+        isPressed = key.isClickKey(true)
+    }
+
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        super.onKeyUp(x, y, key)
+        isPressed = false
     }
 
     fun click() {

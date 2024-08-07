@@ -163,7 +163,7 @@ object DebugRendering {
                         } else {
                             DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
                         }
-                        DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
+                        drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
                     }
                     else -> {
                         if (Input.isShiftDown && light is PlanarReflection) {
@@ -183,6 +183,7 @@ object DebugRendering {
     val drawGizmoTimer = GPUClockNanos()
     val drawLightsTimer = GPUClockNanos()
     val drawFinalTimer = GPUClockNanos()
+    val drawExtraTimer = GPUClockNanos()
 
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection

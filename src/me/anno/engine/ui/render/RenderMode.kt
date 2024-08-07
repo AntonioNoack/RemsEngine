@@ -29,6 +29,7 @@ import me.anno.graph.visual.render.effects.DepthTestNode
 import me.anno.graph.visual.render.effects.DepthToNormalNode
 import me.anno.graph.visual.render.effects.FSR1HelperNode
 import me.anno.graph.visual.render.effects.FSR1Node
+import me.anno.graph.visual.render.effects.FSR2Node
 import me.anno.graph.visual.render.effects.FXAANode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
@@ -344,9 +345,9 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        // todo make these modes use a render graph, too
-        val FSR2_X2 = RenderMode("FSR2x2")
-        val FSR2_X8 = RenderMode("FSR2x8")
+        val FSR2_X2 = RenderMode("FSR2x2", FSR2Node.createPipeline(1f / 2f))
+        val FSR2_X4 = RenderMode("FSR2x4", FSR2Node.createPipeline(1f / 4f))
+        val FSR2_X8 = RenderMode("FSR2x8", FSR2Node.createPipeline(1f / 8f))
 
         val NEAREST_X4 = RenderMode(
             "Nearest 4x",

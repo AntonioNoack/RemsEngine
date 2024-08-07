@@ -10,7 +10,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.LightShaders.combineFStage
-import me.anno.gpu.pipeline.LightShaders.combineLighting1
+import me.anno.gpu.pipeline.LightShaders.combineLighting
 import me.anno.gpu.pipeline.LightShaders.combineVStage
 import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.depthVars
@@ -138,7 +138,7 @@ class CombineLightsNode : RenderViewNode(
             useFrame(width, height, false, framebuffer, Renderer.copyRenderer) {
                 renderPurely2 {
                     val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
-                    combineLighting1(shader, applyToneMapping = getBoolInput(4))
+                    combineLighting(shader, applyToneMapping = getBoolInput(4))
                 }
             }
             setOutput(1, Texture(framebuffer.getTexture0()))

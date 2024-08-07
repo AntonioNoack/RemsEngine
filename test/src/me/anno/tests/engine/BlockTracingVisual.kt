@@ -57,7 +57,7 @@ fun main() {
     )
 
     val world = TestWorld()
-    val bgrPalette = world.palette.copyOf()
+    val bgrPalette = TestWorld.palette.copyOf()
     for (i in bgrPalette.indices) {
         bgrPalette[i] = convertABGR2ARGB(bgrPalette[i])
     }

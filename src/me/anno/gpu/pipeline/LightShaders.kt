@@ -13,11 +13,9 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.BufferUsage
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.gpu.deferred.PBRLibraryGLTF.specularBRDFv2NoColorStart
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.instancedBatchSize
 import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
@@ -35,11 +33,7 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib
-import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 
@@ -99,23 +93,7 @@ object LightShaders {
 
     val useMSAA get() = GFXState.currentBuffer.samples > 1
 
-    fun combineLighting(
-        deferred: DeferredSettings, applyToneMapping: Boolean, scene: IFramebuffer,
-        light: IFramebuffer, ssao: ITexture2D, skybox: CubemapTexture
-    ) {
-        val shader = getCombineLightShader(deferred)
-        shader.use()
-        scene.bindTrulyNearestMS(shader.getTextureIndex("defLayer0"))
-        val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
-        (deferred.findTextureMS(scene, metallic) ?: TextureLib.blackTexture).bindTrulyNearest(3)
-        shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
-        skybox.bind(shader, "reflectionMap", Filtering.LINEAR, skybox.clamping)
-        ssao.bindTrulyNearest(shader, "occlusionTex")
-        light.getTexture0MS().bindTrulyNearest(shader, "lightTex")
-        combineLighting1(shader, applyToneMapping)
-    }
-
-    fun combineLighting1(shader: Shader, applyToneMapping: Boolean) {
+    fun combineLighting(shader: Shader, applyToneMapping: Boolean) {
         shader.v1b("applyToneMapping", applyToneMapping)
         bindDepthUniforms(shader)
         flat01.draw(shader)

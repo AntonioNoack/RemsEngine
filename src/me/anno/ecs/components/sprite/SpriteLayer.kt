@@ -70,7 +70,7 @@ class SpriteLayer : UniqueMeshRenderer<SpriteMeshLike, Vector2i>(
         return buffer
     }
 
-    override fun getMaterialByKey(key: Vector2i, transform: Transform): Material {
+    override fun getTransformAndMaterial(key: Vector2i, transform: Transform): Material {
         return material
     }
 
