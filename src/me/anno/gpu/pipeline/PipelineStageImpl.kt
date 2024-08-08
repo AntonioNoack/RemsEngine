@@ -35,6 +35,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureHelper
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
@@ -267,6 +268,7 @@ class PipelineStageImpl(
             val ti = shader.getTextureIndex("reflectionPlane")
             if (ti < 0 || pipeline.planarReflections.isEmpty()) {
                 shader.v1b("hasReflectionPlane", false)
+                if (ti >= 0) whiteTexture.bindTrulyNearest(ti)
                 return
             }
 

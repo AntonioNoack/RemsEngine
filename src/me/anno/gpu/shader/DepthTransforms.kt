@@ -4,6 +4,9 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.pooling.JomlPools
+import org.joml.Matrix4f
+import org.joml.Quaterniond
+import org.joml.Vector3d
 
 /**
  * helps loading and storing depth values in shaders from textures
@@ -61,22 +64,31 @@ object DepthTransforms {
     )
 
     fun bindDepthUniforms(shader: GPUShader) {
+        bindDepthUniforms(shader, RenderState.cameraDirection, RenderState.cameraRotation, RenderState.cameraMatrixInv)
+    }
+
+    fun bindDepthUniforms(
+        shader: GPUShader,
+        cameraDirection: Vector3d,
+        cameraRotation: Quaterniond,
+        cameraMatrixInv: Matrix4f
+    ) {
         if (!RenderState.isPerspective) {
             // orthogonal
-            val dir = RenderState.cameraDirection
+            val dir = cameraDirection
             shader.v4f("d_camRot", dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), 1f)
             shader.v1f("d_near", -1f)
             // a matrix that transforms uv[-1,+1] x depth[0,1] into [left,right] x [top,bottom] x [near,far]
-            shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrixInv))
+            shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(cameraMatrixInv))
             shader.v1b("reverseDepth", GFX.supportsClipControl)
             shader.v2f("d_uvCenter", 0f, 0f) // idk yet
         } else {
             // perspective
             shader.v1b("reverseDepth", GFX.supportsClipControl)
-            shader.v4f("d_camRot", RenderState.cameraRotation)
+            shader.v4f("d_camRot", cameraRotation)
             shader.v2f("d_uvCenter", RenderState.fovXCenter, RenderState.fovYCenter)
             shader.v1f("d_near", RenderState.near)
-            shader.m4x4("cameraMatrixInv", RenderState.cameraMatrixInv)
+            shader.m4x4("cameraMatrixInv", cameraMatrixInv)
         }
     }
 }

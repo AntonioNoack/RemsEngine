@@ -1,6 +1,5 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -20,40 +19,25 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.TRANSPARENT_PASS
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.bindRandomness
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.drawCallId
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.initShader
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
-import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.query.GPUClockNanos
-import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths
-import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.SmallestKList
@@ -61,7 +45,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Planed
 import org.joml.Vector3d
-import kotlin.math.max
 
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
@@ -188,64 +171,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     fun bakeSkybox(resolution: Int) {
         if (resolution <= 0) return
-        timeRendering("BakeSkybox", skyboxTimer) {
-            bakeSkybox0(resolution)
-        }
-    }
-
-    private fun bakeSkybox0(resolution: Int) {
-        val self = RenderView.currentInstance
-        val renderMode = self?.renderMode
-        if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
-            self.renderMode = RenderMode.DEFAULT
-        }
-        // todo only update skybox every n frames
-        //  maybe even only one side at a time
-        val framebuffer = bakedSkybox ?: CubemapFramebuffer(
-            "skyBox", resolution, 1,
-            listOf(TargetType.Float16x3), DepthBufferType.NONE
-        )
-        val renderer = Renderers.rawAttributeRenderers[DeferredLayerType.EMISSIVE]
-        framebuffer.draw(renderer) { side ->
-            val skyRot = JomlPools.quat4f.create()
-            val cameraMatrix = JomlPools.mat4f.create()
-            val sky = skybox
-            // draw sky
-            // could be optimized to draw a single triangle instead of a full cube for each side
-            CubemapTexture.rotateForCubemap(skyRot.identity(), side)
-            val shader = (sky.shader ?: pbrModelShader).value
-            shader.use()
-            GFX.check()
-            Perspective.setPerspective(
-                cameraMatrix, Maths.PIf * 0.5f, 1f,
-                0.1f, 10f, 0f, 0f
-            )
-            cameraMatrix.rotate(skyRot)
-            GFX.check()
-            shader.m4x4("transform", cameraMatrix)
-            GFX.check() // todo why is this failing in the compile test???
-            if (side == 0) {
-                shader.v1i("hasVertexColors", 0)
-                sky.material.bind(shader)
-            }// else already set
-            shader.v3f("cameraPosition", RenderState.cameraPosition)
-            shader.v4f("cameraRotation", RenderState.cameraRotation)
-            shader.v1f("camScale", RenderState.worldScale.toFloat())
-            shader.v1f("meshScale", 1f)
-            shader.v1b("isPerspective", false)
-            shader.v1b("reversedDepth", false) // depth doesn't matter
-            sky.getMesh().draw(this, shader, 0)
-            JomlPools.quat4f.sub(1)
-            JomlPools.mat4f.sub(1)
-        }
-        if (!OS.isAndroid) {
-            // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
-            framebuffer.textures[0].bind(0, Filtering.LINEAR)
-        }
-        bakedSkybox = framebuffer
-        if (renderMode != null) {
-            self.renderMode = renderMode
-        }
+        DrawSky.bakeSkybox(this, resolution)
     }
 
     fun destroyBakedSkybox() {
@@ -295,47 +221,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun drawSky() {
-        GFXState.depthMode.use(defaultStage.depthMode) {
-            GFXState.depthMask.use(false) {
-                GFXState.blendMode.use(null) {
-                    GFXState.cullMode.use(CullMode.BACK) {
-                        drawSky0()
-                    }
-                }
-            }
-        }
-    }
-
-    fun drawSky0() {
-        timeRendering("DrawSky", skyTimer, ::drawSky1)
-    }
-
-    private fun drawSky1() {
-        val sky = skybox
-        val mesh = sky.getMesh()
-        val allAABB = JomlPools.aabbd.create()
-        val scale = if (RenderState.isPerspective) 1f
-        else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
-        allAABB.all()
-        for (i in 0 until mesh.numMaterials) {
-            val material = getMaterial(sky.materials, mesh.materials, i)
-            val shader = (material.shader ?: pbrModelShader).value
-            shader.use()
-            initShader(shader, applyToneMapping)
-            bindRandomness(shader)
-            setupLights(this, shader, allAABB, false)
-            setupLocalTransform(shader, sky.transform, Time.gameTimeN)
-            shader.v1b("hasAnimation", false)
-            shader.v4f("tint", 1f)
-            shader.v1f("finalAlpha", 1f)
-            shader.v1i("hasVertexColors", 0)
-            shader.v2i("randomIdData", 6, 123456)
-            shader.v1f("meshScale", scale)
-            shader.v4f("finalId", -1)
-            material.bind(shader)
-            mesh.draw(this, shader, i)
-        }
-        JomlPools.aabbd.sub(1)
+        DrawSky.drawSky(this)
     }
 
     fun clear() {

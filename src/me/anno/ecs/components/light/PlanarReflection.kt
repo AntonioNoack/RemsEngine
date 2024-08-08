@@ -19,6 +19,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.pipeline.DrawSky
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.input.Input
@@ -282,7 +283,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         fun clearSky(pipeline: Pipeline) {
             renderPurely {
-                pipeline.drawSky0()
+                DrawSky.drawSky0(pipeline)
                 GFXState.currentBuffer.clearDepth()
             }
         }

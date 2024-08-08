@@ -2,6 +2,7 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.config.ConfigRef
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
+import me.anno.engine.ui.render.RenderState
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.control.FixedControlFlowNode
 import me.anno.graph.visual.node.Node
@@ -12,10 +13,9 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector4f
 
-// todo include camera rotation into calculation for smoother controls??
-//  probably more complicated than we think
 class FrameGenInitNode : FixedControlFlowNode(
     "FrameGenInit",
     listOf("Flow", beforeName), listOf(
@@ -23,19 +23,27 @@ class FrameGenInitNode : FixedControlFlowNode(
         "Flow", "Shortcut"
     )
 ) {
-    var frameIndex = Int.MAX_VALUE
+
+    class PerViewData {
+        var frameIndex = Int.MAX_VALUE
+    }
+
+    val views = LazyMap { _: Int -> PerViewData() }
+
     override fun execute(): NodeOutput {
+        val view = views[RenderState.viewIndex]
         if (skipThisFrame()) {
-            frameIndex++
+            view.frameIndex++
             return getNodeOutput(1)
         } else {
-            frameIndex = 0
+            view.frameIndex = 0
             return getNodeOutput(0)
         }
     }
 
     fun skipThisFrame(): Boolean {
-        return frameIndex < interFrames
+        val view = views[RenderState.viewIndex]
+        return view.frameIndex < interFrames
     }
 
     companion object {
@@ -43,6 +51,7 @@ class FrameGenInitNode : FixedControlFlowNode(
         var interFrames by ConfigRef("gpu.frameGen.intermediateFrames", 1)
 
         fun createPipeline(output: Node): FlowGraph {
+            // standard node setup except for init and output
             val init = FrameGenInitNode()
             val graph = QuickPipeline()
                 .then(init)

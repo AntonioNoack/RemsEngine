@@ -183,6 +183,7 @@
       <w>inspectables</w>
       <w>interactable</w>
       <w>invalidations</w>
+      <w>inversed</w>
       <w>inversesqrt</w>
       <w>invertibility</w>
       <w>isampler</w>
@@ -447,6 +448,7 @@
       <w>upsample</w>
       <w>upsampled</w>
       <w>upscaled</w>
+      <w>upscaler</w>
       <w>upscales</w>
       <w>upscaling</w>
       <w>usampler</w>

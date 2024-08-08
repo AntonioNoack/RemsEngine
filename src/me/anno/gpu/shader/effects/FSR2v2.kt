@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.cache.ICacheData
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.DeferredSettings
@@ -23,8 +24,6 @@ import kotlin.math.round
 
 /**
  * implement the ideas of FSR2, but just in principle and much easier
- * todo support this in VR
- * todo implement FSR3: frame interpolation
  * */
 class FSR2v2 : ICacheData {
     companion object {
@@ -110,12 +109,18 @@ class FSR2v2 : ICacheData {
         }
     }
 
-    var data0 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
-    var data1 = IFramebuffer.createFramebuffer("data", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+    class PerViewData {
+        var data0 = IFramebuffer.createFramebuffer("fsr2-0", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+        var data1 = IFramebuffer.createFramebuffer("fsr2-1", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+    }
+
+    val views = LazyMap { _: Int -> PerViewData() }
 
     override fun destroy() {
-        data0.destroy()
-        data1.destroy()
+        for (view in views.values) {
+            view.data0.destroy()
+            view.data1.destroy()
+        }
     }
 
     private var jx = 0f
@@ -169,8 +174,9 @@ class FSR2v2 : ICacheData {
         val rh = color.height
         lastScaleX = scaleX.toFloat()
         lastScaleY = scaleY.toFloat()
-        val data1 = data1
-        val data0 = data0
+        val view = views[RenderState.viewIndex]
+        val data1 = view.data1
+        val data0 = view.data0
         data1.ensure()
         GFXState.useFrame(pw, ph, true, data0) {
             val depthMaskI = when (depthMask[0]) {
@@ -201,7 +207,7 @@ class FSR2v2 : ICacheData {
             DepthTransforms.bindDepthUniforms(shader)
             SimpleBuffer.flat01.draw(shader)
         }
-        this.data0 = data1
-        this.data1 = data0
+        view.data0 = data1
+        view.data1 = data0
     }
 }

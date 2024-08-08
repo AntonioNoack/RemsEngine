@@ -196,7 +196,7 @@ object DebugRendering {
             val buffer = view.buffers.base1Buffer
             val renderer = Renderers.pbrRenderer
             timeRendering("DrawScene", drawSceneTimer) {
-                view.prepareDrawScene(w, h, w.toFloat() / h, camera, false)
+                view.prepareDrawScene(w, h, w.toFloat() / h, camera, update = false, fillPipeline = true)
                 view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = true, sky = true)
             }
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)

@@ -1,6 +1,7 @@
 package me.anno.openxr
 
 import me.anno.engine.EngineBase
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -76,7 +77,8 @@ class OpenXRRendering(
         // todo define camera fov for frustum based on actually used angles
         rv.editorCamera.fovY = 110f // just a guess, should be good enough
         rv.updateEditorCameraTransform()
-        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, true)
+        // todo skip filling pipeline, if using frameGen
+        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, true, true)
     }
 
     private fun defineTexture(w: Int, h: Int, ct: Texture2D, colorTexture: Int, session: Int) {
@@ -152,6 +154,7 @@ class OpenXRRendering(
             .set(additionalRotation)
             .mul(rot.x(), rot.y(), rot.z(), rot.w())
 
+        RenderState.viewIndex = viewIndex
         createProjectionFov(rv.cameraMatrix, view.fov(), rv.scaledNear.toFloat(), 0f, rv)
 
         // offset camera matrix by (pos - centerPos) * worldScale
@@ -172,6 +175,7 @@ class OpenXRRendering(
         rv.pipeline.superMaterial = rv.renderMode.superMaterial
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
+        RenderState.viewIndex = 0
 
         // not really needed
         FBStack.reset()

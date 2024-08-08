@@ -135,7 +135,7 @@ object AssetThumbnails {
             rv.far = rv.radius * 2.0
             rv.updateEditorCameraTransform()
             rv.setRenderState()
-            rv.prepareDrawScene(size, size, 1f, cam, false)
+            rv.prepareDrawScene(size, size, 1f, cam, update = false, fillPipeline = true)
             // don't use EditorState
             GFXState.ditherMode.use(DitherMode.DITHER2X2) {
                 rv.pipeline.clear()

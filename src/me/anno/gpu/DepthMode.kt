@@ -17,11 +17,11 @@ enum class DepthMode(val id: Int) {
 
     FORWARD_ALWAYS(GL46C.GL_ALWAYS),
     FORWARD_DIFFERENT(GL46C.GL_NOTEQUAL),
-    FORWARD_CLOSER(GL46C.GL_LESS),
-    FORWARD_CLOSE(GL46C.GL_LEQUAL),
-    FORWARD_EQUALS(GL46C.GL_EQUAL),
+    FORWARD_FARTHER(GL46C.GL_GREATER),
     FORWARD_FAR(GL46C.GL_GEQUAL),
-    FORWARD_FARTHER(GL46C.GL_GREATER);
+    FORWARD_EQUALS(GL46C.GL_EQUAL),
+    FORWARD_CLOSE(GL46C.GL_LEQUAL),
+    FORWARD_CLOSER(GL46C.GL_LESS);
 
     val reversedDepth: Boolean get() = ordinal < 7
     val reversedMethodMode: DepthMode get() = entries[ordinal + if (reversedDepth) 7 else -7]

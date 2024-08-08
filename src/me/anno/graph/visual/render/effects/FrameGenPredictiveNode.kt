@@ -1,94 +1,66 @@
 package me.anno.graph.visual.render.effects
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
 
-// todo make this work for VR
-class FrameGenPredictiveNode : ActionNode(
-    "FrameGenOutput", listOf(
+// todo test this in VR
+class FrameGenPredictiveNode : FrameGenOutputNode<FrameGenPredictiveNode.PerViewData2>(
+    "FrameGenPredictive", listOf(
         "Int", "Width",
         "Int", "Height",
         "Texture", "Illuminated",
         "Texture", "Motion",
-        "Texture", "Depth",
-    ), listOf(
-        "Texture", "Illuminated"
-    )
+    ), listOf("Texture", "Illuminated")
 ) {
 
-    val color0 = Texture2D("frameGenC", 1, 1, 1)
-    val motion = Texture2D("frameGenM", 1, 1, 1)
-    val result = Texture2D("frameGenX", 1, 1, 1)
-
-    private fun fill(width: Int, height: Int, data0: Texture2D, motion: Texture2D?) {
-        data0.resize(width, height, TargetType.UInt8x3)
-        useFrame(data0) {
-            GFX.copyNoAlpha((getInput(3) as? Texture)?.texOrNull ?: whiteTexture)
-        }
-        if (motion != null) {
-            motion.resize(width, height, TargetType.Float32x2)
-            useFrame(motion) {
-                GFX.copyNoAlpha((getInput(4) as? Texture)?.texOrNull ?: blackTexture)
-            }
+    class PerViewData2 : PerViewData() {
+        val color = Texture2D("frameGenC", 1, 1, 1)
+        val motion = Texture2D("frameGenM", 1, 1, 1)
+        override fun destroy() {
+            color.destroy()
+            motion.destroy()
         }
     }
 
-    private fun showOutput(data0: Texture2D) {
-        setOutput(1, Texture(data0, null, "xyz", DeferredLayerType.COLOR))
+    override fun createPerViewData(): PerViewData2 {
+        return PerViewData2()
     }
 
-    var frameIndex = Int.MAX_VALUE
-    override fun executeAction() {
-        val width = getIntInput(1)
-        val height = getIntInput(2)
-        if (frameIndex < interFrames) {
-            val result = result
-            result.resize(width, height, TargetType.UInt8x3)
-            useFrame(result) {
-                val shader = predictiveShader
-                shader.use()
-                // invalidate filtering
-                color0.bindTrulyLinear(shader, "colorTex")
-                motion.bindTrulyNearest(shader, "motionTex") // motion from frame 0 to 1
-                // why do we need to invert it???
-                shader.v1f("t", 1f - (frameIndex + 1f) / (interFrames + 1f))
-                flat01.draw(shader)
-            }
-            showOutput(result)
-            frameIndex++
-        } else {
-            // copy input onto data0
-            fill(width, height, color0, motion)
-            showOutput(color0)
-            frameIndex = 0
+    override fun renderOriginal(view: PerViewData2, width: Int, height: Int) {
+        // copy input onto data0
+        fill(width, height, view.color, 3, TargetType.UInt8x3, whiteTexture)
+        fill(width, height, view.motion, 4, TargetType.Float16x2, blackTexture)
+        showOutput(view.color)
+    }
+
+    override fun renderInterpolated(view: PerViewData2, width: Int, height: Int) {
+        val result = FBStack["frameGen", width, height, TargetType.UInt8x3, 1, DepthBufferType.NONE]
+        useFrame(result) {
+            val shader = predictiveShader
+            shader.use()
+            // invalidate filtering
+            view.color.bindTrulyLinear(shader, "colorTex")
+            view.motion.bindTrulyNearest(shader, "motionTex")
+            // why do we need to invert it???
+            shader.v1f("t", 1f - (view.frameIndex + 1f) / (interFrames + 1f))
+            flat01.draw(shader)
         }
-    }
-
-    override fun destroy() {
-        super.destroy()
-        color0.destroy()
-        motion.destroy()
-        result.destroy()
+        showOutput(result.getTexture0())
     }
 
     companion object {
-        val targets = listOf(TargetType.UInt8x4, TargetType.Float32x3)
         val predictiveShader = Shader(
             "predictive", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(

@@ -205,16 +205,16 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         setRenderState()
 
         val t1 = Time.nanoTime
-        if (!skipUpdate) {
-            val camera = localPlayer?.cameraState?.currentCamera ?: editorCamera
-            val aspectRatio = findAspectRatio()
-            prepareDrawScene(width, height, aspectRatio, camera, true)
-            val t2 = Time.nanoTime
-            FrameTimings.add(t2 - t1, UIColors.midOrange)
 
-            setRenderState()
-            updatePipelineStage0(renderMode)
-        }
+        val camera = localPlayer?.cameraState?.currentCamera ?: editorCamera
+        val aspectRatio = findAspectRatio()
+        val update = !skipUpdate
+        prepareDrawScene(width, height, aspectRatio, camera, update, update)
+        val t2 = Time.nanoTime
+        FrameTimings.add(t2 - t1, UIColors.midOrange)
+
+        setRenderState()
+        updatePipelineStage0(renderMode)
 
         render(x0, y0, x1, y1)
 
@@ -238,7 +238,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             drawDebugStats(drawnPrimitives0, drawnInstances0, drawCalls0)
         }
 
-        updatePrevState()
+        if (update) {
+            updatePrevState()
+        }
 
         val t4 = Time.nanoTime
         FrameTimings.add(t4 - t1, paleGoldenRod)
@@ -462,7 +464,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         return if (camera.isPerspective) camera.fovY else camera.fovOrthographic * 0.5f
     }
 
-    fun prepareDrawScene(width: Int, height: Int, aspectRatio: Float, camera: Camera, update: Boolean) {
+    fun prepareDrawScene(
+        width: Int, height: Int, aspectRatio: Float, camera: Camera, update: Boolean,
+        fillPipeline: Boolean
+    ) {
 
         val world = getWorld()
 
@@ -497,15 +502,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val t1 = camera.entity?.transform?.getValidDrawMatrix()
 
         val camRot = JomlPools.quat4d.create()
-        val camRotInv = JomlPools.quat4d.create()
         if (t1 != null) {
             t1.getUnnormalizedRotation(camRot)
             if (!camRot.isFinite) camRot.identity()
         } else camRot.identity()
 
-        camRot.conjugate(camRotInv)
-        rotateCamMatrix(camRot, camRotInv)
-        JomlPools.quat4d.sub(2)
+        rotateCamMatrix(camRot)
+        JomlPools.quat4d.sub(1)
 
         if (t1 != null) t1.getTranslation(cameraPosition)
         else cameraPosition.set(0.0)
@@ -518,14 +521,19 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             } else mouseDirection.set(cameraDirection)
         }
 
-        storePrevTransform()
         currentInstance = this
 
-        definePipeline(width, height, aspectRatio, fov, world)
+        if (update) {
+            storePrevTransform()
+        }
+
+        if (fillPipeline) {
+            definePipeline(width, height, aspectRatio, fov, world)
+        }
     }
 
-    private fun rotateCamMatrix(camRot: Quaterniond, camRotInv: Quaterniond) {
-        cameraMatrix.rotate(camRotInv)
+    private fun rotateCamMatrix(camRot: Quaterniond) {
+        cameraMatrix.rotateInv(camRot)
         cameraRotation.set(camRot)
         camRot.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
     }
@@ -620,7 +628,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         entityBaseClickId = pipeline.lastClickId
     }
 
-    var renderControllers = true
     private val inverseDepth get() = renderMode == RenderMode.INVERSE_DEPTH
 
     val depthMode: DepthMode

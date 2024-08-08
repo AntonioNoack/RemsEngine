@@ -15,6 +15,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
@@ -24,7 +25,6 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
-import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -41,13 +41,12 @@ object MovingGrid {
     private fun drawGrid3(pipeline: Pipeline, mask: Int) {
 
         val pos0 = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
-        val pos1 = RenderView.currentInstance?.cameraPosition ?: pos0
+        val distance0 = (RenderView.currentInstance?.radius ?: 1.0)
 
         for (axis in 0 until 3) {
             if (mask.hasFlag(1 shl axis)) {
 
-                val distance = max(abs(pos0[axis]), abs(pos1[axis]))
-
+                val distance = max(distance0, abs(pos0[axis]))
                 val log = log10(distance)
                 val floorLog = floor(log)
                 val fractLog = (log - floorLog).toFloat()
@@ -67,7 +66,6 @@ object MovingGrid {
                         0 -> 1f - fractLog
                         else -> clamp(numLevels - i)
                     }
-
 
                     val transform = init()
                         .translate(dx, 0.0, dz)
@@ -102,8 +100,7 @@ object MovingGrid {
         }
 
         // to do replace with one mesh
-        val distance = max(abs(pos1.x), max(abs(pos1.y), abs(pos1.z)))
-        drawAxes(distance)
+        drawAxes(distance0)
     }
 
     fun drawMesh(pipeline: Pipeline, mesh: Mesh) {

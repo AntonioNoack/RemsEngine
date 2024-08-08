@@ -16,20 +16,16 @@ import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.logging.log4j.LogManager
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 object FontManager {
 
     val TextCache = CacheSection("Text")
     val TextSizeCache = CacheSection("TextSize")
-
-    private val LOGGER = LogManager.getLogger(FontManager::class)
 
     private const val textureTimeout = 10_000L
 
@@ -159,8 +155,11 @@ object FontManager {
     private val asciiTexLRU = LRUCache<Font, Texture2DArray>(16)
     fun getASCIITexture(font: Font): Texture2DArray {
         val prev = asciiTexLRU[font]
-        if (prev is Texture2DArray && prev.isCreated()) {
-            return prev
+        if (prev is Texture2DArray) {
+            prev.checkSession()
+            if (prev.isCreated()) {
+                return prev
+            }
         }
         val entry = TextCache.getEntry(font, textureTimeout, false) { key ->
             val entry = AsyncCacheData<Texture2DArray>()

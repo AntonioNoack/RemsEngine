@@ -176,12 +176,16 @@ object GFXState {
         val vao = GL46C.glCreateVertexArrays()
         GL46C.glBindVertexArray(vao)
         if (session != 1) {
-            // clear all caches, which contain gpu data
-            FBStack.clear()
-            TextCache.clear()
-            VideoCache.clear()
-            TextureCache.clear()
+            clearGPUCaches()
         }
+    }
+
+    private fun clearGPUCaches() {
+        // clear all caches, which contain gpu data
+        FBStack.clear()
+        TextCache.clear()
+        VideoCache.clear()
+        TextureCache.clear()
     }
 
     val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
@@ -254,7 +258,7 @@ object GFXState {
     // this would allow us to specify per-model parameters :)
     val bakedMeshLayout = SecureStack<BakedLayout?>(null)
     val bakedInstLayout = SecureStack<BakedLayout?>(null)
-    
+
     val alwaysDepthMode get() = if (supportsClipControl) DepthMode.ALWAYS else DepthMode.FORWARD_ALWAYS
 
     // maximum expected depth for OpenGL operations

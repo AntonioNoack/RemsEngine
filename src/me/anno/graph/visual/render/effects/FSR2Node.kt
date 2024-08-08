@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredLayerType.Companion.COLOR
 import me.anno.gpu.deferred.DeferredLayerType.Companion.DEPTH
@@ -65,8 +66,9 @@ class FSR2Node : RenderViewNode(
                 motion.texOrNull ?: blackTexture, width, height,
                 scaleX, scaleY
             )
-            setOutput(1, Texture.texture(fsr.data1, 0, "xyz", COLOR))
-            setOutput(2, Texture.texture(fsr.data1, 1, "x", DEPTH))
+            val view = fsr.views[RenderState.viewIndex]
+            setOutput(1, Texture.texture(view.data1, 0, "xyz", COLOR))
+            setOutput(2, Texture.texture(view.data1, 1, "x", DEPTH))
             setOutput(3, width)
             setOutput(4, height)
         }

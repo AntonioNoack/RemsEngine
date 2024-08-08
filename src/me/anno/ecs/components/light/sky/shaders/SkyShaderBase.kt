@@ -69,23 +69,27 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
         )
     }
 
+    override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
+        return arrayListOf(
+            Variable(GLSLType.V3F, "normal"),
+            Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+            Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
+            Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
+            Variable(GLSLType.V4F, "currPosition"),
+            Variable(GLSLType.V4F, "prevPosition"),
+            Variable(GLSLType.V4F, "worldRot"),
+            Variable(GLSLType.V3F, "skyColor"),
+            Variable(GLSLType.V4F, "currPosition"),
+            Variable(GLSLType.V4F, "prevPosition"),
+        )
+    }
+
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val stage = ShaderStage(
-            "skyBase", listOf(
-                Variable(GLSLType.V3F, "normal"),
-                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
-                Variable(GLSLType.V4F, "currPosition"),
-                Variable(GLSLType.V4F, "prevPosition"),
-                Variable(GLSLType.V4F, "worldRot"),
-                Variable(GLSLType.V3F, "skyColor"),
-                Variable(GLSLType.V4F, "currPosition"),
-                Variable(GLSLType.V4F, "prevPosition"),
-            ), concatDefines(key).toString() +
+            "skyBase", createFragmentVariables(key), concatDefines(key).toString() +
                     // sky no longer properly defined for y > 0
                     "finalNormal = normalize(-normal);\n" +
                     // sky color can be quite expensive to compute, so only do so if we need it

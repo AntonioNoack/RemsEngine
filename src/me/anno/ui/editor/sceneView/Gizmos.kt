@@ -146,12 +146,13 @@ object Gizmos {
         shader.use()
         shader.m4x4("transform", cameraTransform)
         shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
-        if (shader["invLocalTransform"] >= 0) {
+        val invLocalTransformU = shader["invLocalTransform"]
+        if (invLocalTransformU >= 0) {
             val tmp = JomlPools.mat4x3d.borrow()
             if (localTransform != null) localTransform.invert(tmp)
             else tmp.identity()
             val tmp2 = JomlPools.mat4x3f.borrow().set(tmp)
-            shader.m4x3("invLocalTransform", tmp2)
+            shader.m4x3(invLocalTransformU, tmp2)
         }
         shader.v1f("worldScale", worldScale)
         material.bind(shader)
