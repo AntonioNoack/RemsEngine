@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.previewBlockIds
 import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.components.AxisAlignment
@@ -75,7 +76,7 @@ fun main() {
         var ctr = 0
         override fun update(instances: Collection<Component>) {
             val rv = RenderView.currentInstance
-            if (rv != null && (ctr++ % 64) == 0) {
+            if (rv != null && posMod(ctr++, 64) == 0) {
                 sunEntity.transform.localPosition =
                     sunEntity.transform.localPosition
                         .set(rv.orbitCenter)
@@ -84,6 +85,8 @@ fun main() {
                 sunEntity.transform.teleportUpdate()
                 sunEntity.validateTransform()
                 sun.needsUpdate1 = true
+                // shall be called immediately to prevent 1-frame-lag
+                sun.onUpdate()
             }
         }
     })

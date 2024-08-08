@@ -17,6 +17,7 @@ import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrame
 
 // todo make this work for VR
 // todo can we mix this with FSR2?
+// todo implement realtime-reactivity like FrameGenProjectiveNode
 class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewData1>(
     "FrameGenMixing", listOf(
         "Int", "Width",

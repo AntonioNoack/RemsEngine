@@ -26,6 +26,8 @@ import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
+// todo it would also be nice, if we could render our images over multiple frames to reduce the workload,
+//  and display interpolations during that time
 class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerViewData3>(
     "FrameGenProjective", listOf(
         "Int", "Width",

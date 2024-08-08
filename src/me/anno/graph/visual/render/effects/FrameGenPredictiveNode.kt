@@ -16,6 +16,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
 
 // todo test this in VR
+// todo implement realtime-reactivity like FrameGenProjectiveNode
 class FrameGenPredictiveNode : FrameGenOutputNode<FrameGenPredictiveNode.PerViewData2>(
     "FrameGenPredictive", listOf(
         "Int", "Width",
