@@ -21,7 +21,7 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
     val worker = ProcessingQueue("chunks")
 
     // load world in spiral pattern
-    val loadingRadius = 3
+    val loadingRadius = 10
     val spiralPattern = spiral2d(loadingRadius + 5, 0, true).toList()
     val loadingPattern = spiralPattern.filter { it.length() < loadingRadius - 0.5f }
     val unloadingPattern = spiralPattern.filter { it.length() > loadingRadius + 1.5f }
@@ -63,12 +63,14 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
         maxZ += dz
     }
 
+    var budget = 5
     fun loadChunks(center: Vector3i) {
+        var budget = budget - worker.remaining
         for (idx in loadingPattern) {
             val vec = Vector3i(idx).add(center)
             if (loadedChunks.add(vec)) {
                 worker += { generateChunk(vec) }
-                break
+                if (budget-- <= 0) break
             }
         }
     }
@@ -94,7 +96,7 @@ class ChunkLoader(val chunkRenderer: ChunkRenderer, val world: TestWorld) : Comp
 
     override fun onUpdate() {
         // load next mesh
-        if (worker.remaining == 0) {
+        if (worker.remaining < budget) {
             val chunkId = getPlayerChunkId()
             loadChunks(chunkId)
             unloadChunks(chunkId)

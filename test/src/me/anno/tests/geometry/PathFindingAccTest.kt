@@ -7,11 +7,11 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.IMesh
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
@@ -22,6 +22,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.pipeline.LightData
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
+import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.maths.paths.PathFindingAccelerator
 import me.anno.mesh.Shapes
@@ -53,7 +54,7 @@ fun main() {
      * */
 
     // slower, just another rendering technique
-    val rayTracing = true
+    val rayTracing = false
     // when you just need the direction,
     // and the result may change over time,
     // use the partial procedure; it is way faster than a full result
@@ -65,19 +66,22 @@ fun main() {
     val world = TestWorld()
 
     // if you use raytracing, make these smaller :D
-    val sx = 128
+    val sx = if (rayTracing) 128 else 256
+    val sz = if (rayTracing) 128 else 256
     val sy = 32
-    val sz = 128
-    val x0 = 0
-    val y0 = 0
-    val z0 = 0
+    var x0 = 0
+    var y0 = 0
+    var z0 = 0
 
     data class AccNode(val x: Int, val y: Int, val z: Int, val isProxy: Boolean) {
         override fun toString() = if (isProxy) "Proxy[$x,$y,$z]" else "Node[$x,$y,$z]"
+        fun distance(other: AccNode): Double {
+            return length((x - other.x).toDouble(), (y - other.y).toDouble(), (z - other.z).toDouble())
+        }
     }
 
     fun findPoint(x: Int, z: Int): AccNode? {
-        for (y in 0 until 256) {
+        for (y in 1..sy) {
             if (world.canStand(x, y, z)) {
                 return AccNode(x, y, z, false)
             }
@@ -100,15 +104,14 @@ fun main() {
         }
 
         override fun getChunk(node: AccNode): ByteArray? =
-            if (node.x in 0 until sx && node.y in 0 until sy && node.z in 0 until sz) world.getChunkAt(
-                node.x,
-                node.y,
-                node.z,
-                true
-            ) else null
+            if (node.x in 0 until sx && node.y in 0 until sy && node.z in 0 until sz)
+                world.getChunkAt(node.x, node.y, node.z, true)
+            else null
 
-        override fun distance(start: AccNode, end: AccNode) =
-            (abs(end.x - start.x) + abs(end.z - start.z) + abs(end.y - start.y)).toDouble()
+        override fun distance(start: AccNode, end: AccNode): Double {
+            val diff = abs(end.x - start.x) + abs(end.z - start.z) + abs(end.y - start.y)
+            return diff.toDouble()
+        }
 
         override fun listConnections(from: AccNode, callback: (AccNode) -> Unit) {
             if (!isProxy(from) && // not a proxy
@@ -116,12 +119,19 @@ fun main() {
             ) {
                 // find whether we need to go up/down for each direction
                 // could be optimized
+                fun check(x: Int, y: Int, z: Int) {
+                    if (world.canStand(x, y, z)) {
+                        callback(AccNode(x, y, z, false))
+                    }
+                }
                 for (dy in -1..1) {
+                    val x = from.x
                     val y = from.y + dy
-                    if (world.canStand(from.x, y, from.z + 1)) callback(AccNode(from.x, y, from.z + 1, false))
-                    if (world.canStand(from.x, y, from.z - 1)) callback(AccNode(from.x, y, from.z - 1, false))
-                    if (world.canStand(from.x + 1, y, from.z)) callback(AccNode(from.x + 1, y, from.z, false))
-                    if (world.canStand(from.x - 1, y, from.z)) callback(AccNode(from.x - 1, y, from.z, false))
+                    val z = from.z
+                    check(x, y, z + 1)
+                    check(x, y, z - 1)
+                    check(x + 1, y, z)
+                    check(x - 1, y, z)
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
@@ -129,8 +139,8 @@ fun main() {
 
     val random = Random(1234L)
 
-    var start = findPoint(random.nextInt(sx), random.nextInt(sz))
-    var end = findPoint(random.nextInt(sx), random.nextInt(sz))
+    var start: AccNode? = null
+    var end: AccNode? = null
 
     fun randomizePoints() {
         start = findPoint(random.nextInt(sx), random.nextInt(sz))
@@ -171,6 +181,12 @@ fun main() {
         } else return null
     }
 
+    while (start == null || end == null || start == end ||
+        start!!.distance(end!!) < (abs(sx) + abs(sz)) / 2
+    ) {
+        randomizePoints()
+    }
+    println("finding path from $start to $end")
     testPathfinding()
 
     LogManager.disableLogger("BlenderControlsAddon")

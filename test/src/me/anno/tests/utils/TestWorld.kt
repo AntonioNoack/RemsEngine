@@ -33,12 +33,16 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         var log = 3.toByte()
         var leaves = 4.toByte()
         var water = 5.toByte()
+        var lava = 6.toByte()
+        var sand = 7.toByte()
 
         var dirtColor = 0x684530 or black
         var grassColor = 0x2f8d59 or black
         var leafColor = 0x067e3c or (32 shl 24)
         var logColor = 0x463125 or black
         var waterColor = 0x60b6ff or black
+        var lavaColor = 0xff931c or black
+        var sandColor = 0xdfddae or black
 
         val colors = mapOf(
             dirt to dirtColor,
@@ -46,6 +50,8 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
             log to logColor,
             leaves to leafColor,
             water to waterColor,
+            lava to lavaColor,
+            sand to sandColor,
         )
 
         val palette = colors
@@ -66,14 +72,20 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
     val noise = PerlinNoise(1234L, 3, 0.5f, 0f, 1f)
 
     fun isAir(x: Int, y: Int, z: Int) = getElementAt(x, y, z) == air
-    fun isSolid(x: Int, y: Int, z: Int) = getElementAt(x, y, z) != air
-    fun canStand(x: Int, y: Int, z: Int) = isAir(x, y, z) && isAir(x, y + 1, z) && isSolid(x, y - 1, z)
+
+    fun canStandOn(x: Int, y: Int, z: Int): Boolean {
+        val block = getElementAt(x, y, z)
+        return block != air && block != water && block != lava
+    }
+
+    fun canStand(x: Int, y: Int, z: Int) = isAir(x, y, z) && isAir(x, y + 1, z) && canStandOn(x, y - 1, z)
 
     val scale = 0.05f
     val scaleY = scale * 0.5f
     val treeChance = 0.013f
 
-    fun isSolid1(x: Int, y: Int, z: Int) = (y == 0) || noise[x * scale, y * scaleY, z * scale] - y * scaleY > 0.1f
+    fun isSolid1(x: Int, y: Int, z: Int): Boolean =
+        (y == 0) || noise[x * scale, y * scaleY, z * scale] - y * scaleY > 0.1f
 
     fun plantTree(chunk: ByteArray, lx: Int, ly: Int, lz: Int) {
         // tree crone
@@ -104,7 +116,11 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
                 var aboveIsSolid = isSolid1(x, y0 + sizeY, z)
                 for (y in y0 + sizeY - 1 downTo y0) {
                     val isSolid = isSolid1(x, y, z)
-                    val block = if (isSolid) if (aboveIsSolid) dirt else grass else air
+                    val block =
+                        if (isSolid) {
+                            if (aboveIsSolid) dirt
+                            else if (y < 13) sand else grass
+                        } else if (y < 12) water else air
                     if (block != air) chunk[index] = block
                     aboveIsSolid = isSolid
                     if (block == grass) {

@@ -13,7 +13,6 @@ import kotlin.math.hypot
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.round
-import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -249,18 +248,6 @@ object Maths {
     fun angleDifference(v0: Double): Double {
         return v0 - round(v0 / TAU) * TAU
     }
-
-    @JvmStatic
-    fun posMod(x: Int, y: Int) = if (x >= 0) x % y else (x % y) + y
-
-    @JvmStatic
-    fun posMod(x: Long, y: Long) = if (x >= 0) x % y else (x % y) + y
-
-    @JvmStatic
-    fun posMod(x: Float, y: Float) = if (x >= 0f) x % y else (x % y) + y
-
-    @JvmStatic
-    fun posMod(x: Double, y: Double) = if (x >= 0.0) x % y else (x % y) + y
 
     @JvmStatic
     fun length(dx: Float, dy: Float) = hypot(dx, dy)
@@ -660,27 +647,35 @@ object Maths {
     }
 
     @JvmStatic
-    fun floorMod(value: Int, divisor: Int): Int {
+    fun posMod(value: Int, divisor: Int): Int {
+        // what shall we do with divisor = 0?
+        if (divisor and (divisor - 1) == 0) {
+            return value and (divisor - 1)
+        }
         val rem = value % divisor
-        return if (rem < 0) rem + divisor else divisor
+        return if (rem < 0) rem + divisor else rem
     }
 
     @JvmStatic
-    fun floorMod(value: Long, divisor: Long): Long {
+    fun posMod(value: Long, divisor: Long): Long {
+        // what shall we do with divisor = 0?
+        if (divisor and (divisor - 1) == 0L) {
+            return value and (divisor - 1)
+        }
         val rem = value % divisor
-        return if (rem < 0) rem + divisor else divisor
+        return if (rem < 0) rem + divisor else rem
     }
 
     @JvmStatic
-    fun floorMod(value: Float, divisor: Float): Float {
+    fun posMod(value: Float, divisor: Float): Float {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else divisor
+        return if (rem < 0f) rem + divisor else rem
     }
 
     @JvmStatic
-    fun floorMod(value: Double, divisor: Double): Double {
+    fun posMod(value: Double, divisor: Double): Double {
         val rem = value % divisor
-        return if (rem < 0f) rem + divisor else divisor
+        return if (rem < 0f) rem + divisor else rem
     }
 
     @JvmStatic

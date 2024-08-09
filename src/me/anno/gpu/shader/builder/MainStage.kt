@@ -1,5 +1,6 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.AttributeLoading.appendAttributeLoader
@@ -10,6 +11,9 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
+import me.anno.utils.OS
 import me.anno.utils.structures.arrays.BooleanArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
@@ -150,7 +154,7 @@ class MainStage {
             code.append(name)
             // todo base bias on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
             if (isCubemap) {
-                code.append("(int index, vec3 uv, float depth){\n")
+                code.append("(int index, vec3 uv, float cosTheta, float depth){\n")
                 code.append("float bias = 0.05 * depth;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")
                 code.append("ivec2 size; float du, sum=0.0; vec3 u; bool x,z; vec4 dx,dy;\n")
@@ -173,7 +177,6 @@ class MainStage {
                     if (GFX.supportsDepthTextures) {
                         code.append("sum += texture($nameIndex, uvw+i*dx+j*dy);\n")
                     } else {
-                        // todo use smoothstep with bias?
                         code.append("sum += step(texture($nameIndex, uvw.xyz+i*dx.xyz+j*dy.xyz).x,uvw.w);\n")
                     }
                     code.append("}}\n return sum*0.04;\n")
@@ -181,13 +184,17 @@ class MainStage {
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
             } else {
+                fun appendBias() {
+                    code.append("float slopeBias = 1.0 + sqrt(1.0 - cosTheta * cosTheta) / abs(cosTheta);")
+                    code.append("float bias = 0.001 * slopeBias;\n") // mmmh...
+                }
                 if (isArray) {
-                    code.append("(int index, vec3 uv, float depth){\n")
-                    code.append("float bias = 0.005;\n")
+                    code.append("(int index, vec3 uv, float cosTheta, float depth){\n")
+                    appendBias()
                     code.append("vec4 uvw = vec4(uv*.5+.5,depth+bias);\n")
                 } else {
-                    code.append("(int index, vec2 uv, float depth){\n")
-                    code.append("float bias = 0.005;\n")
+                    code.append("(int index, vec2 uv, float cosTheta, float depth){\n")
+                    appendBias()
                     code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
                 }
                 code.append("float sum,du;\n")
@@ -196,24 +203,38 @@ class MainStage {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(":\n")
                     // 5x5 percentage closer filtering for prettier results
-                    code.append(
-                        "" +
-                                "du = 1.0/float(textureSize($nameIndex,0).x);\n" +
-                                "for(int j=-2;j<=2;j++){\n" +
-                                "   for(int i=-2;i<=2;i++){\n"
-                    )
-                    if (GFX.supportsDepthTextures) {
-                        code.append("sum += texture(").append(nameIndex).append(", uvw+du*")
-                        code.append(if (isArray) "vec4(i,j,0.0,0.0));\n" else "vec3(i,j,0.0));\n")
+                    // disable this on weak devices, e.g. on mobile
+                    var radius = DefaultConfig["gpu.percentageCloserFilteringRadius", if (OS.isAndroid) 0 else 2]
+                    radius = min(radius, 5) // just in case
+                    if (radius < 1) {
+                        if (GFX.supportsDepthTextures) {
+                            code.append("return texture(").append(nameIndex).append(", uvw);\n")
+                        } else {
+                            code.append("return step(texture(").append(nameIndex).append(", ")
+                            code.append(
+                                if (isArray) "uvw.xyz).x,uvw.w);\n"
+                                else "uvw.xy).x,uvw.z);\n"
+                            )
+                        }
                     } else {
-                        // todo use smoothstep with bias?
-                        code.append("sum += step(texture(").append(nameIndex).append(", ")
                         code.append(
-                            if (isArray) "uvw.xyz+du*vec3(i,j,0.0)).x,uvw.w);\n"
-                            else "uvw.xy+du*vec2(i,j)).x,uvw.z);\n"
+                            "" +
+                                    "du = 1.0/float(textureSize($nameIndex,0).x);\n" +
+                                    "for(int j=-$radius;j<=$radius;j++){\n" +
+                                    "   for(int i=-$radius;i<=$radius;i++){\n"
                         )
+                        if (GFX.supportsDepthTextures) {
+                            code.append("sum += texture(").append(nameIndex).append(", uvw+du*")
+                            code.append(if (isArray) "vec4(i,j,0.0,0.0));\n" else "vec3(i,j,0.0));\n")
+                        } else {
+                            code.append("sum += step(texture(").append(nameIndex).append(", ")
+                            code.append(
+                                if (isArray) "uvw.xyz+du*vec3(i,j,0.0)).x,uvw.w);\n"
+                                else "uvw.xy+du*vec2(i,j)).x,uvw.z);\n"
+                            )
+                        }
+                        code.append("}}\n return sum*${1f / sq(radius * 2 + 1)};\n")
                     }
-                    code.append("}}\n return sum*0.04;\n")
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")

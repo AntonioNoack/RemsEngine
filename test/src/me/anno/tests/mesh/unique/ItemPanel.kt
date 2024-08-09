@@ -14,6 +14,8 @@ import me.anno.tests.utils.TestWorld
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
 import me.anno.ui.utils.ThumbnailPanel
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 
 class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
@@ -35,13 +37,14 @@ class ItemPanel(val slot: ItemSlot) : ThumbnailPanel(InvalidRef, style) {
     val bottomColor = style.getColor("borderColorBottom", black or 0x111111)
 
     val borderSize = style.getPadding("borderSize", 2)
+    val bg0 = backgroundColor
+    val bg1 = mixARGB(backgroundColor, white, 0.5f)
     var isPressed = false
-
-    // todo highlight selected slot
 
     override fun onUpdate() {
         super.onUpdate()
         source = previewBlocks[slot.type]?.ref ?: InvalidRef
+        backgroundColor = if (inHandBlock == slot.type) bg1 else bg0
     }
 
     override fun calculateSize(w: Int, h: Int) {

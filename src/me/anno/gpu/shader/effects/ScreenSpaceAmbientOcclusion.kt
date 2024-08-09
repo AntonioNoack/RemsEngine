@@ -194,7 +194,7 @@ object ScreenSpaceAmbientOcclusion {
                                 // aligned normals have higher contribution -> correct?? kind of a guess...
                                 "   float alignmentStrength = 0.6 - 0.4 * dot(normal,normal1);\n" +
                                 "   vec3 color1 = getPixel(illuminatedTex,offset.xy).xyz;\n" +
-                                "   lightSum += alignmentStrength *  color1;\n"
+                                "   lightSum += alignmentStrength * color1;\n"
                     } else {
                         "" +
                                 "   float sampleTheoDepth = dot2(position);\n" +

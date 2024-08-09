@@ -13,6 +13,8 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
+// todo where is the shadow number format decided?
+//  for directional lights, only integer-based formats are sensible
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     /**
@@ -116,8 +118,20 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     } else "") +
                     "NdotL = lightNor.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                     "lightColor *= max(NdotL, 0.0);\n" + // light looks much better with it
+
+                    // to do implement screen-space shadows like screen-space ambient occlusion:
+                    //     has sth blocking it, trace along the ray; if any hit, it's in shadow
+                    // to do for this, we'd need two kinds of samplers for the same texture :/
+                    /*
+                    "vec3 sssRadius = 0.1 * length(finalPosition);\n" +
+                    "vec3 sssPosition = sunDirWS * sssRadius + finalPosition;\n" +
+                    "vec4 sssOffset = matMul(cameraMatrix, vec4(sssPosition, 0.0));\n" +
+                    "vec2 sssUV = offset.xy/offset.w * 0.5 + 0.5;\n" +
+                    "float sssShadow = sssUV.x >= 0.0 && sssUV.y >= 0.0 && sssUV.x <= 1.0 && sssUV.y <= 1.0 &&\n" +
+                    "   sssTheoreticalDepth < sssActualDepth;\n" +*/
+
                     (if (withShadows) "" +
-                            "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
+                            "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows && NdotL > 0.0){\n" +
                             // when we are close to the edge, we blend in
                             "   float edgeFactor = min(20.0*(1.0-max(abs(lightPos.x),abs(lightPos.y))),1.0);\n" +
                             "   if(edgeFactor > 0.0){\n" +
@@ -138,7 +152,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "       }\n" +
                             "       float depthFromShader = lightPos.z*.5+.5;\n" +
                             // do the shadow map function and compare
-                            "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), depthFromShader);\n" +
+                            "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), NdotL, depthFromShader);\n" +
                             // todo this will become proportional to the distance to the shadow throwing surface
                             // "           float coc = 1.0 / texture_array_size_2d_shadowMapPlanar(shadowMapIdx0, 0).x;\n" +
                             // "           float val = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +

@@ -151,14 +151,14 @@ class PointLight : LightComponent(LightType.POINT) {
                     "   lightPos *= max(length(lightPos)-lightRadius, 0.001) * (1.0+lightRadius) / length(lightPos);\n" +
                     "}\n" +
                     "lightDir = normalize(-lightPos);\n" +
-                    "NdotL = dot(lightDir, lightNor);\n" +
+                    "NdotL = dot(lightDir, lightNor);\n" + // = cosTheta
                     // shadow maps; shadows can be in every direction -> use cubemaps
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             "   float near = shaderV2;\n" +
                             "   float maxAbsComponent = max(max(abs(lightPos.x),abs(lightPos.y)),abs(lightPos.z));\n" +
                             "   float depthFromShader = near/maxAbsComponent;\n" +
-                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, -$cubemapsAreLeftHanded * lightPos, depthFromShader);\n" +
+                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, -$cubemapsAreLeftHanded * lightPos, NdotL, depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * $falloff;\n" +

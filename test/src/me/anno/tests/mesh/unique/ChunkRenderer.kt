@@ -69,6 +69,7 @@ class ChunkRenderer(val material: Material, val world: TestWorld) : UniqueMeshRe
             (key.y * csy).toDouble(),
             (key.z * csz).toDouble(),
         )
+        transform.teleportUpdate()
         return material
     }
 

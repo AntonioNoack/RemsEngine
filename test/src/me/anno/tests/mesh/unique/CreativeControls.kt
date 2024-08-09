@@ -6,7 +6,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
-import me.anno.maths.Maths.floorMod
+import me.anno.maths.Maths.posMod
 import me.anno.tests.mesh.unique.ItemPanel.Companion.inHandBlock
 import me.anno.tests.utils.TestWorld
 import org.joml.Vector3i
@@ -34,9 +34,9 @@ class CreativeControls(
         val chunkId = coordsToChunkId(coords)
         invalidateChunkAt(chunkId)
         val localCoords = Vector3i(
-            floorMod(coords.x, csx),
-            floorMod(coords.y, csy),
-            floorMod(coords.z, csz),
+            posMod(coords.x, csx),
+            posMod(coords.y, csy),
+            posMod(coords.z, csz),
         )
         // when we're on the edge, and we remove a block (set a transparent one), we need to invalidate our neighbors, too
         if (block == TestWorld.air) {

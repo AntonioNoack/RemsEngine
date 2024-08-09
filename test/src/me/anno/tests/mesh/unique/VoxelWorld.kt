@@ -21,6 +21,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.types.Booleans.hasFlag
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
+import kotlin.math.max
 
 private val LOGGER = LogManager.getLogger("VoxelWorld")
 
@@ -43,16 +44,20 @@ fun main() {
     // val inHand = Inventory(1)
     val inventory = Inventory(9)
 
-    val saveSystem = SaveLoadSystem("UniqueMeshRenderer")
+    val saveSystem = SaveLoadSystem("VoxelWorld")
     val world = object : TestWorld() {
         override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
             super.generateChunk(chunkX, chunkY, chunkZ, chunk)
             saveSystem.get(Vector3i(chunkX, chunkY, chunkZ), false) { data ->
-                for ((k, v) in data) {
-                    val index = getIndex(k.x, k.y, k.z)
-                    if (index in chunk.indices) {
-                        chunk[index] = v
-                    } else LOGGER.warn("Out of bounds: $k/$v")
+                for ((k, type) in data) {
+                    if (k.x in 0 until sizeX &&
+                        k.y in 0 until sizeY &&
+                        k.z in 0 until sizeZ
+                    ) {
+                        chunk[getIndex(k.x, k.y, k.z)] = type
+                    } else {
+                        LOGGER.warn("Out of bounds: $k/$type")
+                    }
                 }
             }
         }
@@ -77,12 +82,15 @@ fun main() {
         override fun update(instances: Collection<Component>) {
             val rv = RenderView.currentInstance
             if (rv != null && posMod(ctr++, 64) == 0) {
-                sunEntity.transform.localPosition =
-                    sunEntity.transform.localPosition
+                val scale = max(100.0, 3.0 * rv.radius)
+                val transform = sunEntity.transform
+                transform.localPosition =
+                    transform.localPosition
                         .set(rv.orbitCenter)
-                        .apply { y = world.sizeY * 0.5 }
+                        .apply { y = scale * 0.5 }
                         .round()
-                sunEntity.transform.teleportUpdate()
+                transform.localScale = transform.localScale.set(scale)
+                transform.teleportUpdate()
                 sunEntity.validateTransform()
                 sun.needsUpdate1 = true
                 // shall be called immediately to prevent 1-frame-lag
@@ -96,7 +104,7 @@ fun main() {
     scene.add(sky)
     scene.add(sunEntity)
 
-    testUI3("Unique Mesh Renderer") {
+    testUI3("Voxel World") {
         val sceneUI = testScene(scene) {
             it.editControls = CreativeControls(
                 it.renderer, scene, world,
