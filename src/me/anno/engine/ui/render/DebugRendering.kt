@@ -48,6 +48,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.Panel
@@ -56,6 +57,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
@@ -203,7 +205,7 @@ object DebugRendering {
         }
     }
 
-    fun showTimeRecords(rv: Panel) {
+    fun showTimeRecords(rv: RenderView) {
         val records = GFXState.timeRecords
         var total = 0L
         for (i in records.indices) {
@@ -212,7 +214,10 @@ object DebugRendering {
             total += record.deltaNanos
         }
         drawTime(rv, records.size, "Total", total)
-        records.clear()
+        val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+        if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
+            records.clear()
+        }
     }
 
     private fun drawTime(rv: Panel, i: Int, name: String, time: Long) {

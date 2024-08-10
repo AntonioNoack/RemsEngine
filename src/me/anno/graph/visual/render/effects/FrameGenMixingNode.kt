@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -13,12 +14,10 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
 
-// todo make this work for VR
 // todo can we mix this with FSR2?
 // todo implement realtime-reactivity like FrameGenProjectiveNode
-class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewData1>(
+class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewMixData>(
     "FrameGenMixing", listOf(
         "Int", "Width",
         "Int", "Height",
@@ -27,7 +26,7 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewData1>(
     ), listOf("Texture", "Illuminated")
 ) {
 
-    class PerViewData1 : PerViewData() {
+    class PerViewMixData : ICacheData {
         var color0 = Texture2D("frameGen0", 1, 1, 1)
         var color1 = Texture2D("frameGen1", 1, 1, 1)
         val motion = Texture2D("frameGenM", 1, 1, 1)
@@ -38,11 +37,15 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewData1>(
         }
     }
 
-    override fun createPerViewData(): PerViewData1 {
-        return PerViewData1()
+    override fun createPerViewData(): PerViewMixData {
+        return PerViewMixData()
     }
 
-    override fun renderOriginal(view: PerViewData1, width: Int, height: Int) {
+    override fun canInterpolate(view: PerViewMixData): Boolean {
+        return view.color0.isCreated() && view.color1.isCreated() && view.motion.isCreated()
+    }
+
+    override fun renderOriginal(view: PerViewMixData, width: Int, height: Int) {
         val color0 = view.color0
         val color1 = view.color1
         val motion = view.motion
@@ -57,16 +60,17 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewData1>(
         showOutput(color0)
     }
 
-    override fun renderInterpolated(view: PerViewData1, width: Int, height: Int) {
+    override fun renderInterpolated(view: PerViewMixData, width: Int, height: Int, fraction: Float) {
         val result = FBStack["frameGen", width, height, TargetType.UInt8x3, 1, DepthBufferType.NONE]
         useFrame(result) {
             val shader = interpolateShader
             shader.use()
-            view.color0.bindTrulyLinear(shader, "colorTex0")
-            view.color1.bindTrulyLinear(shader, "colorTex1")
-            view.motion.bindTrulyNearest(shader, "motionTex") // motion from frame 0 to 1
+            view.color0.createdOr(whiteTexture).bindTrulyLinear(shader, "colorTex0")
+            view.color1.createdOr(whiteTexture).bindTrulyLinear(shader, "colorTex1")
+            // motion from frame 0 to 1
+            view.motion.createdOr(blackTexture).bindTrulyNearest(shader, "motionTex")
             // why do we need to invert it???
-            shader.v1f("t", 1f - (view.frameIndex + 1f) / (interFrames + 1f))
+            shader.v1f("t", 1f - fraction)
             flat01.draw(shader)
         }
         showOutput(result.getTexture0())

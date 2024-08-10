@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.DepthMode
@@ -28,7 +29,8 @@ import org.joml.Vector3d
 
 // todo it would also be nice, if we could render our images over multiple frames to reduce the workload,
 //  and display interpolations during that time
-class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerViewData3>(
+//  e.g. SSAO, bloom and gizmos are quite expensive
+class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerViewProjData>(
     "FrameGenProjective", listOf(
         "Int", "Width",
         "Int", "Height",
@@ -38,7 +40,7 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
     ), listOf("Texture", "Illuminated")
 ) {
 
-    class PerViewData3 : PerViewData() {
+    class PerViewProjData : ICacheData {
         val color = Texture2D("frameGenC", 1, 1, 1)
         val depth = Texture2D("frameGenM", 1, 1, 1)
         val cameraPosition = Vector3d()
@@ -53,8 +55,8 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
         }
     }
 
-    override fun createPerViewData(): PerViewData3 {
-        return PerViewData3()
+    override fun createPerViewData(): PerViewProjData {
+        return PerViewProjData()
     }
 
     private fun fill(width: Int, height: Int, data0: Texture2D, motion: Texture2D) {
@@ -75,7 +77,11 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
         }
     }
 
-    override fun renderOriginal(view: PerViewData3, width: Int, height: Int) {
+    override fun canInterpolate(view: PerViewProjData): Boolean {
+        return view.color.isCreated() && view.depth.isCreated()
+    }
+
+    override fun renderOriginal(view: PerViewProjData, width: Int, height: Int) {
         // copy input onto data0
         view.worldScale = RenderState.worldScale
         view.cameraPosition.set(RenderState.cameraPosition)
@@ -84,11 +90,11 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
         view.cameraMatrixInv.set(RenderState.cameraMatrixInv)
         fill(width, height, view.color, view.depth)
         // todo setting output has stuttering... why???
-        // showOutput(view.color0)
-        renderInterpolated(view, width, height)
+        // showOutput(view.color)
+        renderInterpolated(view,width,height,0f)
     }
 
-    override fun renderInterpolated(view: PerViewData3, width: Int, height: Int) {
+    override fun renderInterpolated(view: PerViewProjData, width: Int, height: Int, fraction: Float) {
         val withGaps = FBStack["frameGen", width, height, TargetType.UInt8x3, 1, DepthBufferType.TEXTURE]
         val withoutGaps = FBStack["frameGen", width, height, TargetType.UInt8x3, 1, DepthBufferType.TEXTURE]
         useFrame(withGaps) {
@@ -112,7 +118,7 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
         showOutput(withoutGaps.getTexture0())
     }
 
-    fun bind(shader: Shader, view: PerViewData3, width: Int, height: Int) {
+    fun bind(shader: Shader, view: PerViewProjData, width: Int, height: Int) {
         shader.use()
         // invalidate filtering
         view.color.bindTrulyNearest(shader, "colorTex")
@@ -134,7 +140,6 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
     override fun destroy() {
         super.destroy()
         for (view in views.values) {
-            view.frameIndex = Int.MAX_VALUE
             view.color.destroy()
             view.depth.destroy()
         }
@@ -170,7 +175,7 @@ class FrameGenProjectiveNode : FrameGenOutputNode<FrameGenProjectiveNode.PerView
                     "void main(){\n" +
                     "   int x = gl_InstanceID % resolution.x;\n" +
                     "   int y = gl_InstanceID / resolution.x;\n" +
-                    "   vec2 uv = vec2((vec2(x,y)+0.5)/vec2(resolution));\n" +
+                    "   vec2 uv = vec2((vec2(x,y))/vec2(resolution));\n" +
                     "   color = texture(colorTex,uv,0).xyz;\n" +
                     "   float depth = clamp(texture(depthTex,uv,0).x, 1e-3, 1e15);\n" + // must be clamped to avoid Inf/NaN
                     "   vec3 pos = depthToPosition(uv,depth);\n" +

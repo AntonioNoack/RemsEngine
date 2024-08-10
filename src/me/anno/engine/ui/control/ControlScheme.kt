@@ -378,7 +378,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         makeBackgroundTransparent()
         super.onDraw(x0, y0, x1, y1)
         if (settings.showRenderTimes) {
-            DebugRendering.showTimeRecords(this)
+            DebugRendering.showTimeRecords(renderView)
         }
         checkMovement()
     }

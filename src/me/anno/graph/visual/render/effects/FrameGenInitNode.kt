@@ -1,8 +1,8 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.Time
 import me.anno.config.ConfigRef
 import me.anno.engine.ui.render.RenderMode.Companion.opaqueNodeSettings
-import me.anno.engine.ui.render.RenderState
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.control.FixedControlFlowNode
 import me.anno.graph.visual.node.Node
@@ -13,7 +13,8 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
-import me.anno.utils.structures.maps.LazyMap
+import me.anno.maths.Maths.posMod
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 
 class FrameGenInitNode : FixedControlFlowNode(
@@ -24,31 +25,28 @@ class FrameGenInitNode : FixedControlFlowNode(
     )
 ) {
 
-    class PerViewData {
-        var frameIndex = Int.MAX_VALUE
-    }
-
-    val views = LazyMap { _: Int -> PerViewData() }
-
     override fun execute(): NodeOutput {
-        val view = views[RenderState.viewIndex]
-        if (skipThisFrame()) {
-            view.frameIndex++
-            return getNodeOutput(1)
-        } else {
-            view.frameIndex = 0
-            return getNodeOutput(0)
-        }
+        val skip = skipThisFrame()
+        return getNodeOutput(skip.toInt())
     }
 
     fun skipThisFrame(): Boolean {
-        val view = views[RenderState.viewIndex]
-        return view.frameIndex < interFrames
+        return Companion.skipThisFrame()
     }
 
     companion object {
 
         var interFrames by ConfigRef("gpu.frameGen.intermediateFrames", 1)
+        val frameIndex get() = Time.frameIndex
+
+        fun skipThisFrame(): Boolean {
+            return posMod(frameIndex, interFrames) > 0
+        }
+
+        fun isLastFrame(): Boolean {
+            val interFrames = interFrames
+            return posMod(frameIndex, interFrames) == interFrames - 1
+        }
 
         fun createPipeline(output: Node): FlowGraph {
             // standard node setup except for init and output

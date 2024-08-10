@@ -73,7 +73,6 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.NumberFormatter.formatIntTriplets
@@ -195,8 +194,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
-        val skipUpdate = renderMode.renderGraph?.nodes
-            ?.firstInstanceOrNull2(FrameGenInitNode::class)?.skipThisFrame() == true
+        val skipUpdate = FrameGenInitNode.skipThisFrame() &&
+                renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
 
         updateEditorCameraTransform()
 
@@ -523,10 +522,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         currentInstance = this
 
-        if (update) {
-            storePrevTransform()
-        }
-
         if (fillPipeline) {
             definePipeline(width, height, aspectRatio, fov, world)
         }
@@ -536,13 +531,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         cameraMatrix.rotateInv(camRot)
         cameraRotation.set(camRot)
         camRot.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
-    }
-
-    private fun storePrevTransform() {
-        prevCamMatrix.set(lastCamMat)
-        prevCamPosition.set(lastCamPos)
-        prevCamRotation.set(lastCamRot)
-        prevWorldScale = lastWorldScale
     }
 
     fun setPerspectiveCamera(fov: Float, aspectRatio: Float, centerX: Float, centerY: Float) {
@@ -850,21 +838,16 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     val cameraRotation = Quaterniond()
     val mouseDirection = Vector3d()
 
-    val prevCamRotation = Quaterniond()
     val prevCamMatrix = Matrix4f()
     val prevCamPosition = Vector3d()
+    val prevCamRotation = Quaterniond()
     var prevWorldScale = worldScale
 
-    private val lastCamPos = Vector3d()
-    private val lastCamRot = Quaterniond()
-    private val lastCamMat = Matrix4f()
-    private var lastWorldScale = worldScale
-
     fun updatePrevState() {
-        lastCamPos.set(cameraPosition)
-        lastCamRot.set(cameraRotation)
-        lastCamMat.set(cameraMatrix)
-        lastWorldScale = worldScale
+        prevCamMatrix.set(cameraMatrix)
+        prevCamPosition.set(cameraPosition)
+        prevCamRotation.set(cameraRotation)
+        prevWorldScale = worldScale
     }
 
     fun setRenderState() {
@@ -880,6 +863,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         RenderState.prevCameraMatrix.set(prevCamMatrix)
         RenderState.prevCameraPosition.set(prevCamPosition)
+        RenderState.prevCameraRotation.set(prevCamRotation)
 
         RenderState.fovXRadians = fovXRadians
         RenderState.fovYRadians = fovYRadians

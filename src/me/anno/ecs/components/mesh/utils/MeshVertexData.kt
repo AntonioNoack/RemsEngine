@@ -62,7 +62,7 @@ class MeshVertexData(
             ),
             listOf(
                 ShaderStage(
-                    "def-plp", listOf(
+                    "def-mov", listOf(
                         Variable(GLSLType.V3F, "localPosition"),
                         Variable(GLSLType.V3F, "prevLocalPosition", VariableMode.OUT)
                     ), "prevLocalPosition = localPosition;\n"

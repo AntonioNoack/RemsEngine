@@ -11,9 +11,14 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
+import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.input.VROffset.additionalOffset
 import me.anno.input.VROffset.additionalRotation
+import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
+import org.joml.Matrix4f
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL30C.GL_DEPTH_ATTACHMENT
@@ -137,6 +142,26 @@ class OpenXRRendering(
         rv.height = oh
     }
 
+    class PrevData {
+        val prevCamMatrix = Matrix4f()
+        val prevCamRotation = Quaterniond()
+        val prevCamPosition = Vector3d()
+
+        fun loadPrevMatrix(rv: RenderView) {
+            rv.prevCamMatrix.set(prevCamMatrix)
+            rv.prevCamPosition.set(prevCamPosition)
+            rv.prevCamRotation.set(prevCamRotation)
+        }
+
+        fun storePrevMatrix(rv: RenderView) {
+            prevCamMatrix.set(rv.cameraMatrix)
+            prevCamPosition.set(rv.cameraPosition)
+            prevCamRotation.set(rv.cameraRotation)
+        }
+    }
+
+    val prevData = LazyMap { _: Int -> PrevData() }
+
     override fun renderFrame(
         viewIndex: Int, w: Int, h: Int,
         predictedDisplayTime: Long,
@@ -173,8 +198,14 @@ class OpenXRRendering(
 
         rv.cameraRotation.transform(rv.cameraDirection.set(0.0, 0.0, -1.0)).normalize()
         rv.pipeline.superMaterial = rv.renderMode.superMaterial
+
+        val prevData = prevData[viewIndex]
+        prevData.loadPrevMatrix(rv) // todo check whether motion vectors have been fixed
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
+        val skipUpdate = FrameGenInitNode.skipThisFrame() &&
+                rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+        if (!skipUpdate) prevData.storePrevMatrix(rv)
         RenderState.viewIndex = 0
 
         // not really needed
