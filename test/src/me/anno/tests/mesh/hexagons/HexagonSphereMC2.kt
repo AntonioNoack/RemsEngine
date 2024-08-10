@@ -33,7 +33,6 @@ import me.anno.utils.OS.desktop
 import me.anno.utils.assertions.assertEquals
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
-import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Vector3d
@@ -175,11 +174,11 @@ fun main() {
     testSceneWithUI("HexSphere MC/2", scene) {
         // todo this isn't working... why?
         addEvent {
-            it.renderer.orbitCenter.set(0.0, 1.0, 0.0)
-            it.renderer.radius = 10.0 * sphere.len
-            it.renderer.near = it.renderer.radius * 0.01
-            it.renderer.far = it.renderer.radius * 1e5
-            it.renderer.updateEditorCameraTransform()
+            it.renderView.orbitCenter.set(0.0, 1.0, 0.0)
+            it.renderView.radius = 10.0 * sphere.len
+            it.renderView.near = it.renderView.radius * 0.01
+            it.renderView.far = it.renderView.radius * 1e5
+            it.renderView.updateEditorCameraTransform()
         }
     }
 }

@@ -16,6 +16,6 @@ fun main() {
     scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(metalRoughness())
     testSceneWithUI("Forward Sky", scene) {
-        it.renderer.renderMode = RenderMode.FORWARD
+        it.renderView.renderMode = RenderMode.FORWARD
     }
 }

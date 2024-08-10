@@ -17,7 +17,7 @@ fun main() {
     testUI3("FrameGen") {
         val list = PanelListY(style)
         val renderPanel = testScene(path) {
-            it.renderer.renderMode = RenderMode.FSR3_MIXING
+            it.renderView.renderMode = RenderMode.FSR3_MIXING
         }
         renderPanel.weight = 1f
         list.add(renderPanel)

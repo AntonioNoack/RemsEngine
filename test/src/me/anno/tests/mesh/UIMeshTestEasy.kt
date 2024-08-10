@@ -22,7 +22,7 @@ fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.
     ECSRegistry.init()
     EditorState.prefabSource = meshRef
     val sceneView = SceneView(PlayMode.PLAYING, style)
-    val renderView = sceneView.renderer
+    val renderView = sceneView.renderView
     renderView.radius = 1.0
     renderView.editorCamera.fovOrthographic = 1f
     renderView.editorCamera.isPerspective = false

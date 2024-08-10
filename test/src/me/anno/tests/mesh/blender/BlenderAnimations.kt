@@ -23,7 +23,7 @@ fun main() {
     BlenderReader.readAsFolder(source) { folder, exc ->
         if (folder != null) {
             testSceneWithUI("Blender Animations", folder.getChild("Scene.json")) {
-                it.renderer.renderMode = RenderMode.BONE_INDICES
+                it.renderView.renderMode = RenderMode.BONE_INDICES
             }
         } else exc?.printStackTrace()
     }

@@ -89,7 +89,7 @@ fun main() {
         bmWrapper.alwaysScroll = true
 
         val sceneView = SceneView(PlayMode.PLAYING, style)
-        val renderView = sceneView.renderer
+        val renderView = sceneView.renderView
         renderView.localPlayer = player
 
         var selected = buildItems.first()

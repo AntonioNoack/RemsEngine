@@ -7,6 +7,6 @@ import me.anno.mesh.Shapes.flatCube
 fun main() {
     // sky was missing motion vectors
     testSceneWithUI("Motion Vectors", flatCube.front) {
-        it.renderer.renderMode = RenderMode.MOTION_VECTORS
+        it.renderView.renderMode = RenderMode.MOTION_VECTORS
     }
 }

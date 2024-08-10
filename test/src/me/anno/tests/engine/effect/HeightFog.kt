@@ -55,6 +55,6 @@ fun main() {
     scene.add(settings)
     EditorState.select(settings) // select this for testing
     testSceneWithUI("HeightFog", scene) {
-        it.renderer.renderMode = mode
+        it.renderView.renderMode = mode
     }
 }

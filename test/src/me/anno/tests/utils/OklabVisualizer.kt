@@ -78,6 +78,6 @@ fun createColorsMesh(s: Int): Mesh {
 fun main() {
     val mesh = createColorsMesh(120)
     SceneView.testSceneWithUI("Oklab", mesh) {
-        it.renderer.renderMode = RenderMode.COLOR
+        it.renderView.renderMode = RenderMode.COLOR
     }
 }

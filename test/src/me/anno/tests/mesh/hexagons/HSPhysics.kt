@@ -143,7 +143,7 @@ class HSPhysicsControls(
     val save: HexMCWorldSave,
     val world: HexagonSphereMCWorld,
     val len: Float,
-) : ControllerOnSphere(it.renderer, null) {
+) : ControllerOnSphere(it.renderView, null) {
 
     override fun onUpdate() {
         // super.onUpdate()
@@ -176,8 +176,8 @@ class HSPhysicsControls(
     var inventory = grass
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // resolve click
-        val start = it.renderer.cameraPosition
-        val dir = it.renderer.getMouseRayDirection()
+        val start = it.renderView.cameraPosition
+        val dir = it.renderView.getMouseRayDirection()
         val query = RayQuery(start, dir, 10.0)
         val hit = Raycast.raycastClosestHit(scene, query)
         if (hit) {
@@ -293,8 +293,8 @@ fun main() {
         }
         val sv = SceneView(renderView, DefaultConfig.style)
         // override controller
-        sv.renderer.enableOrbiting = false
-        sv.renderer.near = 1e-7
+        sv.renderView.enableOrbiting = false
+        sv.renderView.near = 1e-7
         val hex0 = sphere.findClosestHexagon(Vector3f(0f, 1f, 0f))
         var yi = triQ.getWorld(hex0).indexOfFirst { block -> block == air }
         if (yi < 0) yi = world.sy

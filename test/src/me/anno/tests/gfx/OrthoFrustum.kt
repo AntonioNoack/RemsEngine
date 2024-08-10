@@ -23,6 +23,6 @@ fun main() {
         }
     }
     testSceneWithUI("Ortho Frustum", scene) {
-        it.renderer.editorCamera.isPerspective = false
+        it.renderView.editorCamera.isPerspective = false
     }
 }

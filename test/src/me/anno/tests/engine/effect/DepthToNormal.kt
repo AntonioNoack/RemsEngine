@@ -43,6 +43,6 @@ fun main() {
     )
 
     testSceneWithUI("DepthToNormal", flatCube.front) {
-        it.renderer.renderMode = D2NTest1
+        it.renderView.renderMode = D2NTest1
     }
 }

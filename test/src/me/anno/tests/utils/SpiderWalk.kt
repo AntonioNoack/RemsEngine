@@ -309,10 +309,10 @@ fun main() {
     }
 
     testSceneWithUI("Spider IK", scene) {
-        it.editControls = object : DraggingControls(it.renderer) {
+        it.editControls = object : DraggingControls(it.renderView) {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (button == Key.BUTTON_LEFT) {
-                    val ci = it.renderer
+                    val ci = it.renderView
                     val query0 = RayQuery(
                         ci.cameraPosition, ci.getMouseRayDirection(), 1e3,
                         -1, -1, false, setOf(spider)

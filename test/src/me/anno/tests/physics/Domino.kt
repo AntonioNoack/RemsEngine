@@ -45,7 +45,7 @@ fun main() {
     disableRenderDoc()
     testSceneWithUI("Dominos", scene) {
         showRedraws = false
-        it.renderer.renderMode = RenderMode.PHYSICS
+        it.renderView.renderMode = RenderMode.PHYSICS
 
         val audiosEntity = Entity("Audios")
         scene.add(audiosEntity)

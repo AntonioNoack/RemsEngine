@@ -9,6 +9,7 @@ import me.anno.sdf.shapes.SDFBezierCurve
 import me.anno.sdf.shapes.SDFBlob
 import me.anno.sdf.shapes.SDFBoundingBox
 import me.anno.sdf.shapes.SDFBox
+import me.anno.sdf.shapes.SDFCapsule
 import me.anno.sdf.shapes.SDFCone
 import me.anno.sdf.shapes.SDFCylinder
 import me.anno.sdf.shapes.SDFDeathStar
@@ -60,6 +61,7 @@ fun createShapesScene(): Entity {
     place(SDFPyramid(), Vector3f(15f, -1f, 0f))
     place(SDFTorus(), Vector3f(20f, 0f, 0f))
     place(SDFCylinder(), Vector3f(25f, 0f, 0f))
+    place(SDFCapsule(), Vector3f(30f, 0f, 0f))
 
     // todo heightmap
 

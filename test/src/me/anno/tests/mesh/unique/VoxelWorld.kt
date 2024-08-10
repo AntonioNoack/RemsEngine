@@ -107,7 +107,7 @@ fun main() {
     testUI3("Voxel World") {
         val sceneUI = testScene(scene) {
             it.editControls = CreativeControls(
-                it.renderer, scene, world,
+                it.renderView, scene, world,
                 saveSystem, chunkLoader
             )
         }

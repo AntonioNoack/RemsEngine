@@ -6,6 +6,6 @@ import me.anno.utils.OS.documents
 
 fun main() {
     testSceneWithUI("SSAO", documents.getChild("Assets School Classroom.blend")) {
-        it.renderer.renderMode = RenderMode.SSAO
+        it.renderView.renderMode = RenderMode.SSAO
     }
 }

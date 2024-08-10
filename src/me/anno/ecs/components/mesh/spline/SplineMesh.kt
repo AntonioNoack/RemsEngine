@@ -6,23 +6,25 @@ import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
+import me.anno.ecs.components.mesh.utils.MeshJoiner
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.mix
+import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.tuples.get
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
+import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
@@ -138,6 +140,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 val child = children[i]
                 if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
                     invalidateMesh()
+                    break
                 }
             }
         }
@@ -161,7 +164,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 lastWarning = "SplineMesh has not enough points, only one"
                 invalidateMesh()
             }
-            2 -> generateLineMesh(
+            2 -> generateLinearMesh(
                 points[0], points[1], mesh,
                 profile, isClosed, closedStart, closedEnd, isStrictlyUp
             )
@@ -171,7 +174,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     val list = ArrayList<Mesh>()
                     for (i in 1 until points.size) {
                         list.add(
-                            generateLineMesh(
+                            generateLinearMesh(
                                 points[i - 1], points[i], null,
                                 // closed start/end is a bit questionable here
                                 profile, isClosed, closedStart, closedEnd, isStrictlyUp
@@ -191,7 +194,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
     companion object {
 
-        fun generateLineMesh(
+        fun generateLinearMesh(
             p0: SplineControlPoint, p1: SplineControlPoint, mesh: Mesh?,
             profile: PathProfile, isClosed: Boolean, closedStart: Boolean, closedEnd: Boolean, isStrictlyUp: Boolean
         ) = generateSplineMesh(
@@ -252,7 +255,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
             // generate the mesh
             val profileSize = profile.getSize2()
-            val splineSize = splinePoints.size / 2 - 1
+            val splineSize = splinePoints.size.shr(1) - 1
             val numPoints = 6 * profileSize * splineSize +
                     (profileFacade?.size ?: 0) * (closedStart.toInt() + closedEnd.toInt())
             val numCoords = 3 * numPoints
@@ -283,15 +286,15 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 profileFacade!!
                 if (nx < 0f) {
                     for (i in profileFacade.indices.reversed()) {
-                        val pro0 = profileFacade[i]
-                        val c = ptToColor[pro0] ?: -1
-                        add2(pos, nor, col, k++, p0a, p0b, pro0, n0, c, dirY0, normal)
+                        val xy = profileFacade[i]
+                        val color = ptToColor[xy] ?: white
+                        add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
                     }
                 } else {
                     for (i in profileFacade.indices) {
-                        val pro0 = profileFacade[i]
-                        val c = ptToColor[pro0] ?: -1
-                        add2(pos, nor, col, k++, p0a, p0b, pro0, n0, c, dirY0, normal)
+                        val xy = profileFacade[i]
+                        val color = ptToColor[xy] ?: white
+                        add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
                     }
                 }
             }
@@ -420,11 +423,11 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
         private fun add2(
             positions: FloatArray, normals: FloatArray, colors: IntArray,
-            k: Int, p0: Vector3d, p1: Vector3d, profile: Vector2f, n: Vector2f, c: Int,
+            k: Int, p0: Vector3d, p1: Vector3d, profile: Vector2f, color: Int,
             dirY: Vector3f, normal: Vector3f
         ) {
             val k3 = k * 3
-            val px = (profile.x * .5f + .5f).toDouble()
+            val px = profile.x * 0.5 + 0.5
             val py = profile.y
             val dirX = JomlPools.vec3f.borrow()
             dirX.set(
@@ -437,7 +440,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             normals[k3 + 0] = normal.x
             normals[k3 + 1] = normal.y
             normals[k3 + 2] = normal.z
-            colors[k] = c
+            colors[k] = color
         }
 
         fun createEndPiece(
@@ -520,27 +523,15 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             mesh.color0 = col
         }
 
-        fun merge(ts: List<Mesh>, dst: Mesh) {
-            val colSize = ts.sumOf { it.color0!!.size }
-            val posSize = colSize * 3
-            val dstPos = dst.positions.resize(posSize)
-            val dstNor = dst.normals.resize(posSize)
-            val dstCol = dst.color0.resize(colSize)
-            var i = 0
-            var j = 0
-            for (t in ts) {
-                val srcPos = t.positions!!
-                val srcNor = t.normals!!
-                val srcCol = t.color0!!
-                srcPos.copyInto(dstPos, i, srcPos.size)
-                srcNor.copyInto(dstNor, i, srcNor.size)
-                srcCol.copyInto(dstCol, j, srcCol.size)
-                i += srcPos.size
-                j += srcCol.size
-            }
-            dst.positions = dstPos
-            dst.normals = dstNor
-            dst.color0 = dstCol
+        fun merge(meshes: List<Mesh>, dst: Mesh) {
+            object : MeshJoiner<Mesh>(
+                hasColors = true,
+                hasBones = false,
+                mayHaveUVs = true
+            ) {
+                override fun getMesh(element: Mesh): Mesh = element
+                override fun getTransform(element: Mesh, dst: Matrix4x3f) {}
+            }.join(dst, meshes)
         }
     }
 }

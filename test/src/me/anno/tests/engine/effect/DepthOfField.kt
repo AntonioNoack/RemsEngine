@@ -25,7 +25,7 @@ fun main() {
     testUI3("Depth Of Field") {
         EditorState.prefabSource = scene
         val sceneView = SceneView(RenderView1(PlayMode.EDITING, scene1, style), style)
-        sceneView.renderer.renderMode = RenderMode.DEPTH_OF_FIELD
+        sceneView.renderView.renderMode = RenderMode.DEPTH_OF_FIELD
         sceneView.weight = 1f
         PrefabInspector.currentInspector = PrefabInspector(scene)
         val list = PanelListY(style)

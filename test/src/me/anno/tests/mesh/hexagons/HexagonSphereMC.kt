@@ -308,10 +308,10 @@ fun main() {
 
     testSceneWithUI("HexSphere MC", scene) {
         if (false) {
-            it.renderer.playMode = PlayMode.PLAYING // remove grid
-            it.renderer.enableOrbiting = false
-            it.renderer.radius = 0.1
-            it.playControls = ControllerOnSphere(it.renderer, sky)
+            it.renderView.playMode = PlayMode.PLAYING // remove grid
+            it.renderView.enableOrbiting = false
+            it.renderView.radius = 0.1
+            it.playControls = ControllerOnSphere(it.renderView, sky)
         }
     }
 }

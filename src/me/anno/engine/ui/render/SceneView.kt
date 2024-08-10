@@ -27,11 +27,11 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.graph.GraphEditor
 
 @Suppress("MemberVisibilityCanBePrivate")
-class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
+class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
 
     constructor(playMode: PlayMode, style: Style) : this(RenderView0(playMode, style), style)
 
-    var editControls: ControlScheme = DraggingControls(renderer)
+    var editControls: ControlScheme = DraggingControls(renderView)
         set(value) {
             if (field !== value) {
                 remove(field)
@@ -40,7 +40,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             }
         }
 
-    var playControls: ControlScheme = PlayControls(renderer)
+    var playControls: ControlScheme = PlayControls(renderView)
         set(value) {
             if (field !== value) {
                 remove(field)
@@ -50,10 +50,10 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
         }
 
     // todo show the background renderer, when edited graph is RenderGraph
-    var graphEditor: GraphEditor = GraphEditor(null, style)
+    var graphEditor = GraphEditor(null, style)
 
     init {
-        add(renderer)
+        add(renderView)
         add(editControls)
         add(playControls)
         add(graphEditor)
@@ -61,14 +61,14 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
 
     override fun onUpdate() {
         super.onUpdate()
-        val world = renderer.getWorld()
+        val world = renderView.getWorld()
         // todo get the node library from the graph somehow?
         graphEditor.graph = world as? Graph
         val worldIsGraph = world is Graph
-        val editing = renderer.playMode == PlayMode.EDITING
+        val editing = renderView.playMode == PlayMode.EDITING
         editControls.isVisible = !worldIsGraph && editing
         playControls.isVisible = !worldIsGraph && !editing
-        renderer.controlScheme = if (editing) editControls else playControls
+        renderView.controlScheme = if (editing) editControls else playControls
         graphEditor.isVisible = worldIsGraph
         graphEditor.makeBackgroundTransparent()
         // graphEditor.backgroundColor = graphEditor.backgroundColor.withAlpha(127)
@@ -128,7 +128,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
         private fun tryStartVR(sceneView: SceneView) {
             addEvent {
                 val osWindow = GFX.someWindow
-                tryStartVR(osWindow, sceneView.renderer)
+                tryStartVR(osWindow, sceneView.renderView)
             }
         }
     }

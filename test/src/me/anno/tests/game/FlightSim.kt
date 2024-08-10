@@ -62,7 +62,7 @@ fun main() {
     scene.add(Skybox())
 
     testSceneWithUI("FlightSim", scene) {
-        it.renderer.localPlayer = player
+        it.renderView.localPlayer = player
         // it.renderer.playMode = PlayMode.PLAY_TESTING // to start playing, press the "Play" button
         // it.renderer.renderMode = RenderMode.MOTION_VECTORS
         // todo motion vectors/blur are incorrect

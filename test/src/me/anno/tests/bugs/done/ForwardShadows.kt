@@ -26,6 +26,6 @@ fun main() {
         .setRotation((-30.0).toRadians(), 0.0, 0.0)
         .add(DirectionalLight().apply { shadowMapCascades = 1 })
     testSceneWithUI("Forward Shadows", scene) {
-        it.renderer.renderMode = RenderMode.FORWARD
+        it.renderView.renderMode = RenderMode.FORWARD
     }
 }

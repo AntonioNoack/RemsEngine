@@ -32,7 +32,7 @@ fun main() {
         EditorState.prefabSource = scene.ref
 
         val sv = SceneView(PlayMode.EDITING, style)
-        val rv = sv.renderer
+        val rv = sv.renderView
         rv.orbitCenter.set(0.0, 0.0, -5.0)
         rv.updateEditorCameraTransform()
 

@@ -8,6 +8,6 @@ import me.anno.utils.OS.downloads
 fun main() {
     OfficialExtensions.initForTests()
     testSceneWithUI("Bone Indices Renderer", downloads.getChild("3d/Talking On Phone 2.fbx")) {
-        it.renderer.renderMode = RenderMode.BONE_INDICES
+        it.renderView.renderMode = RenderMode.BONE_INDICES
     }
 }

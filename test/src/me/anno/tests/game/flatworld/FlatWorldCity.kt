@@ -1,0 +1,135 @@
+package me.anno.tests.game.flatworld
+
+import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.ui.control.ControlScheme
+import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.input.Key
+import me.anno.tests.game.flatworld.buildings.controls.BuildingDeleteControls
+import me.anno.tests.game.flatworld.buildings.controls.BuildingPlaceControls
+import me.anno.tests.game.flatworld.streets.controls.StreetBuildingControls
+import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
+import me.anno.ui.Panel
+import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.groups.NineTilePanel
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.white
+import me.anno.utils.structures.lists.Lists.firstInstance2
+
+// todo a 3d world has more complicated maths,
+//  so get all the basics right on a plane,
+//  and then abstract away any raycasting logic in the future
+fun main() {
+
+    // todo 1. grid-less street building like in Cities Skylines / Workers & Resources
+    // done 1b. delete street segments
+    // todo 2. place buildings
+    // todo 2b. delete buildings
+    // todo 3. terrain
+    //  - streets -> they flatten the terrain until we just can project streets onto them
+    //  - buildings
+    // todo 4. traffic
+    // todo 5. economy simulation?
+    //  - producers
+    //  - consumers
+
+
+    // the first step is street building, so let's do that:
+    //  1. click = place anchor
+    //  dragging = show whether straight street can be placed like that
+    //  2. click = place middle anchor
+    //  dragging = show whether curved street can be placed like that
+    //  3. click = place curved street; or if too close to 2nd click, a straight street
+    // escape = cancel
+    // todo when building a street, it gets split into many smaller pieces, for potential deletion
+    // todo when two streets are crossing over each other, place an anchor at their center, so they form an intersection
+    // todo refuse street building, when two are too close
+    // todo build crossing mesh
+
+    val world = FlatWorld()
+
+    // terrain
+    world.terrain.setScale(100.0)
+        .add(MeshComponent(PlaneModel.createPlane()))
+
+    testUI3("FlatWorld City") {
+        val ui = NineTilePanel(style)
+        val sceneUI = testScene(world.scene)
+        ui.add(sceneUI)
+        val sceneView = sceneUI.listOfAll.firstInstance2(SceneView::class)
+        val renderView = sceneView.renderView
+        val buildStreets = StreetBuildingControls(world, renderView)
+        sceneView.editControls = buildStreets
+        val list = PanelListY(style)
+        list.add(EditTypeButton(sceneView, "+Street", buildStreets))
+        list.add(EditTypeButton(sceneView, "-Street", StreetDeletingControls(world, renderView)))
+        list.add(EditTypeButton(sceneView, "+Building", BuildingPlaceControls(world, renderView)))
+        list.add(EditTypeButton(sceneView, "-Building", BuildingDeleteControls(world, renderView)))
+        list.alignmentX = AxisAlignment.MAX
+        list.alignmentY = AxisAlignment.CENTER
+        ui.add(list)
+        ui
+    }
+}
+
+class EditTypeButton(val sceneView: SceneView, val text: String, val controls: ControlScheme) : Panel(style) {
+
+    // todo icons for these buttons
+
+    val leftColor = style.getColor("borderColorLeft", black or 0x999999)
+    val rightColor = style.getColor("borderColorRight", black or 0x111111)
+    val topColor = style.getColor("borderColorTop", black or 0x999999)
+    val bottomColor = style.getColor("borderColorBottom", black or 0x111111)
+
+    val borderSize = style.getPadding("borderSize", 2)
+
+    val bg0 = backgroundColor
+    val bg1 = mixARGB(backgroundColor, white, 0.5f)
+
+    var isPressed = false
+
+    override fun calculateSize(w: Int, h: Int) {
+        minW = 96
+        minH = 32
+    }
+
+    override fun onUpdate() {
+        super.onUpdate()
+        backgroundColor = if (sceneView.editControls == controls) bg1 else bg0
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        drawButtonBorder(
+            leftColor, topColor, rightColor, bottomColor,
+            true, borderSize, isPressed
+        )
+        drawSimpleTextCharByChar(
+            x + width / 2, y + height / 2, 2,
+            text, -1, backgroundColor,
+            AxisAlignment.CENTER, AxisAlignment.CENTER
+        )
+    }
+
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        isPressed = true
+        val src = sceneView.editControls
+        val dst = controls
+        sceneView.editControls = dst
+        dst.rotationTarget.set(src.rotationTarget)
+        invalidateDrawing()
+    }
+
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        isPressed = false
+        invalidateDrawing()
+    }
+}
+

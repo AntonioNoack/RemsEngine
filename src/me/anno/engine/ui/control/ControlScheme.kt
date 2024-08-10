@@ -53,8 +53,7 @@ import kotlin.math.sin
 
 // todo touch controls
 
-open class ControlScheme(val camera: Camera, val renderView: RenderView) :
-    NineTilePanel(style) {
+open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineTilePanel(style) {
 
     constructor(renderView: RenderView) : this(renderView.editorCamera, renderView)
 

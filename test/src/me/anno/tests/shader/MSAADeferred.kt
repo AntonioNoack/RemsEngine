@@ -14,6 +14,6 @@ fun main() {
     scene.add(Skybox())
     scene.add(MeshComponent(downloads.getChild("3d/DamagedHelmet.glb")))
     testSceneWithUI("MSAADeferred", scene) {
-        it.renderer.renderMode = RenderMode.MSAA_DEFERRED
+        it.renderView.renderMode = RenderMode.MSAA_DEFERRED
     }
 }

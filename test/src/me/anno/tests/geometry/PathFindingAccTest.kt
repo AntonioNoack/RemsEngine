@@ -297,7 +297,7 @@ fun main() {
 
         fun raycastPoint(): AccNode? {
             val maxDistance = 1e3
-            val query = RayQuery(view.renderer.cameraPosition, view.renderer.mouseDirection, maxDistance)
+            val query = RayQuery(view.renderView.cameraPosition, view.renderView.mouseDirection, maxDistance)
             val hit = Raycast.raycastClosestHit(scene, query)
             return if (hit) {
                 val result = query.result
@@ -311,7 +311,7 @@ fun main() {
             } else null
         }
 
-        view.editControls = object : DraggingControls(view.renderer) {
+        view.editControls = object : DraggingControls(view.renderView) {
 
             override fun onKeyTyped(x: Float, y: Float, key: Key) {
                 if (key == Key.KEY_R) {

@@ -252,7 +252,7 @@ fun main() {
     val chunkSystem = TerrainChunkSystem(Entity(scene))
     scene.add(chunkSystem)
     testSceneWithUI("Terrain", scene) {
-        it.editControls = object : ControlScheme(it.renderer) {
+        it.editControls = object : ControlScheme(it.renderView) {
             fun edit(xi: Int, zi: Int, effect0: Float, hit: RayHit) {
 
                 val comp = chunkSystem.getChunk(xi, 0, zi, true)!!
@@ -295,7 +295,7 @@ fun main() {
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {
                     // draw height / paint
-                    val query = RayQuery(it.renderer.cameraPosition, it.renderer.mouseDirection, 1e9)
+                    val query = RayQuery(it.renderView.cameraPosition, it.renderView.mouseDirection, 1e9)
                     val hit = Raycast.raycastClosestHit(scene, query)
                     val comp = query.result.component as? TerrainChunk
                     val mesh = comp?.getMeshOrNull()

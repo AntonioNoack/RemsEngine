@@ -276,12 +276,12 @@ fun main() {
         mesh0.material = Material().apply {
             cullMode = CullMode.BOTH
             translucency = grassTranslucency
-            shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), mesh0, sv0.renderer)
+            shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), mesh0, sv0.renderView)
         }.ref
         mesh1.material = Material().apply {
             cullMode = CullMode.BOTH
             translucency = grassTranslucency
-            shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), mesh1, sv0.renderer)
+            shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), mesh1, sv0.renderView)
         }.ref
 
         class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {

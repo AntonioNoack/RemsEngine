@@ -77,7 +77,7 @@ fun main() {
     )
     EditorState.prefabSource = scene.ref
     dst.tryMkdirs()
-    sceneView.renderer.radius = 3.0
+    sceneView.renderView.radius = 3.0
     sceneView.editControls.rotationTarget.set(-17.9, 58.3, 0.0)
 
     val renderModes = ArrayList(RenderMode.values.filter {
@@ -87,7 +87,7 @@ fun main() {
     fun renderNextImage() {
         val mode = renderModes.removeLastOrNull()
         if (mode != null) {
-            val renderView = sceneView.renderer
+            val renderView = sceneView.renderView
             renderView.setPosSize(0, 0, width, height)
             renderScene(mode)
             addEvent(1, ::renderNextImage)
@@ -105,7 +105,7 @@ fun renderScene(renderMode: RenderMode) {
     FBStack.reset()
     useFrame(framebuffer) {
         framebuffer.clearColor(UIColors.midOrange)
-        val renderView = sceneView.renderer
+        val renderView = sceneView.renderView
         renderView.renderMode = renderMode
         renderView.draw(0, 0, width, height)
     }

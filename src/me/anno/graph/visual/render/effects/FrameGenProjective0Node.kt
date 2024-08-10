@@ -2,14 +2,10 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -89,7 +85,7 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
         fill(width, height, view.color, view.depth)
         // todo setting output has stuttering... why???
         // showOutput(view.color)
-        renderInterpolated(view,width,height,0f)
+        renderInterpolated(view, width, height, 0f)
     }
 
     fun bind(shader: Shader, view: PerViewProjData, width: Int, height: Int) {

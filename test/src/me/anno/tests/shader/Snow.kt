@@ -36,7 +36,6 @@ import me.anno.graph.visual.render.Texture
 import me.anno.input.Input
 import me.anno.io.saveable.Saveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
-import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
 import me.anno.tests.shader.Snow.snowControl0
 import me.anno.tests.shader.Snow.snowRenderMode
 import me.anno.ui.custom.CustomList
@@ -264,7 +263,7 @@ fun main() {
         scene.add(snowControl0)
         registerCustomClass(SnowControl())
         list.add(SceneView.testScene(scene) {
-            it.renderer.renderMode = snowRenderMode
+            it.renderView.renderMode = snowRenderMode
         }, 2f)
         list
     }

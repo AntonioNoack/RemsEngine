@@ -16,6 +16,6 @@ fun main() {
     OfficialExtensions.initForTests()
     val src = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
     testSceneWithUI("SSGI", src) {
-        it.renderer.renderMode = RenderMode.SSGI
+        it.renderView.renderMode = RenderMode.SSGI
     }
 }

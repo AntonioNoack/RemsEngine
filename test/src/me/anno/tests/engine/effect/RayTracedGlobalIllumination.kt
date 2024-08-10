@@ -52,6 +52,6 @@ val RTGIRenderMode = RenderMode(
 
 fun main() {
     testSceneWithUI("RTGI", downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")) {
-        it.renderer.renderMode = RTGIRenderMode
+        it.renderView.renderMode = RTGIRenderMode
     }
 }

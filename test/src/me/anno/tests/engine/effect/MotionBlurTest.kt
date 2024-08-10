@@ -29,6 +29,6 @@ fun main() {
         }.ref)
     })
     testSceneWithUI("MotionBlur", scene) {
-        it.renderer.renderMode = RenderMode.MOTION_BLUR
+        it.renderView.renderMode = RenderMode.MOTION_BLUR
     }
 }

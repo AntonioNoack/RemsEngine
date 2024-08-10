@@ -38,7 +38,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import kotlin.math.PI
-import kotlin.math.roundToInt
 
 // todo simple car chase game
 // done - car
@@ -178,7 +177,7 @@ fun createUI(): Panel {
 
     EditorState.prefabSource = world.ref
     val sceneView = SceneView(PlayMode.PLAYING, style)
-    val renderView = sceneView.renderer
+    val renderView = sceneView.renderView
     renderView.renderMode = RenderMode.PHYSICS
     renderView.localPlayer = player
     sceneView.weight = 1f

@@ -19,6 +19,6 @@ fun main() {
     meshComp.collisionMask = 0 // shouldn't be used for ray tests
     scene.add(meshComp)
     testSceneWithUI("Mesh Collider", scene) {
-        it.renderer.renderMode = RenderMode.RAY_TEST
+        it.renderView.renderMode = RenderMode.RAY_TEST
     }
 }

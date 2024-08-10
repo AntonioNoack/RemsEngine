@@ -375,8 +375,8 @@ fun main() {
 
     testUI(selfName) {
         testScene2(scene) {
-            it.renderer.playMode = PlayMode.PLAYING
-            it.renderer.localPlayer = selfPlayer
+            it.renderView.playMode = PlayMode.PLAYING
+            it.renderView.localPlayer = selfPlayer
         }.apply { weight = 1f }
     }
 }

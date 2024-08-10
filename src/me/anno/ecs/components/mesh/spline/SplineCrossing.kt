@@ -82,7 +82,7 @@ class SplineCrossing : ProceduralMesh() {
                 // just connect them normally
                 lastWarning = null
                 val profile = streets.first().profile
-                SplineMesh.generateLineMesh(
+                SplineMesh.generateLinearMesh(
                     streets[0], streets[1], mesh, profile,
                     profile.isClosed, closedStart = false, closedEnd = false,
                     isStrictlyUp = false

@@ -24,7 +24,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.ShaderLib
 import me.anno.image.thumbs.AssetThumbHelper
 import me.anno.input.ActionManager
 import me.anno.installer.Installer
@@ -159,7 +158,7 @@ open class RemsEngine : EngineBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
         // todo if RenderView is deleted/disabled, make other RenderView VR-renderer
         val osWindow = GFX.someWindow
-        tryStartVR(osWindow, sceneView.renderer)
+        tryStartVR(osWindow, sceneView.renderView)
 
         return customUI
     }

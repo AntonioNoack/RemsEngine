@@ -10,6 +10,6 @@ fun main() {
     // todo this looks very broken at the moment, why???
     RenderDoc.forceLoadRenderDoc()
     testSceneWithUI("FSR2", getReference("res://icon.obj")) {
-        it.renderer.renderMode = RenderMode.FSR2_X2
+        it.renderView.renderMode = RenderMode.FSR2_X2
     }
 }
