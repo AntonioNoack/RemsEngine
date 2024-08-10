@@ -34,7 +34,8 @@ import me.anno.graph.visual.render.effects.FXAANode
 import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.graph.visual.render.effects.FrameGenMixingNode
 import me.anno.graph.visual.render.effects.FrameGenPredictiveNode
-import me.anno.graph.visual.render.effects.FrameGenProjectiveNode
+import me.anno.graph.visual.render.effects.FrameGenProjective1Node
+import me.anno.graph.visual.render.effects.FrameGenProjectiveXNode
 import me.anno.graph.visual.render.effects.GizmoNode
 import me.anno.graph.visual.render.effects.HeightExpFogNode
 import me.anno.graph.visual.render.effects.MSAAHelperNode
@@ -361,9 +362,13 @@ class RenderMode private constructor(
             "FrameGen-Predictive",
             FrameGenInitNode.createPipeline(FrameGenPredictiveNode())
         )
-        val FSR3_PROJECTIVE = RenderMode(
-            "FrameGen-Projective",
-            FrameGenInitNode.createPipeline(FrameGenProjectiveNode())
+        val FSR3_PROJECTIVE_X = RenderMode(
+            "FrameGen-ProjectiveX",
+            FrameGenInitNode.createPipeline(FrameGenProjectiveXNode())
+        )
+        val FSR3_PROJECTIVE_1 = RenderMode(
+            "FrameGen-Projective1",
+            FrameGenInitNode.createPipeline(FrameGenProjective1Node())
         )
 
         val NEAREST_X4 = RenderMode(
