@@ -174,7 +174,7 @@ object Reduction {
         return shaderByType.getOrPut(op) {
             val v0 = "vec4(${op.startValue.x}, ${op.startValue.y}, ${op.startValue.z}, ${op.startValue.w})"
             Shader(
-                "reduce-${op.name}", coordsList, coordsVertexShader, emptyList(), listOf(
+                "reduce-${op.name}", emptyList(), coordsVertexShader, emptyList(), listOf(
                     Variable(GLSLType.S2D, "src"),
                     Variable(GLSLType.V1F, "scale"),
                 ), "" +

@@ -12,7 +12,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.StreetSegment
-import me.anno.tests.game.flatworld.streets.StreetSegmentMeshes
+import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
 import me.anno.ui.UIColors
 import kotlin.math.max
 
@@ -56,7 +56,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                 val helper = segment.splitSegment(t0, t1)
                 val mesh = meshCache.removeLastOrNull() ?: Mesh()
                 mesh.materials = deleteMaterialList
-                StreetSegmentMeshes.buildMesh(helper, mesh)
+                StreetMeshBuilder.buildMesh(helper, mesh)
                 selected.add(ToBeDeleted(segment, t0, t1, mesh))
             }
         }
@@ -98,7 +98,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                 world.addStreetSegment(segment.splitSegment(select.t1, 1.0))
             }
         }
-        // todo delete intersections, where needed
         selected.clear()
+        world.validateIntersections()
     }
 }

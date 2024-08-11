@@ -23,7 +23,6 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -52,7 +51,7 @@ import org.joml.Vector3f
 // our snow is transparent though... so that's a little more complicated...
 
 val snowShader = Shader(
-    "Snow", coordsList, coordsUVVertexShader, uvList, listOf(
+    "Snow", emptyList(), coordsUVVertexShader, uvList, listOf(
         Variable(GLSLType.V3F, "cameraPosition"),
         Variable(GLSLType.V4F, "cameraRotation"),
         Variable(GLSLType.V1F, "invWorldScale"),
@@ -224,7 +223,7 @@ fun main() {
 
         // 2d
         val shader = Shader(
-            "snow", coordsList, coordsUVVertexShader, uvList, listOf(
+            "snow", emptyList(), coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V1F, "time"),
                 Variable(GLSLType.V2F, "uvScale"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)

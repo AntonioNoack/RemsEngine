@@ -10,7 +10,6 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -24,10 +23,7 @@ import me.anno.graph.visual.render.scene.RenderViewNode
  * */
 class UnditherNode : RenderViewNode(
     "Undither",
-    listOf(
-        "Texture", "Illuminated",
-        "Texture", "Depth",
-    ),
+    listOf("Texture", "Illuminated", "Texture", "Depth"),
     listOf("Texture", "Illuminated")
 ) {
 
@@ -58,33 +54,32 @@ class UnditherNode : RenderViewNode(
     companion object {
         val shader = Shader(
             "undithering",
-            coordsList, coordsUVVertexShader, uvList, depthVars + listOf(
-                Variable(GLSLType.V2F, "duv"),
+            emptyList(), coordsUVVertexShader, uvList, depthVars + listOf(
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), rawToDepth + "" +
-                    "float getDepth(vec2 duv){\n" +
-                    "   float depth = rawToDepth(texture(depthTex,uv+duv).x);\n" +
+                    "float getDepth(ivec2 duv){\n" +
+                    "   float depth = rawToDepth(textureOffset(depthTex,uv,duv).x);\n" +
                     "   return log2(clamp(depth,1e-38,1e38));\n" +
                     "}\n" +
                     "void main(){\n" +
                     "   vec3 color = texture(colorTex,uv).xyz;\n" +
-                    "   float d0 = getDepth(vec2(-duv.x,0.0));\n" +
-                    "   float d1 = getDepth(vec2(+duv.x,0.0));\n" +
-                    "   float d2 = getDepth(vec2(0.0,-duv.y));\n" +
-                    "   float d3 = getDepth(vec2(0.0,+duv.y));\n" +
+                    "   float d0 = getDepth(ivec2(-1,0));\n" +
+                    "   float d1 = getDepth(ivec2(+1,0));\n" +
+                    "   float d2 = getDepth(ivec2(0,-1));\n" +
+                    "   float d3 = getDepth(ivec2(0,+1));\n" +
                     "   float max = max(max(d0,d1),max(d2,d3));\n" +
                     "   float min = min(min(d0,d1),min(d2,d3));\n" +
                     // only blur if all neighbors are similar, but at the same time different to ourselves
                     "   if(max < min + 0.2){\n" +
-                    "       float dx = getDepth(vec2(0.0));\n" +
+                    "       float dx = getDepth(ivec2(0,0));\n" +
                     "       if(dx < min || dx > max){\n" +
                     "           color = color * 0.5 + 0.125 * (\n" +
-                    "               texture(colorTex,uv+vec2(-duv.x,0.0)).xyz +\n" +
-                    "               texture(colorTex,uv+vec2(+duv.x,0.0)).xyz +\n" +
-                    "               texture(colorTex,uv+vec2(0.0,-duv.y)).xyz +\n" +
-                    "               texture(colorTex,uv+vec2(0.0,+duv.y)).xyz\n" +
+                    "               textureOffset(colorTex,uv,ivec2(-1,0)).xyz +\n" +
+                    "               textureOffset(colorTex,uv,ivec2(+1,0)).xyz +\n" +
+                    "               textureOffset(colorTex,uv,ivec2(0,-1)).xyz +\n" +
+                    "               textureOffset(colorTex,uv,ivec2(0,+1)).xyz\n" +
                     "           );\n" +
                     "       }\n" +
                     "   }\n" +

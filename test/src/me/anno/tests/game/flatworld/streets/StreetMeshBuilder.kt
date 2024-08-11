@@ -10,11 +10,11 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Vector2f
 import org.joml.Vector3d
 
-object StreetSegmentMeshes {
+object StreetMeshBuilder {
 
     val streetProfile = PathProfile(
         listOf(
-            Vector2f(-7f, -0.5f),
+            Vector2f(-7f, -0.49f),
             Vector2f(-4.81f, +0.3f),
             Vector2f(-4.8f, +0.6f),
             Vector2f(-3.31f, +0.6f),
@@ -23,20 +23,22 @@ object StreetSegmentMeshes {
             Vector2f(+3.31f, +0.6f), // light
             Vector2f(+4.8f, +0.6f), // light
             Vector2f(+4.81f, +0.3f), // green
-            Vector2f(+7f, -0.5f), // green
+            Vector2f(+7f, -0.49f), // green
         ), null,
-        IntArrayList(intArrayOf(
-            0x77dd77 or black,
-            0x77dd77 or black,
-            0xaaaaaa or black,
-            0xaaaaaa or black,
-            0x555555 or black,
-            0x555555 or black,
-            0xaaaaaa or black,
-            0xaaaaaa or black,
-            0x77dd77 or black,
-            0x77dd77 or black,
-        )),
+        IntArrayList(
+            intArrayOf(
+                0x77dd77 or black,
+                0x77dd77 or black,
+                0xaaaaaa or black,
+                0xaaaaaa or black,
+                0x555555 or black,
+                0x555555 or black,
+                0xaaaaaa or black,
+                0xaaaaaa or black,
+                0x77dd77 or black,
+                0x77dd77 or black,
+            )
+        ),
         false
     )
 
@@ -50,7 +52,7 @@ object StreetSegmentMeshes {
         }
         SplineMesh.generateSplineMesh(
             dst, profile, false,
-            true, true,
+            false, false,
             true, points
         )
         dst.invalidateGeometry()

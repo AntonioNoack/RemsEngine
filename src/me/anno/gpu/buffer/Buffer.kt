@@ -3,6 +3,7 @@ package me.anno.gpu.buffer
 import me.anno.Build
 import me.anno.Engine
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.getErrorTypeName
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
@@ -36,21 +37,21 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
     open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
 
         ensureBuffer()
-        bindBuffer(type, pointer)
+        bindBuffer(type, pointer, true)
         GFX.check()
 
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         val attrs1 = attributes
         for (i in attrs1.indices) {
-            bindAttribute(shader, attrs1[i], false)
+            bindAttribute(this, shader, attrs1[i], false)
         }
 
         val attr2 = instanceData?.attributes
         if (instanceData != null) {
             instanceData.ensureBuffer()
-            bindBuffer(type, instanceData.pointer)
+            bindBuffer(type, instanceData.pointer, true)
             for (i in attr2!!.indices) {
-                bindAttribute(shader, attr2[i], true)
+                bindAttribute(instanceData, shader, attr2[i], true)
             }
         }
 
@@ -152,7 +153,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
-        this.pointer = 0
+        pointer = 0
+        isUpToDate = false
         if (nioBuffer != null) {
             ByteBufferPool.free(nioBuffer)
         }
@@ -165,7 +167,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         private val LOGGER = LogManager.getLogger(Buffer::class)
 
         @JvmStatic
-        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
+        fun bindAttribute(self: OpenGLBuffer, shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index in 0 until GFX.maxAttributes) {
@@ -176,29 +178,34 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
                         index, attr.components, type.id,
                         attr.stride, attr.offset.toLong()
                     )
-                    checkNCrash(index, instanceDivisor, attr)
+                    checkNCrash(self, index, instanceDivisor, attr)
                 } else {
                     glVertexAttribPointer(
                         index, attr.components, type.id,
                         type.normalized, attr.stride, attr.offset.toLong()
                     )
-                    checkNCrash(index, instanceDivisor, attr)
+                    checkNCrash(self, index, instanceDivisor, attr)
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
-                checkNCrash(index, instanceDivisor, attr)
+                checkNCrash(self, index, instanceDivisor, attr)
                 enable(index)
-                checkNCrash(index, instanceDivisor, attr)
+                checkNCrash(self, index, instanceDivisor, attr)
                 GFX.check()
                 true
             } else false
         }
 
-        private fun checkNCrash(index: Int, instanceDivisor: Int, attr: Attribute) {
+        // todo if this isn't triggered anymore within 2024, remove it :)
+        private fun checkNCrash(self: OpenGLBuffer, index: Int, instanceDivisor: Int, attr: Attribute) {
             val err = glGetError()
             if (err != 0) { // todo why is this triggered???
                 // is the shader not bound??? no, the shader is apparently fine
-                // Engine.requestShutdown()
-                LOGGER.warn("Error: $err, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, $attr, offset/stride: ${attr.offset}, ${attr.stride}")
+                Engine.requestShutdown()
+                LOGGER.warn(
+                    "Error: ${getErrorTypeName(err)}, #$index/${GFX.maxAttributes}, divisor: $instanceDivisor, " +
+                            "$attr, offset/stride: ${attr.offset}, ${attr.stride}, #${self.pointer}, ${self.elementCount}x"
+                )
+                throw IllegalStateException()
             }
         }
 

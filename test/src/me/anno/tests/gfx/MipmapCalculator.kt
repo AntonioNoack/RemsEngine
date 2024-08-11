@@ -34,7 +34,7 @@ object MipmapCalculator {
     }
 
     val shader = Shader(
-        "mipmap", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "mipmap", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.S2D, "srcTex"),
             Variable(GLSLType.V1F, "lod"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)

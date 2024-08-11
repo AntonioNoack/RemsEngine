@@ -185,8 +185,8 @@ class MainStage {
                 code.append("}\n")
             } else {
                 fun appendBias() {
-                    code.append("float slopeBias = 1.0 + sqrt(1.0 - cosTheta * cosTheta) / abs(cosTheta);")
-                    code.append("float bias = 0.001 * slopeBias;\n") // mmmh...
+                    // code.append("float slopeBias = 1.0 + sqrt(1.0 - cosTheta * cosTheta) / abs(cosTheta);")
+                    code.append("float bias = 0.005;\n") // mmmh...
                 }
                 if (isArray) {
                     code.append("(int index, vec3 uv, float cosTheta, float depth){\n")

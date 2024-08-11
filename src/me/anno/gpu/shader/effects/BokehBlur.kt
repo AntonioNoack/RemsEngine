@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
@@ -20,7 +19,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector4f
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -118,7 +116,7 @@ object BokehBlur {
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
         perChannelShader = Shader(
-            "bokeh-perChannel", coordsList, coordsUVVertexShader, varyingShader,
+            "bokeh-perChannel", emptyList(), coordsUVVertexShader, varyingShader,
             listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.S2D, "image"),
@@ -143,7 +141,7 @@ object BokehBlur {
         ).apply { setTextureIndices("filterTexture", "image") }
 
         compositionShader = Shader(
-            "bokeh-composition", coordsList, coordsUVVertexShader,
+            "bokeh-composition", emptyList(), coordsUVVertexShader,
             varyingShader, listOf(
                 Variable(GLSLType.V2F, "stepVal"),// 1/resolution
                 Variable(GLSLType.V1I, "radius"),

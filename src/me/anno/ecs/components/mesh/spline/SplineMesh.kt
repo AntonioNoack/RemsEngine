@@ -175,7 +175,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     for (i in 1 until points.size) {
                         list.add(
                             generateLinearMesh(
-                                points[i - 1], points[i], null,
+                                points[i - 1], points[i], Mesh(),
                                 // closed start/end is a bit questionable here
                                 profile, isClosed, closedStart, closedEnd, isStrictlyUp
                             )
@@ -195,7 +195,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
     companion object {
 
         fun generateLinearMesh(
-            p0: SplineControlPoint, p1: SplineControlPoint, mesh: Mesh?,
+            p0: SplineControlPoint, p1: SplineControlPoint, mesh: Mesh,
             profile: PathProfile, isClosed: Boolean, closedStart: Boolean, closedEnd: Boolean, isStrictlyUp: Boolean
         ) = generateSplineMesh(
             mesh, profile, isClosed, closedStart, closedEnd, isStrictlyUp,
@@ -227,12 +227,9 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
         fun generateSplineMesh(
             points: List<SplineControlPoint>,
-            perRadiant: Double,
-            mesh: Mesh?,
-            profile: PathProfile,
-            isClosed: Boolean,
-            closedStart0: Boolean,
-            closedEnd0: Boolean,
+            perRadiant: Double, mesh: Mesh,
+            profile: PathProfile, isClosed: Boolean,
+            closedStart0: Boolean, closedEnd0: Boolean,
             isStrictlyUp: Boolean
         ): Mesh {
             val splinePoints = generateSplinePoints(points, perRadiant, isClosed)
@@ -240,7 +237,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         }
 
         fun generateSplineMesh(
-            mesh: Mesh?,
+            mesh: Mesh,
             profile: PathProfile,
             isClosed: Boolean,
             closedStart0: Boolean,
@@ -259,9 +256,9 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             val numPoints = 6 * profileSize * splineSize +
                     (profileFacade?.size ?: 0) * (closedStart.toInt() + closedEnd.toInt())
             val numCoords = 3 * numPoints
-            val pos = mesh?.positions.resize(numCoords)
-            val nor = mesh?.normals.resize(numCoords)
-            val col = mesh?.color0.resize(numPoints)
+            val pos = mesh.positions.resize(numCoords)
+            val nor = mesh.normals.resize(numCoords)
+            val col = mesh.color0.resize(numPoints)
             var k = 0
             val n0 = Vector2f()
             val n1 = Vector2f()
@@ -337,8 +334,11 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                 if (!isStrictlyUp) {
                     if (splinePoints.size > 3) {
                         findDirY(p0a, p0b, splinePoints[3], dirY0)
-                    } else dirY0.set(0f, 1f, 0f)
-                    dirY1.set(dirY0) // if spline size is 2
+                    } else {
+                        // if spline size is 2
+                        dirY0.set(0f, 1f, 0f)
+                        dirY1.set(0f, 1f, 0f)
+                    }
                 }
 
                 dirX(p0a, p0b, dirX0)

@@ -36,7 +36,6 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.coordsVertexShader
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
@@ -510,7 +509,7 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
     assertEquals(8, PIXELS_PER_TLAS_NODE)
     val lib = TextureRTShaderLib(2, 9)
     val rtShader = Shader(
-        "illumBaking", coordsList, coordsUVVertexShader, uvList, commonUniforms + listOf(
+        "illumBaking", emptyList(), coordsUVVertexShader, uvList, commonUniforms + listOf(
             Variable(GLSLType.S2D, "triangles"),
             Variable(GLSLType.S2D, "blasNodes"),
             Variable(GLSLType.S2D, "tlasNodes"),
@@ -611,7 +610,7 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
     )
 
     val blurShader = Shader(
-        "blur", coordsList, coordsVertexShader, emptyList(), listOf(
+        "blur", emptyList(), coordsVertexShader, emptyList(), listOf(
             Variable(GLSLType.S2D, "bakedIllum"),
             Variable(GLSLType.S2D, "norTex"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)

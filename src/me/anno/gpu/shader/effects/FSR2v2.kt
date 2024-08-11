@@ -31,7 +31,7 @@ class FSR2v2 : ICacheData {
         val updateShader = LazyMap { depthMaskI: Int ->
             val depthMask = "xyzw"[depthMaskI]
             Shader(
-                "reproject", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+                "reproject", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
                 listOf(
                     Variable(GLSLType.V2F, "currJitter"),
                     Variable(GLSLType.V2F, "prevJitter"),

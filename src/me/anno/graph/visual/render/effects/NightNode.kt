@@ -72,7 +72,7 @@ class NightNode : RenderViewNode(
 
     companion object {
         val shader = Shader(
-            "night", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "night", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "skyDarkening"),
                 Variable(GLSLType.V1F, "exposure"),

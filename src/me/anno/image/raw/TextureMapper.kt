@@ -7,7 +7,6 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -28,7 +27,7 @@ object TextureMapper {
 
     private val shaders = LazyMap<String, Shader> { mapping ->
         Shader(
-            "Map<$mapping>", coordsList, coordsUVVertexShader, uvList, listOf(
+            "Map<$mapping>", emptyList(), coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.S2D, "srcTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +

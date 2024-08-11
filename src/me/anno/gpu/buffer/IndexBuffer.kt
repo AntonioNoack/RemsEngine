@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
+import me.anno.utils.assertions.assertEquals
 import org.lwjgl.opengl.GL46C.GL_BUFFER
 import org.lwjgl.opengl.GL46C.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46C.glBufferData
@@ -16,8 +17,14 @@ import org.lwjgl.opengl.GL46C.glGenBuffers
 import org.lwjgl.opengl.GL46C.glObjectLabel
 import org.lwjgl.system.MemoryUtil
 
-class IndexBuffer(name: String, val base: Buffer, var indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
+class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: BufferUsage = BufferUsage.STATIC) :
     OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
+
+    var indices = indices
+        set(value) {
+            field = value
+            isUpToDate = false
+        }
 
     var elementsType = AttributeType.UINT32
     var drawMode: DrawMode? = null
@@ -143,14 +150,18 @@ class IndexBuffer(name: String, val base: Buffer, var indices: IntArray, usage: 
     }
 
     fun drawInstanced(shader: Shader, instanceData: Buffer, drawMode: DrawMode) {
+        ensureBuffer()
+        assertEquals(elementCount, indices.size)
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GFXState.bind()
         glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceData.drawLength)
+        GFX.check()
         unbind()
     }
 
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
+        ensureBuffer()
         bindInstanced(shader, null)
         val drawMode = (drawMode ?: base.drawMode)
         GFXState.bind()
@@ -161,8 +172,9 @@ class IndexBuffer(name: String, val base: Buffer, var indices: IntArray, usage: 
     override fun destroy() {
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer
-        if (buffer >= 0) {
+        if (buffer > 0) {
             GFX.addGPUTask("IndexBuffer.destroy()", 1) {
+                indices = i0
                 elementCount = 0
                 onDestroyBuffer(buffer)
                 glDeleteBuffers(buffer)
@@ -173,6 +185,7 @@ class IndexBuffer(name: String, val base: Buffer, var indices: IntArray, usage: 
     }
 
     companion object {
+        private val i0 = IntArray(0)
         private val int32Attrs = listOf(Attribute("index", AttributeType.UINT32, 1))
         private val int16Attrs = listOf(Attribute("index", AttributeType.UINT16, 1))
     }

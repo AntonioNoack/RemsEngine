@@ -92,7 +92,7 @@ class GlassPass : TransparentPass() {
         val applyShader = LazyMap<Boolean, Shader> { multisampled ->
             val sampleType = if (multisampled) GLSLType.S2DMS else GLSLType.S2D
             Shader(
-                "applyGlass", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+                "applyGlass", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(sampleType, "diffuseSrcTex"),
                     Variable(sampleType, "diffuseGlassTex"),
                     Variable(sampleType, "emissiveGlassTex"),

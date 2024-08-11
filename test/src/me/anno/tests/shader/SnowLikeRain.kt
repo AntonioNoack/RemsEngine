@@ -9,7 +9,6 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -49,7 +48,7 @@ fun main() {
 
         // 2d
         val shader = Shader(
-            "rain", coordsList, coordsUVVertexShader, uvList, listOf(
+            "rain", emptyList(), coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V1F, "time"),
                 Variable(GLSLType.V2F, "uvScale"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)

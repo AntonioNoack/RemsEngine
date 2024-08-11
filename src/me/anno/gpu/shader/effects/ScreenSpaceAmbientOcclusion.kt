@@ -116,7 +116,7 @@ object ScreenSpaceAmbientOcclusion {
         val srcType = if (multisampling) GLSLType.S2DMS else GLSLType.S2D
         Shader(
             if (ssgi) "ssgi" else "ssao",
-            ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+            emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.V1F, "strength"),
                 Variable(GLSLType.V1F, "radiusScale"),
                 Variable(GLSLType.V1I, "numSamples"),
@@ -218,7 +218,7 @@ object ScreenSpaceAmbientOcclusion {
         val ssgi = (it + 1).hasFlag(2)
         Shader(
             if (ssgi) if (blur) "ssgi-blur" else "ssgi-apply"
-            else "ssao-blur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            else "ssao-blur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1B, "inverseResult"),
                 Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),

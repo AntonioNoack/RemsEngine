@@ -1,17 +1,19 @@
 package me.anno.tests.game.flatworld.streets
 
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.geometry.Distances.rayRayClosestTs
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
+import kotlin.math.atan2
 import kotlin.math.max
 
 data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
 
-    var component: MeshComponent? = null
+    var entity: Entity? = null
+    var mesh: Mesh? = null
 
     data class DistanceHit(val distance: Double, val t: Double) : Comparable<DistanceHit> {
         override fun compareTo(other: DistanceHit): Int {
@@ -81,20 +83,6 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return StreetSegment(a, b, c)
     }
 
-    fun splitSegmentLinear(t0: Double, t1: Double): StreetSegment {
-        val a = interpolate(t0)
-        val c = interpolate(t1)
-        return StreetSegment(a, null, c)
-    }
-
-    fun splitSegment(n: Int): List<StreetSegment> {
-        return createArrayList(n) {
-            val t0 = (it) / n.toDouble()
-            val t1 = (it + 1) / n.toDouble()
-            splitSegment(t0, t1)
-        }
-    }
-
     fun interpolate(t: Double): Vector3d {
         return if (b == null) {
             a.lerp(c, t, Vector3d())
@@ -105,6 +93,14 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
             b.mulAdd(2.0 * s * t, ret, ret)
             c.mulAdd(t * t, ret, ret)
             ret
+        }
+    }
+
+    companion object {
+        fun getAngle(v: Vector3d, vi: Vector3d): Double {
+            val dx = vi.x - v.x
+            val dz = vi.z - v.z
+            return atan2(dx, dz)
         }
     }
 }

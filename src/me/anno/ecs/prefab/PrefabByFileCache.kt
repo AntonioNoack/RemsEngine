@@ -9,6 +9,7 @@ import me.anno.ecs.prefab.PrefabCache.getPrefabInstanceAsync
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.saveable.Saveable
 import me.anno.utils.structures.Callback
 import org.apache.logging.log4j.LogManager
@@ -44,6 +45,10 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             return clazz.safeCast(i0)
         }
         ensureClasses()
+        if (ref is InnerTmpPrefabFile) { // avoid the CacheSection, so our values don't get destroyed
+            val safeCast = clazz.safeCast(ref.prefab._sampleInstance)
+            if (safeCast != null) return safeCast
+        }
         val instance = getPrefabInstance(ref, maxPrefabDepth, async)
         val value = getFileEntry(ref, allowDirectories, timeoutMillis, async) { ref1, _ ->
             castInstance(instance, ref1) // may be heavy -> must be cached

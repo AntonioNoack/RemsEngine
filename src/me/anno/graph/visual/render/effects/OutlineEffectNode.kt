@@ -127,7 +127,7 @@ class OutlineEffectNode : RenderViewNode(
         val shader = createList(2) {
             val useMS = it != 0
             val shader = Shader(
-                "outlines", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+                "outlines", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(GLSLType.V1I, "radius"),
                     Variable(GLSLType.V1F, "radSq"),
                     Variable(GLSLType.V1F, "invRadSq"),

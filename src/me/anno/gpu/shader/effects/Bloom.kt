@@ -140,7 +140,7 @@ object Bloom {
             else blur.append("),0).rgb)\n")
         }
         return Shader(
-            "bloom0", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "bloom0", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "offset"),
@@ -181,7 +181,7 @@ object Bloom {
     private val compositionShader = createList(2) {
         val msIn = it > 0
         val shader = Shader(
-            "composeBloom", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "composeBloom", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 Variable(GLSLType.V1B, "applyToneMapping"),

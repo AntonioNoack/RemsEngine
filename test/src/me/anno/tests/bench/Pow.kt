@@ -11,7 +11,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
@@ -23,7 +22,7 @@ import kotlin.math.roundToInt
 fun main() {
 
     fun createShader(code: String) = Shader(
-        "", coordsList, coordsUVVertexShader,
+        "", emptyList(), coordsUVVertexShader,
         uvList, listOf(), "void main(){$code}"
     )
 

@@ -96,7 +96,7 @@ class PixelationNode : RenderViewNode(
 
     companion object {
         val shader = Shader(
-            "pixelation", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "pixelation", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "normalStrength"),
                 Variable(GLSLType.V1F, "normalThreshold"),

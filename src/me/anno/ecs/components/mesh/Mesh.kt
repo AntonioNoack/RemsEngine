@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -50,7 +49,6 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 // open, so you can define your own attributes
 open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
@@ -793,6 +791,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         if (proceduralLength <= 0) {
             GFX.check()
             ensureBuffer()
+            GFX.check()
             // respect the material index: only draw what belongs to the material
             val helperMeshes = helperMeshes
             if (helperMeshes != null) {

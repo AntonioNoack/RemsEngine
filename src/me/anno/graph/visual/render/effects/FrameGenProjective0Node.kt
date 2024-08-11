@@ -117,7 +117,7 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
 
     companion object {
         val loadDepthShader = Shader(
-            "loadDepth", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "loadDepth", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "depthMask"),

@@ -154,7 +154,6 @@ class PathProfile() : Saveable() {
         val right1 = PathProfile(right, null, rightColors, false)
         left1.flatShading = flatShading
         right1.flatShading = flatShading
-        println("split $positions/$isClosed into $left + $right")
         return Pair(left1, right1)
     }
 

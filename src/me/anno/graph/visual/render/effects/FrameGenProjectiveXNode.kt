@@ -79,7 +79,7 @@ class FrameGenProjectiveXNode : FrameGenProjective0Node("FrameGenProjectiveX") {
                     "}\n"
         )
         val fillInGapsShader = Shader(
-            "fillInGaps", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "fillInGaps", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),

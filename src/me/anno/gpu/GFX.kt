@@ -599,9 +599,9 @@ object GFX {
             GL46C.GL_INVALID_ENUM -> "invalid enum"
             GL46C.GL_INVALID_VALUE -> "invalid value"
             GL46C.GL_INVALID_OPERATION -> "invalid operation"
-            GL46C.GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
+            GL46C.GL_STACK_OVERFLOW -> "stack overflow"
             GL46C.GL_STACK_UNDERFLOW -> "stack underflow"
-            GL46C.GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
+            GL46C.GL_OUT_OF_MEMORY -> "out of memory"
             GL46C.GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
             GL46C.GL_CONTEXT_LOST -> "context lost"
             ARBImaging.GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"

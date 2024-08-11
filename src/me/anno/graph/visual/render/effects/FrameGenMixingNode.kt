@@ -78,7 +78,7 @@ class FrameGenMixingNode : FrameGenOutputNode<FrameGenMixingNode.PerViewMixData>
 
     companion object {
         val interpolateShader = Shader(
-            "interpolate", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "interpolate", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "t"),
                 Variable(GLSLType.S2D, "colorTex0"),

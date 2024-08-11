@@ -13,7 +13,6 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -56,7 +55,7 @@ class DepthToNormalNode : TimedRenderingNode(
 
     companion object {
         val shader = Shader(
-            "depthToNormal", coordsList, coordsUVVertexShader, uvList,
+            "depthToNormal", emptyList(), coordsUVVertexShader, uvList,
             listOf(
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "depthMask"),

@@ -46,7 +46,7 @@ object FluidSimulator {
     )
 
     val divergenceShader = Shader(
-        "divergence", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "divergence", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.V2F, "texelSize"),
             Variable(GLSLType.S2D, "velocityTex")
@@ -68,7 +68,7 @@ object FluidSimulator {
     )
 
     val scalingDownProgram = Shader(
-        "scale", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "scale", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.V1F, "scale"),
             Variable(GLSLType.S2D, "pressureTex")
@@ -79,7 +79,7 @@ object FluidSimulator {
     )
 
     val pressureProgram = Shader(
-        "scale", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "scale", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.V2F, "texelSize"),
             Variable(GLSLType.V1F, "pressure"),
@@ -100,7 +100,7 @@ object FluidSimulator {
     )
 
     val findVelocityProgram = Shader(
-        "gradientSub", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "gradientSub", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.V2F, "texelSize"),
             Variable(GLSLType.S2D, "velocityTex"),
@@ -118,7 +118,7 @@ object FluidSimulator {
     )
 
     val fluidMotionProgram = Shader(
-        "advection", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "advection", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.V2F, "texelSize"),
             Variable(GLSLType.V1F, "dt"),
@@ -133,7 +133,7 @@ object FluidSimulator {
     )
 
     val particlesProgram = Shader(
-        "particles", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+        "particles", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "resultPosition", VariableMode.OUT).apply { slot = 0 },
             Variable(GLSLType.V4F, "resultVelocity", VariableMode.OUT).apply { slot = 1 },
             Variable(GLSLType.V4F, "resultRotation", VariableMode.OUT).apply { slot = 2 },

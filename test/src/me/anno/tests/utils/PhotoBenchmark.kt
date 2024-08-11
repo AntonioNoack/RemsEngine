@@ -12,7 +12,6 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -27,7 +26,6 @@ import me.anno.utils.types.Floats.roundToIntOr
 import org.joml.Vector2f
 import kotlin.math.exp
 import kotlin.math.ln
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 fun main() {
@@ -54,11 +52,7 @@ fun main() {
     }
 
     val differenceShader = Shader(
-        "difference",
-        coordsList,
-        coordsUVVertexShader,
-        uvList,
-        listOf(
+        "difference", emptyList(), coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex0"),
             Variable(GLSLType.S2D, "tex1"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -116,5 +110,4 @@ fun main() {
     )
 
     Engine.requestShutdown()
-
 }

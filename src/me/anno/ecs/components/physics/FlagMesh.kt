@@ -211,7 +211,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
         }
 
         val updateShader = Shader(
-            "clothSim", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+            "clothSim", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.V1F, "dt0"),
                 Variable(GLSLType.V1F, "dt1"),
                 Variable(GLSLType.V1F, "maxLen"),

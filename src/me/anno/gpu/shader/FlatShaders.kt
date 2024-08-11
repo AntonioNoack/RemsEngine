@@ -14,7 +14,7 @@ import kotlin.math.PI
 object FlatShaders {
 
     val copyShader = Shader(
-        "copy", coordsList, coordsUVVertexShader, uvList, listOf(
+        "copy", emptyList(), coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -22,7 +22,7 @@ object FlatShaders {
     ).apply { ignoreNameWarnings("samples,posSize") }
 
     val copyShaderMS = Shader(
-        "copyMS", coordsList, coordsUVVertexShader, uvList, listOf(
+        "copyMS", emptyList(), coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2DMS, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V1I, "samples"),
@@ -42,7 +42,7 @@ object FlatShaders {
         val colorMS = it.hasFlag(2)
         val depthMS = it.hasFlag(1)
         Shader(
-            "copyMSAnyToAny/${it.toString(2)}", coordsList, coordsUVVertexShader, uvList, listOf(
+            "copyMSAnyToAny/${it.toString(2)}", emptyList(), coordsUVVertexShader, uvList, listOf(
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
                 Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1B, "monochrome"),

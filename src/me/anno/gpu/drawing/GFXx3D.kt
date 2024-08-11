@@ -50,7 +50,7 @@ object GFXx3D {
     )
 
     val shader3DBoxBlur = Shader(
-        "3d-blur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+        "3d-blur", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V2F, "stepSize"),

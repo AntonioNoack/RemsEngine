@@ -37,12 +37,22 @@ object Triangulation {
     @JvmStatic
     @Suppress("unused")
     fun ringToTrianglesVec2d(points: List<Vector2d>): List<Vector2d> {
-        return ringToTrianglesVec2f(points.map { Vector2f(it) }).map { Vector2d(it) }
+        val map = HashMap<Vector2f, Vector2d>()
+        return ringToTrianglesVec2f(points.map {
+            val newVec = Vector2f(it)
+            map[newVec] = it
+            newVec
+        }).map { map[it]!! }
     }
 
     @JvmStatic
     fun ringToTrianglesVec3f(points: List<Vector3f>): List<Vector3f> {
-        return ringToTrianglesVec3d(points.map { Vector3d(it) }).map { Vector3f(it) }
+        val map = HashMap<Vector3d, Vector3f>()
+        return ringToTrianglesVec3d(points.map {
+            val newVec = Vector3d(it)
+            map[newVec] = it
+            newVec
+        }).map { map[it]!! }
     }
 
     @JvmStatic

@@ -46,7 +46,7 @@ class ToneMappingNode : TimedRenderingNode(
 
     companion object {
         val shader = Shader(
-            "tonemapping", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "tonemapping", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "exposure"),
                 Variable(GLSLType.S2D, "source"),

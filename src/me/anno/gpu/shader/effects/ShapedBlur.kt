@@ -126,7 +126,7 @@ object ShapedBlur {
                     "}\n"
         )
         return Shader(
-            "filter", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "filter", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1I, "uPass"),
                 Variable(GLSLType.V2F, "duv"),

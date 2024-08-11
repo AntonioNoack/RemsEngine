@@ -36,7 +36,7 @@ class DepthTestNode : ActionNode(
 
     companion object {
         val shader = Shader(
-            "dof", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "dof", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3F, "cameraPosition"),

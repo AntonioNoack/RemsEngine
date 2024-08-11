@@ -78,7 +78,7 @@ class GodRaysNode : TimedRenderingNode(
 
     companion object {
         val shader = Shader(
-            "god-rays", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "god-rays", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "lightPos"),
                 Variable(GLSLType.V3F, "falloff"),

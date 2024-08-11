@@ -65,7 +65,7 @@ class FrameGenPredictiveNode : FrameGenOutputNode<FrameGenPredictiveNode.PerView
 
     companion object {
         val predictiveShader = Shader(
-            "predictive", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "predictive", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "duvScale"),
                 Variable(GLSLType.S2D, "colorTex"),

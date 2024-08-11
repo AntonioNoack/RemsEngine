@@ -128,7 +128,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                 "}"
 
         val cocShader = Shader(
-            "coc", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "coc", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
                 Variable(GLSLType.V1F, "focusPointInv"),
@@ -147,7 +147,7 @@ class DepthOfFieldNode : TimedRenderingNode(
         ).apply { ignoreNameWarnings("d_camRot") }
 
         val dofShader = Shader(
-            "dof", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "dof", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
                 Variable(GLSLType.V1F, "focusPointInv"),

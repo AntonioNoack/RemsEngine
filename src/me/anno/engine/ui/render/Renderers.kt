@@ -443,7 +443,7 @@ object Renderers {
             if (layer != null) {
                 val type2 = GLSLType.floats[type.workDims - 1].glslName
                 Shader(
-                    type.name, coordsList, coordsUVVertexShader, uvList, listOf(
+                    type.name, emptyList(), coordsUVVertexShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
                     ) + depthVars, "" +

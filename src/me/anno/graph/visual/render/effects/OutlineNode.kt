@@ -96,7 +96,7 @@ class OutlineNode : TimedRenderingNode(
 
     companion object {
         val shader = Shader(
-            "outline", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "outline", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "duv"),
                 Variable(GLSLType.V2F, "strength"),

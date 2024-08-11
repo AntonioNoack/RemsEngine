@@ -108,7 +108,7 @@ class HeightExpFogNode : RenderViewNode(
 
     companion object {
         val shader = Shader(
-            "height+exp-fog", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "height+exp-fog", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "fogStrength"),
                 Variable(GLSLType.V1F, "fogSharpness"),

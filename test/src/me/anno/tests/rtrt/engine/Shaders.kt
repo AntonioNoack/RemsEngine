@@ -4,7 +4,6 @@ import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -178,7 +177,7 @@ fun createBLASTextureGraphicsShader(bvh: BLASNode): Shader {
     val maxBLASDepth = bvh.maxDepth()
 
     return Shader(
-        "bvh-traversal", coordsList, coordsUVVertexShader, uvList,
+        "bvh-traversal", emptyList(), coordsUVVertexShader, uvList,
         listOf(
             Variable(GLSLType.V4F, "dst", VariableMode.OUT),
             Variable(GLSLType.S2D, "triangles"),
@@ -212,7 +211,7 @@ fun createTLASTextureGraphicsShader(bvh: TLASNode): Pair<Shader, List<BLASNode>>
 
     val lib = TextureRTShaderLib()
     return Shader(
-        "bvh-traversal", coordsList, coordsUVVertexShader, uvList, commonUniforms + listOf(
+        "bvh-traversal", emptyList(), coordsUVVertexShader, uvList, commonUniforms + listOf(
             Variable(GLSLType.S2D, "triangles"),
             Variable(GLSLType.S2D, "blasNodes"),
             Variable(GLSLType.S2D, "tlasNodes"),

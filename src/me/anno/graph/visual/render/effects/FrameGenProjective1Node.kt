@@ -30,7 +30,7 @@ class FrameGenProjective1Node : FrameGenProjective0Node("FrameGenProjective1") {
 
     companion object {
         val predictiveShader = Shader(
-            "projective1", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+            "projective1", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.M4x4, "cameraMatrixI"),

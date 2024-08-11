@@ -379,7 +379,7 @@ fun createCPUPanel(
 }
 
 val drawShader = Shader(
-    "draw", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
+    "draw", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
         Variable(GLSLType.V1B, "enableToneMapping"),
         Variable(GLSLType.V1F, "brightness"),
         Variable(GLSLType.S2D, "tex"),

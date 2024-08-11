@@ -64,7 +64,7 @@ object ScreenSpaceReflections {
             else "result = vec4(0.0);\nreturn;\n"
 
         return Shader(
-            "ss-reflections", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, variables, "" +
+            "ss-reflections", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, variables, "" +
 
                     functions.joinToString("\n") +
 

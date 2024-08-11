@@ -3,7 +3,6 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -26,7 +25,7 @@ object FXAA {
     // not ideal, but still ok most times
 
     val shader = Shader(
-        "FXAA", coordsList, coordsUVVertexShader, uvList, listOf(
+        "FXAA", emptyList(), coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
             Variable(GLSLType.S2D, "colorTex"),
             Variable(GLSLType.V1B, "showEdges"),

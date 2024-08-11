@@ -70,7 +70,7 @@ class AnimeOutlineNode : RenderViewNode(
 
     companion object {
         val shader = Shader(
-            "anime-outlines", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "anime-outlines", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "maxDarkness"),
                 Variable(GLSLType.V1F, "sensitivity"),

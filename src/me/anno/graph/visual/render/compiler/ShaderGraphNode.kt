@@ -9,15 +9,14 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType.Companion.UInt8xI
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.graph.visual.FlowGraph
+import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
 import me.anno.graph.visual.actions.ActionNode
-import me.anno.graph.visual.ReturnNode
-import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.node.NodeLibrary
 import me.anno.graph.visual.render.DiscardNode
 import me.anno.graph.visual.render.scene.UVNode
@@ -167,7 +166,7 @@ class ShaderGraphNode : ActionNode(
                 val fragmentVariables = typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables +
                         listOf(Variable(GLSLType.V4F, "result1", VariableMode.OUT))
                 shader = Shader(
-                    name, coordsList, coordsUVVertexShader, uvList,
+                    name, emptyList(), coordsUVVertexShader, uvList,
                     fragmentVariables,
                     extraFunctions.toString() +
                             locals + body +

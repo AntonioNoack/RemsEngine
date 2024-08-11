@@ -68,7 +68,7 @@ class VignetteNode : TimedRenderingNode(
 
     companion object {
         private val shader = Shader(
-            "vignette", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
+            "vignette", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V4F, "color"),
                 Variable(GLSLType.V2F, "scale"),

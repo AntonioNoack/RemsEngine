@@ -9,10 +9,13 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
+import me.anno.maths.Maths.sq
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.StreetSegment
-import me.anno.tests.game.flatworld.streets.StreetSegmentMeshes
+import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
+import me.anno.tests.gmaps.pos
 import org.joml.Vector3d
+import kotlin.math.max
 
 class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingControls(rv) {
 
@@ -64,7 +67,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     }
 
     fun buildMesh() {
-        StreetSegmentMeshes.buildMesh(getCurrentSegment(), previewMesh)
+        StreetMeshBuilder.buildMesh(getCurrentSegment(), previewMesh)
     }
 
 
@@ -83,9 +86,20 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         return if (Raycast.raycastClosestHit(world.terrain, query)) {
             // todo if anchor already exists within 10px radius, use that
             val position = query.result.positionWS
-            val anchor0 = anchor0 // todo use px instead of meters
-            if (!snap && anchor0 != null && position.distance(anchor0) < 1.0) { // middle
+            val hitDistance = query.result.distance
+            val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
+            val anchor0 = anchor0
+            // todo snap to tangent, if present
+            if (!snap && anchor0 != null && position.distance(anchor0) < tolerance10px) { // middle
                 position.set(anchor0)
+            }
+            if (snap) {
+                val bestPosition = world.streetSegments
+                    .flatMap { listOf(it.a, it.c) }
+                    .minByOrNull { it.distanceSquared(position) }
+                if (bestPosition != null && bestPosition.distanceSquared(position) < sq(tolerance10px)) {
+                    position.set(bestPosition)
+                }
             }
             position
         } else null
@@ -119,9 +133,9 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
             StreetPlacingStage.DRAGGING_3 -> {
 
                 // officially add street to world
-                // todo find intersections, and create them visually
                 val segment = getCurrentSegment()
                 world.addStreetSegment(segment)
+                world.validateIntersections()
 
                 // or shall we continue in straight stage? probably better :)
                 // todo keep tangent stable...

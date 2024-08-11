@@ -54,11 +54,17 @@ object ShaderLib {
 
     const val coordsVertexShader = "" +
             "void main(){\n" +
+            "   vec2 coords = vec2(\n" +
+            "       gl_VertexID == 1 ? 2.0 : 0.0,\n" +
+            "       gl_VertexID == 2 ? 2.0 : 0.0);\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "}"
 
     const val coordsUVVertexShader = "" +
             "void main(){\n" +
+            "   vec2 coords = vec2(\n" +
+            "       gl_VertexID == 1 ? 2.0 : 0.0,\n" +
+            "       gl_VertexID == 2 ? 2.0 : 0.0);\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "   uv = coords;\n" +
             "}"

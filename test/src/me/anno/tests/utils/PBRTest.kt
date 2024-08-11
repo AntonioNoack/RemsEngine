@@ -13,7 +13,6 @@ import me.anno.jvm.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -26,7 +25,7 @@ import kotlin.random.Random
 // fixed it :)
 
 private val testShader = Shader(
-    "brdf-baseline", coordsList, coordsUVVertexShader, uvList,
+    "brdf-baseline", emptyList(), coordsUVVertexShader, uvList,
     listOf(
         Variable(GLSLType.S2D, "randomTex"),
         Variable(GLSLType.V4F, "result", VariableMode.OUT)
