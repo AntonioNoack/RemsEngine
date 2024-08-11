@@ -88,7 +88,7 @@ import me.anno.utils.Color.r01
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.utils.types.Triangles.getBarycentrics
@@ -374,7 +374,7 @@ fun bakeIllumination0(component: MeshComponent, dst: RaytracingInput, resolution
     val b = Vector2f()
     val c = Vector2f()
 
-    val materials = createArrayList(mesh.numMaterials) {
+    val materials = createList(mesh.numMaterials) {
         val src = Pipeline.getMaterial(component.materials, mesh.materials, it)
         SimpleMaterial(
             ImageCache[src.diffuseMap, false] ?: whiteImage, Vector3f(src.diffuseBase),

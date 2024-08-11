@@ -1,7 +1,7 @@
 package org.hsluv
 
 import me.anno.utils.hpc.threadLocal
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2d
@@ -49,7 +49,7 @@ object HSLuvColorSpace {
     private const val kappa = 903.2962962
     private const val epsilon = 0.0088564516
 
-    private val threadLocalBounds = threadLocal { createArrayList(6) { Vector2d() } }
+    private val threadLocalBounds = threadLocal { createList(6) { Vector2d() } }
 
     private fun getBounds(l: Double, limit: Int): List<Vector2d> {
 

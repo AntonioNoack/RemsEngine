@@ -16,7 +16,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.ui.base.menu.Menu
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.flagDifference
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.GLFW_HAT_DOWN
@@ -169,7 +169,7 @@ class GLFWController(private val glfwId: Int) : Controller(MAX_NUM_BUTTONS, MAX_
         const val MAX_NUM_BUTTONS = 128
         const val MAX_NUM_AXES = 8
 
-        val glfwControllers = createArrayList(15) {
+        val glfwControllers = createList(15) {
             GLFWController(GLFW_JOYSTICK_1 + it)
         }
 

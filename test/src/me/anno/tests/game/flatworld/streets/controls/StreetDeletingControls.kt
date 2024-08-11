@@ -46,7 +46,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
         for (segment in world.streetSegments) {
             val streetThickness = 4.8 // todo depends on street profile/type
-            val segmentLength = segment.roughLength
+            val segmentLength = segment.length
             val hit = segment.distanceToRay(pos, dir)
             if (hit.distance < max(streetThickness * 0.5, tolerance10px)) {
                 val margin = max(5.0 * tolerance10px, 1.0) / segmentLength

@@ -1,7 +1,6 @@
 package me.anno.lua
 
 import me.anno.lua.ScriptComponent.Companion.toLua
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.LuaDouble
@@ -9,7 +8,6 @@ import org.luaj.vm2.LuaInteger
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
-import java.lang.Exception
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType

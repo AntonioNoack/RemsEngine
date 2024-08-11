@@ -15,7 +15,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
@@ -203,7 +203,7 @@ object ScreenSpaceReflections {
         )
     }
 
-    val shader = createArrayList(2) { createShader(it > 0) }
+    val shader = createList(2) { createShader(it > 0) }
 
     /**
      * computes screen space reflections from metallic, roughness, normal, position and color buffers

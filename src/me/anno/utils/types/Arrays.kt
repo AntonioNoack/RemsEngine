@@ -1,7 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.utils.assertions.assertTrue
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 
 object Arrays {
 
@@ -27,13 +27,13 @@ object Arrays {
 
     @JvmStatic
     fun <V> ArrayList<V>.rotateRight(shift: Int) {
-        val wrapAround = createArrayList(shift) { this[size - shift + it] }
+        val wrapAround = createList(shift) { this[size - shift + it] }
         copyInto(this, shift, 0, size - shift)
         wrapAround.copyInto(this)
     }
 
     @JvmStatic
-    fun <V> ArrayList<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI: Int, srcEndI: Int) {
+    fun <V> List<V>.copyInto(dst: MutableList<V>, dstI0: Int, srcI: Int, srcEndI: Int) {
         assertTrue(this !== dst)
         var dstI = dstI0
         for (i in srcI until srcEndI) {
@@ -42,7 +42,7 @@ object Arrays {
     }
 
     @JvmStatic
-    fun <V> ArrayList<V>.copyInto(dst: MutableList<V>) {
+    fun <V> List<V>.copyInto(dst: MutableList<V>) {
         copyInto(dst, 0, 0, size)
     }
 
@@ -64,5 +64,4 @@ object Arrays {
         }
         return -1
     }
-
 }

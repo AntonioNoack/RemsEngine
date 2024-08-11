@@ -4,7 +4,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -206,7 +206,6 @@ object MarchingCubes {
             }
 
             edges.clear()
-
         }
     }
 
@@ -267,7 +266,7 @@ object MarchingCubes {
 
         // there is at max 1 point per edge & they will always be on edges
 
-        val edges = createArrayList(12) { Vector3f() }
+        val edges = createList(12) { Vector3f() }
 
         val invX = 1f / (w - 1f)
         val invY = 1f / (h - 1f)
@@ -337,7 +336,6 @@ object MarchingCubes {
                             }
                             callback(edges[i0], edges[i1], edges[i2])
                         }
-
                     }
                     v0 = v3
                     v4 = v7
@@ -348,5 +346,4 @@ object MarchingCubes {
             }
         }
     }
-
 }

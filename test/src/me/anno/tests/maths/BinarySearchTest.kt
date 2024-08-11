@@ -1,7 +1,7 @@
 package me.anno.tests.maths
 
 import me.anno.utils.search.BinarySearch.binarySearch
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -10,7 +10,7 @@ class BinarySearchTest {
 
     @Test
     fun testExistingElements() {
-        val list = createArrayList(64) { it }
+        val list = createList(64) { it }
         for (i in list.indices) {
             assertEquals(i, binarySearch(0, list.size) { list[it].compareTo(i) })
         }
@@ -29,7 +29,7 @@ class BinarySearchTest {
 
     @Test
     fun testDifferentSearchAreas() {
-        val list = createArrayList(64) { it }
+        val list = createList(64) { it }
         for (i in list.indices) {
             assertEquals(i, binarySearch(i / 2, i + 1) { list[it].compareTo(i) })
         }

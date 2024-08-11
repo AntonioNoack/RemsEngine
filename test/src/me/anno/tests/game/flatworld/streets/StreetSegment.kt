@@ -5,12 +5,12 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.geometry.Distances.rayRayClosestTs
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.joml.Vector3d
 import kotlin.math.max
 
 data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
 
-    val roughLength = if (b == null) a.distance(c) else a.distance(b) + b.distance(c)
     var component: MeshComponent? = null
 
     data class DistanceHit(val distance: Double, val t: Double) : Comparable<DistanceHit> {
@@ -28,18 +28,37 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         }
         // if is too curvy, just split this in half, and try again
         // this could be solved better, I think...
-        val angleRadians = b.sub(a, Vector3d()).angle(c.sub(b, Vector3d()))
-        val numSplits = (angleRadians * 4.0).toInt()
+        val splits = splits
+        val numSplits = splits.size - 1
         return if (numSplits < 2) {
             distanceToRay(pos, dir, a, c)
         } else {
-            createArrayList(numSplits) {
+            createList(numSplits) {
                 val t0 = (it) / numSplits.toDouble()
                 val t1 = (it + 1) / numSplits.toDouble()
-                val subSegment = splitSegment(t0, t1)
-                val hit = distanceToRay(pos, dir, subSegment.a, subSegment.c)
+                val hit = distanceToRay(pos, dir, splits[it], splits[it + 1])
                 DistanceHit(hit.distance, mix(t0, t1, hit.t))
             }.min()
+        }
+    }
+
+    @Suppress("IfThenToElvis")
+    val angleRadians = if (b != null) {
+        b.sub(a, Vector3d()).angle(c.sub(b, Vector3d()))
+    } else 0.0
+
+    val splits by lazy {
+        if (b != null) {
+            val numSplits = (angleRadians * 4.0).toInt()
+            createList(numSplits + 1) {
+                interpolate(it / numSplits.toDouble())
+            }
+        } else listOf(a, c)
+    }
+
+    val length by lazy { // just an estimate...
+        (1 until splits.size).sumOf {
+            splits[it - 1].distance(splits[it])
         }
     }
 
@@ -50,7 +69,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return DistanceHit(closest0.distance(closest1), ts.y)
     }
 
-    fun extrude(a: Vector3d, b: Vector3d, c: Vector3d) {
+    fun extrudeVector(a: Vector3d, b: Vector3d, c: Vector3d) {
         b.mul(4.0).sub(a).sub(c).mul(0.5)
     }
 
@@ -58,8 +77,14 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         val a = interpolate(t0)
         val b = interpolate((t0 + t1) * 0.5)
         val c = interpolate(t1)
-        extrude(a, b, c)
+        extrudeVector(a, b, c)
         return StreetSegment(a, b, c)
+    }
+
+    fun splitSegmentLinear(t0: Double, t1: Double): StreetSegment {
+        val a = interpolate(t0)
+        val c = interpolate(t1)
+        return StreetSegment(a, null, c)
     }
 
     fun splitSegment(n: Int): List<StreetSegment> {
@@ -74,9 +99,12 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return if (b == null) {
             a.lerp(c, t, Vector3d())
         } else {
-            val ab = a.lerp(b, t, Vector3d())
-            val bc = b.lerp(c, t, Vector3d())
-            ab.lerp(bc, t)
+            val s = 1.0 - t
+            val ret = Vector3d()
+            a.mul(s * s, ret)
+            b.mulAdd(2.0 * s * t, ret, ret)
+            c.mulAdd(t * t, ret, ret)
+            ret
         }
     }
 }

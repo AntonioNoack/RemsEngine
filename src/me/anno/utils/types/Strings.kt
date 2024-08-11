@@ -11,7 +11,7 @@ import me.anno.maths.Maths.fract
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.ExpensiveList
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Ints.toIntOrDefault
 import kotlin.math.abs
@@ -84,7 +84,7 @@ object Strings {
     @JvmStatic
     fun getIndexFromText(characters: IntArrayList, localX: Float, font: Font): Int {
         val chars = characters.toList()
-        val list = ExpensiveList(characters.size + 1) {
+        val list = LazyList(characters.size + 1) {
             getLineWidth(chars, it, font)
         }
         var index = list.binarySearch { it.compareTo(localX) }
@@ -102,7 +102,7 @@ object Strings {
 
     @JvmStatic
     fun getIndexFromText(characters: List<Int>, localX: Float, font: Font): Int {
-        val list = ExpensiveList(characters.size + 1) {
+        val list = LazyList(characters.size + 1) {
             getLineWidth(characters, it, font)
         }
         var index = list.binarySearch { it.compareTo(localX) }

@@ -13,7 +13,7 @@ import me.anno.openxr.OpenXRUtils.longPtr
 import me.anno.openxr.OpenXRUtils.ptr
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.NativeStringPointers.buffer
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_BOOLEAN_INPUT
 import org.lwjgl.openxr.XR10.XR_ACTION_TYPE_FLOAT_INPUT
@@ -128,7 +128,7 @@ class OpenXRActions(val instance: XrInstance, val session: XrSession, identityPo
 
     val actionSet = createActionSet()
     val handPoseAction = createAction(handPaths, "hand_pose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT)
-    val handPoseSpaces = createArrayList(2) { hand ->
+    val handPoseSpaces = createList(2) { hand ->
         val actionSpaceInfo = tmpActionSpaceCreateInfo
             .type(XR_TYPE_ACTION_SPACE_CREATE_INFO).next(0)
             .action(handPoseAction)

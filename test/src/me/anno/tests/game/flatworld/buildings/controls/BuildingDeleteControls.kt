@@ -12,6 +12,7 @@ import me.anno.input.Key
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.buildings.BuildingInstance
 import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
+import me.anno.utils.types.Floats.toRadians
 
 class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {
 
@@ -31,7 +32,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
             transform.localTransform
                 .identity()
                 .translate(instance.position)
-                .rotateY(instance.rotation)
+                .rotateY(instance.rotationYDegrees.toRadians())
                 .scale(1.01)
         )
         transform.teleportUpdate()

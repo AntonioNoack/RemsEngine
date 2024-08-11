@@ -6,6 +6,7 @@ import me.anno.maths.noise.FullNoise
 import me.anno.tests.LOGGER
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import org.junit.jupiter.api.Test
 import kotlin.math.min
 import kotlin.test.assertEquals
@@ -30,7 +31,7 @@ class FullNoiseTest {
         val noise = FullNoise(1234)
         val sy = 5
         val sx = 6
-        val grid = createArrayList(sx + 1) { x ->
+        val grid = createList(sx + 1) { x ->
             FloatArray(sy + 1) { y ->
                 noise[x, y]
             }

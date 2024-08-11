@@ -9,7 +9,6 @@ import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
 import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.Stack
-import me.anno.utils.structures.lists.Lists.createArrayList
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData

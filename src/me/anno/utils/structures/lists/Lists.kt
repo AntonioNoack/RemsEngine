@@ -405,6 +405,11 @@ object Lists {
         return result
     }
 
+    @JvmStatic
+    fun <V> createList(size: Int, createElement: (index: Int) -> V): List<V> {
+        return createArrayList(size, createElement)
+    }
+
     /**
      * creates an ArrayList with size elements all repeated
      * */

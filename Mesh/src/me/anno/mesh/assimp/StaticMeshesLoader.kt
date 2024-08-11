@@ -21,7 +21,7 @@ import me.anno.maths.EquationSolver.solveQuadratic
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Strings.distance
 import me.anno.utils.types.Strings.isBlank2
@@ -293,7 +293,7 @@ object StaticMeshesLoader {
             null
         }
         val textureLookup = createTextureLookup(missingFilesLookup)
-        return createArrayList(numMaterials) {
+        return createList(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
             processMaterialPrefab(
                 aiScene, aiMaterial, loadedTextures, texturesDir,

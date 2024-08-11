@@ -1,7 +1,7 @@
 package me.anno.tests.structures
 
 import me.anno.utils.structures.heap.MinHeap
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.smallestKElements
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -24,12 +24,12 @@ class HeapTest {
             minHeap.add(v)
         }
 
-        val sorted = createArrayList(minHeap.size) {
+        val sorted = createList(minHeap.size) {
             assertFalse(minHeap.isEmpty())
             minHeap.extract()
         }
         assertTrue(minHeap.isEmpty())
-        assertEquals(sorted.toList(), listOf(3, 5, 6, 9, 10, 17, 19, 22, 84))
+        assertEquals(sorted, listOf(3, 5, 6, 9, 10, 17, 19, 22, 84))
     }
 
     @Test

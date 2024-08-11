@@ -22,8 +22,8 @@ import me.anno.jvm.images.BIImage.createFromBufferedImage
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.Callback
-import me.anno.utils.structures.lists.ExpensiveList
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.LazyList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
@@ -38,7 +38,6 @@ import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class AWTFont(
     val font: me.anno.fonts.Font, // used in Rem's Studio -> don't make it private
@@ -315,7 +314,7 @@ class AWTFont(
         return if (firstSplitIndex == lastSplitIndex) firstSplitIndex else {
 
             // calculation is expensive
-            val listOfWidths = ExpensiveList(lastSplitIndex - firstSplitIndex) {
+            val listOfWidths = LazyList(lastSplitIndex - firstSplitIndex) {
                 val splitIndex = firstSplitIndex + it
                 val substring2 = chars.joinChars(index0, splitIndex)
                 val advance2 = TextLayout(substring2.toString(), awtFont, renderContext).advance
@@ -555,7 +554,7 @@ class AWTFont(
         private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
         private fun createGroup(font: me.anno.fonts.Font, text: CharSequence): TextGroup = TextGroup(font, text, 0.0)
 
-        private val asciiStrings = createArrayList(128) { it.toChar().toString() }
+        private val asciiStrings = createList(128) { it.toChar().toString() }
 
         private val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' '.code),

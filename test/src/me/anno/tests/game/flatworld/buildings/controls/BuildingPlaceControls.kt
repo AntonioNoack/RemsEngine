@@ -22,7 +22,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
     // todo registry of types
     // todo UI to choose type
     val type = BuildingType(flatCube.scaled(10f).front)
-    var rotationY = 0.0 // todo wheel/buttons to define that
+    var rotationYDegrees = 0.0
 
     override fun onUpdate() {
         super.onUpdate()
@@ -49,7 +49,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
         transform.setLocal(
             transform.localTransform.identity()
                 .translate(query.result.positionWS)
-                .rotateY(rotationY)
+                .rotateY(rotationYDegrees.toRadians())
         )
         transform.teleportUpdate()
 
@@ -76,12 +76,20 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (Input.isShiftDown) {
-            rotationY += ((dx + dy) * 5.0).toRadians()
+            rotationYDegrees += (dx + dy) * 5.0
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
+        when(key){
+            Key.KEY_PERIOD -> rotationYDegrees += 5.0
+            Key.KEY_COMMA -> rotationYDegrees -= 5.0
+         else -> super.onKeyTyped(x, y, key)
+        }
+    }
+
     fun placeBuilding() {
-        val instance = BuildingInstance(type, Vector3d(transform.localPosition), rotationY)
+        val instance = BuildingInstance(type, Vector3d(transform.localPosition), rotationYDegrees)
         val transform = Entity(world.buildings)
             .add(MeshComponent(type.mesh))
             .add(instance)

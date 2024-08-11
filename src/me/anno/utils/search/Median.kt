@@ -1,10 +1,7 @@
 package me.anno.utils.search
 
 import me.anno.maths.Maths
-import me.anno.utils.hpc.WorkSplitter
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.partition1
-import kotlin.math.sqrt
 
 /**
  * This class finds the k-th element, or the median,

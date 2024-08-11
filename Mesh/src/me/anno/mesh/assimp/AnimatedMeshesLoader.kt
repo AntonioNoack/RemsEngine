@@ -32,7 +32,7 @@ import me.anno.mesh.fbx.FBX6000
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.structures.lists.Lists.createArrayList
+import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix3f
@@ -41,7 +41,6 @@ import org.joml.Matrix4x3f
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.PointerBuffer
 import org.lwjgl.assimp.AIAnimMesh
 import org.lwjgl.assimp.AIAnimation
 import org.lwjgl.assimp.AIBone
@@ -458,7 +457,7 @@ object AnimatedMeshesLoader {
         val numMeshes = aiScene.mNumMeshes()
         return if (numMeshes > 0) {
             val aiMeshes = aiScene.mMeshes()!!
-            createArrayList(numMeshes) {
+            createList(numMeshes) {
                 createMeshPrefab(AIMesh.create(aiMeshes[it]), materials, boneList, boneMap)
             }
         } else emptyList()
@@ -566,8 +565,8 @@ object AnimatedMeshesLoader {
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ): List<List<Matrix4x3f>> {
-        return createArrayList(numFrames) { frameIndex ->
-            val animatedFrame = createArrayList(boneMap.size) { Matrix4x3f() }
+        return createList(numFrames) { frameIndex ->
+            val animatedFrame = createList(boneMap.size) { Matrix4x3f() }
             loadAnimationFrame(
                 aiScene, rootNode, frameIndex * timeScale, animatedFrame,
                 globalTransform, globalInverseTransform, boneMap, animNodeCache
