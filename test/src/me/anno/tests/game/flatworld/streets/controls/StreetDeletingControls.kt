@@ -78,6 +78,7 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         }
     }
 
+    // todo highlight end-caps/crossings, if they're selected
     val selected = ArrayList<ToBeDeleted>()
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {

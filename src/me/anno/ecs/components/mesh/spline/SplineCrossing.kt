@@ -73,26 +73,8 @@ class SplineCrossing : ProceduralMesh() {
                 lastWarning = null
                 createEndPiece(streets.first(), useRight, pointsPerRadiant, mesh)
             }
-            2 -> generateMesh2(mesh, streets)
             else -> generateMeshN(mesh, streets)
         }
-    }
-
-    private fun generateMesh2(mesh: Mesh, streets0: List<SplineControlPoint>) {
-        // just connect them normally
-        lastWarning = null
-        val profile = streets0.first().profile
-        val p0 = streets0[0]
-        val p1 = streets0[1]
-        generateSplineMesh(
-            mesh, profile, false, false, false, false,
-            listOf(
-                p0.getLocalPosition(Vector3d(), -1.0),
-                p0.getLocalPosition(Vector3d(), +1.0),
-                p1.getLocalPosition(Vector3d(), +1.0),
-                p1.getLocalPosition(Vector3d(), -1.0),
-            )
-        )
     }
 
     private fun generateMeshN(mesh: Mesh, streets0: List<SplineControlPoint>) {

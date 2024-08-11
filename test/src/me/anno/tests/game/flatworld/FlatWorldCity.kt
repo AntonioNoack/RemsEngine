@@ -31,14 +31,27 @@ fun main() {
     // todo 1. grid-less street building like in Cities Skylines / Workers & Resources
     // done 1b. delete street segments
     // todo 2. place buildings
-    // todo 2b. delete buildings
+    // done 2b. delete buildings
     // todo 3. terrain
     //  - streets -> they flatten the terrain until we just can project streets onto them
     //  - buildings
     // todo 4. traffic
     // todo 5. economy simulation?
+    //  - resources
+    //  - resource storage
+    //  - resource transport
     //  - producers
     //  - consumers
+    //  - money
+    // todo 6. serialization
+    //  - streets
+    //  - buildings
+    //  - more stuff?
+    // todo 7. sounds
+    //  - traffic
+    //  - ambient
+    //  - people
+    //  - factories
 
 
     // the first step is street building, so let's do that:
@@ -48,10 +61,10 @@ fun main() {
     //  dragging = show whether curved street can be placed like that
     //  3. click = place curved street; or if too close to 2nd click, a straight street
     // escape = cancel
-    // todo when building a street, it gets split into many smaller pieces, for potential deletion
-    // todo when two streets are crossing over each other, place an anchor at their center, so they form an intersection
+    // done differently: when building a street, it gets split into many smaller pieces, for potential deletion
+    // done when two streets are crossing over each other, place an anchor at their center, so they form an intersection
     // todo refuse street building, when two are too close
-    // todo build crossing mesh
+    // done build crossing mesh
 
     val world = FlatWorld()
 

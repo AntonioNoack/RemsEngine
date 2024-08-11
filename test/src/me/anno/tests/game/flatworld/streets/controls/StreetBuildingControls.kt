@@ -3,6 +3,8 @@ package me.anno.tests.game.flatworld.streets.controls
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.debug.DebugPoint
+import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
@@ -11,9 +13,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
 import me.anno.maths.Maths.sq
 import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.streets.StreetSegment
 import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
-import me.anno.tests.gmaps.pos
+import me.anno.tests.game.flatworld.streets.StreetSegment
+import me.anno.ui.UIColors
+import org.joml.Vector2d
 import org.joml.Vector3d
 import kotlin.math.max
 
@@ -44,15 +47,20 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     override fun onUpdate() {
         super.onUpdate()
         when (stage) {
-            StreetPlacingStage.EXPLORING -> {}
+            StreetPlacingStage.EXPLORING -> {
+                anchor0 = getAnchorAt(0)
+                if (anchor0 != null) {
+                    buildMesh()
+                }
+            }
             StreetPlacingStage.DRAGGING_2 -> {
-                anchor1 = getAnchorAt(false)
+                anchor1 = getAnchorAt(1)
                 if (anchor1 != null) {
                     buildMesh()
                 }
             }
             StreetPlacingStage.DRAGGING_3 -> {
-                anchor2 = getAnchorAt(true)
+                anchor2 = getAnchorAt(2)
                 buildMesh()
             }
         }
@@ -67,7 +75,18 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     }
 
     fun buildMesh() {
-        StreetMeshBuilder.buildMesh(getCurrentSegment(), previewMesh)
+        if (anchor1 == null) {
+            // todo add a circular piece...
+            DebugShapes.debugPoints.add(
+                DebugPoint(
+                    Vector3d(anchor0!!).add(0.0, 1.0, 0.0),
+                    UIColors.greenYellow, 0f
+                )
+            )
+            return
+        } else {
+            StreetMeshBuilder.buildMesh(getCurrentSegment(), previewMesh)
+        }
     }
 
 
@@ -81,26 +100,33 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
         }
     }
 
-    fun getAnchorAt(snap: Boolean): Vector3d? {
+    fun getAnchorAt(i: Int): Vector3d? {
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
         return if (Raycast.raycastClosestHit(world.terrain, query)) {
-            // todo if anchor already exists within 10px radius, use that
-            val position = query.result.positionWS
+            val position0 = query.result.positionWS
+            val position = Vector3d(position0)
             val hitDistance = query.result.distance
+            val streetThickness = 4.8
             val tolerance10px = hitDistance * 10.0 / max(renderView.width, renderView.height)
-            val anchor0 = anchor0
+            val tolerance = max(tolerance10px, streetThickness)
             // todo snap to tangent, if present
-            if (!snap && anchor0 != null && position.distance(anchor0) < tolerance10px) { // middle
-                position.set(anchor0)
+            // todo snap to certain degrees / distances of the map? definitely must be configurable
+            // snap to other streets, not just their anchor points
+            val bestOnRoad = world.streetSegments
+                .map { it to it.distanceToRay(renderView.cameraPosition, renderView.mouseDirection) }
+                .minByOrNull { it.second }
+            if (bestOnRoad != null && bestOnRoad.second.distance < tolerance) {
+                position.set(bestOnRoad.first.interpolate(bestOnRoad.second.t))
             }
-            if (snap) {
-                val bestPosition = world.streetSegments
-                    .flatMap { listOf(it.a, it.c) }
-                    .minByOrNull { it.distanceSquared(position) }
-                if (bestPosition != null && bestPosition.distanceSquared(position) < sq(tolerance10px)) {
-                    position.set(bestPosition)
-                }
+            // if anchor already exists within 10px radius, use that
+            val bestOnAnchor = world.streetSegments
+                .flatMap { listOf(it.a, it.c) }
+                .minByOrNull { it.distanceSquared(position) }
+            if (bestOnAnchor != null && bestOnAnchor.distanceSquared(position) < sq(tolerance)) {
+                position.set(bestOnAnchor)
             }
+            if (i > 0 && anchor0!!.distance(position) < 1.0) return null
+            if (i > 1 && anchor1!!.distance(position) < 1.0) return null
             position
         } else null
     }
@@ -124,7 +150,6 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
     fun nextStep() {
         when (stage) {
             StreetPlacingStage.EXPLORING -> {
-                anchor0 = getAnchorAt(true)
                 if (anchor0 != null) stage = StreetPlacingStage.DRAGGING_2
             }
             StreetPlacingStage.DRAGGING_2 -> {
@@ -132,9 +157,75 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
             }
             StreetPlacingStage.DRAGGING_3 -> {
 
+                // todo if there is two relatively straight-connected segments,
+                //  and we go through close to their intersection, move that intersection
+                //  instead of cutting one of them
+
                 // officially add street to world
                 val segment = getCurrentSegment()
-                world.addStreetSegment(segment)
+                // calculate all potential intersections
+                // todo what if the same road is intersected twice???
+                // todo prevent too small angles between crossing roads
+                val intersections = ArrayList<Triple<Vector2d, Vector3d, StreetSegment>>()
+                for (seg in world.streetSegments) {
+                    val intersection = segment.intersects(seg) ?: continue
+                    val point = if (intersection.y < 0.001) seg.a
+                    else if (intersection.y > 0.999) seg.c
+                    else {
+                        segment.interpolate(intersection.x)
+                            .add(seg.interpolate(intersection.y)).mul(0.5)
+                    }
+                    intersections.add(Triple(intersection, point, seg))
+                }
+
+                println("Intersections: $intersections")
+
+                // split segments accordingly
+                if (intersections.isEmpty()) {
+                    world.addStreetSegment(segment)
+                } else {
+
+                    // todo if destination is anchor point, just use it instead of interpolating
+                    for (intersection in intersections) {
+                        val t = intersection.first.y
+                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                        if (t <= 0.001 || t >= 0.999) continue
+                        // split that segment
+                        world.removeStreetSegment(intersection.third)
+                        val seg = intersection.third
+                        world.addStreetSegment(seg.splitSegment(0.0, t, seg.a, intersection.second))
+                        world.addStreetSegment(seg.splitSegment(t, 1.0, intersection.second, seg.c))
+                    }
+                    intersections.sortBy { it.first.x }
+                    val i0 = intersections.first()
+                    if (i0.first.x > 0.001) {
+                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                        world.addStreetSegment(segment.splitSegment(0.0, i0.first.x, segment.a, i0.second))
+                    }
+                    for (i in 1 until intersections.size) {
+                        val t0 = intersections[i - 1]
+                        val t1 = intersections[i]
+                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                        if (t0.first.x + 0.001 < t1.first.x) {
+                            world.addStreetSegment(
+                                segment.splitSegment(
+                                    t0.first.x, t1.first.x,
+                                    t0.second, t1.second
+                                )
+                            )
+                        }
+                    }
+                    val il = intersections.last()
+                    if (il.first.x < 0.999) {
+                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                        world.addStreetSegment(
+                            segment.splitSegment(
+                                il.first.x, 1.0,
+                                il.second, segment.c
+                            )
+                        )
+                    }
+                }
                 world.validateIntersections()
 
                 // or shall we continue in straight stage? probably better :)

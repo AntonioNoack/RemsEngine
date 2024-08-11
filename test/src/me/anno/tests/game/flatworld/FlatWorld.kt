@@ -77,8 +77,8 @@ class FlatWorld {
     }
 
     fun buildStreet(segment: StreetSegment) {
-        val i0 = intersections[segment.a]!!
-        val i1 = intersections[segment.c]!!
+        val i0 = intersections[segment.a] ?: return
+        val i1 = intersections[segment.c] ?: return
         val t0 = IntersectionMeshBuilder.getT0(segment, i0)
         val t1 = IntersectionMeshBuilder.getT1(segment, i1)
         // the mesh to generate depends on t0 and t1,

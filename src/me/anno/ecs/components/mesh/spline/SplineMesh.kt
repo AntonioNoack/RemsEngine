@@ -452,7 +452,7 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             // generate end piece: rotational
             val profile = point.profile
             val halfProfile = profile.split()[!useRightForEnd]
-            val numAngles = 1 + max(1, pointsPerRadiant.roundToIntOr())
+            val numAngles = 1 + max(1, (pointsPerRadiant * PI).roundToIntOr())
             val profileSize = halfProfile.positions.size
             val numQuads = (profileSize - 1) * (numAngles - 1)
             val numPoints = numQuads * 6
