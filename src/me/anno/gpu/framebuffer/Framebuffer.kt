@@ -117,6 +117,7 @@ class Framebuffer(
     var renderBufferAllocated = 0L
     var depthRenderbuffer: Renderbuffer? = null
     override var depthTexture: Texture2D? = null
+    override var depthMask: Int = 0
 
     var textures: List<Texture2D>? = null
 
@@ -347,16 +348,15 @@ class Framebuffer(
         // save previous shader
         val prevShader = GPUShader.lastProgram
         dst.ensure()
-        val depthMask = 1 shl targets.size
         val depthTexture = depthTexture
-        var needsToCopyDepth = layerMask.hasFlag(depthMask)
+        var needsToCopyDepth = layerMask.hasFlag(1 shl targets.size)
         val tex0 = Texture2D.getBindState(0)
         val tex1 = Texture2D.getBindState(1)
         useFrame(dst, Renderer.copyRenderer) {
             renderPurely {
                 val textures = textures ?: emptyList()
                 val dstFramebuffer = dst as? Framebuffer ?: (dst as MultiFramebuffer).targetsI[0]
-                var remainingMask = layerMask and (depthMask - 1)
+                var remainingMask = layerMask and ((1 shl targets.size) - 1)
                 while (remainingMask != 0) {
                     // find next to-process index
                     val i = remainingMask.countTrailingZeroBits()
@@ -368,7 +368,7 @@ class Framebuffer(
                     if (needsToCopyDepth && depthTexture != null) {
                         needsToCopyDepth = false
                         useFrame(dstColor, dstFramebuffer) {
-                            GFX.copyColorAndDepth(srcColor, depthTexture)
+                            GFX.copyColorAndDepth(srcColor, depthTexture, depthMask)
                             GFX.check()
                         }
                     } else {
@@ -381,7 +381,7 @@ class Framebuffer(
                 // execute depth blit
                 if (needsToCopyDepth && depthTexture != null) {
                     useFrame(null, dstFramebuffer) {
-                        GFX.copyColorAndDepth(TextureLib.blackTexture, depthTexture)
+                        GFX.copyColorAndDepth(TextureLib.blackTexture, depthTexture, depthMask)
                         GFX.check()
                     }
                 }

@@ -3,7 +3,6 @@ package me.anno.graph.visual.render.effects
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
@@ -21,6 +20,9 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.gpu.texture.TextureLib.grayTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -58,9 +60,9 @@ class PixelationNode : RenderViewNode(
         val color0 = getInput(5) as? Texture
         val normal0 = getInput(6) as? Texture
         val depth0 = getInput(7) as? Texture
-        val color = color0?.texOrNull ?: grayTexture
-        val normal = normal0?.texOrNull ?: blackTexture
-        val depth = depth0?.texOrNull ?: depthTexture
+        val color = color0.texOrNull ?: grayTexture
+        val normal = normal0.texOrNull ?: blackTexture
+        val depth = depth0.texOrNull ?: depthTexture
         if (pixelSize == 1 && normalStrength == 0f && depthStrength == 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
@@ -78,8 +80,8 @@ class PixelationNode : RenderViewNode(
                     color.bindTrulyNearest(shader, "colorTex")
                     normal.bindTrulyNearest(shader, "normalTex")
                     depth.bindTrulyNearest(shader, "depthTex")
-                    shader.v1b("normalZW", normal0?.isZWMapping ?: false)
-                    shader.v4f("depthMask", depth0?.mask ?: singleToVectorR)
+                    shader.v1b("normalZW", normal0.isZWMapping)
+                    shader.v4f("depthMask", depth0.mask)
                     shader.v2f("duv0", 1f / width0, 1f / height0)
                     shader.v2f("duv", 1f / width1, 1f / height1)
                     shader.v1i("pixelSize", pixelSize)

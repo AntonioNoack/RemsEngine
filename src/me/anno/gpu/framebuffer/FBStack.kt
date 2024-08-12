@@ -57,8 +57,14 @@ object FBStack : CacheSection("FBStack") {
                     framebuffer.ensure() // ensure textures
                     // link depth texture to make things easier
                     when (framebuffer) {
-                        is MultiFramebuffer -> framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
-                        is Framebuffer -> framebuffer.depthTexture = framebuffer.textures!!.last()
+                        is MultiFramebuffer -> {
+                            framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
+                            framebuffer.depthMask = 0 // todo is this correct???
+                        }
+                        is Framebuffer -> {
+                            framebuffer.depthTexture = framebuffer.textures!!.last()
+                            framebuffer.depthMask = 0 // todo is this correct???
+                        }
                     }
                 }
                 nextIndex = data.size

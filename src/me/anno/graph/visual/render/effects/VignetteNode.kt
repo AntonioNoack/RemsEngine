@@ -11,6 +11,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.length
 import me.anno.utils.Color.black4
 import org.joml.Vector4f
@@ -41,7 +42,7 @@ class VignetteNode : TimedRenderingNode(
         val color = getInput(1) as? Texture
         val strength = getFloatInput(4)
         val result = if (strength > 0f) {
-            val colorT = color?.texOrNull ?: return
+            val colorT = color.texOrNull ?: return
             val result = FBStack[name, colorT.width, colorT.height, 4, colorT.isHDR, 1, DepthBufferType.NONE]
             timeRendering(name, timer) {
                 useFrame(result) {

@@ -111,7 +111,7 @@ object FXAA {
         shader.use()
         shader.v1f("threshold", threshold)
         shader.v1b("showEdges", false)
-        color.bindTrulyNearest(0)
+        color.bindTrulyNearest(shader, "colorTex")
         SimpleBuffer.flat01.draw(shader)
     }
 }

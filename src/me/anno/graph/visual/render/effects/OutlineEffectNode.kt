@@ -13,6 +13,9 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
@@ -113,7 +116,7 @@ class OutlineEffectNode : RenderViewNode(
                 shader.v1fs("groupIds", groupIds2)
                 shader.v1i("numGroups", numGroupsI)
                 shader.v1i("samples", samples)
-                shader.v4f("groupTexMask", ids.mask ?: Vector4f(1f))
+                shader.v4f("groupTexMask", ids.mask)
                 getTex(color, useMS).bindTrulyNearest(shader, "colorTex")
                 getTex(ids, useMS).bindTrulyNearest(shader, "idTex")
                 SimpleBuffer.flat01.draw(shader)

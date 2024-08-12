@@ -98,7 +98,7 @@ fun testCopyColorToDepth() {
             useFrame(depthDst) {
                 depthDst.clearColor(0, true)
                 if (!Input.isAltDown) {
-                    GFX.copyColorAndDepth(whiteTexture, depthSrc)
+                    GFX.copyColorAndDepth(whiteTexture, depthSrc, 0)
                 }
             }
             drawDepthTexture(it.x, it.y + h, w, -h, depthDst.depthTexture!!)
@@ -107,7 +107,7 @@ fun testCopyColorToDepth() {
                 if (Input.isShiftDown) {
                     GFX.copy(depthDst.depthTexture!!)
                 } else if (!Input.isControlDown) {
-                    GFX.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture)
+                    GFX.copyColorAndDepth(depthDst.depthTexture!!, whiteTexture, 0)
                 }
             }
             drawTexture(it.x + w, it.y, w, h, colorDst.getTexture0())
@@ -577,7 +577,7 @@ fun computeRasterizer() {
             // copy depth from writable depth
             // disable all colors being written
             useFrame(null, target) {
-                GFX.copyColorAndDepth(blackTexture, depthAsColor)
+                GFX.copyColorAndDepth(blackTexture, depthAsColor, 0) // is 0 as mask correct???
             }
         }
 

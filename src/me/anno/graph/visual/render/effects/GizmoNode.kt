@@ -10,12 +10,14 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.clamp
 
@@ -61,19 +63,21 @@ class GizmoNode : RenderViewNode(
             grid = renderView.drawGridWhenEditing
         }
 
-        val colorT = (getInput(7) as? Texture)?.texOrNull
+        val colorT = (getInput(7) as? Texture).texOrNull
         val depth = getInput(8) as? Texture
-        val depthT = depth?.texOrNull
+        val depthT = depth.texOrNull
+        val depthM = depth.mask1Index
 
-        val readsDepth = isOutputUsed(outputs[2]) && GFX.maxSamples > 1 // else we can't cast to Framebuffeer
+        // else we can't cast to Framebuffer
+        val readsDepth = isOutputUsed(outputs[2])
         val framebuffer = FBStack[
             name, width, height, 4, false, samples,
             if (readsDepth) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
-        ] as Framebuffer
+        ]
 
         timeRendering(name, timer) {
             useFrame(framebuffer, copyRenderer) {
-                copyColorAndDepth(colorT, depthT, framebuffer)
+                copyColorAndDepth(colorT, depthT, depthM, framebuffer)
                 GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
                     GFXState.blendMode.use(BlendMode.DEFAULT) {
                         renderView.drawGizmos1(grid, debug, aabbs)
@@ -81,7 +85,7 @@ class GizmoNode : RenderViewNode(
                 }
             }
             setOutput(1, Texture.texture(framebuffer, 0))
-            setOutput(2, if (readsDepth) Texture.depth(framebuffer) else null)
+            setOutput(2, if (readsDepth) Texture.depth(framebuffer) else depth)
         }
     }
 
@@ -93,13 +97,10 @@ class GizmoNode : RenderViewNode(
             )
         }
 
-        fun copyColorAndDepth(colorT: ITexture2D?, depthT: ITexture2D?, framebuffer: Framebuffer) {
+        fun copyColorAndDepth(colorT: ITexture2D?, depthT: ITexture2D?, depthM: Int, framebuffer: IFramebuffer) {
             useFrame(framebuffer) {
                 renderPurely {
-                    GFX.copyColorAndDepth(
-                        colorT ?: blackTexture,
-                        depthT ?: depthTexture
-                    )
+                    GFX.copyColorAndDepth(colorT ?: blackTexture, depthT ?: depthTexture, depthM)
                 }
             }
         }

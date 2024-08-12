@@ -11,6 +11,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
@@ -60,7 +61,7 @@ class FSR1Node : TimedRenderingNode(
         if (width < 1 || height < 1) return
 
         val sharpness = getFloatInput(3)
-        val color = (getInput(4) as? Texture)?.texOrNull ?: whiteTexture
+        val color = (getInput(4) as? Texture).texOrNull ?: whiteTexture
 
         timeRendering(name, timer) {
             useFrame(width, height, true, f0, copyRenderer) {

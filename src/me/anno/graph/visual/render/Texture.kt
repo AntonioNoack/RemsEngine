@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
@@ -27,14 +28,6 @@ class Texture constructor(
 
     val texMS = texMS ?: tex
     val isDestroyed get() = tex.isDestroyed
-    val mask get() = singleToVector[mapping]
-    val texOrNull get() = if (tex.isCreated()) tex else null
-    val texMSOrNull get() = if (texMS.isCreated()) texMS else null
-
-    /**
-     * Whether the value (must have two components!) is mapped onto zw instead of xy.
-     * */
-    val isZWMapping get() = mapping == "zw"
 
     override fun toString(): String {
         return when (tex) {
@@ -56,6 +49,25 @@ class Texture constructor(
     }
 
     companion object {
+
+        /**
+         * Whether the value (must have two components!) is mapped onto zw instead of xy.
+         * */
+        val Texture?.isZWMapping get() = this?.mapping == "zw"
+
+        val Texture?.texOrNull get() = if (this != null && tex.isCreated()) tex else null
+        val Texture?.texMSOrNull get() = if (this != null && texMS.isCreated()) texMS else null
+
+        val Texture?.mask
+            get() = singleToVector[this?.mapping] ?: singleToVectorR
+
+        val Texture?.mask1Index
+            get() = when (this?.mapping) {
+                "y", "g" -> 1
+                "z", "b" -> 2
+                "w", "a" -> 3
+                else -> 0
+            }
 
         fun texture(f: IFramebuffer, i: Int): Texture {
             return texture(f, i, "", null)

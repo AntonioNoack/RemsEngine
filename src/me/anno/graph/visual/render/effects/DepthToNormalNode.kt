@@ -20,6 +20,8 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class DepthToNormalNode : TimedRenderingNode(
     "Depth To Normal",
@@ -41,7 +43,7 @@ class DepthToNormalNode : TimedRenderingNode(
                 GFXState.useFrame(result) {
                     val shader = shader
                     shader.use()
-                    shader.v4f("depthMask", depth.mask!!)
+                    shader.v4f("depthMask", depth.mask)
                     depthTex.bindTrulyNearest(0)
                     bindDepthUniforms(shader)
                     flat01.draw(shader)

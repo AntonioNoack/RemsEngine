@@ -48,6 +48,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.input.Input
 import me.anno.maths.Maths
@@ -376,7 +377,7 @@ object DebugRendering {
         view.pipeline.lightStage.visualizeLightCount = true
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask, lightBuffer)
         view.drawGizmos(lightBuffer, true)
 
         // todo special shader to better differentiate the values than black-white
@@ -411,7 +412,7 @@ object DebugRendering {
 
         timeRendering("Light", drawLightsTimer) {
             val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-            view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
+            view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask, lightBuffer)
         }
 
         val pbb = DrawTexts.pushBetterBlending(true)
@@ -488,7 +489,7 @@ object DebugRendering {
 
         timeRendering("Lights", drawLightsTimer) {
             val depthTex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-            view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask!!, light)
+            view.drawSceneLights(buffer, depthTex.tex as Texture2D, depthTex.mask, light)
         }
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)

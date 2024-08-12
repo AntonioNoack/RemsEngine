@@ -7,6 +7,7 @@ import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.StartNode
 import me.anno.graph.visual.node.NodeLibrary
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.compiler.ShaderExprNode
 import me.anno.graph.visual.render.compiler.ShaderGraphNode
 import me.anno.graph.visual.render.effects.BloomNode

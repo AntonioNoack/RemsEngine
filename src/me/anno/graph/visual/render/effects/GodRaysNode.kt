@@ -15,6 +15,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -51,8 +52,8 @@ class GodRaysNode : TimedRenderingNode(
         val falloff = getInput(2) as Vector3f
         val sunColor = getInput(3) as Vector3f
         val sunPosition = getInput(4) as Vector2f
-        val color = (getInput(5) as? Texture)?.texOrNull ?: return
-        val depth = (getInput(6) as? Texture)?.texOrNull ?: return
+        val color = (getInput(5) as? Texture).texOrNull ?: return
+        val depth = (getInput(6) as? Texture).texOrNull ?: return
 
         timeRendering(name, timer) {
             useFrame(color.width, color.height, true, framebuffer, copyRenderer) {

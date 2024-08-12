@@ -52,6 +52,7 @@ class FramebufferArray(
     var session = 0
     var depthRenderBuffer: Renderbuffer? = null
     override var depthTexture: Texture2DArray? = null
+    override var depthMask: Int = 0
     var depthAttachment: FramebufferArray? = null
 
     override val numTextures: Int = targets.size

@@ -6,8 +6,8 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 /**
  * fast approximate edge reconstruction:
@@ -15,10 +15,8 @@ import me.anno.graph.visual.render.Texture
  * */
 class FXAANode : TimedRenderingNode(
     "FXAA",
-    listOf(
-        "Float", "Threshold",
-        "Texture", "Illuminated",
-    ), listOf("Texture", "Illuminated")
+    listOf("Float", "Threshold", "Texture", "Illuminated"),
+    listOf("Texture", "Illuminated")
 ) {
 
     init {
@@ -26,14 +24,16 @@ class FXAANode : TimedRenderingNode(
     }
 
     override fun executeAction() {
-        timeRendering(name, timer) {
-            val threshold = getFloatInput(1)
-            val color = (getInput(2) as? Texture)?.texOrNull ?: missingTexture
-            val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]
-            useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
-                FXAA.render(color, threshold)
+        val threshold = getFloatInput(1)
+        val color = (getInput(2) as? Texture).texOrNull
+        if (color != null) {
+            timeRendering(name, timer) {
+                val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]
+                useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
+                    FXAA.render(color, threshold)
+                }
+                setOutput(1, Texture.texture(framebuffer, 0))
             }
-            setOutput(1, Texture.texture(framebuffer, 0))
-        }
+        } else setOutput(1, null)
     }
 }

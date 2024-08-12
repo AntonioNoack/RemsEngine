@@ -30,6 +30,9 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
@@ -167,8 +170,9 @@ class RenderLightsNode : RenderViewNode(
         val samples = clamp(getIntInput(3), 1, GFX.maxSamples)
         if (width < 1 || height < 1) return
 
-        val depthTexture0 = getInput(depthIndex) as? Texture
-        val depthTexture = depthTexture0?.texOrNull ?: return
+        val depthTexture = getInput(depthIndex) as? Texture
+        val depthT = depthTexture.texOrNull ?: return
+        val depthM = depthTexture.mask1Index
 
         val useDepth = true
         val framebuffer = FBStack[
@@ -179,11 +183,11 @@ class RenderLightsNode : RenderViewNode(
         timeRendering(name, timer) {
             useFrame(width, height, true, framebuffer, copyRenderer) {
                 val stage = pipeline.lightStage
-                GFX.copyColorAndDepth(blackTexture, depthTexture)
+                GFX.copyColorAndDepth(blackTexture, depthT, depthM)
                 stage.bind {
                     stage.draw(
                         pipeline, RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
-                        ::getShader, depthTexture, depthTexture0.mask!!
+                        ::getShader, depthT, depthTexture.mask
                     )
                 }
             }

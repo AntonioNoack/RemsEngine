@@ -7,6 +7,8 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import org.apache.logging.log4j.LogManager
 
 class SSAONode : TimedRenderingNode(

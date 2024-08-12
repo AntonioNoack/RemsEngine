@@ -10,6 +10,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.frameIndex
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.skipThisFrame
@@ -53,7 +54,7 @@ abstract class FrameGenOutputNode<PerViewData : ICacheData>(
     fun fill(width: Int, height: Int, data0: Texture2D, srcI: Int, targetType: TargetType, defaultTex: ITexture2D) {
         data0.resize(width, height, targetType)
         useFrame(data0) {
-            val srcTex = (getInput(srcI) as? Texture)?.texOrNull ?: defaultTex
+            val srcTex = (getInput(srcI) as? Texture).texOrNull ?: defaultTex
             GFX.copyNoAlpha(srcTex)
         }
     }

@@ -2,6 +2,7 @@ package me.anno.tests.game.flatworld
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
@@ -43,6 +44,15 @@ fun main() {
     //  - producers
     //  - consumers
     //  - money
+    // todo civilisation simulation
+    //  - workers
+    //  - work places
+    //  - qualifications
+    //  - happiness
+    //  - fun rides
+    //  - red districts?
+    //  - parks
+    //  - sportive stuff
     // todo 6. serialization
     //  - streets
     //  - buildings
@@ -52,6 +62,10 @@ fun main() {
     //  - ambient
     //  - people
     //  - factories
+    // todo world variety
+    //  - trees
+    //  - bushes
+    //  - animals walking around (deer, boar, bunnies?, cats and dogs in cities, Waschbären, eagles, other birds)
 
 
     // the first step is street building, so let's do that:
@@ -69,8 +83,9 @@ fun main() {
     val world = FlatWorld()
 
     // terrain
-    world.terrain.setScale(100.0)
-        .add(MeshComponent(PlaneModel.createPlane()))
+    val grassMaterial = Material.diffuse(0x88dd88 or black)
+    world.terrain.setScale(1000.0)
+        .add(MeshComponent(PlaneModel.createPlane(), grassMaterial))
 
     testUI3("FlatWorld City") {
         val ui = NineTilePanel(style)

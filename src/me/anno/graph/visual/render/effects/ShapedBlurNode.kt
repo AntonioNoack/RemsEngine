@@ -7,6 +7,7 @@ import me.anno.gpu.shader.effects.ShapedBlur.filters
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style

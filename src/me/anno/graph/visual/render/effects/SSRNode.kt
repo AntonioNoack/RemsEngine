@@ -6,15 +6,18 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
-import me.anno.utils.Color.black4
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class SSRNode : TimedRenderingNode(
     "Screen Space Reflections",
@@ -58,11 +61,11 @@ class SSRNode : TimedRenderingNode(
         val illumMT = illumT.texMSOrNull
         val illumTT = illumT.texOrNull ?: return
 
-        val colorTT = (getInput(8) as? Texture)?.texOrNull ?: whiteTexture
+        val colorTT = (getInput(8) as? Texture).texOrNull ?: whiteTexture
 
         val normal = getInput(9) as? Texture
-        val normalZW = normal?.isZWMapping ?: false
-        val normalT = normal?.texOrNull ?: whiteTexture
+        val normalZW = normal.isZWMapping
+        val normalT = normal.texOrNull ?: whiteTexture
 
         val metallic = getInput(10) as? Texture
         val roughness = getInput(11) as? Texture
@@ -74,17 +77,15 @@ class SSRNode : TimedRenderingNode(
             val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
 
             val metallicT = metallic?.texOrNull ?: whiteTexture
-            val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
-            else singleToVectorR
+            val metallicM = metallic.mask
 
-            val roughnessT = roughness?.texOrNull ?: whiteTexture
-            val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
-            else black4
+            val roughnessT = roughness?.texOrNull ?: blackTexture
+            val roughnessM = roughness.mask
 
             val originalSamples = (illumMT ?: illumTT).samples
             val inPlace = illumMT == null || originalSamples <= 1
             ScreenSpaceReflections.compute(
-                depthTT, depthT.mask!!, normalT, normalZW, colorTT,
+                depthTT, depthT.mask, normalT, normalZW, colorTT,
                 metallicT, metallicM, roughnessT, roughnessM, illumTT,
                 transform, strength, maskSharpness, wallThickness, fineSteps,
                 inPlace, result0

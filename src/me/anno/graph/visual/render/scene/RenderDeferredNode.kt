@@ -26,6 +26,8 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.ReturnNode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.compiler.GraphCompiler
 import me.anno.maths.Maths.clamp
 import me.anno.utils.assertions.assertTrue
@@ -320,10 +322,11 @@ open class RenderDeferredNode : RenderViewNode(
 
     open fun copyInputsOrClear(framebuffer: IFramebuffer) {
         val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
-        val prepassDepth = (getInput(inputIndex) as? Texture)?.texOrNull
+        val prepassDepthT = getInput(inputIndex) as? Texture
+        val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
             GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
-                GFX.copyColorAndDepth(blackTexture, prepassDepth)
+                GFX.copyColorAndDepth(blackTexture, prepassDepth, prepassDepthT.mask1Index)
             }
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS

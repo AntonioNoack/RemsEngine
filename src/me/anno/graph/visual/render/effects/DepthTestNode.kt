@@ -11,8 +11,9 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.actions.ActionNode
+import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class DepthTestNode : ActionNode(
     "DepthTest",
@@ -20,7 +21,7 @@ class DepthTestNode : ActionNode(
     listOf("Texture", "Illuminated")
 ) {
     override fun executeAction() {
-        val depth = (getInput(1) as? Texture)?.texOrNull ?: return
+        val depth = (getInput(1) as? Texture).texOrNull ?: return
         val result = FBStack[name, depth.width, depth.height, 4, true, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {
             val shader = shader

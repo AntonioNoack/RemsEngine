@@ -30,6 +30,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.utils.Clock
 import me.anno.utils.OS
+import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Booleans.toInt
@@ -285,20 +286,22 @@ object GFX {
     }
 
     @JvmStatic
-    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D) {
+    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D, depthMask: Int) {
         Frame.bind()
         color.bindTrulyNearest(0)
         depth.bindTrulyNearest(1)
+        val monochrome = getNumChannels(color.internalFormat) == 1
         copyColorAndDepth(
-            color.samples, depth.samples,
-            getNumChannels(color.internalFormat) == 1
+            color.samples, monochrome,
+            depth.samples, depthMask,
         )
     }
 
     @JvmStatic
-    fun copyColorAndDepth(colorSamples: Int, depthSamples: Int, monochrome: Boolean) {
+    fun copyColorAndDepth(colorSamples: Int, monochrome: Boolean, depthSamples: Int, depthMask: Int) {
         check()
-        val idx = (colorSamples > 1).toInt(2) or (depthSamples > 1).toInt(1)
+        assertTrue(depthMask in 0..3)
+        val idx = (colorSamples > 1).toInt(8) or (depthSamples > 1).toInt(4) + depthMask
         val shader = copyShaderAnyToAny[idx]
         shader.use()
         shader.v1b("monochrome", monochrome)
@@ -354,7 +357,7 @@ object GFX {
         }
         // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         // todo when setting this, decals are broken
-        // todo when setting this, default rendering is broken like in Dx11
+        // todo check if rendering is still broken in DX11 in default render mode
         val debugLimitedGPUs = false
         supportsDepthTextures = !debugLimitedGPUs && capabilities?.GL_ARB_depth_texture == true
         // if (debugLimitedGPUs) supportsClipControl = false // todo when setting this with the other limiters, shadows are really broken...

@@ -7,8 +7,10 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.toInt
 import kotlin.math.PI
 
 object FlatShaders {
@@ -38,9 +40,10 @@ object FlatShaders {
     /**
      * blit-like shader without any stupid OpenGL constraints like size or format
      * */
-    val copyShaderAnyToAny = createArrayList(4) {
-        val colorMS = it.hasFlag(2)
-        val depthMS = it.hasFlag(1)
+    val copyShaderAnyToAny = LazyList(16) {
+        val colorMS = it.hasFlag(8)
+        val depthMS = it.hasFlag(4)
+        val depthMask = "xyzw"[it.and(3)]
         Shader(
             "copyMSAnyToAny/${it.toString(2)}", emptyList(), coordsUVVertexShader, uvList, listOf(
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
@@ -73,9 +76,10 @@ object FlatShaders {
                             "   return texture(colorTex,uv);\n" +
                             "}\n" else "") +
                     "void main() {\n" +
-                    "   result = getColor${it shr 1}(colorTex, colorSamples, uv);\n" +
+                    "   result = getColor${colorMS.toInt()}(colorTex, colorSamples, uv);\n" +
                     "   if(monochrome) result.rgb = result.rrr;\n" +
-                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples, uv).x;\n" + // is this [-1,1] or [0,1]? -> looks like it works just fine for now
+                    // is this [-1,1] or [0,1]? -> looks like it works just fine for now
+                    "   gl_FragDepth = getColor${depthMS.toInt()}(depthTex, depthSamples, uv).$depthMask;\n" +
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")

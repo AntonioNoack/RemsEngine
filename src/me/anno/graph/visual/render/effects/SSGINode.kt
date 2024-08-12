@@ -2,11 +2,13 @@ package me.anno.graph.visual.render.effects
 
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.shader.effects.ScreenSpaceAmbientOcclusion
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.SSAONode.Companion.fail
 
 /**
@@ -54,7 +56,7 @@ class SSGINode : TimedRenderingNode(
 
         val roughT = (getInput(8) as? Texture) ?: return fail()
         val roughTT = roughT.texOrNull ?: whiteTexture
-        val roughTM = roughT.mask ?: singleToVectorR
+        val roughTM = roughT.mask
 
         val illumT = (getInput(9) as? Texture) ?: return fail()
         val illumTT = illumT.texOrNull ?: return fail()

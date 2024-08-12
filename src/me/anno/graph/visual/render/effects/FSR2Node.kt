@@ -10,6 +10,7 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
@@ -50,7 +51,7 @@ class FSR2Node : RenderViewNode(
         var height = getIntInput(2)
         if (width < 1 || height < 1) return
 
-        val color = (getInput(3) as? Texture)?.texOrNull ?: return
+        val color = (getInput(3) as? Texture).texOrNull ?: return
         val motion = getInput(4) as? Texture ?: return
         val depth = getInput(5) as? Texture ?: return
 
@@ -78,11 +79,13 @@ class FSR2Node : RenderViewNode(
         fun createPipeline(fraction: Float): FlowGraph {
             return QuickPipeline()
                 .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
-                .then1(RenderDeferredNode(), mapOf(
-                    "Stage" to PipelineStage.OPAQUE,
-                    "Skybox Resolution" to 256,
-                    "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
-                ))
+                .then1(
+                    RenderDeferredNode(), mapOf(
+                        "Stage" to PipelineStage.OPAQUE,
+                        "Skybox Resolution" to 256,
+                        "Draw Sky" to DrawSkyMode.AFTER_GEOMETRY
+                    )
+                )
                 .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())

@@ -12,6 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class ToneMappingNode : TimedRenderingNode(
     "ToneMapping",
@@ -28,7 +29,7 @@ class ToneMappingNode : TimedRenderingNode(
         val color = getInput(1) as? Texture
         val result = if (getBoolInput(3)) {
             val exposure = getFloatInput(2)
-            val source = color?.texOrNull ?: return
+            val source = color.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, false, 1, DepthBufferType.NONE]
             timeRendering(name, timer) {
                 GFXState.useFrame(result) {

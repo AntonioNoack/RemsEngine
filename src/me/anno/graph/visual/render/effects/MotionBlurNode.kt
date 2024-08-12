@@ -17,6 +17,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 
 class MotionBlurNode : TimedRenderingNode(
@@ -45,8 +46,8 @@ class MotionBlurNode : TimedRenderingNode(
 
         val samples = clamp(getIntInput(1), 1, GFX.maxSamples)
         val shutter = getFloatInput(2)
-        val color = (getInput(3) as? Texture)?.texOrNull ?: missingTexture
-        val motion = (getInput(4) as? Texture)?.texOrNull ?: blackTexture
+        val color = (getInput(3) as? Texture).texOrNull ?: missingTexture
+        val motion = (getInput(4) as? Texture).texOrNull ?: blackTexture
 
         timeRendering(name, timer) {
             useFrame(color.width, color.height, true, framebuffer, copyRenderer) {

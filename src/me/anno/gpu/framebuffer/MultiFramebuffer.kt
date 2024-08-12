@@ -167,8 +167,16 @@ class MultiFramebuffer(
     override var depthTexture
         get() = targetsI[0].depthTexture
         set(value) {
-            for (target in targetsI) {
-                target.depthTexture = value
+            for (i in targetsI.indices) {
+                targetsI[i].depthTexture = value
+            }
+        }
+
+    override var depthMask: Int
+        get() = targetsI[0].depthMask
+        set(value) {
+            for (i in targetsI.indices) {
+                targetsI[i].depthMask = value
             }
         }
 

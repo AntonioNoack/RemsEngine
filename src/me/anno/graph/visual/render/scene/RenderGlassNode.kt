@@ -14,6 +14,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 
 class RenderGlassNode : RenderViewNode(
@@ -65,12 +67,13 @@ class RenderGlassNode : RenderViewNode(
                 width, height, TargetType.Float16x4,
                 samples, DepthBufferType.INTERNAL]
 
-            val prepassColor = (getInput(10) as? Texture)?.texOrNull ?: whiteTexture
-            val prepassDepth = (getInput(11) as? Texture)?.texOrNull
+            val prepassColor = (getInput(10) as? Texture).texOrNull ?: whiteTexture
+            val depthTex = getInput(11) as? Texture
+            val prepassDepth = depthTex.texOrNull
 
             pipeline.applyToneMapping = applyToneMapping
             GFXState.useFrame(width, height, true, framebuffer, renderer) {
-                defineInputs(framebuffer, prepassColor, prepassDepth)
+                defineInputs(framebuffer, prepassColor, prepassDepth, depthTex.mask1Index)
                 val stageImpl = pipeline.stages.getOrNull(stage.id)
                 if (stageImpl != null && !stageImpl.isEmpty()) {
                     pipeline.transparentPass.blendTransparentStage(pipeline, stageImpl, prepassColor)
@@ -82,9 +85,12 @@ class RenderGlassNode : RenderViewNode(
         }
     }
 
-    fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {
+    fun defineInputs(
+        framebuffer: IFramebuffer, prepassColor: ITexture2D?,
+        prepassDepth: ITexture2D?, prepassDepthMask: Int
+    ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth)
+            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthMask)
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
             GFX.copy(prepassColor)

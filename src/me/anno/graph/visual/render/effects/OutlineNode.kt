@@ -16,6 +16,8 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
@@ -54,13 +56,13 @@ class OutlineNode : TimedRenderingNode(
         val offset = getFloatInput(2)
         val outlineColor = getInput(3) as Vector4f
         val weights = getInput(4) as Vector3f
-        val color = (getInput(5) as? Texture)?.texOrNull ?: blackTexture
+        val color = (getInput(5) as? Texture).texOrNull ?: blackTexture
         val normalT = getInput(6) as? Texture
-        val normalZW = normalT?.isZWMapping ?: false
-        val normal = normalT?.texOrNull ?: normalTexture
-        val depth = (getInput(7) as? Texture)?.texOrNull ?: whiteTexture
+        val normalZW = normalT.isZWMapping
+        val normal = normalT.texOrNull ?: normalTexture
+        val depth = (getInput(7) as? Texture).texOrNull ?: whiteTexture
         val illT = getInput(8) as? Texture
-        val illuminated = illT?.texOrNull ?: whiteTexture
+        val illuminated = illT.texOrNull ?: whiteTexture
 
         if (strength <= 0f) { // disabled
             setOutput(1, illT)

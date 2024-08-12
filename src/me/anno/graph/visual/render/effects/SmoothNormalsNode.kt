@@ -19,6 +19,8 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.graph.visual.actions.ActionNode
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.isZWMapping
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class SmoothNormalsNode : ActionNode(
     "Smooth Normals",
@@ -39,7 +41,7 @@ class SmoothNormalsNode : ActionNode(
         val radius = getFloatInput(1)
         val normalTex = getInput(2) as? Texture ?: return
         val normal = normalTex.texOrNull ?: return
-        val depth = (getInput(3) as? Texture)?.texOrNull ?: return
+        val depth = (getInput(3) as? Texture).texOrNull ?: return
         timeRendering(name, timer) {
             val target = TargetType.Float16x2 // depends a bit on quality..., could be RG8 for Android
             val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]

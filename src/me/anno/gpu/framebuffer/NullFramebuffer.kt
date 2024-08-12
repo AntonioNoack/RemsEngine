@@ -58,5 +58,7 @@ object NullFramebuffer : IFramebuffer {
 
     override val depthTexture
         get() = throw UnsupportedOperationException()
+    override val depthMask: Int
+        get() = 0
 
 }

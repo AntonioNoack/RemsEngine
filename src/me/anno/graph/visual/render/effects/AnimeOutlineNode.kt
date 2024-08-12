@@ -20,6 +20,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 
 /**
@@ -44,8 +45,8 @@ class AnimeOutlineNode : RenderViewNode(
         val strength = getFloatInput(1)
         val sensitivity = getFloatInput(2)
         val color0 = getInput(3) as? Texture
-        val color = color0?.texOrNull
-        val depth = (getInput(4) as? Texture)?.texOrNull
+        val color = color0.texOrNull
+        val depth = (getInput(4) as? Texture).texOrNull
         if (color == null || depth == null || sensitivity <= 0f || strength <= 0f) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
@@ -78,11 +79,13 @@ class AnimeOutlineNode : RenderViewNode(
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + depthVars, quatRot + rawToDepth +
-                    "float sample(int dx,int dy){\n" +
-                    "    return min(1e37,rawToDepth(textureOffset(depthTex,uv,ivec2(dx,dy)).x));\n" +
-                    "}\n" +
+                    "#define getDepth(dx, dy) min(1e37,rawToDepth(textureOffset(depthTex,uv,ivec2(dx,dy)).x))\n" +
                     "void main(){\n" +
-                    "   float v0 = sample(0,0), px = sample(1,0), mx = sample(-1,0), py = sample(0,1), my = sample(0,-1);\n" +
+                    "   float v0 = getDepth( 0, 0);\n" +
+                    "   float px = getDepth(+1, 0);\n" +
+                    "   float mx = getDepth(-1, 0);\n" +
+                    "   float py = getDepth(0, +1);\n" +
+                    "   float my = getDepth(0, -1);\n" +
                     "   float div = 1.0 / max(v0,max(max(px,mx),max(py,my)));\n" +
                     "   float dx = (2.0 * v0 - (px + mx)) * div;\n" +
                     "   float dy = (2.0 * v0 - (py + my)) * div;\n" +

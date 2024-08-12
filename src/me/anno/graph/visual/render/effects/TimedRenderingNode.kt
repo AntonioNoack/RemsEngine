@@ -6,6 +6,8 @@ import me.anno.graph.visual.actions.ActionNode
 abstract class TimedRenderingNode(name: String, inputs: List<String>, outputs: List<String>) :
     ActionNode(name, inputs, outputs) {
 
+    // todo implement reasonable fail() for all rendering nodes
+
     val timer = GPUClockNanos()
 
     override fun destroy() {

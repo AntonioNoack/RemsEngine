@@ -7,6 +7,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.effects.Bloom
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class BloomNode : TimedRenderingNode(
     "Bloom",

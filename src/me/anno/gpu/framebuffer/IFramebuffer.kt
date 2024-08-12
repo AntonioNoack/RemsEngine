@@ -91,6 +91,7 @@ interface IFramebuffer {
     fun getTextureIMS(index: Int): ITexture2D = getTextureI(index)
 
     val depthTexture: ITexture2D?
+    val depthMask: Int
 
     fun createImage(flipY: Boolean, withAlpha: Boolean) =
         getTexture0().createdOrNull()?.createImage(flipY, withAlpha)

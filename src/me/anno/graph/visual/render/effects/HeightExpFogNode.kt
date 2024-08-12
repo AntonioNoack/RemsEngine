@@ -26,6 +26,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
@@ -57,8 +58,8 @@ class HeightExpFogNode : RenderViewNode(
 
     override fun executeAction() {
         val color0 = getInput(7) as? Texture
-        val color = color0?.texOrNull
-        val depth = (getInput(8) as? Texture)?.texOrNull
+        val color = color0.texOrNull
+        val depth = (getInput(8) as? Texture).texOrNull
         val relativeDistance = max(getFloatInput(1), 0f)
         val fogStrength = max(getFloatInput(2), 0f)
         if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {

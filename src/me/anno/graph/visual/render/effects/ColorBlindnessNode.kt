@@ -12,6 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
 class ColorBlindnessNode(var mode: ColorBlindnessMode) : TimedRenderingNode(
     "ColorBlindness",
@@ -27,7 +28,7 @@ class ColorBlindnessNode(var mode: ColorBlindnessMode) : TimedRenderingNode(
         val color = getInput(1) as? Texture
         val strength = getFloatInput(2)
         val result = if (strength != 0f) {
-            val source = color?.texOrNull ?: return
+            val source = color.texOrNull ?: return
             val result = FBStack[name, source.width, source.height, 4, true, 1, DepthBufferType.NONE]
             timeRendering(name, timer) {
                 GFXState.useFrame(result) {

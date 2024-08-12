@@ -5,7 +5,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVectorR
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -17,6 +16,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -56,16 +57,16 @@ abstract class FrameGenProjective0Node(name: String) : FrameGenOutputNode<FrameG
     private fun fill(width: Int, height: Int, data0: Texture2D, motion: Texture2D) {
         data0.resize(width, height, TargetType.UInt8x3)
         useFrame(data0) {
-            GFX.copyNoAlpha((getInput(3) as? Texture)?.texOrNull ?: whiteTexture)
+            GFX.copyNoAlpha((getInput(3) as? Texture).texOrNull ?: whiteTexture)
         }
         motion.resize(width, height, TargetType.Float32x3)
         useFrame(motion) {
             val depthSrc0 = getInput(5) as? Texture
-            val depthSrc = depthSrc0?.texOrNull ?: blackTexture
+            val depthSrc = depthSrc0.texOrNull ?: blackTexture
             val shader = loadDepthShader
             shader.use()
             depthSrc.bindTrulyNearest(shader, "depthTex")
-            shader.v4f("depthMask", depthSrc0?.mask ?: singleToVectorR)
+            shader.v4f("depthMask", depthSrc0.mask)
             DepthTransforms.bindDepthUniforms(shader)
             flat01.draw(shader)
         }

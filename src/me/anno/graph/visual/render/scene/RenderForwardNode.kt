@@ -13,6 +13,8 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
+import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.maths.Maths.clamp
 
 class RenderForwardNode : RenderViewNode(
@@ -84,13 +86,13 @@ class RenderForwardNode : RenderViewNode(
         pipeline.bakeSkybox(skyboxResolution)
 
         val drawSky = getInput(9) as DrawSkyMode
-        val prepassColor = (getInput(10) as? Texture)?.texOrNull
-        val prepassDepth = (getInput(11) as? Texture)?.texOrNull
+        val prepassColor = (getInput(10) as? Texture).texOrNull
+        val prepassDepth = getInput(11) as? Texture
 
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            defineInputs(framebuffer, prepassColor, prepassDepth)
+            defineInputs(framebuffer, prepassColor, prepassDepth.texOrNull, prepassDepth.mask1Index)
             if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
                 pipeline.drawSky()
             }
@@ -109,9 +111,12 @@ class RenderForwardNode : RenderViewNode(
         setOutput(2, Texture.depth(framebuffer))
     }
 
-    fun defineInputs(framebuffer: IFramebuffer, prepassColor: ITexture2D?, prepassDepth: ITexture2D?) {
+    fun defineInputs(
+        framebuffer: IFramebuffer, prepassColor: ITexture2D?,
+        prepassDepth: ITexture2D?, prepassDepthM: Int
+    ) {
         if (prepassDepth != null && prepassDepth.isCreated()) {
-            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth)
+            GFX.copyColorAndDepth(prepassColor ?: blackTexture, prepassDepth, prepassDepthM)
         } else if (prepassColor != null && prepassColor != blackTexture) {
             framebuffer.clearDepth()
             GFX.copy(prepassColor)
