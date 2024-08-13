@@ -17,6 +17,7 @@ class FlatWorld {
     val buildings = Entity("Buildings", scene)
     val terrain = Entity("Terrain", scene)
     val streets = Entity("Streets", scene)
+    val vehicles = Entity("Vehicles", scene)
 
     val streetSegments = HashSet<StreetSegment>()
     val buildingInstances = HashSet<BuildingInstance>()

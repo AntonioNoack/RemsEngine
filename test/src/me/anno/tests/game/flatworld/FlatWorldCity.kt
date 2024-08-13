@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -13,7 +14,9 @@ import me.anno.tests.game.flatworld.buildings.controls.BuildingDeleteControls
 import me.anno.tests.game.flatworld.buildings.controls.BuildingPlaceControls
 import me.anno.tests.game.flatworld.streets.controls.StreetBuildingControls
 import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
+import me.anno.tests.game.flatworld.vehicles.RandomVehicle.spawnRandomVehicle
 import me.anno.ui.Panel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.buttons.TextButton.Companion.drawButtonBorder
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
@@ -22,6 +25,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
+import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.firstInstance2
 
 // todo a 3d world has more complicated maths,
@@ -84,7 +88,7 @@ fun main() {
 
     // terrain
     val grassMaterial = Material.diffuse(0x88dd88 or black)
-    world.terrain.setScale(1000.0)
+    world.terrain.setScale(100.0)
         .add(MeshComponent(PlaneModel.createPlane(), grassMaterial))
 
     testUI3("FlatWorld City") {
@@ -100,6 +104,7 @@ fun main() {
         list.add(EditTypeButton(sceneView, "-Street", StreetDeletingControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "+Building", BuildingPlaceControls(world, renderView)))
         list.add(EditTypeButton(sceneView, "-Building", BuildingDeleteControls(world, renderView)))
+        list.add(TextButton("Test Vehicle", style).addLeftClickListener { spawnRandomVehicle(world) })
         list.alignmentX = AxisAlignment.MAX
         list.alignmentY = AxisAlignment.CENTER
         ui.add(list)

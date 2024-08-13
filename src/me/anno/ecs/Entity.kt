@@ -24,6 +24,8 @@ import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.systems.Systems
+import me.anno.engine.EngineBase
 import me.anno.engine.inspector.Inspectable
 import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
@@ -539,6 +541,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
         checkNeedsPhysics()
 
+        getSystems()?.addOrRemoveRecursively(this, true)
         parent.setChildPath(this, index, 'e')
     }
 
@@ -554,6 +557,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
         val parent = parent as? Entity
         if (parent != null) {
+            getSystems()?.addOrRemoveRecursively(this, false)
             parent.internalChildren.remove(this)
             val tmpAABBd = JomlPools.aabbd.borrow()
             if (anyComponent { it.fillSpace(transform.globalTransform, tmpAABBd) }) {
@@ -572,8 +576,14 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         else internalComponents.add(index, component)
         component.entity = this
         onChangeComponent(component)
+        getSystems()?.addOrRemoveRecursively(component, true)
         setChildPath(component, index, 'c')
         return this
+    }
+
+    private fun getSystems(): Systems? {
+        val systems = EngineBase.instance?.systems ?: return null
+        return if (root === systems.world) systems else null
     }
 
     fun onChangeComponent(component: Component) {
@@ -614,6 +624,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun remove(component: Component) {
         internalComponents.remove(component)
         onChangeComponent(component)
+        getSystems()?.addOrRemoveRecursively(component, false)
     }
 
     /**
@@ -628,6 +639,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             internalComponents[index] = internalComponents.last()
             internalComponents.removeLast()
             onChangeComponent(component)
+            getSystems()?.addOrRemoveRecursively(component, false)
         }
     }
 
@@ -659,6 +671,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (child.hasComponentInChildren(Collider::class)) {
             invalidatePhysics(false)
         }
+        getSystems()?.addOrRemoveRecursively(child, false)
     }
 
     fun removeAllChildren() {

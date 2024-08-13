@@ -143,16 +143,15 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         return StreetSegment(a, b, c)
     }
 
-    fun interpolate(t: Double): Vector3d {
+    fun interpolate(t: Double, dst: Vector3d = Vector3d()): Vector3d {
         return if (b == null) {
-            a.lerp(c, t, Vector3d())
+            a.lerp(c, t, dst)
         } else {
             val s = 1.0 - t
-            val ret = Vector3d()
-            a.mul(s * s, ret)
-            b.mulAdd(2.0 * s * t, ret, ret)
-            c.mulAdd(t * t, ret, ret)
-            ret
+            a.mul(s * s, dst)
+            b.mulAdd(2.0 * s * t, dst, dst)
+            c.mulAdd(t * t, dst, dst)
+            dst
         }
     }
 

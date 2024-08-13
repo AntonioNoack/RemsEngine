@@ -37,6 +37,7 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Logging
+import me.anno.utils.Logging.hash32
 import me.anno.utils.OS
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings
