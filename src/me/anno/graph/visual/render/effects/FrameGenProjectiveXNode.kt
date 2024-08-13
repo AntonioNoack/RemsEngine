@@ -77,7 +77,7 @@ class FrameGenProjectiveXNode : FrameGenProjective0Node("FrameGenProjectiveX") {
                     "void main() {\n" +
                     "   result = vec4(color,1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_uvCenter") }
         val fillInGapsShader = Shader(
             "fillInGaps", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(

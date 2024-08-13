@@ -28,7 +28,6 @@ import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLights
 import me.anno.gpu.pipeline.PipelineStageImpl.Companion.setupLocalTransform
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Filtering
-import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools

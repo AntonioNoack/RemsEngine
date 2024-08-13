@@ -121,7 +121,7 @@ class SmoothNormalsNode : ActionNode(
                     "   result = base;\n" +
                     "}\n"
         ).apply {
-            ignoreNameWarnings("d_camRot")
+            ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv")
         }
 
         fun smoothNormals(

@@ -21,6 +21,7 @@ import me.anno.gpu.texture.IndestructibleTexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.assertions.assertTrue
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.lists.Lists.iff
 import me.anno.utils.structures.maps.LazyMap
@@ -29,23 +30,19 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
-import org.joml.Vector4f
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
 
 // todo this is too dark on some regions on curved region on flat angles
 //  - maybe the normals are close to being backwards?
-
-// todo bilateral filtering for MSAA data
 object ScreenSpaceAmbientOcclusion {
 
     class SSGIData(
         val illuminated: ITexture2D, val color: ITexture2D,
-        val roughness: ITexture2D, val roughnessMask: Vector4f,
+        val roughness: ITexture2D, val roughnessMask: Int,
     )
 
-    // todo this can become extremely with complex geometry
+    // to do this can become extremely slow with complex geometry
     // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
     // todo why is pure color soo slow? 600 fps instead of 1200 fps in mode "without post-processing")
     // why is this soo expensive on my RTX3070?
@@ -110,10 +107,11 @@ object ScreenSpaceAmbientOcclusion {
 
     private val random4x4 = generateRandomTexture(Random(1234L))
 
-    private val occlusionShaders = createArrayList(4) {
+    private val occlusionShaders = LazyList(4 * 4) {
         val multisampling = it.hasFlag(1)
         val ssgi = it.hasFlag(2)
         val srcType = if (multisampling) GLSLType.S2DMS else GLSLType.S2D
+        val roughnessMask = "xyzw"[it.shr(2)]
         Shader(
             if (ssgi) "ssgi" else "ssao",
             emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
@@ -132,7 +130,6 @@ object ScreenSpaceAmbientOcclusion {
             ) + listOf(
                 Variable(GLSLType.S2D, "illuminatedTex"),
                 Variable(GLSLType.S2D, "roughnessTex"),
-                Variable(GLSLType.V4F, "roughnessMask"),
             ).iff(ssgi) + DepthTransforms.depthVars, "" +
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     ShaderLib.quatRot +
@@ -159,7 +156,7 @@ object ScreenSpaceAmbientOcclusion {
                     "       vec3 bitangent = cross(normal, tangent);\n" +
                     (if (ssgi) { // reduce blurriness on smooth surfaces
                         "" +
-                                "float roughness = 0.1 + 0.9 * dot(getPixel(roughnessTex,uv),roughnessMask);\n" +
+                                "float roughness = 0.1 + 0.9 * getPixel(roughnessTex,uv).$roughnessMask;\n" +
                                 "tangent *= roughness;\n" +
                                 "bitangent *= roughness;\n"
                     } else "") +
@@ -299,7 +296,8 @@ object ScreenSpaceAmbientOcclusion {
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
             val msaa = (depth is Texture2D && depth.samples > 1)
-            val shader = occlusionShaders[msaa.toInt() + isSSGI.toInt(2)]
+            val roughnessMask = ssgi?.roughnessMask ?: 0
+            val shader = occlusionShaders[msaa.toInt() + isSSGI.toInt(2) + roughnessMask.shl(2)]
             shader.use()
             DepthTransforms.bindDepthUniforms(shader)
             // bind all textures
@@ -308,7 +306,6 @@ object ScreenSpaceAmbientOcclusion {
             if (ssgi != null) {
                 ssgi.illuminated.bindTrulyNearest(shader, "illuminatedTex")
                 ssgi.roughness.bindTrulyNearest(shader, "roughnessTex")
-                shader.v4f("roughnessMask", ssgi.roughnessMask)
             }
             normal.bindTrulyNearest(shader, "finalNormal")
             depth.bindTrulyNearest(shader, "finalDepth")

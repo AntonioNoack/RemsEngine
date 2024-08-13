@@ -146,9 +146,7 @@ object GFXBase {
         tick.stop("Error callback")
         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
         tick.stop("GLFW initialization")
-        GLFW.glfwDefaultWindowHints()
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
-        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE)
+        setWindowFlags()
         if (false) {
             // things go wrong when using the following; we're probably using something old...
             // I also don't really want to exclude any GPU
@@ -156,13 +154,26 @@ object GFXBase {
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4)
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0)
         }
-        if (isDebug) {
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
-        }
+        setDebugFlag()
         // removes scaling options -> how could we replace them?
         // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
         // tick.stop("window hints");// 0s
         return tick
+    }
+
+    fun setWindowFlags() {
+        GLFW.glfwDefaultWindowHints()
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE)
+    }
+
+    var hasOpenGLDebugContext = false
+
+    fun setDebugFlag() {
+        if (isDebug) {
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
+            hasOpenGLDebugContext = true
+        }
     }
 
     @JvmStatic

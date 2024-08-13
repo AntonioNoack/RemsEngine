@@ -172,6 +172,6 @@ class PixelationNode : RenderViewNode(
                     "   color *= 1.0 / float(pixelSize * pixelSize);\n" +
                     "   result = vec4(color * vec3(strength), 1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv") }
     }
 }

@@ -9,6 +9,7 @@ import me.anno.graph.visual.node.Node
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
 class SSAONode : TimedRenderingNode(
@@ -26,7 +27,7 @@ class SSAONode : TimedRenderingNode(
 
     init {
         description = "Screen Space Ambient Occlusion"
-        setInput(1, 64) // samples
+        setInput(1, if (OS.isAndroid || OS.isWeb) 8 else 64) // samples
         setInput(2, 1f) // strength
         setInput(3, 0.2f) // radius scale
         setInput(4, true) // blur

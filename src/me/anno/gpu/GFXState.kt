@@ -396,16 +396,19 @@ object GFXState {
         }
     }
 
+    fun usePushDebugGroups(): Boolean {
+        GFX.checkIsGFXThread()
+        return Build.isDebug && GFXBase.hasOpenGLDebugContext
+    }
+
     fun pushDrawCallName(name: String) {
-        if (Build.isDebug) {
-            GFX.checkIsGFXThread()
+        if (usePushDebugGroups()) {
             GL46C.glPushDebugGroup(GL46C.GL_DEBUG_SOURCE_APPLICATION, PUSH_DEBUG_GROUP_MAGIC, name)
         }
     }
 
     fun popDrawCallName() {
-        if (Build.isDebug) {
-            GFX.checkIsGFXThread()
+        if (usePushDebugGroups()) {
             GL46C.glPopDebugGroup()
         }
     }

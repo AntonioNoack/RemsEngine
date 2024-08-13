@@ -198,7 +198,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     }
 
     init {
-        ignoreNameWarnings("reverseDepth")
+        ignoreNameWarnings("reverseDepth,normalMap")
     }
 
 }

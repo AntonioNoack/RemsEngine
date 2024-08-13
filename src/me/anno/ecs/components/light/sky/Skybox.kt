@@ -174,7 +174,7 @@ open class Skybox : SkyboxBase(), OnUpdate {
                             "skyColor,renderSize,tint,reflectionCullingPlane,cameraPosition,cameraRotation," +
                             "hasReflectionPlane,numberOfLights,prevLocalTransform,finalSheen,sheen," +
                             "applyToneMapping,tint,hasVertexColors,reflectionPlane,camScale,reverseDepth," +
-                            "clearCoat,IOR,isPerspective"
+                            "clearCoat,IOR,isPerspective,finalId"
                 )
             }
 

@@ -15,7 +15,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
-import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
@@ -77,15 +77,15 @@ class SSRNode : TimedRenderingNode(
             val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
 
             val metallicT = metallic?.texOrNull ?: whiteTexture
-            val metallicM = metallic.mask
+            val metallicM = metallic.mask1Index
 
             val roughnessT = roughness?.texOrNull ?: blackTexture
-            val roughnessM = roughness.mask
+            val roughnessM = roughness.mask1Index
 
             val originalSamples = (illumMT ?: illumTT).samples
             val inPlace = illumMT == null || originalSamples <= 1
             ScreenSpaceReflections.compute(
-                depthTT, depthT.mask, normalT, normalZW, colorTT,
+                depthTT, depthT.mask1Index, normalT, normalZW, colorTT,
                 metallicT, metallicM, roughnessT, roughnessM, illumTT,
                 transform, strength, maskSharpness, wallThickness, fineSteps,
                 inPlace, result0

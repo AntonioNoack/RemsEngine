@@ -331,7 +331,10 @@ open class RenderDeferredNode : RenderViewNode(
             // todo we need a flag whether this is a prepass
             // pipeline.defaultStage.depthMode = DepthMode.EQUALS
         } else {
-            framebuffer.clearColor(0, depth = true)
+            // find the renderMode, so we know what to clear depth to
+            GFXState.depthMode.use(renderView.depthMode) {
+                framebuffer.clearColor(0, depth = true)
+            }
         }
         // if all inputs are null, we can skip this
         if (hasAnyInput()) {

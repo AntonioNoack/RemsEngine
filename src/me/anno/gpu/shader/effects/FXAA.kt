@@ -32,6 +32,10 @@ object FXAA {
             Variable(GLSLType.V1F, "threshold"),
         ),
         "" +
+                "vec3 getColor(ivec2 uv){\n" +
+                "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(colorTex,0)-1);\n" +
+                "   return texelFetch(colorTex,uvi,0).xyz;\n" +
+                "}\n" +
                 "void main(){\n" +
 
                 "#define u_lumaThreshold threshold\n" +
@@ -40,13 +44,14 @@ object FXAA {
                 "#define u_mulReduce 0.5\n" +
                 "#define u_minReduce 0.01\n" +
 
-                "   vec3 rgbM = texture(colorTex, uv).rgb;\n" +
+                "   ivec2 uvi = ivec2(vec2(textureSize(colorTex,0))*uv);\n" +
+                "   vec3 rgbM = getColor(uvi);\n" +
 
                 // Sampling neighbour texels. Offsets are adapted to OpenGL texture coordinates
-                "    vec3 rgbNW = textureOffset(colorTex, uv, ivec2(-1, +1)).rgb;\n" +
-                "    vec3 rgbNE = textureOffset(colorTex, uv, ivec2(+1, +1)).rgb;\n" +
-                "    vec3 rgbSW = textureOffset(colorTex, uv, ivec2(-1, -1)).rgb;\n" +
-                "    vec3 rgbSE = textureOffset(colorTex, uv, ivec2(+1, -1)).rgb;\n" +
+                "    vec3 rgbNW = getColor(uvi+ivec2(-1,+1));\n" +
+                "    vec3 rgbNE = getColor(uvi+ivec2(+1,+1));\n" +
+                "    vec3 rgbSW = getColor(uvi+ivec2(-1,-1));\n" +
+                "    vec3 rgbSE = getColor(uvi+ivec2(+1,-1));\n" +
                 // see http://en.wikipedia.org/wiki/Grayscale
                 "    const vec3 toLuma = vec3(0.299, 0.587, 0.114);\n" +
                 // Convert from RGB to luma

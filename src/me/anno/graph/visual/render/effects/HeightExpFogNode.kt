@@ -161,6 +161,6 @@ class HeightExpFogNode : RenderViewNode(
                     "       pow(newColor, vec3($gammaInv));\n" +
                     "   result = vec4(newColor, 1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_uvCenter") }
     }
 }

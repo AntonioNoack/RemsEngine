@@ -8,7 +8,6 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.LazyList
-import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.PI
@@ -83,7 +82,10 @@ object FlatShaders {
                     "}"
         ).apply {
             setTextureIndices("colorTex", "depthTex")
-            ignoreNameWarnings("targetSamples,d_camRot,d_fovFactor,d_uvCenter,reverseDepth")
+            ignoreNameWarnings(
+                "targetSamples,d_camRot,d_fovFactor,d_uvCenter," +
+                        "reverseDepth,d_near,cameraMatrixInv"
+            )
         }
     }
 

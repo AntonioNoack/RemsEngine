@@ -41,7 +41,6 @@ class UnditherNode : RenderViewNode(
                     val shader = shader
                     shader.use()
                     bindDepthUniforms(shader)
-                    shader.v2f("duv", 1f / width, 1f / height)
                     colorT.bindTrulyNearest(shader, "colorTex")
                     depthT.bindTrulyNearest(shader, "depthTex")
                     flat01.draw(shader)
@@ -61,27 +60,33 @@ class UnditherNode : RenderViewNode(
             ), rawToDepth + "" +
                     // textureOffset isn't inlined, because it needs a constant expression at the end on some
                     // devices, and inlining isn't guaranteed.
-                    "float getDepth(float raw){\n" +
-                    "   float depth = rawToDepth(raw);\n" +
+                    "vec3 getColor(ivec2 uv){\n" +
+                    "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(colorTex,0)-1);\n" +
+                    "   return texelFetch(colorTex,uvi,0).xyz;\n" +
+                    "}\n" +
+                    "float getDepth(ivec2 uv){\n" +
+                    "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(depthTex,0)-1);\n" +
+                    "   float depth = rawToDepth(texelFetch(depthTex,uvi,0).x);\n" +
                     "   return log2(clamp(depth,1e-38,1e38));\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   vec3 color = texture(colorTex,uv).xyz;\n" +
-                    "   float d0 = getDepth(textureOffset(depthTex,uv,ivec2(-1,0)).x);\n" +
-                    "   float d1 = getDepth(textureOffset(depthTex,uv,ivec2(+1,0)).x);\n" +
-                    "   float d2 = getDepth(textureOffset(depthTex,uv,ivec2(0,-1)).x);\n" +
-                    "   float d3 = getDepth(textureOffset(depthTex,uv,ivec2(0,+1)).x);\n" +
+                    "   ivec2 uvi = ivec2(vec2(textureSize(colorTex,0))*uv);\n" +
+                    "   vec3 color = getColor(uvi);\n" +
+                    "   float d0 = getDepth(uvi+ivec2(1,0));\n" +
+                    "   float d1 = getDepth(uvi-ivec2(1,0));\n" +
+                    "   float d2 = getDepth(uvi+ivec2(0,1));\n" +
+                    "   float d3 = getDepth(uvi-ivec2(0,1));\n" +
                     "   float max = max(max(d0,d1),max(d2,d3));\n" +
                     "   float min = min(min(d0,d1),min(d2,d3));\n" +
                     // only blur if all neighbors are similar, but at the same time different to ourselves
                     "   if(max < min + 0.2){\n" +
-                    "       float dx = getDepth(texture(depthTex,uv).x);\n" +
+                    "       float dx = getDepth(uvi);\n" +
                     "       if(dx < min || dx > max){\n" +
                     "           color = color * 0.5 + 0.125 * (\n" +
-                    "               textureOffset(colorTex,uv,ivec2(-1,0)).xyz +\n" +
-                    "               textureOffset(colorTex,uv,ivec2(+1,0)).xyz +\n" +
-                    "               textureOffset(colorTex,uv,ivec2(0,-1)).xyz +\n" +
-                    "               textureOffset(colorTex,uv,ivec2(0,+1)).xyz\n" +
+                    "               getColor(uvi+ivec2(1,0)) +\n" +
+                    "               getColor(uvi-ivec2(1,0)) +\n" +
+                    "               getColor(uvi+ivec2(0,1)) +\n" +
+                    "               getColor(uvi-ivec2(0,1))\n" +
                     "           );\n" +
                     "       }\n" +
                     "   }\n" +

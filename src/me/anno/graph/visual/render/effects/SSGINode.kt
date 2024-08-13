@@ -7,7 +7,7 @@ import me.anno.gpu.texture.TextureLib.normalTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
-import me.anno.graph.visual.render.Texture.Companion.mask
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.SSAONode.Companion.fail
 
@@ -56,7 +56,7 @@ class SSGINode : TimedRenderingNode(
 
         val roughT = (getInput(8) as? Texture) ?: return fail()
         val roughTT = roughT.texOrNull ?: whiteTexture
-        val roughTM = roughT.mask
+        val roughTM = roughT.mask1Index
 
         val illumT = (getInput(9) as? Texture) ?: return fail()
         val illumTT = illumT.texOrNull ?: return fail()

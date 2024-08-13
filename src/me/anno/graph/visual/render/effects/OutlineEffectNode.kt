@@ -17,7 +17,7 @@ import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texMSOrNull
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.RenderViewNode
-import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.structures.lists.LazyList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
 import kotlin.math.min
@@ -127,7 +127,7 @@ class OutlineEffectNode : RenderViewNode(
             return (if (useMS) texture.texMSOrNull else texture.texOrNull) ?: blackTexture
         }
 
-        val shader = createList(2) {
+        val shader = LazyList(2) {
             val useMS = it != 0
             val shader = Shader(
                 "outlines", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(

@@ -4,7 +4,6 @@ import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -81,7 +80,7 @@ class FSR2v2 : ICacheData {
                         "       }\n" +
                         "       vec2 motion = 0.5 * bestMotion.xy + (currJitter-prevJitter) / renderSizeF;\n" +
                         "       ivec2 dstUV1 = ivec2((uv - motion) * displaySizeF);\n" +
-                        "       isExact = dstUV1.x < 0.0 || dstUV1.y < 0.0 || dstUV1.x >= displaySizeI.x || dstUV1.y >= displaySizeI.y;\n" +
+                        "       isExact = dstUV1.x < 0 || dstUV1.y < 0 || dstUV1.x >= displaySizeI.x || dstUV1.y >= displaySizeI.y;\n" +
                         "       if(!isExact){\n" +
                         // if all neighbors have vastly different depth, discard our pixel
                         "           colorResult = texelFetch(prevColors,dstUV1,0);\n" +
@@ -105,7 +104,7 @@ class FSR2v2 : ICacheData {
                         "       depthResult = vec4(depth,0.0,0.0,1.0);\n" +
                         "   }\n" +
                         "}\n"
-            )
+            ).apply { ignoreNameWarnings("d_camRot,d_uvCenter,cameraMatrixInv") }
         }
     }
 
@@ -165,7 +164,7 @@ class FSR2v2 : ICacheData {
     fun calculate(
         color: ITexture2D,
         depth: ITexture2D,
-        depthMask: String,
+        depthMask: Int,
         motion: ITexture2D, // motion in 3d
         pw: Int, ph: Int,
         scaleX: Int, scaleY: Int
@@ -179,12 +178,7 @@ class FSR2v2 : ICacheData {
         val data0 = view.data0
         data1.ensure()
         GFXState.useFrame(pw, ph, true, data0) {
-            val depthMaskI = when (depthMask[0]) {
-                in "yg" -> 1
-                in "zb" -> 2
-                else -> 0
-            }
-            val shader = updateShader[depthMaskI]
+            val shader = updateShader[depthMask]
             shader.use()
             shader.v2f("prevJitter", pjx, pjy)
             shader.v2f("currJitter", jx, jy)
@@ -198,7 +192,6 @@ class FSR2v2 : ICacheData {
             data1.getTextureI(1).bindTrulyNearest(shader, "prevDepths")
             shader.v2i("displaySizeI", data1.width, data1.height)
             shader.v2f("displaySizeF", data1.width.toFloat(), data1.height.toFloat())
-            shader.v4f("depthMask", DeferredSettings.singleToVector[depthMask]!!) // todo compile variants instead
             shader.v2i(
                 "chosenPixel",
                 ((jx + 0.5f) * scaleX).toInt(),

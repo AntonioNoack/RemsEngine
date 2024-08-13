@@ -54,9 +54,9 @@ object HiddenOpenGLContext {
 
         tick.stop("GLFW initialization")
 
-        glfwDefaultWindowHints()
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
+        GFXBase.setWindowFlags()
+        // GFXBase.setDebugFlag()
+
         // should allow OpenGL to run without a window in the background
         // some people on GitHub said it only would use software rendering,
         // so that's of no use to us

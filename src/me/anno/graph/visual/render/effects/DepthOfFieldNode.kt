@@ -145,7 +145,7 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   vec3 color = texture(colorTex,uv).xyz;\n" +
                     "   result = clamp(vec4(color,getBlurSize(depth,uv)),0.0,1.0);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_camRot") }
+        ).apply { ignoreNameWarnings("d_camRot,cameraMatrixInv") }
 
         val dofShader = Shader(
             "dof", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
@@ -210,6 +210,6 @@ class DepthOfFieldNode : TimedRenderingNode(
                     "   }\n" +
                     "   if(applyToneMapping) result = tonemap(result);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_camRot") }
+        ).apply { ignoreNameWarnings("d_camRot,d_uvCenter") }
     }
 }

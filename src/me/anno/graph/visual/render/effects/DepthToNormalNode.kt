@@ -23,6 +23,10 @@ import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.mask
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 
+/**
+ * reconstructs normal from depth value;
+ * disadvantage: doesn't support normal maps
+ * */
 class DepthToNormalNode : TimedRenderingNode(
     "Depth To Normal",
     listOf("Texture", "Depth", "Int", "Precision"),
@@ -32,8 +36,8 @@ class DepthToNormalNode : TimedRenderingNode(
     override fun executeAction() {
         val depth = getInput(1) as? Texture ?: return
         val target = when (getInput(2) as Int) {
-            1 -> TargetType.Float16x2
-            2 -> TargetType.Float32x2
+            1 -> TargetType.UInt16x2
+            2 -> TargetType.UInt32x2
             else -> TargetType.UInt8x2
         }
         val depthTex = depth.texOrNull
@@ -48,7 +52,7 @@ class DepthToNormalNode : TimedRenderingNode(
                     bindDepthUniforms(shader)
                     flat01.draw(shader)
                 }
-                setOutput(1, Texture.texture(result, 0, "rg", DeferredLayerType.NORMAL))
+                setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
             }
         } else {
             setOutput(1, null)
@@ -67,13 +71,39 @@ class DepthToNormalNode : TimedRenderingNode(
                     rawToDepth +
                     depthToPosition +
                     octNormalPacking +
+                    "float getDepth(ivec2 uv){\n" +
+                    "   ivec2 uvi = clamp(uv, ivec2(0,0), textureSize(depthTex,0)-1);\n" +
+                    "   float rawDepth = dot(depthMask,texelFetch(depthTex,uvi,0));\n" +
+                    "   return rawToDepth(rawDepth);\n" +
+                    "}\n" +
+                    "vec3 getPosition(vec2 uv, float depth){\n" +
+                    "   return depthToPosition(uv, max(depth, 1e-10));\n" +
+                    "}\n" +
                     "void main(){\n" +
-                    "   float rawDepth = dot(texture(depthTex,uv), depthMask);\n" +
-                    "   vec3 pos = rawDepthToPosition(uv, max(rawDepth, 1e-10));\n" +
+                    "   vec2 duv = vec2(dFdx(uv.x),dFdy(uv.y));\n" +
+                    "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
+                    "   float d00 = getDepth(uvi);\n" +
+                    "   float dpx = getDepth(uvi+ivec2(1,0));\n" +
+                    "   float dmx = getDepth(uvi-ivec2(1,0));\n" +
+                    "   float dpy = getDepth(uvi+ivec2(0,1));\n" +
+                    "   float dmy = getDepth(uvi-ivec2(0,1));\n" +
+                    "   vec3 normal;\n" +
+                    "   if(d00 > 1e10){\n" +
                     // sky doesn't have depth information / is at infinity -> different algorithm for it
-                    "   vec3 normal = rawDepth < 1e-10 ? -rawCameraDirection(uv) : cross(dFdx(pos),dFdy(pos));\n" +
+                    "       normal = -rawCameraDirection(uv);\n" +
+                    "   } else {\n" +
+                    // prefer px/mx with closer depth value
+                    "       vec3 pos0 = depthToPosition(uv, max(d00, 1e-10));\n" +
+                    "       vec3 dx = abs(dpx-d00) < abs(dmx-d00) ?\n" +
+                    "                   getPosition(uv+vec2(duv.x,0.0),dpx) - pos0 :\n" +
+                    "            pos0 - getPosition(uv-vec2(duv.x,0.0),dmx);\n" +
+                    "       vec3 dy = abs(dpy-d00) < abs(dmy-d00) ?\n" +
+                    "                   getPosition(uv+vec2(0.0,duv.y),dpy) - pos0 :\n" +
+                    "            pos0 - getPosition(uv-vec2(0.0,duv.y),dmy);\n" +
+                    "       normal = cross(dx,dy);\n" +
+                    "   }\n" +
                     "   result = vec4(PackNormal(normal),0.0,1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("d_uvCenter") }
     }
 }

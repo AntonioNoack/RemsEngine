@@ -10,6 +10,7 @@ import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.visual.FlowGraph
 import me.anno.graph.visual.render.QuickPipeline
 import me.anno.graph.visual.render.Texture
+import me.anno.graph.visual.render.Texture.Companion.mask1Index
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.scene.CombineLightsNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
@@ -63,7 +64,7 @@ class FSR2Node : RenderViewNode(
         timeRendering(name, timer) {
             val fsr = renderView.fsr22
             fsr.calculate(
-                color, depth.texOrNull ?: depthTexture, depth.mapping,
+                color, depth.texOrNull ?: depthTexture, depth.mask1Index,
                 motion.texOrNull ?: blackTexture, width, height,
                 scaleX, scaleY
             )

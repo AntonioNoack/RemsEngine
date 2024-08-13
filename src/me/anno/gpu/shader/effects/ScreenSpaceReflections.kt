@@ -12,14 +12,12 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.utils.structures.lists.Lists.createList
+import me.anno.utils.structures.lists.LazyList
+import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.iff
 import org.joml.Matrix4f
-import org.joml.Vector4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
@@ -28,20 +26,17 @@ import org.joml.Vector4f
 object ScreenSpaceReflections {
 
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
-    fun createShader(inPlace: Boolean): Shader {
+    fun createShader(inPlace: Boolean, depthMaskI: Int, roughnessMaskI: Int, metallicMaskI: Int): Shader {
         val variables = arrayListOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.M4x4, "cameraMatrix"),
             Variable(GLSLType.S2D, "finalColor"),
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
-            Variable(GLSLType.V4F, "depthMask"),
             Variable(GLSLType.S2D, "finalNormal"),
             // reflectivity = metallic * (1-roughness),
             Variable(GLSLType.S2D, "finalMetallic"),
-            Variable(GLSLType.V4F, "metallicMask"),
             Variable(GLSLType.S2D, "finalRoughness"),
-            Variable(GLSLType.V4F, "roughnessMask"),
             Variable(GLSLType.V1F, "resolution"),
             Variable(GLSLType.V1I, "steps"),
             Variable(GLSLType.V1F, "thickness"),
@@ -63,6 +58,10 @@ object ScreenSpaceReflections {
             if (inPlace) "result = vec4(color0, 1.0);\nreturn;\n"
             else "result = vec4(0.0);\nreturn;\n"
 
+        val depthMask = "xyzw"[depthMaskI]
+        val roughnessMask = "xyzw"[roughnessMaskI]
+        val metallicMask = "xyzw"[metallicMaskI]
+
         return Shader(
             "ss-reflections", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, variables, "" +
 
@@ -72,8 +71,8 @@ object ScreenSpaceReflections {
 
                     "   vec3 color0 = texture(finalIlluminated, uv).rgb;\n".iff(inPlace) +
 
-                    "   float metallic = dot(texture(finalMetallic, uv), metallicMask);\n" +
-                    "   float roughness = dot(texture(finalRoughness, uv), roughnessMask);\n" +
+                    "   float metallic = texture(finalMetallic, uv).$metallicMask;\n" +
+                    "   float roughness = texture(finalRoughness, uv).$roughnessMask;\n" +
                     "   float reflectivity = metallic * (1.0 - roughness);\n" +
                     "   reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                     // "   reflectivity = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
@@ -86,7 +85,7 @@ object ScreenSpaceReflections {
                     "   vec2  texSize  = vec2(texSizeI);\n" +
                     "   ivec2 uvi = clamp(ivec2(uv*texSize),ivec2(0,0),texSizeI-1);\n" +
 
-                    "   vec3 positionFrom = rawDepthToPosition(uv,dot(texelFetch(finalDepth,uvi,0),depthMask));\n" +
+                    "   vec3 positionFrom = rawDepthToPosition(uv,texelFetch(finalDepth,uvi,0).$depthMask);\n" +
 
                     "   vec4 normalData = texture(finalNormal, uv);\n" +
                     "   vec3 normal     = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
@@ -137,7 +136,7 @@ object ScreenSpaceReflections {
 
                     "       dstUV += increment;\n" +
                     "       if(dstUV.x <= 0.0 || dstUV.y <= 0.0 || dstUV.x >= 1.0 || dstUV.y >= 1.0) break;\n" +
-                    "       float depthTo = dot(texelFetch(finalDepth,ivec2(dstUV*texSize),0),depthMask);\n" +
+                    "       float depthTo = texelFetch(finalDepth,ivec2(dstUV*texSize),0).$depthMask;\n" +
                     "       positionTo = rawDepthToPosition(dstUV,depthTo);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
@@ -166,7 +165,7 @@ object ScreenSpaceReflections {
                     "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
 
                     "       dstUV      = mix(uv, endUV, fractionI);\n" +
-                    "       float depthTo = dot(texelFetch(finalDepth,ivec2(dstUV*texSize),0),depthMask);\n" +
+                    "       float depthTo = texelFetch(finalDepth,ivec2(dstUV*texSize),0).$depthMask;\n" +
                     "       positionTo = rawDepthToPosition(dstUV,depthTo);\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
@@ -203,21 +202,31 @@ object ScreenSpaceReflections {
         )
     }
 
-    val shader = createList(2) { createShader(it > 0) }
+    val shader = LazyList(2 * 4 * 4 * 4) {
+        createShader(
+            it.hasFlag(1),
+            (it shr 1).and(3),
+            (it shr 3).and(3),
+            (it shr 5).and(3),
+        )
+    }
 
     /**
      * computes screen space reflections from metallic, roughness, normal, position and color buffers
      * */
     fun compute(
         depth: ITexture2D,
-        depthMask: Vector4f,
+        // depth may be on r, g, b, or a
+        depthMask: Int,
         normal: ITexture2D,
         normalZW: Boolean,
         color: ITexture2D,
         metallic: ITexture2D,
-        metallicMask: Vector4f,
+        // metallic may be on r, g, b, or a
+        metallicMask: Int,
         roughness: ITexture2D,
-        roughnessMask: Vector4f,
+        // roughness may be on r, g, b, or a
+        roughnessMask: Int,
         illuminated: ITexture2D,
         cameraMatrix: Matrix4f,
         strength: Float, // 1f
@@ -227,9 +236,11 @@ object ScreenSpaceReflections {
         inPlace: Boolean,
         dst: IFramebuffer
     ) {
-        // metallic may be on r, g, b, or a
         GFXState.useFrame(dst, Renderer.copyRenderer) {
-            val shader = shader[inPlace.toInt()]
+            val shader = shader[inPlace.toInt() +
+                    depthMask.shl(1) +
+                    roughnessMask.shl(3) +
+                    metallicMask.shl(5)]
             shader.use()
             shader.v1f("resolution", 1f / fineSteps)
             shader.v1i("steps", fineSteps)
@@ -238,18 +249,13 @@ object ScreenSpaceReflections {
             shader.v1f("strength", strength)
             shader.m4x4("cameraMatrix", cameraMatrix)
             shader.v1b("normalZW", normalZW)
-            val n = Filtering.TRULY_LINEAR
-            val c = Clamping.CLAMP
-            shader.v4f("depthMask", depthMask)
-            shader.v4f("metallicMask", metallicMask)
-            shader.v4f("roughnessMask", roughnessMask)
             DepthTransforms.bindDepthUniforms(shader)
-            illuminated.bind(shader, "finalIlluminated", n, c)
-            roughness.bind(shader, "finalRoughness", n, c)
-            metallic.bind(shader, "finalMetallic", n, c)
-            normal.bind(shader, "finalNormal", n, c)
-            depth.bind(shader, "finalDepth", n, c)
-            color.bind(shader, "finalColor", n, c)
+            illuminated.bindTrulyLinear(shader, "finalIlluminated")
+            roughness.bindTrulyLinear(shader, "finalRoughness")
+            metallic.bindTrulyLinear(shader, "finalMetallic")
+            normal.bindTrulyLinear(shader, "finalNormal")
+            depth.bindTrulyLinear(shader, "finalDepth")
+            color.bindTrulyLinear(shader, "finalColor")
             SimpleBuffer.flat01.draw(shader)
         }
     }

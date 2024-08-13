@@ -625,7 +625,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 RenderMode.INVERSE_DEPTH -> DepthMode.FAR
                 else -> DepthMode.CLOSE
             }
-            return if (GFX.supportsClipControl) base else base.reversedMethodMode
+            return if (GFX.supportsClipControl && isPerspective) base
+            else base.reversedMethodMode
         }
 
     fun drawScene(

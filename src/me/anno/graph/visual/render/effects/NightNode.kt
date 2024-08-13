@@ -93,6 +93,6 @@ class NightNode : RenderViewNode(
                     "   } else color *= skyDarkening;\n" +
                     "   result = vec4(color, 1.0);\n" +
                     "}\n"
-        ).apply { ignoreNameWarnings("d_camRot") }
+        ).apply { ignoreNameWarnings("d_camRot,cameraMatrixInv,d_uvCenter") }
     }
 }
