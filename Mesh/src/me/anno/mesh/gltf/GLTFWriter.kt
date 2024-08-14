@@ -12,6 +12,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.HelperMesh
+import me.anno.ecs.components.mesh.HelperMesh.Companion.createHelperMeshes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase

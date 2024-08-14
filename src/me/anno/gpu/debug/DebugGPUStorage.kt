@@ -191,8 +191,7 @@ object DebugGPUStorage {
     }
 
     fun openMenu() {
-        val window = GFX.someWindow
-        val window1 = Menu.openMenu(window.windowStack, listOf(
+        Menu.openMenu(GFX.someWindow.windowStack, listOf(
             createEntry("Texture2Ds", tex2d) {
                 TexturePanel2D(it.name, it, false)
             },
@@ -232,12 +231,12 @@ object DebugGPUStorage {
                 // we have name data, so we could show colors, uvs, coordinates and such :)
                 // first, easy way:
                 openMenuOfPanels("Buffers", PanelListY(style)) { list ->
-                    for (buff in buffers.sortedBy { it.locallyAllocated }) {
+                    for (buffer in buffers.sortedBy { it.locallyAllocated }) {
                         list.add(TextPanel(
-                            "${GFX.getName(buff.type)}, " +
-                                    "${buff.elementCount} x ${buff.attributes}, " +
+                            "\"${buffer.name}\", ${GFX.getName(buffer.type)}, " +
+                                    "${buffer.elementCount} x ${buffer.attributes}, " +
                                     "total: ${
-                                        (buff.nioBuffer?.capacity()?.toLong() ?: buff.locallyAllocated)
+                                        (buffer.nioBuffer?.capacity()?.toLong() ?: buffer.locallyAllocated)
                                             .formatFileSize()
                                     }", style
                         ).apply { breaksIntoMultiline = true })
@@ -245,7 +244,6 @@ object DebugGPUStorage {
                 }
             }
         ))
-        window1?.drawDirectly = true
     }
 
     private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {

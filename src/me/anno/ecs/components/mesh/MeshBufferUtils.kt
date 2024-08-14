@@ -1,10 +1,19 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
+import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
+import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.IndexBuffer
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.mesh.FindLines
+import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.roundToIntOr
+import kotlin.math.max
+import kotlin.math.min
 
 object MeshBufferUtils {
 
@@ -41,5 +50,180 @@ object MeshBufferUtils {
             oldValue?.destroy()
             null
         }
+    }
+
+    fun Mesh.updateMesh() {
+
+        getBounds()
+
+        needsMeshUpdate = false
+
+        // not the safest, but well...
+        val positions = positions ?: return
+        if (positions.isEmpty()) return
+
+        ensureNorTanUVs()
+
+        val normals = normals!!
+        val tangents = tangents
+
+        val uvs = uvs
+        val hasUVs = hasUVs
+
+        val color0 = color0
+        val color1 = color1
+        val color2 = color2
+        val color3 = color3
+        val boneWeights = boneWeights
+        val boneIndices = boneIndices
+
+        val vertexCount = min(positions.size, normals.size) / 3
+        val indices = indices
+
+        val hasBones = hasBones
+        hasBonesInBuffer = hasBones
+
+        val hasColor0 = color0 != null && color0.isNotEmpty()
+        val hasColor1 = color1 != null && color1.isNotEmpty()
+        val hasColor2 = color2 != null && color2.isNotEmpty()
+        val hasColor3 = color3 != null && color3.isNotEmpty()
+        hasVertexColors = hasColor0.toInt() + hasColor1.toInt(2) + hasColor2.toInt(4) + hasColor3.toInt(8)
+
+        val hasHighPrecisionNormals = hasHighPrecisionNormals
+
+        val attributes = arrayListOf(
+            Attribute("coords", 3),
+        )
+
+        attributes += if (hasHighPrecisionNormals) {
+            Attribute("normals", AttributeType.FLOAT, 3)
+        } else {
+            // todo normals could be oct-encoded
+            Attribute("normals", AttributeType.SINT8_NORM, 4)
+        }
+
+        if (hasUVs) {
+            attributes += Attribute("uvs", 2)
+            attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
+        }
+
+        if (hasColor0) attributes += Attribute("colors0", AttributeType.UINT8_NORM, 4)
+        if (hasColor1) attributes += Attribute("colors1", AttributeType.UINT8_NORM, 4)
+        if (hasColor2) attributes += Attribute("colors2", AttributeType.UINT8_NORM, 4)
+        if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
+
+        if (hasBones) {
+            attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
+            attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
+        }
+
+        val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
+        val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
+        buffer.drawMode = drawMode
+        this.buffer = buffer
+
+        triBuffer = replaceBuffer(buffer, indices, triBuffer)
+        triBuffer?.drawMode = drawMode
+
+        for (i in 0 until vertexCount) {
+
+            // upload all data of one vertex
+
+            val i2 = i * 2
+            val i3 = i * 3
+            val i4 = i * 4
+
+            buffer.put(positions[i3])
+            buffer.put(positions[i3 + 1])
+            buffer.put(positions[i3 + 2])
+
+            if (hasHighPrecisionNormals) {
+                buffer.put(normals[i3])
+                buffer.put(normals[i3 + 1])
+                buffer.put(normals[i3 + 2])
+            } else {
+                buffer.putByte(normals[i3])
+                buffer.putByte(normals[i3 + 1])
+                buffer.putByte(normals[i3 + 2])
+                buffer.putByte(0) // alignment
+            }
+
+            if (hasUVs) {
+
+                if (uvs != null && i2 + 1 < uvs.size) {
+                    // in the future, flip the textures instead?
+                    buffer.put(uvs[i2])
+                    buffer.put(1f - uvs[i2 + 1])
+                } else buffer.put(0f, 0f)
+
+                if (tangents != null && i4 + 3 < tangents.size) {
+                    buffer.putByte(tangents[i4])
+                    buffer.putByte(tangents[i4 + 1])
+                    buffer.putByte(tangents[i4 + 2])
+                    buffer.putByte(tangents[i4 + 3])
+                } else {
+                    buffer.putByte(normals[i3])
+                    buffer.putByte(normals[i3 + 1])
+                    buffer.putByte(normals[i3 + 2])
+                    buffer.putByte(127) // positive ^^
+                }
+            }
+
+            fun putColor(colors: IntArray?) {
+                if (i < colors!!.size) {
+                    buffer.putRGBA(colors[i])
+                } else buffer.putInt(-1)
+            }
+
+            if (hasColor0) putColor(color0)
+            if (hasColor1) putColor(color1)
+            if (hasColor2) putColor(color2)
+            if (hasColor3) putColor(color3)
+
+            // only works if MAX_WEIGHTS is four
+            if (hasBones) {
+
+                if (boneWeights != null && i4 + 3 < boneWeights.size) {
+                    val w0 = max(boneWeights[i4], 1e-5f)
+                    val w1 = boneWeights[i4 + 1]
+                    val w2 = boneWeights[i4 + 2]
+                    val w3 = boneWeights[i4 + 3]
+                    val normalisation = 255f / (w0 + w1 + w2 + w3)
+                    val w1b = (w1 * normalisation).roundToIntOr()
+                    val w2b = (w2 * normalisation).roundToIntOr()
+                    val w3b = (w3 * normalisation).roundToIntOr()
+                    val w0b = max(255 - (w1b + w2b + w3b), 0)
+                    buffer.putByte(w0b.toByte())
+                    buffer.putByte(w1b.toByte())
+                    buffer.putByte(w2b.toByte())
+                    buffer.putByte(w3b.toByte())
+                } else {
+                    buffer.putByte(-1)
+                    buffer.putByte(0)
+                    buffer.putByte(0)
+                    buffer.putByte(0)
+                }
+
+                if (boneIndices != null && i4 + 3 < boneIndices.size) {
+                    buffer.putByte(boneIndices[i4])
+                    buffer.putByte(boneIndices[i4 + 1])
+                    buffer.putByte(boneIndices[i4 + 2])
+                    buffer.putByte(boneIndices[i4 + 3])
+                } else {
+                    buffer.putInt(0)
+                }
+            }
+        }
+
+        updateHelperMeshes()
+
+        // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
+
+        // find regular lines
+        lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
+        lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
+        lineBuffer?.drawMode = DrawMode.LINES
+
+        invalidDebugLines = true
     }
 }

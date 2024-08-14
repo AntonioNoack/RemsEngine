@@ -1,6 +1,7 @@
 package me.anno.engine
 
 import me.anno.Build
+import me.anno.cache.debug.DebugCaches
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX
@@ -69,27 +70,6 @@ object EngineActions {
             },
             "Redo" to { PrefabInspector.currentInspector?.history?.redo() ?: false },
             "Undo" to { PrefabInspector.currentInspector?.history?.undo() ?: false },
-            "ShowAllObjects" to {
-                /*if (RemsStudio.root.listOfAll.any { it.visibility == TransformVisibility.VIDEO_ONLY }) {
-                    RemsStudio.largeChange("Show all objects") {
-                        RemsStudio.root.listOfAll.filter { it.visibility == TransformVisibility.VIDEO_ONLY }
-                            .forEach { it.visibility = TransformVisibility.VISIBLE }
-                    }
-                    true
-                } else */false
-            },
-            "ToggleHideObject" to {
-                /*val obj = Selection.selectedTransform
-                if (obj != null) {
-                    RemsStudio.largeChange("Toggle Visibility") {
-                        obj.visibility = when (obj.visibility) {
-                            TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
-                            else -> TransformVisibility.VISIBLE
-                        }
-                    }
-                    true
-                } else */false
-            },
             "Save" to {
                 EngineBase.instance?.save()
                 true
@@ -136,7 +116,11 @@ object EngineActions {
                 if (GFX.canLooseContext)
                     addEvent { GFXState.newSession() }
                 true
-            }
+            },
+            "DebugCaches" to {
+                DebugCaches.openMenu()
+                true
+            },
         )
 
         for ((name, action) in actions) {
@@ -178,6 +162,7 @@ object EngineActions {
             register["global.m.t.c", "DebugGPUStorage"]
             register["global.l.t.c", "ResetOpenGLSession"]
             register["global.f5.down.c", "ClearCache"]
+            register["global.n.t.c", "DebugCaches"]
         }
 
         register["global.space.down", "Play|Pause"]

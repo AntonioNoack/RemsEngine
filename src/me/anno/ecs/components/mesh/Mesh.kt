@@ -7,7 +7,10 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.HelperMesh.Companion.destroyHelperMeshes
+import me.anno.ecs.components.mesh.HelperMesh.Companion.updateHelperMeshes
 import me.anno.ecs.components.mesh.MeshBufferUtils.replaceBuffer
+import me.anno.ecs.components.mesh.MeshBufferUtils.updateMesh
 import me.anno.ecs.components.mesh.MeshIterators.countLines
 import me.anno.ecs.components.mesh.MeshIterators.forEachLineIndex
 import me.anno.ecs.components.mesh.MeshIterators.forEachPoint
@@ -37,6 +40,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
+import me.anno.utils.InternalAPI
 import me.anno.utils.structures.lists.Lists.arrayListOfNulls
 import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.tuples.IntPair
@@ -60,8 +64,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
     // -> just use multiple setters for convenience
 
+    @InternalAPI
     @NotSerializedProperty
-    private var needsMeshUpdate = true
+    var needsMeshUpdate = true
 
     @NotSerializedProperty
     private var needsBoundsUpdate = true
@@ -72,6 +77,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
      * call this function, when you have changed the geometry;
      * on the next frame, the new mesh data will be uploaded to the GPU
      * */
+    @DebugAction
     fun invalidateGeometry() {
         needsMeshUpdate = true
         needsBoundsUpdate = true
@@ -151,6 +157,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @HideInInspector
     var boneIndices: ByteArray? = null
 
+    @DebugProperty
     val hasBones get() = boneIndices?.isEmpty() == false
 
     @HideInInspector
@@ -214,6 +221,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         debugLineBuffer = null
         prefabPath = Path.ROOT_PATH
         prefab = null
+        needsMeshUpdate = true
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -366,13 +374,15 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @NotSerializedProperty
     var debugLineBuffer: IndexBuffer? = null
 
+    @InternalAPI
     @NotSerializedProperty
-    private var invalidDebugLines = true
+    var invalidDebugLines = true
 
     var hasUVs = false
     override var hasVertexColors = 0
     override var hasBonesInBuffer = false
 
+    @DebugProperty
     override val numPrimitives
         get(): Long {
             val indices = indices
@@ -399,6 +409,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         }
     }
 
+    @DebugProperty
+    val hasBuffers
+        get() = buffer?.run { pointer != 0 } == true
+
     var hasHighPrecisionNormals = false
 
     /** can be set false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
@@ -419,6 +433,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     /**
      * upload the data to the gpu, if it has changed
      * */
+    @DebugAction
     override fun ensureBuffer() {
         synchronized(this) {
             if (needsMeshUpdate) updateMesh()
@@ -450,193 +465,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             TangentCalculator.checkTangents(this, positions, normals, tangents, uvs)
     }
 
-    private fun updateMesh() {
-
-        getBounds()
-
-        needsMeshUpdate = false
-
-        // not the safest, but well...
-        val positions = positions ?: return
-        if (positions.isEmpty()) return
-
-        ensureNorTanUVs()
-
-        val normals = normals!!
-        val tangents = tangents
-
-        val uvs = uvs
-        val hasUVs = hasUVs
-
-        val color0 = color0
-        val color1 = color1
-        val color2 = color2
-        val color3 = color3
-        val boneWeights = boneWeights
-        val boneIndices = boneIndices
-
-        val vertexCount = min(positions.size, normals.size) / 3
-        val indices = indices
-
-        val hasBones = hasBones
-        hasBonesInBuffer = hasBones
-
-        val hasColor0 = color0 != null && color0.isNotEmpty()
-        val hasColor1 = color1 != null && color1.isNotEmpty()
-        val hasColor2 = color2 != null && color2.isNotEmpty()
-        val hasColor3 = color3 != null && color3.isNotEmpty()
-        hasVertexColors = hasColor0.toInt() + hasColor1.toInt(2) + hasColor2.toInt(4) + hasColor3.toInt(8)
-
-        val hasHighPrecisionNormals = hasHighPrecisionNormals
-
-        val attributes = arrayListOf(
-            Attribute("coords", 3),
-        )
-
-        attributes += if (hasHighPrecisionNormals) {
-            Attribute("normals", AttributeType.FLOAT, 3)
-        } else {
-            // todo normals could be oct-encoded
-            Attribute("normals", AttributeType.SINT8_NORM, 4)
-        }
-
-        if (hasUVs) {
-            attributes += Attribute("uvs", 2)
-            attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
-        }
-
-        if (hasColor0) attributes += Attribute("colors0", AttributeType.UINT8_NORM, 4)
-        if (hasColor1) attributes += Attribute("colors1", AttributeType.UINT8_NORM, 4)
-        if (hasColor2) attributes += Attribute("colors2", AttributeType.UINT8_NORM, 4)
-        if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
-
-        if (hasBones) {
-            attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
-            attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
-        }
-
-        val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
-        val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
-        buffer.drawMode = drawMode
-        this.buffer = buffer
-
-        triBuffer = replaceBuffer(buffer, indices, triBuffer)
-        triBuffer?.drawMode = drawMode
-
-        for (i in 0 until vertexCount) {
-
-            // upload all data of one vertex
-
-            val i2 = i * 2
-            val i3 = i * 3
-            val i4 = i * 4
-
-            buffer.put(positions[i3])
-            buffer.put(positions[i3 + 1])
-            buffer.put(positions[i3 + 2])
-
-            if (hasHighPrecisionNormals) {
-                buffer.put(normals[i3])
-                buffer.put(normals[i3 + 1])
-                buffer.put(normals[i3 + 2])
-            } else {
-                buffer.putByte(normals[i3])
-                buffer.putByte(normals[i3 + 1])
-                buffer.putByte(normals[i3 + 2])
-                buffer.putByte(0) // alignment
-            }
-
-            if (hasUVs) {
-
-                if (uvs != null && i2 + 1 < uvs.size) {
-                    // in the future, flip the textures instead?
-                    buffer.put(uvs[i2])
-                    buffer.put(1f - uvs[i2 + 1])
-                } else buffer.put(0f, 0f)
-
-                if (tangents != null && i4 + 3 < tangents.size) {
-                    buffer.putByte(tangents[i4])
-                    buffer.putByte(tangents[i4 + 1])
-                    buffer.putByte(tangents[i4 + 2])
-                    buffer.putByte(tangents[i4 + 3])
-                } else {
-                    buffer.putByte(normals[i3])
-                    buffer.putByte(normals[i3 + 1])
-                    buffer.putByte(normals[i3 + 2])
-                    buffer.putByte(127) // positive ^^
-                }
-            }
-
-            fun putColor(colors: IntArray?) {
-                if (i < colors!!.size) {
-                    buffer.putRGBA(colors[i])
-                } else buffer.putInt(-1)
-            }
-
-            if (hasColor0) putColor(color0)
-            if (hasColor1) putColor(color1)
-            if (hasColor2) putColor(color2)
-            if (hasColor3) putColor(color3)
-
-            // only works if MAX_WEIGHTS is four
-            if (hasBones) {
-
-                if (boneWeights != null && i4 + 3 < boneWeights.size) {
-                    val w0 = max(boneWeights[i4], 1e-5f)
-                    val w1 = boneWeights[i4 + 1]
-                    val w2 = boneWeights[i4 + 2]
-                    val w3 = boneWeights[i4 + 3]
-                    val normalisation = 255f / (w0 + w1 + w2 + w3)
-                    val w1b = (w1 * normalisation).roundToIntOr()
-                    val w2b = (w2 * normalisation).roundToIntOr()
-                    val w3b = (w3 * normalisation).roundToIntOr()
-                    val w0b = max(255 - (w1b + w2b + w3b), 0)
-                    buffer.putByte(w0b.toByte())
-                    buffer.putByte(w1b.toByte())
-                    buffer.putByte(w2b.toByte())
-                    buffer.putByte(w3b.toByte())
-                } else {
-                    buffer.putByte(-1)
-                    buffer.putByte(0)
-                    buffer.putByte(0)
-                    buffer.putByte(0)
-                }
-
-                if (boneIndices != null && i4 + 3 < boneIndices.size) {
-                    buffer.putByte(boneIndices[i4])
-                    buffer.putByte(boneIndices[i4 + 1])
-                    buffer.putByte(boneIndices[i4 + 2])
-                    buffer.putByte(boneIndices[i4 + 3])
-                } else {
-                    buffer.putInt(0)
-                }
-            }
-        }
-
-        updateHelperMeshes()
-
-        // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
-
-        // find regular lines
-        lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
-        lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-        lineBuffer?.drawMode = DrawMode.LINES
-
-        invalidDebugLines = true
-    }
-
-    fun updateHelperMeshes() {
-        val materialIds = materialIds
-        val first = materialIds?.firstOrNull() ?: 0
-        val hasMultipleMaterials = materialIds != null && materialIds.any { it != first }
-        if (hasMultipleMaterials) {
-            createHelperMeshes(materialIds!!)
-        } else {
-            destroyHelperMeshes()
-            numMaterials = 1
-        }
-    }
-
     fun ensureDebugLines() {
         val buffer = buffer
         if (invalidDebugLines && buffer != null) {
@@ -645,64 +473,6 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
             debugLineBuffer?.drawMode = DrawMode.LINES
         }
-    }
-
-    fun createHelperMeshes(materialIds: IntArray, init: Boolean = true) {
-        // todo use the same geometry data buffers: allow different index buffers per buffer
-        // lines, per-material, all-together
-        // creating separate buffers on the gpu,
-        // split indices / data, would be of advantage here
-        val length = materialIds.maxOrNull()!! + 1
-        if (length == 1) return
-        val drawMode = drawMode
-        if (drawMode != DrawMode.TRIANGLES &&
-            drawMode != DrawMode.LINES &&
-            drawMode != DrawMode.POINTS
-        ) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
-        val unitSize = drawMode.primitiveSize
-        val helperMeshes = arrayListOfNulls<HelperMesh?>(length)
-        val indices = indices
-        for (materialId in 0 until length) {
-            val numTriangles = materialIds.count { it == materialId }
-            if (numTriangles > 0) {
-                var j = 0
-                var i3 = 0
-                val helperIndices = IntArray(numTriangles * unitSize)
-                if (indices == null) {
-                    for (i in materialIds.indices) {
-                        val id = materialIds[i]
-                        if (id == materialId) {
-                            for (k in 0 until unitSize) {
-                                helperIndices[j++] = i3++
-                            }
-                        } else i3 += unitSize
-                    }
-                } else {
-                    if (indices.size != materialIds.size * unitSize)
-                        throw IllegalStateException("Material IDs must be exactly ${unitSize}x smaller than indices")
-                    for (i in materialIds.indices) {
-                        val id = materialIds[i]
-                        if (id == materialId) {
-                            for (k in 0 until unitSize) {
-                                helperIndices[j++] = indices[i3++]
-                            }
-                        } else i3 += unitSize
-                    }
-                }
-                if (j != helperIndices.size) throw IllegalStateException("Ids must have changed while processing")
-                val helper = HelperMesh(helperIndices)
-                if (init) helper.init(this)
-                helperMeshes[materialId] = helper
-            }// else mesh not required
-        }
-        this.helperMeshes = helperMeshes
-        numMaterials = length
-    }
-
-    private fun destroyHelperMeshes() {
-        val hm = helperMeshes
-        if (hm != null) for (it in hm) it?.destroy()
-        helperMeshes = null
     }
 
     override fun destroy() {
@@ -720,24 +490,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         buffer = null
         triBuffer = null
         debugLineBuffer = null
-    }
-
-    fun clearCPUData() {
-        positions = null
-        normals = null
-        uvs = null
-        tangents = null
-        color0 = null
-        color1 = null
-        color2 = null
-        color3 = null
-        color4 = null
-        color5 = null
-        color6 = null
-        color7 = null
-        indices = null
-        boneWeights = null
-        boneIndices = null
+        needsMeshUpdate = true
     }
 
     fun draw(pipeline: Pipeline?, shader: Shader, materialIndex: Int) {

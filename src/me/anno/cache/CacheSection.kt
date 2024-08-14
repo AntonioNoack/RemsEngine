@@ -5,6 +5,7 @@ import me.anno.Time.nanoTime
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolder
+import me.anno.utils.InternalAPI
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.Callback
@@ -588,7 +589,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         @JvmStatic
-        private val caches = ConcurrentSkipListSet<CacheSection>()
+        @InternalAPI
+        val caches = ConcurrentSkipListSet<CacheSection>()
 
         @JvmStatic // typically non-CacheSection caches, that still need regular updating
         private val updateListeners = ArrayList<() -> Unit>()

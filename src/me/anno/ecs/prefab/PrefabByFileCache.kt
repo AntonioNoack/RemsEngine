@@ -50,9 +50,11 @@ abstract class PrefabByFileCache<V : ICacheData>(val clazz: KClass<V>, name: Str
             if (safeCast != null) return safeCast
         }
         val instance = getPrefabInstance(ref, maxPrefabDepth, async)
-        val value = getFileEntry(ref, allowDirectories, timeoutMillis, async) { ref1, _ ->
-            castInstance(instance, ref1) // may be heavy -> must be cached
-        }
+        val value = if (instance != null) {
+            getFileEntry(ref, allowDirectories, timeoutMillis, async) { ref1, _ ->
+                castInstance(instance, ref1) // may be heavy -> must be cached
+            }
+        } else null
         if (value != null || !async) lru[ref] = value
         return value
     }
