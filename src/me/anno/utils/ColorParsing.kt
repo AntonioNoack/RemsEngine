@@ -65,7 +65,10 @@ object ColorParsing {
     @JvmStatic
     fun parseColorComplex(name: String): Any? {
         // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
-        fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
+        fun List<Float>.toVec(): Vector3f =
+            if (size < 3) Vector3f()
+            else Vector3f(this[0], this[1], this[2])
+
         val spaces = ColorSpace.list.value
         for (i in spaces.indices) {
             val space = spaces[i]

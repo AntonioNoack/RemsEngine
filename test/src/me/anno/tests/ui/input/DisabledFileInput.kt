@@ -11,6 +11,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.ui.input.InputPanel
 
 fun main() {
+    // todo bug: "Quick Edit"-tooltip is half off-screen
     disableRenderDoc()
     val instance = Mesh()
     instance.materials = listOf(Material().ref)

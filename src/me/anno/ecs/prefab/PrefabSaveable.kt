@@ -10,11 +10,11 @@ import me.anno.engine.serialization.NotSerializedProperty
 import me.anno.engine.serialization.SerializedProperty
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.saveable.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
+import me.anno.io.saveable.NamedSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -225,13 +225,14 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun getOptionsByType(type: Char): List<Option>? = null
 
     override fun addChild(child: PrefabSaveable) {
-        val type = getValidTypesForChild(child)[0]
-        val index = getChildListByType(type).size
-        addChildByType(index, type, child)
+        val someType = getValidTypesForChild(child).getOrNull(0) ?: ' '
+        val index = getChildListByType(someType).size
+        addChildByType(index, someType, child)
     }
 
     override fun addChild(index: Int, child: PrefabSaveable) {
-        addChildByType(index, getValidTypesForChild(child)[0], child)
+        val someType = getValidTypesForChild(child).getOrNull(0) ?: ' '
+        addChildByType(index, someType, child)
     }
 
     override fun deleteChild(child: PrefabSaveable) {
