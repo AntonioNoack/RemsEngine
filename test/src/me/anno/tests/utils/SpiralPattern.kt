@@ -1,10 +1,13 @@
 package me.anno.tests.utils
 
+import me.anno.Engine
+import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageWriter
 import me.anno.maths.patterns.SpiralPattern
 import org.joml.Vector3i
 
 fun main() {
+    OfficialExtensions.initForTests()
     val width = 256
     val radius = 10
     val size = 2 * radius + 1
@@ -16,4 +19,5 @@ fun main() {
         val cz = (y * size / width) - radius
         coordsToIndex[Vector3i(cx, 0, cz)] ?: 0x770077
     }
+    Engine.requestShutdown()
 }

@@ -65,6 +65,7 @@ fun main() {
     val sunE = Entity("Sun", scene).setScale(100.0)
     val sun = DirectionalLight()
     sun.shadowMapCascades = 1
+    sun.autoUpdate = 2
     sun.color.set(2.5f, 1.7f, 1.3f)
     sunE.add(sun)
 

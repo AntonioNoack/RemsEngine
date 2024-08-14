@@ -1,13 +1,12 @@
 package me.anno.video.ffmpeg
 
 import me.anno.Time
-import me.anno.io.utils.StringMap
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.shorten
 import org.apache.logging.log4j.LogManager
 
-class FFMPEGMetaParser : StringMap() {
+class FFMPEGMetaParser {
 
     var lastLineTime = 0L
     val list = ArrayList<String>()

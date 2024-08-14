@@ -27,13 +27,10 @@ object DebugCaches {
 
     private fun openMenu(section: CacheSection) {
         // list all keys, maybe their timeouts, and maybe their values
-        // todo remove common suffix and show it separately
-        Menu.openMenu(
-            GFX.someWindow.windowStack,
-            (section.cache.map { (k, v) -> MenuOption(createName1(k, v)) {} } +
-                    section.dualCache.map { k1, k2, v -> MenuOption(createName2(k1, k2, v)) {} })
-                .sortedBy { it.title }
-        )
+        // todo remove common suffix (by group?) and show it separately
+        val entries = section.cache.map { (k, v) -> createName1(k, v) } +
+                section.dualCache.map { k1, k2, v -> createName2(k1, k2, v) }
+        Menu.openMenu(GFX.someWindow.windowStack, entries.sorted().map { MenuOption(NameDesc(it)) {} })
     }
 
     private fun collectValueInfo(value: CacheEntry): String {
@@ -50,11 +47,11 @@ object DebugCaches {
         }
     }
 
-    private fun createName1(key: Any?, value: CacheEntry): NameDesc {
-        return NameDesc("$key, ${collectValueInfo(value)}")
+    private fun createName1(key: Any?, value: CacheEntry): String {
+        return "$key, ${collectValueInfo(value)}"
     }
 
-    private fun createName2(k1: Any?, k2: Any?, value: CacheEntry): NameDesc {
-        return NameDesc("($k1, $k2), ${collectValueInfo(value)}")
+    private fun createName2(k1: Any?, k2: Any?, value: CacheEntry): String {
+        return "($k1, $k2), ${collectValueInfo(value)}"
     }
 }

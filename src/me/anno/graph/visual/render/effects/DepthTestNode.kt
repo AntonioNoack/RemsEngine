@@ -51,6 +51,6 @@ class DepthTestNode : ActionNode(
                     "   vec3 pos = cameraPosition + rawDepthToPosition(uv,texture(depthTex,uv).r) / worldScale;\n" +
                     "   result = vec4(fract(pos - 0.001),1.0);\n" +
                     "}\n"
-        )
+        ).apply { ignoreNameWarnings("cameraMatrixInv,d_uvCenter") }
     }
 }

@@ -107,6 +107,26 @@ object EntityQuery {
         return true
     }
 
+    inline fun Entity.forAllComponents(includingDisabled: Boolean, callback: (Component) -> Unit) {
+        val components = components
+        for (i in components.indices) {
+            val comp = components[i]
+            if (includingDisabled || comp.isEnabled) {
+                callback(comp)
+            }
+        }
+    }
+
+    inline fun Entity.forAllChildren(includingDisabled: Boolean, callback: (Entity) -> Unit) {
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (includingDisabled || child.isEnabled) {
+                callback(child)
+            }
+        }
+    }
+
     fun Component.allComponents(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean

@@ -1,4 +1,4 @@
-package me.anno.tests.utils
+package me.anno.experiments.sudoku
 
 import me.anno.Engine
 import me.anno.Time

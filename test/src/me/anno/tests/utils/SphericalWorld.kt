@@ -24,9 +24,6 @@ fun main() {
 
     OfficialExtensions.initForTests()
 
-    // todo normals are inverted... why??
-    // todo screen is empty... why???
-
     // simple test for spherical hierarchy
 
     // test dynamic chunk system with dynamic lods
@@ -86,7 +83,7 @@ fun main() {
     val elements = ArrayList<SphereTriangle>(sphereWorld.triangles.size * (1 shl (2 * targetDepth)))
 
     // display mesh
-    val staticTest = false
+    val staticTest = true
     if (staticTest) {
         fun iterate(triangle: SphereTriangle, depth: Int) {
             if (depth == targetDepth) {

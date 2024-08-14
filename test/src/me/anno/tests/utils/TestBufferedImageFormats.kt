@@ -1,14 +1,17 @@
 package me.anno.tests.utils
 
+import me.anno.Engine
+import me.anno.engine.OfficialExtensions
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.ThumbsRendering
+import me.anno.io.files.Reference.getReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.OS.desktop
@@ -17,18 +20,13 @@ import javax.imageio.ImageIO
 
 fun main() {
 
+    OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
 
-    val srcFile = desktop.getChild("fox100.png")
+    val srcFile = getReference("res://icon.png")
     val testImage = ImageIO.read(srcFile.inputStreamSync())
-    //BufferedImage(2, 2, 2)
-    /*testImage.setRGB(0, 0, 0xff0000 or black)
-    testImage.setRGB(0, 1, 0x00ff00 or black)
-    testImage.setRGB(1, 0, 0x0000ff or black)
-    testImage.setRGB(1, 1, 0)*/
 
     val formats = (1..13).toList()
-
     val magnification = 1
 
     ThumbsRendering.renderToImage(
@@ -36,6 +34,7 @@ fun main() {
         Renderer.colorRenderer, true, { result, exc ->
             if (result is Texture2D) GPUImage(result).write(desktop.getChild("result.png"))
             exc?.printStackTrace()
+            Engine.requestShutdown()
         },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {
@@ -57,7 +56,9 @@ fun main() {
                 testImage.width * magnification - 20, testImage.height * magnification - 20,
                 texture, -1, null
             )
+            // todo the 1 is missing for the first image???
             drawSimpleTextCharByChar(x, 0, 1, "$format")
         }
     }
+    GFX.workGPUTasksUntilShutdown()
 }

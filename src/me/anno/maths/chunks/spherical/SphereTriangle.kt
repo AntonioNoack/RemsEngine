@@ -145,7 +145,7 @@ class SphereTriangle(
         baseAB.set(globalB).sub(globalA)
         // AB is not necessarily perpendicular to up -> make it so
         baseAB.makePerpendicular(baseUp).normalize()
-        baseAC.set(baseUp).cross(baseAB).normalize()
+        baseAB.cross(baseUp, baseAC).normalize()
         globalCenter.div(3.0)
         localToGlobal.set(
             // up is defined by this order
@@ -216,5 +216,4 @@ class SphereTriangle(
         val zero = Vector3d()
         val deepMinus = Vector3d(0.0, -1e300, 0.0)
     }
-
 }

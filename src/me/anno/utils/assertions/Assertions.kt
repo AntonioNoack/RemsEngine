@@ -1,5 +1,7 @@
 package me.anno.utils.assertions
 
+import me.anno.maths.Maths.sq
+import org.joml.Vector
 import kotlin.math.abs
 
 fun assertTrue(condition: Boolean, message: String = "condition failed") {
@@ -15,6 +17,14 @@ fun assertContains(value: CharSequence, collection: CharSequence, message: Strin
 }
 
 fun assertNotContains(value: CharSequence, collection: CharSequence, message: String = "condition failed") {
+    if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
+}
+
+fun <V> assertContains(value: V, collection: Collection<V>, message: String = "condition failed") {
+    if (value !in collection) throw IllegalStateException("'$value' !in '$collection', $message")
+}
+
+fun <V> assertNotContains(value: V, collection: Collection<V>, message: String = "condition failed") {
     if (value in collection) throw IllegalStateException("'$value' in '$collection', $message")
 }
 
@@ -41,4 +51,16 @@ fun assertEquals(
 
 fun assertNotEquals(forbidden: Any?, actual: Any?, message: String = "expected different values") {
     if (forbidden == actual) throw IllegalStateException(message)
+}
+
+fun <V : Vector> assertEquals(expected: V?, actual: V?, distanceTolerance: Double) {
+    if ((expected == null) != (actual == null)) throw IllegalStateException("expected equal values, '$expected' != '$actual'")
+    if (expected == null || actual == null) return
+    assertEquals(expected.numComponents, actual.numComponents)
+    val diffSq = (0 until expected.numComponents).sumOf {
+        sq(expected.getComp(it) - actual.getComp(it))
+    }
+    assertTrue(diffSq < sq(distanceTolerance)) {
+        "expected equal values, '$expected' != '$actual'"
+    }
 }

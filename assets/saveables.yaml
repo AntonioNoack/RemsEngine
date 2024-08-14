@@ -235,7 +235,7 @@ SDFTriangle: me.anno.sdf.shapes.SDFTriangle
 SDFTriangleGrid: me.anno.sdf.arrays.SDFTriangleGrid
 SDFTwist: me.anno.sdf.modifiers.SDFTwist
 SDFVoronoiArray: me.anno.sdf.arrays.SDFVoronoiArray
-SMap: me.anno.video.ffmpeg.FFMPEGMetaParser
+SMap: me.anno.io.utils.StringMap
 SSAONode: me.anno.graph.visual.render.effects.SSAONode
 SSGINode: me.anno.graph.visual.render.effects.SSGINode
 SSRNode: me.anno.graph.visual.render.effects.SSRNode

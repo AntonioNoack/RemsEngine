@@ -191,20 +191,14 @@ object DebugGPUStorage {
     }
 
     fun openMenu() {
+        val fbsSum = fbs.sumOf { it.renderBufferAllocated }
+        val bufferSum = buffers.sumOf { it.locallyAllocated }
         Menu.openMenu(GFX.someWindow.windowStack, listOf(
-            createEntry("Texture2Ds", tex2d) {
-                TexturePanel2D(it.name, it, false)
-            },
+            createEntry("Texture2Ds", tex2d) { TexturePanel2D(it.name, it, false) },
             createEntry("Texture3Ds", tex3d) { TexturePanel3D(it) },
             createEntry("Texture2D[]s", tex2da) { TexturePanel2DA(it) },
             createEntry("CubemapTextures", texCubes) { TexturePanelCubes(it) },
-            MenuOption(
-                NameDesc(
-                    "Framebuffers (${fbs.size}, ${
-                        fbs.sumOf { it.renderBufferAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
+            MenuOption(NameDesc("Framebuffers (${fbs.size}, ${fbsSum.formatFileSize()})")) {
                 create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.width * it.height }) {
                         val textures = fb.textures ?: emptyList()
@@ -219,13 +213,7 @@ object DebugGPUStorage {
                     }
                 }
             },
-            MenuOption(
-                NameDesc(
-                    "Buffers (${buffers.size}, ${
-                        buffers.sumOf { it.locallyAllocated }.formatFileSize()
-                    })"
-                )
-            ) {
+            MenuOption(NameDesc("Buffers (${buffers.size}, ${bufferSum.formatFileSize()})")) {
                 // how can we display them?
                 // to do maybe like in RenderDoc, or as plain list with attributes, vertex count and such
                 // we have name data, so we could show colors, uvs, coordinates and such :)
