@@ -47,7 +47,7 @@ object InvalidRef : FileReference("") {
         return false
     }
 
-    override fun getChild(name: String): FileReference = InvalidRef
+    override fun getChildImpl(name: String): FileReference = InvalidRef
 
     override val exists: Boolean get() = false
     override val isDirectory: Boolean get() = false
@@ -58,7 +58,4 @@ object InvalidRef : FileReference("") {
     override val creationTime: Long get() = 0L
 
     override fun toString() = ""
-
-    override fun nullIfUndefined(): FileReference? = null
-    override fun ifUndefined(other: FileReference) = other
 }

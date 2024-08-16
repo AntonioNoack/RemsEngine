@@ -77,7 +77,25 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isHidden = true
     }
 
-    abstract fun getChild(name: String): FileReference
+    fun getChild(name: String): FileReference {
+        val nameI = if ('\\' in name) {
+            name.replace('\\', '/')
+        } else name
+        var i = 0
+        var result = this
+        while (result != InvalidRef) {
+            val ni = nameI.indexOf('/', i)
+            if (ni < 0) break
+            result = getChildImpl(nameI.substring(i, ni))
+            i = ni + 1
+        }
+        if (i < nameI.length) {
+            result = getChildImpl(nameI.substring(i))
+        }
+        return result
+    }
+
+    abstract fun getChildImpl(name: String): FileReference
 
     abstract fun length(): Long
 
@@ -368,9 +386,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return emptyList()
     }
 
-    open fun nullIfUndefined(): FileReference? = this
+    fun nullIfUndefined(): FileReference? {
+        return if (this == InvalidRef) null
+        else this
+    }
 
-    open fun ifUndefined(other: FileReference): FileReference = this
+    fun ifUndefined(other: FileReference): FileReference {
+        return if (this == InvalidRef) other
+        else this
+    }
 
     fun printTree(depth: Int = 0) {
         LOGGER.info("${Strings.spaces(depth * 2)}$name")

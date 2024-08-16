@@ -202,7 +202,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         world.destroyBody(rigidbody)
     }
 
-    override fun isActive(rigidbody: Body) = rigidbody.isActive
+    override fun isActive(rigidbody: Body): Boolean = rigidbody.isActive
 
     override fun convertTransformMatrix(rigidbody: Body, scale: Vector3d, dstTransform: Matrix4x3d) {
         val pos = rigidbody.position

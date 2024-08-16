@@ -102,7 +102,7 @@ abstract class InnerFile(
         return m?.getLc(path)
     }
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         return InnerFolderCache.readAsFolder(this, false)?.getChild(name) ?: InvalidRef
     }
 

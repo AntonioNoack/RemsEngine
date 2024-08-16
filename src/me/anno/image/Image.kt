@@ -14,6 +14,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.mixARGB22d
 import me.anno.utils.InternalAPI
 import me.anno.utils.Logging.hash32
+import me.anno.utils.callbacks.I2U
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -176,6 +177,17 @@ abstract class Image(
 
     open fun cropped(x0: Int, y0: Int, w0: Int, h0: Int): Image {
         return CroppedImage(this, x0, y0, w0, h0)
+    }
+
+    /**
+     * execution order isn't guaranteed!
+     * */
+    fun forEachPixel(callback: I2U) {
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                callback.call(x, y)
+            }
+        }
     }
 
     fun flipY() {

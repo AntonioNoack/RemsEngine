@@ -10,24 +10,24 @@ import me.anno.input.Key
  * */
 interface InputListener {
 
-    fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String) = false
+    fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String): Boolean = false
 
-    fun onKeyDown(key: Key) = false
-    fun onKeyUp(key: Key) = false
-    fun onKeyTyped(key: Key) = false
+    fun onKeyDown(key: Key): Boolean = false
+    fun onKeyUp(key: Key): Boolean = false
+    fun onKeyTyped(key: Key): Boolean = false
 
-    fun onMouseClicked(button: Key, long: Boolean) = false
+    fun onMouseClicked(button: Key, long: Boolean): Boolean = false
 
-    fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) = false
-    fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) = false
+    fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean = false
+    fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean = false
 
-    fun onCharTyped(codepoint: Int) = false
+    fun onCharTyped(codepoint: Int): Boolean = false
 
     // todo ???, do we do that? we would need to track all input listeners constantly, and raycast a ray once per frame
     // todo this is cool, and really would be nice to have
     // done we need a 2D mode: CanvasComponent.space = Space.CAMERA_SPACE
     // maybe the UI is just 3D meshes (with a different renderer)? :)
-    fun onMouseEnter() = false
-    fun onMouseExit() = false
+    fun onMouseEnter(): Boolean = false
+    fun onMouseExit(): Boolean = false
 
 }

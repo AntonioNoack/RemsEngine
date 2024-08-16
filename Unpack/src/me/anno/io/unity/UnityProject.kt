@@ -105,7 +105,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         return if (value == null) null else value + assetExtension
     }
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         val superChild = super.getChild(name)
         return if (!superChild.exists && isValidUUID(name)) {
             getGuidFolder(name)

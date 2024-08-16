@@ -14,7 +14,6 @@ import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 data class Polynomial(val c3: Float, val c5: Float) {
     constructor() : this(0f, 0f)
@@ -63,20 +62,17 @@ fun apply(image: Image, poly0: Polynomial, poly1: Polynomial, poly2: Polynomial)
     val h2 = image.height / 2f
     val sx = 2f / image.width
     val values = IntArray(image.width * image.height)
-    var idx = 0
-    for (y in 0 until image.height) {
-        for (x in 0 until image.width) {
-            val dx = (x - w2) * sx
-            val dy = (y - h2) * sx
-            val len = length(dx, dy)
-            val corr0 = poly0.compute(len)
-            val corr1 = poly1.compute(len)
-            val corr2 = poly2.compute(len)
-            val c0 = image.getValueAt(x + dx * corr0, y + dy * corr0, 0).roundToIntOr()
-            val c1 = image.getValueAt(x + dx * corr1, y + dy * corr1, 8).roundToIntOr()
-            val c2 = image.getValueAt(x + dx * corr2, y + dy * corr2, 16).roundToIntOr()
-            values[idx++] = rgb(c2, c1, c0)
-        }
+    image.forEachPixel { x, y ->
+        val dx = (x - w2) * sx
+        val dy = (y - h2) * sx
+        val len = length(dx, dy)
+        val corr0 = poly0.compute(len)
+        val corr1 = poly1.compute(len)
+        val corr2 = poly2.compute(len)
+        val c0 = image.getValueAt(x + dx * corr0, y + dy * corr0, 0).roundToIntOr()
+        val c1 = image.getValueAt(x + dx * corr1, y + dy * corr1, 8).roundToIntOr()
+        val c2 = image.getValueAt(x + dx * corr2, y + dy * corr2, 16).roundToIntOr()
+        values[x + y * image.width] = rgb(c2, c1, c0)
     }
     return IntImage(image.width, image.height, values, false)
 }

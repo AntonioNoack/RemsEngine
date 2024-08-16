@@ -3,7 +3,6 @@ package me.anno.io.files
 import me.anno.cache.IgnoredException
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
-import me.anno.io.files.Reference.appendPath
 import me.anno.io.files.Reference.getReference
 import me.anno.io.files.Reference.register
 import me.anno.utils.structures.Callback
@@ -159,10 +158,9 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return response
     }
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         return if (!exists || isDirectory) {
-            if ('/' in name || '\\' in name) getReference(appendPath(absolutePath, name))
-            else register(FileFileRef(File(file, name)))
+            register(FileFileRef(File(file, name)))
         } else zipFileForDirectory?.getChild(name) ?: InvalidRef
     }
 

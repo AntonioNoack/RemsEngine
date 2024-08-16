@@ -33,18 +33,15 @@ fun convert(src: FileReference, dst: FileReference) {
     val dstImage = IntImage(image.width, image.height, false)
     val maxExpectedGradient = 16f
     val v = Vector3f()
-    for (y in 0 until image.height) {
-        for (x in 0 until image.width) {
-            val dx = (get(x + 1, y) - get(x - 1, y)) * 0.5f
-            val dy = (get(x, y + 1) - get(x, y - 1)) * 0.5f
-            v.set(dx, dy, maxExpectedGradient)
-            v.normalize()
-            v.scale(0.5f)
-            val color = rgba(v.x + 0.5f, v.y + 0.5f, v.z + 0.5f, 1f)
-            dstImage.setRGB(x, y, color)
-        }
+    image.forEachPixel { x, y ->
+        val dx = (get(x + 1, y) - get(x - 1, y)) * 0.5f
+        val dy = (get(x, y + 1) - get(x, y - 1)) * 0.5f
+        v.set(dx, dy, maxExpectedGradient)
+        v.normalize()
+        v.scale(0.5f)
+        val color = rgba(v.x + 0.5f, v.y + 0.5f, v.z + 0.5f, 1f)
+        dstImage.setRGB(x, y, color)
     }
 
     dstImage.write(dst)
-
 }

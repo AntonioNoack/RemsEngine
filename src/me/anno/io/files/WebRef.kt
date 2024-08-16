@@ -78,7 +78,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     fun toURL() = URL(absolutePath)
     override fun toLocalPath(workspace: FileReference) = absolutePath
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         val splitIndex = absolutePath.indexOf('?')
         val basePath = if (splitIndex < 0) absolutePath else absolutePath.substring(0, splitIndex)
         return WebRef("$basePath/$name", emptyMap())

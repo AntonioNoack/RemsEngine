@@ -1,230 +1,24 @@
-package me.anno.tests.image.segmentation
+package me.anno.experiments.segmentation
 
 import me.anno.image.ImageCache
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
-import me.anno.maths.LinearRegression
-import me.anno.maths.Maths.sq
+import me.anno.maths.Maths
 import me.anno.utils.Color.a
-import me.anno.utils.Color.a01
-import me.anno.utils.Color.b01
-import me.anno.utils.Color.g01
-import me.anno.utils.Color.r01
-import me.anno.utils.Color.rgba
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.downloads
-import me.anno.utils.structures.arrays.DoubleArrayList
-import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Floats.formatPercent
-import me.anno.utils.types.Floats.roundToIntOr
 import me.anno.video.formats.cpu.YUVFrames
-import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
-val matrix = createArrayList(4) { DoubleArrayList(100) }
-val vector = createArrayList(4) { DoubleArrayList(100) }
+// todo use normal color clustering...
 
-var polyBetter = 0
-var avgBetter = 0
+fun main(){
 
-class Formula(val idx: Int) {
-
-    val params = FloatArray(6) // a + b*x + c*y + d*x*y + e*x² + f*y²
-
-    fun add(dx: Int, dy: Int, v: Float) {
-        val matrix = matrix[idx]
-        matrix.add(1.0)
-        matrix.add(dx.toDouble())
-        matrix.add(dy.toDouble())
-        matrix.add((dx * dy).toDouble())
-        matrix.add((dx * dx).toDouble())
-        matrix.add((dy * dy).toDouble())
-        vector[idx].add(v.toDouble())
-    }
-
-    fun reset() {
-        params.fill(0f)
-        matrix[idx].clear()
-        vector[idx].clear()
-    }
-
-    fun predict(dx: Float, dy: Float): Float {
-        return params[0] + params[1] * dx + params[2] * dy +
-                params[3] * dx * dy + params[4] * dx * dx + params[5] * dy * dy
-    }
-
-    fun solve() {
-
-        val matrix = matrix[idx]
-        val vector = vector[idx]
-
-        if (vector.size == 1) {
-            params[0] = vector[0].toFloat()
-        } else {
-            params.fill(0f)
-            val answer = LinearRegression.solve(matrix.toArray(), vector.toArray(), 1e-6)
-            if (answer != null) {
-                for (i in 0 until 6) {
-                    params[i] = answer[i].toFloat()
-                }
-            }
-            var avgColor = 0.0
-            for (i in 0 until vector.size) {
-                avgColor += vector[i]
-            }
-            avgColor /= vector.size
-            var e0 = 0.0 // simple error by avg
-            var e1 = 0.0 // complex error using polynomial, always should be better
-            for (i in 0 until vector.size) {
-                val j = i * 6
-                e0 = max(e0, sq(vector[i] - avgColor))
-                e1 = max(e1, sq(vector[i] - predict(matrix[j + 1].toFloat(), matrix[j + 2].toFloat())))
-            }
-            // polynomial was wrong
-            if (e0 >= e1) {
-                polyBetter++
-            } else {
-                avgBetter++
-                params.fill(0f)
-                params[0] = avgColor.toFloat()
-            }
-        }
-    }
-}
-
-class Cluster(val id: Int) {
-
-    val f0 = Formula(0)
-    val f1 = Formula(1)
-    val f2 = Formula(2)
-    val f3 = Formula(3)
-
-    var alive = true
-
-    val neighbors = HashSet<Cluster>(4)
-
-    var cx = 0
-    var cy = 0
-
-    var sdx = 0
-    var sdy = 0
-    var count = 0
-    var adx = 0
-    var ady = 0
-    var adxy = 0
-
-    var error = 0f
-
-    fun add(dx: Int, dy: Int, rgb: Int) {
-        adx += abs(dx)
-        ady += abs(dy)
-        adxy += abs(dx * dy)
-        count++
-        sdx += dx
-        sdy += dy
-        // pre-multiplied colors for easier error estimation
-        val a = rgb.a01()
-        val r = rgb.r01() * a
-        val g = rgb.g01() * a
-        val b = rgb.b01() * a
-        f0.add(dx, dy, a)
-        f1.add(dx, dy, r)
-        f2.add(dx, dy, g)
-        f3.add(dx, dy, b)
-    }
-
-    fun solve() {
-        f0.solve()
-        f1.solve()
-        f2.solve()
-        f3.solve()
-    }
-
-    fun getError(dx: Int, dy: Int, rgb: Int): Float {
-        return getError(dx.toFloat(), dy.toFloat(), rgb)
-    }
-
-    fun getError(dx: Float, dy: Float, rgb: Int): Float {
-        val a = rgb.a01()
-        val r = rgb.r01() * a
-        val g = rgb.g01() * a
-        val b = rgb.b01() * a
-        val ea = f0.predict(dx, dy) - a
-        val er = f1.predict(dx, dy) - r
-        val eg = f2.predict(dx, dy) - g
-        val eb = f3.predict(dx, dy) - b
-        return ea * ea + er * er + eg * eg + eb * eb
-    }
-
-    fun predict(dx: Int, dy: Int): Int {
-        return predict(dx.toFloat(), dy.toFloat())
-    }
-
-    fun predict(dx: Float, dy: Float): Int {
-        val a = f0.predict(dx, dy)
-        val inv = 1f / max(a, 1e-7f)
-        val r = f1.predict(dx, dy) * inv
-        val g = f2.predict(dx, dy) * inv
-        val b = f3.predict(dx, dy) * inv
-        return rgba(r, g, b, a)
-    }
-
-    fun reset() {
-        neighbors.clear()
-        sdx = 0
-        sdy = 0
-        count = 0
-        f0.reset()
-        f1.reset()
-        f2.reset()
-        f3.reset()
-    }
-
-    fun moveMaybe(clusterIds: IntArray, w: Int, h: Int, ci: Int) {
-        if (count > 0) {
-            val ncx = cx + (sdx.toFloat() / count).roundToIntOr()
-            val ncy = cy + (sdy.toFloat() / count).roundToIntOr()
-            if (ncx in 0 until w && ncy in 0 until h &&
-                clusterIds[ncx + ncy * w] == ci
-            ) {
-                cx = ncx
-                cy = ncy
-                sdx = 0
-                sdy = 0
-            }
-        }
-    }
-}
-
-val todo = IntArrayList(4096)
-fun check(x: Int, y: Int, call: (x: Int, y: Int, callback: (Int, Int) -> Unit) -> Unit) {
-    val todo = todo
-    todo.clear()
-    todo.add(x)
-    todo.add(y)
-    val callback = { xi: Int, yi: Int ->
-        todo.add(xi)
-        todo.add(yi)
-    }
-    while (todo.isNotEmpty()) {
-        val idx = todo.size - 2
-        val xi = todo[idx]
-        val yi = todo[idx + 1]
-        todo.size = idx
-        call(xi, yi, callback)
-    }
-}
-
-fun main() {
-
-    // load image
-
-    val maxError = 0.01f
-    val image = ImageCache[downloads.getChild("lib/rem sakamileo deviantart.png"), false]!!
+    val maxError = 0.1f
+    val image = ImageCache[OS.pictures.getChild("Anime/img (3).webp"), false]!!
         .asIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...
@@ -268,8 +62,8 @@ fun main() {
         }
     }
 
-    val dxs = intArrayOf(0, -1, +1, 0, 0)
-    val dys = intArrayOf(0, 0, 0, -1, +1)
+    val dxs = intArrayOf(-1, +1, 0, 0)
+    val dys = intArrayOf(0, 0, -1, +1)
     val errors = FloatArray(w * h * 5) // 4 for each main direction (-x,+x,-y,+y)
     val checkedPixels = IntArray(w * h)
     val newCluster = Cluster(-1)
@@ -331,6 +125,7 @@ fun main() {
                 }
             }
             cluster.error = error
+
         }
 
         // calculate errors
@@ -393,7 +188,7 @@ fun main() {
                 if (ni <= ci) continue
 
                 // prevents O(n²) behaviour, and might improve result slightly
-                if (min(cluster.count, cluster2.count) * 10 < max(cluster.count, cluster2.count))
+                if (min(cluster.count, cluster2.count) * 30 < max(cluster.count, cluster2.count))
                     continue
 
                 newCluster.reset()
@@ -481,7 +276,7 @@ fun main() {
                     }
                 }
 
-                if (error <= maxError * sq(1f + log2(newCluster.count.toFloat()))) {
+                if (error <= maxError * Maths.sq(1f + 0.5f * log2(newCluster.count.toFloat()))) {
                     merge(cluster, cluster2, error)
                     continue
                 }// else println("${cluster.error} + ${clusters[ni].error} < $error / 1.1")
@@ -513,7 +308,7 @@ fun main() {
             }
         }
     }
-    predicted.write(desktop.getChild("predicted.png"))
+    predicted.write(OS.desktop.getChild("predicted.png"))
 
     // show predicted image
     val randomColors = ByteArray(numClusters) { if (it == 0) 0 else ((it % 230) + (255 - 230)).toByte() }
@@ -524,9 +319,5 @@ fun main() {
             ids.data[ii] = randomColors[clusterIds[ii]]
         }
     }
-    ids.write(desktop.getChild("clusterIds.png"))
-
-    // todo split cluster if difference is too large
-
-    // todo transform into better color space, e.g. yuv
+    ids.write(OS.desktop.getChild("clusterIds.png"))
 }

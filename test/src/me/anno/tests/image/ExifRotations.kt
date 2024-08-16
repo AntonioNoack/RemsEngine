@@ -21,7 +21,7 @@ fun main() {
         // before we had implemented and checked our version :)
         // println(ImageData.getRotation(src))
         ExifOrientation.findRotation(src) { rot, _ ->
-            println(rot)
+            println("${src.nameWithoutExtension}: $rot")
         }
     }
 }

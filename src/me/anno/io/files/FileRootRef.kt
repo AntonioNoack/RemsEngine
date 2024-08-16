@@ -34,7 +34,7 @@ object FileRootRef : FileReference("root") {
         return File.listRoots().map { getReference(it.absolutePath) }
     }
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         val file = File.listRoots().firstOrNull { it.name == name } ?: return InvalidRef
         return getReference(file.absolutePath)
     }

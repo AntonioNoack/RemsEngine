@@ -39,7 +39,7 @@ class AABBf(
         }
     }
 
-    override fun toString() = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
+    override fun toString(): String = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
 
     fun setMin(v: Vector3f) =
         setMin(v.x, v.y, v.z)
@@ -132,7 +132,7 @@ class AABBf(
     fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float, margin: Float): Boolean =
         isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, margin, Float.POSITIVE_INFINITY)
 
-    fun isEmpty() = minX > maxX
+    fun isEmpty(): Boolean = minX > maxX
 
     val centerX: Float get() = (minX + maxX) * 0.5f
     val centerY: Float get() = (minY + maxY) * 0.5f
@@ -144,7 +144,7 @@ class AABBf(
     val maxDelta: Float get() = max(deltaX, max(deltaY, deltaZ))
     val volume: Float get() = deltaX * deltaY * deltaZ
 
-    fun print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
+    fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
     fun getMin(dst: Vector3f = Vector3f()): Vector3f = dst.set(minX, minY, minZ)
     fun getMax(dst: Vector3f = Vector3f()): Vector3f = dst.set(maxX, maxY, maxZ)
@@ -709,7 +709,7 @@ class AABBf(
         rayOrigin: Vector3f,
         invRayDirection: Vector3f,
         maxDistance: Float
-    ) = isRayIntersecting(
+    ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
         maxDistance

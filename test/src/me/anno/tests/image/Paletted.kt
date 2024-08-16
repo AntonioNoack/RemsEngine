@@ -43,11 +43,9 @@ fun main() {
     }
 
     val uniqueColors = HashMap<Int, Int>()
-    for (y in 0 until image.height) {
-        for (x in 0 until image.width) {
-            val color = image.getRGB(x, y) and 0xffffff
-            uniqueColors[color] = (uniqueColors[color] ?: 0) + 1
-        }
+    image.forEachPixel { x, y ->
+        val color = image.getRGB(x, y) and 0xffffff
+        uniqueColors[color] = (uniqueColors[color] ?: 0) + 1
     }
 
     val palette: IntArray
@@ -104,17 +102,15 @@ fun main() {
         val numIter = 50
         for (iter in 0 until numIter) {
             // assign colors to the closest cluster
-            for (y in 0 until image.height) {
-                for (x in 0 until image.width) {
-                    val color = image.getRGB(x, y) and 0xffffff
-                    val r = color.r01()
-                    val g = color.g01()
-                    val b = color.b01()
-                    val best = clusters[findBestI(r, g, b)]
-                    val w = 1f
-                    best.sum.add(r * w, g * w, b * w)
-                    best.weight += w
-                }
+            image.forEachPixel { x, y ->
+                val color = image.getRGB(x, y) and 0xffffff
+                val r = color.r01()
+                val g = color.g01()
+                val b = color.b01()
+                val best = clusters[findBestI(r, g, b)]
+                val w = 1f
+                best.sum.add(r * w, g * w, b * w)
+                best.weight += w
             }
             // center clusters
             // reset state

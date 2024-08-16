@@ -378,7 +378,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun CharSequence.toInt(i0: Int = 0, i1: Int = length) = toLong(i0, i1).toInt()
+    fun CharSequence.toInt(i0: Int = 0, i1: Int = length): Int = toLong(i0, i1).toInt()
 
     @JvmStatic
     fun CharSequence.toLong(i0: Int = 0, i1: Int = length): Long {
@@ -392,7 +392,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun CharSequence.toFloat(i0: Int = 0, i1: Int = length) = toDouble(i0, i1).toFloat()
+    fun CharSequence.toFloat(i0: Int = 0, i1: Int = length): Float = toDouble(i0, i1).toFloat()
 
     @JvmStatic
     fun CharSequence.toDouble(i0: Int = 0, i1: Int = length): Double {

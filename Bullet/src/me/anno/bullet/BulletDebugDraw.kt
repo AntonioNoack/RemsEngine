@@ -17,7 +17,7 @@ class BulletDebugDraw : IDebugDraw() {
 
     var stack = Matrix4f()
     var cam = org.joml.Vector3d()
-    val worldScale get() = RenderState.worldScale
+    val worldScale: Double get() = RenderState.worldScale
 
     /**
     public static final int NO_DEBUG              = 0;

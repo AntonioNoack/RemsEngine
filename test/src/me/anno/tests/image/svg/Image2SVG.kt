@@ -34,6 +34,7 @@ import kotlin.math.round
 val maxColorDiffSq = sq(10f / 255f)
 
 // make this into an online tool :3
+// not ideal, because the largest shape by area isn't necessarily in the back
 //  -> https://phychi.com/image2svg/
 
 // to do find gradients (?)

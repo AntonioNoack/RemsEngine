@@ -21,7 +21,7 @@ class BundledRef(
 
     constructor(resName: String) : this(resName, "$PREFIX$resName", false)
 
-    override fun getChild(name: String): FileReference {
+    override fun getChildImpl(name: String): FileReference {
         val zfd = zipFileForDirectory
         return zfd?.getChild(name) ?: parse(appendPath(absolutePath, name))
     }

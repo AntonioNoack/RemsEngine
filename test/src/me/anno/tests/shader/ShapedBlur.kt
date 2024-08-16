@@ -301,13 +301,9 @@ fun pad(src: FloatImage, w: Int, h: Int): FloatArray {
     val dys = (h - src.height) / 2
     if (dxs <= 0 && dys <= 0) return src.data
     val dst = FloatArray(w * h)
-    val src1 = src.data
-    var i = 0
     val i0 = dxs + dys * w
-    for (y in 0 until src.height) {
-        for (x in 0 until src.width) {
-            dst[i0 + x + y * w] = src1[i++]
-        }
+    src.forEachPixel { x, y ->
+        dst[i0 + x + y * w] = src.getValue(x, y, 0)
     }
     return dst
 }

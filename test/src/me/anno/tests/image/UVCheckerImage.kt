@@ -1,10 +1,10 @@
 package me.anno.tests.image
 
+import me.anno.Engine
+import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
-import me.anno.io.files.FileReference
 import me.anno.io.files.Reference.getReference
-import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
@@ -111,6 +111,8 @@ fun createUVCheckerImage(): IntImage {
 }
 
 fun main() {
+    OfficialExtensions.initForTests()
     createUVCheckerImage()
         .write(desktop.getChild("UVChecker.png"))
+    Engine.requestShutdown()
 }

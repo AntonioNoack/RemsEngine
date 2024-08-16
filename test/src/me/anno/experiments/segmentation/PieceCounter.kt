@@ -1,4 +1,4 @@
-package me.anno.tests.image.segmentation
+package me.anno.experiments.segmentation
 
 import me.anno.Engine
 import me.anno.gpu.framebuffer.TargetType

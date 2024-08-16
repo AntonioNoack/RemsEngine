@@ -130,7 +130,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     fun open(tab: ECSSceneTab, setActive: Boolean) {
 
-        if (tab.file.nullIfUndefined() == null) {
+        if (tab.file == InvalidRef) {
             throw RuntimeException("Cannot open InvalidRef as tab on prefab ${hash32(tab.prefab)}")
         }
 

@@ -64,14 +64,10 @@ open class InnerFolder(
         throw IOException("'$this' is directory") // could be thrown as well
     }
 
-    override fun getChild(name: String): FileReference {
-        return if ('\\' in name || '/' in name) {
-            getReference(appendPath(absolutePath, name))
-        } else {
-            synchronized(children) {
-                val c0 = children.values.filter { it.name.equals(name, true) }
-                c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
-            }
+    override fun getChildImpl(name: String): FileReference {
+        return synchronized(children) {
+            val c0 = children.values.filter { it.name.equals(name, true) }
+            c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
         }
     }
 
