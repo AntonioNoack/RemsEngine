@@ -55,6 +55,7 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
+import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
@@ -165,11 +166,13 @@ object BakedLightingShader : ECSMeshShader("BakedLighting") {
 }
 
 fun createSampleScene(): Entity {
+
     // define a simple sample scene
     val random = Random(1234)
     val scene = Entity()
     val floorMaterial = Material()
     floorMaterial.shader = BakedLightingShader
+    floorMaterial.diffuseMap = getReference("res://textures/UVChecker.png")
     val floorComp = MeshComponent(PlaneModel.createPlane(), floorMaterial)
     scene.add(Entity("Floor", floorComp).setScale(50.0))
 
@@ -260,21 +263,23 @@ fun main() {
 
     val resolution = 1024
     splitArea(weights, resolution)
-    val raytracingInput = RaytracingInput(resolution, resolution)
+    val rasterizedScene = RaytracingInput(resolution, resolution)
     scene.forAllComponentsInChildren(MeshComponent::class) {
-        bakeIllumination0(it, raytracingInput, resolution)
+        rasterizeMeshOntoUVs(it, rasterizedScene, resolution)
     }
 
-    dst.tryMkdirs()
-    raytracingInput.positions.write(dst.getChild("positions.png"))
-    raytracingInput.normals.write(dst.getChild("normals.png"))
-    raytracingInput.diffuse.write(dst.getChild("diffuse.png"))
-    raytracingInput.emissive.write(dst.getChild("emissive.png"))
+    if (true) {
+        dst.tryMkdirs()
+        rasterizedScene.positions.write(dst.getChild("positions.png"))
+        rasterizedScene.normals.write(dst.getChild("normals.png"))
+        rasterizedScene.diffuse.write(dst.getChild("diffuse.png"))
+        rasterizedScene.emissive.write(dst.getChild("emissive.png"))
+    }
 
     val bvh = buildTLAS(scene, Vector3d(), 1.0, SplitMethod.MEDIAN_APPROX, 16)!!
     val skybox = scene.getComponentInChildren(SkyboxBase::class) ?: Skybox.defaultSky
     addGPUTask("illum", 1000) {
-        bakeIllumination1(bvh, raytracingInput, skybox)
+        bakeIllumination(bvh, rasterizedScene, skybox)
     }
     testSceneWithUI("Baked Lighting", scene)
 }
@@ -321,7 +326,7 @@ data class SimpleMaterial(
 )
 
 val whiteImage = IntImage(1, 1, intArrayOf(-1), false)
-fun bakeIllumination0(component: MeshComponent, dst: RaytracingInput, resolution: Int) {
+fun rasterizeMeshOntoUVs(component: MeshComponent, dst: RaytracingInput, resolution: Int) {
 
     val transform = Matrix4x3f()
         .set(component.transform!!.globalTransform)
@@ -461,8 +466,68 @@ fun bakeIllumination0(component: MeshComponent, dst: RaytracingInput, resolution
     }
 }
 
+val blurShader = Shader(
+    "blur", emptyList(), coordsVertexShader, emptyList(), listOf(
+        Variable(GLSLType.S2D, "bakedIllum"),
+        Variable(GLSLType.S2D, "norTex"),
+        Variable(GLSLType.V4F, "result", VariableMode.OUT)
+    ), "" +
+            "vec4 getValue(ivec2 uv, ivec2 size, float weight, vec3 normal0){\n" +
+            "   if(uv.x < 0 || uv.y < 0 || uv.x >= size.x || uv.y >= size.y) return vec4(0.0);\n" +
+            "   vec3 normal1 = texelFetch(norTex,uv,0).xyz;\n" +
+            "   weight *= dot(normal0,normal1)-0.9;\n" +
+            "   if(weight <= 0.0) return vec4(0.0);\n" +
+            "   vec3 v = texelFetch(bakedIllum,uv,0).xyz;\n" +
+            "   return vec4(v * weight, weight);\n" +
+            "}\n" +
+            "void main(){\n" +
+            "   ivec2 size = textureSize(bakedIllum,0);\n" +
+            "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
+            "   vec3 normal0 = texelFetch(norTex,uv,0).xyz;\n" +
+            "   vec4 value = vec4(texelFetch(bakedIllum,uv,0).xyz, 1.0);\n" +
+            "   value += getValue(uv+ivec2(1,0),size,1.0,normal0);\n" +
+            "   value += getValue(uv-ivec2(1,0),size,1.0,normal0);\n" +
+            "   value += getValue(uv+ivec2(0,1),size,1.0,normal0);\n" +
+            "   value += getValue(uv-ivec2(0,1),size,1.0,normal0);\n" +
+            "   result = vec4(value.rgb / value.a, 1.0);\n" +
+            "}\n"
+)
+
+fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
+    // to do if there are too many triangles, use a texture array?
+    // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
+    // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
+    // to do most meshes don't need such high precision, maybe use u8 or u16 or fp16
+    GFX.checkIsGFXThread()
+    val buffers = blasList.map { it.findGeometryData() } // positions without index
+    // RGB is not supported by compute shaders (why ever...), so use RGBA
+    val numTriangles = buffers.sumOf { it.indices.size / 3 }
+    val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
+    val bytesPerPixel = 16 // 4 channels * 4 bytes / float
+    val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
+    val data = buffer.asFloatBuffer()
+    fillTris(blasList, buffers) { geometry, i ->
+        val uvs = geometry.uvs
+        if (uvs != null && i * 2 + 1 < uvs.size) {
+            data.put(geometry.positions, i * 3, 3)
+            data.put(uvs[i * 2])
+            data.put(geometry.normals, i * 3, 3)
+            data.put(1f - uvs[i * 2 + 1])
+        } else {
+            data.put(geometry.positions, i * 3, 3)
+            data.put(0f)
+            data.put(geometry.normals, i * 3, 3)
+            data.put(0f)
+        }
+    }
+    LOGGER.info("Filled triangles ${(data.position().toFloat() / data.capacity()).formatPercent()}%, $texture")
+    texture.createRGBA(data, buffer, false)
+    Texture2D.bufferPool.returnBuffer(buffer)
+    return texture
+}
+
 // todo next-event estimation or sth like that for much lower noise ^^, and maybe no need to blur :)
-fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) {
+fun bakeIllumination(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase) {
 
     val numIterations = 5000
     val progress = GFX.someWindow.addProgressBar(
@@ -498,13 +563,13 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
     assertEquals(1, skyFragments.size)
     val skyFragment = skyFragments[0]
 
-    val meshes0 = HashSet<BLASNode>(bvh.countTLASLeaves())
-    bvh.collectMeshes(meshes0)
+    val uniqueMeshes = HashSet<BLASNode>(bvh.countTLASLeaves())
+    bvh.collectMeshes(uniqueMeshes)
 
     val maxTLASDepth = bvh.maxDepth()
-    val maxBLASDepth = meshes0.maxOf { it.maxDepth() }
+    val maxBLASDepth = uniqueMeshes.maxOfOrNull { it.maxDepth() } ?: 0
 
-    val meshes = meshes0.toList()
+    val meshes = uniqueMeshes.toList()
     assertEquals(2, PIXELS_PER_VERTEX)
     assertEquals(8, PIXELS_PER_TLAS_NODE)
     val lib = TextureRTShaderLib(2, 9)
@@ -608,67 +673,6 @@ fun bakeIllumination1(bvh: TLASNode, input: RaytracingInput, skybox: SkyboxBase)
         "posTex", "norTex", "difTex", "emmTex",
         "bakedIllum"
     )
-
-    val blurShader = Shader(
-        "blur", emptyList(), coordsVertexShader, emptyList(), listOf(
-            Variable(GLSLType.S2D, "bakedIllum"),
-            Variable(GLSLType.S2D, "norTex"),
-            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "" +
-                "vec4 getValue(ivec2 uv, ivec2 size, float weight, vec3 normal0){\n" +
-                "   if(uv.x < 0 || uv.y < 0 || uv.x >= size.x || uv.y >= size.y) return vec4(0.0);\n" +
-                "   vec3 normal1 = texelFetch(norTex,uv,0).xyz;\n" +
-                "   weight *= dot(normal0,normal1)-0.9;\n" +
-                "   if(weight <= 0.0) return vec4(0.0);\n" +
-                "   vec3 v = texelFetch(bakedIllum,uv,0).xyz;\n" +
-                "   return vec4(v * weight, weight);\n" +
-                "}\n" +
-                "void main(){\n" +
-                "   ivec2 size = textureSize(bakedIllum,0);\n" +
-                "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
-                "   vec3 normal0 = texelFetch(norTex,uv,0).xyz;\n" +
-                "   vec4 value = vec4(texelFetch(bakedIllum,uv,0).xyz, 1.0);\n" +
-                "   value += getValue(uv+ivec2(1,0),size,1.0,normal0);\n" +
-                "   value += getValue(uv-ivec2(1,0),size,1.0,normal0);\n" +
-                "   value += getValue(uv+ivec2(0,1),size,1.0,normal0);\n" +
-                "   value += getValue(uv-ivec2(0,1),size,1.0,normal0);\n" +
-                "   result = vec4(value.rgb / value.a, 1.0);\n" +
-                "}\n"
-    )
-    blurShader.setTextureIndices("norTex", "bakedIllum")
-
-    fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
-        // to do if there are too many triangles, use a texture array?
-        // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
-        // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
-        // to do most meshes don't need such high precision, maybe use u8 or u16 or fp16
-        GFX.checkIsGFXThread()
-        val buffers = blasList.map { it.findGeometryData() } // positions without index
-        // RGB is not supported by compute shaders (why ever...), so use RGBA
-        val numTriangles = buffers.sumOf { it.indices.size / 3 }
-        val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
-        val bytesPerPixel = 16 // 4 channels * 4 bytes / float
-        val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
-        val data = buffer.asFloatBuffer()
-        fillTris(blasList, buffers) { geometry, i ->
-            val uvs = geometry.uvs
-            if (uvs != null && i * 2 + 1 < uvs.size) {
-                data.put(geometry.positions, i * 3, 3)
-                data.put(uvs[i * 2])
-                data.put(geometry.normals, i * 3, 3)
-                data.put(1f - uvs[i * 2 + 1])
-            } else {
-                data.put(geometry.positions, i * 3, 3)
-                data.put(0f)
-                data.put(geometry.normals, i * 3, 3)
-                data.put(0f)
-            }
-        }
-        LOGGER.info("Filled triangles ${(data.position().toFloat() / data.capacity()).formatPercent()}%, $texture")
-        texture.createRGBA(data, buffer, false)
-        Texture2D.bufferPool.returnBuffer(buffer)
-        return texture
-    }
 
     val triangles = createTriangleTexture(meshes)
     val blasNodes = createBLASTexture(meshes, 2 * 3)
@@ -840,6 +844,7 @@ fun splitRegion(entries: List<WeightedValue>, remainingRegion: AABBi, resolution
 fun calculateSurfaceArea(entity: Entity, component: MeshComponent): Double {
     val mesh = component.getMesh() ?: return 0.0
     mesh.uvs ?: return 0.0
+    entity.validateTransform()
     var area = 0.0
     val transform = entity.transform.globalTransform
     // could be optimized for uniform scale: transform only needed once, and result could be cached by mesh-ref

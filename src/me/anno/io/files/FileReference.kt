@@ -86,11 +86,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         while (result != InvalidRef) {
             val ni = nameI.indexOf('/', i)
             if (ni < 0) break
-            result = getChildImpl(nameI.substring(i, ni))
+            result = result.getChildImpl(nameI.substring(i, ni))
             i = ni + 1
         }
         if (i < nameI.length) {
-            result = getChildImpl(nameI.substring(i))
+            result = result.getChildImpl(nameI.substring(i))
         }
         return result
     }
