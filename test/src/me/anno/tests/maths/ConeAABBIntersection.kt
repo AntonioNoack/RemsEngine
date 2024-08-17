@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.systems.OnDrawGUI
+import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
@@ -45,7 +46,7 @@ fun main() {
     for (box in boxes) boxesEntity.add(box)
     scene.add(boxesEntity)
 
-    val tested = object : Component(), OnDrawGUI {
+    val tested = object : Component(), OnDrawGUI, OnUpdate {
 
         @Group("Points")
         var start = Vector3f(0f, 0f, 0f)
@@ -64,6 +65,10 @@ fun main() {
             return true
         }
 
+        override fun onUpdate() {
+            updateConeColor() // not really necessary to be executed every frame
+        }
+
         fun updateConeColor() {
             scene.getBounds()
             val tmp = AABBf()
@@ -76,7 +81,6 @@ fun main() {
 
         override fun onDrawGUI(pipeline: Pipeline, all: Boolean) {
             LineShapes.drawCone(entity, start, end, radiusAtOrigin, radiusPerUnit)
-            updateConeColor() // not really necessary to be executed every frame
         }
     }
     scene.add(tested)

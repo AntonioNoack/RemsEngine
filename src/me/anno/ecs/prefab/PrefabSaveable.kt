@@ -15,6 +15,8 @@ import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.saveable.NamedSaveable
+import me.anno.io.saveable.Saveable
+import me.anno.io.saveable.UnknownSaveable
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -267,9 +269,14 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun getValidTypesForChild(child: PrefabSaveable): String = ""
 
     open fun clone(): PrefabSaveable {
-        val clone = this.javaClass.newInstance()
-        copyInto(clone)
-        return clone
+        try {
+            val clone = this.javaClass.newInstance()
+            copyInto(clone)
+            return clone
+        } catch (e: InstantiationException) {
+            LOGGER.warn("Cannot clone $className, because empty constructor is missing")
+            return this
+        }
     }
 
     open fun copyInto(dst: PrefabSaveable) {

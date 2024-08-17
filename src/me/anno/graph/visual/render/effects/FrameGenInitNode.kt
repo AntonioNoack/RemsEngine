@@ -13,6 +13,7 @@ import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
 import me.anno.graph.visual.render.scene.RenderGlassNode
 import me.anno.graph.visual.render.scene.RenderLightsNode
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.posMod
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector4f
@@ -37,14 +38,15 @@ class FrameGenInitNode : FixedControlFlowNode(
     companion object {
 
         var interFrames by ConfigRef("gpu.frameGen.intermediateFrames", 1)
+        val totalFrames get() = 1 + max(0, interFrames)
         val frameIndex get() = Time.frameIndex
 
         fun skipThisFrame(): Boolean {
-            return posMod(frameIndex, interFrames) > 0
+            return posMod(frameIndex, totalFrames) > 0
         }
 
         fun isLastFrame(): Boolean {
-            val interFrames = interFrames
+            val interFrames = totalFrames
             return posMod(frameIndex, interFrames) == interFrames - 1
         }
 

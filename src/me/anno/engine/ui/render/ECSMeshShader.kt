@@ -163,7 +163,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // and a shader with light from top/bottom
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
-                "   vec3 rawColor = texture(normalMap, uv).rgb;\n" +
+                "   vec3 rawColor = texture(normalMap, uv, lodBias).rgb;\n" +
                 // support for bump maps: if grayscale or only red, calculate gradient
                 "   if((rawColor.x == rawColor.y && rawColor.y == rawColor.z) ||" +
                 "      (rawColor.y == 0.0 && rawColor.z == 0.0)){\n" +
@@ -180,7 +180,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "}\n"
 
         val baseColorCalculation = "" +
-                "vec4 texDiffuseMap = texture(diffuseMap, uv);\n" +
+                "vec4 texDiffuseMap = texture(diffuseMap, uv, lodBias);\n" +
                 "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                 "if(color.a < ${1f / 255f}) discard;\n" +
                 "finalColor = color.rgb;\n" +
@@ -192,12 +192,12 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
                 "if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n"
 
-        val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n"
-        val occlusionCalculation = "finalOcclusion = (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n"
+        val emissiveCalculation = "finalEmissive  = texture(emissiveMap, uv, lodBias).rgb * emissiveBase;\n"
+        val occlusionCalculation = "finalOcclusion = (1.0 - texture(occlusionMap, uv, lodBias).r) * occlusionStrength;\n"
         val metallicCalculation =
-            "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n"
+            "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv, lodBias).r), 0.0, 1.0);\n"
         val roughnessCalculation =
-            "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n"
+            "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
         val finalMotionCalculation = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
@@ -458,6 +458,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V1F, "finalTranslucency", VariableMode.INOUT),
             Variable(GLSLType.V4F, "finalClearCoat", VariableMode.INOUT),
             Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
+            Variable(GLSLType.V1F, "lodBias"),
             // for reflections;
             // we could support multiple
             Variable(GLSLType.V1B, "hasReflectionPlane"),

@@ -1,10 +1,11 @@
-package me.anno.tests.gfx
+package me.anno.tests.bugs.done
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.maths.Maths
+import me.anno.tests.gfx.initWithGFX
 import me.anno.utils.OS
 
 fun main() {

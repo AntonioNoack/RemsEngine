@@ -211,20 +211,25 @@ object DebugRendering {
         var total = 0L
         for (i in records.indices) {
             val record = records[i]
-            drawTime(rv, i, record.name, record.deltaNanos)
+            drawTime(rv, i, record.name, record.deltaNanos, record.divisor)
             total += record.deltaNanos
         }
-        drawTime(rv, records.size, "Total", total)
+        drawTime(rv, records.size, "Total", total, 1)
         val maySkip = rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
         if (!(maySkip && !FrameGenInitNode.isLastFrame())) {
             records.clear()
         }
     }
 
-    private fun drawTime(rv: Panel, i: Int, name: String, time: Long) {
+    private fun drawTime(rv: Panel, i: Int, name: String, time: Long, divisor: Int) {
         val y = rv.y + i * monospaceFont.sizeInt
+        val str = if (divisor > 1) {
+            "${divisor}x $name: ${(time / (1e6 * divisor)).f3()} ms"
+        } else {
+            "$name: ${(time / 1e6).f3()} ms"
+        }
         drawSimpleTextCharByChar(
-            rv.x + rv.width, y, 1, "$name: ${(time / 1e6).f3()} ms",
+            rv.x + rv.width, y, 1, str,
             AxisAlignment.MAX, AxisAlignment.MIN
         )
     }

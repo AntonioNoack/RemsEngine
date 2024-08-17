@@ -63,6 +63,7 @@ ExportSettings: me.anno.export.ExportSettings
 ExprReturnNode: me.anno.graph.visual.render.ExprReturnNode
 FSR1HelperNode: me.anno.graph.visual.render.effects.FSR1HelperNode
 FSR1Node: me.anno.graph.visual.render.effects.FSR1Node
+FSR2Node: me.anno.graph.visual.render.effects.FSR2Node
 FXAANode: me.anno.graph.visual.render.effects.FXAANode
 FirstPersonController: me.anno.ecs.components.camera.control.FirstPersonController
 FlagMesh: me.anno.ecs.components.physics.FlagMesh
@@ -72,6 +73,11 @@ FlowGraph: me.anno.graph.visual.FlowGraph
 Font: me.anno.fonts.Font
 ForLoopState: me.anno.graph.visual.control.ForLoopState
 ForNode: me.anno.graph.visual.control.ForNode
+FrameGenInitNode: me.anno.graph.visual.render.effects.FrameGenInitNode
+FrameGenMixingNode: me.anno.graph.visual.render.effects.FrameGenMixingNode
+FrameGenPredictiveNode: me.anno.graph.visual.render.effects.FrameGenPredictiveNode
+FrameGenProjective1Node: me.anno.graph.visual.render.effects.FrameGenProjective1Node
+FrameGenProjectiveXNode: me.anno.graph.visual.render.effects.FrameGenProjectiveXNode
 FresnelNode3: me.anno.graph.visual.vector.FresnelNode3
 FurMaterial: me.anno.ecs.components.mesh.material.FurMaterial
 GPUMesh: me.anno.ecs.components.mesh.GPUMesh
@@ -194,6 +200,7 @@ SDFBezierCurve: me.anno.sdf.shapes.SDFBezierCurve
 SDFBlob: me.anno.sdf.shapes.SDFBlob
 SDFBoundingBox: me.anno.sdf.shapes.SDFBoundingBox
 SDFBox: me.anno.sdf.shapes.SDFBox
+SDFCapsule: me.anno.sdf.shapes.SDFCapsule
 SDFCollider: me.anno.sdf.SDFCollider
 SDFColumn: me.anno.sdf.modifiers.SDFColumn
 SDFComponent: me.anno.sdf.SDFComponent

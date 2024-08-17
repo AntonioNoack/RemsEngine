@@ -426,7 +426,13 @@ object GFXState {
         timer ?: return
         timer.stop()
         if (timer.lastResult >= 0L) {
-            timeRecords.add(TimeRecord(name, timer.lastResult))
+            val last = timeRecords.lastOrNull()
+            if (last?.name != name) {
+                timeRecords.add(TimeRecord(name, timer.lastResult, 1))
+            } else {
+                last.deltaNanos += timer.lastResult
+                last.divisor++
+            }
         }
     }
 

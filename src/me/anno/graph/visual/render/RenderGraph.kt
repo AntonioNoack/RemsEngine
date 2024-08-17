@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render
 
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -90,6 +91,8 @@ object RenderGraph {
         } else {
             LOGGER.warn("Missing end")
         }
+        // reset lod bias
+        Material.lodBias = 0f
     }
 
     private fun findStartNode(graph: FlowGraph): StartNode? {
@@ -116,6 +119,7 @@ object RenderGraph {
         graph.invalidate()
         start.setOutput(1, dst.width)
         start.setOutput(2, dst.height)
+        Material.lodBias = 0f // reset just in case
     }
 
     private fun executeGraph(graph: FlowGraph, start: StartNode): ExprReturnNode? {

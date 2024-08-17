@@ -1,6 +1,5 @@
 package me.anno.ecs.components.mesh.material
 
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
@@ -221,6 +220,7 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("finalSheen", sheen)
         shader.v1f("sheen", sheen)
         shader.v1f("IOR", indexOfRefraction)
+        shader.v1f("lodBias", lodBias)
 
         GFX.check()
 
@@ -353,6 +353,8 @@ open class Material : PrefabSaveable(), Renderable {
 
         // what is a good timeout???
         var timeout = 30000L
+
+        var lodBias = 0f
 
         val defaultMaterial = Material()
 

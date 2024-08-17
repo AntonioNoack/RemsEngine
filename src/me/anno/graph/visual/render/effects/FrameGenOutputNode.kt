@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.texOrNull
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.frameIndex
-import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.interFrames
+import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.totalFrames
 import me.anno.graph.visual.render.effects.FrameGenInitNode.Companion.skipThisFrame
 import me.anno.maths.Maths.posMod
 import me.anno.utils.structures.maps.LazyMap
@@ -35,7 +35,7 @@ abstract class FrameGenOutputNode<PerViewData : ICacheData>(
             val height = getIntInput(2)
             val view = views[RenderState.viewIndex]
             if (skipThisFrame() && canInterpolate(view)) {
-                val interFrames = interFrames
+                val interFrames = totalFrames
                 val frameIndex = posMod(frameIndex, interFrames)
                 val fraction = frameIndex.toFloat() / interFrames.toFloat()
                 renderInterpolated(view, width, height, fraction)

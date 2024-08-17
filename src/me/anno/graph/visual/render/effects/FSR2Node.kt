@@ -1,5 +1,6 @@
 package me.anno.graph.visual.render.effects
 
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.timeRendering
 import me.anno.gpu.deferred.DeferredLayerType.Companion.COLOR
@@ -21,6 +22,7 @@ import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.render.scene.RenderViewNode
 import me.anno.maths.Maths.roundDiv
 import org.joml.Vector4f
+import kotlin.math.log2
 
 /**
  * AMD FSR reduces the rendering resolution to gain performance, and then reprojects and upscales that image.
@@ -73,13 +75,14 @@ class FSR2Node : RenderViewNode(
             setOutput(2, Texture.texture(view.data1, 1, "x", DEPTH))
             setOutput(3, width)
             setOutput(4, height)
+            Material.lodBias = 0f
         }
     }
 
     companion object {
         fun createPipeline(fraction: Float): FlowGraph {
             return QuickPipeline()
-                .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
+                .then1(FSR1HelperNode(), mapOf("Fraction" to fraction, "LOD Bias" to log2(fraction)))
                 .then1(
                     RenderDeferredNode(), mapOf(
                         "Stage" to PipelineStage.OPAQUE,
@@ -98,8 +101,8 @@ class FSR2Node : RenderViewNode(
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(FSR2Node())
                 // .then(GizmoNode())
-                // .then(FXAANode())
                 // todo unjitter Gizmos
+                .then(FXAANode())
                 .finish()
         }
     }

@@ -17,13 +17,15 @@ object BMPWriter {
         val dst = createBMPHeader(img)
         // a lot of zeros
         var j = HEADER_SIZE
+        val hasAlphaChannel = img.hasAlphaChannel
+        val alphaOr = if (hasAlphaChannel) 0 else 255
         for (y in 0 until img.height) {
             for (x in 0 until img.width) {
                 val color = img.getRGB(x, y)
                 dst[j++] = color.toByte()
                 dst[j++] = (color shr 8).toByte()
                 dst[j++] = (color shr 16).toByte()
-                dst[j++] = (color shr 24).toByte()
+                dst[j++] = ((color shr 24) or alphaOr).toByte()
             }
         }
         return dst
@@ -66,5 +68,4 @@ object BMPWriter {
         write32(0x57696e20, 0x46) // color space, "Win "
         return dst
     }
-
 }

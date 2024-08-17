@@ -22,7 +22,7 @@ fun main() {
     val v11 = Vector4f(-1f, -1f, 14f, 1f)
 
     /*generatePermutations(listOf(v00, v01, v10, v11)){ perm ->
-        // check that we don't input a non planar form...
+        // check that we don't input a non-planar form...
         logger.info(perm.map { it.x })
         logger.info(Clipping.getZ(perm[0], perm[1], perm[2], perm[3]))
     }*/

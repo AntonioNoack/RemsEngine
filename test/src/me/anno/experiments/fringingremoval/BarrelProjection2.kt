@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.experiments.fringingremoval
 
 import me.anno.image.Image
 import me.anno.image.ImageCache
