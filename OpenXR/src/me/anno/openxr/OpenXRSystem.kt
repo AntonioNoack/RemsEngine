@@ -102,7 +102,11 @@ class OpenXRSystem(val window: Long) {
 
     init {
         xrInstance = instance
-        setupDebugging(this, instance)
+        try {
+            setupDebugging(this, instance)
+        } catch (e: NullPointerException) {
+            LOGGER.warn("Weird NullPtrException when setting up debugging for OpenXR")
+        }
         printInstanceProperties(instance)
     }
 

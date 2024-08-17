@@ -18,7 +18,7 @@ fun main() {
     val texture = Texture2DArray("tex", 1, 1, 1)
     texture.create(images, false)
     val folder = desktop.getChild("test")
-    folder.deleteRecursively()
+    folder.delete()
     folder.tryMkdirs()
     for (i in images.indices) {
         images[i].write(folder.getChild("tex$i.png"))

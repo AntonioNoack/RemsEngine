@@ -1039,7 +1039,7 @@ open class FileExplorerEntry(
                     "ui.file.delete.many.permanently"
                 )
             ) {
-                for (i in files.indices) files[i].deleteRecursively()
+                for (i in files.indices) files[i].delete()
                 explorer?.invalidate()
             }
             openMenu(windowStack, title, listOf(deletePermanently, moveToTrash, dontDelete))

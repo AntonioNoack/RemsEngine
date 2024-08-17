@@ -12,9 +12,10 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.saveable.Saveable
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.saveable.Saveable
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToInt
 import org.apache.logging.log4j.LogManager
@@ -95,8 +96,13 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             warnNotCreated("Texture", value)
                         }
                     }
-                    is Framebuffer -> value.bindTexture0(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
-                    is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                    is Framebuffer -> {
+                        if (value.textures?.getOrNull(0)?.isCreated() == true) {
+                            value.bindTexture0(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                        }
+                    }
+                    is ITexture2D -> value.createdOr(blackTexture)
+                        .bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
                         if (value1 != null && value1.isCreated()) {
@@ -119,7 +125,11 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             warnNotCreated("Texture", value)
                         }
                     }
-                    is Framebuffer -> value.getTextureIMS(0).bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                    is Framebuffer -> {
+                        if (value.textures?.getOrNull(0)?.isCreated() == true) {
+                            value.getTextureIMS(0).bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                        }
+                    }
                     is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]

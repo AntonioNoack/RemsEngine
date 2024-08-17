@@ -176,7 +176,7 @@ class HierarchicalDatabase(
     }
 
     fun clear() {
-        storage.deleteRecursively()
+        storage.delete()
         clearMemory()
     }
 

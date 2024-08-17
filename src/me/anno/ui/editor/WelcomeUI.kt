@@ -221,7 +221,7 @@ interface WelcomeUI {
                     ) {
                         Menu.ask(window.windowStack, NameDesc("Are you sure?", "", "")) {
                             Projects.removeFromRecentProjects(project.file)
-                            project.file.deleteRecursively()
+                            project.file.delete()
                             tp.isVisible = false
                         }
                     }

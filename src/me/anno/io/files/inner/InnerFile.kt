@@ -108,12 +108,8 @@ abstract class InnerFile(
 
     override val exists: Boolean = true
 
-    override fun deleteRecursively(): Boolean {
-        throw RuntimeException("Writing into zip files is not yet supported")
-    }
-
     override fun deleteOnExit() {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        delete()
     }
 
     override fun delete(): Boolean {

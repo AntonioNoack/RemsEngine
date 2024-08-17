@@ -20,13 +20,13 @@ object FileRootRef : FileReference("root") {
      * Whatever you're trying to do, it's horrendous;
      * This function must not be called.
      * */
-    override fun deleteRecursively(): Boolean {
+    override fun delete(): Boolean {
         throw Error("WTF are you trying to do? This call would have deleted your whole computer!")
     }
 
-    override fun deleteOnExit() {}
-
-    override fun delete(): Boolean = false
+    override fun deleteOnExit() {
+        delete()
+    }
 
     override fun mkdirs(): Boolean = true
 

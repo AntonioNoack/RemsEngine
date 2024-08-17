@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.Engine
 import me.anno.cache.ICacheData
 import me.anno.engine.EngineBase
 import me.anno.image.thumbs.Thumbs
@@ -302,11 +303,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun deleteOnExit() {
-        deleteRecursively()
-    }
-
-    open fun deleteRecursively(): Boolean {
-        return delete()
+        Engine.registerForShutdown {
+            delete()
+        }
     }
 
     val zipFileForDirectory

@@ -76,7 +76,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
         LastModifiedCache.invalidate(tmp)
         if (tmp.exists) {
             LastModifiedCache.invalidate(dst)
-            if (dst.exists) dst.deleteRecursively()
+            if (dst.exists) dst.delete()
             dst.getParent().mkdirs()
             if (!tmp.renameTo(dst)) {
                 LOGGER.warn("Rename from $tmp to $dst failed!")

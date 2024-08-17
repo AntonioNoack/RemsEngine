@@ -5,6 +5,7 @@ import me.anno.Engine.shutdown
 import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.engine.EngineBase
+import me.anno.engine.Events
 import me.anno.engine.Events.addEvent
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
@@ -54,6 +55,8 @@ import org.lwjgl.opengl.KHRDebug
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.Queue
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -71,6 +74,9 @@ object GFXBase {
 
     @JvmStatic
     private val windows get() = GFX.windows
+
+    @JvmStatic
+    val glfwTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
 
     /**
      * must be used when calling GLFW, because it's not thread-safe
@@ -357,7 +363,7 @@ object GFXBase {
             }
 
             var lastTime = Time.nanoTime
-            while (!windows.all2 { it.shouldClose } && !shutdown) {
+            while (shouldContinueUpdates()) {
                 updateWindows()
                 val currTime = Time.nanoTime
                 lastTime = if (currTime - lastTime < 1_000_000) {
@@ -373,13 +379,17 @@ object GFXBase {
 
             // run render loop incl. updating windows
             lastTime = Time.nanoTime
-            while (!destroyed && !shutdown && !windows.all2 { it.shouldClose }) {
+            while (shouldContinueUpdates()) {
                 Time.updateTime()
                 updateWindows()
                 renderFrame()
             }
             EngineBase.instance?.onShutdown()
         }
+    }
+
+    private fun shouldContinueUpdates(): Boolean {
+        return !destroyed && !shutdown && !windows.all2 { it.shouldClose }
     }
 
     @JvmField
@@ -471,20 +481,17 @@ object GFXBase {
         if (ws.isEmpty() ||
             DefaultConfig["window.close.directly", false] ||
             ws.peek().isAskingUserAboutClosing ||
-            window.requestedCloseManually
+            window.shouldClose
         ) {
-            window.shouldClose = true
-            GLFW.glfwSetWindowShouldClose(window.pointer, true)
+            window.requestClose()
         } else {
             GLFW.glfwSetWindowShouldClose(window.pointer, false)
             addEvent {
                 ask(
                     ws, NameDesc("Close %1?", "", "ui.closeProgram")
-                        .with("%1", window.title)
-                ) {
-                    window.shouldClose = true
-                    GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                }?.isAskingUserAboutClosing = true
+                        .with("%1", window.title),
+                    window::requestClose
+                )?.isAskingUserAboutClosing = true
                 window.framesSinceLastInteraction = 0
                 ws.peek().setAcceptsClickAway(false)
             }
@@ -493,6 +500,9 @@ object GFXBase {
 
     @JvmStatic
     fun updateWindows() {
+
+        Events.workTasks(glfwTasks)
+
         for (index in 0 until windows.size) {
             val window = windows[index]
             if (!window.shouldClose) {

@@ -791,14 +791,18 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
      * get the mouse direction from this camera
      * todo for other cameras: can be used for virtual mice
      * */
-    fun getMouseRayDirection(
-        cx: Float = window!!.mouseX,
-        cy: Float = window!!.mouseY,
-        dst: Vector3d = Vector3d()
-    ): Vector3d {
+    fun getMouseRayDirection(cx: Float, cy: Float, dst: Vector3d): Vector3d {
         val rx = (cx - x) / width * 2.0 - 1.0
         val ry = (cy - y) / height * 2.0 - 1.0
         return getRelativeMouseRayDirection(rx, -ry, dst)
+    }
+
+    fun getMouseRayDirection(): Vector3d {
+        val dst = Vector3d()
+        val window = window ?: return dst
+        val cx: Float = window.mouseX
+        val cy: Float = window.mouseY
+        return getMouseRayDirection(cx, cy, dst)
     }
 
     fun getRelativeMouseRayDirection(

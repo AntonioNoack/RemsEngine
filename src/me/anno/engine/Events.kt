@@ -41,14 +41,18 @@ object Events {
         }
     }
 
-    private fun workImmediateTasks() {
-        while (eventTasks.isNotEmpty()) {
+    fun workTasks(tasks: Queue<() -> Unit>) {
+        while (tasks.isNotEmpty()) {
             try {
-                eventTasks.poll()!!.invoke()
+                tasks.poll()!!.invoke()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun workImmediateTasks() {
+        workTasks(eventTasks)
     }
 
     private fun workScheduledTasks() {

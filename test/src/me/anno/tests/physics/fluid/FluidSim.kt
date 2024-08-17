@@ -3,11 +3,13 @@ package me.anno.tests.physics.fluid
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.systems.Updatable
+import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
@@ -16,22 +18,20 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
-import me.anno.engine.EngineBase
-import me.anno.engine.OfficialExtensions
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader
 import me.anno.tests.physics.fluid.FluidSimulator.splatShader
@@ -138,6 +138,19 @@ class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
     }
 }
 
+class DuckComponent : MeshComponent() {
+    lateinit var sim: FluidSimulation
+
+    // extend theoretical bounds
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        localAABB.setMin(-sim.width * 0.5 * cellSize, 0.0, -sim.height * 0.5 * cellSize)
+        localAABB.setMax(+sim.width * 0.5 * cellSize, waveHeight.toDouble(), +sim.height * 0.5 * cellSize)
+        localAABB.transform(globalTransform, globalAABB)
+        aabb.union(globalAABB)
+        return true
+    }
+}
+
 /**
  * small gpu fluid simulation
  *
@@ -200,16 +213,9 @@ fun main() {
         material.ref
     }
     for (i in 0 until p) {
-        val duck = object : MeshComponent(duckModel) {
-            // extend theoretical bounds
-            override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-                localAABB.setMin(-sim.width * 0.5 * cellSize, 0.0, -sim.height * 0.5 * cellSize)
-                localAABB.setMax(+sim.width * 0.5 * cellSize, waveHeight.toDouble(), +sim.height * 0.5 * cellSize)
-                localAABB.transform(globalTransform, globalAABB)
-                aabb.union(globalAABB)
-                return true
-            }
-        }
+        val duck = DuckComponent()
+        duck.sim = sim
+        duck.meshFile = duckModel
         duck.isInstanced = true
         duck.materials = newMaterials
         ducks.add(duck)

@@ -164,8 +164,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
                 "   vec3 rawColor = texture(normalMap, uv).rgb;\n" +
-                // support for bump maps: if grayscale, calculate gradient
-                "   if(rawColor.x == rawColor.y && rawColor.y == rawColor.z){\n" +
+                // support for bump maps: if grayscale or only red, calculate gradient
+                "   if((rawColor.x == rawColor.y && rawColor.y == rawColor.z) ||" +
+                "      (rawColor.y == 0.0 && rawColor.z == 0.0)){\n" +
                 "       vec2 suv = uv * vec2(textureSize(normalMap,0));\n" +
                 "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
                 "       rawColor = normalize(vec3(dFdx(rawColor.x), dFdy(rawColor.x), max(divisor, 1e-6)));\n" +

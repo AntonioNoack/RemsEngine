@@ -30,7 +30,7 @@ fun main() {
             return
         }
 
-        file.getChild("bin").deleteRecursively()
+        file.getChild("bin").delete()
 
     }
 
@@ -44,7 +44,7 @@ fun main() {
 
         if (file.listChildren().isEmpty()) {
             logger.info("deleting $file")
-            file.deleteRecursively()
+            file.delete()
         }
 
     }
@@ -62,7 +62,7 @@ fun main() {
         val files = listOf(".gradle", "gradle", "out", "build", "app/build", "captures", "app/.externalNativeBuild")
 
         for (f in files) {
-            file.getChild(f).deleteRecursively()
+            file.getChild(f).delete()
         }
 
         val release = file.getChild("app/release")
@@ -70,7 +70,7 @@ fun main() {
             if (release.listChildren().size > 2) {
                 logger.info("Problematic: $file")
             } else {
-                release.deleteRecursively()
+                release.delete()
             }
         }
 

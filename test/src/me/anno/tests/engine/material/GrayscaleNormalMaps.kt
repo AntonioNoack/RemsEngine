@@ -9,5 +9,5 @@ import me.anno.utils.OS.downloads
  * They are higher quality.
  * */
 fun main() {
-    testSceneWithUI("NormalMaps", downloads.getChild("ogldev-source/crytek_sponza/sponza.fbx"))
+    testSceneWithUI("NormalMaps", downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx"))
 }

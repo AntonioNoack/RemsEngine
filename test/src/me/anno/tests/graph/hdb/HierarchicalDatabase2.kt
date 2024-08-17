@@ -9,7 +9,7 @@ fun main() {
 
     val runs = 500
     val file = desktop.getChild("tmp")
-    file.deleteRecursively()
+    file.delete()
 
     val added = HashSet<HDBKey>()
 

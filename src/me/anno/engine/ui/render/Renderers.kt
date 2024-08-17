@@ -327,7 +327,7 @@ object Renderers {
                         Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                     ), "" +
                             "vec3 theoNormal = normalize(cross(dFdx(finalPosition),dFdy(finalPosition)));\n" +
-                            "float f = abs(dot(theoNormal,finalNormal));\n" +
+                            "float f = abs(dot(theoNormal,finalNormal)/max(length(finalNormal),1e-38));\n" +
                             "f = 1.0-pow(f,4.0);\n" + // transform to see stuff easier
                             "finalResult = vec4(f,f,f,1.0);\n"
                 )

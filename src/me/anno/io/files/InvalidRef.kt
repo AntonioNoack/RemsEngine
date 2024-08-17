@@ -20,15 +20,6 @@ object InvalidRef : FileReference("") {
 
     override fun length() = 0L
 
-    override fun deleteRecursively(): Boolean {
-        LOGGER.warn("Cannot delete InvalidRef")
-        return false
-    }
-
-    override fun deleteOnExit() {
-        LOGGER.warn("Will not delete InvalidRef on exit, as it does not exist")
-    }
-
     override fun delete(): Boolean {
         LOGGER.warn("Cannot delete InvalidRef")
         return false

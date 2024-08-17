@@ -7,14 +7,9 @@ import me.anno.utils.Clock
 import me.anno.utils.assertions.assertTrue
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
-import org.lwjgl.glfw.GLFW.GLFW_DECORATED
-import org.lwjgl.glfw.GLFW.GLFW_FALSE
-import org.lwjgl.glfw.GLFW.GLFW_VISIBLE
 import org.lwjgl.glfw.GLFW.glfwCreateWindow
-import org.lwjgl.glfw.GLFW.glfwDefaultWindowHints
 import org.lwjgl.glfw.GLFW.glfwInit
 import org.lwjgl.glfw.GLFW.glfwSetErrorCallback
-import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWErrorCallback
 
 /**

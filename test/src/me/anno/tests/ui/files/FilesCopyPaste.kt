@@ -11,7 +11,7 @@ fun main() {
     // done move a file by dragging it
     val test = documents.getChild("Test")
     test.tryMkdirs()
-    test.listChildren()?.forEach { it.deleteRecursively() }
+    test.listChildren().forEach { it.delete() }
     test.getChild("1. Copy Me, 1B.txt").writeText("1")
     test.getChild("2. Cut Me, 7B.txt").writeText("1234567")
     test.getChild("3. Drag Me, 5B.txt").writeText("12345")

@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.Events.addEvent
+import me.anno.gpu.GFXBase.glfwTasks
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
 import me.anno.input.Output
@@ -260,8 +261,10 @@ open class OSWindow(var title: String) {
      * may not succeed, test with getWindowTransparency()
      */
     fun setWindowOpacity(opacity: Float) {
-        GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_FALSE)
-        GLFW.glfwSetWindowOpacity(pointer, opacity)
+        glfwTasks += {
+            GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_FALSE)
+            GLFW.glfwSetWindowOpacity(pointer, opacity)
+        }
     }
 
     /**
@@ -270,8 +273,10 @@ open class OSWindow(var title: String) {
      * may not succeed, test with isFramebufferTransparent()
      */
     fun makeFramebufferTransparent() {
-        GLFW.glfwSetWindowOpacity(pointer, 1f)
-        GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_TRUE)
+        glfwTasks += {
+            GLFW.glfwSetWindowOpacity(pointer, 1f)
+            GLFW.glfwWindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, GLFW.GLFW_TRUE)
+        }
     }
 
     /**
@@ -283,10 +288,15 @@ open class OSWindow(var title: String) {
     val isFramebufferTransparent: Boolean
         get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
 
-    var requestedCloseManually = false
+    private var isHidden = false
     fun requestClose() {
-        requestedCloseManually = true
-        GLFW.glfwSetWindowShouldClose(pointer, true)
+        shouldClose = true
+        if (isHidden) return
+        isHidden = true
+        glfwTasks += {
+            GLFW.glfwHideWindow(pointer)
+            GLFW.glfwSetWindowShouldClose(pointer, true)
+        }
     }
 
     fun makeCurrent(): Boolean {
