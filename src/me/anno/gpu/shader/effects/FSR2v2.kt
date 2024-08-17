@@ -17,8 +17,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.posMod
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Matrix4f
-import org.joml.Quaterniond
-import org.joml.Vector3f
 import kotlin.math.round
 
 /**
@@ -145,17 +143,14 @@ class FSR2v2 : ICacheData {
         jy = (si / scaleX + 0.5f) / scaleY - 0.5f
         val renderSizeX = pw / scaleX
         val renderSizeY = ph / scaleY
+        tmpM.set(m)
         m.m20(m.m20 + jx * 2f / renderSizeX)
         m.m21(m.m21 + jy * 2f / renderSizeY)
     }
 
-    private val tmpV = Vector3f()
-    fun unjitter(m: Matrix4f, rot: Quaterniond, pw: Int, ph: Int) {
-        val v = tmpV.set(jx * 2f * lastScaleX / pw, jy * 2f * lastScaleY / ph, 0f)
-        rot.transform(v)
-        m.m20(m.m20 - v.x)
-        m.m21(m.m21 - v.y)
-        m.m22(m.m22 - v.y)
+    val tmpM = Matrix4f()
+    fun unjitter(m: Matrix4f) {
+        m.set(tmpM).rotateInv(RenderState.cameraRotation)
     }
 
     var lastScaleX = 1f

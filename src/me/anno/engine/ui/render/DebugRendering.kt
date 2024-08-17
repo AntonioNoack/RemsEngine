@@ -63,6 +63,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
+import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.floor
@@ -234,14 +235,14 @@ object DebugRendering {
         )
     }
 
-    fun drawDebugShapes(view: RenderView) {
+    fun drawDebugShapes(view: RenderView, cameraMatrix: Matrix4f) {
         drawDebugPoints(view)
         drawDebugLines(view)
         drawDebugRays(view)
         drawDebugAABBs(view)
-        LineBuffer.finish(view.cameraMatrix)
+        LineBuffer.finish(cameraMatrix)
         drawDebugTriangles(view)
-        TriangleBuffer.finish(view.cameraMatrix)
+        TriangleBuffer.finish(cameraMatrix)
         GFXState.depthMode.use(view.depthMode.always) {
             GFXState.depthMask.use(false) {
                 drawDebugTexts(view)

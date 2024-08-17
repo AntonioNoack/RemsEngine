@@ -76,6 +76,9 @@ class FSR2Node : RenderViewNode(
             setOutput(3, width)
             setOutput(4, height)
             Material.lodBias = 0f
+
+            // unjitter Gizmos
+            fsr.unjitter(RenderState.cameraMatrix)
         }
     }
 
@@ -100,8 +103,7 @@ class FSR2Node : RenderViewNode(
                 .then(OutlineEffectSelectNode())
                 .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(FSR2Node())
-                // .then(GizmoNode())
-                // todo unjitter Gizmos
+                .then(GizmoNode())
                 .then(FXAANode())
                 .finish()
         }

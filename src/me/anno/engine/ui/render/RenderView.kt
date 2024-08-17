@@ -713,6 +713,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         drawAABBs: Boolean
     ) {
 
+        val cameraMatrix = RenderState.cameraMatrix
         val world = getWorld()
         stack.set(cameraMatrix)
 
@@ -780,7 +781,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         drawGrid(pipeline, drawGridMask)
 
         if (drawDebugShapes) {
-            DebugRendering.drawDebugShapes(this)
+            DebugRendering.drawDebugShapes(this, cameraMatrix)
         }
         DebugShapes.removeExpired()
 
