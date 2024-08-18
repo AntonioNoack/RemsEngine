@@ -74,7 +74,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
-    val isSelected get() = uiParent!!.isAnyChildInFocus
+    val isSelected get() = uiParent?.isAnyChildInFocus == true
 
     val dirX = Vector3d()
     val dirY = Vector3d()
@@ -148,7 +148,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) : NineT
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.001
-    val rotationTarget = Vector3d()
+    val rotationTarget = Vector3d() // degrees
 
     override fun onUpdate() {
         super.onUpdate()

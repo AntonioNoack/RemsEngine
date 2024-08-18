@@ -11,10 +11,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
-import me.anno.graph.visual.render.effects.FrameGenInitNode
 import me.anno.input.VROffset.additionalOffset
 import me.anno.input.VROffset.additionalRotation
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4f
@@ -82,8 +80,8 @@ class OpenXRRendering(
         // todo define camera fov for frustum based on actually used angles
         rv.editorCamera.fovY = 110f // just a guess, should be good enough
         rv.updateEditorCameraTransform()
-        // todo skip filling pipeline, if using frameGen
-        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, true, true)
+        val skipFrame = rv.skipUpdate()
+        rv.prepareDrawScene(w, h, 1f, rv.editorCamera, !skipFrame, !skipFrame)
     }
 
     private fun defineTexture(w: Int, h: Int, ct: Texture2D, colorTexture: Int, session: Int) {
@@ -134,6 +132,8 @@ class OpenXRRendering(
         rv.height = h
         rv.setRenderState()
         useFrame(fb) {
+            // todo copy/transform depth to target FB
+            //  (should enable proper reprojection in headset, idk if that actually works)
             rv.render(0, 0, w, h)
         }
         rv.x = ox
@@ -200,11 +200,10 @@ class OpenXRRendering(
         rv.pipeline.superMaterial = rv.renderMode.superMaterial
 
         val prevData = prevData[viewIndex]
-        prevData.loadPrevMatrix(rv) // todo check whether motion vectors have been fixed
+        prevData.loadPrevMatrix(rv)
         setupFramebuffer(viewIndex, w, h, colorTexture, depthTexture)
         renderFrame(w, h, rv)
-        val skipUpdate = FrameGenInitNode.skipThisFrame() &&
-                rv.renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+        val skipUpdate = rv.skipUpdate()
         if (!skipUpdate) prevData.storePrevMatrix(rv)
         RenderState.viewIndex = 0
 

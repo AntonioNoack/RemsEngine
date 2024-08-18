@@ -109,6 +109,7 @@ class FSR2v2 : ICacheData {
     class PerViewData {
         var data0 = IFramebuffer.createFramebuffer("fsr2-0", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
         var data1 = IFramebuffer.createFramebuffer("fsr2-1", 1, 1, 1, dataTargetTypes, DepthBufferType.NONE)
+        val tmpM = Matrix4f()
     }
 
     val views = LazyMap { _: Int -> PerViewData() }
@@ -143,14 +144,14 @@ class FSR2v2 : ICacheData {
         jy = (si / scaleX + 0.5f) / scaleY - 0.5f
         val renderSizeX = pw / scaleX
         val renderSizeY = ph / scaleY
-        tmpM.set(m)
+        views[RenderState.viewIndex].tmpM.set(m)
         m.m20(m.m20 + jx * 2f / renderSizeX)
         m.m21(m.m21 + jy * 2f / renderSizeY)
     }
 
-    val tmpM = Matrix4f()
     fun unjitter(m: Matrix4f) {
-        m.set(tmpM).rotateInv(RenderState.cameraRotation)
+        m.set(views[RenderState.viewIndex].tmpM)
+            .rotateInv(RenderState.cameraRotation)
     }
 
     var lastScaleX = 1f

@@ -69,6 +69,7 @@ class SceneView(val renderView: RenderView, style: Style) : PanelStack(style) {
         editControls.isVisible = !worldIsGraph && editing
         playControls.isVisible = !worldIsGraph && !editing
         renderView.controlScheme = if (editing) editControls else playControls
+        renderView.controlScheme?.uiParent = this
         graphEditor.isVisible = worldIsGraph
         graphEditor.makeBackgroundTransparent()
         // graphEditor.backgroundColor = graphEditor.backgroundColor.withAlpha(127)

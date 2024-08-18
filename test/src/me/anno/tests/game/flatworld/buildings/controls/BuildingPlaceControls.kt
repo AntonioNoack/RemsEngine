@@ -12,16 +12,14 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.buildings.BuildingInstance
-import me.anno.tests.game.flatworld.buildings.BuildingType
+import me.anno.tests.game.flatworld.buildings.LivingBuilding
 import me.anno.utils.types.Floats.toRadians
-import org.joml.Vector3d
 
 class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlScheme(rv) {
 
     // todo registry of types
     // todo UI to choose type
-    val type = BuildingType(flatCube.scaled(10f).front)
+    val type = LivingBuilding(flatCube.scaled(10f).front)
     var rotationYDegrees = 0.0
 
     override fun onUpdate() {
@@ -81,15 +79,19 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        when(key){
+        when (key) {
             Key.KEY_PERIOD -> rotationYDegrees += 5.0
             Key.KEY_COMMA -> rotationYDegrees -= 5.0
-         else -> super.onKeyTyped(x, y, key)
+            else -> super.onKeyTyped(x, y, key)
         }
     }
 
     fun placeBuilding() {
-        val instance = BuildingInstance(type, Vector3d(transform.localPosition), rotationYDegrees)
+        val instance = type::class.constructors
+            .first { it.parameters.size == 1 }
+            .call(type.mesh)
+        instance.position.set(transform.localPosition)
+        instance.rotationYDegrees = rotationYDegrees
         val transform = Entity(world.buildings)
             .add(MeshComponent(type.mesh))
             .add(instance)

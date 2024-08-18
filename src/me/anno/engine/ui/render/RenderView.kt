@@ -126,6 +126,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     }
 
+    fun usesFrameGen(): Boolean {
+        return renderMode.renderGraph?.nodes?.any2 { it is FrameGenInitNode } == true
+    }
+
+    fun skipUpdate(): Boolean {
+        return FrameGenInitNode.skipThisFrame() && usesFrameGen()
+    }
+
     // todo move this to OrbitController?
     val orbitCenter = Vector3d()
     val orbitRotation = Quaterniond()

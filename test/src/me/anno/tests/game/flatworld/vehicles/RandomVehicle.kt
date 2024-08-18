@@ -3,10 +3,10 @@ package me.anno.tests.game.flatworld.vehicles
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.maths.Maths
-import me.anno.maths.paths.PathFinding.aStar
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.ReversibleSegment
+import me.anno.tests.game.flatworld.vehicles.Routes.findRoute
 
 object RandomVehicle {
 
@@ -28,25 +28,7 @@ object RandomVehicle {
         return entity
     }
 
-    fun distance(start: ReversibleSegment, end: ReversibleSegment): Double {
-        return start.a.distance(end.a)
-    }
-
-    fun findRoute(world: FlatWorld, start: ReversibleSegment, end: ReversibleSegment): List<ReversibleSegment>? {
-        return aStar(
-            start, end, distance(start, end), 1e9, 16,
-            includeStart = true, includeEnd = true
-        ) { src, cb ->
-            val intersection = world.intersections[src.c]
-            if (intersection != null) {
-                for (seg in intersection.segments) {
-                    cb(seg, distance(src, seg), distance(seg, end))
-                }
-            }
-        }
-    }
-
-    fun <V> getRandomEnd(reachable: HashSet<V>, start: V): V? {
+    fun getRandomEnd(reachable: HashSet<ReversibleSegment>, start: ReversibleSegment): ReversibleSegment? {
         reachable.remove(start)
         return reachable.randomOrNull()
     }

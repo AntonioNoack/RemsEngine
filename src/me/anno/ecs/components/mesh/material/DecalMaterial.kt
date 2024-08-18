@@ -22,12 +22,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
 // todo different blend modes: additive, subtractive, default, ...
-// todo make this work for (limited) forward rendering: all properties get replaced
+// todo bug: this is broken for MSAA forward rendering
 class DecalMaterial : Material() {
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(DecalMaterial::class)
-    }
 
     @SerializedProperty
     private var writeFlags = FLAG_COLOR

@@ -340,10 +340,12 @@ object GFXBase {
 
     @JvmStatic
     fun runRenderLoop() {
-        lastTime = Time.nanoTime
-        while (!destroyed && !shutdown) {
-            Time.updateTime()
+        var lastTime = Time.nanoTime
+        while (shouldContinueUpdates()) {
+            val currTime = Time.nanoTime
+            Time.updateTime(currTime, lastTime)
             renderFrame()
+            lastTime = currTime
         }
         EngineBase.instance?.onShutdown()
     }
@@ -355,36 +357,41 @@ object GFXBase {
 
         // Start new thread to have the OpenGL context current in and that does the rendering.
         if (useSeparateGLFWThread) {
-
             thread(name = "OpenGL") {
                 GFX.glThread = Thread.currentThread()
                 runRenderLoop0(window0)
                 runRenderLoop()
             }
-
-            var lastTime = Time.nanoTime
-            while (shouldContinueUpdates()) {
-                updateWindows()
-                val currTime = Time.nanoTime
-                lastTime = if (currTime - lastTime < 1_000_000) {
-                    // reduce load on CPU if the method call is very lightweight
-                    Thread.sleep(1)
-                    Time.nanoTime
-                } else currTime
-            }
+            runWindowUpdateLoop()
         } else {
-
             GFX.glThread = Thread.currentThread()
             runRenderLoop0(window0)
-
-            // run render loop incl. updating windows
-            lastTime = Time.nanoTime
-            while (shouldContinueUpdates()) {
-                Time.updateTime()
-                updateWindows()
-                renderFrame()
-            }
+            runRenderLoopWithWindowUpdates()
             EngineBase.instance?.onShutdown()
+        }
+    }
+
+    private fun runWindowUpdateLoop() {
+        var lastTime = Time.nanoTime
+        while (shouldContinueUpdates()) {
+            updateWindows()
+            val currTime = Time.nanoTime
+            lastTime = if (currTime - lastTime < 1_000_000) {
+                // reduce load on CPU if the method call is very lightweight
+                Thread.sleep(1)
+                Time.nanoTime
+            } else currTime
+        }
+    }
+
+    private fun runRenderLoopWithWindowUpdates() {
+        var lastTime = Time.nanoTime
+        while (shouldContinueUpdates()) {
+            val currTime = Time.nanoTime
+            Time.updateTime(currTime, lastTime)
+            updateWindows()
+            renderFrame()
+            lastTime = currTime
         }
     }
 

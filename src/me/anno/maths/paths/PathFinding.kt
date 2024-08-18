@@ -31,7 +31,7 @@ object PathFinding {
         override fun toString() = "($distance,$score,$previous)"
     }
 
-    // pooled DoublePair() to avoid allocations
+    // pooled values to avoid allocations
     private val pool = Stack { DataNode<Any?>() }
 
     /**
@@ -80,7 +80,6 @@ object PathFinding {
         }
     }
 
-
     /**
      * searches for a short path within a graph;
      * uses the distance to the target as a heuristic;
@@ -100,6 +99,29 @@ object PathFinding {
         start, end, distStartEnd, maxDistance, true,
         capacityGuess, includeStart, includeEnd, queryForward
     )
+
+    /**
+     * searches for a short path within a graph;
+     * uses the distance to the target as a heuristic;
+     * using wrong heuristics will cause slower or worse results
+     * @return list of nodes from start to end; without start and end; null if no path is found
+     * */
+    fun <Node : Any> aStar(
+        start: Node, end: Node,
+        getDistance: (Node, Node) -> Double,
+        getChildren: (Node) -> Collection<Node>,
+        maxDistance: Double,
+        capacityGuess: Int,
+        includeStart: Boolean,
+        includeEnd: Boolean
+    ): List<Node>? = aStar(
+        start, end, getDistance(start, end), maxDistance,
+        capacityGuess, includeStart, includeEnd
+    ) { from, callback ->
+        for (next in getChildren(from)) {
+            callback(next, getDistance(from, next), getDistance(next, end))
+        }
+    }
 
     // thread local variants are only up to 10-20% faster, so use the local variant, where we have control over the size
     // ... or should we prefer fewer allocations, and slightly better performance? 🤔, idk, might change with query size

@@ -4,10 +4,10 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.BoneAttachmentComponent
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.Color.black
@@ -29,7 +29,7 @@ fun main() {
 
     // a floor for decoration
     scene.add(
-        Entity("Floor", MeshComponent(PlaneModel.createPlane()))
+        Entity("Floor", MeshComponent(DefaultAssets.plane))
             .setScale(2.5)
     )
 

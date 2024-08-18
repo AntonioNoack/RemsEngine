@@ -2,10 +2,10 @@ package me.anno.tests.engine.light
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.material.Material
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -19,12 +19,10 @@ fun main() {
     registerCustomClass(Skybox())
     val scene = Entity()
     scene.add(Entity().apply {
-        add(MeshComponent(PlaneModel.createPlane()).apply {
-            materials = listOf(Material().apply {
-                metallicMinMax.set(1f)
-                roughnessMinMax.set(0.1f) // changes the used mip level
-            }.ref)
-        })
+        add(MeshComponent(DefaultAssets.plane, Material().apply {
+            metallicMinMax.set(1f)
+            roughnessMinMax.set(0.1f) // changes the used mip level
+        }))
         add(Entity().apply {
             add(PlanarReflection())
             position = position.set(0.0, -0.01, 0.0)

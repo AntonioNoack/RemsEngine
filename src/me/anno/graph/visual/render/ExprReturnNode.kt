@@ -13,7 +13,8 @@ class ExprReturnNode : ReturnNode(
         "Int", "Height",
         "Int", "Channels",
         "Int", "Samples",
-        "Bool", "Apply Tone Mapping"
+        "Bool", "Apply Tone Mapping",
+        "Texture", "Depth",
     )
 ), ExpressionRenderer {
 

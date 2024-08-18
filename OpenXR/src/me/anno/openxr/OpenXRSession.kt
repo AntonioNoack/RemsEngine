@@ -1,8 +1,8 @@
 package me.anno.openxr
 
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
-import me.anno.openxr.OpenXR.Companion.createProjectionFov
 import me.anno.openxr.OpenXR.Companion.farZ
 import me.anno.openxr.OpenXR.Companion.nearZ
 import me.anno.openxr.OpenXRUtils.checkHandTrackingAndPrintSystemProperties
@@ -432,6 +432,16 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         checkXR(xrReleaseSwapchainImage(swapchain, releaseInfo))
     }
 
+    private var lastTime = 0L
+    fun updateEngineTime() {
+        // between GFXBase->Time.updateTime and this, the time will be jumpy...
+        // predicted system time was 60ms ahead of my CPU time
+        val predictedSystemTime = fs.frameState.predictedDisplayTime()
+        val engineTime = predictedSystemTime - Time.startTimeN
+        Time.updateTime(engineTime, lastTime)
+        lastTime = engineTime
+    }
+
     fun renderFrameMaybe(xr: OpenXR): Boolean {
         events.pollEvents(xr)
         if (events.canSkipRendering) {
@@ -439,6 +449,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         }
 
         fs.waitFrame(session)
+        updateEngineTime()
         updateViews(space, session, views, fs)
         if (events.sessionFocussed) {
             actions.updateActions(space, fs.frameState)

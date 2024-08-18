@@ -3,7 +3,7 @@ package me.anno.tests.game.flatworld
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.tests.game.flatworld.buildings.BuildingInstance
+import me.anno.tests.game.flatworld.buildings.Building
 import me.anno.tests.game.flatworld.streets.Intersection
 import me.anno.tests.game.flatworld.streets.IntersectionMeshBuilder
 import me.anno.tests.game.flatworld.streets.ReversibleSegment
@@ -20,7 +20,7 @@ class FlatWorld {
     val vehicles = Entity("Vehicles", scene)
 
     val streetSegments = HashSet<StreetSegment>()
-    val buildingInstances = HashSet<BuildingInstance>()
+    val buildingInstances = HashSet<Building>()
     val intersections = HashMap<Vector3d, Intersection>()
 
     val dirtyStreets = HashSet<StreetSegment>()

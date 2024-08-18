@@ -539,7 +539,7 @@ object GFX {
 
         val inst = EngineBase.instance
         if (inst != null && doRender) {
-            if (shallRenderVR) {
+            if (shallRenderVR && window == windows.firstOrNull()) {
                 shallRenderVR = vrRenderingRoutine!!.drawFrame(window)
             } else {
                 callOnGameLoop(inst, window)

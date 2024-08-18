@@ -147,7 +147,6 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             }
             info.addLeftClickListener {
                 runGC()
-                Time.updateTime() // running GC lags, so skip a bit of time
             }
             info.addRightClickListener {
                 Menu.openMenu(it.windowStack, listOf(

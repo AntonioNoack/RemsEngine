@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
 import me.anno.tests.game.flatworld.FlatWorld
-import me.anno.tests.game.flatworld.buildings.BuildingInstance
+import me.anno.tests.game.flatworld.buildings.Building
 import me.anno.tests.game.flatworld.streets.controls.StreetDeletingControls
 import me.anno.utils.types.Floats.toRadians
 
@@ -26,7 +26,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
         val query = RayQuery(renderView.cameraPosition, renderView.mouseDirection, 1e6)
         if (!Raycast.raycastClosestHit(world.scene, query)) return
         // find which instance is used...
-        val instance = query.result.component?.getComponent(BuildingInstance::class) ?: return
+        val instance = query.result.component?.getComponent(Building::class) ?: return
         selectedInstance = instance
         transform.setLocal(
             transform.localTransform
@@ -38,7 +38,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
         transform.teleportUpdate()
     }
 
-    var selectedInstance: BuildingInstance? = null
+    var selectedInstance: Building? = null
 
     val comp = MeshComponent()
     val transform = Transform()
@@ -51,7 +51,7 @@ class BuildingDeleteControls(val world: FlatWorld, rv: RenderView) : ControlSche
         // todo show current building
         // todo show additionally connected roads
         val instance = selectedInstance ?: return
-        pipeline.addMesh(instance.type.mesh, comp, transform)
+        pipeline.addMesh(instance.mesh, comp, transform)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
