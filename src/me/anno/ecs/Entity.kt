@@ -5,6 +5,8 @@ import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
 import me.anno.ecs.EntityPhysics.rebuildPhysics
 import me.anno.ecs.EntityQuery.anyComponent
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.EntityQuery.hasComponentInChildren
@@ -17,8 +19,6 @@ import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.InputListener
@@ -184,7 +184,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @DebugProperty
     @NotSerializedProperty
     @Docs("Bounds in global space for faster collision tests and optimized rendering")
-    val aabb: AABBd = AABBd()
+    private val aabb: AABBd = AABBd()
 
     @DebugProperty
     @NotSerializedProperty
@@ -304,17 +304,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugAction
     fun invalidateOwnAABB() {
-        if (hasValidAABB) {
-            hasValidAABB = false
-            parentEntity?.invalidateOwnAABB()
-        }
+        hasValidAABB = false
+        parentEntity?.invalidateOwnAABB()
     }
 
     private fun invalidateChildAABBs() {
         hasValidAABB = false
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
+        forAllChildren(false) { child ->
             if (!child.isPhysicsControlled) {
                 child.invalidateChildAABBs()
             }
@@ -330,17 +326,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun validateMasks() {
         if (hasValidCollisionMask) return
         var collisionMask = 0
-        val components = components
-        for (i in components.indices) {
-            val component = components[i]
-            if (component is CollidingComponent) {
-                collisionMask = collisionMask or component.collisionMask
-                if (collisionMask == -1) break
-            }
+        forAllComponents(CollidingComponent::class, false) { component ->
+            collisionMask = collisionMask or component.collisionMask
         }
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
+        forAllChildren(false) { child ->
             child.validateMasks()
             collisionMask = collisionMask or child.collisionBits
         }
@@ -357,22 +346,22 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             if (oldAABB != aabb) LOGGER.warn("AABBs differed: $aabb vs $oldAABB, $name")*/
             return aabb
         }
-        hasValidAABB = true
+        fillBounds()
+        return aabb
+    }
+
+    private fun fillBounds() {
         aabb.clear()
+        forAllChildren(false) { child ->
+            aabb.union(child.getBounds())
+        }
         if (hasSpaceFillingComponents) {
             val globalTransform = transform.globalTransform
-            val components = components
-            for (i in components.indices) {
-                val component = components[i]
-                if (component.isEnabled) {
-                    component.fillSpace(globalTransform, aabb)
-                }
+            forAllComponents(false) { component ->
+                component.fillSpace(globalTransform, aabb)
             }
         }
-        for (i in children.indices) {
-            aabb.union(children[i].getBounds())
-        }
-        return aabb
+        hasValidAABB = true
     }
 
     override var isEnabled: Boolean
@@ -575,7 +564,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (index < 0 || index >= internalComponents.size) internalComponents.add(component)
         else internalComponents.add(index, component)
         component.entity = this
-        onChangeComponent(component)
+        onChangeComponent(component, true)
         getSystems()?.addOrRemoveRecursively(component, true)
         setChildPath(component, index, 'c')
         return this
@@ -586,29 +575,42 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return if (root === systems.world) systems else null
     }
 
-    fun onChangeComponent(component: Component) {
-        if (component is MeshComponentBase || component is LightComponentBase) {
-            hasRenderables = hasComponent(MeshComponentBase::class, false) ||
-                    hasComponent(LightComponentBase::class, false)
+    fun onChangeComponent(component: Component, additive: Boolean) {
+        val isRenderable = component is Renderable
+        if (isRenderable) {
+            hasRenderables = hasComponent(Renderable::class, false)
         }
-        val tmpAABB = JomlPools.aabbd.create().clear()
-        val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
-        if (fillsSpace) invalidateOwnAABB()
-        if (component is MeshComponentBase || component is LightComponentBase || fillsSpace) {
-            hasSpaceFillingComponents = hasRenderables ||
-                    anyComponent {
-                        it !is MeshComponentBase && it !is LightComponentBase &&
-                                it.fillSpace(transform.globalTransform, tmpAABB)
-                    }
+        if (additive) {
+            if (component.fillSpace(transform.globalTransform, aabb)) {
+                hasSpaceFillingComponents = true
+                onExtendAABB()
+            } // else AABBs not affected
+        } else {
+            val tmpAABB = JomlPools.aabbd.create().clear()
+            val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
+            if (fillsSpace) invalidateOwnAABB()
+            if (isRenderable || fillsSpace) {
+                hasSpaceFillingComponents = hasRenderables || anyComponent {
+                    it !is Renderable /* skip already covered cases */ &&
+                            it.fillSpace(transform.globalTransform, tmpAABB)
+                }
+            }
+            JomlPools.aabbd.sub(1)
         }
         if (component is InputListener) {
             hasControlReceiver = hasComponent(InputListener::class)
         }
-        for (i in components.indices) {
-            val comp = components.getOrNull(i) ?: break
+        forAllComponents(false) { comp ->
             comp.onChangeStructure(this)
         }
-        JomlPools.aabbd.sub(1)
+    }
+
+    private fun onExtendAABB() {
+        var parent = parentEntity
+        while (parent != null) {
+            parent.aabb.union(aabb)
+            parent = parent.parentEntity
+        }
     }
 
     fun addEntity(child: Entity): Entity {
@@ -621,10 +623,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this
     }
 
-    fun remove(component: Component) {
-        internalComponents.remove(component)
-        onChangeComponent(component)
+    fun remove(component: Component): Boolean {
+        val found = internalComponents.remove(component)
+        if (!found) return false
+        onChangeComponent(component, false)
         getSystems()?.addOrRemoveRecursively(component, false)
+        return true
     }
 
     /**
@@ -638,7 +642,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         } else {
             internalComponents[index] = internalComponents.last()
             internalComponents.removeLast()
-            onChangeComponent(component)
+            onChangeComponent(component, false)
             getSystems()?.addOrRemoveRecursively(component, false)
         }
     }
@@ -662,9 +666,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun add(child: Entity) = addEntity(child)
     fun add(component: Component) = addComponent(component)
 
-    fun remove(child: Entity) {
-        if (child.parent !== this) return
-        internalChildren.remove(child)
+    fun remove(child: Entity): Boolean {
+        if (child.parent !== this) return false
+        val found = internalChildren.remove(child) // should be true
+        if (!found) LOGGER.warn("Weird removal, where child.parent === this, but not found in children list")
         if (child.parent == this) {
             child.parent = null
         }
@@ -672,6 +677,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
         getSystems()?.addOrRemoveRecursively(child, false)
+        return found
     }
 
     fun removeAllChildren() {

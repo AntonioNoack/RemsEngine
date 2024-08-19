@@ -53,8 +53,8 @@ fun main() {
     val scene = Entity("Scene")
     scene.add(TestWorld().createTriangleMesh(0, 0, 0, 256, 32, 512))
     scene.add(settings)
-    EditorState.select(settings) // select this for testing
     testSceneWithUI("HeightFog", scene) {
         it.renderView.renderMode = mode
+        EditorState.select(settings)
     }
 }

@@ -2,6 +2,7 @@ package me.anno.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.EntityQuery.forAllEntitiesInChildren
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -31,8 +32,8 @@ object MeshUtils {
     fun centerMesh(cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
         mesh.getBounds()
         val aabb = AABBf()
-        centerMesh(cameraMatrix, modelMatrix, AABBd(mesh.aabb), {
-            aabb.set(mesh.aabb)
+        centerMesh(cameraMatrix, modelMatrix, AABBd(mesh.getBounds()), {
+            aabb.set(mesh.getBounds())
             aabb.transform(it)
         }, targetFrameUsage)
     }
@@ -91,7 +92,10 @@ object MeshUtils {
      * the goal is to be accurate
      * */
     fun getBounds(root: Entity, transform: Matrix4f): AABBf {
-        updateTransforms(root)
+        root.forAllEntitiesInChildren(false) { entity ->
+            entity.validateTransform()
+            entity.transform.teleportUpdate(0)
+        }
         val vf = Vector3f()
         val aabb = AABBf()
         val testAABB = AABBf()
@@ -141,12 +145,5 @@ object MeshUtils {
             -(aabb.minY + aabb.maxY).toFloat() / 2,
             -(aabb.minZ + aabb.maxZ).toFloat() / 2
         )
-    }
-
-    @JvmStatic
-    private fun updateTransforms(entity: Entity) {
-        entity.validateTransform()
-        entity.transform.teleportUpdate(0)
-        for (child in entity.children) updateTransforms(child)
     }
 }

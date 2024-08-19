@@ -68,9 +68,8 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     clock.stop("Loading Mesh")
 
     scene.validateTransform()
-    scene.getBounds()
 
-    val aabb = scene.aabb
+    val aabb = scene.getBounds()
 
     val cameraPosition = Vector3d(aabb.centerX, aabb.centerY, aabb.maxZ * 1.5f)
     val cameraRotation = Quaterniond()

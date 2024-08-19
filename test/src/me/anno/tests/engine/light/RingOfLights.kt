@@ -74,7 +74,7 @@ fun main() {
 
         val superRings = 300
         val elementSize = 10.0
-        val lightLevel = 2000f
+        val lightLevel = 20f
         val numColors = 3
         val colorRepetitions = 3
         val scale = Vector3d(elementSize)

@@ -87,7 +87,6 @@ class Framebuffer(
 
     var offsetX = 0
     var offsetY = 0
-    var lastDrawn = 0L
 
     // the source of our depth texture
     var depthAttachedPtr = 0
@@ -120,6 +119,10 @@ class Framebuffer(
     override var depthMask: Int = 0
 
     var textures: List<Texture2D>? = null
+
+    fun isCreated(): Boolean {
+        return pointer != 0
+    }
 
     override fun checkSession() {
         if (pointer != 0 && session != GFXState.session) {

@@ -61,7 +61,6 @@ import me.anno.graph.visual.render.scene.RenderLightsNode
 import me.anno.graph.visual.scalar.FloatMathBinary
 import me.anno.graph.visual.vector.MathF2XNode
 import me.anno.language.translation.NameDesc
-import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 
 /**
@@ -539,7 +538,7 @@ class RenderMode private constructor(
             enableVertexColors = false
         })
 
-        val ALL_GOLDEN = RenderMode("All Golden", Material.diffuse(0xf5ba6c.withAlpha(255)).apply {
+        val ALL_GOLDEN = RenderMode("All Golden", Material.diffuse(0xf5ba6c).apply {
             roughnessMinMax.set(0.2f)
             metallicMinMax.set(1f)
             enableVertexColors = false

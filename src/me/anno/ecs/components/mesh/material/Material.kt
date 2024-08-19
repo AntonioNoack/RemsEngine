@@ -388,7 +388,15 @@ open class Material : PrefabSaveable(), Renderable {
         fun diffuse(color: Int): Material {
             val mat = Material()
             color.toVecRGBA(mat.diffuseBase)
+            mat.diffuseBase.w = 1f
             return mat
+        }
+
+        fun metallic(color: Int, roughness: Float): Material {
+            val base = diffuse(color)
+            base.roughnessMinMax.set(roughness)
+            base.metallicMinMax.set(1f)
+            return base
         }
     }
 }

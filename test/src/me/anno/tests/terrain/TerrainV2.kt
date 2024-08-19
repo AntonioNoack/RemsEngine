@@ -81,7 +81,7 @@ class TerrainEditModeV2 : Component(), CustomEditMode {
                     cursor.localPosition = query.result.positionWS
                     cursor.localScale = cursor.localScale.set(0.01 * query.result.distance)
                     cursor.teleportUpdate()
-                    cursor.entity!!.invalidateAABBsCompletely()
+                    cursor.entity!!.invalidateOwnAABB()
                 }
             } else {
                 LOGGER.warn("Missed scene")

@@ -2,6 +2,7 @@ package me.anno.tests.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.CapsuleCollider
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 
 fun main() {
@@ -14,5 +15,7 @@ fun main() {
                 .setPosition((i - 1) * 2.0, 0.0, 0.0)
         )
     }
-    testSceneWithUI("Capsule Colliders", scene)
+    testSceneWithUI("Capsule Colliders", scene) {
+        it.renderView.renderMode = RenderMode.RAY_TEST
+    }
 }

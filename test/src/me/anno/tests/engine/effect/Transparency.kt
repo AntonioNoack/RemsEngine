@@ -1,9 +1,10 @@
 package me.anno.tests.engine.effect
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.MaterialCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -49,34 +50,29 @@ fun main() {
             setPosition(-1.6, 0.0, -1.43)
         })
     scene.add(Skybox())
-    scene.simpleTraversal {
-        if (it is Entity) {
-            for (comp in it.components) {
-                if (comp is MeshComponent) {
-                    val mesh = comp.getMeshOrNull() ?: continue
-                    val material = MaterialCache[mesh.material] ?: continue
-                    println(material.name)
-                    when (material.name) {
-                        "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
-                        "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
-                            material.pipelineStage = TRANSPARENT_PASS
-                            material.cullMode = CullMode.BOTH
-                            material.diffuseBase.w = 0.9f
-                            material.metallicMinMax.y = 1f
-                        }
-                        "930_lights" -> {
-                            material.pipelineStage = TRANSPARENT_PASS
-                            material.cullMode = CullMode.BOTH
-                            material.diffuseBase.w = 0.2f
-                        }
-                        "930_plastics" -> {
-                            material.cullMode = CullMode.BOTH
-                        }
-                    }
+    scene.forAllComponentsInChildren(MeshComponent::class) { comp ->
+        val mesh = comp.getMeshOrNull()
+        val material = MaterialCache[mesh?.material]
+        if (material != null) {
+            println(material.name)
+            when (material.name) {
+                "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
+                "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
+                    material.pipelineStage = TRANSPARENT_PASS
+                    material.cullMode = CullMode.BOTH
+                    material.diffuseBase.w = 0.9f
+                    material.metallicMinMax.y = 1f
+                }
+                "930_lights" -> {
+                    material.pipelineStage = TRANSPARENT_PASS
+                    material.cullMode = CullMode.BOTH
+                    material.diffuseBase.w = 0.2f
+                }
+                "930_plastics" -> {
+                    material.cullMode = CullMode.BOTH
                 }
             }
         }
-        false
     }
     testSceneWithUI("Scene with Transparency", scene)
 }

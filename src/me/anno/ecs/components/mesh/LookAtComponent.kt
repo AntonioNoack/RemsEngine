@@ -25,9 +25,6 @@ open class LookAtComponent : Component(), OnUpdate {
     @Docs("base distance for scale calculations")
     var maxSizeDistance = 1000.0
 
-    // todo maybe remove then when everything works
-    var minDistance = 1e-31
-
     var tiltX = true
     var tiltY = true
     var tiltZ = true
@@ -47,9 +44,10 @@ open class LookAtComponent : Component(), OnUpdate {
 
         dir.set(transform.globalPosition).sub(RenderState.cameraPosition)
 
+        val minDistance = 1e-300
         val distance = max(minDistance, abs(dir.dot(RenderState.cameraDirection)))
         // remove non-forward components, so the billboard is parallel to the camera instead of looking at the camera
-        dir.set(RenderState.cameraDirection).mul(distance)
+        dir.set(RenderState.cameraDirection).normalize(distance)
 
         var size = maxSize * maxSizeDistance / distance
         size = clamp(size, minSize, maxSize)

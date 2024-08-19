@@ -40,6 +40,7 @@ import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -275,12 +276,12 @@ class PipelineStageImpl(
             val minVolume = 0.5 * aabb.volume
             val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
             val mapBounds = JomlPools.aabbd.borrow()
-            val bestPr = if (minVolume.isFinite()) {
+            val bestPtr = if (minVolume.isFinite()) {
                 var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
                     // todo check if reflection can be visible
                     // doubleSided || it.transform!!.getDrawMatrix().transformDirection(0,0,1).dot(camDirection) > camPos.dot(camDir) (?)
                     val buffer = it.framebuffer
-                    buffer != null && buffer.pointer != 0
+                    buffer != null && buffer.isCreated()
                 }
                 if (minVolume > 1e-308) candidates = candidates.filter {
                     // todo use projected 2d comparison instead
@@ -295,13 +296,14 @@ class PipelineStageImpl(
                 candidates.minByOrNull {
                     it.transform!!.distanceSquaredGlobally(pos)
                 }
-            } else null
+            } else pipeline.planarReflections
+                .firstOrNull2 { it.framebuffer?.isCreated() == true }
 
-            shader.v1b("hasReflectionPlane", bestPr != null)
-            if (bestPr != null) {
-                val tex = bestPr.framebuffer!!
+            shader.v1b("hasReflectionPlane", bestPtr != null)
+            if (bestPtr != null) {
+                val tex = bestPtr.framebuffer!!
                 tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
-                val normal = bestPr.globalNormal
+                val normal = bestPtr.globalNormal
                 shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
             }
         }

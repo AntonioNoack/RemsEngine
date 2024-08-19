@@ -1,6 +1,8 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.collider.CollidingComponent
 
 /**
@@ -30,10 +32,8 @@ object Raycast {
         entity.getBounds()
         entity.validateTransform()
         val originalDistance = query.result.distance
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if ((query.includeDisabled || component.isEnabled) && component !in query.ignored) {
+        entity.forAllComponents(query.includeDisabled) { component ->
+            if (component !in query.ignored) {
                 if (component is CollidingComponent &&
                     component.hasRaycastType(query.typeMask) &&
                     component.canCollide(query.collisionMask)
@@ -44,14 +44,9 @@ object Raycast {
                 }
             }
         }
-        val children = entity.children
-        for (i in children.indices) {
-            val child = children[i]
-            if ((query.includeDisabled || child.isEnabled) &&
-                child.canCollide(query.collisionMask) &&
-                child !in query.ignored
-            ) {
-                if (child.aabb.testLine(query.start, query.direction, query.result.distance)) {
+        entity.forAllChildren(query.includeDisabled) { child ->
+            if (child.canCollide(query.collisionMask) && child !in query.ignored) {
+                if (child.getBounds().testLine(query.start, query.direction, query.result.distance)) {
                     raycastClosestHit(child, query)
                 }
             }
@@ -68,10 +63,8 @@ object Raycast {
         entity.validateMasks()
         entity.getBounds()
         entity.validateTransform()
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if ((query.includeDisabled || component.isEnabled) && component !in query.ignored) {
+        entity.forAllComponents(query.includeDisabled) { component ->
+            if (component !in query.ignored) {
                 if (component is CollidingComponent &&
                     component.hasRaycastType(query.typeMask) &&
                     component.canCollide(query.collisionMask)
@@ -83,14 +76,9 @@ object Raycast {
                 }
             }
         }
-        val children = entity.children
-        for (i in children.indices) {
-            val child = children[i]
-            if ((query.includeDisabled || child.isEnabled) &&
-                child.canCollide(query.collisionMask) &&
-                child !in query.ignored
-            ) {
-                if (child.aabb.testLine(query.start, query.direction, query.result.distance)) {
+        entity.forAllChildren(query.includeDisabled) { child ->
+            if (child.canCollide(query.collisionMask) && child !in query.ignored) {
+                if (child.getBounds().testLine(query.start, query.direction, query.result.distance)) {
                     if (raycastAnyHit(child, query)) return true
                 }
             }

@@ -4,6 +4,9 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.annotations.DebugAction
@@ -113,13 +116,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun invalidateRecursively(entity: Entity) {
-        val rb = entity.getComponent(rigidComponentClass)
-        if (rb != null) {
-            getInit(entity)
-        } else {
-            for (child in entity.children) {
-                invalidateRecursively(child)
-            }
+        entity.forAllComponentsInChildren(rigidComponentClass) { comp ->
+            getInit(comp.entity!!)
         }
     }
 
@@ -161,22 +159,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     private fun <V : Component> collectValidComponents(entity: Entity, clazz: KClass<V>, dst: ArrayList<V>) {
-        val components = entity.components
-        for (i in components.indices) {
-            val comp = components[i]
-            if (comp.isEnabled && clazz.isInstance(comp)) {
-                @Suppress("unchecked_cast")
-                dst.add(comp as V)
-            }
+        entity.forAllComponents(clazz, false) { comp ->
+            dst.add(comp)
         }
     }
 
     private fun collectNextEntities(entity: Entity, tmp: ArrayList<Entity>) {
-        val children = entity.children
-        for (i in children.indices) {
-            // only collect colliders, which are appropriate for this: stop at any other rigidbody
-            val child = children[i]
-            if (child.isEnabled && !child.hasComponent(rigidComponentClass, false)) {
+        entity.forAllChildren(false) { child ->
+            if (!child.hasComponent(rigidComponentClass, false)) {
                 tmp.add(child)
             }
         }
@@ -244,12 +234,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         // called by physics thread
         // only called for rigidbodies
         // not called for static objects (?), since they should not move
-        val components = self.components
-        for (i in components.indices) {
-            val c = components[i]
-            if (c.isEnabled && c is OnPhysicsUpdate) {
-                c.onPhysicsUpdate(dt)
-            }
+        self.forAllComponents(OnPhysicsUpdate::class, false) { c ->
+            c.onPhysicsUpdate(dt)
         }
     }
 

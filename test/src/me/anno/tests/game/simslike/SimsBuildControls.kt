@@ -17,6 +17,7 @@ class SimsBuildControls(controls: SimsControls, rv: RenderView) : SimsControlBas
                 alignmentX = AxisAlignment.MAX
                 alignmentY = AxisAlignment.MAX
             })
+        // todo inventory-like build selection menu
     }
 
     // different modes:

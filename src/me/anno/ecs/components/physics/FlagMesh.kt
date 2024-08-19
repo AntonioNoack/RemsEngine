@@ -137,7 +137,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
         val w = resolutionX
         val h = resolutionY
         if (!useCustomMesh) {
-            if (tex0.width != w || tex0.height != h || tex0.pointer == 0 || tex1.pointer == 0) {
+            if (tex0.width != w || tex0.height != h || !tex0.isCreated() || !tex1.isCreated()) {
                 val key = IntPair(w, h)
                 val data = meshCache[key]
                 createTargets(key, data.positions!!)

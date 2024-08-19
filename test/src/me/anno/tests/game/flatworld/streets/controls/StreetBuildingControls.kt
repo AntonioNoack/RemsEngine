@@ -226,7 +226,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                         )
                     }
                 }
-                world.validateIntersections()
+                world.validateMeshes()
 
                 // or shall we continue in straight stage? probably better :)
                 // todo keep tangent stable...

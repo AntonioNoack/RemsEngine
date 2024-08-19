@@ -6,7 +6,9 @@ import me.anno.utils.OS.pictures
 
 fun main() {
     val mat = TriplanarMaterial()
-    mat.diffuseMap = pictures.getChild("uv-checker.jpg")
+    mat.diffuseMap = pictures.getChild("BricksColor.png")
     mat.normalMap = pictures.getChild("BricksNormal.png")
+    mat.sharpness = 1f
+    mat.blendPreferY = 0.507f
     testSceneWithUI("Triplanar Material", mat)
 }

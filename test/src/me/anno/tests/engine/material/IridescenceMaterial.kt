@@ -1,11 +1,14 @@
 package me.anno.tests.engine.material
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib.getReflectivity
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.ShaderLib.brightness
@@ -55,7 +58,7 @@ object IridescenceShader : ECSMeshShader("Iridescence") {
                                     normalMapCalculation +
                                     v0 +
                                     "float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
-                                    "finalColor *= 1.0 + iriStrength * sin(sqrt(fresnel) * iriSpeed);\n" +
+                                    "finalColor *= 1.0 + iriStrength * (sin(sqrt(fresnel) * iriSpeed)*0.5-0.5);\n" +
                                     emissiveCalculation +
                                     occlusionCalculation +
                                     metallicCalculation +
@@ -79,11 +82,25 @@ object IridescenceShader : ECSMeshShader("Iridescence") {
  * testing a very simple iridescence shader (oily look caused by interference)
  * */
 fun main() {
+    OfficialExtensions.initForTests()
+    val scene = Entity("Scene")
     val golden = IridescenceMaterial()
-    0xf5ba6c.withAlpha(255).toVecRGBA(golden.diffuseBase)
+    0xf5ba6c.withAlpha(1f).toVecRGBA(golden.diffuseBase)
     golden.roughnessMinMax.set(0.2f)
     golden.metallicMinMax.set(1f)
-    val shape = documents.getChild("monkey.obj")
-    val comp = MeshComponent(shape, golden)
-    testSceneWithUI("Iridescence", comp)
+    val monkey = documents.getChild("monkey.obj")
+    scene.add(
+        Entity("Golden Monkey")
+            .add(MeshComponent(monkey, golden))
+    )
+    val glass = IridescenceMaterial()
+    glass.pipelineStage = PipelineStage.TRANSPARENT
+    glass.roughnessMinMax.set(0.2f)
+    glass.metallicMinMax.set(1f)
+    scene.add(
+        Entity("Glass Monkey")
+            .setPosition(3.0, 0.0, 0.0)
+            .add(MeshComponent(monkey, glass))
+    )
+    testSceneWithUI("Iridescence", scene)
 }

@@ -3,6 +3,8 @@ package me.anno.gpu.pipeline
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -330,22 +332,15 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         var clickId = clickId0
         while (subFillTodo.isNotEmpty()) {
             val entity = subFillTodo.removeLast()
-            val components = entity.components
-            for (i in components.indices) {
-                val component = components[i]
-                if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
+            entity.forAllComponents(false) { component ->
+                if (component !== ignoredComponent && component is Renderable) {
                     if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
                         clickId = component.fill(this, entity.transform, clickId)
                     }
                 }
             }
-            val children = entity.children
-            for (i in children.indices) {
-                val child = children[i]
-                if (child !== ignoredEntity &&
-                    child.isEnabled &&
-                    frustum.isVisible(child.aabb)
-                ) {
+            entity.forAllChildren(false) { child ->
+                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.getBounds())) {
                     subFillTodo.add(child)
                 }
             }
@@ -359,10 +354,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
 
     fun traverse(world: Entity, run: (Entity) -> Unit) {
         run(world)
-        val children = world.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+        world.forAllChildren(false) { child ->
+            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.getBounds())) {
                 traverse(child, run)
             }
         }
@@ -371,10 +364,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     @Suppress("unused")
     fun traverseConditionally(entity: Entity, run: (Entity) -> Boolean) {
         if (run(entity)) {
-            val children = entity.children
-            for (i in children.indices) {
-                val child = children[i]
-                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+            entity.forAllChildren(false) { child ->
+                if (child !== ignoredEntity && frustum.isVisible(child.getBounds())) {
                     traverseConditionally(child, run)
                 }
             }
@@ -388,7 +379,7 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         }
         for (childType in instance.listChildTypes()) {
             for (child in instance.getChildListByType(childType)) {
-                if (child !is Entity || frustum.isVisible(child.aabb)) {
+                if (child !is Entity || frustum.isVisible(child.getBounds())) {
                     val found = findDrawnSubject(searchedId, child)
                     if (found != null) return found
                 }

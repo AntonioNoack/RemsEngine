@@ -3,6 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -730,25 +731,21 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // much faster than depthTraversal, because we only need visible elements anyway
         if (world != null && drawAABBs) {
             pipeline.traverse(world) { entity ->
-                val aabb1 = entity.aabb
+                val aabb1 = entity.getBounds()
                 val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
                 if (entity.hasRenderables) {
-                    val components = entity.components
-                    for (i in components.indices) {
-                        val component = components[i]
-                        if (component.isEnabled) {
-                            when (component) {
-                                is MeshComponentBase -> {
-                                    val aabb2 = component.globalAABB
-                                    val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                    drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                                }
-                                is MeshSpawner -> {
-                                    val aabb2 = component.globalAABB
-                                    val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                    drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                                }
+                    entity.forAllComponents(false) { component ->
+                        when (component) {
+                            is MeshComponentBase -> {
+                                val aabb2 = component.globalAABB
+                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                            }
+                            is MeshSpawner -> {
+                                val aabb2 = component.globalAABB
+                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
                             }
                         }
                     }
@@ -761,7 +758,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         for (component in EditorState.selection) {
             if (component is Component && component.isEnabled && component is OnDrawGUI) {
                 val entity = component.entity
-                if (entity == null || pipeline.frustum.contains(entity.aabb)) {
+                if (entity == null || pipeline.frustum.contains(entity.getBounds())) {
 
                     val stack = stack
                     if (entity != null) {

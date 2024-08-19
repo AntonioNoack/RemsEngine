@@ -8,7 +8,6 @@ import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
-import me.anno.utils.Color.black
 
 /**
  * create a street, and place decal markings onto it
@@ -25,10 +24,10 @@ fun main() {
 
     val scene = Entity("Scene")
     Entity("Grass", scene)
-        .add(MeshComponent(DefaultAssets.plane, Material.diffuse(black or 0x66BF67)))
+        .add(MeshComponent(DefaultAssets.plane, Material.diffuse(0x66BF67)))
         .setScale(100.0)
     Entity("Street", scene)
-        .add(MeshComponent(flatCube.front, Material.diffuse(black or 0x222222)))
+        .add(MeshComponent(flatCube.front, Material.diffuse(0x222222)))
         .setScale(4.0, 0.1, 100.0)
 
     val markings = Entity("Markings", scene)

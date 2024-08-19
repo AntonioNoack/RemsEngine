@@ -90,8 +90,7 @@ class ECSSceneTab(
             }
             is Entity -> {
                 root.validateTransform()
-                root.getBounds()
-                resetCamera(root.aabb, true)
+                resetCamera(root.getBounds(), true)
             }
             is Animation -> {
                 val skeleton = SkeletonCache[root.skeleton] ?: return

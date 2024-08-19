@@ -2,13 +2,12 @@ package me.anno.tests.gfx
 
 import me.anno.Build
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView
 import me.anno.mesh.Shapes
-import me.anno.utils.Color
 import kotlin.random.Random
 
 fun main() {
@@ -26,9 +25,9 @@ fun main() {
     val scene = Entity()
     val random = Random(1234L)
     val materials = listOf(
-        Material.diffuse(0xff0000 or Color.black),
-        Material.diffuse(0x00ff00 or Color.black),
-        Material.diffuse(0x0000ff or Color.black),
+        Material.diffuse(0xff0000),
+        Material.diffuse(0x00ff00),
+        Material.diffuse(0x0000ff),
     ).map { listOf(it.ref) }
 
     // todo

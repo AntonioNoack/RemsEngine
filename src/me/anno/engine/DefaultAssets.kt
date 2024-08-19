@@ -16,7 +16,6 @@ import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.utils.Color.black
-import me.anno.utils.Color.withAlpha
 
 /**
  * some assets that are guaranteed to be always available;
@@ -54,7 +53,7 @@ object DefaultAssets {
         mirror.roughnessMinMax.set(0f)
         mirror.metallicMinMax.set(1f)
         register("materials/Mirror.json", "Material", mirror.ref)
-        val golden = Material.diffuse(0xf5ba6c.withAlpha(255))
+        val golden = Material.diffuse(0xf5ba6c)
         golden.roughnessMinMax.set(0.2f)
         golden.metallicMinMax.set(1f)
         register("materials/Golden.json", "Material", golden.ref)

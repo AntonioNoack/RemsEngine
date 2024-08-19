@@ -83,7 +83,7 @@ object AssetThumbnails {
         }
         scene.validateTransform()
         scene.getBounds()
-        val bounds = scene.aabb
+        val bounds = scene.getBounds()
         ThumbsRendering.renderToImage(
             srcFile, false,
             dstFile, true,

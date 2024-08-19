@@ -19,7 +19,7 @@ abstract class Component : PrefabSaveable() {
         set(value) {
             if (super.isEnabled != value) {
                 super.isEnabled = value
-                entity?.onChangeComponent(this)
+                entity?.onChangeComponent(this, value)
                 if (value) onEnable()
                 else onDisable()
             }

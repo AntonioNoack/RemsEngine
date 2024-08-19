@@ -1,10 +1,12 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
+import me.anno.engine.DefaultAssets
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -208,10 +210,14 @@ fun main() {
         entity.add(MeshComponent(mesh))
         return entity
     }
-    pillar.material = Material().apply {
-        diffuseBase.set(0.135f, 0.135f, 0.135f, 1f)
-    }.ref
 
+    fun add(pos: Vector3d, mesh: Mesh, material: Material, y: Int, name: String, parent: Entity): Entity {
+        val entity = add(pos, mesh, y, name, parent)
+        entity.getComponent(MeshComponent::class)!!.materials = listOf(material.ref)
+        return entity
+    }
+
+    val pillarMaterial = Material.diffuse(0x222222)
     val sp = 2.0 * (1.0 + pi)
     val bars = Entity("Front", scene)
     for (r in 0 until 4) {
@@ -220,7 +226,7 @@ fun main() {
             val z = (xi + 0.5) * sp
             add(
                 Vector3d((x - 0.5) * sp, ph.toDouble(), z)
-                    .rotateY(r * PI / 2), pillar, r,
+                    .rotateY(r * PI / 2), pillar, pillarMaterial, r,
                 "Pillar[$x]", side
             )
             add(
@@ -233,18 +239,13 @@ fun main() {
 
     add(
         Vector3d(0.0, ph * 2.0, 0.0),
-        PlaneModel.createPlane().apply {
-            material = pillar.material
-        }, 0, "Roof", scene
+        DefaultAssets.plane, pillarMaterial, 0, "Roof", scene
     ).setScale(sp * (xi + 0.5))
 
     add(
         Vector3d(),
-        PlaneModel.createPlane().apply {
-            material = Material().apply {
-                diffuseBase.set(0.3f, 0.3f, 0.3f, 1f)
-            }.ref
-        }, 0, "Street", scene
+        DefaultAssets.plane, Material.diffuse(0x4c4c4c),
+        0, "Street", scene
     ).setScale(1.5 * sp * (xi + 0.5))
 
     testSceneWithUI("Parallax Room", scene)

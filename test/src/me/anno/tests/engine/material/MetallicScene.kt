@@ -26,8 +26,6 @@ fun main() {
     // todo light shine around lamps
     //  particles in air, and viewing ray really close to light source
 
-    // todo metals look cheap in forward rendering -> fix that somehow with cheats
-
     // todo we need an exposure setting or auto-exposure (and desaturation in the dark)
     // fixed: SkyboxBase looked like it's not reflected
     val scene = Entity()

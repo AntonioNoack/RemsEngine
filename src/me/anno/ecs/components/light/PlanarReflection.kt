@@ -37,6 +37,7 @@ import org.joml.Vector3f
 import org.lwjgl.opengl.GL46C.glScissor
 import kotlin.math.abs
 
+// todo this needs two framebuffers and rendering passes for VR
 class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
     @NotSerializedProperty
@@ -105,6 +106,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
+                println("destroying fb")
                 framebuffer?.destroy()
                 framebuffer = null
                 return
@@ -237,7 +239,9 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         transform: Transform,
         clickId: Int
     ): Int {
-        pipeline.planarReflections.add(this)
+        if (framebuffer?.isCreated() == true) {
+            pipeline.planarReflections.add(this)
+        }
         return clickId // not itself clickable
     }
 
@@ -245,7 +249,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         super.destroy()
         framebuffer?.destroy()
         framebuffer = null
-        timer?.destroy()
+        timer.destroy()
     }
 
     override fun copyInto(dst: PrefabSaveable) {

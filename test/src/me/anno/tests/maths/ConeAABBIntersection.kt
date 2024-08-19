@@ -73,7 +73,7 @@ fun main() {
             scene.getBounds()
             val tmp = AABBf()
             for (box in boxes) {
-                val hit = tmp.set(box.aabb).testLine(start, end, radiusAtOrigin, radiusPerUnit)
+                val hit = tmp.set(box.getBounds()).testLine(start, end, radiusAtOrigin, radiusPerUnit)
                 val matList = if (hit) greenMatList else redMatList
                 box.getComponent(MeshComponent::class)!!.materials = matList
             }

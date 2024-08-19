@@ -31,6 +31,8 @@ fun main() {
             add(LookAtComponent())
         })
     }) {
-        enableVSync = true // seeing the lag of one frame is easier at 60 fps than at 200 ^^
+        // seeing the lag of one frame is easier at 60 fps than at 200 ^^
+        // and zoom in/out to see it best
+        enableVSync = true
     }
 }

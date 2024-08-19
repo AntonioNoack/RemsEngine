@@ -127,6 +127,18 @@ object EntityQuery {
         }
     }
 
+    fun Entity.forAllEntitiesInChildren(includingDisabled: Boolean, callback: (Entity) -> Unit) {
+        val remaining = ArrayList<Entity>()
+        remaining.add(this)
+        while (true) {
+            val item = remaining.removeLastOrNull() ?: break
+            if (includingDisabled || item.isEnabled) {
+                remaining.addAll(item.children)
+                callback(item)
+            }
+        }
+    }
+
     fun Component.allComponents(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean

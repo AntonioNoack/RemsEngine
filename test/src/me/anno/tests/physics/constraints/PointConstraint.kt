@@ -5,12 +5,11 @@ import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
-import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
@@ -53,7 +52,7 @@ fun main() {
     addHinge(+0.9)
 
     val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333 or black)))
+    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
     floor.add(BoxCollider())
     floor.add(Rigidbody().apply {
         friction = 1.0

@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.shapes.PlaneModel
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testScene
@@ -25,7 +24,6 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
-import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.firstInstance2
 
 // todo a 3d world has more complicated maths,
@@ -87,7 +85,7 @@ fun main() {
     val world = FlatWorld()
 
     // terrain
-    val grassMaterial = Material.diffuse(0x88dd88 or black)
+    val grassMaterial = Material.diffuse(0x88dd88)
     world.terrain.setScale(100.0)
         .add(MeshComponent(PlaneModel.createPlane(), grassMaterial))
 

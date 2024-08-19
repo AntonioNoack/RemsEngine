@@ -19,6 +19,8 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.structures.lists.Lists.firstInstance2
 
 fun main() {
+    // todo bug: color is grayish where blurred :/
+    //  can be seen by setting Scale to 5-10
     OfficialExtensions.initForTests()
     val scene = downloads.getChild("3d/ogldev-source/crytek_sponza/sponza.fbx")
     val scene1 = PrefabCache[scene]!!.getSampleInstance()

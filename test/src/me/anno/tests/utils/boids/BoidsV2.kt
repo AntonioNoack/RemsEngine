@@ -89,7 +89,7 @@ class BoidV2(
         val transform = entity.transform
         transform.localPosition = transform.localPosition.set(posA)
         transform.localRotation = transform.localRotation.set(dirA.normalToQuaternionY(tmpQ))
-        entity.invalidateAABBsCompletely()
+        entity.invalidateOwnAABB()
     }
 }
 

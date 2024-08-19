@@ -340,7 +340,7 @@ object GFXBase {
 
     @JvmStatic
     fun runRenderLoop() {
-        var lastTime = Time.nanoTime
+        var lastTime = Time.nanoTime - 60 * MILLIS_TO_NANOS
         while (shouldContinueUpdates()) {
             val currTime = Time.nanoTime
             Time.updateTime(currTime, lastTime)
@@ -385,7 +385,7 @@ object GFXBase {
     }
 
     private fun runRenderLoopWithWindowUpdates() {
-        var lastTime = Time.nanoTime
+        var lastTime = Time.nanoTime - 60 * MILLIS_TO_NANOS
         while (shouldContinueUpdates()) {
             val currTime = Time.nanoTime
             Time.updateTime(currTime, lastTime)

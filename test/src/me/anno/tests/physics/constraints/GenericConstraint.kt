@@ -55,7 +55,7 @@ fun main() {
     box0.add(sliding)
 
     val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333 or black)))
+    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
     floor.add(BoxCollider())
     floor.add(Rigidbody().apply {
         friction = 1.0

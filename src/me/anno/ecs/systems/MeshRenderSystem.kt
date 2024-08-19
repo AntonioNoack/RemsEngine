@@ -1,16 +1,12 @@
 package me.anno.ecs.systems
 
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.graph.octtree.KdTree
-import me.anno.graph.octtree.OctTree
-import org.joml.Vector3d
 
 /**
  * todo like for lights: spatial acceleration structure
@@ -36,7 +32,7 @@ class MeshRenderSystem : System(), Renderable {
         var clickIdI = 0
         for (c in meshes) {
             val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.aabb)) {
+            if (pipeline.frustum.isVisible(e.getBounds())) {
                 val mesh = c.getMesh() ?: continue
                 c.clickId = clickIdI++
                 pipeline.addMesh(mesh, c, e.transform)
@@ -44,7 +40,7 @@ class MeshRenderSystem : System(), Renderable {
         }
         for (c in others) {
             val e = c.entity ?: continue
-            if (pipeline.frustum.isVisible(e.aabb)) {
+            if (pipeline.frustum.isVisible(e.getBounds())) {
                 clickIdI = c.fill(pipeline, transform, clickIdI)
             }
         }

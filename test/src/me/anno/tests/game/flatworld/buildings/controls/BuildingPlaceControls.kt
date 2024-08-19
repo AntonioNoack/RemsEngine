@@ -99,6 +99,5 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
         transform.setLocal(this.transform.localTransform)
         transform.teleportUpdate()
         world.buildingInstances.add(instance)
-        world.buildings.invalidateAABBsCompletely() // todo why is this needed?
     }
 }

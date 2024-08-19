@@ -2,6 +2,7 @@ package me.anno.openxr
 
 import me.anno.Time
 import me.anno.gpu.GFX
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.openxr.OpenXR.Companion.VIEW_CONFIG_TYPE
 import me.anno.openxr.OpenXR.Companion.farZ
 import me.anno.openxr.OpenXR.Companion.nearZ
@@ -432,7 +433,7 @@ class OpenXRSession(val window: Long, val system: OpenXRSystem) {
         checkXR(xrReleaseSwapchainImage(swapchain, releaseInfo))
     }
 
-    private var lastTime = 0L
+    private var lastTime = Time.nanoTime - 60 * MILLIS_TO_NANOS
     fun updateEngineTime() {
         // between GFXBase->Time.updateTime and this, the time will be jumpy...
         // predicted system time was 60ms ahead of my CPU time

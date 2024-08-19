@@ -30,7 +30,9 @@ object ScreenShader : ECSMeshShader("Screen") {
                 Variable(GLSLType.S2D, "emissiveMap")
             ), colorToSRGB + // ensure sRGB space before multiplying, because our texture is sRGB
                     "ivec2 texSize = textureSize(emissiveMap,0);\n" +
-                    "if(max(texSize.x,texSize.y) > 1) { finalEmissive *= texture(screenTexture, uv * vec2(texSize), screenLodBias).rgb; }"
+                    "if(max(texSize.x,texSize.y) > 1) {\n" +
+                    "   finalEmissive *= texture(screenTexture, uv * vec2(texSize), screenLodBias).rgb;\n" +
+                    "}"
         )
     }
 }

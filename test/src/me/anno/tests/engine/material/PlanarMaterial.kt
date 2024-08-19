@@ -9,7 +9,7 @@ import me.anno.utils.OS.pictures
  * */
 fun main() {
     val mat = PlanarMaterial()
-    mat.diffuseMap = pictures.getChild("BricksColor.jpg")
+    mat.diffuseMap = pictures.getChild("BricksColor.png")
     mat.normalMap = pictures.getChild("BricksNormal.png")
     testSceneWithUI("Planar Material", mat)
 }

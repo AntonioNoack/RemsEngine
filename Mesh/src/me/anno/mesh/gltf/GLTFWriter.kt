@@ -2,6 +2,8 @@ package me.anno.mesh.gltf
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.Bone
@@ -138,10 +140,10 @@ class GLTFWriter : JsonWriter(ByteArrayOutputStream(1024)) {
         val cm = countMeshes(entity)
         val childIndices = IntArrayList(entity.children.size + cm)
         children.add(childIndices)
-        for (child in entity.children) {
+        entity.forAllChildren(false) { child ->
             childIndices.add(addEntity(child))
         }
-        for (comp in entity.components) {
+        entity.forAllComponents(false) { comp ->
             when (comp) {
                 is MeshComponentBase -> {
                     val mesh = comp.getMesh()

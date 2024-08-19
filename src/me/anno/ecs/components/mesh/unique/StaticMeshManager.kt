@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.unique
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -63,11 +64,9 @@ class StaticMeshManager : Component(), Renderable, OnUpdate {
             val entity = collectStackE.removeAt(idx)
             val transform = entity.transform
             if (transform.lastUpdateFrameIndex <= time) {
-                for (child in entity.children) {
-                    collectStackE.add(child)
-                }
-                for (comp in entity.components) {
-                    if (comp is MeshComponentBase && comp.manager == null) {
+                collectStackE.addAll(entity.children)
+                entity.forAllComponents(MeshComponentBase::class) { comp ->
+                    if (comp.manager == null) {
                         val mesh = comp.getMesh()
                         if (mesh is Mesh && supportsMesh(mesh)) {
                             register(comp, mesh)

@@ -100,6 +100,6 @@ class StreetDeletingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
             }
         }
         selected.clear()
-        world.validateIntersections()
+        world.validateMeshes()
     }
 }

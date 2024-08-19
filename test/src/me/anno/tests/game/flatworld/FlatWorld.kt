@@ -65,16 +65,23 @@ class FlatWorld {
         }
     }
 
-    fun validateIntersections() {
+    fun validateMeshes() {
+        validateIntersections()
+        validateStreetSegments()
+    }
+
+    private fun validateIntersections() {
         for (intersection in dirtyIntersections) {
             buildIntersection(intersection)
         }
+        dirtyIntersections.clear()
+    }
+
+    private fun validateStreetSegments() {
         for (segment in dirtyStreets) {
             buildStreet(segment)
         }
-        dirtyIntersections.clear()
         dirtyStreets.clear()
-        streets.invalidateAABBsCompletely() // todo why is this necessary???
     }
 
     fun buildStreet(segment: StreetSegment) {

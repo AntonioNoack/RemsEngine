@@ -1,6 +1,9 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllChildren
+import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -42,7 +45,7 @@ object Outlines {
 
     fun drawOutline(pipeline: Pipeline, entity: Entity) {
         whiteTexture.bind(0) // for the albedo
-        DrawAABB.drawAABB(entity.aabb, RenderView.aabbColorHovered)
+        DrawAABB.drawAABB(entity.getBounds(), RenderView.aabbColorHovered)
         LineBuffer.finish(RenderState.cameraMatrix)
         drawOutlineForEntity(pipeline, entity)
     }
@@ -133,17 +136,9 @@ object Outlines {
     }
 
     private fun drawOutlineForEntity(pipeline: Pipeline, entity: Entity) {
-        val children = entity.children
-        for (i in children.indices) {
-            drawOutlineForEntity(pipeline, children[i])
-        }
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if (component is MeshComponentBase) {
-                val mesh = component.getMeshOrNull() ?: continue
-                drawOutline(pipeline, component, mesh)
-            }
+        entity.forAllComponentsInChildren(MeshComponentBase::class, false) { component ->
+            val mesh = component.getMeshOrNull()
+            if (mesh != null) drawOutline(pipeline, component, mesh)
         }
     }
 }

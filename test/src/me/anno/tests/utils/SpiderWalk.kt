@@ -27,7 +27,6 @@ import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
-import me.anno.utils.Color.black
 import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -110,10 +109,10 @@ fun main() {
     spider.setPosition(0.0, baseY, 0.0)
 
     val xs = listOf(-1, +1)
-    val black1 = Material.diffuse(0x070707 or black)
-    val white = Material()
-    val gray = Material.diffuse(0x333333 or black)
-    val gray2 = Material.diffuse(0x171717 or black)
+    val black1 = Material.diffuse(0x070707)
+    val white = Material.diffuse(0xffffff)
+    val gray = Material.diffuse(0x333333)
+    val gray2 = Material.diffuse(0x171717)
 
     fun add(target: Entity, offset: Vector3f, scale: Vector3f, material: Material) {
         target.add(MeshComponent(flatCube.linear(offset, scale).front, material))
