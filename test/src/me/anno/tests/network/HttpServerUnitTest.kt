@@ -1,5 +1,6 @@
 package me.anno.tests.network
 
+import me.anno.Engine
 import me.anno.io.Streams.writeString
 import me.anno.io.files.WebRef
 import me.anno.network.Server
@@ -60,6 +61,7 @@ class HttpServerUnitTest {
 
     @BeforeEach
     fun startServer() {
+        Engine.cancelShutdown()
         server.register(TestProtocol("GET")) // for getting content
         server.register(TestProtocol("HEAD")) // for getting metadata only
         server.start(port.getAndIncrement(), -1)

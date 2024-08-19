@@ -201,7 +201,7 @@ Creating a native build for the meta quest is planned, too, but not yet started.
 
 ## Getting Started
 
-- Download an IDE of your choice. I prefer IntelliJ IDEA, but have worked with Eclipse in the past.
+- Download an IDE of your choice. I prefer IntelliJ IDEA. Eclipse may work with a bit of luck, too.
 - Download either the engine source code, and compile it yourself, or download a pre-compiled jar.
     - If there is no release available yet, just ask for a build, and I'll create one :)
 
