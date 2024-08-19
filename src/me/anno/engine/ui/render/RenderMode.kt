@@ -383,6 +383,7 @@ class RenderMode private constructor(
                 .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then1(GizmoNode(), mapOf("Samples" to 8))
+                .then(FXAANode())
                 .finish()
         )
 

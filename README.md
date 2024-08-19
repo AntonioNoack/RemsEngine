@@ -143,7 +143,7 @@ and any other special kind of rendering.
 
 ### UI
 
-- event based UI library
+- easily extendable based UI library
 - 3d gizmos
 - real-time graph editors
     - materials (shaders)
@@ -165,10 +165,11 @@ and any other special kind of rendering.
 - Box2d as 2d physics engine
     - currently a prototype
 
-### VR
+### Virtual Reality
 
-Virtual Reality support is currently WIP, and implemented using OpenXR.
-Scenes can be already viewed in 3d, but controls, e.g., for 3d UI, haven't really been implemented yet.
+Virtual/Augmented Reality support is currently WIP, and implemented using OpenXR.
+Scenes can be already viewed in 3d, and traversed, but controls for 3d UI haven't been implemented yet.
+Creating a native build for the meta quest is planned, too, but not yet started.
 
 ### Planned Features
 
@@ -293,7 +294,7 @@ Shipping to Android is a bit more complicated:
 
 ### Web (HTML5, WASM, WebGL)
 
-*Note: this is currently broken when using 3d as of 17th March 2024*
+*Note: this is currently broken when using 3d as of March 17th 2024*
 
 My JVM->WASM translation is a little slow at the moment, unfortunately. It's fast enough for simple games though.
 Lots of things haven't been implemented or are half-baked, so be cautious and don't expect too much (e.g., image loading

@@ -7,6 +7,7 @@ import me.anno.io.Streams.readText
 import me.anno.utils.Color.hex4
 import me.anno.utils.structures.Callback
 import me.anno.utils.structures.arrays.BooleanArrayList
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.indexOf2
@@ -57,7 +58,12 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
 
     // we can answer that, when we got a response code, e.g., 404
     override val exists: Boolean
-        get() = headers != null
+        get() {
+            val headers = headers
+            val responseCode = headers?.get(RESPONSE_CODE_KEY)?.firstOrNull()?.toIntOrNull()
+            return headers != null &&
+                    (responseCode == null || responseCode in 200 until 400)
+        }
 
     override val lastModified: Long
         get() = headers?.get("Last-Modified").toString().parseLastModified()
@@ -146,6 +152,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     companion object {
 
         private val LOGGER = LogManager.getLogger(WebRef::class)
+        private const val RESPONSE_CODE_KEY = "ResponseCode"
         val webCache = CacheSection("Web")
 
         private fun String.parseLastModified(): Long {
@@ -162,12 +169,13 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         private fun getHeaders(url: URL, timeout: Long, async: Boolean): Map<String?, List<String>>? {
             val data = webCache.getEntry(url, timeout, async) {
                 var conn: URLConnection? = null
-                val data = try {
+                val data: Map<String?, List<String>> = try {
                     conn = url.openConnection()
                     if (conn is HttpURLConnection) {
                         conn.requestMethod = "HEAD"
                     }
-                    conn.headerFields
+                    val responseCode = (conn as? HttpURLConnection)?.responseCode?.toString().wrap()
+                    conn.headerFields + mapOf(RESPONSE_CODE_KEY to responseCode)
                 } catch (e: IOException) {
                     throw RuntimeException(e)
                 } finally {

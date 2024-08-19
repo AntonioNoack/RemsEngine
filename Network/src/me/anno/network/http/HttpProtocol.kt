@@ -1,12 +1,13 @@
 package me.anno.network.http
 
+import me.anno.io.Streams.readNBytes2
 import me.anno.network.NetworkProtocol
 import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
-import me.anno.utils.types.Strings.indexOf2
-import me.anno.io.Streams.readNBytes2
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Strings.indexOf2
 import java.io.IOException
 import kotlin.math.min
 
@@ -50,9 +51,10 @@ abstract class HttpProtocol(val method: String, val maxCapacity: Int = 1_000_000
     private fun handleRequest(server: Server, client: TCPClient) {
         val ri = client.dis.bufferedReader()
         val header = ri.readLine() ?: "" // 1.1 200 OK
-        val si = header.indexOf(' ')
+        val i0 = header.startsWith(" ").toInt(1)
+        val si = header.indexOf(' ', i0)
         if (si < 0) throw IOException("Invalid header")
-        val (path, args) = parsePath(header.substring(0, si))
+        val (path, args) = parsePath(header.substring(i0, si))
         // version = header.substring(si+1)
         val meta = HashMap<String, String>()
         while (true) {
