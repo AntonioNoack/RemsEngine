@@ -40,7 +40,12 @@ import me.anno.utils.structures.maps.LazyMap
 class GlassPass : TransparentPass() {
     companion object {
 
+        /**
+         * depth while drawing glass-materials;
+         * may be multi-sampled
+         * */
         var glassPassDepth: ITexture2D? = null
+        // todo value for single-sampled glass depth? lazy maybe?
 
         val GlassRenderer = object : Renderer(
             "glass", DeferredSettings(
@@ -145,7 +150,7 @@ class GlassPass : TransparentPass() {
 
         val old = GFXState.currentBuffer
         val tmp = getFB(listOf(TargetType.Float16x4, TargetType.Float16x4, TargetType.Float16x2))
-        glassPassDepth = old.depthTexture // todo is this correct? what about MSAA case?
+        glassPassDepth = old.depthTexture
         useFrame(old.width, old.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
             val depthMode = if (GFX.supportsClipControl) DepthMode.CLOSE

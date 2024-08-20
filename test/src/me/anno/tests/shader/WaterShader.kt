@@ -5,6 +5,9 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader
+import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader.getTextureNoLUT
+import me.anno.ecs.components.mesh.material.shaders.AutoTileableShader.sampleTileNoLUT
 import me.anno.engine.DefaultAssets
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.ECSMeshShader
@@ -22,6 +25,8 @@ import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
+import me.anno.gpu.shader.ShaderLib.anisotropic16
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -56,7 +61,7 @@ object WaterShader : ECSMeshShader("Water") {
                     Variable(GLSLType.V3F, "cameraPosition"),
                     Variable(GLSLType.V2F, "uv", VariableMode.INMOD),
                     Variable(GLSLType.V4F, "tangent", VariableMode.INMOD)
-                ), concatDefines(key).toString() +
+                ) + AutoTileableShader.tilingVars, concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
                         baseColorCalculation +
@@ -70,14 +75,14 @@ object WaterShader : ECSMeshShader("Water") {
                         "finalAlpha = diffuseBase.a;\n" +
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
                             "" +
-                                    "uv = 0.002 * (finalPosition / worldScale + cameraPosition).xz;\n" +
+                                    "uv = 0.003 * (finalPosition / worldScale + cameraPosition).xz;\n" +
                                     "tangent = vec4(1.0,0.0,0.0,1.0);\n" + // good like that? yes, tangent = u = x
                                     normalTanBitanCalculation +
                                     // normal mapping
                                     "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                                     "vec3 rawColor = mix(\n" +
-                                    "   texture(normalMap, uv + movingUV, lodBias).rgb,\n" +
-                                    "   texture(normalMap, uv * 5.7 - movingUV * 3.7, lodBias).rgb,\n" +
+                                    "   sampleAutoTileableTextureNoLUT(normalMap, uv + movingUV).xyz,\n" +
+                                    "   sampleAutoTileableTextureNoLUT(normalMap, uv * 5.7 - movingUV * 3.7).xyz,\n" +
                                     "   vec3(0.3)\n" +
                                     ") * 2.0 - 1.0;\n" +
                                     "vec3 normalFromTex = matMul(tbn, rawColor);\n" +
@@ -90,6 +95,8 @@ object WaterShader : ECSMeshShader("Water") {
                         } else "") +
                         finalMotionCalculation
             ).add(quatRot).add(brightness).add(parallaxMapping).add(getReflectivity).add(rawToDepth)
+                .add(sampleTileNoLUT).add(getTextureNoLUT)
+                .add(anisotropic16).add(randomGLSL)
         )
     }
 
@@ -117,6 +124,10 @@ object WaterShader : ECSMeshShader("Water") {
         shader.v3f("cameraPosition", RenderState.cameraPosition)
         shader.v1f("absorption", 0.05f / RenderState.worldScale)
         shader.v2f("movingUV", Time.gameTime.toFloat() * 0.005f, 0f)
+        shader.v1b("anisotropic", true)
+        // could be customizable, but who would use that?
+        shader.m2x2("latToWorld", AutoTileableShader.latToWorld)
+        shader.m2x2("worldToLat", AutoTileableShader.worldToLat)
     }
 }
 
@@ -141,7 +152,7 @@ fun main() {
                     .setRotation(PI / 2, 0.0, 0.0)
             )
             .setPosition(0.0, 10.0, 0.0)
-            .setScale(150.0)
+            .setScale(15000.0)
     )
     testSceneWithUI("Water", scene)
 }

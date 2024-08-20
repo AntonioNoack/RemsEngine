@@ -29,11 +29,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     val latToWorld = Matrix2f(cos(Maths.PIf / 3f), sin(Maths.PIf / 3f), 1f, 0f).scale(0.25f)
     val worldToLat = latToWorld.invert(Matrix2f())
 
-    const val sampleTile = "" +
-            "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +
-            "float random(vec2);\n" +
-            "vec3 rgb2yuv(vec3);\n" +
-            "vec4 sampleTile(sampler2D T, sampler2D invLUT, vec2 uv, vec2 seed, vec2 offset) {\n" +
+    private const val SAMPLE_TILE_INIT = "" +
             // todo optional random rotation
             // optional ofc
             "   seed *= 0.001;\n" +
@@ -47,16 +43,20 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             // less costly, isotropic filtering
             "       float diff = length(vec4(dFdx(uv),dFdy(uv)))*float(textureSize(T,0).y);\n" +
             "       rgb = textureLod(T, pos, log2(diff));\n" +
-            "   }\n" +
+            "   }\n"
+
+    const val sampleTile = "" +
+            "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +
+            "float random(vec2);\n" +
+            "vec3 rgb2yuv(vec3);\n" +
+            "vec4 sampleTile(sampler2D T, sampler2D invLUT, vec2 uv, vec2 seed, vec2 offset) {\n" +
+            SAMPLE_TILE_INIT +
             "   vec3 yuv = rgb2yuv(rgb.xyz);\n" +
             "   yuv.x = textureLod(invLUT, vec2(yuv.x, 1.0), 0.0).x;\n" +
             "   return vec4(yuv, rgb.a);\n" +
             "}\n"
 
-    const val getTexture = "" +
-            "vec4 sampleTile(sampler2D, sampler2D, vec2, vec2, vec2);\n" +
-            "vec3 yuv2rgb(vec3);\n" +
-            "vec4 sampleAutoTileableTexture(sampler2D T, sampler2D invLUT, vec2 pos) {\n" +
+    private const val LATTICE_LOGIC = "" +
             "   vec2 lattice = worldToLat*pos;\n" +
             "   vec2 cell = floor(lattice);\n" +
             "   vec2 uv = lattice - cell;\n" +
@@ -66,22 +66,57 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "       uv = 1.0 - uv.yx;\n" +
             "   }\n" +
             "   vec2 v1 = cell + vec2(1, 0);\n" +
-            "   vec2 v2 = cell + vec2(0, 1);\n" +
+            "   vec2 v2 = cell + vec2(0, 1);\n"
 
+    private const val UVW_LOGIC = "" +
+            "   vec3 uvw = vec3(1.0 - uv.x - uv.y, uv.x, uv.y);\n" +
+            "   uvw = uvw*uvw*uvw;\n" +
+            "   uvw /= uvw.x + uvw.y + uvw.z;\n"
+
+    const val getTexture = "" +
+            "vec4 sampleTile(sampler2D, sampler2D, vec2, vec2, vec2);\n" +
+            "vec3 yuv2rgb(vec3);\n" +
+            "vec4 sampleAutoTileableTexture(sampler2D T, sampler2D invLUT, vec2 pos) {\n" +
+            LATTICE_LOGIC +
             // to do test as tri-planar material
             "   vec4 color0 = sampleTile(T, invLUT, pos, v0, pos - latToWorld*v0);\n" +
             "   vec4 color1 = sampleTile(T, invLUT, pos, v1, pos - latToWorld*v1);\n" +
             "   vec4 color2 = sampleTile(T, invLUT, pos, v2, pos - latToWorld*v2);\n" +
-
-            "   vec3 uvw = vec3(1.0 - uv.x - uv.y, uv.x, uv.y);\n" +
-            "   uvw = uvw*uvw*uvw;\n" +
-            "   uvw /= uvw.x + uvw.y + uvw.z;\n" +
-
+            UVW_LOGIC +
             "   vec4 yuv = uvw.x*color0 + uvw.y*color1 + uvw.z*color2;\n" +
-
             "   yuv.x = textureLod(invLUT, vec2(yuv.x, 0.0), 0.0).x;\n" +
             "   return vec4(yuv2rgb(yuv.xyz), yuv.a);\n" +
             "}\n"
+
+    const val sampleTileNoLUT = "" +
+            "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +
+            "float random(vec2);\n" +
+            "vec4 sampleTileNoLUT(sampler2D T, vec2 uv, vec2 seed, vec2 offset) {\n" +
+            SAMPLE_TILE_INIT +
+            "   return rgb;\n" +
+            "}\n"
+
+    const val getTextureNoLUT = "" +
+            "vec4 sampleTileNoLUT(sampler2D, vec2, vec2, vec2);\n" +
+            "vec4 sampleAutoTileableTextureNoLUT(sampler2D T, vec2 pos) {\n" +
+            LATTICE_LOGIC +
+            // to do test as tri-planar material
+            "   vec4 color0 = sampleTileNoLUT(T, pos, v0, pos - latToWorld*v0);\n" +
+            "   vec4 color1 = sampleTileNoLUT(T, pos, v1, pos - latToWorld*v1);\n" +
+            "   vec4 color2 = sampleTileNoLUT(T, pos, v2, pos - latToWorld*v2);\n" +
+            UVW_LOGIC +
+            "   return uvw.x*color0 + uvw.y*color1 + uvw.z*color2;\n" +
+            "}\n"
+
+    val tilingVars = listOf(
+        Variable(me.anno.gpu.shader.GLSLType.V1B, "anisotropic"),
+        Variable(GLSLType.V3F, "tileOffset"),
+        Variable(GLSLType.V3F, "tilingU"),
+        Variable(GLSLType.V3F, "tilingV"),
+        Variable(GLSLType.S2D, "invLUTTex"),
+        Variable(GLSLType.M2x2, "worldToLat"),
+        Variable(GLSLType.M2x2, "latToWorld"),
+    )
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val vars = createFragmentVariables(key).filter { it.name != "uv" }.toMutableList()
@@ -89,7 +124,6 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
         vars.add(Variable(GLSLType.V3F, "tileOffset"))
         vars.add(Variable(GLSLType.V3F, "tilingU"))
         vars.add(Variable(GLSLType.V3F, "tilingV"))
-        vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.S2D, "invLUTTex"))
         vars.add(Variable(GLSLType.M2x2, "worldToLat"))
         vars.add(Variable(GLSLType.M2x2, "latToWorld"))
@@ -193,12 +227,10 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             }
 
             return lutData
-
         }
     }
 
     init {
         ignoreNameWarnings("reverseDepth,normalMap")
     }
-
 }
