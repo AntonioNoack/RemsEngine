@@ -64,16 +64,14 @@ object WaterShader : ECSMeshShader("Water") {
                 ) + AutoTileableShader.tilingVars, concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
-                        baseColorCalculation +
-                        "ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
-                        "float backgroundDepth = rawToDepth(texelFetch(depthTexture,uvi,0).x);\n" +
-                        "vec3 camDir = quatRot(vec3(0.0,0.0,-1.0),d_camRot);\n" +
-                        "float deltaDepth = (backgroundDepth - rawToDepth(gl_FragCoord.z)) / (0.5 + abs(camDir.z));\n" +
-                        "finalRoughness = 0.01;\n" +
-                        "finalColor = diffuseBase.rgb;\n" +
-                        "finalAlpha = diffuseBase.a;\n" +
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
                             "" +
+                                    "ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
+                                    "float backgroundDepth = rawToDepth(texelFetch(depthTexture,uvi,0).x);\n" +
+                                    "vec3 camDir = quatRot(vec3(0.0,0.0,-1.0),d_camRot);\n" +
+                                    "float deltaDepth = (backgroundDepth - rawToDepth(gl_FragCoord.z)) / (0.5 + abs(camDir.z));\n" +
+                                    "finalColor = diffuseBase.rgb;\n" +
+                                    "finalAlpha = diffuseBase.a;\n" +
                                     "uv = 0.003 * (finalPosition / worldScale + cameraPosition).xz;\n" +
                                     "tangent = vec4(1.0,0.0,0.0,1.0);\n" + // good like that? yes, tangent = u = x
                                     normalTanBitanCalculation +
