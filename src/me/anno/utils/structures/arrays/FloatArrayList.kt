@@ -20,6 +20,10 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
         private val LOGGER = LogManager.getLogger(FloatArrayList::class)
     }
 
+    constructor(data: FloatArray) : this(data.size) {
+        add(data, 0, data.size)
+    }
+
     override var size = 0
         set(value) {
             field = value
@@ -229,4 +233,20 @@ open class FloatArrayList(initCapacity: Int, val pool: FloatArrayPool? = null) :
     }
 
     fun toList(): List<Float> = toFloatArray().toList()
+
+    override fun equals(other: Any?): Boolean {
+        return other is FloatArrayList &&
+                other.size == size &&
+                (0 until size).all {
+                    other[it] == this[it]
+                }
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        for (i in 0 until size) {
+            result = 31 * result + this[i].toRawBits()
+        }
+        return result
+    }
 }

@@ -32,6 +32,13 @@ object LogManager {
     }
 
     @JvmStatic
+    fun disableLoggers(loggers: String) {
+        for (logger in loggers.split(',')) {
+            disableLogger(logger)
+        }
+    }
+
+    @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: String?) {
         define(logger, defaultLevel)

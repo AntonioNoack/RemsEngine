@@ -13,6 +13,7 @@ import me.anno.ecs.components.light.sky.SkyboxBase
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.SimpleMesh
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.Material.Companion.defaultMaterial
@@ -42,6 +43,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.SmallestKList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -324,24 +326,20 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         }
     }
 
-    private val subFillTodo = ArrayList<Entity>()
     private fun subFill(entity0: Entity, clickId0: Int): Int {
         // use a list instead of the stack to beautify stack traces a little
-        subFillTodo.clear()
-        subFillTodo.add(entity0)
         var clickId = clickId0
-        while (subFillTodo.isNotEmpty()) {
-            val entity = subFillTodo.removeLast()
-            entity.forAllComponents(false) { component ->
-                if (component !== ignoredComponent && component is Renderable) {
-                    if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
+        Recursion.processRecursive(entity0) { entity, remaining ->
+            entity.forAllComponents(Renderable::class, false) { component ->
+                if (component !== ignoredComponent) {
+                    if (isVisible(component)) {
                         clickId = component.fill(this, entity.transform, clickId)
                     }
                 }
             }
             entity.forAllChildren(false) { child ->
                 if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.getBounds())) {
-                    subFillTodo.add(child)
+                    remaining.add(child)
                 }
             }
         }
@@ -349,43 +347,35 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     }
 
     fun traverse(world: PrefabSaveable, run: (Entity) -> Unit) {
-        if (world is Entity) traverse(world, run)
-    }
-
-    fun traverse(world: Entity, run: (Entity) -> Unit) {
-        run(world)
-        world.forAllChildren(false) { child ->
-            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.getBounds())) {
-                traverse(child, run)
+        if (world is Entity) Recursion.processRecursive(world) { entity, remaining ->
+            if (entity !== ignoredEntity && entity.isEnabled && frustum.isVisible(entity.getBounds())) {
+                run(world)
+                remaining.addAll(entity.children)
             }
         }
     }
 
-    @Suppress("unused")
-    fun traverseConditionally(entity: Entity, run: (Entity) -> Boolean) {
-        if (run(entity)) {
-            entity.forAllChildren(false) { child ->
-                if (child !== ignoredEntity && frustum.isVisible(child.getBounds())) {
-                    traverseConditionally(child, run)
+    fun findDrawnSubject(searchedId: Int, world: PrefabSaveable): Any? {
+        return Recursion.findRecursive(world) { instance, remaining ->
+            if (instance is Component && instance.clickId == searchedId) instance
+            else if (isVisible(instance)) {
+                for (childType in instance.listChildTypes()) {
+                    val children = instance.getChildListByType(childType)
+                    remaining.addAll(children)
                 }
-            }
+                null
+            } else null
         }
     }
 
-    fun findDrawnSubject(searchedId: Int, instance: PrefabSaveable): Any? {
-        // LOGGER.debug("[E] ${entity.clickId.toString(16)} vs ${searchedId.toString(16)}")
-        if (instance is Component && instance.clickId == searchedId) {
-            return instance
+    fun isVisible(instance: Any?): Boolean {
+        val bounds = when (instance) {
+            is MeshComponentBase -> instance.globalAABB
+            is MeshSpawner -> instance.globalAABB
+            is Entity -> instance.getBounds()
+            else -> return true
         }
-        for (childType in instance.listChildTypes()) {
-            for (child in instance.getChildListByType(childType)) {
-                if (child !is Entity || frustum.isVisible(child.getBounds())) {
-                    val found = findDrawnSubject(searchedId, child)
-                    if (found != null) return found
-                }
-            }
-        }
-        return null
+        return frustum.isVisible(bounds)
     }
 
     companion object {
@@ -395,9 +385,6 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = SimpleMesh.sphereMesh
-
-        val leftControllerEntity = Entity()
-        val rightControllerEntity = Entity()
 
         fun getMaterial(
             materialOverrides: List<FileReference>?,

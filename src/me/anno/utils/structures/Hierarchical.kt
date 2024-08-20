@@ -165,20 +165,16 @@ interface Hierarchical<V : Hierarchical<V>> {
     }
 
     fun depthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
-        @Suppress("unchecked_cast")
-        this as V
-        if (processDisabled || isEnabled) {
-            if (func(this)) return this
-            val children = children
-            for (i in children.indices) {
-                val child = children[i]
-                if (processDisabled || child.isEnabled) {
-                    val result = child.depthFirstTraversal(processDisabled, func)
-                    if (result != null) return result
+        @Suppress("UNCHECKED_CAST")
+        return Recursion.findRecursive(this as V) { item, remaining ->
+            if (processDisabled || item.isEnabled) {
+                if (func(item)) item
+                else {
+                    remaining.addAll(children)
+                    null
                 }
-            }
+            } else null
         }
-        return null
     }
 
     @Suppress("unused")

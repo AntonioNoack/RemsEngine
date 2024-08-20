@@ -7,6 +7,7 @@ import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.ReversibleSegment
 import me.anno.tests.game.flatworld.vehicles.Routes.findRoute
+import me.anno.utils.structures.Recursion
 
 object RandomVehicle {
 
@@ -40,19 +41,11 @@ object RandomVehicle {
     }
 
     fun findReachablePoints(world: FlatWorld, start: ReversibleSegment): HashSet<ReversibleSegment> {
-        val reachable = HashSet<ReversibleSegment>()
-        val remaining = ArrayList<ReversibleSegment>()
-        reachable.add(start)
-        remaining.add(start)
-        while (remaining.isNotEmpty()) {
-            val pt = remaining.removeLast()
-            val crossing = world.intersections[pt.c] ?: continue
-            for (seg in crossing.segments) {
-                if (reachable.add(seg)) {
-                    remaining.add(seg)
-                }
+        return Recursion.collectRecursive(start) { pt, remaining ->
+            val crossing = world.intersections[pt.c]
+            if (crossing != null) {
+                remaining.addAll(crossing.segments)
             }
         }
-        return reachable
     }
 }

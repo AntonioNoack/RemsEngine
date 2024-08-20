@@ -216,4 +216,20 @@ open class IntArrayList(initCapacity: Int, val pool: IntArrayPool? = null) : Nat
         builder.append(']')
         return builder.toString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is IntArrayList &&
+                other.size == size &&
+                (0 until size).all {
+                    other[it] == this[it]
+                }
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        for (i in 0 until size) {
+            result = 31 * result + this[i]
+        }
+        return result
+    }
 }

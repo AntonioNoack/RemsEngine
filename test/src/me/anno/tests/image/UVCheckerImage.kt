@@ -5,6 +5,7 @@ import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.io.files.Reference.getReference
+import me.anno.maths.Maths.posMod
 import me.anno.utils.Color
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
@@ -43,7 +44,7 @@ fun createUVCheckerImage(): IntImage {
     // second step: generate background
     for (iy in 0 until numFields) {
         for (ix in 0 until numFields) {
-            val colorIdx = (ix - iy + colors.size) % colors.size
+            val colorIdx = posMod(ix - iy, colors.size)
             val color = colors[colorIdx]
             val x0 = ix * (sizeOfField + 1) + 1
             val y0 = iy * (sizeOfField + 1) + 1

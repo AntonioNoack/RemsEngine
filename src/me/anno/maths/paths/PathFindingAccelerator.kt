@@ -5,6 +5,7 @@ import me.anno.maths.paths.PathFinding.dijkstra
 import me.anno.maths.paths.PathFinding.emptyResult
 import me.anno.maths.paths.PathFinding.genericSearch
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.Recursion
 
 /**
  * accelerates many requests on large graphs by grouping them into proxies;
@@ -58,11 +59,8 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
             val handled = HashSet<Node>()
             val members = HashSet<Node>()
             val neighbors = HashSet<Node>()
-            val remaining = ArrayList<Node>()
-            remaining.add(node)
             members.add(node)
-            while (remaining.isNotEmpty()) {
-                val from = remaining.removeAt(remaining.lastIndex)
+            Recursion.processRecursive(node) { from, remaining ->
                 listConnections(from) { to ->
                     if (handled.add(to)) {
                         if (getChunk(to) == chunk) {
@@ -234,5 +232,4 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
             callback(to, distance(from, to))
         }
     }
-
 }

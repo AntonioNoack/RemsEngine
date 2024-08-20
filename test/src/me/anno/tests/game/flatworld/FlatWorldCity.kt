@@ -34,6 +34,7 @@ fun main() {
     // todo 1. grid-less street building like in Cities Skylines / Workers & Resources
     // done 1b. delete street segments
     // todo 2. place buildings
+    //  - align (rotate, place?) buildings with nearest street
     // done 2b. delete buildings
     // todo 3. terrain
     //  - streets -> they flatten the terrain until we just can project streets onto them

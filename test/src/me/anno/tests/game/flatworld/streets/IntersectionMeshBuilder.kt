@@ -4,26 +4,24 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
+import me.anno.tests.game.flatworld.FlatWorld
 import kotlin.math.max
 import kotlin.math.min
 
 object IntersectionMeshBuilder {
 
-    fun getT0(segment: ReversibleSegment, intersection: Intersection): Double {
-        return getT0(segment.segment, intersection)
-    }
-
-    fun getT0(segment: StreetSegment, intersection: Intersection): Double {
-        val value = 4.0 * max(intersection.segments.size - 1, 0) / segment.length
+    fun getT0(segmentLength: Double, closeIntersection: Intersection, farIntersection: Intersection): Double {
+        val value = 4.0 * max(closeIntersection.segments.size - 1, 0) / segmentLength
         // large intersections can consume entire streets, prevent that:
-        return min(value, 0.499)
+        val limit = if (farIntersection.segments.size < 2) 0.999 else 0.499
+        return min(value, limit)
     }
 
-    fun getT1(segment: StreetSegment, intersection: Intersection): Double {
-        return 1.0 - getT0(segment, intersection)
+    fun getT1(segmentLength: Double, closeIntersection: Intersection, farIntersection: Intersection): Double {
+        return 1.0 - getT0(segmentLength, closeIntersection, farIntersection)
     }
 
-    fun createIntersection(intersection: Intersection, dst: Mesh) {
+    fun createIntersection(intersection: Intersection, world: FlatWorld, dst: Mesh) {
         // create a mesh
         val position = intersection.segments.first().a
         val entity = Entity()
@@ -34,7 +32,8 @@ object IntersectionMeshBuilder {
         for (segment in intersection.segments) {
             val pt = SplineControlPoint()
             pt.profile = StreetMeshBuilder.streetProfile
-            val t0 = getT0(segment, intersection)
+            val other = world.intersections[segment.c]!!
+            val t0 = getT0(segment.length, intersection, other)
             val posI = segment.interpolate(t0)
             val posII = segment.interpolate(t0 + 0.001)
             val ry = StreetSegment.getAngle(posI, posII)

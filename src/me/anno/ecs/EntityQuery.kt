@@ -1,6 +1,8 @@
 package me.anno.ecs
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.structures.Collections.filterIsInstance2
+import me.anno.utils.structures.Recursion
 import org.joml.AABBd
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
@@ -24,18 +26,15 @@ object EntityQuery {
         val children = children
         for (index in children.indices) {
             val child = children[index]
-            if (includingDisabled || child.isEnabled) {
-                if (child.hasComponent(clazz, includingDisabled)) {
-                    return true
-                }
+            if (checkInstance(includingDisabled, child) && child.hasComponent(clazz, includingDisabled)) {
+                return true
             }
         }
         return false
     }
 
     fun <V : Component> Component.hasComponentInChildren(
-        clazz: KClass<V>,
-        includingDisabled: Boolean = false
+        clazz: KClass<V>, includingDisabled: Boolean = false
     ): Boolean {
         return entity?.hasComponentInChildren(clazz, includingDisabled) == true
     }
@@ -47,7 +46,7 @@ object EntityQuery {
         val components = components
         for (i in components.indices) {
             val component = components[i]
-            if ((includingDisabled || component.isEnabled) && clazz.isInstance(component)) {
+            if (checkInstance(includingDisabled, component) && clazz.isInstance(component)) {
                 @Suppress("unchecked_cast")
                 return component as V
             }
@@ -65,7 +64,7 @@ object EntityQuery {
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (includingDisabled || child.isEnabled) {
+            if (checkInstance(includingDisabled, child)) {
                 comp = child.getComponentInChildren(clazz, includingDisabled)
                 if (comp != null) return comp
             }
@@ -93,25 +92,29 @@ object EntityQuery {
         return entity?.getComponents(clazz, includingDisabled) ?: emptyList()
     }
 
-    fun Entity.allComponents(
+    inline fun Entity.allComponents(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean
     ): Boolean {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            if ((includingDisabled || c.isEnabled) && !predicate(c)) {
+            if (checkInstance(includingDisabled, c) && !predicate(c)) {
                 return false
             }
         }
         return true
     }
 
+    fun checkInstance(includingDisabled: Boolean, instance: PrefabSaveable): Boolean {
+        return includingDisabled or instance.isEnabled
+    }
+
     inline fun Entity.forAllComponents(includingDisabled: Boolean, callback: (Component) -> Unit) {
         val components = components
         for (i in components.indices) {
             val comp = components[i]
-            if (includingDisabled || comp.isEnabled) {
+            if (checkInstance(includingDisabled, comp)) {
                 callback(comp)
             }
         }
@@ -121,37 +124,34 @@ object EntityQuery {
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (includingDisabled || child.isEnabled) {
+            if (checkInstance(includingDisabled, child)) {
                 callback(child)
             }
         }
     }
 
     fun Entity.forAllEntitiesInChildren(includingDisabled: Boolean, callback: (Entity) -> Unit) {
-        val remaining = ArrayList<Entity>()
-        remaining.add(this)
-        while (true) {
-            val item = remaining.removeLastOrNull() ?: break
-            if (includingDisabled || item.isEnabled) {
-                remaining.addAll(item.children)
-                callback(item)
+        Recursion.processRecursive(this) { entity, remaining ->
+            if (checkInstance(includingDisabled, entity)) {
+                remaining.addAll(entity.children)
+                callback(entity)
             }
         }
     }
 
-    fun Component.allComponents(
+    inline fun Component.allComponents(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean
     ): Boolean = entity?.allComponents(includingDisabled, predicate) ?: true
 
-    fun <V : Any> Entity.allComponents(
+    inline fun <V : Any> Entity.allComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
     ): Boolean {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            if ((includingDisabled || c.isEnabled)) {
+            if (checkInstance(includingDisabled, c)) {
                 val cv = clazz.safeCast(c)
                 if (cv != null && !predicate(cv)) {
                     return false
@@ -161,31 +161,31 @@ object EntityQuery {
         return true
     }
 
-    fun <V : Any> Component.allComponents(
+    inline fun <V : Any> Component.allComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
     ): Boolean = entity?.allComponents(clazz, includingDisabled, predicate) ?: true
 
-    fun Entity.anyComponent(
+    inline fun Entity.anyComponent(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean
     ): Boolean {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            if ((includingDisabled || c.isEnabled) && predicate(c)) {
+            if (checkInstance(includingDisabled, c) && predicate(c)) {
                 return true
             }
         }
         return false
     }
 
-    fun Component.anyComponent(
+    inline fun Component.anyComponent(
         includingDisabled: Boolean = false,
         predicate: (Component) -> Boolean
     ): Boolean = entity?.anyComponent(includingDisabled, predicate) ?: true
 
-    fun <V : Any> Entity.anyComponent(
+    inline fun <V : Any> Entity.anyComponent(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
@@ -193,7 +193,7 @@ object EntityQuery {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            if ((includingDisabled || c.isEnabled)) {
+            if (checkInstance(includingDisabled, c)) {
                 val cv = clazz.safeCast(c)
                 if (cv != null && predicate(cv)) {
                     return true
@@ -203,12 +203,12 @@ object EntityQuery {
         return false
     }
 
-    fun <V : Any> Component.anyComponent(
+    inline fun <V : Any> Component.anyComponent(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         predicate: (V) -> Boolean
     ): Boolean = entity?.anyComponent(clazz, includingDisabled, predicate) ?: true
 
-    fun <V : Any> Entity.forAllComponents(
+    inline fun <V : Any> Entity.forAllComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         callback: (V) -> Unit
     ) {
@@ -241,20 +241,24 @@ object EntityQuery {
     fun <V : Any> Entity.anyComponentInChildrenAndBounds(
         clazz: KClass<V>, bounds: AABBd?, includingDisabled: Boolean = false, predicate: (V) -> Boolean
     ): Boolean {
-        val remaining = ArrayList<Entity>()
-        remaining.add(this)
-        while (true) {
-            val entity = remaining.removeLastOrNull() ?: return false
-            if (entity.anyComponent(clazz, includingDisabled, predicate)) {
-                return true
-            }
-            val children = entity.children
-            for (index in children.indices) {
-                val child = children[index]
-                if ((includingDisabled || child.isEnabled) &&
-                    (bounds == null || child.getBounds().testAABB(bounds))
-                ) remaining.add(child)
-            }
+        return anyComponentInChildrenFiltered(clazz, includingDisabled, predicate) {
+            bounds == null || bounds.testAABB(it.getBounds())
+        }
+    }
+
+    fun <V : Any> Entity.anyComponentInChildrenFiltered(
+        clazz: KClass<V>, includingDisabled: Boolean = false,
+        predicate: (V) -> Boolean, hierarchicalFilter: (Entity) -> Boolean
+    ): Boolean {
+        return Recursion.anyRecursive(this) { entity, remaining ->
+            if (checkInstance(includingDisabled, entity) && hierarchicalFilter(entity)) {
+                if (entity.anyComponent(clazz, includingDisabled, predicate)) {
+                    true
+                } else {
+                    remaining.addAll(entity.children)
+                    false
+                }
+            } else false
         }
     }
 
@@ -282,7 +286,7 @@ object EntityQuery {
         entity?.forAllComponentsInChildren(clazz, includingDisabled, callback)
     }
 
-    fun <V : Any> Entity.sumComponents(
+    inline fun <V : Any> Entity.sumComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         getCount: (V) -> Long
     ): Long {
@@ -293,7 +297,7 @@ object EntityQuery {
         return sum
     }
 
-    fun <V : Any> Component.sumComponents(
+    inline fun <V : Any> Component.sumComponents(
         clazz: KClass<V>, includingDisabled: Boolean = false,
         getCount: (V) -> Long
     ): Long = entity?.sumComponents(clazz, includingDisabled, getCount) ?: 0L
@@ -322,10 +326,9 @@ object EntityQuery {
         return entity?.getComponentsInChildren(clazz, includingDisabled, ArrayList()) ?: emptyList()
     }
 
-    fun <V : Any> Entity.getComponentsInChildren(
-        clazz: KClass<V>, includingDisabled: Boolean = false,
-        dst: MutableList<V>
-    ): List<V> {
+    fun <ComponentType : Any, ListType : MutableList<ComponentType>> Entity.getComponentsInChildren(
+        clazz: KClass<ComponentType>, includingDisabled: Boolean = false, dst: ListType
+    ): ListType {
         anyComponentInChildren(clazz, includingDisabled) {
             dst.add(it)
             false

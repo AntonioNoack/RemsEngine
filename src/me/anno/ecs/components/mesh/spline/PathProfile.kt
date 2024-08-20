@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.spline
 import me.anno.io.base.BaseWriter
 import me.anno.io.saveable.Saveable
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
@@ -63,13 +64,13 @@ class PathProfile() : Saveable() {
     }
 
     fun getPosition(i: Int): Vector2f {
-        val j = if (isClosed) (i + positions.size) % positions.size
+        val j = if (isClosed) posMod(i, positions.size)
         else clamp(i, 0, positions.lastIndex)
         return positions[j]
     }
 
-    fun getNormal(i: Int, end: Boolean, dst: Vector2f = Vector2f()): Vector2f {
-        val j = if (end && !flatShading) i + 1 else i
+    fun getNormal(i: Int, next: Boolean, dst: Vector2f = Vector2f()): Vector2f {
+        val j = if (next && !flatShading) i + 1 else i
         if (flatShading) {
             val v0 = getPosition(j)
             val v1 = getPosition(j + 1)
@@ -79,7 +80,7 @@ class PathProfile() : Saveable() {
             val v1 = getPosition(j + 1)
             dst.set(v1).sub(v0)
         }
-        dst.set(-dst.y, dst.x)
+        dst.set(-dst.y, dst.x).safeNormalize()
         return dst
     }
 
@@ -98,24 +99,15 @@ class PathProfile() : Saveable() {
         val i0 = if (isClosed) cap - 1 else 0
         var p0 = positions[i0]
         var c0 = colors?.getOrNull(i0) ?: white
-        // add first point
-        val sx = p0.x < 0f
-        if (sx) {
-            left.add(p0)
-            leftColors.add(c0)
-        } else {
-            right.add(p0)
-            rightColors.add(c0)
-        }
         // add all segments to their respective side
-        for (i in (if (isClosed) 0 else 1) until cap) {
+        for (i in 0 until cap) {
             val p1 = positions[i]
             val c1 = colors?.getOrNull(i) ?: white
-            val s0 = p0.x <= 0f
-            val s1 = p1.x <= 0f
-            if (s0 == s1) {
+            val side0 = p0.x <= 0f
+            val side1 = p1.x <= 0f
+            if (side0 == side1) {
                 // simple
-                if (s0) {
+                if (side0) {
                     left.add(p1)
                     leftColors.add(c1)
                 } else {
@@ -127,7 +119,7 @@ class PathProfile() : Saveable() {
                 val f = p0.x / (p0.x - p1.x)
                 val pf = Vector2f(p0).lerp(p1, f)
                 val cf = mixARGB(c0, c1, f)
-                if (s0) {
+                if (side0) {
                     // first left, then right
                     left.add(pf)
                     leftColors.add(cf)
@@ -154,26 +146,50 @@ class PathProfile() : Saveable() {
         val right1 = PathProfile(right, null, rightColors, false)
         left1.flatShading = flatShading
         right1.flatShading = flatShading
+        left1.mixColors = mixColors
+        right1.mixColors = mixColors
         return Pair(left1, right1)
     }
 
     fun getColor(i: Int, first: Boolean): Int {
         val colors = colors ?: return -1
-        val index = if (mixColors) {
-            (i + 1 - first.toInt()) % colors.size
-        } else {
-            i % colors.size
-        }
-        return colors[index]
+        val index = if (mixColors) (i + 1 - first.toInt()) else i
+        return colors[posMod(index, colors.size)]
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is PathProfile &&
+                other.positions == positions &&
+                other.colors == colors &&
+                other.uvs == uvs &&
+                other.isClosed == isClosed &&
+                other.width == width &&
+                other.flatShading == flatShading &&
+                other.mixColors == mixColors
+    }
+
+    override fun hashCode(): Int {
+        var result = width.hashCode()
+        result = 31 * result + positions.hashCode()
+        result = 31 * result + uvs.hashCode()
+        result = 31 * result + colors.hashCode()
+        result = 31 * result + flatShading.hashCode()
+        result = 31 * result + isClosed.hashCode()
+        result = 31 * result + mixColors.hashCode()
+        return result
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        val uvs = uvs
+        val colors = colors
         writer.writeFloat("width", width)
         writer.writeBoolean("flatShading", flatShading)
         writer.writeBoolean("isClosed", isClosed)
         writer.writeVector2fList("positions", positions)
-        val colors = colors
+        if (uvs != null) {
+            writer.writeFloatArray("uvs", uvs.toFloatArray())
+        }
         if (colors != null) {
             writer.writeIntArray("colors", colors.toIntArray())
         }
@@ -191,6 +207,10 @@ class PathProfile() : Saveable() {
             "colors" -> {
                 val values = value as? IntArray ?: return
                 colors = IntArrayList(values)
+            }
+            "uvs" -> {
+                val values = value as? FloatArray ?: return
+                uvs = FloatArrayList(values)
             }
             else -> super.setProperty(name, value)
         }

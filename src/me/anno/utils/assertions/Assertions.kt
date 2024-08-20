@@ -33,7 +33,7 @@ fun assertFalse(condition: Boolean, message: String = "condition failed") {
 }
 
 fun assertEquals(expected: Any?, actual: Any?, message: String = "expected equal values") {
-    if (expected != actual) throw IllegalStateException("$message, '$expected' != '$actual'")
+    if (expected != actual) throw IllegalStateException("$message, \n'$expected' != \n'$actual'")
 }
 
 fun assertEquals(expected: Int, actual: Int, message: String = "expected equal values") {

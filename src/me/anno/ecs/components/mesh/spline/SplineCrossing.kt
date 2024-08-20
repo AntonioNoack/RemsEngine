@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.createEndPiece
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.generateSplineMesh
 import me.anno.ecs.components.mesh.spline.SplineMesh.Companion.merge
+import me.anno.maths.Maths.posMod
 import me.anno.mesh.Triangulation
 import me.anno.utils.Color.white
 import me.anno.utils.structures.tuples.get
@@ -77,48 +78,51 @@ class SplineCrossing : ProceduralMesh() {
         }
     }
 
+    private fun sort(streets: List<SplineControlPoint>): List<SplineControlPoint> {
+        val yAxis = Vector3d()
+        val tmp = Vector3d()
+        for (street in streets) {
+            val transform = street.transform ?: continue
+            yAxis.add(transform.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
+        }
+        yAxis.safeNormalize()
+
+        val xAxis = Vector3d()
+        val zAxis = Vector3d()
+        yAxis.findSystem(xAxis, zAxis)
+
+        return streets.sortedBy {
+            it.getLocalPosition(tmp, 0.0)
+            atan2(xAxis.dot(tmp), zAxis.dot(tmp))
+        }
+    }
+
     private fun generateMeshN(mesh: Mesh, streets0: List<SplineControlPoint>) {
         var streets = streets0
 
         // consists of the main area (middle segment), and then, given by the profile,
         // outer paths can be implemented using half profiles
 
-        val center = Vector3d()
-        val yAxis = Vector3d()
         val tmp = Vector3d()
         val tmp2 = Vector3d()
         val tmp3 = Vector3f()
-        for (street in streets) {
-            val transform = street.transform ?: continue
-            center.add(transform.localPosition)
-            yAxis.add(transform.localRotation.transform(tmp.set(0.0, 1.0, 0.0)))
-        }
-        center.div(streets.size.toDouble())
-        yAxis.normalize()
 
-        val xAxis = Vector3d()
-        val zAxis = Vector3d()
-        yAxis.findSystem(xAxis, zAxis)
-
-        // auto sort by angle?
+        // auto sort by angle
         if (autoSort) {
-            streets = streets.sortedBy {
-                it.getLocalPosition(tmp, 0.0)
-                atan2(xAxis.dot(tmp), zAxis.dot(tmp))
-            }
+            streets = sort(streets)
         }
 
         val meshes = ArrayList<Mesh>()
         val centerPoints = ArrayList<Vector3d>()
 
-        fun createPoint(p: SplineControlPoint, f: Boolean): SplineControlPoint {
+        fun createPoint(p: SplineControlPoint, flip: Boolean): SplineControlPoint {
             val clone = p.clone() as SplineControlPoint
             val cloneEntity = Entity()
             // rotate 180° if looking wrong direction (can be found using its spline, or atan2)
             // rotate 180° * f
             // copy transform
             val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
-            val angle = (correct.toInt() + f.toInt() + useRight.toInt()) * PI
+            val angle = (correct.toInt() + flip.toInt() + useRight.toInt()) * PI
             val pe = p.entity!!
             cloneEntity.transform.localPosition = pe.transform.localPosition
             cloneEntity.rotation = cloneEntity.rotation
@@ -132,15 +136,16 @@ class SplineCrossing : ProceduralMesh() {
 
         for (index in streets.indices) {
             val s0 = streets[index]
-            val s1 = if (index == streets.lastIndex) streets[0] else streets[index + 1]
+            val s1 = streets[posMod(index + 1, streets.size)]
             val points = listOf(
-                createPoint(s1, false),
-                createPoint(s0, true),
+                createPoint(s0, false),
+                createPoint(s1, true),
             )
+            // (left, right)^n
             val splinePoints = SplineMesh.generateSplinePoints(points, pointsPerRadiant, isClosed = false)
             if (coverTop || coverBottom) {
-                centerPoints.ensureCapacity(centerPoints.size + splinePoints.size / 2)
-                for (i in splinePoints.size / 2 - 1 downTo 0) {
+                centerPoints.ensureCapacity(centerPoints.size + splinePoints.size.shr(1))
+                for (i in 0 until splinePoints.size.shr(1)) {
                     val j = i * 2
                     val a = splinePoints[j]
                     val b = splinePoints[j + 1]
@@ -152,12 +157,14 @@ class SplineCrossing : ProceduralMesh() {
             val meshI = generateSplineMesh(
                 Mesh(), halfProfile,
                 isClosed = false, closedStart0 = false, closedEnd0 = false,
-                isStrictlyUp = true, splinePoints
+                isStrictlyUp = true, splinePoints.indices.map {
+                    splinePoints[it - (it.and(1) * 2 - 1)]
+                }
             )
             // todo why do we need to flip the triangles here???
             //  and the normals look wrong, too
-            val numPositions = meshI.positions!!.size / 3
-            meshI.indices = IntArray(numPositions) { numPositions - 1 - it }
+            // val numVertices = meshI.positions!!.size / 3
+            // meshI.indices = IntArray(numVertices) { numVertices - 1 - it }
             meshes.add(meshI)
         }
 
@@ -183,21 +190,21 @@ class SplineCrossing : ProceduralMesh() {
 
             if (coverTop) {
                 // raise all points up
-                tmp3.set(yAxis).mul(topY)
-                for (p in centerPoints) p.add(tmp3)
-                meshes.add(triangleListToMesh(triangulation, yAxis, topColor))
-                if (coverBottom) {
+                // todo find points on upper railing
+                for (p in centerPoints) p.add(0f, topY, 0f)
+                meshes.add(triangleListToMesh(triangulation, Vector3d(0.0, 1.0, 0.0), topColor))
+                /*if (coverBottom) {
                     tmp3.set(yAxis).mul(bottomY - topY)
                     for (p in centerPoints) p.add(tmp3)
                     yAxis.mul(-1.0)
                     meshes.add(triangleListToMesh(triangulation.reversed(), yAxis, bottomColor))
-                }
-            } else {
+                }*/
+            }/* else { // todo implement
                 tmp3.set(yAxis).mul(bottomY)
                 for (p in centerPoints) p.add(tmp3)
                 yAxis.mul(-1.0)
                 meshes.add(triangleListToMesh(triangulation, yAxis, bottomColor))
-            }
+            }*/
         }
 
         lastWarning = null

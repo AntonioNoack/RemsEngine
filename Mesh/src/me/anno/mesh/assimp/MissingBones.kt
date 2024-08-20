@@ -2,6 +2,7 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
+import me.anno.utils.structures.Recursion
 import me.anno.utils.types.Matrices.sampleDistanceSquared
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -19,10 +20,7 @@ object MissingBones {
         // collect names of all nodes
         val sceneNodes = HashSet<String>()
         val sceneNodeList = ArrayList<Pair<String, AINode>>()
-        val todoStack = ArrayList<AINode>()
-        todoStack.add(aiRoot)
-        while (todoStack.isNotEmpty()) {
-            val node = todoStack.removeAt(todoStack.lastIndex)
+        Recursion.processRecursive(aiRoot) { node, todoStack ->
             val nodeName = node.mName().dataString()
             sceneNodes.add(nodeName)
             sceneNodeList.add(nodeName to node)
@@ -87,7 +85,5 @@ object MissingBones {
                 }
             }
         }
-
     }
-
 }

@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.ui.EditorState
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
@@ -212,10 +213,11 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
             perRadiant: Double,
             isClosed: Boolean,
         ): List<Vector3d> {
-            val posNormals = createArrayList((points.size + isClosed.toInt()) * 4) { Vector3d() }
-            for (i in 0 until (points.size + isClosed.toInt())) {
+            val capacity = points.size + isClosed.toInt()
+            val posNormals = createArrayList(capacity * 4) { Vector3d() }
+            for (i in 0 until capacity) {
                 val i4 = i * 4
-                val pt = points[i % points.size]
+                val pt = points[posMod(i, points.size)]
                 pt.getLocalPosition(posNormals[i4], -1.0)
                 pt.getLocalForward(posNormals[i4 + 1])
                 pt.getLocalPosition(posNormals[i4 + 2], +1.0)
@@ -234,6 +236,39 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
         ): Mesh {
             val splinePoints = generateSplinePoints(points, perRadiant, isClosed)
             return generateSplineMesh(mesh, profile, isClosed, closedStart0, closedEnd0, isStrictlyUp, splinePoints)
+        }
+
+        private fun addStartFace(
+            p0a: Vector3d, p0b: Vector3d, nx: Float, profile: PathProfile, profileFacade: List<Vector2f>,
+            dirY0: Vector3f, pos: FloatArray, nor: FloatArray, col: IntArray, k0: Int
+        ): Int {
+            // add profile
+            val ptToColor = HashMap<Vector2f, Int>(profile.positions.size)
+            for (i in profile.positions.indices) {// not necessarily correct color, but cannot triangulate it correctly atm anyway
+                ptToColor[profile.getPosition(i)] = profile.getColor(i, true)
+            }
+            // find normal: (p0b-p0a) x dirY
+            val normal = dirY0.cross(
+                (p0a.x - p0b.x).toFloat(),
+                (p0a.y - p0b.y).toFloat(),
+                (p0a.z - p0b.z).toFloat(),
+                Vector3f()
+            ).normalize(nx)
+            var k = k0
+            if (nx < 0f) {
+                for (i in profileFacade.indices.reversed()) {
+                    val xy = profileFacade[i]
+                    val color = ptToColor[xy] ?: white
+                    add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
+                }
+            } else {
+                for (i in profileFacade.indices) {
+                    val xy = profileFacade[i]
+                    val color = ptToColor[xy] ?: white
+                    add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
+                }
+            }
+            return k
         }
 
         fun generateSplineMesh(
@@ -267,40 +302,15 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
 
             // todo option for round start/end
 
-            fun addStartQuad(p0a: Vector3d, p0b: Vector3d, nx: Float) {
-                // add profile
-                val ptToColor = HashMap<Vector2f, Int>(profile.positions.size)
-                for (i in profile.positions.indices) {// not necessarily correct color, but cannot triangulate it correctly atm anyway
-                    ptToColor[profile.getPosition(i)] = profile.getColor(i, true)
-                }
-                // find normal: (p0b-p0a) x dirY
-                val normal = Vector3f(dirY0)
-                    .cross(
-                        (p0a.x - p0b.x).toFloat(),
-                        (p0a.y - p0b.y).toFloat(),
-                        (p0a.z - p0b.z).toFloat()
-                    ).normalize(nx)
-                profileFacade!!
-                if (nx < 0f) {
-                    for (i in profileFacade.indices.reversed()) {
-                        val xy = profileFacade[i]
-                        val color = ptToColor[xy] ?: white
-                        add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
-                    }
-                } else {
-                    for (i in profileFacade.indices) {
-                        val xy = profileFacade[i]
-                        val color = ptToColor[xy] ?: white
-                        add2(pos, nor, col, k++, p0a, p0b, xy, color, dirY0, normal)
-                    }
-                }
-            }
-
             if (closedStart) {
                 val p0a = splinePoints[0]
                 val p0b = splinePoints[1]
                 if (!isStrictlyUp) findDirY(p0a, p0b, splinePoints[3], dirY0)
-                addStartQuad(p0a, p0b, 1f)
+                k = addStartFace(
+                    p0a, p0b, 1f,
+                    profile, profileFacade!!, dirY0,
+                    pos, nor, col, k
+                )
             }
 
             if (closedEnd) {
@@ -312,7 +322,11 @@ class SplineMesh : ProceduralMesh(), OnUpdate {
                     splinePoints[splinePoints.size - 2],
                     dirY0
                 )
-                addStartQuad(p0a, p0b, -1f)
+                k = addStartFace(
+                    p0a, p0b, -1f,
+                    profile, profileFacade!!, dirY0,
+                    pos, nor, col, k
+                )
             }
 
             val dirX0 = Vector3f() // p0a, p0b

@@ -112,6 +112,12 @@ open class Vector2f(
     @JvmOverloads
     fun normalize(dst: Vector2f = this) = mul(1f / length(), dst)
 
+    fun safeNormalize(length: Float = 1f): Vector2f {
+        normalize(length)
+        if (!isFinite) set(0f)
+        return this
+    }
+
     @JvmOverloads
     fun normalize(length: Float, dst: Vector2f = this) = mul(length / length(), dst)
 

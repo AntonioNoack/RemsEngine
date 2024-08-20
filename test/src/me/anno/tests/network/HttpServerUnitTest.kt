@@ -69,11 +69,11 @@ class HttpServerUnitTest {
 
     @Test
     fun testOK() {
-        val (sample) = files.toList()
-        val file = WebRef("http://localhost:${server.tcpPort}${sample.first}")
+        val (path, contents) = files.entries.first()
+        val file = WebRef("http://localhost:${server.tcpPort}$path")
         assertTrue(file.exists)
         val answer = file.readTextSync()
-        assertEquals(sample.second, answer)
+        assertEquals(contents, answer)
     }
 
     @Test

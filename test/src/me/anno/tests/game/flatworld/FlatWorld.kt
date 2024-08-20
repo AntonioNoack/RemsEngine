@@ -87,8 +87,8 @@ class FlatWorld {
     fun buildStreet(segment: StreetSegment) {
         val i0 = intersections[segment.a] ?: return
         val i1 = intersections[segment.c] ?: return
-        val t0 = IntersectionMeshBuilder.getT0(segment, i0)
-        val t1 = IntersectionMeshBuilder.getT1(segment, i1)
+        val t0 = IntersectionMeshBuilder.getT0(segment.length, i0, i1)
+        val t1 = IntersectionMeshBuilder.getT1(segment.length, i1, i0)
         // the mesh to generate depends on t0 and t1,
         //  which are calculated by the intersection sizes
         val hadMesh = segment.mesh != null
@@ -123,7 +123,7 @@ class FlatWorld {
                 intersection.mesh = mesh
             }
             val mesh = intersection.mesh!!
-            IntersectionMeshBuilder.createIntersection(intersection, mesh)
+            IntersectionMeshBuilder.createIntersection(intersection, this, mesh)
             intersection.entity!!.invalidateOwnAABB() // since we changed the mesh
         }
     }
