@@ -77,16 +77,14 @@ object WaterShader : ECSMeshShader("Water") {
                                     normalTanBitanCalculation +
                                     // normal mapping
                                     "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
-                                    "vec3 rawColor = mix(\n" +
+                                    "vec3 loadedNormal = mix(\n" +
                                     "   sampleAutoTileableTextureNoLUT(normalMap, uv + movingUV).xyz,\n" +
                                     "   sampleAutoTileableTextureNoLUT(normalMap, uv * 5.7 - movingUV * 3.7).xyz,\n" +
                                     "   vec3(0.3)\n" +
                                     ") * 2.0 - 1.0;\n" +
-                                    "vec3 normalFromTex = matMul(tbn, rawColor);\n" +
-                                    "finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
-
-                                    "float t = deltaDepth * absorption + rawColor.x;\n" +
-                                    "finalRoughness = clamp((1.0 - 5.0 * t) * (cos(t*30.0)*0.5+0.5), 0.0, 1.0);\n" +
+                                    "finalNormal = matMul(tbn, loadedNormal);\n" +
+                                    "float foamDistance = deltaDepth * absorption + loadedNormal.x;\n" +
+                                    "finalRoughness = clamp((1.0 - 5.0 * foamDistance) * (cos(foamDistance*30.0)*0.5+0.5), 0.0, 1.0);\n" +
                                     "finalMetallic = 1.0;\n" +
                                     v0 + reflectionCalculation
                         } else "") +
