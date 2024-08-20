@@ -1,5 +1,6 @@
 package me.anno.tests.game.flatworld.vehicles
 
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.maths.Maths
@@ -8,6 +9,8 @@ import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.ReversibleSegment
 import me.anno.tests.game.flatworld.vehicles.Routes.findRoute
 import me.anno.utils.structures.Recursion
+import me.anno.utils.structures.lists.Lists.weightedRandomOrNull
+import kotlin.random.Random
 
 object RandomVehicle {
 
@@ -37,7 +40,7 @@ object RandomVehicle {
     fun getRandomStart(world: FlatWorld): ReversibleSegment? {
         return world.intersections.values
             .flatMap { it.segments }
-            .randomOrNull()
+            .weightedRandomOrNull(Random(Time.nanoTime), ReversibleSegment::length)
     }
 
     fun findReachablePoints(world: FlatWorld, start: ReversibleSegment): HashSet<ReversibleSegment> {

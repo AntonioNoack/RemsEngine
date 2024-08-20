@@ -1,9 +1,11 @@
 package me.anno.utils.structures.lists
 
+import me.anno.utils.callbacks.VtoD
 import me.anno.utils.structures.Collections.filterIsInstance2
 import me.anno.utils.structures.heap.Heap
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -626,5 +628,24 @@ object Lists {
             }
         }
         return true
+    }
+
+    @JvmStatic
+    fun <V> List<V>.weightedRandomOrNull(random: Random, getWeight: VtoD<V>): V? {
+        return getOrNull(weightedRandomIndex(random, getWeight))
+    }
+
+    @JvmStatic
+    fun <V> List<V>.weightedRandomIndex(random: Random, getWeight: VtoD<V>): Int {
+        var sum = 0.0
+        for (i in indices) {
+            sum += getWeight.call(this[i])
+        }
+        sum *= random.nextDouble()
+        for (i in indices) {
+            sum -= getWeight.call(this[i])
+            if (sum <= 0.0) return i
+        }
+        return -1
     }
 }

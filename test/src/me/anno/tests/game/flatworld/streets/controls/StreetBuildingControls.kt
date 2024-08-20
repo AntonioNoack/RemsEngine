@@ -11,6 +11,7 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Key
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.tests.game.flatworld.FlatWorld
 import me.anno.tests.game.flatworld.streets.StreetMeshBuilder
@@ -125,8 +126,8 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
             if (bestOnAnchor != null && bestOnAnchor.distanceSquared(position) < sq(tolerance)) {
                 position.set(bestOnAnchor)
             }
-            if (i > 0 && anchor0!!.distance(position) < 1.0) return null
-            if (i > 1 && anchor1!!.distance(position) < 1.0) return null
+            if (i > 0 && anchor0!!.distance(position) < 5.0) return null
+            if (i > 1 && anchor1!!.distance(position) < 5.0) return null
             position
         } else null
     }
@@ -169,8 +170,9 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                 val intersections = ArrayList<Triple<Vector2d, Vector3d, StreetSegment>>()
                 for (seg in world.streetSegments) {
                     val intersection = segment.intersects(seg) ?: continue
-                    val point = if (intersection.y < 0.001) seg.a
-                    else if (intersection.y > 0.999) seg.c
+                    val tolerance = min(5.0 / seg.length, 0.5)
+                    val point = if (intersection.y < 0.0 + tolerance) seg.a
+                    else if (intersection.y > 1.0 - tolerance) seg.c
                     else {
                         segment.interpolate(intersection.x)
                             .add(seg.interpolate(intersection.y)).mul(0.5)
@@ -188,8 +190,8 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                     // todo if destination is anchor point, just use it instead of interpolating
                     for (intersection in intersections) {
                         val t = intersection.first.y
-                        // todo make inaccuracy be 1m or 10px, not some random threshold
-                        if (t <= 0.001 || t >= 0.999) continue
+                        val tolerance = min(5.0 / intersection.third.length, 0.5)
+                        if (t < 0.0 + tolerance || t > 1.0 - tolerance) continue
                         // split that segment
                         world.removeStreetSegment(intersection.third)
                         val seg = intersection.third
@@ -198,15 +200,14 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                     }
                     intersections.sortBy { it.first.x }
                     val i0 = intersections.first()
-                    if (i0.first.x > 0.001) {
-                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                    val tolerance = min(5.0 / segment.length, 0.5)
+                    if (i0.first.x > 0.0 + tolerance) {
                         world.addStreetSegment(segment.splitSegment(0.0, i0.first.x, segment.a, i0.second))
                     }
                     for (i in 1 until intersections.size) {
                         val t0 = intersections[i - 1]
                         val t1 = intersections[i]
-                        // todo make inaccuracy be 1m or 10px, not some random threshold
-                        if (t0.first.x + 0.001 < t1.first.x) {
+                        if (t0.first.x + tolerance < t1.first.x) {
                             world.addStreetSegment(
                                 segment.splitSegment(
                                     t0.first.x, t1.first.x,
@@ -216,8 +217,7 @@ class StreetBuildingControls(val world: FlatWorld, rv: RenderView) : DraggingCon
                         }
                     }
                     val il = intersections.last()
-                    if (il.first.x < 0.999) {
-                        // todo make inaccuracy be 1m or 10px, not some random threshold
+                    if (il.first.x < 1.0 - tolerance) {
                         world.addStreetSegment(
                             segment.splitSegment(
                                 il.first.x, 1.0,

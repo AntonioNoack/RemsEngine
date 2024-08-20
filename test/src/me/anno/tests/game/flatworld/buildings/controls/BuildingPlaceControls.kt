@@ -19,7 +19,7 @@ class BuildingPlaceControls(val world: FlatWorld, rv: RenderView) : ControlSchem
 
     // todo registry of types
     // todo UI to choose type
-    val type = LivingBuilding(flatCube.scaled(10f).front)
+    val type = LivingBuilding(flatCube.scaled(5f).front)
     var rotationYDegrees = 0.0
 
     override fun onUpdate() {

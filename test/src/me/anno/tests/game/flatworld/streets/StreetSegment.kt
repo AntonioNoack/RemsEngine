@@ -36,7 +36,7 @@ data class StreetSegment(val a: Vector3d, val b: Vector3d?, val c: Vector3d) {
         // find the (parametric intersection) between these two streets
         //  return this.t, other.t
         if (bounds.testAABB(other.bounds)) {
-            var bestDistanceSq = sq(1.0)
+            var bestDistanceSq = sq(3.0)
             var bestST: Vector2d? = null
             for (si in 1 until splits.size) {
                 val s0 = splits[si - 1]

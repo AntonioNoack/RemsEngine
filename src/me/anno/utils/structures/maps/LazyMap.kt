@@ -4,7 +4,7 @@ package me.anno.utils.structures.maps
 /**
  * a map that initializes the values only when needed;
  * if you know that you need all values from the start, use a HashMap instead!;
- * not thread-safe
+ * not 100% thread-safe
  * */
 open class LazyMap<K, V>(
     val generator: (K) -> V,
@@ -21,10 +21,13 @@ open class LazyMap<K, V>(
     val cache = HashMap<K, V>(initialCapacity)
 
     override fun containsKey(key: K) = true
+    override fun containsValue(value: V) = false // not really supported
 
-    override fun containsValue(value: V) = false
-
-    override fun get(key: K): V = cache.getOrPut(key) { generator(key) }
+    override fun get(key: K): V {
+        return synchronized(cache) {
+            cache.getOrPut(key) { generator(key) }
+        }
+    }
 
     override val entries
         get() = if (nullsAreValid) {
@@ -47,8 +50,9 @@ open class LazyMap<K, V>(
     override fun isEmpty() = cache.isEmpty()
 
     fun putAll(values: Map<K, V>): LazyMap<K, V> {
-        cache.putAll(values)
+        synchronized(cache) {
+            cache.putAll(values)
+        }
         return this
     }
-
 }

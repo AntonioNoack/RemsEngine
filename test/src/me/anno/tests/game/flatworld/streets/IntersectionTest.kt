@@ -8,9 +8,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 import kotlin.random.Random
 
-
 fun main() {
-    // todo generate lots of different intersections, and see where they go wrong
+    // generate lots of different intersections, and see where they go wrong
     LogManager.disableLoggers("OpenXRSystem,OpenXRUtils,AudioManager,GPUShader,Saveable,GFX,GFXBase,FontManagerImpl")
     val world = FlatWorld()
     val random = Random(1234)
