@@ -3,6 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnDrawGUI
 import me.anno.engine.serialization.NotSerializedProperty
@@ -34,7 +35,7 @@ import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL46C.glScissor
+import org.joml.Vector4i
 import kotlin.math.abs
 
 // todo this needs two framebuffers and rendering passes for VR
@@ -45,7 +46,6 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
     var samples = 1
     var usesFP = true
 
-    var clearColor = Vector3f(1f, 1f, 1f)
     val globalNormal = Vector3d()
 
     var bothSided = true
@@ -87,12 +87,14 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         return true
     }
 
+    @DebugProperty
+    var isBackSide = false
+
     fun draw(
         ci: RenderView,
         pipeline: Pipeline, w: Int, h: Int,
         cameraMatrix0: Matrix4f, cameraPosition: Vector3d, worldScale: Double
     ) {
-
         val transform = transform!!.getDrawMatrix(Time.gameTimeN)
         val mirrorPosition = transform.getTranslation(tmp0d)
 
@@ -101,12 +103,11 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             .transformDirection(globalNormal.set(0.0, 0.0, 1.0)) // default direction: z
             .normalize()
 
-        val isBackSide = cameraPosition.dot(mirrorNormal) - mirrorPosition.dot(mirrorNormal) < 0.0
+        isBackSide = cameraPosition.dot(mirrorNormal) - mirrorPosition.dot(mirrorNormal) < 0.0
         if (isBackSide) {
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
-                println("destroying fb")
                 framebuffer?.destroy()
                 framebuffer = null
                 return
@@ -117,11 +118,10 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
         val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
-        val mirrorPos = reflectedMirrorPosition - reflectedCameraPosition
+        val mirrorPos = if (isBackSide) mirrorPosition else reflectedMirrorPosition - reflectedCameraPosition
         val isPerspective = abs(cameraMatrix0.m33) < 0.5f
 
         // better way to do this?
-        // todo is this correct??
         val m0 = Matrix3d().rotate(ci.cameraRotation).mul(mirrorMatrix)
         val reflectedCameraRotation = m0.getNormalizedRotation(Quaterniond())
 
@@ -132,8 +132,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             // todo why is this not working?
             // todo can we define the frustum from our matrix?
             pipeline.frustum.definePerspective(
-                near, far,
-                RenderState.fovYRadians.toDouble(), w, h, w.toDouble() / h.toDouble(),
+                near, far, RenderState.fovYRadians.toDouble(), w, h, w.toDouble() / h.toDouble(),
                 reflectedCameraPosition, reflectedCameraRotation
             )
         } else {
@@ -143,12 +142,11 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         // define last frustum plane
         pipeline.frustum.planes[pipeline.frustum.length].set(mirrorPos, mirrorNormal) // todo is this correct??, scale?
         pipeline.frustum.length++
-        // pipeline.frustum.showPlanes()
 
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)
         // pipeline.planarReflections.clear()
-        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale, mirrorNormal) // ??
+        pipeline.reflectionCullingPlane.set(mirrorPos * worldScale, mirrorNormal) // is correct
 
         mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
         val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
@@ -187,18 +185,25 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
             val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
 
             if (x1 > x0 && y1 > y0) {
-                timeRendering(className, timer) {
-                    useFrame(w, h, true, buffer, pbrRenderer) {
-                        GFXState.ditherMode.use(ditherMode) {
-                            GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
-                                GFXState.scissorTest.use(true) {
-                                    glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
-                                    // todo why is the normal way to draw the sky failing its depth test?
-                                    clearSky(pipeline)
-                                    pipeline.singlePassWithSky(false)
-                                }
-                            }
-                        }
+                bindRendering(w, h, buffer, pipeline, x0, y0, x1, y1) {
+                    // todo why is the normal way to draw the sky failing its depth test?
+                    clearSky(pipeline)
+                    pipeline.singlePassWithSky(false)
+                }
+            }
+        }
+    }
+
+    private fun bindRendering(
+        w: Int, h: Int, buffer: Framebuffer, pipeline: Pipeline,
+        x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit
+    ) {
+        timeRendering(className, timer) {
+            useFrame(w, h, true, buffer, pbrRenderer) {
+                GFXState.ditherMode.use(ditherMode) {
+                    GFXState.depthMode.use(pipeline.defaultStage.depthMode) {
+                        val rectangle = Vector4i(x0, h - 1 - y1, x1 - x0, y1 - y0)
+                        GFXState.scissorTest.use(rectangle, render)
                     }
                 }
             }
@@ -234,11 +239,7 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         }
     }
 
-    override fun fill(
-        pipeline: Pipeline,
-        transform: Transform,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         if (framebuffer?.isCreated() == true) {
             pipeline.planarReflections.add(this)
         }

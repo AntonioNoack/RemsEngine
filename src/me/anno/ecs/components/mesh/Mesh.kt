@@ -160,6 +160,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @DebugProperty
     val hasBones get() = boneIndices?.isEmpty() == false
 
+    @DebugProperty
+    val isIndexed get() = indices != null
+
     @HideInInspector
     @NotSerializedProperty
     var debugLineIndices: IntArray? = null

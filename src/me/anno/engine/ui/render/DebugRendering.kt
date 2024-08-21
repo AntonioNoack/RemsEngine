@@ -161,7 +161,10 @@ object DebugRendering {
                     is Texture2DArray -> {
                         val layer = floor(Time.gameTime % texture.layers).toFloat()
                         if (Input.isShiftDown && light is PlanarReflection) {
-                            DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
+                            DrawTextures.drawTextureArray(
+                                x, y, w, h, texture, layer, true,
+                                white.withAlpha(0.7f), null, true
+                            )
                         } else if (isDepth) {
                             DrawTextures.drawDepthTextureArray(x, y + h - s, s, s, texture, layer)
                         } else {
@@ -171,7 +174,10 @@ object DebugRendering {
                     }
                     else -> {
                         if (Input.isShiftDown && light is PlanarReflection) {
-                            DrawTextures.drawTexture(x, y, w, h, texture, true, 0x33ffffff, null)
+                            DrawTextures.drawTexture(
+                                x, y, w, h, texture, true,
+                                white.withAlpha(0.7f), null, true
+                            )
                         } else if (isDepth) {
                             DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
                         } else {

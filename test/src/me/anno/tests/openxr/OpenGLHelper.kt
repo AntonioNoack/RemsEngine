@@ -14,7 +14,9 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.glfwGetWindowSize
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
+import org.lwjgl.opengl.GL45C.GL_SCISSOR_TEST
 import org.lwjgl.opengl.GL45C.glCreateVertexArrays
+import org.lwjgl.opengl.GL45C.glDisable
 import org.lwjgl.opengl.GL45C.glGenFramebuffers
 import org.lwjgl.opengl.GL46C.GL_COLOR_ATTACHMENT0
 import org.lwjgl.opengl.GL46C.GL_COLOR_BUFFER_BIT
@@ -150,7 +152,7 @@ fun renderFrame1(
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
     glViewport(0, 0, w, h)
-    glScissor(0, 0, w, h)
+    glDisable(GL_SCISSOR_TEST)
 
     if (framebuffer != 0) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image, 0)

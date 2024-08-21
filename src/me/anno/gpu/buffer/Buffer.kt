@@ -122,6 +122,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         if (!isUpToDate) upload()
         if (drawLength > 0) {
             bindBufferAttributes(shader)
+            shader.v1b("isIndexed", false)
         }
     }
 
@@ -131,6 +132,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: BufferUs
         // else if (drawLength > 0) bindBuffer(GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributesInstanced(shader, instanceData)
+            shader.v1b("isIndexed", false)
         }
     }
 

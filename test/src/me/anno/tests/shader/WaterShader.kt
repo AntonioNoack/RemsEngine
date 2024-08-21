@@ -143,8 +143,8 @@ fun main() {
                 Entity()
                     .add(PlanarReflection())
                     // todo why is that offset against z-fighting needed?
-                    .setPosition(0.0, 1e-4, 0.0)
-                    .setRotation(PI / 2, 0.0, 0.0)
+                    .setPosition(0.0, 1e-6, 0.0)
+                    .setRotation(-PI / 2, 0.0, 0.0)
             )
             .setPosition(0.0, 10.0, 0.0)
             .setScale(15000.0)

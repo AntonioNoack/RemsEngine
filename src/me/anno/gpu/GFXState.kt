@@ -27,6 +27,7 @@ import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector4i
 import org.lwjgl.opengl.GL46C
 import org.lwjgl.opengl.GL46C.GL_BACK
 import org.lwjgl.opengl.GL46C.GL_BLEND
@@ -51,6 +52,7 @@ import org.lwjgl.opengl.GL46C.glEnable
 import org.lwjgl.opengl.GL46C.glFramebufferRenderbuffer
 import org.lwjgl.opengl.GL46C.glFramebufferTexture2D
 import org.lwjgl.opengl.GL46C.glGenFramebuffers
+import org.lwjgl.opengl.GL46C.glScissor
 
 /**
  * holds rendering-related state,
@@ -219,10 +221,12 @@ object GFXState {
         }
     }
 
-    val scissorTest = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            if (newValue) glEnable(GL_SCISSOR_TEST)
-            else glDisable(GL_SCISSOR_TEST)
+    val scissorTest = object : SecureStack<Vector4i?>(null) {
+        override fun onChangeValue(newValue: Vector4i?, oldValue: Vector4i?) {
+            if (newValue != null) {
+                glEnable(GL_SCISSOR_TEST)
+                glScissor(newValue.x, newValue.y, newValue.z, newValue.w)
+            } else glDisable(GL_SCISSOR_TEST)
         }
     }
 

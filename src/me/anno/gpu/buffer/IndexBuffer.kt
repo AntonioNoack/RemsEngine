@@ -134,6 +134,8 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         if (!base.isUpToDate) base.upload()
         if (base.drawLength > 0) {
             bindBufferAttributes(shader)
+            // it would be nice if we could remove debugging-related code from shipped builds...
+            shader.v1b("isIndexed", true)
         }
     }
 
@@ -142,6 +144,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Buff
         if (!base.isUpToDate) base.upload()
         if (base.drawLength > 0) {
             bindBufferAttributesInstanced(shader, instanceData)
+            shader.v1b("isIndexed", true)
         }
     }
 

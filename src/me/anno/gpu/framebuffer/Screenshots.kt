@@ -13,6 +13,7 @@ import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.InternalAPI
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector4i
 import org.lwjgl.opengl.GL46C.GL_FLOAT
 import org.lwjgl.opengl.GL46C.GL_RED
 import org.lwjgl.opengl.GL46C.GL_RGBA
@@ -20,7 +21,6 @@ import org.lwjgl.opengl.GL46C.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL46C.glFinish
 import org.lwjgl.opengl.GL46C.glFlush
 import org.lwjgl.opengl.GL46C.glReadPixels
-import org.lwjgl.opengl.GL46C.glScissor
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.concurrent.thread
@@ -54,8 +54,8 @@ object Screenshots {
             if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
-                GFXState.scissorTest.use(true) {
-                    glScissor(x0, y0, x1 - x0, y1 - y0)
+                val rectangle = Vector4i(x0, y0, x1 - x0, y1 - y0)
+                GFXState.scissorTest.use(rectangle) {
                     drawScene()
                     glFlush(); glFinish() // wait for everything to be drawn
                     setReadAlignment(4 * (x1 - x0))

@@ -22,7 +22,6 @@ import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.engine.ui.render.RowColLayout.findGoodTileLayout
 import me.anno.gpu.CullMode
@@ -271,7 +270,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     fun updatePipelineStage0(renderMode: RenderMode) {
         val stage0 = pipeline.stages.firstOrNull() ?: return
         stage0.depthMode = depthMode
-        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
+        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW || renderMode == RenderMode.TRIANGLE_SIZE)
+            BlendMode.ADD else null
         stage0.sorting = Sorting.FRONT_TO_BACK
         stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
     }
@@ -661,7 +661,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 dst.clearDepth()
             }
 
-            if (renderer == overdrawRenderer) {
+            if (pipeline.defaultStage.blendMode != null) {
                 dst.clearColor(0)
             }
 

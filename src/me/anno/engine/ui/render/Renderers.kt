@@ -20,7 +20,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.gamma
 import me.anno.gpu.shader.ShaderLib.gammaInv
@@ -33,6 +32,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.language.translation.NameDesc
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.wrap
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Booleans.hasFlag
 import me.anno.utils.types.Strings.iff
@@ -102,9 +102,46 @@ object Renderers {
     val overdrawRenderer = SimpleRenderer(
         "overdraw", ShaderStage(
             "overdraw", listOf(Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)),
-            "finalOverdraw = vec4(0.125);\n"
+            "finalOverdraw = vec4(0.2);\n"
         )
     )
+
+    @JvmField
+    val triangleSizeRenderer = object : Renderer(
+        "shadingEfficiency",
+    ) {
+        override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
+            return ShaderStage(
+                "uvw", listOf(Variable(GLSLType.V3F, "uvw", VariableMode.OUT)),
+                // todo this may not work with indexed geometry :/ -> a geometry shader could fix that
+                // todo debug mode to show indexed geometry
+                "uvw = vec3(gl_VertexID % 3 == 0, gl_VertexID % 3 == 1, gl_VertexID % 3 == 2);\n"
+            ).wrap()
+        }
+
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return ShaderStage(
+                "overdraw", listOf(
+                    Variable(GLSLType.V3F, "uvw"),
+                    Variable(GLSLType.V4F, "finalOverdraw", VariableMode.OUT)),
+                "" +
+                        "int usage = 0;\n" +
+                        "vec3 dx = dFdx(uvw), dy = dFdy(uvw);\n" +
+                        // using a 3x3 field instead of a 2x2 field is nicer to look at and shows approx. the same data
+                        // "int x0 = -(int(gl_FragCoord.x) & 1);\n" +
+                        // "int y0 = -(int(gl_FragCoord.y) & 1);\n" +
+                        "for(int yi=-1;yi<=1;yi++){\n" +
+                        "   for(int xi=-1;xi<=1;xi++){\n" +
+                        "       vec3 u = uvw + dx*float(xi) + dy*float(yi);\n" +
+                        "       usage += u.x >= 0.0 && u.y >= 0.0 && u.z >= 0.0 &&" +
+                        "           u.x <= 1.0 && u.y <= 1.0 && u.z <= 1.0 ? 1 : 0;\n" +
+                        "   }\n" +
+                        "}\n" +
+                        // "finalOverdraw = vec4(usage < 2 ? 0.5 : 0.0, 0.1, usage == 2 ? 1.0 : 0.0, 1.0);\n" // 2x2
+                        "finalOverdraw = vec4(usage <= 2 ? usage <= 1 ? 0.5 : 0.25 : 0.0, 0.1, usage >= 2 && usage <= 5 ? 0.7 : 0.0, 1.0);\n" // 3x3
+            ).wrap()
+        }
+    }
 
     @JvmField
     val pbrRenderer = object : Renderer(
@@ -309,6 +346,27 @@ object Renderers {
                             "   f = 0.5;\n" +
                             "#else\n" +
                             "   f = 0.0;\n" +
+                            "#endif\n" +
+                            "finalResult = vec4(f,f,f,1.0);\n"
+                )
+            )
+        }
+    }
+
+    @JvmField
+    val isIndexedRenderer = object : Renderer("isIndexed") {
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "isIndexed", listOf(
+                        Variable(GLSLType.V1B, "isIndexed"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            "float f;\n" +
+                            "#ifdef SKY\n" +
+                            "   f = 0.5;\n" +
+                            "#else\n" +
+                            "   f = isIndexed ? 1.0 : 0.0;\n" +
                             "#endif\n" +
                             "finalResult = vec4(f,f,f,1.0);\n"
                 )

@@ -7,6 +7,7 @@ import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
 import me.anno.engine.ui.render.Renderers.diffFromNormalRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
+import me.anno.engine.ui.render.Renderers.isIndexedRenderer
 import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -187,6 +188,9 @@ class RenderMode private constructor(
                 .then(GizmoNode())
         }
 
+        // todo bug: weird edge when rendering with forward MSAA - probably for all glass objects
+        // todo forward shall look exactly as deferred except for geometry-hitting SSR...
+        //  I think the only last component missing is that SSR doubles reflections...
         val FORWARD = RenderMode("Forward", defineForwardPipeline(QuickPipeline()).finish())
         val MSAA_FORWARD = RenderMode(
             "MSAA Forward",
@@ -300,6 +304,7 @@ class RenderMode private constructor(
 
         val INVERSE_DEPTH = RenderMode("Inverse Depth", Renderers.pbrRenderer)
         val OVERDRAW = RenderMode("Overdraw", Renderers.overdrawRenderer)
+        val TRIANGLE_SIZE = RenderMode("Triangle Size", Renderers.triangleSizeRenderer)
 
         val WITH_DEPTH_PREPASS = RenderMode(
             "With Depth-Prepass",
@@ -387,8 +392,23 @@ class RenderMode private constructor(
                 .finish()
         )
 
-        val LINES = RenderMode("Lines", DEFAULT)
-        val LINES_MSAA = RenderMode("Lines MSAA", MSAA_DEFERRED)
+        val LINES = RenderMode(
+            "Lines",
+            QuickPipeline()
+                .then1(RenderForwardNode(), opaqueNodeSettings)
+                .then(RenderGlassNode())
+                .then(GizmoNode())
+                .finish()
+        )
+        val LINES_MSAA = RenderMode(
+            "Lines MSAA",
+            QuickPipeline()
+                .then(MSAAHelperNode())
+                .then1(RenderForwardNode(), opaqueNodeSettings)
+                .then(RenderGlassNode())
+                .then(GizmoNode())
+                .finish()
+        )
         val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
@@ -550,6 +570,7 @@ class RenderMode private constructor(
         })
 
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
+        val IS_INDEXED = RenderMode("Is Indexed", isIndexedRenderer)
 
         val BONE_INDICES = RenderMode("Bone Indices", boneIndicesRenderer)
         val BONE_WEIGHTS = RenderMode("Bone Weights", boneWeightsRenderer)

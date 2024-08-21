@@ -630,6 +630,10 @@ open class Vector3d(
         return dst
     }
 
+    // add this to all vector classes?
+    operator fun unaryMinus() = negate(Vector3d())
+    operator fun unaryPlus() = this
+
     fun absolute(dst: Vector3d = this): Vector3d {
         dst.x = abs(x)
         dst.y = abs(y)
@@ -866,6 +870,7 @@ open class Vector3d(
     operator fun plus(s: Vector3d): Vector3d = Vector3d(x + s.x, y + s.y, z + s.z)
     operator fun minus(s: Vector3d): Vector3d = Vector3d(x - s.x, y - s.y, z - s.z)
     operator fun times(s: Double): Vector3d = Vector3d(x * s, y * s, z * s)
+    operator fun div(s: Double): Vector3d = mul(1.0 / s)
 
     fun safeNormalize(length: Double = 1.0): Vector3d {
         normalize(length)
