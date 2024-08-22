@@ -50,8 +50,7 @@ class RenderLightsNode : RenderViewNode(
         "Int", "Camera Index",
         // make them same order as outputs from RenderSceneNode
         "Vector3f", "Normal",
-        "Float", "Metallic",
-        "Float", "Roughness",
+        "Float", "Reflectivity",
         "Float", "Translucency",
         "Float", "Sheen",
         "Float", "Depth",
@@ -60,7 +59,7 @@ class RenderLightsNode : RenderViewNode(
 ) {
 
     val firstInputIndex = 5
-    val depthIndex = firstInputIndex + 5
+    val depthIndex = firstInputIndex + 4
 
     init {
         setInput(1, 256) // width
@@ -90,8 +89,7 @@ class RenderLightsNode : RenderViewNode(
 
                 val types = listOf(
                     DeferredLayerType.NORMAL,
-                    DeferredLayerType.METALLIC,
-                    DeferredLayerType.ROUGHNESS,
+                    DeferredLayerType.REFLECTIVITY,
                     DeferredLayerType.TRANSLUCENCY,
                     DeferredLayerType.SHEEN,
                     DeferredLayerType.DEPTH

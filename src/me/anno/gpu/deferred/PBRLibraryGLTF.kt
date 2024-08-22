@@ -13,7 +13,12 @@ object PBRLibraryGLTF {
     // to do: good idea, but unfortunately in forward mode, finalNormal won't wary as much on 1px thin lines, because it may consist of many triangles -> true delta unknown to the shader
     val angularCorrection = "" +
             "vec3 curvature = max(abs(dFdx(finalNormal)), abs(dFdy(finalNormal)));\n" +
-            "float roughness = 1.0 - (1.0 - finalRoughness) * max(0.0, 1.0 - length(curvature));\n" +
+            "#ifndef HAS_ROUGHNESS\n" +
+            "   float invRoughness = finalReflectivity;\n" +
+            "#else\n" +
+            "   float invRoughness = 1.0-finalRoughness;\n" +
+            "#endif\n" +
+            "float roughness = 1.0 - invRoughness * max(0.0, 1.0 - length(curvature));\n" +
             "roughness = max(roughness, 0.01);\n"
 
     val maxDivisor = 1e-5 // preventing divisions by zero

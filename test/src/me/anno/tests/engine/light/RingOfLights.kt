@@ -6,8 +6,8 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -56,15 +56,15 @@ fun main() {
     val scene = Entity()
     // scene.add(SkyboxBase().apply { skyColor.set(0f) })
 
-    val truck = Entity("VOX/Truck", scene)
-    truck.add(MeshComponent(OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
+    Entity("VOX/Truck", scene)
+        .add(MeshComponent(OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
 
     val lights = Entity("Lights", scene)
 
     val sun = Entity("Sun", lights)
-    sun.add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })
-    sun.setPosition(0.0, -10.0, 0.0)
-    sun.setScale(50.0)
+        .add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })
+        .setPosition(0.0, -10.0, 0.0)
+        .setScale(50.0)
     sun.transform.localRotation = Quaterniond().rotateY(0.8).rotateX(-0.8)
 
     val ringOfLights = Entity("Ring Of Lights", lights)
@@ -108,8 +108,7 @@ fun main() {
                     val px = drawMatrix.m30
                     val py = drawMatrix.m31
                     val pz = drawMatrix.m32
-                    aabb.setMin(px - sc, py - sc, pz - sc)
-                    aabb.setMax(px + sc, py + sc, pz + sc)
+                    aabb.set(px, py, pz).addMargin(sc)
                     if (frustum.isVisible(aabb)) {
                         // same as
                         // .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
@@ -123,23 +122,18 @@ fun main() {
     })
 
     // add a floor for testing
-    val cubePath = flatCube.front.ref
+    val cube = flatCube.front
     val floor = Entity("Floor", scene)
-    floor.setPosition(0.0, -50.0, 0.0)
-    floor.setScale(2000.0, 50.0, 2000.0)
-    val floorMesh1E = Entity("Metallic", floor)
-    floorMesh1E.setPosition(0.5, 0.0, 0.0)
-    floorMesh1E.setScale(0.5, 1.0, 1.0)
-    val floorMesh2E = Entity("Rough", floor)
-    floorMesh2E.setPosition(-0.5, 0.0, 0.0)
-    floorMesh2E.setScale(0.5, 1.0, 1.0)
-    floorMesh2E.add(MeshComponent(cubePath))
-    floorMesh1E.add(MeshComponent(cubePath).apply {
-        materials = listOf(Material().apply {
-            metallicMinMax.set(1f)
-            roughnessMinMax.set(0.2f)
-        }.ref)
-    })
+        .setPosition(0.0, -50.0, 0.0)
+        .setScale(2000.0, 50.0, 2000.0)
+    Entity("Metallic", floor)
+        .setPosition(0.5, 0.0, 0.0)
+        .setScale(0.5, 1.0, 1.0)
+        .add(MeshComponent(cube, Material.metallic(-1, 0.2f)))
+    Entity("Rough", floor)
+        .setPosition(-0.5, 0.0, 0.0)
+        .setScale(0.5, 1.0, 1.0)
+        .add(MeshComponent(cube))
 
     testSceneWithUI("Lights2", scene)
 }

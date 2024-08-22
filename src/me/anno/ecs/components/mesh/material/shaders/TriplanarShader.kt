@@ -79,6 +79,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         // metallicCalculation +
                         "finalMetallic  = clamp(mix(metallicMinMax.x,metallicMinMax.y,LOAD_TRIPLANAR_TEXTURE(metallicMap,uvx,uvy,uvz).r),0.0,1.0);\n" +
                         // roughnessCalculation +
+                        "#define HAS_ROUGHNESS\n" +
                         "finalRoughness = clamp(mix(roughnessMinMax.x,roughnessMinMax.y,LOAD_TRIPLANAR_TEXTURE(roughnessMap,uvx,uvy,uvz).r),0.0,1.0);\n" +
                         v0 +
                         // sheenCalculation +

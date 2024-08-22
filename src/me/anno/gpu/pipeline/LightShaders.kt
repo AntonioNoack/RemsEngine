@@ -43,7 +43,7 @@ object LightShaders {
 
     val startLightSum = "" +
             "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
-            "float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+            "float reflectivity = finalReflectivity;\n" +
             "bool hasSpecular = reflectivity > 0.0;\n" +
             specularBRDFv2NoColorStart
 
@@ -66,7 +66,7 @@ object LightShaders {
             "light = clamp(light, 0.0, 16e3);\n"
 
     val combineLightFinishLine =
-        "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n"
+        "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalReflectivity);\n"
 
     private val lightInstancedAttributes = listOf(
         // transform
@@ -126,8 +126,7 @@ object LightShaders {
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
             Variable(GLSLType.SCube, "reflectionMap"),
             Variable(GLSLType.V3F, "finalNormal"),
-            Variable(GLSLType.V1F, "finalMetallic"),
-            Variable(GLSLType.V1F, "finalRoughness"),
+            Variable(GLSLType.V1F, "finalReflectivity"),
             Variable(GLSLType.V1F, "finalOcclusion"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V3F, "finalLight"),
@@ -135,79 +134,16 @@ object LightShaders {
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
                 colorToLinear +
-                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, getReflectivity(finalRoughness, finalMetallic));\n" +
+                "#ifndef HAS_ROUGHNESS\n" +
+                "   float finalRoughness = 1.0-finalReflectivity;\n" +
+                "#endif\n" +
+                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalRoughness, finalReflectivity);\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 combineLightFinishLine +
                 "   if(applyToneMapping) finalColor = tonemapLinear(finalColor);\n" +
                 colorToSRGB +
                 "   color = vec4(finalColor, 1.0);\n"
     ).add(tonemapGLSL).add(getReflectivity).add(sampleSkyboxForAmbient)
-
-    fun getCombineLightShader(settingsV2: DeferredSettings): Shader {
-        val useMSAA = useMSAA
-        val code = if (useMSAA) -1 else -2
-        return shaderCache.getOrPut(settingsV2 to code) {
-
-            val builder = ShaderBuilder("CombineLights")
-            builder.addVertex(combineVStage)
-            val fragment = combineFStage
-            // deferred inputs
-            // find deferred layers, which exist, and appear in the shader
-            val deferredCode = StringBuilder()
-            deferredCode.append(
-                if (useMSAA) {
-                    "" +
-                            "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
-                            "ivec2 iuv = ivec2(uv*textureSize(lightTex));\n" +
-                            "finalMetallic = dot(metallicMask, texelFetch(metallicTex,iuv,gl_SampleID));\n" +
-                            "finalLight = texelFetch(lightTex,iuv,0).rgb;\n"
-                } else {
-                    "" +
-                            "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
-                            "finalMetallic = dot(metallicMask, texture(metallicTex,uv));\n" +
-                            "finalLight = texture(lightTex,uv).rgb;\n"
-                }
-            )
-            val sampleVariableName = if (useMSAA) "gl_SampleID" else null
-            val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
-            val deferredVariables = ArrayList<Variable>()
-            deferredVariables += Variable(GLSLType.V2F, "uv")
-            deferredVariables += Variable(GLSLType.S2D, "occlusionTex")
-            deferredVariables += Variable(samplerType, "metallicTex")
-            deferredVariables += Variable(GLSLType.V4F, "metallicMask")
-            deferredVariables += Variable(samplerType, "lightTex")
-            deferredVariables += Variable(GLSLType.V3F, "finalLight", VariableMode.OUT)
-            deferredVariables += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
-            deferredVariables += Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT)
-            val imported = HashSet<String>()
-            for (layer in settingsV2.semanticLayers) {
-                // if this layer is present,
-                // then define the output,
-                // and write the mapping
-                val glslName = layer.type.glslName
-                if (fragment.variables.any2 { it.name == glslName }) {
-                    val lType = layer.type
-                    deferredVariables.add(Variable(floats[lType.workDims - 1], lType.glslName, VariableMode.OUT))
-                    layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
-                }
-            }
-            deferredVariables += imported.map { Variable(samplerType, it, VariableMode.IN) }
-            val deferredStage = ShaderStage("deferred", deferredVariables, deferredCode.toString())
-            deferredStage.add(octNormalPacking)
-            builder.addFragment(deferredStage)
-            builder.addFragment(fragment)
-            if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create(getKey(), "cmb0")
-            // find all textures
-            // first the ones for the deferred data
-            // then the ones for the shadows
-            shader.ignoreNameWarnings(
-                "tint,invLocalTransform,d_camRot,d_fovFactor,reverseDepth," +
-                        "defLayer0,defLayer1,defLayer2,defLayer3,defLayer4,defLayer5,defLayer6,defLayer7"
-            )
-            shader
-        }
-    }
 
     var countPerPixel = 0.25f
 
@@ -300,8 +236,7 @@ object LightShaders {
                 Variable(GLSLType.V1B, "receiveShadows"),
                 Variable(GLSLType.V3F, "finalPosition"),
                 Variable(GLSLType.V3F, "finalNormal"),
-                Variable(GLSLType.V1F, "finalMetallic"),
-                Variable(GLSLType.V1F, "finalRoughness"),
+                Variable(GLSLType.V1F, "finalReflectivity"),
                 Variable(GLSLType.V1F, "finalSheen"),
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]

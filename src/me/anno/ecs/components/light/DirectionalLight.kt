@@ -166,7 +166,12 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "if(hasSpecular){\n" +
                     // good like that?
                     "   float NdotLi = reflect(viewDir, lightNor).z;\n" +
-                    "   float x = max(NdotLi, 0.0), y = 1.0 + 256.0 * pow(1.0 - finalRoughness, 2.0);\n" +
+                    "#ifndef HAS_ROUGHNESS\n" +
+                    "   float invRoughness = finalReflectivity;\n" +
+                    "#else\n" +
+                    "   float invRoughness = 1.0 - finalRoughness;\n" +
+                    "#endif\n" +
+                    "   float x = max(NdotLi, 0.0), y = 1.0 + 256.0 * pow(invRoughness,2.0);\n" +
                     // pow(x,y) is the shape of sharpness; the divider is the integral from x=0 to x=1 over pow(x,y)*(1-x)
                     "   float lightEffect = pow(x,y) / (1.0/(y+1.0) - 1.0/(y+2.0));\n" +
                     "   effectiveSpecular = lightColor * lightEffect;\n" +

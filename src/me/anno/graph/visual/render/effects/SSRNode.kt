@@ -11,7 +11,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.effects.ScreenSpaceReflections
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.visual.render.Texture
 import me.anno.graph.visual.render.Texture.Companion.isZWMapping
@@ -31,8 +30,7 @@ class SSRNode : TimedRenderingNode(
         "Texture", "Illuminated",
         "Texture", "Diffuse",
         "Texture", "Normal", // optional in the future
-        "Texture", "Metallic",
-        "Texture", "Roughness",
+        "Texture", "Reflectivity",
         "Texture", "Depth",
     ), listOf("Texture", "Illuminated")
 ) {
@@ -67,26 +65,22 @@ class SSRNode : TimedRenderingNode(
         val normalZW = normal.isZWMapping
         val normalT = normal.texOrNull ?: whiteTexture
 
-        val metallic = getInput(10) as? Texture
-        val roughness = getInput(11) as? Texture
-        val depthT = getInput(12) as? Texture ?: return
+        val reflectivity = getInput(10) as? Texture
+        val depthT = getInput(11) as? Texture ?: return
         val depthTT = depthT.texOrNull ?: return
 
         timeRendering(name, timer) {
             val transform = RenderState.cameraMatrix
             val result0 = FBStack["ssr", width, height, 4, true, 1, DepthBufferType.NONE]
 
-            val metallicT = metallic?.texOrNull ?: whiteTexture
-            val metallicM = metallic.mask1Index
-
-            val roughnessT = roughness?.texOrNull ?: blackTexture
-            val roughnessM = roughness.mask1Index
+            val reflectivityT = reflectivity?.texOrNull ?: whiteTexture
+            val reflectivityM = reflectivity.mask1Index
 
             val originalSamples = (illumMT ?: illumTT).samples
             val inPlace = illumMT == null || originalSamples <= 1
             ScreenSpaceReflections.compute(
                 depthTT, depthT.mask1Index, normalT, normalZW, colorTT,
-                metallicT, metallicM, roughnessT, roughnessM, illumTT,
+                reflectivityT, reflectivityM, illumTT,
                 transform, strength, maskSharpness, wallThickness, fineSteps,
                 inPlace, result0
             )

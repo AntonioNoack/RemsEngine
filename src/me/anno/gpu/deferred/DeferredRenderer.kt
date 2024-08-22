@@ -11,14 +11,12 @@ val DeferredRenderer by lazy { // lazy for GFX.supportsDepthTextures
                 DeferredLayerType.COLOR, // 3
                 DeferredLayerType.NORMAL, // 2
                 DeferredLayerType.EMISSIVE, // 3
-                // DeferredLayerType.TANGENT,
-                DeferredLayerType.OCCLUSION, // 1
-                DeferredLayerType.ROUGHNESS, // 1
-                DeferredLayerType.METALLIC,// 1
+                DeferredLayerType.OCCLUSION, // 1 - remove?
+                DeferredLayerType.REFLECTIVITY,// 1
                 DeferredLayerType.SHEEN, // 1
-                DeferredLayerType.TRANSLUCENCY, // 1
-                DeferredLayerType.ANISOTROPIC, // 1
-                // total: 14/15
+                DeferredLayerType.TRANSLUCENCY, // 1 - merge with sheen?
+                DeferredLayerType.ANISOTROPIC, // 1 - remove?
+                // total: 13/15
             ) + (if (GFX.supportsDepthTextures) emptyList() else listOf(DeferredLayerType.DEPTH))
         ),
         colorRenderer.getPixelPostProcessing(0)

@@ -151,6 +151,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         // todo the LUT depends on the texture ofc, we can't use the same lut everywhere
                         "finalEmissive  = emissiveBase;//sampleAutoTileableTexture(emissiveMap, invLUTTex, uv).rgb * emissiveBase;\n" +
                         "finalOcclusion = 0.0;//(1.0 - sampleAutoTileableTexture(occlusionMap, invLUTTex, uv).r) * occlusionStrength;\n" +
+                        "#define HAS_ROUGHNESS\n" +
                         "finalMetallic  = metallicMinMax.y;//clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
                         "finalRoughness = roughnessMinMax.y;//clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUTTex, uv).r), 0.0, 1.0);\n" +
                         reflectionCalculation +

@@ -132,6 +132,7 @@ object RenderGraph {
         } catch (e: ReturnNode.ReturnThrowable) {
             e.node as? ExprReturnNode
         } catch (e: Exception) {
+            Thread.sleep(100)
             if (throwExceptions) {
                 throw e
             } else {

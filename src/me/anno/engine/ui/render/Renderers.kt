@@ -176,8 +176,7 @@ object Renderers {
                         // material properties
                         Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
                         Variable(GLSLType.V1F, "finalMetallic"),
-                        Variable(GLSLType.V1F, "finalRoughness"),
-                        Variable(GLSLType.V1F, "finalOcclusion"),
+                        Variable(GLSLType.V1F, "finalReflectivity"),
                         Variable(GLSLType.V1F, "finalSheen"),
                         // Variable(GLSLType.V3F, "finalSheenNormal"),
                         // Variable(GLSLType.V4F, "finalClearCoat"),
@@ -249,8 +248,7 @@ object Renderers {
                         Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
                         Variable(GLSLType.V1F, "finalAlpha"),
                         Variable(GLSLType.V3F, "finalPosition"),
-                        Variable(GLSLType.V1F, "finalRoughness"),
-                        Variable(GLSLType.V1F, "finalMetallic"),
+                        Variable(GLSLType.V1F, "finalReflectivity"),
                         Variable(GLSLType.V1F, "finalSheen"),
                         Variable(GLSLType.V3F, "finalSheenNormal"),
                         Variable(GLSLType.V4F, "finalClearCoat"),
@@ -271,7 +269,7 @@ object Renderers {
                             // model ambient light using simple sky model
                             "vec3 ambientLight = vec3(0.3) * vec3(0.6,0.8,1.0);\n" +
                             "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
-                            "float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+                            "float reflectivity = finalReflectivity;\n" +
                             "vec3 diffuseColor  = finalColor * (1.0-reflectivity);\n" +
                             "vec3 specularColor = finalColor * reflectivity;\n" +
                             "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +

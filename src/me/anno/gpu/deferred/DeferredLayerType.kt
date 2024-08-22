@@ -131,7 +131,7 @@ class DeferredLayerType(
         val REFLECTIVITY = DeferredLayerType(
             "Reflectivity", "finalReflectivity",
             1, 1, BufferQuality.UINT_8, false,
-            black4, "getReflectivity(finalRoughness,finalMetallic)", ""
+            black4, "", ""
         )
 
         // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
@@ -204,6 +204,7 @@ class DeferredLayerType(
             POSITION,
             METALLIC,
             ROUGHNESS,
+            REFLECTIVITY,
             TRANSLUCENCY,
             SHEEN,
             SHEEN_NORMAL,

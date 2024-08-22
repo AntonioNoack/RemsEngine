@@ -218,6 +218,7 @@ class RenderMode private constructor(
         val SHEEN = RenderMode("Sheen", DeferredLayerType.SHEEN)
         val ANISOTROPY = RenderMode("Anisotropy", DeferredLayerType.ANISOTROPIC)
         val MOTION_VECTORS = RenderMode("Motion Vectors", DeferredLayerType.MOTION)
+        val REFLECTIVITY = RenderMode("Reflectivity", DeferredLayerType.REFLECTIVITY)
 
         val PREVIEW = RenderMode("Preview", previewRenderer)
         val SIMPLE = RenderMode("Simple", simpleNormalRenderer)
@@ -549,23 +550,15 @@ class RenderMode private constructor(
             enableVertexColors = false
         })
 
-        val ALL_SILVER = RenderMode("All Silver", Material().apply {
-            metallicMinMax.set(1f)
-            roughnessMinMax.set(0f)
-            diffuseBase.set(0.9f, 0.9f, 0.9f, 1f)
+        val ALL_SILVER = RenderMode("All Silver", Material.metallic(0xe5e5e5, 0f).apply {
             enableVertexColors = false
         })
 
-        val ALL_STEEL = RenderMode("All Steel", Material().apply {
-            metallicMinMax.set(1f)
-            roughnessMinMax.set(0.2f)
-            diffuseBase.set(0.3f, 0.3f, 0.3f, 1f)
+        val ALL_STEEL = RenderMode("All Steel", Material.metallic(0x4c4c4c,0.2f).apply {
             enableVertexColors = false
         })
 
-        val ALL_GOLDEN = RenderMode("All Golden", Material.diffuse(0xf5ba6c).apply {
-            roughnessMinMax.set(0.2f)
-            metallicMinMax.set(1f)
+        val ALL_GOLDEN = RenderMode("All Golden", Material.metallic(0xf5ba6c, 0.2f).apply {
             enableVertexColors = false
         })
 

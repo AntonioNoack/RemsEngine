@@ -437,6 +437,7 @@ object SDFComposer {
         Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
         Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
         Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
+        Variable(GLSLType.V1F, "finalReflectivity", VariableMode.OUT),
         // outputs for motion vectors
         Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
         Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
@@ -458,6 +459,7 @@ object SDFComposer {
         Variable(GLSLType.SCube, "reflectionMap"),
         Variable(GLSLType.V1B, "renderIds"),
         Variable(GLSLType.V2F, "renderSize"),
+        Variable(GLSLType.V1F, "finalOcclusion"),
         Variable(GLSLType.V4F, "finalId", VariableMode.OUT),
     ) + depthVars
 }

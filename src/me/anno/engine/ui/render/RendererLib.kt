@@ -26,9 +26,8 @@ object RendererLib {
             "#ifndef GET_REFLECTIVITY\n" +
             "#define GET_REFLECTIVITY\n" +
             "float getReflectivity(float roughness, float metallic){\n" +
-            "   roughness = clamp(roughness, 0.0, 1.0);\n" +
-            "   metallic = clamp(metallic, 0.0, 1.0);\n" +
-            "   return mix(mix(0.1, 1.0, metallic), 0.0, roughness);\n" +
+            "   float result = mix(mix(0.1, 1.0, metallic), 0.0, roughness);\n" +
+            "   return result > 0.0 ? min(result,1.0) : 0.0;\n" + // clamping incl. handling for NaN
             "}\n" +
             "#endif\n"
 
@@ -37,7 +36,7 @@ object RendererLib {
             // todo it would be nice, if we could search the reflectionMap using its depth
             //  like screen-space reflections to get a more 3d look
             "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
-            "       float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+            "       float reflectivity = finalReflectivity;\n" +
             "       if(reflectivity > 0.0){\n" +
             "           vec3 dir = $cubemapsAreLeftHanded * reflect(V, finalNormal);\n" +
             "           float lod = finalRoughness * 10.0;\n" +
@@ -89,9 +88,13 @@ object RendererLib {
             addDiffuseLight +
             "   }\n"
 
+    // todo for roughness, use finalRoughness, if available, or 1-reflectivity, if not
     val combineLightCode = "" +
             "   vec3 light;\n" +
             mixAndClampLight +
+            "#ifndef HAS_ROUGHNESS\n" +
+            "   float finalRoughness = 1.0-finalReflectivity;\n" +
+            "#endif\n" +
             "   light += sampleSkyboxForAmbient(finalNormal, finalRoughness, reflectivity);\n" +
             // cheating to make metallic stuff not too dark when using forward rendering
             // -> doesn't work as nicely, as I had hoped

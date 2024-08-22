@@ -138,7 +138,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 "   effectiveSpecular = effectiveDiffuse;\n" +
                 // 0 = perpendicular, 1 = perfectly aligned for reflection
                 "   float dot1 = max(-dot(normalize(lightPos), reflect(viewDir, lightNor)), 0.0);\n" +
-                "   float smoothness = 1.0 - finalRoughness;\n" +
+                "   float smoothness = finalReflectivity;\n" +
                 "   effectiveSpecular *= mix(1.0, 2e4, smoothness) * pow(dot1, 1.0 + 64.0 * smoothness);\n" +
                 "}\n"
 

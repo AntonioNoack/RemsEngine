@@ -26,7 +26,7 @@ import org.joml.Matrix4f
 object ScreenSpaceReflections {
 
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
-    fun createShader(inPlace: Boolean, depthMaskI: Int, roughnessMaskI: Int, metallicMaskI: Int): Shader {
+    fun createShader(inPlace: Boolean, depthMaskI: Int, reflectivityMaskI: Int): Shader {
         val variables = arrayListOf(
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.M4x4, "cameraMatrix"),
@@ -34,9 +34,7 @@ object ScreenSpaceReflections {
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
-            // reflectivity = metallic * (1-roughness),
-            Variable(GLSLType.S2D, "finalMetallic"),
-            Variable(GLSLType.S2D, "finalRoughness"),
+            Variable(GLSLType.S2D, "finalReflectivity"),
             Variable(GLSLType.V1F, "resolution"),
             Variable(GLSLType.V1I, "steps"),
             Variable(GLSLType.V1F, "thickness"),
@@ -59,8 +57,7 @@ object ScreenSpaceReflections {
             else "result = vec4(0.0);\nreturn;\n"
 
         val depthMask = "xyzw"[depthMaskI]
-        val roughnessMask = "xyzw"[roughnessMaskI]
-        val metallicMask = "xyzw"[metallicMaskI]
+        val reflectivityMask = "xyzw"[reflectivityMaskI]
 
         return Shader(
             "ss-reflections", emptyList(), ShaderLib.coordsUVVertexShader, ShaderLib.uvList, variables, "" +
@@ -71,13 +68,11 @@ object ScreenSpaceReflections {
 
                     "   vec3 color0 = texture(finalIlluminated, uv).rgb;\n".iff(inPlace) +
 
-                    "   float metallic = texture(finalMetallic, uv).$metallicMask;\n" +
-                    "   float roughness = texture(finalRoughness, uv).$roughnessMask;\n" +
-                    "   float reflectivity = metallic * (1.0 - roughness);\n" +
+                    "   float reflectivity = texture(finalReflectivity, uv).$reflectivityMask;\n" +
                     "   reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                     // "   reflectivity = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
                     // skip, if not reflective
-                    "   if (reflectivity <= 0.0) {\n" +
+                    "   if (!(reflectivity > 0.0)) {\n" +
                     returnColor0 +
                     "   };\n" +
 
@@ -202,12 +197,11 @@ object ScreenSpaceReflections {
         )
     }
 
-    val shader = LazyList(2 * 4 * 4 * 4) {
+    val shader = LazyList(2 * 4 * 4) {
         createShader(
             it.hasFlag(1),
             (it shr 1).and(3),
             (it shr 3).and(3),
-            (it shr 5).and(3),
         )
     }
 
@@ -221,12 +215,9 @@ object ScreenSpaceReflections {
         normal: ITexture2D,
         normalZW: Boolean,
         color: ITexture2D,
-        metallic: ITexture2D,
+        reflectivity: ITexture2D,
         // metallic may be on r, g, b, or a
-        metallicMask: Int,
-        roughness: ITexture2D,
-        // roughness may be on r, g, b, or a
-        roughnessMask: Int,
+        reflectivityMask: Int,
         illuminated: ITexture2D,
         cameraMatrix: Matrix4f,
         strength: Float, // 1f
@@ -239,8 +230,7 @@ object ScreenSpaceReflections {
         GFXState.useFrame(dst, Renderer.copyRenderer) {
             val shader = shader[inPlace.toInt() +
                     depthMask.shl(1) +
-                    roughnessMask.shl(3) +
-                    metallicMask.shl(5)]
+                    reflectivityMask.shl(3)]
             shader.use()
             shader.v1f("resolution", 1f / fineSteps)
             shader.v1i("steps", fineSteps)
@@ -251,8 +241,7 @@ object ScreenSpaceReflections {
             shader.v1b("normalZW", normalZW)
             DepthTransforms.bindDepthUniforms(shader)
             illuminated.bindTrulyLinear(shader, "finalIlluminated")
-            roughness.bindTrulyLinear(shader, "finalRoughness")
-            metallic.bindTrulyLinear(shader, "finalMetallic")
+            reflectivity.bindTrulyLinear(shader, "finalReflectivity")
             normal.bindTrulyLinear(shader, "finalNormal")
             depth.bindTrulyLinear(shader, "finalDepth")
             color.bindTrulyLinear(shader, "finalColor")

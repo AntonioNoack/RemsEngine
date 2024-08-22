@@ -98,10 +98,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   finalAlpha = mix(finalAlpha, 1.0, clearCoatEffect);\n" +
                 "}\n"
 
+        val reflectivityCalculation = "" +
+                "finalReflectivity = getReflectivity(finalRoughness,finalMetallic);\n"
+
         val reflectionPlaneCalculation = "" +
                 // reflections
                 "if(hasReflectionPlane){\n" +
-                "   float effect = dot(reflectionPlaneNormal,finalNormal) * getReflectivity(finalRoughness,finalMetallic);\n" +
+                "   float effect = dot(reflectionPlaneNormal,finalNormal) * finalReflectivity;\n" +
                 "   float factor = min(effect, 1.0);\n" +
                 "   if(factor > 0.0){\n" +
                 // todo distance to plane, and fading
@@ -133,7 +136,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionMapCalculation = "" +
                 "#ifdef DEFERRED\n" +
-                "   float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
+                "   float reflectivity = finalReflectivity;\n" +
                 "   if(reflectivity > 0.0){\n" +
                 "       vec3 dir = $cubemapsAreLeftHanded * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
@@ -153,6 +156,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionCalculation = "" +
                 colorToLinear +
+                reflectivityCalculation +
                 reflectionPlaneCalculation +
                 reflectionMapCalculation
 
@@ -196,6 +200,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val metallicCalculation =
             "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv, lodBias).r), 0.0, 1.0);\n"
         val roughnessCalculation =
+            "#define HAS_ROUGHNESS\n" +
             "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv, lodBias).r), 0.0, 1.0);\n"
         val finalMotionCalculation = "" +
                 "#ifdef MOTION_VECTORS\n" +
@@ -454,6 +459,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
+            Variable(GLSLType.V1F, "finalReflectivity", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalOcclusion", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalSheen", VariableMode.OUT),
             // just passed from uniforms

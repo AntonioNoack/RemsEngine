@@ -50,6 +50,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
+                Variable(GLSLType.V1F, "finalOcclusion"),
                 Variable(GLSLType.V4F, "currPosition"),
                 Variable(GLSLType.V4F, "prevPosition"),
                 Variable(GLSLType.V3F, "sunDir"),
