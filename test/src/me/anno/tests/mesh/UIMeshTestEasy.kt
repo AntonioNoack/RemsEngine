@@ -8,9 +8,9 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.OS.res
 
 /**
  * load an existing asset, like the arrow, and draw it :)
@@ -18,7 +18,7 @@ import me.anno.ui.debug.TestEngine.Companion.testUI3
  * like UIMeshTestCustomizable, just easier (and plus normals-background)
  * */
 
-fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.obj")): Panel {
+fun createEasyMeshUI(meshRef: FileReference = res.getChild("meshes/arrowX.obj")): Panel {
     ECSRegistry.init()
     EditorState.prefabSource = meshRef
     val sceneView = SceneView(PlayMode.PLAYING, style)

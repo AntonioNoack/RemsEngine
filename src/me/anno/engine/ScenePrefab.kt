@@ -1,7 +1,6 @@
 package me.anno.engine
 
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityPhysics.physics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileRootRef
@@ -85,8 +84,6 @@ object ScenePrefab : InnerLazyPrefabFile(
      * if the server is local, it may be controlled by the remotely playing
      * */
     fun getRemotePlayers(scene: Entity) = scene.children[remotePlayersIndex]
-
-    fun getPhysics(scene: Entity) = scene.physics
 
     fun createLocalPlayer(entity: Entity, name: String): Entity {
         val instance = getPlayerPrefab(entity).clone() as Entity

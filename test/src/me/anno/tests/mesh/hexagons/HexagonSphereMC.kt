@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
@@ -233,7 +234,7 @@ fun generateMesh(
             var lastY0 = 0
             for (y in 0 until sy) {
                 val currType = blocks[i0 + y]
-                val needsFace = needsFace(currType, blocks[i1 + y],  transparent)
+                val needsFace = needsFace(currType, blocks[i1 + y], transparent)
                 if (currType != lastType || needsFace != lastAir) {
                     if (lastType > 0 && lastAir) {
                         addSide(lastType, lastY0, y, currType)
@@ -262,7 +263,12 @@ fun generateMesh(
     return mesh
 }
 
-fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld, transparent: Boolean?, mesh: Mesh = Mesh()): Mesh {
+fun createMesh(
+    visualList: ArrayList<Hexagon>,
+    world: HexagonSphereMCWorld,
+    transparent: Boolean?,
+    mesh: Mesh = Mesh()
+): Mesh {
     val size = visualList.size
     val (world1, indexMap) = world.generateWorld(visualList, true)
     generateMesh(visualList, size, indexMap, world1, world, mesh, transparent)
@@ -285,7 +291,7 @@ fun main() {
     scene.add(sky)
 
     val physics = BulletPhysics()
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     physics.gravity.set(0.0)
 
     val sun = DirectionalLight()

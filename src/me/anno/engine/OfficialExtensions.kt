@@ -1,6 +1,7 @@
 package me.anno.engine
 
 import me.anno.extensions.ExtensionLoader
+import me.anno.utils.OS.res
 
 /**
  * tries to find official extensions, which were made into extensions to reduce porting complexity
@@ -8,23 +9,24 @@ import me.anno.extensions.ExtensionLoader
 object OfficialExtensions {
     fun register() {
         val paths = listOf(
-            "res://jvm-ext.info",
-            "res://pdf-ext.info",
-            "res://box2d-ext.info",
-            "res://bullet-ext.info",
-            "res://bullet-jme-ext.info",
-            "res://recast-ext.info",
-            "res://sdf-ext.info",
-            "res://lua-ext.info",
-            "res://mesh-ext.info",
-            "res://unpack-ext.info",
-            "res://image-ext.info",
-            "res://video-ext.info",
-            "res://export-ext.info",
-            "res://openxr-ext.info",
+            "jvm-ext.info",
+            "pdf-ext.info",
+            "box2d-ext.info",
+            "bullet-ext.info",
+            "bullet-jme-ext.info",
+            "recast-ext.info",
+            "sdf-ext.info",
+            "lua-ext.info",
+            "mesh-ext.info",
+            "unpack-ext.info",
+            "image-ext.info",
+            "video-ext.info",
+            "export-ext.info",
+            "openxr-ext.info",
         )
         for (path in paths) {
-            ExtensionLoader.tryLoadMainInfo(path)
+            val file = res.getChild(path)
+            ExtensionLoader.tryLoadMainInfo(file)
         }
     }
 

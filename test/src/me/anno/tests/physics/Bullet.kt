@@ -9,6 +9,7 @@ import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths
 import javax.vecmath.Vector3d
 
@@ -65,7 +66,7 @@ private fun test2() {
     // create test world
     val world = Entity()
     val physics = BulletPhysics()
-    world.add(physics)
+    Systems.registerSystem("bullet", physics)
     val ground = Entity()
     ground.name = "Ground"
     val groundRB = Rigidbody()

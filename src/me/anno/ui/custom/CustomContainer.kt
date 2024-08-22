@@ -5,7 +5,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
-import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -15,9 +14,9 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color.white
+import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.roundToIntOr
 import org.apache.logging.log4j.LogManager
-import kotlin.math.roundToInt
 
 /**
  * Container element, where the child can be selected from a predefined list (library) of panels.
@@ -175,8 +174,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     companion object {
 
-        private val crossPath = getReference("res://textures/Cross.png")
-
+        private val crossPath = res.getChild("textures/Cross.png")
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
 
         fun getCrossSize(style: Style): Float {

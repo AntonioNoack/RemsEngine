@@ -1,8 +1,8 @@
 package me.anno.ui.editor.color.spaces
 
-import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
+import me.anno.utils.OS.res
 import me.anno.utils.pooling.JomlPools
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
@@ -10,7 +10,7 @@ import org.joml.Vector3f
 object HSLuv : ColorSpace(
     NameDesc("HSLuv", "HSL/HSV with constant brightness", "colorSpace.hsluv"),
     lazy {
-        getReference("res://shaders/color/HSLuv.glsl").readTextSync() + "\n" +
+        res.getChild("shaders/color/HSLuv.glsl").readTextSync() + "\n" +
                 "vec3 spaceToRGB(vec3 hsl){\n" +
                 "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
                 "}\n"

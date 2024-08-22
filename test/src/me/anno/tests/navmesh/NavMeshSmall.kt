@@ -14,9 +14,9 @@ import me.anno.engine.EngineBase
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
-import me.anno.io.files.Reference.getReference
 import me.anno.recast.NavMesh
 import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.utils.OS.res
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
@@ -37,7 +37,7 @@ fun main() {
         val world = Entity("World")
         world.add(Skybox())
 
-        val agentMeshRef = getReference("res://meshes/CuteGhost.fbx")
+        val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
@@ -53,7 +53,7 @@ fun main() {
 
         val meshEntity = Entity("Mesh", world)
             .setScale(1.5)
-            .add(MeshComponent(getReference("res://meshes/NavMesh.fbx")).apply {
+            .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
 
@@ -83,7 +83,7 @@ fun main() {
         val crowd = Crowd(config, navMesh)
 
         val agents = Entity("Agents", world)
-        val flagMesh = getReference("res://meshes/Flag.fbx")
+        val flagMesh = res.getChild("meshes/Flag.fbx")
         for (i in 0 until 5) {
             val group = Entity("Agent[$i]", agents)
             val flag = Entity("Flag", group)

@@ -4,16 +4,16 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.OfficialExtensions
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.jvm.HiddenOpenGLContext
 import me.anno.image.thumbs.Thumbs
-import me.anno.io.files.Reference.getReference
+import me.anno.jvm.HiddenOpenGLContext
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.res
 
 fun main() {
     OfficialExtensions.initForTests()
-    val ori = getReference("res://icon.png")
+    val ori = res.getChild("icon.png")
     if (true) {
         disableRenderDoc()
         testUI3("Components") {
@@ -27,4 +27,4 @@ fun main() {
     }
 }
 
-// todo add res:// as a root folder (?) to FileExplorer
+// todo add res:// as a root folder to FileExplorer?

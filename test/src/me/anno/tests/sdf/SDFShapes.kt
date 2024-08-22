@@ -3,7 +3,6 @@ package me.anno.tests.sdf
 import me.anno.ecs.Entity
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.Reference.getReference
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.shapes.SDFBezierCurve
 import me.anno.sdf.shapes.SDFBlob
@@ -29,6 +28,7 @@ import me.anno.sdf.shapes.SDFStairs
 import me.anno.sdf.shapes.SDFStar
 import me.anno.sdf.shapes.SDFTorus
 import me.anno.sdf.shapes.SDFTriangle
+import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.upperSnakeCaseToTitle
 import org.joml.Vector3f
@@ -105,7 +105,7 @@ fun createShapesScene(): Entity {
      *
      * Using Susanne as the sample mesh, with 2 small spheres, reduced my performance to 60 fps on a RTX 3070 (BAD!!!).
      * */
-    val sampleMesh = getReference("res://icon-lowpoly.obj")
+    val sampleMesh = res.getChild("icon-lowpoly.obj")
     for ((index, type) in SDFMesh.SDFMeshTechnique.entries.withIndex()) {
         place(SDFMesh().apply {
             name = "SDFMesh - ${type.name.upperSnakeCaseToTitle()}"

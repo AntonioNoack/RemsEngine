@@ -334,8 +334,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
      * loads localPosition, localNormal, localTangent and such from vertex data
      * */
     fun loadVertex(key: ShaderKey): List<ShaderStage> {
+        return loadVertex(key, key.flags)
+    }
+
+    fun loadVertex(key: ShaderKey, flags: Int): List<ShaderStage> {
         val vertexData = key.vertexData
-        val flags = key.flags
         return vertexData.loadPosition +
                 f(vertexData.loadNorTan, flags.hasFlag(NEEDS_COLORS)) +
                 f(vertexData.loadColors, flags.hasFlag(NEEDS_COLORS)) +

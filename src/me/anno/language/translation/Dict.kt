@@ -9,6 +9,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
 import me.anno.ui.input.EnumInput
+import me.anno.utils.OS.res
 import me.anno.utils.types.Strings.indexOf2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -73,7 +74,7 @@ object Dict {
             "uk.lang", "ru.lang"
         )
         for (fileName in internalFiles) {
-            options += load(getReference("res://lang/$fileName")) ?: continue
+            options += load(res.getChild("lang/$fileName")) ?: continue
         }
         val externalFiles = ConfigBasics.configFolder.getChild(EXTENSION).listChildren()
         for (file in externalFiles) {
@@ -90,9 +91,9 @@ object Dict {
     fun getDefaultOption(): LanguageOption {
         val options = getOptions()
         val userLanguage = Locale.getDefault().language
-        val userLanguagePath = getReference("res://$EXTENSION/$userLanguage.$EXTENSION")
+        val userLanguagePath = res.getChild("$EXTENSION/$userLanguage.$EXTENSION")
         val userLanguageIsSupported = getReference(userLanguagePath).exists
-        val defaultLang0 = getReference("res://$EXTENSION/en.$EXTENSION")
+        val defaultLang0 = res.getChild("$EXTENSION/en.$EXTENSION")
         val defaultLang = if (userLanguageIsSupported) userLanguagePath else defaultLang0
         val currentLanguagePath = DefaultConfig["ui.language", defaultLang]
         return options.firstOrNull { it.path == currentLanguagePath }

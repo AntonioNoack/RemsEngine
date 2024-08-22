@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
+import me.anno.ecs.systems.Systems
 import me.anno.engine.EngineBase
 import me.anno.engine.ui.render.SceneView
 import me.anno.mesh.Shapes
@@ -53,7 +54,7 @@ fun main() {
     }
     create(scene, 8)
 
-    scene.add(StaticMeshManager())
+    Systems.registerSystem("smm", StaticMeshManager())
     SceneView.testSceneWithUI("StaticMeshManager", scene) {
         EngineBase.enableVSync = false
     }

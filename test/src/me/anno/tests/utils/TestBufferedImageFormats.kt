@@ -11,10 +11,10 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.raw.GPUImage
 import me.anno.image.thumbs.ThumbsRendering
-import me.anno.io.files.Reference.getReference
 import me.anno.jvm.HiddenOpenGLContext
 import me.anno.jvm.images.BIImage.toImage
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.res
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
@@ -23,7 +23,7 @@ fun main() {
     OfficialExtensions.initForTests()
     HiddenOpenGLContext.createOpenGL()
 
-    val srcFile = getReference("res://icon.png")
+    val srcFile = res.getChild("icon.png")
     val testImage = ImageIO.read(srcFile.inputStreamSync())
 
     val formats = (1..13).toList()

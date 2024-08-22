@@ -308,8 +308,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    val zipFileForDirectory
-        get(): FileReference? {
+    val zipFileForDirectory: FileReference?
+        get() {
             var zipFile = zipFile ?: return null
             if (!zipFile.isDirectory) {
                 zipFile = InnerFolderCache.readAsFolder(zipFile, false) ?: return null
@@ -317,7 +317,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return zipFile
         }
 
-    private val zipFile get() = InnerFolderCache.readAsFolder(this, false)
+    private val zipFile: FileReference?
+        get() = InnerFolderCache.readAsFolder(this, false)
 
     fun getSibling(name: String): FileReference {
         return getParent().getChild(name)

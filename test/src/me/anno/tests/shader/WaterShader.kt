@@ -35,8 +35,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.files.Reference.getReference
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import me.anno.utils.types.Booleans.hasFlag
 import kotlin.math.PI
 
@@ -129,7 +129,7 @@ object WaterShader : ECSMeshShader("Water") {
 fun main() {
     OfficialExtensions.initForTests()
     val scene = Entity()
-    scene.add(MeshComponent(getReference("res://meshes/NavMesh.fbx")))
+    scene.add(MeshComponent(res.getChild("meshes/NavMesh.fbx")))
     val material = Material().apply {
         pipelineStage = PipelineStage.TRANSPARENT
         normalMap = pictures.getChild("normal waves.jpg")

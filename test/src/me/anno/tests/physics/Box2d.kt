@@ -11,6 +11,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.systems.Systems
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -84,7 +85,7 @@ private fun test2() {
     val physics = Box2dPhysics()
     physics.velocityIterations = 1
     physics.positionIterations = 1
-    world.add(physics)
+    Systems.registerSystem("box2d", physics)
     val ground = Entity()
     val groundRB = Rigidbody2d()
     ground.add(groundRB)
@@ -122,7 +123,7 @@ fun test3() {
     physics.gravity.y = 90.0
     physics.allowedSpace.all()
     physics.updateGravity()
-    world.add(physics)
+    Systems.registerSystem("box2d", physics)
 
     val width = 1000
     val height = 1000

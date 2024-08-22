@@ -9,7 +9,7 @@ import me.anno.bullet.createBulletShape
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.sdf.SDFCollider
 import me.anno.sdf.shapes.SDFBox
@@ -29,34 +29,29 @@ fun main() {
     fun test0() {
         val scene = Entity()
         val physics = BulletPhysics()
-        scene.add(physics)
+        Systems.registerSystem("bullet", physics)
         physics.updateInEditMode = true
 
-        val instance = Entity()
-        instance.add(Rigidbody().apply { mass = 0.0 })
-        instance.add(SphereCollider())
-        instance.setPosition(0.0, -20.0, 0.0)
-        instance.setScale(20.0)
-        instance.add(SDFSphere())
+        Entity("SphereCollider", scene)
+            .add(Rigidbody().apply { mass = 0.0 })
+            .add(SphereCollider())
+            .setPosition(0.0, -20.0, 0.0)
+            .setScale(20.0)
+            .add(SDFSphere())
 
-        val projectile1 = Entity()
-        projectile1.add(Rigidbody().apply { mass = 1.0 })
-        projectile1.add(BoxCollider())
-        projectile1.setPosition(-3.3, 15.0, 0.0)
-        projectile1.setScale(3.0)
-        projectile1.add(SDFBox())
+        Entity("BoxCollider", scene)
+            .add(Rigidbody().apply { mass = 1.0 })
+            .add(BoxCollider())
+            .setPosition(-3.3, 15.0, 0.0)
+            .setScale(3.0)
+            .add(SDFBox())
 
-        val projectile2 = Entity()
-        projectile2.add(Rigidbody().apply { mass = 1.0 })
-        projectile2.add(SDFCollider().apply { isConvex = true })
-        projectile2.setPosition(+3.3, 15.0, 0.0)
-        projectile2.setScale(3.0)
-        projectile2.add(SDFBox())
-
-        scene.add(instance)
-        scene.add(projectile1)
-        scene.add(projectile2)
-        scene.add(Skybox()) // beauty ^^
+        Entity("SDFCollider", scene)
+            .add(Rigidbody().apply { mass = 1.0 })
+            .add(SDFCollider().apply { isConvex = true })
+            .setPosition(+3.3, 15.0, 0.0)
+            .setScale(3.0)
+            .add(SDFBox())
 
         testUI("SDF Physics") {
             testScene(scene)

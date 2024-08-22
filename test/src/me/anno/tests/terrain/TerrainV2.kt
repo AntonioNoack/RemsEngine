@@ -18,9 +18,9 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.noise.PerlinNoise
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import me.anno.utils.callbacks.F2F
 import me.anno.utils.types.Vectors.normalToQuaternionY
 import org.apache.logging.log4j.LogManager
@@ -110,7 +110,7 @@ fun main() {
     terrain.material = material
     val editor = TerrainEditModeV2()
     editor.cursor = Entity("Cursor", scene)
-        .add(MeshComponent(getReference("res://meshes/TeleportCircle.glb")))
+        .add(MeshComponent(res.getChild("meshes/TeleportCircle.glb")))
 
     val noise = PerlinNoise(1234L, 5, 0.5f, -7f, 7f, Vector4f(1f / 20f))
     val height = F2F(noise::getSmooth)

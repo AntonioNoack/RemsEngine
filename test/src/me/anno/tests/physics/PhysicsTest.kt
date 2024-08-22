@@ -4,12 +4,13 @@ import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.systems.Systems
 
 fun main() {
 
     val world = Entity()
     val physics = BulletPhysics()
-    world.add(physics)
+    Systems.registerSystem("bullet", physics)
 
     world.create()
 
@@ -42,6 +43,4 @@ fun main() {
     // println(sphere.transform.time)
 
     println("target: $targetFallLength")
-
-
 }

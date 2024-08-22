@@ -11,9 +11,9 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.files.Reference.getReference
 import me.anno.mesh.obj.SimpleOBJReader
 import me.anno.utils.OS
+import me.anno.utils.OS.res
 import me.anno.utils.Sleep.waitUntilDefined
 import java.io.IOException
 import java.io.InputStream
@@ -30,7 +30,7 @@ object Logo {
     var logoBackgroundColor = 0
     var logoIconColor = 0xff212256.toInt()
 
-    private val logoSrc = getReference("res://icon.obj")
+    private val logoSrc = res.getChild("icon.obj")
 
     private val shader = Shader( // very simple shader, drawing a single color
         "logo", listOf(

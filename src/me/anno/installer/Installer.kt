@@ -4,10 +4,10 @@ import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
+import me.anno.utils.OS.res
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import org.apache.logging.log4j.LogManager
@@ -23,7 +23,7 @@ object Installer {
     private val LOGGER = LogManager.getLogger(Installer::class)
 
     private val mirrors = SimpleYAMLReader.read(
-        getReference("res://mirrors.yaml")
+        res.getChild("mirrors.yaml")
             .readLinesSync(1024),
         false
     )

@@ -26,6 +26,7 @@ import me.anno.tests.game.pacman.logic.PacmanLogic
 import me.anno.ui.UIColors.cornFlowerBlue
 import me.anno.ui.UIColors.darkOrange
 import me.anno.ui.debug.PureTestEngine.Companion.testPureUI
+import me.anno.utils.OS.res
 import org.joml.Vector2f
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -148,7 +149,7 @@ fun spatialPacmanGame(): Entity {
     }
 
     val enemies = Entity("Enemies", scene)
-    val enemyMesh = getReference("res://meshes/CuteGhost.fbx")
+    val enemyMesh = res.getChild("meshes/CuteGhost.fbx")
     for (enemy in game.enemies) {
         Entity(enemies)
             .setPosition(enemy.currPosition.x + 0.5, 0.0, enemy.currPosition.y + 0.5)

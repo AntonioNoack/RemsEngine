@@ -14,13 +14,13 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.image.thumbs.AssetThumbHelper.createCameraMatrix
 import me.anno.image.thumbs.AssetThumbHelper.drawAssimp
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.tests.gfx.initWithGFX
 import me.anno.ui.UIColors
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
@@ -46,7 +46,7 @@ fun main() {
     val w = 512
     val h = 512
     val samples = 8
-    val src = getReference("res://meshes/NavMesh.fbx")
+    val src = res.getChild("meshes/NavMesh.fbx")
     val dst = desktop.getChild("${src.nameWithoutExtension}.gif") // todo mp3 isn't working???
     val fps = 60.0 // todo it really doesn't feel like 60fps when using gif
     val duration = 10.0

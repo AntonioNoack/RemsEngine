@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.io.files.BundledRef
 import me.anno.io.files.Reference.getReference
 
 /**
@@ -55,6 +56,9 @@ object OS {
 
     @JvmStatic
     val music by lazy { home.getChild("Music") }
+
+    @JvmStatic
+    val res by lazy { getReference(BundledRef.PREFIX) }
 
     // val res = getReference(BundledRef.prefix) // getChild() is not supported on all platforms, so I'd rather not provide this
     @JvmStatic

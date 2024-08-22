@@ -5,12 +5,12 @@ import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.GenericConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
-import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
-import me.anno.utils.Color.black
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 import kotlin.math.PI
@@ -25,7 +25,7 @@ fun main() {
     ECSRegistry.init()
     val scene = Entity("Scene")
     val physics = BulletPhysics()
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     physics.updateInEditMode = true
 
     val box0 = Entity("Door", scene)

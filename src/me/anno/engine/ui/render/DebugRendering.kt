@@ -249,7 +249,7 @@ object DebugRendering {
         LineBuffer.finish(cameraMatrix)
         drawDebugTriangles(view)
         TriangleBuffer.finish(cameraMatrix)
-        GFXState.depthMode.use(view.depthMode.always) {
+        GFXState.depthMode.use(view.depthMode.alwaysMode) {
             GFXState.depthMask.use(false) {
                 drawDebugTexts(view)
             }

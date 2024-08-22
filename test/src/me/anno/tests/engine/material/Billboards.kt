@@ -7,12 +7,12 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.engine.EngineBase.Companion.enableVSync
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.texture.Clamping
-import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes
+import me.anno.utils.OS.res
 
 fun main() {
-    // todo this lags behind one frame, can we get it perfect?
-    val source = getReference("res://icon.png")
+    // todo this lags behind one frame, because update() is called before cameraMatrix updates, can we get it perfect?
+    val source = res.getChild("icon.png")
     val material = Material().apply {
         // for alpha
         diffuseMap = source

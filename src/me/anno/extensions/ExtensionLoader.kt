@@ -274,8 +274,8 @@ object ExtensionLoader {
      * very useful for setting up a quick project
      * */
     @JvmStatic
-    fun loadMainInfo(fileName: String = "res://extension.info") {
-        loadInternally(loadInfoFromTxt(getReference(fileName))!!)
+    fun loadMainInfo(file: FileReference) {
+        loadInternally(loadInfoFromTxt(getReference(file))!!)
     }
 
     /**
@@ -285,11 +285,11 @@ object ExtensionLoader {
      * fails without exception
      * */
     @JvmStatic
-    fun tryLoadMainInfo(fileName: String = "res://extension.info") {
+    fun tryLoadMainInfo(file: FileReference) {
         try {
-            loadMainInfo(fileName)
+            loadMainInfo(file)
         } catch (e: IOException) {
-            LOGGER.warn("$fileName could not be loaded")
+            LOGGER.warn("$file could not be loaded")
         }
     }
 

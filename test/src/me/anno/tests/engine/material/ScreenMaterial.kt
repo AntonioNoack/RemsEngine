@@ -12,8 +12,8 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.OS.res
 
 /**
  * inspired by Jam2go, https://www.youtube.com/watch?v=LGkblrCmzlE
@@ -39,8 +39,8 @@ object ScreenShader : ECSMeshShader("Screen") {
 
 fun main() {
     // create image plane
-    val mask = getReference("res://textures/RGBMask.png")
-    val image = getReference("res://textures/dig8.png")
+    val mask = res.getChild("textures/RGBMask.png")
+    val image = res.getChild("textures/dig8.png")
     val plane = ImagePlane()
     plane.material.apply {
         shader = ScreenShader

@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.cache.ICacheData
 import me.anno.ecs.components.mesh.utils.MeshInstanceData
 import me.anno.ecs.components.mesh.utils.MeshVertexData
+import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.DitherMode
 import me.anno.gpu.GFX
@@ -226,7 +227,10 @@ open class BaseShader(
             val renderer = GFXState.currentRenderer
             val animated = GFXState.animated.currentValue
             val instanceData = GFXState.instanceData.currentValue
-            val isDepth = renderer == Renderer.nothingRenderer
+            val isDepth = renderer == Renderer.nothingRenderer ||
+                    renderer == Renderer.depthRenderer ||
+                    renderer == rawAttributeRenderers.getOrNull(DeferredLayerType.DEPTH) ||
+                    renderer == attributeRenderers.getOrNull(DeferredLayerType.DEPTH)
             return animated.toInt(IS_ANIMATED) or
                     motionVectors.toInt(NEEDS_MOTION_VECTORS) or
                     (!isDepth).toInt(NEEDS_COLORS) or

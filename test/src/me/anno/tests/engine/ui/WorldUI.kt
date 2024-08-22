@@ -11,13 +11,13 @@ import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.io.files.Reference.getReference
 import me.anno.openxr.ecs.VRHandController
 import me.anno.openxr.ecs.VRHandPickup
 import me.anno.openxr.ecs.VRSocket
 import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
 import me.anno.utils.OS.documents
+import me.anno.utils.OS.res
 
 fun main() {
     // todo ui probably should react, if it is camera-space (only scaled properly in non-editor-mode)
@@ -36,14 +36,14 @@ fun main() {
     prepareHand(scene, false)
     prepareHand(scene, true)
 
-    Entity("NavMesh", scene).add(MeshComponent(getReference("res://meshes/NavMesh.fbx"))).setScale(0.25)
+    Entity("NavMesh", scene).add(MeshComponent(res.getChild("meshes/NavMesh.fbx"))).setScale(0.25)
 
     // add 5 objects, which can be picked up
     val ball = IcosahedronModel.createIcosphere(2, 0.05f)
     for (i in 0 until 5) {
         scene.add(
             Entity("Pickup[$i]", scene)
-                .add(MeshComponent(getReference("res://meshes/CuteGhost.fbx")))
+                .add(MeshComponent(res.getChild("meshes/CuteGhost.fbx")))
                 .add(VRHandPickup().apply {
                     // todo test this
                     shouldBeLockedInHand = i == 2
@@ -86,7 +86,7 @@ fun prepareHand(scene: Entity, isRightHand1: Boolean) {
     hand.add(VRHandController().apply {
         isRightHand = isRightHand1
         if (isRightHand) {
-            val ref = getReference("res://meshes/TeleportCircle.glb")
+            val ref = res.getChild("meshes/TeleportCircle.glb")
             val handCube = Entity().add(MeshComponent(ref, teleportLineMaterial))
             scene.add(handCube)
             teleportCircleMesh = handCube

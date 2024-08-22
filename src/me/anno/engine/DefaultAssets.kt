@@ -11,11 +11,11 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.Reference
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.utils.Color.black
+import me.anno.utils.OS.res
 
 /**
  * some assets that are guaranteed to be always available;
@@ -68,13 +68,13 @@ object DefaultAssets {
         emissive.emissiveBase.set(10f)
         register("materials/Emissive.json", "Material", emissive.ref)
         val uvDebug = Material()
-        uvDebug.diffuseMap = getReference("res://textures/UVChecker.png")
+        uvDebug.diffuseMap = res.getChild("textures/UVChecker.png")
         register("materials/UVDebug.json", "Material", uvDebug.ref)
     }
 
     private fun registerTextures() {
-        register("textures/UVChecker.png", "Texture", getReference("res://textures/UVChecker.png"))
-        register("textures/Icon.png", "Texture", getReference("res://icon.png"))
+        register("textures/UVChecker.png", "Texture", res.getChild("textures/UVChecker.png"))
+        register("textures/Icon.png", "Texture", res.getChild("icon.png"))
     }
 
     fun register(name: String, type: String, file: FileReference) {

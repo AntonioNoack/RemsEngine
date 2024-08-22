@@ -9,13 +9,13 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.missingTexture
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.tests.game.pacman.logic.PacmanLogic
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.white
+import me.anno.utils.OS.res
 import org.joml.Vector2f
 
 // textures are from https://www.flaticon.com/ from Tahsin Tahil (Pacman.png), Freepik (Gem.png) and Creative Squad (Ghost.png)
@@ -30,9 +30,9 @@ class FlatPacmanGame : Panel(style) {
         invalidateDrawing()
     }
 
-    private val gemPath = getReference("res://textures/Gem.png")
-    private val enemyPath = getReference("res://textures/Ghost.png")
-    private val playerPath = getReference("res://textures/Pacman.png")
+    private val gemPath = res.getChild("textures/Gem.png")
+    private val enemyPath = res.getChild("textures/Ghost.png")
+    private val playerPath = res.getChild("textures/Pacman.png")
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 

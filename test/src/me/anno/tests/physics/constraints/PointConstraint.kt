@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -21,7 +22,7 @@ fun main() {
     ECSRegistry.init()
     val scene = Entity("Scene")
     val physics = BulletPhysics()
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     physics.updateInEditMode = true
 
     val box0 = Entity("Door", scene)

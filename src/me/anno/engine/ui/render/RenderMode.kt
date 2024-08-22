@@ -53,6 +53,7 @@ import me.anno.graph.visual.render.effects.ToneMappingNode
 import me.anno.graph.visual.render.effects.UnditherNode
 import me.anno.graph.visual.render.effects.VignetteNode
 import me.anno.graph.visual.render.scene.CombineLightsNode
+import me.anno.graph.visual.render.scene.DepthPrepassNode
 import me.anno.graph.visual.render.scene.DrawSkyMode
 import me.anno.graph.visual.render.scene.RenderDecalsNode
 import me.anno.graph.visual.render.scene.RenderDeferredNode
@@ -309,24 +310,27 @@ class RenderMode private constructor(
         val WITH_DEPTH_PREPASS = RenderMode(
             "With Depth-Prepass",
             QuickPipeline()
-                // todo bug: this no longer works...
                 /**
                  * prepass for depth only: depth is the only value for RenderSceneNode,
                  * which is accepted as an input too, and such, it will render first only the depth
                  * (optimization to only render what's needed),
                  * and then all other attributes;
                  * */
-                .then1(RenderDeferredNode(), mapOf("Skybox Resolution" to 0))
-                /**
-                 * actual scene rendering
-                 * */
-                .then(RenderDeferredNode())
+                .then(DepthPrepassNode())
+                /** actual scene rendering */
+                .then1(RenderDeferredNode(), opaqueNodeSettings)
+                .then(RenderDecalsNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
                 .then(SSRNode())
+                .then(RenderGlassNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode())
+                .then(UnditherNode())
+                .then(FXAANode())
                 .finish()
         )
 

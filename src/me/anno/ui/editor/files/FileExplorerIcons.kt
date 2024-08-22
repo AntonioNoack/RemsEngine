@@ -1,10 +1,10 @@
 package me.anno.ui.editor.files
 
-import me.anno.io.files.Reference.getReference
+import me.anno.utils.OS.res
 
 object FileExplorerIcons {
 
-    private val folder = getReference("res://textures/fileExplorer")
+    private val folder = res.getChild("textures/fileExplorer")
 
     @JvmField
     val folderPath = folder.getChild("folder.png")

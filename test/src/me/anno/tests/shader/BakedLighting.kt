@@ -55,7 +55,6 @@ import me.anno.image.Image
 import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
@@ -87,6 +86,7 @@ import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertTrue
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.hasFlag
@@ -172,7 +172,7 @@ fun createSampleScene(): Entity {
     val scene = Entity()
     val floorMaterial = Material()
     floorMaterial.shader = BakedLightingShader
-    floorMaterial.diffuseMap = getReference("res://textures/UVChecker.png")
+    floorMaterial.diffuseMap = res.getChild("textures/UVChecker.png")
     val floorComp = MeshComponent(PlaneModel.createPlane(), floorMaterial)
     scene.add(Entity("Floor", floorComp).setScale(50.0))
 

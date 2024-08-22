@@ -41,6 +41,8 @@ import kotlin.math.abs
 // todo this needs two framebuffers and rendering passes for VR
 class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
+    // todo support lower resolution, e.g. half
+
     @NotSerializedProperty
     var framebuffer: Framebuffer? = null
     var samples = 1
@@ -121,9 +123,10 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
         val mirrorPos = if (isBackSide) mirrorPosition else reflectedMirrorPosition - reflectedCameraPosition
         val isPerspective = abs(cameraMatrix0.m33) < 0.5f
 
-        // better way to do this?
-        val m0 = Matrix3d().rotate(ci.cameraRotation).mul(mirrorMatrix)
-        val reflectedCameraRotation = m0.getNormalizedRotation(Quaterniond())
+        mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
+        val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
+            .scaleLocal(1f, -1f, 1f) // flip y, so we don't need to turn around the cull-mode
+        val reflectedCameraRotation = cameraMatrix1.getNormalizedRotation(Quaterniond()).invert()
 
         val root = getRoot(Entity::class)
         pipeline.clear()
@@ -145,12 +148,9 @@ class PlanarReflection : LightComponentBase(), OnDrawGUI {
 
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline, root, null)
-        // pipeline.planarReflections.clear()
+        // mirrors inside mirrors don't work, because we could look behind things
+        pipeline.planarReflections.clear()
         pipeline.reflectionCullingPlane.set(mirrorPos * worldScale, mirrorNormal) // is correct
-
-        mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
-        val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
-            .scaleLocal(1f, -1f, 1f) // flip y, so we don't need to turn around the cull-mode
 
         // set render state
         RenderState.cameraMatrix.set(cameraMatrix1)

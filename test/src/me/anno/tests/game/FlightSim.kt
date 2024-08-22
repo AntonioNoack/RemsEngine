@@ -17,6 +17,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -58,7 +59,7 @@ fun main() {
 
     val physics = BulletPhysics()
     physics.updateInEditMode = true
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     scene.add(Skybox())
 
     testSceneWithUI("FlightSim", scene) {

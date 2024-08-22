@@ -14,9 +14,9 @@ import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
+import me.anno.utils.OS.res
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.createArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -29,10 +29,10 @@ import kotlin.math.PI
 
 object Gizmos {
 
-    val arrowRef = BundledRef("meshes/arrowX.obj")
-    val arrowRef1 = BundledRef("meshes/arrowX1.obj")
-    val ringRef = BundledRef("meshes/ringX.obj")
-    val scaleRef = BundledRef("meshes/scaleX.obj")
+    val arrowRef = res.getChild("meshes/arrowX.obj")
+    val arrowRef1 = res.getChild("meshes/arrowX1.obj")
+    val ringRef = res.getChild("meshes/ringX.obj")
+    val scaleRef = res.getChild("meshes/scaleX.obj")
 
     fun drawScaleGizmos(
         pipeline: Pipeline?, cameraTransform: Matrix4f, position: Vector3d, scale: Double,

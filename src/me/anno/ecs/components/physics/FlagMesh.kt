@@ -30,6 +30,8 @@ import me.anno.maths.noise.FullNoise
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
+import me.anno.utils.types.Booleans.hasFlag
+import me.anno.utils.types.Booleans.withoutFlag
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector2f
@@ -259,6 +261,7 @@ class FlagMesh : MeshComponent(), OnUpdate {
                         Variable(GLSLType.V3F, "normal", VariableMode.OUT),
                         Variable(GLSLType.V4F, "tangent", VariableMode.OUT),
                     ), "" +
+                            // todo use coordFract-dt/ds for better motion vectors
                             "localPosition = mix(texture(coords0Tex,uvs).rgb,texture(coords1Tex,uvs).rgb,coordsFract);\n" +
                             // calculate normals and tangents
                             "#ifdef COLORS\n" +
@@ -275,8 +278,9 @@ class FlagMesh : MeshComponent(), OnUpdate {
                             "#endif\n"
                 )
                 return createDefines(key) +
-                        loadVertex(key) +
+                        loadVertex(key, key.flags.withoutFlag(NEEDS_MOTION_VECTORS)) +
                         flagMovingStage +
+                        f(key.vertexData.loadMotionVec, key.flags.hasFlag(NEEDS_MOTION_VECTORS)) +
                         transformVertex(key) +
                         finishVertex(key)
             }

@@ -1,16 +1,16 @@
 package me.anno.ecs.components.mesh.unique
 
 import me.anno.Time
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.System
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.interfaces.Renderable
-import me.anno.ecs.systems.OnUpdate
+import me.anno.engine.EngineBase
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -18,18 +18,18 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.Pipeline.Companion.getMaterial
 
 // todo collect all transforms/meshes that have been idle for X iterations
-// todo make this like Physics, because it's kind of a global system...
 // todo we need to do effective culling, so somehow add bounds metadata, and do GPU culling
 //  - min, max,                      |  6
 //  - index of data? or start+length |  2
 //  - format of data??? -> flags     |  1
 //  - transform                      | 12
 
-class StaticMeshManager : Component(), Renderable, OnUpdate {
+class StaticMeshManager : System(), Renderable {
 
     val managers = HashMap<Material, UniqueMeshRenderer<Mesh, SMMKey>>()
     val meshes = HashSet<MeshComponent>(1024)
 
+    var clickId = 0
     override fun fill(pipeline: Pipeline, transform: Transform, clickId: Int): Int {
         this.clickId = clickId
         for ((_, manager) in managers) {
@@ -44,8 +44,6 @@ class StaticMeshManager : Component(), Renderable, OnUpdate {
     private val collectStackE = ArrayList<Entity>()
 
     override fun onUpdate() {
-        // this entity must only operate on Root level
-        if (entity?.parentEntity != null) return
         // todo regularly check whether all transforms are still static
         //  do this more spread out: respect scanLimit
         collect()
@@ -53,6 +51,7 @@ class StaticMeshManager : Component(), Renderable, OnUpdate {
 
     fun collect() {
         if (collectStackE.isEmpty()) {
+            val entity = EngineBase.instance?.systems?.world as? Entity
             collectStackE.add(entity ?: return)
         }
         val limit = if (fullScan) Int.MAX_VALUE else scanLimit

@@ -72,6 +72,8 @@ open class RenderDeferredNode : RenderViewNode(
 
         val firstInputIndex = 10
         val firstOutputIndex = 1
+
+        val depthInputIndex = firstInputIndex + DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH)
     }
 
     val enabledLayers = ArrayList<DeferredLayerType>()
@@ -167,21 +169,13 @@ open class RenderDeferredNode : RenderViewNode(
 
         val framebuffer = defineFramebuffer() ?: return
         timeRendering("$name-$stage", timer) {
-            bakeSkybox()
+            pipeline.bakeSkybox(skyResolution)
             copyInputsOrClear(framebuffer)
-            bind(framebuffer) {
+            GFXState.useFrame(width, height, true, framebuffer, renderer) {
                 render()
             }
             setOutputs(framebuffer)
         }
-    }
-
-    fun bind(framebuffer: IFramebuffer, run: () -> Unit) {
-        GFXState.useFrame(width, height, true, framebuffer, renderer, run)
-    }
-
-    fun bakeSkybox() {
-        pipeline.bakeSkybox(skyResolution)
     }
 
     fun needsRendering(): Boolean {
@@ -197,7 +191,13 @@ open class RenderDeferredNode : RenderViewNode(
         }
         pipeline.applyToneMapping = getBoolInput(7)
         if (needsRendering()) {
-            pipeline.stages.getOrNull(stage.id)?.bindDraw(pipeline)
+            val stage = pipeline.stages.getOrNull(stage.id)
+            if (stage != null) {
+                val oldDepth = stage.depthMode
+                if (hasDepthPrepass()) stage.depthMode = oldDepth.equalsMode
+                stage.bindDraw(pipeline)
+                stage.depthMode = oldDepth
+            }
         }
         if (drawSky == DrawSkyMode.AFTER_GEOMETRY) {
             pipeline.drawSky()
@@ -214,13 +214,13 @@ open class RenderDeferredNode : RenderViewNode(
         // get depth texture, and use it
         if (GFX.supportsDepthTextures) {
             val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
-            setOutput(i, Texture.depth(framebuffer, "r", DeferredLayerType.DEPTH))
+            setOutput(i, Texture.depth(framebuffer))
         }
     }
 
     private val shaders = HashMap<Renderer, Pair<Shader, Map<String, TypeValue>>>()
 
-    fun getOutputs(): List<IndexedValue<DeferredLayerType>> {
+    fun pipedInputs(): List<IndexedValue<DeferredLayerType>> {
         return DeferredLayerType.values.withIndex()
             .filter { (index, _) ->
                 !inputs[index + firstInputIndex].isEmpty() &&
@@ -243,7 +243,7 @@ open class RenderDeferredNode : RenderViewNode(
                     // to do: filter for non-composite types
                     // only load what is given? -> yes :D
 
-                    val output0 = getOutputs()
+                    val output0 = pipedInputs()
                     val outputs = renderer.deferredSettings!!.semanticLayers.toList()
                         .map { tt -> output0.first { it.value == tt.type } }
 
@@ -311,18 +311,25 @@ open class RenderDeferredNode : RenderViewNode(
         return shader
     }
 
-    private fun hasAnyInput(): Boolean {
+    private fun hasAnyInputIgnoreDepth(): Boolean {
+        val ignoredI = depthInputIndex - firstInputIndex
         for (i in 0 until inList.size.shr(1)) {
-            if (!inputs[firstInputIndex + i].isEmpty()) {
+            if (i != ignoredI && !inputs[firstInputIndex + i].isEmpty()) {
                 return true
             }
         }
         return false
     }
 
+    fun hasDepthPrepass(): Boolean {
+        // mmh...
+        val prepassDepthT = getInput(depthInputIndex) as? Texture
+        val prepassDepth = prepassDepthT.texOrNull
+        return prepassDepth != null && inputs[0].others.any2 { it.node is DepthPrepassNode }
+    }
+
     open fun copyInputsOrClear(framebuffer: IFramebuffer) {
-        val inputIndex = firstInputIndex + inList.indexOf(DeferredLayerType.DEPTH.name).shr(1)
-        val prepassDepthT = getInput(inputIndex) as? Texture
+        val prepassDepthT = getInput(depthInputIndex) as? Texture
         val prepassDepth = prepassDepthT.texOrNull
         if (prepassDepth != null) {
             GFXState.useFrame(framebuffer, Renderer.copyRenderer) {
@@ -337,7 +344,7 @@ open class RenderDeferredNode : RenderViewNode(
             }
         }
         // if all inputs are null, we can skip this
-        if (hasAnyInput()) {
+        if (hasAnyInputIgnoreDepth()) {
             GFXState.useFrame(framebuffer, renderer) {
                 GFXState.depthMode.use(alwaysDepthMode) {
                     GFXState.depthMask.use(false) {

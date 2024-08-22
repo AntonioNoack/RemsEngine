@@ -18,9 +18,9 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.io.files.FileReference
-import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
+import me.anno.utils.OS.res
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
@@ -33,7 +33,7 @@ import kotlin.math.min
 class SimpleMeshTest(
     var msaa: Boolean,
     var renderer: Renderer = attributeRenderers[DeferredLayerType.NORMAL],
-    meshRef: FileReference = getReference("res://meshes/arrowX.obj"),
+    meshRef: FileReference = res.getChild("meshes/arrowX.obj"),
 ) : Panel(style) {
 
     val pipeline = Pipeline(null)

@@ -17,13 +17,13 @@ import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.ui.debug.TestEngine.Companion.testUI
+import me.anno.utils.OS.res
 import org.joml.Vector3d
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
@@ -111,7 +111,7 @@ fun main() {
         val world = Entity("World")
         world.add(Skybox())
 
-        val agentMeshRef = getReference("res://meshes/CuteGhost.fbx")
+        val agentMeshRef = res.getChild("meshes/CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.getBounds()
@@ -126,7 +126,7 @@ fun main() {
         world.add(navMesh1)
         val meshEntity = Entity(world)
             .setScale(1.5)
-            .add(MeshComponent(getReference("res://meshes/NavMesh.fbx")).apply {
+            .add(MeshComponent(res.getChild("meshes/NavMesh.fbx")).apply {
                 collisionMask = mask
             })
 
@@ -155,7 +155,7 @@ fun main() {
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
-        val flagMesh = getReference("res://meshes/Flag.fbx")
+        val flagMesh = res.getChild("meshes/Flag.fbx")
         for (i in 0 until 500) {
             val flag = Entity("Flag", world)
             flag.scale = Vector3d(flagScale.toDouble())

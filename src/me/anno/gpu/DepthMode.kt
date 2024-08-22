@@ -24,7 +24,8 @@ enum class DepthMode(val id: Int) {
     FORWARD_CLOSER(GL46C.GL_LESS);
 
     val reversedDepth: Boolean get() = ordinal < 7
-    val reversedMethodMode: DepthMode get() = entries[ordinal + if (reversedDepth) 7 else -7]
-    val always: DepthMode get() = if (reversedDepth) ALWAYS else FORWARD_ALWAYS
+    val reversedMode: DepthMode get() = entries[ordinal + if (reversedDepth) 7 else -7]
+    val alwaysMode: DepthMode get() = if (reversedDepth) ALWAYS else FORWARD_ALWAYS
+    val equalsMode: DepthMode get() = if (reversedDepth) EQUALS else FORWARD_EQUALS
     val skyDepth: Double get() = if (reversedDepth) 0.0 else 1.0
 }

@@ -16,9 +16,9 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Reference.getReference
 import me.anno.ui.debug.TestEngine.Companion.testUI
 import me.anno.utils.Color.white
+import me.anno.utils.OS.res
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -145,7 +145,7 @@ fun main() {
     OfficialExtensions.initForTests()
 
     // todo test the looks of this profile
-    val testProfileMesh = MeshCache[getReference("res://meshes/StreetProfile.glb")]!!
+    val testProfileMesh = MeshCache[res.getChild("meshes/StreetProfile.glb")]!!
     val testProfiles = meshToPathProfile(testProfileMesh)
 
     // todo for extruding, extrude UVs

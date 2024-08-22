@@ -1,8 +1,9 @@
 package me.anno.ecs
 
-import me.anno.ecs.EntityQuery.getComponent
-import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.physics.Physics
+import me.anno.engine.EngineBase
+import kotlin.reflect.KClass
+import kotlin.reflect.safeCast
 
 /**
  * Helper functions to add Physics onto an Entity;
@@ -12,29 +13,34 @@ object EntityPhysics {
 
     fun Entity.invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
-            physics?.invalidate(this)
+            forAllPhysics { it.invalidate(this) }
         }
     }
 
     fun Entity.invalidatePhysicsTransform(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
-            physics?.invalidateTransform(this)
+            forAllPhysics { it.invalidateTransform(this) }
         }
     }
 
     fun Entity.invalidateRigidbody() {
-        physics?.invalidate(this)
+        forAllPhysics { it.invalidate(this) }
     }
 
-    val Entity.physics get() = getRoot(Entity::class).getComponent(Physics::class)
+    fun <V : Physics<*, *>> getPhysics(clazz: KClass<V>): V? {
+        var result: V? = null
+        forAllPhysics {
+            if (result == null) {
+                result = clazz.safeCast(it)
+            }
+        }
+        return result
+    }
 
-    fun Entity.rebuildPhysics(physics: Physics<*, *>) {
-        if (hasComponent(physics.rigidComponentClass)) {
-            physics.invalidate(this)
-        } else {
-            val children = children
-            for (index in children.indices) {
-                children[index].rebuildPhysics(physics)
+    inline fun forAllPhysics(crossinline callback: (Physics<*, *>) -> Unit) {
+        EngineBase.instance?.systems?.forAllSystems {
+            if (it is Physics<*, *>) {
+                callback(it)
             }
         }
     }
@@ -47,7 +53,7 @@ object EntityPhysics {
         // physics
         if (allInHierarchy { it.isEnabled }) {
             // something can change
-            physics?.invalidate(this)
+            forAllPhysics { it.invalidate(this) }
         }
     }
 }

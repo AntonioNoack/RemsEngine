@@ -4,8 +4,7 @@ import com.jme3.bullet.objects.PhysicsRigidBody
 import com.jme3.math.Quaternion
 import com.jme3.math.Vector3f
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
-import me.anno.ecs.EntityPhysics.physics
+import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -269,7 +268,8 @@ open class Rigidbody : Component(), OnDrawGUI {
 
     fun invalidatePhysics() {
         val entity = entity ?: return
-        entity.physics?.invalidate(entity)
+        getPhysics(BulletPhysics::class)
+            ?.invalidate(entity)
     }
 
     /**
@@ -310,11 +310,6 @@ open class Rigidbody : Component(), OnDrawGUI {
                 if (mass < 1e-16) mass = 1.0
             }
         }
-
-    override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
-        entity.physics?.invalidate(entity)
-    }
 
     /**
      * applies "rotation force"

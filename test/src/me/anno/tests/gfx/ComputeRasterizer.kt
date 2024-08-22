@@ -49,11 +49,11 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
-import me.anno.io.files.Reference.getReference
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
+import me.anno.utils.OS.res
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
@@ -93,7 +93,7 @@ fun testCopyColorToDepth() {
     val depthDst = Framebuffer("dd", w, h, 1, emptyList(), DepthBufferType.TEXTURE)
     val colorDst = Framebuffer("cd", w, h, TargetType.UInt8x4, DepthBufferType.NONE)
     testDrawing("Copy Depth") {
-        val depthSrc = TextureCache[getReference("res://icon.png"), false]
+        val depthSrc = TextureCache[res.getChild("icon.png"), false]
         if (depthSrc != null) {
             useFrame(depthDst) {
                 depthDst.clearColor(0, true)

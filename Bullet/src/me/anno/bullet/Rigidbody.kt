@@ -10,8 +10,7 @@ import cz.advel.stack.Stack
 import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
-import me.anno.ecs.EntityPhysics.physics
+import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -286,7 +285,8 @@ open class Rigidbody : Component(), OnDrawGUI {
 
     fun invalidatePhysics() {
         val entity = entity ?: return
-        entity.physics?.invalidate(entity)
+        getPhysics(BulletPhysics::class)
+            ?.invalidate(entity)
     }
 
     /**
@@ -326,11 +326,6 @@ open class Rigidbody : Component(), OnDrawGUI {
                 if (mass < 1e-16) mass = 1.0
             }
         }
-
-    override fun onChangeStructure(entity: Entity) {
-        super.onChangeStructure(entity)
-        entity.physics?.invalidate(entity)
-    }
 
     /**
      * applies "rotation force"

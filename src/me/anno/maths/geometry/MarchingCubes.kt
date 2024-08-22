@@ -1,8 +1,8 @@
 package me.anno.maths.geometry
 
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
+import me.anno.utils.OS.res
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.lists.Lists.createList
 import me.anno.utils.types.Booleans.toInt
@@ -37,7 +37,7 @@ object MarchingCubes {
     // table was converted from global indices (out of 0..11) to local indices (out of 0..#foundVertices)
     // then I saved it as a binary file, because it's wasted space otherwise
     val triTable by lazy {
-        getReference("res://me/anno/maths/geometry/TriTable.bin")
+        res.getChild("me/anno/maths/geometry/TriTable.bin")
             .readBytesSync()
     }
 

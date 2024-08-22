@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.RenderDoc.disableRenderDoc
@@ -60,7 +61,7 @@ fun main() {
             }
         }
 
-        scene.add(object : BulletPhysics() {
+        Systems.registerSystem("bullet", object : BulletPhysics() {
             // make domino sound on every contact :3
             val contacts = KeyPairMap<Any, Any, Unit>()
             override fun step(dt: Long, printSlack: Boolean) {

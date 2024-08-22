@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.Reference.getReference
+import me.anno.utils.OS.res
 
 // todo
 //  - playable characters
@@ -60,7 +60,7 @@ fun main() {
     for ((i, nameI) in names.withIndex()) {
         Entity(nameI, sims)
             .add(Sim().apply { name = nameI; household.sims.add(this) })
-            .add(MeshComponent(getReference("res://meshes/CuteGhost.fbx"))) // best human model ever ^^
+            .add(MeshComponent(res.getChild("meshes/CuteGhost.fbx"))) // best human model ever ^^
             .setPosition((i - (names.size - 1) * 0.5) * 5.0, 0.0, 0.0)
     }
 

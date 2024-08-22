@@ -635,7 +635,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 else -> DepthMode.CLOSE
             }
             return if (GFX.supportsClipControl && isPerspective) base
-            else base.reversedMethodMode
+            else base.reversedMode
         }
 
     fun drawScene(
@@ -654,7 +654,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             var depthMode = depthMode
             val stage0 = pipeline.stages.firstOrNull()
             if (renderMode == RenderMode.INVERSE_DEPTH) {
-                depthMode = depthMode.reversedMethodMode
+                depthMode = depthMode.reversedMode
             }
             GFXState.depthMode.use(depthMode) {
                 stage0?.depthMode = depthMode

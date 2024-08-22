@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -24,7 +25,7 @@ fun main() {
     ECSRegistry.init()
     val scene = Entity("Scene")
     val physics = BulletPhysics()
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     physics.updateInEditMode = true
 
     val box0 = Entity("Door", scene)
@@ -63,14 +64,14 @@ fun main() {
     addHinge(-0.9)
     addHinge(+0.9)
 
-    val floor = Entity("Floor", scene)
-    floor.add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
-    floor.add(BoxCollider())
-    floor.add(Rigidbody().apply {
-        friction = 1.0
-    })
-    floor.setPosition(0.0, -22.0, 0.0)
-    floor.setScale(20.0)
+    Entity("Floor", scene)
+        .add(MeshComponent(flatCube.front, Material.diffuse(0x333333)))
+        .add(BoxCollider())
+        .add(Rigidbody().apply {
+            friction = 1.0
+        })
+        .setPosition(0.0, -22.0, 0.0)
+        .setScale(20.0)
 
     testSceneWithUI("Hinge Constraint", scene)
 }

@@ -2,6 +2,7 @@ package me.anno.bulletjme
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.systems.Systems
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 
 fun main() {
@@ -14,7 +15,7 @@ fun main() {
     cube.add(BoxCollider())
     scene.add(cube)
     val physics = BulletPhysics()
-    scene.add(physics)
+    Systems.registerSystem("bullet", physics)
     for (i in 0 until 10) {
         physics.step(100 * MILLIS_TO_NANOS, false)
         println(cube.position)

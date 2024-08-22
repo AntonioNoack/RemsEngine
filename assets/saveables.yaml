@@ -50,6 +50,7 @@ CubemapSkybox: me.anno.ecs.components.light.sky.CubemapSkybox
 CylinderCollider: me.anno.ecs.components.collider.CylinderCollider
 DecalMaterial: me.anno.ecs.components.mesh.material.DecalMaterial
 DepthOfFieldNode: me.anno.graph.visual.render.effects.DepthOfFieldNode
+DepthPrepassNode: me.anno.graph.visual.render.scene.DepthPrepassNode
 DepthTestNode: me.anno.graph.visual.render.effects.DepthTestNode
 DepthToNormalNode: me.anno.graph.visual.render.effects.DepthToNormalNode
 DirectionalLight: me.anno.ecs.components.light.DirectionalLight

@@ -29,6 +29,12 @@ open class LazyMap<K, V>(
         }
     }
 
+    fun getOrNull(key: K): V? {
+        return synchronized(cache) {
+            cache[key]
+        }
+    }
+
     override val entries
         get() = if (nullsAreValid) {
             cache.entries

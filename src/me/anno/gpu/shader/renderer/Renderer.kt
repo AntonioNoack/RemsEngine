@@ -14,9 +14,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib
-import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Packing.pack32
+import me.anno.utils.OS.res
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -158,7 +158,7 @@ open class Renderer(val nameDesc: NameDesc, val deferredSettings: DeferredSettin
                 ), "finalResult = vec4(texture(checkerTex, uv).rgb, 1.0);\n"
             )
         ) {
-            private val uvCheckerSource = getReference("res://textures/UVChecker.png")
+            private val uvCheckerSource = res.getChild("textures/UVChecker.png")
             override fun bind(shader: Shader) {
                 super.bind(shader)
                 val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture

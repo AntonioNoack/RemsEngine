@@ -3,11 +3,9 @@ package me.anno.ecs
 import me.anno.ecs.EntityPhysics.checkNeedsPhysics
 import me.anno.ecs.EntityPhysics.invalidatePhysics
 import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
-import me.anno.ecs.EntityPhysics.rebuildPhysics
 import me.anno.ecs.EntityQuery.anyComponent
 import me.anno.ecs.EntityQuery.forAllChildren
 import me.anno.ecs.EntityQuery.forAllComponents
-import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.EntityQuery.hasComponentInChildren
 import me.anno.ecs.EntityStats.sizeOfHierarchy
@@ -19,7 +17,6 @@ import me.anno.ecs.annotations.RotationType
 import me.anno.ecs.annotations.ScaleType
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.Renderable
@@ -132,8 +129,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         for (index in components.indices) {
             components[index].onCreate()
         }
-        val physics = getComponent(Physics::class, false)
-        if (physics != null) rebuildPhysics(physics)
     }
 
     val transform: Transform = Transform(this)

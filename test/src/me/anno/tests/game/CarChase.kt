@@ -14,6 +14,7 @@ import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
@@ -78,7 +79,7 @@ fun createUI(): Panel {
     val physics = BulletPhysics()
     physics.updateInEditMode = true
     physics.synchronousPhysics = true
-    world.add(physics)
+    Systems.registerSystem("bullet", physics)
 
     val floor = Entity()
     floor.add(MeshComponent(map))

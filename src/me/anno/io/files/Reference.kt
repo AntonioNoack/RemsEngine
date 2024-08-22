@@ -202,6 +202,7 @@ object Reference {
     @JvmStatic
     fun appendPath(parent: String, name: String): String {
         return if (parent.isBlank2()) name
+        else if (parent.endsWith("/") || name.startsWith("/")) "$parent$name"
         else "$parent/$name"
     }
 }

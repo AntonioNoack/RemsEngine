@@ -3,8 +3,8 @@ package me.anno.tests.ui
 import me.anno.Engine
 import me.anno.engine.OfficialExtensions
 import me.anno.image.ImageCache
-import me.anno.io.files.Reference.getReference
 import me.anno.jvm.images.BIImage.createBufferedImage
+import me.anno.utils.OS.res
 import me.anno.utils.assertions.assertTrue
 import java.awt.SystemTray
 import java.awt.TrayIcon
@@ -18,7 +18,7 @@ fun main() {
     OfficialExtensions.initForTests()
     assertTrue(SystemTray.isSupported())
     val tray = SystemTray.getSystemTray()
-    val image = ImageCache[getReference("res://icon.png"), false]!!.createBufferedImage()
+    val image = ImageCache[res.getChild("icon.png"), false]!!.createBufferedImage()
     val icon = TrayIcon(image, "Noti-Demo ✉")
     icon.isImageAutoSize = true
     icon.toolTip = "Hi, I'm some ttt with emojis 😃"

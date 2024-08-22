@@ -9,20 +9,20 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
-import me.anno.io.files.Reference.getReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS.res
 
 // todo optional rectangular checkboxes (?)
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     companion object {
-        private val checked = getReference("res://textures/Checked.png")
-        private val unchecked = getReference("res://textures/Unchecked.png")
+        private val checked = res.getChild("textures/Checked.png")
+        private val unchecked = res.getChild("textures/Unchecked.png")
     }
 
     open fun getImage(isChecked: Boolean): ITexture2D? =

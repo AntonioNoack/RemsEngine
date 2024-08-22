@@ -1,7 +1,6 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.engine.ui.render.Renderers
-import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.GLSLType
@@ -11,14 +10,14 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.io.files.Reference
 import me.anno.utils.OS
+import me.anno.utils.OS.res
 
 object FSR {
 
     val code = lazy {
-        val defines = Reference.getReference("res://shaders/fsr1/ffx_a.h").readTextSync()
-        val functions = Reference.getReference("res://shaders/fsr1/ffx_fsr1.h").readTextSync()
+        val defines = res.getChild("shaders/fsr1/ffx_a.h").readTextSync()
+        val functions = res.getChild("shaders/fsr1/ffx_fsr1.h").readTextSync()
         defines to functions
     }
 

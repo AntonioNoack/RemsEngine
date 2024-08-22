@@ -6,6 +6,7 @@ import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.unique.StaticMeshManager
+import me.anno.ecs.systems.Systems
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStageImpl
@@ -225,7 +226,7 @@ fun main() {
     light.add(light1)
     sky.applyOntoSun(light, light1, 20f)
 
-    scene.add(StaticMeshManager()) // performance hack
+    Systems.registerSystem("smm", StaticMeshManager()) // performance hack
 
     clock.stop("Scene Basics")
 

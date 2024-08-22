@@ -12,12 +12,12 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ScenePrefab
 import me.anno.extensions.ExtensionLoader
-import me.anno.io.files.Reference.getReference
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
 import me.anno.utils.OS
+import me.anno.utils.OS.res
 import me.anno.utils.structures.lists.Lists.createArrayList
 import org.joml.Planef
 import org.joml.Vector3d
@@ -194,7 +194,7 @@ class HierarchyTests {
         OfficialExtensions.register()
         ExtensionLoader.load()
         val scene = Prefab("Entity")
-        val added = PrefabCache[getReference("res://meshes/CuteGhost.fbx")]!!
+        val added = PrefabCache[res.getChild("meshes/CuteGhost.fbx")]!!
         val ca = scene.adds.values.sumOf { it.size }
         val cs = scene.sets.size
         Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')

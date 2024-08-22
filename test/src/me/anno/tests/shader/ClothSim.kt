@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.ecs.components.physics.FlagMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.files.Reference.getReference
+import me.anno.utils.OS.res
 
 /**
  * generate cloth mesh
@@ -12,6 +12,6 @@ import me.anno.io.files.Reference.getReference
  * */
 fun main() {
     val flag = FlagMesh()
-    flag.material.diffuseMap = getReference("res://textures/UVChecker.png")
+    flag.material.diffuseMap = res.getChild("textures/UVChecker.png")
     testSceneWithUI("FlagMeshSim", flag)
 }

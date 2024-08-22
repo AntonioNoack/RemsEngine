@@ -9,12 +9,12 @@ import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.EntityQuery.hasComponent
+import me.anno.ecs.System
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.systems.OnPhysicsUpdate
-import me.anno.ecs.systems.OnUpdate
 import me.anno.engine.Events.addEvent
 import me.anno.engine.RemsEngine
 import me.anno.engine.serialization.NotSerializedProperty
@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
 
 abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     val rigidComponentClass: KClass<InternalRigidBody>
-) : Component(), OnUpdate {
+) : System() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Physics::class)
@@ -96,7 +96,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
     }
 
-    override fun onCreate() {
+    /*override fun onCreate() {
         super.onCreate()
         rigidBodies.clear()
         nonStaticRigidBodies.clear()
@@ -105,7 +105,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)
         invalidateRecursively(entity)
-    }
+    }*/
 
     fun registerNonStatic(entity: Entity, isStatic: Boolean, bodyWithScale: BodyWithScale<ExternalRigidBody>) {
         if (isStatic) {
@@ -141,6 +141,24 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     private fun getInit(entity: Entity) {
         val rigidbody = addOrGet(entity)
         entity.isPhysicsControlled = rigidbody != null
+    }
+
+    override fun onEnable(entity: Entity) {
+        invalidate(entity)
+    }
+
+    override fun onEnable(component: Component) {
+        // todo only if is relevant component
+        invalidate(component.entity ?: return)
+    }
+
+    override fun onDisable(entity: Entity) {
+        invalidate(entity)
+    }
+
+    override fun onDisable(component: Component) {
+        // todo only if is relevant component
+        invalidate(component.entity ?: return)
     }
 
     abstract fun removeConstraints(entity: Entity)

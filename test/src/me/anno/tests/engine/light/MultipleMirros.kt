@@ -8,16 +8,18 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.mesh.Shapes.flatCube
 import org.joml.Vector3f
 import kotlin.math.PI
 
+/**
+ * recursive mirrors don't work as easy as that, because we could look behind things
+ * */
 fun main() {
-
-    // todo reflections don't work properly inside mirrors (flipped on y?)
-    // (recursive reflections, should be easy theoretically)
 
     // done white floor
     // done x/z planes as mirrors
@@ -26,46 +28,47 @@ fun main() {
     val xAxis = Vector3f(-1f, 0f, 0f)
     val yAxis = Vector3f(0f, -1f, 0f)
     val zAxis = Vector3f(0f, 0f, -1f)
-    val mirror = Material()
-
-    mirror.cullMode = CullMode.BACK
-    mirror.metallicMinMax.set(1f)
-    mirror.roughnessMinMax.set(0.15f)
+    val mirror = Material().apply {
+        cullMode = CullMode.BACK
+        metallicMinMax.set(1f)
+        roughnessMinMax.set(0.15f)
+    }
 
     val white = Material()
     white.cullMode = CullMode.BOTH
 
-    val mirrors = Entity("Mirrors", scene)
-    mirrors.add(MeshComponent(
-        PlaneModel.createPlane(1, 1, xAxis, yAxis, zAxis)
-    ).apply { materials = listOf(mirror.ref) })
-    mirrors.add(MeshComponent(
-        PlaneModel.createPlane(1, 1, yAxis, zAxis, xAxis)
-    ).apply { materials = listOf(white.ref) })
-    mirrors.add(MeshComponent(
-        PlaneModel.createPlane(1, 1, zAxis, xAxis, yAxis)
-    ).apply { materials = listOf(mirror.ref) })
+    Entity("Mirrors", scene)
+        .add(MeshComponent(PlaneModel.createPlane(1, 1, xAxis, yAxis, zAxis), mirror))
+        .add(MeshComponent(PlaneModel.createPlane(1, 1, yAxis, zAxis, xAxis), mirror))
+        .add(MeshComponent(PlaneModel.createPlane(1, 1, zAxis, xAxis, yAxis), mirror))
 
-    val mirror0 = Entity("Mirror0", scene)
-    mirror0.add(PlanarReflection())
-    mirror0.setPosition(0.0, 0.0, -1.0)
-    mirror0.setScale(10.0)
+    Entity("Mirror0", scene)
+        .add(PlanarReflection())
+        .setPosition(0.0, 0.0, -1.0)
+        .setScale(10.0)
 
-    val mirror1 = Entity("Mirror1", scene)
-    mirror1.add(PlanarReflection())
-    mirror1.setPosition(-1.0, 0.0, 0.0)
-    mirror1.setRotation(0.0, PI / 2, 0.0)
-    mirror1.setScale(10.0)
+    Entity("Mirror1", scene)
+        .add(PlanarReflection())
+        .setPosition(-1.0, 0.0, 0.0)
+        .setRotation(0.0, PI / 2, 0.0)
+        .setScale(10.0)
 
-    val sample = Entity("Cylinder", scene)
-    sample.add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())))
-    sample.setPosition(0.0, -0.35, 0.0)
-    sample.setScale(0.2)
+    val glassMaterial = Material.metallic(-1, 0f)
+        .apply { pipelineStage = PipelineStage.TRANSPARENT }
+    Entity("Sphere", scene)
+        .add(MeshComponent(IcosahedronModel.createIcosphere(3), glassMaterial))
+        .setPosition(0.0, 0.35, 0.0)
+        .setScale(0.2)
 
-    val sample2 = Entity("Cube", scene)
-    sample2.add(MeshComponent(flatCube.front))
-    sample2.setPosition(0.0, +0.35, -2.0)
-    sample2.setScale(0.2)
+    Entity("Cylinder", scene)
+        .add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())))
+        .setPosition(0.0, -0.35, 0.0)
+        .setScale(0.2)
+
+    Entity("Cube", scene)
+        .add(MeshComponent(flatCube.front))
+        .setPosition(0.0, +0.35, -2.0)
+        .setScale(0.2)
 
     scene.add(Skybox())
     testSceneWithUI("Mirrors", scene)

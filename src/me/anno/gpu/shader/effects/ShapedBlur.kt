@@ -16,10 +16,10 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32F
-import me.anno.io.files.Reference.getReference
-import me.anno.maths.Maths.TAUf
-import me.anno.utils.types.Booleans.hasFlag
 import me.anno.io.Streams.readNBytes2
+import me.anno.maths.Maths.TAUf
+import me.anno.utils.OS.res
+import me.anno.utils.types.Booleans.hasFlag
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.ByteArrayInputStream
@@ -34,7 +34,7 @@ object ShapedBlur {
 
     val filters by lazy {
         val map: HashMap<String, Lazy<Pair<Shader, Int>>> = HashMap()
-        getReference("res://shaders/$fileName").inputStream { it, e ->
+        res.getChild("shaders/$fileName").inputStream { it, e ->
             e?.printStackTrace()
             if (it != null) map.putAll(loadFilters(it))
         }

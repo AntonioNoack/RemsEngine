@@ -5,9 +5,9 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.visual.Graph
 import me.anno.io.saveable.Saveable.Companion.IRegistryEntry
 import me.anno.io.files.ReadLineIterator
-import me.anno.io.files.Reference.getReference
 import me.anno.io.yaml.generic.SimpleYAMLReader
 import me.anno.ui.Style
+import me.anno.utils.OS.res
 
 object SaveableRegistry {
     private val styleClass = Style::class.java
@@ -53,7 +53,7 @@ object SaveableRegistry {
 
     fun load() {
         registerClasses(
-            getReference("res://saveables.yaml")
+            res.getChild("saveables.yaml")
                 .readLinesSync(256)
         )
     }

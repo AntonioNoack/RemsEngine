@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.systems.Systems
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -39,7 +40,7 @@ fun main() {
     floor.add(Rigidbody())
 
     val scene = Entity("Scene")
-    scene.add(BulletPhysics())
+    Systems.registerSystem("bullet", BulletPhysics())
     scene.add(monkey)
     scene.add(floor)
 

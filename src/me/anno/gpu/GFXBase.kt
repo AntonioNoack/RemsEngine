@@ -22,7 +22,6 @@ import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
 import me.anno.input.Touch
-import me.anno.io.files.Reference.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.SECONDS_TO_MILLIS
@@ -33,6 +32,7 @@ import me.anno.ui.input.InputPanel
 import me.anno.utils.Clock
 import me.anno.utils.Color
 import me.anno.utils.OS
+import me.anno.utils.OS.res
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -577,7 +577,7 @@ object GFXBase {
 
     @JvmStatic
     fun setIcon(window: Long) {
-        val src = getReference("res://icon.png")
+        val src = res.getChild("icon.png")
         val srcImage = ImageCache[src, false]
         if (srcImage != null) {
             setIcon(window, srcImage)

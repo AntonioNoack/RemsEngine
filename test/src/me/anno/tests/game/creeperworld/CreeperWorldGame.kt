@@ -2,6 +2,8 @@ package me.anno.tests.game.creeperworld
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.engine.EngineBase
+import me.anno.engine.OfficialExtensions
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -10,12 +12,9 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
-import me.anno.engine.EngineBase
-import me.anno.engine.OfficialExtensions
 import me.anno.tests.game.creeperworld.RockTypes.dissolved
 import me.anno.tests.game.creeperworld.RockTypes.hardness
 import me.anno.tests.game.creeperworld.RockTypes.rock
@@ -26,6 +25,7 @@ import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestEngine.Companion.testUI3
 import me.anno.utils.Color.convertARGB2ABGR
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS.res
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Floats.f3
 import org.joml.Vector2i
@@ -176,7 +176,7 @@ fun main() {
     // spawn a few pixels and agents
     // todo spawn an agent with an actual image,
     //  and then use some key to reposition it (drag?), and let's see how it moves :3
-    val chopperImage = ImageCache[getReference("res://textures/Chopper.png"), false]!!
+    val chopperImage = ImageCache[res.getChild("textures/Chopper.png"), false]!!
     val chopper = Cannon(chopperImage, world.fluidTypes.creeper.data)
     chopper.position.set(10, 10)
     world.agents.add(chopper)
@@ -184,7 +184,7 @@ fun main() {
     val samplePixel = AgentPixel(IntArray(world.size) { it }, 0x00ff00.withAlpha(255), chopper)
     world.add(samplePixel)
 
-    val multiplierImage = ImageCache[getReference("res://textures/Multiplier.png"), false]!!
+    val multiplierImage = ImageCache[res.getChild("textures/Multiplier.png"), false]!!
     val multiplier = Multiplier(
         multiplierImage, 2f, 2,
         listOf(world.fluidTypes.creeper.data, world.fluidTypes.antiCreeper.data)

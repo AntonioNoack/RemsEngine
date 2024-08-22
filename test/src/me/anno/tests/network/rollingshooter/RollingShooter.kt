@@ -12,15 +12,16 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.sky.Skybox
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.material.Material
 import me.anno.ecs.components.mesh.material.MaterialCache
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.light.sky.Skybox
 import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.systems.OnPhysicsUpdate
+import me.anno.ecs.systems.Systems
 import me.anno.ecs.systems.Updatable
 import me.anno.engine.OfficialExtensions
 import me.anno.engine.raycast.RayQuery
@@ -31,7 +32,6 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene2
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.TAU
@@ -50,6 +50,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.toRGB
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LoggerImpl
 import org.joml.Vector3d
@@ -82,7 +83,7 @@ fun main() {
     disableRenderDoc()
 
     val scene = Entity()
-    scene.add(BulletPhysics())
+    Systems.registerSystem("bullet", BulletPhysics())
     scene.add(Skybox())
     val sun = DirectionalLight()
     sun.color.set(10f)
@@ -357,7 +358,7 @@ fun main() {
         friction = 1.0
     })
 
-    val betterScene = getReference("res://meshes/NavMesh.fbx")
+    val betterScene = res.getChild("meshes/NavMesh.fbx")
     if (betterScene.exists) {
         staticScene.add(MeshComponent(betterScene))
         staticScene.add(MeshCollider(betterScene).apply {

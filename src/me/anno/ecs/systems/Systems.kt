@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.System
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.serialization.NotSerializedProperty
+import me.anno.utils.structures.Recursion
 import me.anno.utils.structures.lists.Lists.sortedAdd
 import me.anno.utils.structures.lists.Lists.wrap
 
@@ -57,8 +58,12 @@ class Systems : PrefabSaveable() {
     }
 
     fun onUpdate() {
+        forAllSystems { it.onUpdate() }
+    }
+
+    fun forAllSystems(callback: (System) -> Unit) {
         for (i in systems.indices) {
-            systems[i].onUpdate()
+            callback(systems[i])
         }
     }
 
@@ -73,23 +78,14 @@ class Systems : PrefabSaveable() {
     }
 
     fun addOrRemoveRecursively(root: PrefabSaveable, add: Boolean) {
-        val systems = systems
-        val stack = ArrayList<PrefabSaveable>()
-        stack.add(root)
-        while (stack.isNotEmpty()) {
-            val element = stack.removeLast()
-            if (!element.isEnabled) continue
-            for (type in element.listChildTypes()) {
-                stack.addAll(element.getChildListByType(type))
-            }
-            when (element) {
-                is Entity -> for (i in systems.indices) {
-                    val system = systems[i]
-                    addOrRemove(system, element, add)
+        Recursion.processRecursive(root) { element, remaining ->
+            if (element.isEnabled) {
+                for (type in element.listChildTypes()) {
+                    remaining.addAll(element.getChildListByType(type))
                 }
-                is Component -> for (i in systems.indices) {
-                    val system = systems[i]
-                    addOrRemove(system, element, add)
+                when (element) {
+                    is Entity -> forAllSystems { addOrRemove(it, element, add) }
+                    is Component -> forAllSystems { addOrRemove(it, element, add) }
                 }
             }
         }

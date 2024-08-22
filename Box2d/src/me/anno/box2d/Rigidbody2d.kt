@@ -1,7 +1,7 @@
 package me.anno.box2d
 
 import me.anno.ecs.Component
-import me.anno.ecs.EntityPhysics.physics
+import me.anno.ecs.EntityPhysics.getPhysics
 import me.anno.ecs.prefab.PrefabSaveable
 import org.jbox2d.dynamics.Body
 import org.joml.Vector2f
@@ -66,7 +66,8 @@ class Rigidbody2d : Component() {
 
     fun invalidatePhysics() {
         val entity = entity ?: return
-        entity.physics?.invalidate(entity)
+        getPhysics(Box2dPhysics::class)
+            ?.invalidate(entity)
     }
 
     fun applyForce(force: Vector2f) {

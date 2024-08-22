@@ -10,6 +10,7 @@ import me.anno.io.files.Reference.getReference
 import me.anno.maths.Maths.TAU
 import me.anno.mesh.Shapes.smoothCube
 import me.anno.utils.OS.pictures
+import me.anno.utils.OS.res
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -17,8 +18,8 @@ import kotlin.math.sin
 fun main() {
     OfficialExtensions.initForTests()
     val mat = DecalMaterial()
-    // mat.diffuseMap = getReference("res://icon.png")
-    mat.diffuseMap = getReference("res://textures/UVChecker.png")
+    // mat.diffuseMap = res.getChild("icon.png")
+    mat.diffuseMap = res.getChild("textures/UVChecker.png")
     mat.normalMap = pictures.getChild("Cracked Normals.jpg")
     mat.normalStrength = 0.5f
     mat.linearFiltering = false
@@ -26,7 +27,7 @@ fun main() {
     mat.writeNormal = true
     val scene = Entity("Scene")
     val numDecals = 5
-    for(i in 0 until numDecals) {
+    for (i in 0 until numDecals) {
         val decal = Entity("Decal", scene)
         val angle = i * TAU / numDecals
         decal.setPosition(sin(angle), 0.0, cos(angle))

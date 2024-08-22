@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.EngineBase
 
 // todo
 //  - appended to the root,
@@ -24,4 +25,6 @@ abstract class System : PrefabSaveable() {
     open fun onUpdate() {}
 
     open fun clear() {}
+
+    val entity get() = EngineBase.instance?.systems?.world as? Entity
 }
