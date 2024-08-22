@@ -15,6 +15,7 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.files.FileReference
+import me.anno.ui.UIColors
 import me.anno.utils.Color.black
 import me.anno.utils.OS.res
 import me.anno.utils.pooling.JomlPools
@@ -195,9 +196,9 @@ object Gizmos {
             val y = v.y
             val z = v.z
             val color = when {
-                v === oriX -> 0xff7777
-                v === oriY -> 0x77ff77
-                else -> 0x7777ff
+                v === oriX -> UIColors.axisXColor
+                v === oriY -> UIColors.axisYColor
+                else -> UIColors.axisZColor
             }
             val lx = gx - x0
             val ly = gy - y0

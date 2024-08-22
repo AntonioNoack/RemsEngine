@@ -11,7 +11,6 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.getKey
 import me.anno.gpu.shader.DepthTransforms.bindDepthUniforms
 import me.anno.gpu.shader.GLSLType
@@ -41,8 +40,6 @@ open class RenderDeferredNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting", // ignored for now
-        "Int", "Camera Index", // ignored for now
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky"
@@ -70,7 +67,7 @@ open class RenderDeferredNode : RenderViewNode(
         val inList = listLayers(null)
         val outList = listLayers("Texture")
 
-        val firstInputIndex = 10
+        val firstInputIndex = 8
         val firstOutputIndex = 1
 
         val depthInputIndex = firstInputIndex + DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH)
@@ -83,19 +80,17 @@ open class RenderDeferredNode : RenderViewNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, PipelineStage.OPAQUE) // stage
-        setInput(5, Sorting.NO_SORTING)
-        setInput(6, 0) // camera index
-        setInput(7, false) // apply tonemapping
-        setInput(8, 0)
-        setInput(9, DrawSkyMode.DONT_DRAW_SKY)
+        setInput(5, false) // don't apply tonemapping
+        setInput(6, 0) // skybox resolution
+        setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
 
     val width get() = getIntInput(1)
     val height get() = getIntInput(2)
-    val skyResolution get() = getIntInput(8)
+    val skyResolution get() = getIntInput(6)
 
     val stage get() = getInput(4) as PipelineStage
-    val drawSky get() = getInput(9) as DrawSkyMode
+    val drawSky get() = getInput(7) as DrawSkyMode
 
     override fun invalidate() {
         settings = null
@@ -189,7 +184,7 @@ open class RenderDeferredNode : RenderViewNode(
         if (drawSky == DrawSkyMode.BEFORE_GEOMETRY) {
             pipeline.drawSky()
         }
-        pipeline.applyToneMapping = getBoolInput(7)
+        pipeline.applyToneMapping = getBoolInput(5)
         if (needsRendering()) {
             val stage = pipeline.stages.getOrNull(stage.id)
             if (stage != null) {

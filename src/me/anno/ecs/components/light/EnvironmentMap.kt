@@ -26,7 +26,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
@@ -183,10 +182,10 @@ class EnvironmentMap : LightComponentBase(), OnDrawGUI {
             val pipeline = Pipeline(DeferredSettings(listOf()))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStageImpl(
-                "", Sorting.NO_SORTING, 16, null,
-                if (GFX.supportsClipControl) DepthMode.CLOSE
+                "", 16, null, if (GFX.supportsClipControl) DepthMode.CLOSE
                 else DepthMode.FORWARD_CLOSE,
-                true, CullMode.BACK, ECSShaderLib.pbrModelShader
+                true,
+                CullMode.BACK, ECSShaderLib.pbrModelShader
             )
             pipeline.stages.add(pipeline.defaultStage)
             pipeline

@@ -36,7 +36,6 @@ import me.anno.gpu.texture.TextureHelper
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
@@ -45,7 +44,6 @@ import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
-import org.joml.Vector3d
 import org.lwjgl.opengl.GL46C.GL_BYTE
 import org.lwjgl.opengl.GL46C.GL_HALF_FLOAT
 import org.lwjgl.opengl.GL46C.GL_INT
@@ -56,7 +54,6 @@ import org.lwjgl.opengl.GL46C.GL_UNSIGNED_SHORT
 
 class PipelineStageImpl(
     var name: String,
-    var sorting: Sorting,
     var maxNumberOfLights: Int,
     var blendMode: BlendMode?,
     var depthMode: DepthMode,
@@ -541,11 +538,6 @@ class PipelineStageImpl(
         }
     }
 
-    fun DrawRequest.getZDistance(dir: Vector3d): Double {
-        val w = transform.globalTransform
-        return dir.dot(w.m30, w.m31, w.m32)
-    }
-
     var lastTransform: Transform? = null
     var lastMesh: IMesh? = null
     var lastShader: Shader? = null
@@ -566,25 +558,6 @@ class PipelineStageImpl(
 
         // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
         drawRequests.size = nextInsertIndex
-        val dir = RenderState.cameraDirection
-        if (!Input.isKeyDown('l')) when (sorting) {
-            Sorting.NO_SORTING -> {
-            }
-            Sorting.FRONT_TO_BACK -> {
-                drawRequests.sortWith { a, b ->
-                    val ma = a.getZDistance(dir)
-                    val mb = b.getZDistance(dir)
-                    mb.compareTo(ma)
-                }
-            }
-            Sorting.BACK_TO_FRONT -> {
-                drawRequests.sortWith { a, b ->
-                    val ma = a.getZDistance(dir)
-                    val mb = b.getZDistance(dir)
-                    ma.compareTo(mb)
-                }
-            }
-        }
 
         var drawnPrimitives = 0L
         var drawnInstances = 0L
@@ -801,5 +774,5 @@ class PipelineStageImpl(
     }
 
     fun clone() =
-        PipelineStageImpl(name, sorting, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
+        PipelineStageImpl(name, maxNumberOfLights, blendMode, depthMode, writeDepth, cullMode, defaultShader)
 }

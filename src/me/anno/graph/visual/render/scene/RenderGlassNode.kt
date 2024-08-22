@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -25,11 +24,9 @@ class RenderGlassNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
-        "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
-        "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
+        "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky", // todo draw sky maybe
         "Texture", "Illuminated",
         "Texture", "Depth"
     ),
@@ -41,11 +38,9 @@ class RenderGlassNode : RenderViewNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, PipelineStage.TRANSPARENT) // stage
-        setInput(5, Sorting.NO_SORTING)
-        setInput(6, 0) // camera index
-        setInput(7, false) // apply tonemapping
-        setInput(8, 0) // don't bake skybox
-        setInput(9, DrawSkyMode.DONT_DRAW_SKY)
+        setInput(5, false) // don't apply tonemapping
+        setInput(6, 0) // don't bake skybox
+        setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
 
     var renderer = pbrRendererNoDepth
@@ -61,14 +56,14 @@ class RenderGlassNode : RenderViewNode(
         timeRendering("$name-$stage", timer) {
             // val sorting = getInput(5) as Int
             // val cameraIndex = getInput(6) as Int
-            val applyToneMapping = getBoolInput(7)
+            val applyToneMapping = getBoolInput(5)
 
             val framebuffer = FBStack["scene-glass",
                 width, height, TargetType.Float16x4,
                 samples, DepthBufferType.INTERNAL]
 
-            val prepassColor = (getInput(10) as? Texture).texOrNull ?: whiteTexture
-            val depthTex = getInput(11) as? Texture
+            val prepassColor = (getInput(8) as? Texture).texOrNull ?: whiteTexture
+            val depthTex = getInput(9) as? Texture
             val prepassDepth = depthTex.texOrNull
 
             pipeline.applyToneMapping = applyToneMapping

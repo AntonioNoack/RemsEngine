@@ -133,9 +133,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionMapCalculation = "" +
                 "#ifdef DEFERRED\n" +
-                "   float reflectivity = getReflectivitySq(finalRoughness,finalMetallic);\n" +
+                "   float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
                 "   if(reflectivity > 0.0){\n" +
-                "       reflectivity = sqrt(reflectivity);\n" +
                 "       vec3 dir = $cubemapsAreLeftHanded * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear

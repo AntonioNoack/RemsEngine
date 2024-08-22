@@ -2,6 +2,7 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.Color.black4
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector4f
@@ -124,8 +125,14 @@ class DeferredLayerType(
             BufferQuality.FP_32, true, 0, "", ""
         )
 
+        // todo metallic and roughness can be joined into reflectivity
         val METALLIC = DeferredLayerType("Metallic", "finalMetallic", 0)
         val ROUGHNESS = DeferredLayerType("Roughness", "finalRoughness", 0xff)
+        val REFLECTIVITY = DeferredLayerType(
+            "Reflectivity", "finalReflectivity",
+            1, 1, BufferQuality.UINT_8, false,
+            black4, "getReflectivity(finalRoughness,finalMetallic)", ""
+        )
 
         // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
         // textures in materials are typically inverted, so they can be inverted here as well

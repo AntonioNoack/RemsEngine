@@ -65,8 +65,8 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
     val lightStage = LightPipelineStage(deferred)
 
     var defaultStage: PipelineStageImpl = PipelineStageImpl(
-        "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSE,
-        true, CullMode.BOTH, pbrModelShader
+        "default", 0, null, DepthMode.CLOSE, true,
+        CullMode.BOTH, pbrModelShader
     )
 
     var lastClickId = 0
@@ -100,17 +100,14 @@ class Pipeline(deferred: DeferredSettings?) : ICacheData {
                 when (stages.size) {
                     OPAQUE_PASS.id -> defaultStage
                     TRANSPARENT_PASS.id -> PipelineStageImpl(
-                        "transparent",
-                        Sorting.BACK_TO_FRONT, 64,
-                        BlendMode.DEFAULT, DepthMode.CLOSE, false, CullMode.BOTH,
-                        pbrModelShader
+                        "transparent", RenderView.MAX_FORWARD_LIGHTS, BlendMode.DEFAULT,
+                        DepthMode.CLOSE, false, CullMode.BOTH, pbrModelShader
                     )
                     DECAL_PASS.id -> PipelineStageImpl(
-                        "decal", Sorting.NO_SORTING, 64,
-                        null,
+                        "decal", RenderView.MAX_FORWARD_LIGHTS, null,
                         if (GFX.supportsClipControl) DepthMode.FARTHER
-                        else DepthMode.FORWARD_FARTHER, false, CullMode.BACK,
-                        pbrModelShader
+                        else DepthMode.FORWARD_FARTHER,
+                        false, CullMode.BACK, pbrModelShader
                     )
                     else -> defaultStage.clone()
                 }

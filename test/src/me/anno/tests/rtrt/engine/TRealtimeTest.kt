@@ -11,7 +11,6 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
-import me.anno.gpu.pipeline.Sorting
 import me.anno.language.translation.NameDesc
 import me.anno.maths.bvh.BVHBuilder
 import me.anno.maths.bvh.SplitMethod
@@ -59,8 +58,8 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): SampleTLAS {
     val source = sources[0]
     val pipeline = Pipeline(DeferredSettings(listOf(DeferredLayerType.COLOR)))
     pipeline.defaultStage = PipelineStageImpl(
-        "default", Sorting.NO_SORTING, 0, null, alwaysDepthMode, true,
-        CullMode.BOTH, ECSShaderLib.pbrModelShader
+        "default", 0, null, alwaysDepthMode, true, CullMode.BOTH,
+        ECSShaderLib.pbrModelShader
     )
 
     val prefab = PrefabCache[source] ?: throw IllegalStateException("Missing $source")

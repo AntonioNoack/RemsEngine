@@ -14,8 +14,6 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
-import me.anno.utils.Color.black
-import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS.downloads
 import me.anno.utils.OS.res
 
@@ -31,10 +29,7 @@ fun main() {
     val scene = Entity()
     scene.add(SDFSphere().apply {
         name = "Red Sphere"
-        val redMetal = Material()
-        redMetal.diffuseBase.set(0.9f, 0.1f, 0.1f)
-        redMetal.metallicMinMax.set(1f)
-        redMetal.roughnessMinMax.set(0f)
+        val redMetal = Material.metallic(0xe51a1a, 0f)
         sdfMaterials = listOf(redMetal.ref)
     })
     val sky = Skybox()
@@ -61,10 +56,7 @@ fun main() {
 
     scene.add(
         Entity("Golden Cube", SDFBox().apply {
-            val golden = Material()
-            (0xf5ba6c or black).toVecRGBA(golden.diffuseBase)
-            golden.metallicMinMax.set(1f)
-            golden.roughnessMinMax.set(1f)
+            val golden = Material.metallic(0xf5ba6c, 1f)
             sdfMaterials = listOf(golden.ref)
         }).setPosition(-2.5, 0.0, 0.0)
     )
@@ -79,10 +71,7 @@ fun main() {
             name = "Lucy"
             setPosition(0.0, -1.0, -2.5)
             setScale(2.5)
-            val golden = Material()
-            (0xf5ba6c or black).toVecRGBA(golden.diffuseBase)
-            golden.metallicMinMax.set(1f)
-            golden.roughnessMinMax.set(0f)
+            val golden = Material.metallic(0xf5ba6c, 0f)
             forAllComponentsInChildren(MeshComponent::class) {
                 it.materials = listOf(golden.ref)
             }
@@ -95,12 +84,10 @@ fun main() {
             val child = Entity(cubes)
             child.setPosition((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
             child.setScale(sc)
-            child.add(MeshComponent(flatCube.front).apply {
-                materials = listOf(Material().apply {
-                    metallicMinMax.set(j / 5f)
-                    roughnessMinMax.set(i / 10f)
-                }.ref)
-            })
+            child.add(MeshComponent(flatCube.front, Material().apply {
+                metallicMinMax.set(j / 5f)
+                roughnessMinMax.set(i / 10f)
+            }))
         }
     }
     testSceneWithUI("Metallic", scene) {

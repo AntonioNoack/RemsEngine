@@ -25,11 +25,10 @@ object RendererLib {
     val getReflectivity = "" +
             "#ifndef GET_REFLECTIVITY\n" +
             "#define GET_REFLECTIVITY\n" +
-            "float getReflectivitySq(float roughness, float metallic){\n" +
-            "   return max(mix(0.1,1.0,metallic),0.0) * max(0.0,1.0-roughness);\n" +
-            "}\n" +
             "float getReflectivity(float roughness, float metallic){\n" +
-            "   return sqrt(getReflectivitySq(roughness,metallic));\n" +
+            "   roughness = clamp(roughness, 0.0, 1.0);\n" +
+            "   metallic = clamp(metallic, 0.0, 1.0);\n" +
+            "   return mix(mix(0.1, 1.0, metallic), 0.0, roughness);\n" +
             "}\n" +
             "#endif\n"
 
@@ -38,12 +37,12 @@ object RendererLib {
             // todo it would be nice, if we could search the reflectionMap using its depth
             //  like screen-space reflections to get a more 3d look
             "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
-            "       float reflectivity = getReflectivitySq(finalRoughness,finalMetallic);\n" +
+            "       float reflectivity = getReflectivity(finalRoughness,finalMetallic);\n" +
             "       if(reflectivity > 0.0){\n" +
             "           vec3 dir = $cubemapsAreLeftHanded * reflect(V, finalNormal);\n" +
             "           float lod = finalRoughness * 10.0;\n" +
             "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * textureLod(reflectionMap, dir, lod).rgb;\n" +
-            "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity) * (1.0 - finalOcclusion));\n" +
+            "           finalColor = mix(finalColor, skyColor, reflectivity * (1.0 - finalOcclusion));\n" +
             "       }\n" +
             "   }\n"
 

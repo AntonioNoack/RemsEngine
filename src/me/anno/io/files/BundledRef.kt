@@ -34,8 +34,7 @@ class BundledRef private constructor(
     }
 
     override fun inputStreamSync(): InputStream {
-        return javaClass.classLoader.getResourceAsStream(resName)
-            ?: throw FileNotFoundException(absolutePath)
+        return inputStreamNullable() ?: throw FileNotFoundException(absolutePath)
     }
 
     private fun inputStreamNullable(): InputStream? {
@@ -56,17 +55,10 @@ class BundledRef private constructor(
         throw IOException("Cannot write to internal files")
     }
 
-    override fun delete(): Boolean {
-        throw IOException("Cannot write to internal files")
-    }
-
-    override fun mkdirs(): Boolean {
-        throw IOException("Cannot write to internal files")
-    }
-
-    override fun renameTo(newName: FileReference): Boolean {
-        throw IOException("Cannot write to internal files")
-    }
+    // these operations are all impossible
+    override fun delete(): Boolean = false
+    override fun mkdirs(): Boolean = false
+    override fun renameTo(newName: FileReference): Boolean = false
 
     override fun getParent(): FileReference = parentRef
 

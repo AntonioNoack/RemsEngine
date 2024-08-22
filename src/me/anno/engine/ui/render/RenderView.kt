@@ -48,7 +48,6 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.effects.FSR2v2
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
@@ -70,6 +69,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
@@ -272,7 +272,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         stage0.depthMode = depthMode
         stage0.blendMode = if (renderMode == RenderMode.OVERDRAW || renderMode == RenderMode.TRIANGLE_SIZE)
             BlendMode.ADD else null
-        stage0.sorting = Sorting.FRONT_TO_BACK
         stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
     }
 
@@ -892,10 +891,9 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         /**
          * maximum number of lights used for forward rendering
-         * when this number is surpassed, the engine switches to deferred rendering automatically
          * todo forward plus rendering?
          * */
-        val MAX_FORWARD_LIGHTS = 32
+        val MAX_FORWARD_LIGHTS = if (OS.isAndroid) 8 else 32
 
         val stack = Matrix4fArrayList()
 

@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 import me.anno.cache.ICacheData
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.RenderView.Companion.MAX_FORWARD_LIGHTS
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -12,7 +11,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStageImpl
-import me.anno.gpu.pipeline.Sorting
 
 /**
  * buffers for legacy RenderView-rendering
@@ -31,8 +29,7 @@ class RenderBuffers : ICacheData {
 
     val stage0 = PipelineStageImpl(
         "default",
-        Sorting.NO_SORTING,
-        MAX_FORWARD_LIGHTS,
+        RenderView.MAX_FORWARD_LIGHTS,
         null,
         DepthMode.CLOSE,
         true,
@@ -41,6 +38,7 @@ class RenderBuffers : ICacheData {
     )
 
     val pipeline = Pipeline(deferred)
+
     init {
         pipeline.defaultStage = stage0
         pipeline.stages.add(stage0)
@@ -54,5 +52,4 @@ class RenderBuffers : ICacheData {
         baseNBuffer1.destroy()
         pipeline.destroy()
     }
-
 }

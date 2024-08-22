@@ -14,7 +14,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
-import me.anno.utils.Color.black
+import me.anno.ui.UIColors
 import me.anno.utils.types.Vectors.avg
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -30,9 +30,9 @@ import kotlin.math.sin
 
 object Grid {
 
-    val xAxisColor = style.getColor("grid.axis.x.color", 0xff7777 or black)
-    val yAxisColor = style.getColor("grid.axis.y.color", 0x77ff77 or black)
-    val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
+    val xAxisColor = style.getColor("grid.axis.x.color", UIColors.axisXColor)
+    val yAxisColor = style.getColor("grid.axis.y.color", UIColors.axisYColor)
+    val zAxisColor = style.getColor("grid.axis.z.color", UIColors.axisZColor)
 
     private val attr = listOf(Attribute("coords", 3))
     val gridBuffer = StaticBuffer("grid", attr, 201 * 4)

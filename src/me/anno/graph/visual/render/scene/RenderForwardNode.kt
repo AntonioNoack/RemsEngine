@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.visual.render.Texture
@@ -24,8 +23,6 @@ class RenderForwardNode : RenderViewNode(
         "Int", "Height",
         "Int", "Samples",
         "Enum<me.anno.gpu.pipeline.PipelineStage>", "Stage",
-        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
-        "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
         "Int", "Skybox Resolution", // or 0 to not bake it
         "Enum<me.anno.graph.visual.render.scene.DrawSkyMode>", "Draw Sky",
@@ -36,10 +33,7 @@ class RenderForwardNode : RenderViewNode(
 
     companion object {
         fun listLayers(): List<String> {
-            return listOf(
-                "Texture", "Illuminated",
-                "Texture", "Depth"
-            )
+            return listOf("Texture", "Illuminated", "Texture", "Depth")
         }
     }
 
@@ -48,11 +42,9 @@ class RenderForwardNode : RenderViewNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, PipelineStage.OPAQUE) // stage
-        setInput(5, Sorting.NO_SORTING)
-        setInput(6, 0) // camera index
-        setInput(7, false) // apply tonemapping
-        setInput(8, 0) // don't bake skybox
-        setInput(9, DrawSkyMode.DONT_DRAW_SKY)
+        setInput(5, false) // don't apply tonemapping
+        setInput(6, 0) // don't bake skybox
+        setInput(7, DrawSkyMode.DONT_DRAW_SKY)
     }
 
     var renderer = pbrRenderer
@@ -74,7 +66,7 @@ class RenderForwardNode : RenderViewNode(
 
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
-        val applyToneMapping = getBoolInput(7)
+        val applyToneMapping = getBoolInput(5)
 
         val framebuffer = FBStack["scene-forward",
             width, height, TargetType.Float16x4,
@@ -82,12 +74,12 @@ class RenderForwardNode : RenderViewNode(
 
         // if skybox is not used, bake it anyway?
         // -> yes, the pipeline architect (^^) has to be careful
-        val skyboxResolution = getIntInput(8)
+        val skyboxResolution = getIntInput(6)
         pipeline.bakeSkybox(skyboxResolution)
 
-        val drawSky = getInput(9) as DrawSkyMode
-        val prepassColor = (getInput(10) as? Texture).texOrNull
-        val prepassDepth = getInput(11) as? Texture
+        val drawSky = getInput(7) as DrawSkyMode
+        val prepassColor = (getInput(8) as? Texture).texOrNull
+        val prepassDepth = getInput(9) as? Texture
 
         pipeline.applyToneMapping = applyToneMapping
         val depthMode = pipeline.defaultStage.depthMode
